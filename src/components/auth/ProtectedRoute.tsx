@@ -74,8 +74,8 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     }
 
     // Always allow render immediately — ban check runs in background.
-    // This prevents the "Loading your account" screen from getting stuck
-    // if a previous async check is still in flight on route change.
+    // This prevents account checks from blocking the route surface if a
+    // previous async check is still in flight on route change.
     setChecked(true);
 
     // Check cache first — apply cached ban state if any
