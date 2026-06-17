@@ -106,18 +106,44 @@ const normalizeAgencyProfile = <T extends AgencyProfileLike>(profile: T): Normal
   return { ...EMPTY_AGENCY_PROFILE, ...(profile as Record<string, unknown>) } as NormalizedAgencyProfile;
 };
 
-const normalizeAgencyHost = (host: Partial<AgencyHost> & { host_id: string }): AgencyHost => ({
-  id: host.id || host.host_id,
-  host_id: host.host_id,
-  joined_at: host.joined_at || new Date().toISOString(),
-  status: host.status || "active",
-  profile: normalizeAgencyProfile(host.profile),
-});
+const normalizeAgencyHost = (host: unknown): AgencyHost => {
+  const h = host && typeof host === "object" ? (host as Record<string, any>) : {};
+  const hostId = typeof h.host_id === "string" && h.host_id ? h.host_id : typeof h.id === "string" && h.id ? h.id : "unknown-host";
+  return {
+    id: typeof h.id === "string" && h.id ? h.id : hostId,
+    host_id: hostId,
+    joined_at: typeof h.joined_at === "string" && h.joined_at ? h.joined_at : new Date().toISOString(),
+    status: typeof h.status === "string" && h.status ? h.status : "active",
+    profile: normalizeAgencyProfile(h.profile),
+  };
+};
 
-const normalizeSubAgent = (subAgent: SubAgent): SubAgent => ({
-  ...subAgent,
-  profile: normalizeAgencyProfile(subAgent.profile),
-});
+const normalizeSubAgent = (subAgent: unknown): SubAgent => {
+  const sa = subAgent && typeof subAgent === "object" ? (subAgent as Record<string, any>) : {};
+  return {
+    id: typeof sa.id === "string" && sa.id ? sa.id : "unknown-sub-agent",
+    user_id: typeof sa.user_id === "string" && sa.user_id ? sa.user_id : "unknown-user",
+    referral_code: typeof sa.referral_code === "string" ? sa.referral_code : "",
+    commission_rate: typeof sa.commission_rate === "number" ? sa.commission_rate : 0,
+    total_referrals: typeof sa.total_referrals === "number" ? sa.total_referrals : 0,
+    total_earnings: typeof sa.total_earnings === "number" ? sa.total_earnings : 0,
+    status: typeof sa.status === "string" ? sa.status : "active",
+    joined_at: typeof sa.joined_at === "string" ? sa.joined_at : new Date().toISOString(),
+    profile: normalizeAgencyProfile(sa.profile),
+  };
+};
+
+const normalizeSubAgency = (subAgency: unknown) => {
+  const sa = subAgency && typeof subAgency === "object" ? (subAgency as Record<string, any>) : {};
+  return {
+    ...sa,
+    id: typeof sa.id === "string" && sa.id ? sa.id : "unknown-sub-agency",
+    name: typeof sa.name === "string" && sa.name ? sa.name : "Agency",
+    agency_code: typeof sa.agency_code === "string" ? sa.agency_code : "",
+    level: typeof sa.level === "string" && sa.level ? sa.level : "A1",
+    total_hosts: typeof sa.total_hosts === "number" ? sa.total_hosts : 0,
+  };
+};
 
 // Bulletproof: always returns a non-empty string, never throws — even if
 // `profile` is null/undefined/number/string or has frozen prototype.
