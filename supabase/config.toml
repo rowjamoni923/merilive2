@@ -94,6 +94,9 @@ project_id = "ayjdlvuurscxucatbbah"
   # Diagnostic: validates AGORA_APP_ID + AGORA_APP_CERTIFICATE by minting a test RTC token.
   [functions.agora-token-mint]
     verify_jwt = false
+  # Pkg501-D7p2: live thumbnail snapshot cron — pg_cron only, gated by x-cron-secret header.
+  [functions.live-snapshot-cron]
+    verify_jwt = false
 
 
 
