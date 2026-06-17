@@ -66,6 +66,22 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        @Volatile private var INSTANCE: LiveKitPlugin? = null
+
+        @JvmStatic
+        fun switchCameraFromNative() {
+            val plugin = INSTANCE ?: return
+            val track = plugin.previewTrack ?: return
+            plugin.scope.launch {
+                try {
+                    val nextPos = if (track.options.position == CameraPosition.FRONT) CameraPosition.BACK else CameraPosition.FRONT
+                    track.switchCamera(nextPos)
+                    plugin.runOnMain { plugin.previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "switchCameraFromNative", t)
+                }
+            }
+        }
 
         @JvmStatic
         fun notifyUserLeaveHint(activity: Activity) {
@@ -115,6 +131,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
+        INSTANCE = this
         // CameraX is the ONLY camera pipeline this plugin uses. We register
         // it globally with the LiveKit SDK so every createVideoTrack() /
         // setCameraEnabled() / startLocalPreview() call goes through CameraX.
@@ -139,6 +156,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { runOnMain { teardownAll() } } catch (_: Throwable) {}
+        if (INSTANCE === this) INSTANCE = null
         scope.cancel()
         super.handleOnDestroy()
     }
