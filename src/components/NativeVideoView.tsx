@@ -80,14 +80,16 @@ export const NativeVideoView = ({
       try {
         if (!attachedRef.current) {
           if (kind === 'local') {
-            await NativeLiveKit.attachLocalSurface({
+            const res = await NativeLiveKit.attachLocalSurface({
               viewId, x: b.x, y: b.y, width: b.w, height: b.h,
               mirror: mirror ?? true,
             });
+            if ((res as any)?.attached === false) throw new Error((res as any)?.reason || 'local_not_ready');
           } else {
-            await NativeLiveKit.attachRemoteSurface({
+            const res = await NativeLiveKit.attachRemoteSurface({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
+            if ((res as any)?.attached === false) throw new Error((res as any)?.reason || 'remote_not_ready');
           }
           if (cancelled) return;
           attachedRef.current = true;
