@@ -82,7 +82,27 @@ type AgencyProfileLike = {
   name?: string | null;
   avatar_url?: string | null;
   app_uid?: string | null;
+  id?: string | null;
+  is_online?: boolean | null;
+  total_earnings?: number | null;
+  is_verified?: boolean | null;
 } | null | undefined;
+
+const EMPTY_AGENCY_PROFILE = Object.freeze({
+  display_name: null,
+  agency_name: null,
+  name: null,
+  avatar_url: null,
+  app_uid: null,
+  is_online: false,
+  total_earnings: 0,
+  is_verified: false,
+});
+
+const normalizeAgencyProfile = <T extends AgencyProfileLike>(profile: T): NonNullable<AgencyProfileLike> => {
+  if (!profile || typeof profile !== "object") return { ...EMPTY_AGENCY_PROFILE };
+  return { ...EMPTY_AGENCY_PROFILE, ...(profile as Record<string, unknown>) } as NonNullable<AgencyProfileLike>;
+};
 
 // Bulletproof: always returns a non-empty string, never throws — even if
 // `profile` is null/undefined/number/string or has frozen prototype.
@@ -435,7 +455,7 @@ const AgencyDashboard = () => {
         const actualHostCount = hostsData.length;
         setHosts(hostsData.map(host => ({
           ...host,
-          profile: (hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id) || null
+          profile: normalizeAgencyProfile((hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id)) as AgencyHost['profile']
         })));
         if (agencyData.total_hosts !== actualHostCount) {
           supabase.from("agencies").update({ total_hosts: actualHostCount }).eq("id", agencyData.id);
@@ -445,7 +465,7 @@ const AgencyDashboard = () => {
         // ===== Process pending hosts =====
         setPendingHosts(pendingHostsData.map(host => ({
           ...host,
-          profile: (pendingHostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id) || null
+          profile: normalizeAgencyProfile((pendingHostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id))
         })));
 
         // ===== Process sub-agencies =====
@@ -477,7 +497,7 @@ const AgencyDashboard = () => {
         // ===== Process sub-agents =====
         setSubAgents(subAgentsData.map(sa => ({
           ...sa,
-          profile: (subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id)
+          profile: normalizeAgencyProfile((subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id))
         })));
 
         // ===== Process beans rate =====
