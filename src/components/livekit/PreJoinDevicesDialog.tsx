@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
+import { Eye, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
@@ -211,7 +211,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Camera className="w-5 h-5 text-primary" />
+            <Activity className="w-5 h-5 text-primary" />
             Device setup
           </DialogTitle>
         </DialogHeader>
@@ -242,7 +242,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           {/* Camera */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5" /> Camera
+              <Eye className="w-3.5 h-3.5" /> Camera
             </label>
             <Select
               value={prefs.videoinput ?? ''}
