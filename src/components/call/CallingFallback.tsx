@@ -10,6 +10,7 @@
  * its ringing state, so the transition is visually seamless.
  */
 import { PhoneOff } from 'lucide-react';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 interface CallingFallbackProps {
   remoteUserName: string;
@@ -34,6 +35,7 @@ export function CallingFallback({
         : 'Calling…';
 
   const initial = (remoteUserName || '?').trim().charAt(0).toUpperCase();
+  const nativeTransparent = isNativeAndroidApp();
 
   return (
     <div
@@ -41,8 +43,9 @@ export function CallingFallback({
         position: 'fixed',
         inset: 0,
         zIndex: 2147483646,
-        background:
-          'linear-gradient(180deg, #0b0f1a 0%, #111827 55%, #0b0f1a 100%)',
+        background: nativeTransparent
+          ? 'transparent'
+          : 'linear-gradient(180deg, #0b0f1a 0%, #111827 55%, #0b0f1a 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
