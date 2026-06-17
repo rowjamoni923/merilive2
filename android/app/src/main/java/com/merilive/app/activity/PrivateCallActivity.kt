@@ -194,6 +194,7 @@ class PrivateCallActivity : ComponentActivity() {
         registerBillingReceiver()
         registerResumeReceiver()
         wireUiToViewModel()
+        startNetworkQualityIndicator()
         wireBackPress()
         attachResilienceController()
 
@@ -777,12 +778,59 @@ class PrivateCallActivity : ComponentActivity() {
         billingReceiver = null
         resumeReceiver?.let { runCatching { unregisterReceiver(it) } }
         resumeReceiver = null
+        stopNetworkQualityIndicator()
         runCatching { audioRouter?.detach() }
         audioRouter = null
         runCatching { resilienceController?.detach() }
         resilienceController = null
         releaseProximityWakeLock(screenOnImmediately = true)
         super.onDestroy()
+    }
+
+    private fun startNetworkQualityIndicator() {
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        renderSignalBars(scoreNetwork(connectivityManager?.getNetworkCapabilities(connectivityManager?.activeNetwork)))
+        val cm = connectivityManager ?: return
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                renderSignalBars(scoreNetwork(cm.getNetworkCapabilities(network)))
+            }
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                renderSignalBars(scoreNetwork(caps))
+            }
+            override fun onLost(network: Network) { renderSignalBars(0) }
+        }
+        networkCallback = cb
+        runCatching { cm.registerDefaultNetworkCallback(cb) }
+    }
+
+    private fun stopNetworkQualityIndicator() {
+        val cm = connectivityManager
+        val cb = networkCallback
+        if (cm != null && cb != null) runCatching { cm.unregisterNetworkCallback(cb) }
+        networkCallback = null
+        connectivityManager = null
+    }
+
+    private fun scoreNetwork(caps: NetworkCapabilities?): Int {
+        if (caps == null) return 0
+        if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) return 1
+        val down = caps.linkDownstreamBandwidthKbps
+        val up = caps.linkUpstreamBandwidthKbps
+        return when {
+            down >= 10_000 && up >= 2_000 -> 4
+            down >= 4_000 && up >= 1_000 -> 3
+            down >= 1_000 && up >= 300 -> 2
+            else -> 1
+        }
+    }
+
+    private fun renderSignalBars(score: Int) {
+        runOnUiThread {
+            signalBars.forEachIndexed { idx, bar ->
+                bar.setBackgroundColor(if (idx < score) Color.parseColor("#6EE7B7") else Color.parseColor("#55FFFFFF"))
+            }
+        }
     }
 
     // ------------------------------------------------------------------
