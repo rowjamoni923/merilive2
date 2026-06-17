@@ -112,7 +112,12 @@ const AgentWallet = () => {
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use getSession() — reads from local storage (0ms) instead of
+      // getUser() which makes a network round-trip to validate the JWT
+      // (200-600ms on 4G). Wallet cold-open was waiting on that RTT
+      // before any balance query could start.
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         navigate("/auth");
         return;
@@ -134,6 +139,7 @@ const AgentWallet = () => {
     };
 
     fetchData();
+
 
     // Zero-refresh policy: no visibility/tab-return refetch. Wallet mutations
     // refresh balances inline, and push events update cross-screen state.
@@ -220,7 +226,7 @@ const AgentWallet = () => {
     // Use tiered transfer RPC (agency → helper wallet → personal coins)
     const { data: result, error } = await supabase
       .rpc("helper_transfer_coins_to_user", {
-        _sender_id: (await supabase.auth.getUser()).data.user?.id,
+        _sender_id: (await supabase.auth.getSession()).data.session?.user?.id,
         _receiver_id: foundUser.id,
         _amount: amount,
         _sender_type: agencyDiamondBalance >= amount ? 'agency_to_user' : 'trader_to_user',
@@ -243,7 +249,9 @@ const AgentWallet = () => {
     });
     
     // Refresh real balances from DB
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: { session: refreshSession } } = await supabase.auth.getSession();
+    const currentUser = refreshSession?.user ?? null;
+
     if (currentUser) await refreshBalances(currentUser.id);
     
     setIsProcessing(false);
@@ -278,7 +286,9 @@ const AgentWallet = () => {
     setIsProcessing(true);
 
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: exchSession } } = await supabase.auth.getSession();
+    const user = exchSession?.user ?? null;
+
     if (!user) {
       setIsProcessing(false);
       return;
