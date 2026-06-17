@@ -74,11 +74,14 @@ const Blacklist = () => {
           id: b.id,
           blocked_id: b.blocked_id,
           created_at: b.created_at ?? '',
-          blocked_profile: profileMap.get(b.blocked_id) ? {
-            display_name: profileMap.get(b.blocked_id)!.display_name,
-            avatar_url: profileMap.get(b.blocked_id)!.avatar_url,
-            username: profileMap.get(b.blocked_id)!.username,
-          } : null,
+          blocked_profile: (() => {
+            const profile = profileMap.get(b.blocked_id);
+            return profile ? {
+              display_name: profile.display_name,
+              avatar_url: profile.avatar_url,
+              username: profile.username,
+            } : null;
+          })(),
         })));
       } else {
         setBlockedUsers([]);

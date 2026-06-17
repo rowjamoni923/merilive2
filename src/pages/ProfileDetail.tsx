@@ -1007,7 +1007,7 @@ const ProfileDetail = () => {
                     : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female'),
                 }), { width: 128, quality: 85 })}
 
-                name={(profile as any).display_name || "U"}
+                name={(profile as any)?.display_name || "U"}
                 level={level}
                 size="lg"
                 showFrame={true}

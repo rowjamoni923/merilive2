@@ -786,7 +786,7 @@ const Leaderboard = () => {
                     </span>
                     
                     {/* Avatar */}
-                    <AvatarWithFrame userId={item.id} src={item.avatar_url || undefined} name={(item as any).display_name || "U"} level={getLevel(item)} size="sm" showFrame={true} />
+                    <AvatarWithFrame userId={item.id} src={item.avatar_url || undefined} name={(item as any)?.display_name || "U"} level={getLevel(item)} size="sm" showFrame={true} />
                     
                     {/* Name & info */}
                     <div className="flex-1 min-w-0">

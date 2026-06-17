@@ -799,9 +799,9 @@ const AgencyCoinTrader = () => {
                       }}
                       className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
                     >
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(user.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={(user as any).display_name || (user as any).agency_name || (user as any).name || "U"}
+                  name={(user as any)?.display_name || (user as any)?.agency_name || (user as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -821,9 +821,9 @@ const AgencyCoinTrader = () => {
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(selectedUser.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={(selectedUser as any).display_name || (selectedUser as any).agency_name || (selectedUser as any).name || "U"}
+                  name={(selectedUser as any)?.display_name || (selectedUser as any)?.agency_name || (selectedUser as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -962,9 +962,9 @@ const AgencyCoinTrader = () => {
           
           <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-3 pb-3 border-b">
-              <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(selectedUser?.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={(selectedUser as any).display_name || (selectedUser as any).agency_name || (selectedUser as any).name || "U"}
+                  name={(selectedUser as any)?.display_name || (selectedUser as any)?.agency_name || (selectedUser as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
