@@ -126,7 +126,7 @@ const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 const Tags = lazy(lazyRetry(() => import("./pages/Tags")));
 const MyPoster = lazy(lazyRetry(() => import("./pages/MyPoster")));
 const HostDashboard = lazy(lazyRetry(() => import("./pages/HostDashboard")));
-const OBSStreamSetup = lazy(lazyRetry(() => import("./pages/OBSStreamSetup")));
+
 const MyRecordings = lazy(lazyRetry(() => import("./pages/MyRecordings")));
 // HostVerification removed — host registration now uses the unified FaceVerification flow.
 const FaceVerification = lazy(lazyRetry(() => import("./pages/FaceVerification")));
@@ -1311,7 +1311,7 @@ const App = () => {
                 <Route path="/tags" element={<ProtectedRoute session={session}><Tags /></ProtectedRoute>} />
                 <Route path="/my-poster" element={<ProtectedRoute session={session}><MyPoster /></ProtectedRoute>} />
                 <Route path="/host-dashboard" element={<ProtectedRoute session={session}><HostDashboard /></ProtectedRoute>} />
-                <Route path="/host/obs-stream" element={<ProtectedRoute session={session}><OBSStreamSetup /></ProtectedRoute>} />
+                
                 <Route path="/my-recordings" element={<ProtectedRoute session={session}><MyRecordings /></ProtectedRoute>} />
                 <Route path="/host-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
