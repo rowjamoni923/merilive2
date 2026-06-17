@@ -106,18 +106,44 @@ const normalizeAgencyProfile = <T extends AgencyProfileLike>(profile: T): Normal
   return { ...EMPTY_AGENCY_PROFILE, ...(profile as Record<string, unknown>) } as NormalizedAgencyProfile;
 };
 
-const normalizeAgencyHost = (host: Partial<AgencyHost> & { host_id: string }): AgencyHost => ({
-  id: host.id || host.host_id,
-  host_id: host.host_id,
-  joined_at: host.joined_at || new Date().toISOString(),
-  status: host.status || "active",
-  profile: normalizeAgencyProfile(host.profile),
-});
+const normalizeAgencyHost = (host: unknown): AgencyHost => {
+  const h = host && typeof host === "object" ? (host as Record<string, any>) : {};
+  const hostId = typeof h.host_id === "string" && h.host_id ? h.host_id : typeof h.id === "string" && h.id ? h.id : "unknown-host";
+  return {
+    id: typeof h.id === "string" && h.id ? h.id : hostId,
+    host_id: hostId,
+    joined_at: typeof h.joined_at === "string" && h.joined_at ? h.joined_at : new Date().toISOString(),
+    status: typeof h.status === "string" && h.status ? h.status : "active",
+    profile: normalizeAgencyProfile(h.profile),
+  };
+};
 
-const normalizeSubAgent = (subAgent: SubAgent): SubAgent => ({
-  ...subAgent,
-  profile: normalizeAgencyProfile(subAgent.profile),
-});
+const normalizeSubAgent = (subAgent: unknown): SubAgent => {
+  const sa = subAgent && typeof subAgent === "object" ? (subAgent as Record<string, any>) : {};
+  return {
+    id: typeof sa.id === "string" && sa.id ? sa.id : "unknown-sub-agent",
+    user_id: typeof sa.user_id === "string" && sa.user_id ? sa.user_id : "unknown-user",
+    referral_code: typeof sa.referral_code === "string" ? sa.referral_code : "",
+    commission_rate: typeof sa.commission_rate === "number" ? sa.commission_rate : 0,
+    total_referrals: typeof sa.total_referrals === "number" ? sa.total_referrals : 0,
+    total_earnings: typeof sa.total_earnings === "number" ? sa.total_earnings : 0,
+    status: typeof sa.status === "string" ? sa.status : "active",
+    joined_at: typeof sa.joined_at === "string" ? sa.joined_at : new Date().toISOString(),
+    profile: normalizeAgencyProfile(sa.profile),
+  };
+};
+
+const normalizeSubAgency = (subAgency: unknown) => {
+  const sa = subAgency && typeof subAgency === "object" ? (subAgency as Record<string, any>) : {};
+  return {
+    ...sa,
+    id: typeof sa.id === "string" && sa.id ? sa.id : "unknown-sub-agency",
+    name: typeof sa.name === "string" && sa.name ? sa.name : "Agency",
+    agency_code: typeof sa.agency_code === "string" ? sa.agency_code : "",
+    level: typeof sa.level === "string" && sa.level ? sa.level : "A1",
+    total_hosts: typeof sa.total_hosts === "number" ? sa.total_hosts : 0,
+  };
+};
 
 // Bulletproof: always returns a non-empty string, never throws — even if
 // `profile` is null/undefined/number/string or has frozen prototype.
@@ -477,7 +503,7 @@ const AgencyDashboard = () => {
         // ===== Process sub-agencies =====
         const subAgenciesData = subAgenciesRes.data || [];
         const actualAgentCount = subAgenciesData.length;
-        setSubAgencies(subAgenciesData);
+        setSubAgencies(subAgenciesData.map(normalizeSubAgency));
         setSubAgencyCount(actualAgentCount);
         if (agencyData.total_agents !== actualAgentCount) {
           supabase.from("agencies").update({ total_agents: actualAgentCount }).eq("id", agencyData.id);
@@ -745,9 +771,14 @@ const AgencyDashboard = () => {
     return null;
   }
 
-  const totalHostEarnings = hosts.reduce((sum, h) => sum + (h.profile?.total_earnings || 0), 0);
-  const onlineHosts = hosts.filter(h => h.profile?.is_online).length;
-  const totalSubAgentEarnings = subAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
+  const safeHosts = hosts.map(normalizeAgencyHost);
+  const safePendingHosts = pendingHosts.map(normalizeAgencyHost);
+  const safeSubAgents = subAgents.map(normalizeSubAgent);
+  const safeSubAgencies = subAgencies.map(normalizeSubAgency);
+
+  const totalHostEarnings = safeHosts.reduce((sum, h) => sum + (h.profile.total_earnings || 0), 0);
+  const onlineHosts = safeHosts.filter(h => h.profile.is_online).length;
+  const totalSubAgentEarnings = safeSubAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
   
   // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
   const agencyBeansBalance = agency.wallet_balance || 0;
@@ -896,11 +927,11 @@ const AgencyDashboard = () => {
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 hover:bg-white/25 transition-all active:scale-95 relative"
               >
                 <Users className="w-3.5 h-3.5 mx-auto mb-0.5" />
-                <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
+                <p className="text-sm font-bold">{safeHosts.length || agency.total_hosts}</p>
                 <p className="text-[7px] text-white/70 uppercase">Hosts</p>
-                {pendingHosts.length > 0 && (
+                {safePendingHosts.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
-                    {pendingHosts.length}
+                    {safePendingHosts.length}
                   </span>
                 )}
               </button>
@@ -909,7 +940,7 @@ const AgencyDashboard = () => {
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 hover:bg-white/25 transition-all active:scale-95"
               >
                 <UserPlus className="w-3.5 h-3.5 mx-auto mb-0.5" />
-                <p className="text-sm font-bold">{subAgencyCount || subAgents.length}</p>
+                <p className="text-sm font-bold">{subAgencyCount || safeSubAgents.length}</p>
                 <p className="text-[7px] text-white/70 uppercase">Agents</p>
               </button>
               <div 
@@ -942,7 +973,7 @@ const AgencyDashboard = () => {
         const now = new Date();
         const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
         const daysRemaining = Math.max(0, 30 - daysSinceCreation);
-        const activeHostCount = hosts.filter(h => h.status === 'active').length;
+        const activeHostCount = safeHosts.filter(h => h.status === 'active').length;
         const progress = Math.min((activeHostCount / 10) * 100, 100);
         
         if (activeHostCount < 10 && daysRemaining > 0) {
@@ -992,7 +1023,7 @@ const AgencyDashboard = () => {
       })()}
 
       {/* Pending Host Requests */}
-      {pendingHosts.length > 0 && (
+      {safePendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
           <div className="rounded-2xl bg-gradient-to-r from-amber-900/80 to-orange-800/60 border border-amber-500/40 p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -1001,13 +1032,13 @@ const AgencyDashboard = () => {
               </div>
               <div>
                 <p className="font-bold text-amber-100 text-sm">
-                  🔔 {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
+                  🔔 {safePendingHosts.length} Pending Host Request{safePendingHosts.length > 1 ? 's' : ''}
                 </p>
                 <p className="text-[10px] text-amber-300/70">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {pendingHosts.map((ph) => (
+              {safePendingHosts.map((ph) => (
                 <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
                   <div className="flex items-center gap-2">
                     <AvatarWithFrame
@@ -1685,7 +1716,7 @@ const AgencyDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {hosts
+                {safeHosts
                   .sort((a, b) => (b.profile?.total_earnings || 0) - (a.profile?.total_earnings || 0))
                   .slice(0, 5)
                   .map((host, index) => (
@@ -1728,7 +1759,7 @@ const AgencyDashboard = () => {
                     </div>
                   ))}
                 
-                {hosts.length === 0 && (
+                {safeHosts.length === 0 && (
                   <div className="py-12 text-center">
                     <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
                       <Users className="w-8 h-8 text-muted-foreground" />
@@ -1816,7 +1847,7 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card className="border-0 shadow-md">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{subAgents.length}</p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{safeSubAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
@@ -1833,9 +1864,9 @@ const AgencyDashboard = () => {
                 <CardTitle className="text-base">Sub-Agent List</CardTitle>
               </CardHeader>
               <CardContent>
-                {subAgents.length > 0 ? (
+                {safeSubAgents.length > 0 ? (
                   <div className="space-y-3">
-                    {subAgents.map((sa) => (
+                    {safeSubAgents.map((sa) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <AvatarWithFrame
                           src={enhanceThumbnail(getProfileAvatar(sa.profile), { width: 96, quality: 82})}
@@ -1883,9 +1914,9 @@ const AgencyDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {subAgencies.length > 0 ? (
+                {safeSubAgencies.length > 0 ? (
                   <div className="space-y-3">
-                    {subAgencies.map((sa: any) => (
+                    {safeSubAgencies.map((sa: any) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                           <Building2 className="w-5 h-5 text-white" />
