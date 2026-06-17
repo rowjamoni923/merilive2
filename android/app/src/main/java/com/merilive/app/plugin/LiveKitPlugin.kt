@@ -519,7 +519,16 @@ class LiveKitPlugin : Plugin() {
             try {
                 lp.setCameraEnabled(enabled)
                 if (enabled && previewTrack == null) {
-                    previewTrack = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                    val resolved = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                    previewTrack = resolved
+                    // Pkg501 (Defect #5, Chamet/Bigo pattern): party seats that
+                    // mounted before camera publish stay black until the local
+                    // track lands. Push the freshly-resolved track into any
+                    // waiting seat slots so the host's own tile renders the
+                    // moment the camera comes up — no SFU-echo round-trip.
+                    if (resolved != null) {
+                        runOnMain { rebindSeatSlotsForLocalTrack(resolved) }
+                    }
                 }
                 call.resolve(JSObject().put("enabled", enabled))
             } catch (t: Throwable) { call.reject("setCameraEnabled: ${t.message}", t) }
@@ -704,7 +713,6 @@ class LiveKitPlugin : Plugin() {
             setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
             setMirror(mirror)
         }
-        try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         // Mount ABOVE the WebView so the camera tile is visible on top of the
         // (opaque) React seat tile. React layer still renders empty-seat UI,
         // gradients, badges, etc — only the inner video region is covered.
@@ -716,7 +724,11 @@ class LiveKitPlugin : Plugin() {
             is CoordinatorLayout -> CoordinatorLayout.LayoutParams(1, 1)
             else -> FrameLayout.LayoutParams(1, 1)
         }
+        // Pkg501: addView BEFORE initVideoRenderer so the EglBase context binds
+        // to a fully-attached surface. Reversing the order causes scrambled
+        // frames on first attach (Defect #3, video 2026-06-18).
         parent.addView(renderer, lp)
+        try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
         return slot
@@ -911,7 +923,6 @@ class LiveKitPlugin : Plugin() {
                         setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                         setMirror(mirror)
                     }
-                    room?.initVideoRenderer(renderer)
                     val lp: ViewGroup.MarginLayoutParams = when (parent) {
                         is CoordinatorLayout -> CoordinatorLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -922,7 +933,14 @@ class LiveKitPlugin : Plugin() {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
+                    // Pkg501 (Pro pattern, Chamet/Bigo + WebRTC docs): the
+                    // SurfaceViewRenderer MUST be attached to its parent window
+                    // BEFORE `initVideoRenderer()` binds an EglBase context.
+                    // Attaching after init causes the first ~10 frames to write
+                    // into a partially-initialised EGL surface → scrambled /
+                    // motion-blurred preview (Defect #3, video 2026-06-18).
                     parent.addView(renderer, 0, lp)
+                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
 
                     // Make WebView transparent so renderer behind it is visible.

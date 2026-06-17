@@ -529,7 +529,13 @@ const Index = () => {
               return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
             })()}
             alt={user.display_name || 'User'}
-            className="w-full h-full object-cover bg-muted"
+            className={cn(
+              "w-full h-full object-cover bg-muted",
+              // Pkg501 (Defect #7): Chamet/Bigo-style subtle Ken-Burns motion
+              // on live cards so static thumbnails feel "live". Only applied
+              // when host actually has a live thumbnail.
+              user.isLive && user.liveThumbnailUrl && "live-card-kenburns",
+            )}
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
             loading="eager"
             {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}

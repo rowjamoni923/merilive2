@@ -2840,7 +2840,7 @@ const Auth = () => {
                 </div>
               </div>
               
- <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
+ <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:saturate-100 disabled:hover:scale-100 disabled:cursor-not-allowed">
                 {loading ? (
  <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (

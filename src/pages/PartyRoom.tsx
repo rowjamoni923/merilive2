@@ -8,6 +8,7 @@ import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
+import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 import { 
   X, 
@@ -313,7 +314,7 @@ const PartyRoom = () => {
     if (partyProCamera.error) {
       toast.error('Camera is busy with face verification. Please finish that first.');
       // Pkg418 hard gate: bounce out of the room so LiveKit never races.
-      const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
+      const t = setTimeout(() => { try { clearNativeMediaSurface(); navigate(-1); } catch { /* ignore */ } }, 1500);
       return () => clearTimeout(t);
     }
   }, [partyProCamera.error, navigate]);
@@ -897,6 +898,7 @@ const PartyRoom = () => {
             
             if (!result.canAccess) {
               toast.error(`Level ${result.requiredLevel} required! Your current level: ${result.currentLevel}`);
+              clearNativeMediaSurface();
               navigate(-1);
               return;
             }
@@ -905,6 +907,7 @@ const PartyRoom = () => {
         
         if (roomData.error) {
           toast.error("Room not found");
+          clearNativeMediaSurface();
           navigate(-1);
           return;
         }
@@ -938,7 +941,7 @@ const PartyRoom = () => {
       } catch (error) {
         console.error('Error initializing room:', error);
         recordClientError({ label: "PartyRoom.result", message: error instanceof Error ? error.message : String(error) });
-        if (isMountedRef.current) navigate(-1);
+        if (isMountedRef.current) { clearNativeMediaSurface(); navigate(-1); }
       }
     };
     
@@ -1076,7 +1079,7 @@ const PartyRoom = () => {
       setShowRoomClosedModal(true);
       cleanupNativeLiveKit();
       setTimeout(() => {
-        if (isMountedRef.current) navigate('/');
+        if (isMountedRef.current) { clearNativeMediaSurface(); navigate('/'); }
       }, 7000);
     };
     window.addEventListener('livekit-party-closed', handleLiveKitPartyClosed);
@@ -1321,7 +1324,7 @@ const PartyRoom = () => {
             roomClosedRef.current = true;
             setShowRoomClosedModal(true);
             cleanupNativeLiveKit();
-            setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 7000);
+            setTimeout(() => { if (isMountedRef.current) { clearNativeMediaSurface(); navigate('/'); } }, 7000);
           }
         }
         return;
@@ -1364,7 +1367,7 @@ const PartyRoom = () => {
       playSound('notification');
       setShowRoomClosedModal(true);
       cleanupNativeLiveKit();
-      setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 7000);
+      setTimeout(() => { if (isMountedRef.current) { clearNativeMediaSurface(); navigate('/'); } }, 7000);
     };
 
     // Direct scoped channel for room close. This is the durable fallback when
@@ -2665,6 +2668,7 @@ const PartyRoom = () => {
           explicitLeaveRef.current = true;
           await leaveRoom();
           cleanupNativeLiveKit();
+          clearNativeMediaSurface();
           navigate('/');
         }}
         getPeerStream={getPeerStream}
@@ -3116,6 +3120,7 @@ const PartyRoom = () => {
         duration="0:00"
         onExit={() => {
           setShowRoomClosedModal(false);
+          clearNativeMediaSurface();
           navigate('/');
         }}
       />
