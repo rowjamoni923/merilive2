@@ -49,7 +49,7 @@ interface PaymentMethod {
   account_number: string;
   bank_name?: string;
   country_code?: string;
-  is_default: boolean;
+  is_primary: boolean;
   is_active: boolean;
 }
 
@@ -582,7 +582,7 @@ const Level5HelperDashboard = () => {
       .select('*')
       .eq('helper_id', id)
       .eq('is_active', true)
-      .order('is_default', { ascending: false });
+      .order('is_primary', { ascending: false });
     
     setPaymentMethods(data || []);
   };
@@ -894,7 +894,7 @@ const Level5HelperDashboard = () => {
           account_name: accountName,
           account_number: accountNumber,
           bank_name: bankName || null,
-          is_default: paymentMethods.length === 0,
+          is_primary: paymentMethods.length === 0,
           merchant_number: merchantNumber || null,
           is_merchant: isMerchant,
         });
@@ -2118,7 +2118,7 @@ const Level5HelperDashboard = () => {
                               {method.country_code && (
                                 <Badge className="bg-sky-50 text-sky-700 text-[10px]">{method.country_code}</Badge>
                               )}
-                              {method.is_default && (
+                              {method.is_primary && (
                                 <Badge className="bg-emerald-50 text-emerald-600 text-[10px]">Default</Badge>
                               )}
                             </div>
