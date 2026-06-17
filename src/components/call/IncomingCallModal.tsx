@@ -67,28 +67,27 @@ export function IncomingCallModal({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Subtle backdrop - tappable to ignore but keeps context visible */}
+          {/* Full-screen incoming ring surface */}
           <motion.div
             key="incoming-call-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[2147483640] bg-black/45"
+            className="fixed inset-0 z-[2147483640] bg-black/85 backdrop-blur-sm"
           />
 
-          {/* Card notification - slides down from top */}
           <motion.div
             key="incoming-call-card"
-            initial={{ y: -120, opacity: 0, scale: 0.95 }}
+            initial={{ y: 80, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -120, opacity: 0, scale: 0.95 }}
+            exit={{ y: 80, opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", damping: 24, stiffness: 300 }}
-            className="fixed top-4 left-3 right-3 z-[2147483641] max-w-md mx-auto"
+            className="fixed inset-0 z-[2147483641] flex items-center justify-center p-5"
             style={{ willChange: 'transform, opacity' }}
           >
             <div
-              className="relative overflow-hidden rounded-3xl border border-white/10"
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10"
               style={{
                 background: 'linear-gradient(135deg, rgba(15, 5, 36, 0.97) 0%, rgba(26, 10, 53, 0.98) 50%, rgba(13, 4, 32, 0.97) 100%)',
                 boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
@@ -122,8 +121,7 @@ export function IncomingCallModal({
                   </div>
                 </div>
 
-                {/* Main row: Avatar + Info + Buttons */}
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center gap-5 py-5 text-center">
                   {/* Caller Avatar with ripple */}
                   <div className="relative flex-shrink-0">
                     {/* Ripple ring */}
@@ -146,22 +144,21 @@ export function IncomingCallModal({
                   </div>
 
                   {/* Caller info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-white font-bold text-base truncate">
+                  <div className="min-w-0">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <h3 className="text-white font-bold text-2xl truncate">
                         {callerName}
                       </h3>
                       {callerLevel >= 20 && (
                         <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
                       )}
                     </div>
-                    <p className="text-white/40 text-xs mt-0.5">
+                    <p className="text-white/55 text-sm mt-2">
                       Tap to answer the call
                     </p>
                   </div>
 
-                  {/* Action buttons - compact */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-10 flex-shrink-0">
                     {/* Decline */}
                     <button
                       onClick={(e) => {
