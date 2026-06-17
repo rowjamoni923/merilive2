@@ -388,23 +388,11 @@ import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToast
 
 
 // =============================================
-// ROUTE LOADER - visible fallback to prevent blank/black screen during lazy chunk loads
+// ROUTE LOADER
 // =============================================
-const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string }) => (
-  <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
-    <div className="w-full max-w-sm rounded-2xl border border-border bg-card/80 p-6 text-center shadow-sm backdrop-blur-sm">
-      <div className="mb-4 flex justify-center">
-        <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
-      </div>
-      <h1 className="text-base font-semibold text-foreground">MeriLive</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-    </div>
-  </div>
-));
-
-// Route chunks now load on demand; keep a real themed fallback so slow networks
-// never show a white/blank screen while a lazy page chunk downloads.
-const RouteSuspenseFallback = memo(() => <PageLoader message="Loading..." />);
+// User app routes must never show a blocking branded loading card/spinner.
+// Lazy chunks resolve silently; existing/cached UI stays the perceived surface.
+const RouteSuspenseFallback = memo(() => null);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
