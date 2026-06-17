@@ -14,6 +14,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.merilive.app.rtc.RtcEngineManager
 import io.livekit.android.ConnectOptions
 import io.livekit.android.LiveKit
 import io.livekit.android.RoomOptions
@@ -321,6 +322,7 @@ class LiveKitPlugin : Plugin() {
 
         r.connect(args.url, args.token, ConnectOptions())
         isConnected = true
+        RtcEngineManager.bindRoom(r)
 
         if (args.publishAudio) {
             r.localParticipant.setMicrophoneEnabled(true)
@@ -364,6 +366,7 @@ class LiveKitPlugin : Plugin() {
                 try { room?.disconnect() } catch (t: Throwable) {
                     Log.w(TAG, "disconnectSessionOnly room.disconnect failed", t)
                 }
+                RtcEngineManager.clearRoom(room)
                 isConnected = false
                 // Intentionally KEEP: room (re-used by promotePreviewToSession),
                 // previewTrack, previewRenderer, boundedMode, renderer slots' DOM.
@@ -975,6 +978,7 @@ class LiveKitPlugin : Plugin() {
         previewTrack = null
         detachRenderer()
         try { room?.disconnect() } catch (_: Throwable) {}
+        RtcEngineManager.clearRoom(room)
         room = null
         isConnected = false
         boundedMode = false
