@@ -88,6 +88,8 @@ type AgencyProfileLike = {
   is_verified?: boolean | null;
 } | null | undefined;
 
+type NormalizedAgencyProfile = NonNullable<AgencyProfileLike>;
+
 const EMPTY_AGENCY_PROFILE = Object.freeze({
   display_name: null,
   agency_name: null,
@@ -99,10 +101,23 @@ const EMPTY_AGENCY_PROFILE = Object.freeze({
   is_verified: false,
 });
 
-const normalizeAgencyProfile = <T extends AgencyProfileLike>(profile: T): NonNullable<AgencyProfileLike> => {
+const normalizeAgencyProfile = <T extends AgencyProfileLike>(profile: T): NormalizedAgencyProfile => {
   if (!profile || typeof profile !== "object") return { ...EMPTY_AGENCY_PROFILE };
-  return { ...EMPTY_AGENCY_PROFILE, ...(profile as Record<string, unknown>) } as NonNullable<AgencyProfileLike>;
+  return { ...EMPTY_AGENCY_PROFILE, ...(profile as Record<string, unknown>) } as NormalizedAgencyProfile;
 };
+
+const normalizeAgencyHost = (host: Partial<AgencyHost> & { host_id: string }): AgencyHost => ({
+  id: host.id || host.host_id,
+  host_id: host.host_id,
+  joined_at: host.joined_at || new Date().toISOString(),
+  status: host.status || "active",
+  profile: normalizeAgencyProfile(host.profile),
+});
+
+const normalizeSubAgent = (subAgent: SubAgent): SubAgent => ({
+  ...subAgent,
+  profile: normalizeAgencyProfile(subAgent.profile),
+});
 
 // Bulletproof: always returns a non-empty string, never throws — even if
 // `profile` is null/undefined/number/string or has frozen prototype.
@@ -168,13 +183,7 @@ interface AgencyHost {
   host_id: string;
   joined_at: string;
   status: string;
-  profile: {
-    display_name: string | null;
-    avatar_url: string | null;
-    is_online: boolean | null;
-    total_earnings: number | null;
-    is_verified: boolean | null;
-  } | null;
+  profile: NormalizedAgencyProfile;
 }
 
 interface PerformanceData {
@@ -193,10 +202,7 @@ interface SubAgent {
   total_earnings: number;
   status: string;
   joined_at: string;
-  profile?: {
-    display_name: string | null;
-    avatar_url: string | null;
-  };
+  profile?: NormalizedAgencyProfile;
 }
 
 const CHART_COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
@@ -453,9 +459,9 @@ const AgencyDashboard = () => {
 
         // ===== Process hosts =====
         const actualHostCount = hostsData.length;
-        setHosts(hostsData.map(host => ({
+        setHosts(hostsData.map(host => normalizeAgencyHost({
           ...host,
-          profile: normalizeAgencyProfile((hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id)) as AgencyHost['profile']
+          profile: normalizeAgencyProfile((hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id))
         })));
         if (agencyData.total_hosts !== actualHostCount) {
           supabase.from("agencies").update({ total_hosts: actualHostCount }).eq("id", agencyData.id);
@@ -495,7 +501,7 @@ const AgencyDashboard = () => {
         // subAgencyCount already set above
 
         // ===== Process sub-agents =====
-        setSubAgents(subAgentsData.map(sa => ({
+        setSubAgents(subAgentsData.map(sa => normalizeSubAgent({
           ...sa,
           profile: normalizeAgencyProfile((subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id))
         })));
@@ -633,7 +639,7 @@ const AgencyDashboard = () => {
         toast({ title: "✅ Host Approved", description: "Host has been added to your agency!" });
         const approvedHost = pendingHosts.find(h => h.host_id === hostId);
         setPendingHosts(prev => prev.filter(h => h.host_id !== hostId));
-        setHosts(prev => [...prev, { host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: '', profile: approvedHost?.profile }]);
+        setHosts(prev => [...prev, normalizeAgencyHost({ host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: hostId, profile: approvedHost?.profile })]);
         
         // Notify the host about approval
         import('@/utils/agencyNotifications').then(({ notifyHostApprovalResult }) => {

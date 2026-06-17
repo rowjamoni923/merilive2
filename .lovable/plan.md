@@ -44,3 +44,15 @@
 Approve করলে Phase 1 দিয়ে শুরু — call flow পুরো read → competitor pattern research → diagnosis report → targeted fix → APK-rebuild needed/not honest answer। তারপর Phase 2-এ যাব।
 
 **Estimated:** Phase 1 ~৪০-৬০ মিনিট (research + read + fix), Phase 2 ~৩০-৪৫ মিনিট। মোট ~১.৫-২ ঘণ্টার surgical কাজ — কিন্তু আগের ৪ রাউন্ডের চেয়ে actual ফল আসবে।
+
+## Emergency Fix — AgencyDashboard null display_name crash (2026-06-17)
+**User-visible failure:** Agency dashboard crashed with `TypeError: Cannot read properties of null (reading 'display_name')` in `AgencyDashboard` render.
+
+**Research/pro standard:** Chamet/Bigo-style agency dashboards must never crash when a joined member profile row is missing/deleted/RLS-hidden; list rows render a safe fallback name/avatar and keep actions available.
+
+**Root cause:** agency host/sub-agent state could still receive a `null`/missing `profile` from Supabase joins/manual approve path, then a child/list render path attempted to read `display_name`.
+
+**Fix shipped:** `AgencyDashboard.tsx` now normalizes every agency host and sub-agent through a non-null `NormalizedAgencyProfile`, including the host approval path, so render receives fallback profile fields instead of null.
+
+**Verification target:** `/agency-dashboard` must render without ErrorBoundary even when host/sub-agent profile rows are missing; no `display_name` null TypeError in console.
+
