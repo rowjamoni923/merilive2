@@ -21,7 +21,6 @@ import {
   Sword,
   ChevronRight,
   AlertCircle,
-  Camera,
   ShieldCheck
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -271,7 +270,7 @@ export const ChametSettingsPanel = ({
                 kind: 'toggle',
                 key: 'cam',
                 label: 'Switch the Camera',
-                icon: Camera,
+                icon: RefreshCcw,
                 iconGrad: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
                 iconShadow: '0 6px 18px -4px rgba(16,185,129,0.55)',
                 checked: !isFrontCamera,
