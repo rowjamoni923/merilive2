@@ -518,9 +518,10 @@ const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
   const isInitialAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-  // ⚡ Skip the splash loader entirely if we already have a stored session.
-  // initSession() runs in the background and hydrates the real Session object.
-  const [loading, setLoading] = useState(() => !isInitialAdminRoute && !isStandalonePublicLocation() && !hasStoredSupabaseSession());
+  // ⚡ Never block first paint for auth/session IO. Native session hydration and
+  // Supabase recovery run in the background; route surfaces render from cached
+  // UI immediately and then reconcile when the real Session arrives.
+  const [loading, setLoading] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -1161,7 +1162,7 @@ const App = () => {
         dehydrateOptions: {
           shouldDehydrateQuery: (query: any) => {
             const root = String(query?.queryKey?.[0] ?? '');
-            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance'].includes(root);
+            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
           },
         },
       }}

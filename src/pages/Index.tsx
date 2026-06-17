@@ -184,15 +184,17 @@ const Index = () => {
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
-      // Pkg369: bump cache key to invalidate pre-Pkg368 snapshots that may
-      // still contain hosts marked is_online=true even though server now
-      // considers them offline (heartbeat>30min OR availability='offline').
+      // Persist the first-screen home snapshot across Android process kills so
+      // the feed paints instantly from disk while the live RPC refreshes.
       window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
-      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v2");
+      const raw = window.localStorage.getItem("index-hosts-instant-cache-v3")
+        || window.localStorage.getItem("index-hosts-instant-cache-v2")
+        || window.sessionStorage.getItem("index-hosts-instant-cache-v2");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed)
-        ? parsed.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
+      const list = Array.isArray(parsed) ? parsed : parsed?.hosts;
+      return Array.isArray(list)
+        ? list.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
         : [];
     } catch {
       return [];
@@ -293,9 +295,9 @@ const Index = () => {
 
     try {
       if (snapshot.length > 0) {
-        window.sessionStorage.setItem("index-hosts-instant-cache-v2", JSON.stringify(snapshot));
+        window.localStorage.setItem("index-hosts-instant-cache-v3", JSON.stringify({ at: Date.now(), hosts: snapshot }));
       } else {
-        window.sessionStorage.removeItem("index-hosts-instant-cache-v2");
+        window.localStorage.removeItem("index-hosts-instant-cache-v3");
       }
     } catch {
       // no-op

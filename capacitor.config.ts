@@ -84,7 +84,10 @@ const config: CapacitorConfig = {
   ],
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      // Android must not sit on a timed splash/loading screen. The native
+      // window is removed as soon as the WebView is ready; main.tsx still calls
+      // SplashScreen.hide() as a safety net after React mounts.
+      launchShowDuration: 0,
       launchAutoHide: true,
       backgroundColor: '#0a0a0f',
       showSpinner: false,
