@@ -298,6 +298,27 @@ class LiveKitPlugin : Plugin() {
         }
         room = r
         observeRoomEvents(r)
+
+        // Professional Android live/call pattern (Agora startPreview → join):
+        // open CameraX and bind the local renderer BEFORE the network-bound
+        // room.connect() suspension. Without this, 4G/5G signaling latency is
+        // added directly to first camera frame, producing the 5–10s blank/ dark
+        // surface seen in party rooms and private calls.
+        if (args.publishVideo && previewTrack == null) {
+            val opts = LocalVideoTrackOptions(position = CameraPosition.FRONT)
+            val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
+            track.startCapture()
+            previewTrack = track
+            if (!boundedMode) {
+                ensureRendererAttached(true)
+                previewRenderer?.let { renderer ->
+                    try { track.addRenderer(renderer) } catch (_: Throwable) {}
+                }
+            }
+            rebindSeatSlotsForLocalTrack(track)
+            Log.i(TAG, "promotePreviewToSession: prewarmed local camera before room.connect")
+        }
+
         r.connect(args.url, args.token, ConnectOptions())
         isConnected = true
 
