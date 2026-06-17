@@ -471,9 +471,9 @@ const AgencyHostManagement = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(hostData.host?.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={(hostData.host as any).display_name || (hostData.host as any).agency_name || (hostData.host as any).name || "U"}
+                  name={(hostData.host as any)?.display_name || (hostData.host as any)?.agency_name || (hostData.host as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

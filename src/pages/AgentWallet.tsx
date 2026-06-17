@@ -602,9 +602,9 @@ const AgentWallet = () => {
                     onClick={() => handleSelectUser(user)}
                     className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 border-t transition-colors"
                   >
-                    <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(user.avatar_url || "", { width: 96, quality: 82})}
-                  name={(user as any).display_name || (user as any).agency_name || (user as any).name || "U"}
+                  name={(user as any)?.display_name || (user as any)?.agency_name || (user as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -632,7 +632,7 @@ const AgentWallet = () => {
               <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
                 <AvatarWithFrame
                   src={enhanceThumbnail(foundUser.avatar_url || "", { width: 96, quality: 82})}
-                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
+                  name={(foundUser as any)?.display_name || (foundUser as any)?.agency_name || (foundUser as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

@@ -410,9 +410,9 @@ const AgentRank = () => {
                       transition={{ repeat: Infinity, duration: 2.5 }}
                       className={`${config.ringSize} rounded-full bg-gradient-to-b ${config.ring} ${config.glow}`}
                     >
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(entry.owner_avatar || entry.logo_url || undefined, { width: 96, quality: 82})}
-                  name={(entry as any).display_name || (entry as any).agency_name || (entry as any).name || "U"}
+                  name={(entry as any)?.display_name || (entry as any)?.agency_name || (entry as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -505,9 +505,9 @@ const AgentRank = () => {
                   
                   {/* Avatar */}
                   <div className="relative">
-                    <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(agency.owner_avatar || agency.logo_url || undefined, { width: 96, quality: 82})}
-                  name={(agency as any).display_name || (agency as any).agency_name || (agency as any).name || "U"}
+                  name={(agency as any)?.display_name || (agency as any)?.agency_name || (agency as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -561,7 +561,7 @@ const AgentRank = () => {
             </div>
             <AvatarWithFrame
                   src={enhanceThumbnail(currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined, { width: 96, quality: 82})}
-                  name={(currentUserAgency as any).display_name || (currentUserAgency as any).agency_name || (currentUserAgency as any).name || "U"}
+                  name={(currentUserAgency as any)?.display_name || (currentUserAgency as any)?.agency_name || (currentUserAgency as any)?.name || "U"}
                   level={1}
                   size="xs"
                   showFrame={true}
