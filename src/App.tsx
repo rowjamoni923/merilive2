@@ -126,7 +126,7 @@ const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 const Tags = lazy(lazyRetry(() => import("./pages/Tags")));
 const MyPoster = lazy(lazyRetry(() => import("./pages/MyPoster")));
 const HostDashboard = lazy(lazyRetry(() => import("./pages/HostDashboard")));
-const OBSStreamSetup = lazy(lazyRetry(() => import("./pages/OBSStreamSetup")));
+
 const MyRecordings = lazy(lazyRetry(() => import("./pages/MyRecordings")));
 // HostVerification removed — host registration now uses the unified FaceVerification flow.
 const FaceVerification = lazy(lazyRetry(() => import("./pages/FaceVerification")));
