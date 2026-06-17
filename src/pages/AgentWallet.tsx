@@ -226,7 +226,7 @@ const AgentWallet = () => {
     // Use tiered transfer RPC (agency → helper wallet → personal coins)
     const { data: result, error } = await supabase
       .rpc("helper_transfer_coins_to_user", {
-        _sender_id: (await supabase.auth.getUser()).data.user?.id,
+        _sender_id: (await supabase.auth.getSession()).data.session?.user?.id,
         _receiver_id: foundUser.id,
         _amount: amount,
         _sender_type: agencyDiamondBalance >= amount ? 'agency_to_user' : 'trader_to_user',
