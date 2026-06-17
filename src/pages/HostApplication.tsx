@@ -460,9 +460,9 @@ const HostApplication = () => {
                 {foundUser && (
                   <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={foundUser.avatar_url || undefined}
-                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
+                  name={(foundUser as any)?.display_name || (foundUser as any)?.agency_name || (foundUser as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -564,9 +564,9 @@ const HostApplication = () => {
           {/* User Info Card */}
           <div className="bg-white rounded-2xl p-4 shadow-sm border mb-4">
             <div className="flex items-center gap-3">
-              <AvatarWithFrame
+                <AvatarWithFrame
                   src={foundUser?.avatar_url || undefined}
-                  name={(foundUser as any).display_name || (foundUser as any).agency_name || (foundUser as any).name || "U"}
+                  name={(foundUser as any)?.display_name || (foundUser as any)?.agency_name || (foundUser as any)?.name || "U"}
                   level={1}
                   size="md"
                   showFrame={true}
