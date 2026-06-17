@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS idx_profiles_updated_at_desc ON public.profiles (updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_profiles_host_gender_country ON public.profiles (is_host, gender) WHERE country_code IS NOT NULL AND country_flag IS NOT NULL;
