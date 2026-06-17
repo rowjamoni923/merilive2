@@ -286,7 +286,9 @@ const AgentWallet = () => {
     setIsProcessing(true);
 
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session: exchSession } } = await supabase.auth.getSession();
+    const user = exchSession?.user ?? null;
+
     if (!user) {
       setIsProcessing(false);
       return;
