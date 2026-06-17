@@ -29,6 +29,7 @@ import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 import { useNativeFeed } from "@/hooks/useNativeFeed";
 import type { NativeFeedCard } from "@/plugins/NativeFeed";
+import { getConnectionTier } from "@/utils/connectionProfile";
 
 interface Profile {
   id: string;
@@ -313,12 +314,15 @@ const Index = () => {
   // thumbnails. No-op on web/iOS or when flag is off. Drastically reduces
   // image jank when killed-cold scroll begins on Android.
   const nativePrefetchUrls = useMemo(
-    () =>
-      displayHosts
-        .slice(0, 24)
+    () => {
+      const tier = getConnectionTier();
+      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+      return displayHosts
+        .slice(0, max)
         .flatMap((h) => [h.avatar_url, h.liveThumbnailUrl])
         .map((u) => (u ? normalizeProfileMediaUrl(u) || u : null))
-        .filter((u): u is string => !!u),
+        .filter((u): u is string => !!u);
+    },
     [displayHosts]
   );
   useNativeImagePrefetch(nativePrefetchUrls);
@@ -349,7 +353,7 @@ const Index = () => {
 
     // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
     const warmableUrls = hosts
-      .slice(0, 24)
+      .slice(0, getConnectionTier() === "3g" ? 12 : 24)
       .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 

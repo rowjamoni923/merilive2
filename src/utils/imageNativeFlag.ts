@@ -12,8 +12,9 @@
  *      already got VAP/Reels native also gets image native (consistent
  *      perceived performance, no zig-zag testing).
  *
- * Default: OFF. Existing <img> / CSS background-image path stays the only
- * code path until this flag is enabled. ADDITIVE — zero regression.
+ * Default: prefetch ON for Android because it only warms Glide disk cache for
+ * already-visible first-screen URLs. The WebView interceptor remains OFF unless
+ * explicitly enabled, because it rewrites every image request.
  *
  * The *interceptor* (server cached images for every <img>) is a SEPARATE,
  * stricter sub-flag — `image:native:interceptor`. Prefetch can run safely
@@ -108,7 +109,7 @@ export function isNativeImageFlagEnabled(): boolean {
   if (override !== null) return override;
   if (cachedRemoteEnabled === false) return false;
   if (cachedRemoteEnabled === true && cachedRemoteRolloutPercent == null) return true;
-  if (cachedRemoteRolloutPercent == null) return false;
+  if (cachedRemoteRolloutPercent == null) return true;
   return getStableBucket() < cachedRemoteRolloutPercent;
 }
 
