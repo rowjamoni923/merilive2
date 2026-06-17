@@ -487,26 +487,6 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
 RouteScopedBackgroundHooks.displayName = 'RouteScopedBackgroundHooks';
 
-// ⚡ INSTANT-BOOT helper: synchronously detect a stored Supabase session in
-// localStorage so we can skip the full-screen "Checking your session..." loader
-// on the very first paint. The actual session object is still loaded
-// asynchronously by initSession(), but we can render the UI immediately.
-const hasStoredSupabaseSession = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      // supabase-js v2 stores under keys like "sb-<ref>-auth-token"
-      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-        const raw = localStorage.getItem(key);
-        if (raw && raw.length > 20) return true;
-      }
-    }
-  } catch {}
-  return false;
-};
-
 const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
   useEnableBrowserPageInteraction();
   return <>{children}</>;
@@ -517,7 +497,6 @@ const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</S
 const App = () => {
   useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
-  const isInitialAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
   // ⚡ Never block first paint for auth/session IO. Native session hydration and
   // Supabase recovery run in the background; route surfaces render from cached
   // UI immediately and then reconcile when the real Session arrives.

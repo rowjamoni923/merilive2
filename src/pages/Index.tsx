@@ -351,9 +351,12 @@ const Index = () => {
       .slice(0, 8)
       .map((host) => host.liveStreamId as string);
 
-    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
+    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering,
+    // without flooding weaker/data-saver networks.
+    const tier = getConnectionTier();
+    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
     const warmableUrls = hosts
-      .slice(0, getConnectionTier() === "3g" ? 12 : 24)
+      .slice(0, warmImageLimit)
       .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
