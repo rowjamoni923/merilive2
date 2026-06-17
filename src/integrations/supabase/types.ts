@@ -7998,6 +7998,7 @@ export type Database = {
           room_id: string | null
           room_name: string | null
           rtmp_url: string | null
+          snapshot_egress_id: string | null
           started_at: string | null
           status: string | null
           stream_key: string | null
@@ -8033,6 +8034,7 @@ export type Database = {
           room_id?: string | null
           room_name?: string | null
           rtmp_url?: string | null
+          snapshot_egress_id?: string | null
           started_at?: string | null
           status?: string | null
           stream_key?: string | null
@@ -8068,6 +8070,7 @@ export type Database = {
           room_id?: string | null
           room_name?: string | null
           rtmp_url?: string | null
+          snapshot_egress_id?: string | null
           started_at?: string | null
           status?: string | null
           stream_key?: string | null
@@ -18388,6 +18391,7 @@ export type Database = {
           room_id: string | null
           room_name: string | null
           rtmp_url: string | null
+          snapshot_egress_id: string | null
           started_at: string | null
           status: string | null
           stream_key: string | null
