@@ -257,6 +257,20 @@ class PrivateCallViewModel : ViewModel() {
         _state.value = if (peerHasVideo(r)) CallState.CONNECTED else CallState.CONNECTING
         observeRoom(r)
         captureInitialTracks(r)
+        // Pkg501 (Defect #6, Chamet/Bigo/WhatsApp pattern): caller MUST see
+        // their own self-preview during DIALING / RINGING, not a black frame.
+        // If the local camera publication hasn't started yet, kick it off so
+        // `_localVideo` resolves and `attachLocal` mounts the renderer before
+        // the callee answers. Idempotent — no-ops if already enabled.
+        viewModelScope.launch {
+            try {
+                if (r.localParticipant.getTrackPublication(Track.Source.CAMERA) == null) {
+                    r.localParticipant.setCameraEnabled(true)
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "attachToCurrentRoom: early camera enable failed: ${t.message}")
+            }
+        }
         startDurationTicker()
         return true
     }
