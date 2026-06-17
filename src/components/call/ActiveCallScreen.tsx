@@ -275,6 +275,7 @@ export function ActiveCallScreen({
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
   const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
   const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
+  const shouldExposeNativePreview = isNativeAndroidApp() && !localVideoTrack && !isLiveConnected;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
@@ -854,7 +855,7 @@ export function ActiveCallScreen({
     >
       <div
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
-        style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
+        style={{ opacity: (showNativeCallingSurface || shouldExposeNativePreview) ? 0 : 1 }}
       />
 
       {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
@@ -1036,7 +1037,7 @@ export function ActiveCallScreen({
               </div>
             ) : (
               <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]" />
+                <div className={cn("absolute inset-0", shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]")} />
               </div>
             )}
             
