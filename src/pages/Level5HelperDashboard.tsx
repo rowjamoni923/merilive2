@@ -5,7 +5,7 @@ import {
   ArrowLeft, Wallet, Bell, Clock, CheckCircle, XCircle, 
   Upload, Image, DollarSign, Banknote, CreditCard, Plus,
   ChevronRight, Phone, AlertCircle, Loader2, Gem, Crown,
-  Building2, User, Camera, Send, Eye, Trash2, FileText, Package, Copy,
+  Building2, User, Send, Eye, Trash2, FileText, Package, Copy,
   Reply, MessageCircle, ImagePlus, X
 } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
@@ -2820,7 +2820,7 @@ const Level5HelperDashboard = () => {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <Camera className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+                            <ImagePlus className="w-8 h-8 text-slate-500 mx-auto mb-2" />
                             <p className="text-sm text-slate-700">Click to upload screenshot</p>
                           </div>
                         )}
@@ -3477,7 +3477,7 @@ const Level5HelperDashboard = () => {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <Camera className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+                            <ImagePlus className="w-8 h-8 text-slate-700 mx-auto mb-2" />
                             <p className="text-slate-700 text-sm">Select Screenshot</p>
                           </div>
                         )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, User, ArrowRight, Search, Smartphone, Users, Gift, Star, Shield, Video, Music, Zap, Globe, Heart, Download, Play, MessageCircle, Crown, Sparkles } from "lucide-react";
+import { Calendar, User, ArrowRight, Search, Smartphone, Users, Gift, Star, Shield, Radio, Music, Zap, Globe, Heart, Download, Play, MessageCircle, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,7 +94,7 @@ const CATEGORIES = ["All", "Tips & Tricks", "Community", "Agency", "Safety", "Fe
 
 const APP_FEATURES = [
   {
-    icon: Video,
+    icon: Radio,
     title: "Live Streaming",
     description: "Go live with HD video and connect with your audience in real-time"
   },
