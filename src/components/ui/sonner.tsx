@@ -11,6 +11,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position="top-center"
+      // Pro pattern (Chamet/Bigo): system banners must clear the status-bar
+      // inset. Without this offset the toast renders behind the Android
+      // notch/status-bar and overlaps the logo/header. 56px floor handles
+      // devices that don't report safe-area-inset-top.
+      offset={{
+        top: "max(env(safe-area-inset-top, 0px) + 8px, 56px)",
+        right: 16,
+        bottom: 16,
+        left: 16,
+      }}
       style={{ zIndex: 99999 }}
       toastOptions={{
         classNames: {

@@ -470,7 +470,7 @@ const GoLive = () => {
     if (proCamera.error) {
       toast.error('Camera is busy. Finish Face Verification and try again.');
       // Hard bail: leave GoLive so user can't sit on a stuck white screen.
-      const t = setTimeout(() => { try { navigate(-1); } catch { /* ignore */ } }, 1500);
+      const t = setTimeout(() => { try { clearNativeMediaSurface(); navigate(-1); } catch { /* ignore */ } }, 1500);
       return () => clearTimeout(t);
     }
   }, [proCamera.error, proCamera.ready, navigate]);
@@ -842,6 +842,7 @@ const GoLive = () => {
       if (!user) {
         setIsStarting(false);
         toast.error("Please login");
+        clearNativeMediaSurface();
         navigate("/auth");
         return;
       }
@@ -973,6 +974,7 @@ const GoLive = () => {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    clearNativeMediaSurface();
     navigate("/edit-profile");
   };
 
