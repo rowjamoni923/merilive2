@@ -757,7 +757,7 @@ class PrivateCallActivity : ComponentActivity() {
                 callId = id?.callId,
                 callerId = id?.peerId,
                 callerName = id?.peerName,
-                callType = if (id?.isVideo == true) "video" else "audio",
+                callType = "video",
                 action = "end",
             )
         }
