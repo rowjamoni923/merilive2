@@ -62,21 +62,33 @@ class NativeLiveKitController {
   }
 
   private async attachLocalWithRetry(): Promise<void> {
+    // 2026-06-17 — pass `mirror: true` to the native attach so front-camera
+    // local feed reads correctly (selfie-mirrored). The Kotlin side now
+    // mounts a fullscreen SurfaceViewRenderer behind the WebView and binds
+    // it to the current local camera track. Without that mount the WebView's
+    // opaque white background covered the empty surface = white screen.
     const delays = [0, 120, 300, 700, 1200];
     let lastError: unknown = null;
+    let lastResult: { attached?: boolean; reason?: string } | undefined;
 
     for (const delay of delays) {
       if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
       try {
-        await NativeLiveKit.attachLocal();
-        return;
+        const res = await (NativeLiveKit as any).attachLocal({ mirror: true });
+        lastResult = res as { attached?: boolean; reason?: string } | undefined;
+        // bounded (party seat) mode reports attached=false with reason=bounded;
+        // that's a successful no-op — don't keep retrying.
+        if (!res || res.attached !== false || res.reason === 'bounded') return;
+        // attached=false with reason=no_track → camera track not ready yet,
+        // fall through to retry after the next delay.
       } catch (e) {
         lastError = e;
       }
     }
 
-    console.warn('[NativeLiveKitController] attachLocal failed after camera-ready retries:', lastError);
+    console.warn('[NativeLiveKitController] attachLocal incomplete after retries:', lastResult, lastError);
   }
+
 
   async attachLocal(): Promise<void> {
     if (!this.connected || !this.autoAttachLocalRenderer) return;
