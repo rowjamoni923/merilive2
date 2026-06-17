@@ -519,7 +519,7 @@ const AgentWallet = () => {
               <div key={tx.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <AvatarWithFrame
                   src={enhanceThumbnail(tx.receiver_avatar || "", { width: 96, quality: 82})}
-                  name={(tx as any).display_name || (tx as any).agency_name || (tx as any).name || "U"}
+                  name={(tx as any)?.display_name || (tx as any)?.agency_name || (tx as any)?.name || tx.receiver_name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

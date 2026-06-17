@@ -1574,9 +1574,9 @@ const Level5HelperDashboard = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={(withdrawal.agency as any).display_name || (withdrawal.agency as any).agency_name || (withdrawal.agency as any).name || "U"}
+                  name={(withdrawal.agency as any)?.display_name || (withdrawal.agency as any)?.agency_name || (withdrawal.agency as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -1734,9 +1734,9 @@ const Level5HelperDashboard = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82})}
-                  name={(order.user as any).display_name || (order.user as any).agency_name || (order.user as any).name || "U"}
+                  name={(order.user as any)?.display_name || (order.user as any)?.agency_name || (order.user as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}

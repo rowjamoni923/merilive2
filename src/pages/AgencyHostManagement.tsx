@@ -390,9 +390,9 @@ const AgencyHostManagement = () => {
                   style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.1), 0 2px 4px -2px rgba(15,23,42,0.06)' }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(hostData.host?.avatar_url || undefined, { width: 96, quality: 82})}
-                  name={(hostData.host as any).display_name || (hostData.host as any).agency_name || (hostData.host as any).name || "U"}
+                  name={(hostData.host as any)?.display_name || (hostData.host as any)?.agency_name || (hostData.host as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
