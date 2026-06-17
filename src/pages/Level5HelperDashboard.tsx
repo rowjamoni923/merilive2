@@ -2036,9 +2036,9 @@ const Level5HelperDashboard = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(request.agency?.logo_url || request.host?.avatar_url, { width: 96, quality: 82})}
-                  name={(request.agency as any).display_name || (request.agency as any).agency_name || (request.agency as any).name || "U"}
+                  name={(request.agency as any)?.display_name || (request.agency as any)?.agency_name || (request.agency as any)?.name || request.host?.display_name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2230,9 +2230,9 @@ const Level5HelperDashboard = () => {
                         <Card key={withdrawal.id} className={cn("bg-white border-amber-200/60 shadow-sm border-l-4", config.card)}>
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
-                              <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(withdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={(withdrawal.agency as any).display_name || (withdrawal.agency as any).agency_name || (withdrawal.agency as any).name || "U"}
+                  name={(withdrawal.agency as any)?.display_name || (withdrawal.agency as any)?.agency_name || (withdrawal.agency as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2279,9 +2279,9 @@ const Level5HelperDashboard = () => {
                       <Card key={order.id} className="bg-white border-amber-200/60 shadow-sm border-l-4 border-l-green-500">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
-                            <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(order.user?.avatar_url, { width: 96, quality: 82})}
-                  name={(order.user as any).display_name || (order.user as any).agency_name || (order.user as any).name || "U"}
+                  name={(order.user as any)?.display_name || (order.user as any)?.agency_name || (order.user as any)?.name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -2744,9 +2744,9 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <AvatarWithFrame
+                <AvatarWithFrame
                   src={enhanceThumbnail(selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url, { width: 96, quality: 82})}
-                  name={(selectedWithdrawal.agency as any).display_name || (selectedWithdrawal.agency as any).agency_name || (selectedWithdrawal.agency as any).name || "U"}
+                  name={(selectedWithdrawal.agency as any)?.display_name || (selectedWithdrawal.agency as any)?.agency_name || (selectedWithdrawal.agency as any)?.name || selectedWithdrawal.host?.display_name || "U"}
                   level={1}
                   size="sm"
                   showFrame={true}
@@ -3247,7 +3247,7 @@ const Level5HelperDashboard = () => {
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <AvatarWithFrame
                   src={enhanceThumbnail(selectedAgencyWithdrawal.agency?.logo_url, { width: 96, quality: 82})}
-                  name={(selectedAgencyWithdrawal.agency as any).display_name || (selectedAgencyWithdrawal.agency as any).agency_name || (selectedAgencyWithdrawal.agency as any).name || "U"}
+                  name={(selectedAgencyWithdrawal.agency as any)?.display_name || (selectedAgencyWithdrawal.agency as any)?.agency_name || (selectedAgencyWithdrawal.agency as any)?.name || "U"}
                   level={1}
                   size="md"
                   showFrame={true}
