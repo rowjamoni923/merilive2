@@ -135,7 +135,11 @@ const RealPlugin = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
  */
 const KNOWN_UNIMPLEMENTED = new Set<string>([
   // Legacy / removed in the 2026-06-14 rebuild — callers wrap in try/catch.
-  'attachLocal', 'getActiveSession', 'setSurviveActivityDestroy',
+  // `attachLocal` was removed from this set 2026-06-17 — it is now natively
+  // implemented (see LiveKitPlugin.kt). Leaving it here would cause the
+  // Proxy to short-circuit and the camera surface would never render
+  // (root cause of the private-call white-screen bug).
+  'getActiveSession', 'setSurviveActivityDestroy',
   'updateLiveStats', 'sendData', 'setPreferredCodec', 'reconnectNow',
   // Audio routing / mode (web-SDK path handles these)
   'setSpeakerphoneEnabled', 'setProximityMonitoring', 'setAudioMode',
