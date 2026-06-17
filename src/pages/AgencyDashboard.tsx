@@ -503,7 +503,7 @@ const AgencyDashboard = () => {
         // ===== Process sub-agencies =====
         const subAgenciesData = subAgenciesRes.data || [];
         const actualAgentCount = subAgenciesData.length;
-        setSubAgencies(subAgenciesData);
+        setSubAgencies(subAgenciesData.map(normalizeSubAgency));
         setSubAgencyCount(actualAgentCount);
         if (agencyData.total_agents !== actualAgentCount) {
           supabase.from("agencies").update({ total_agents: actualAgentCount }).eq("id", agencyData.id);
@@ -771,9 +771,14 @@ const AgencyDashboard = () => {
     return null;
   }
 
-  const totalHostEarnings = hosts.reduce((sum, h) => sum + (h.profile?.total_earnings || 0), 0);
-  const onlineHosts = hosts.filter(h => h.profile?.is_online).length;
-  const totalSubAgentEarnings = subAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
+  const safeHosts = hosts.map(normalizeAgencyHost);
+  const safePendingHosts = pendingHosts.map(normalizeAgencyHost);
+  const safeSubAgents = subAgents.map(normalizeSubAgent);
+  const safeSubAgencies = subAgencies.map(normalizeSubAgency);
+
+  const totalHostEarnings = safeHosts.reduce((sum, h) => sum + (h.profile.total_earnings || 0), 0);
+  const onlineHosts = safeHosts.filter(h => h.profile.is_online).length;
+  const totalSubAgentEarnings = safeSubAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
   
   // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
   const agencyBeansBalance = agency.wallet_balance || 0;
