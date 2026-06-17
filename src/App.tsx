@@ -762,7 +762,6 @@ const App = () => {
           if (mounted) {
             setSession(session);
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
-            setLoading(false); // ⚡ Unblock UI immediately
           }
           const syncId = window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
           void syncId;
@@ -772,7 +771,6 @@ const App = () => {
         // No local session — unblock UI NOW, attempt recovery in background
         if (mounted) {
           setSession(null);
-          setLoading(false); // ⚡ Never block UI waiting for network
         }
 
         // 🔒 BACKGROUND RECOVERY — UI is already interactive
@@ -830,7 +828,6 @@ const App = () => {
         console.error('[App] initSession failed:', error);
         if (mounted) {
           setSession(null);
-          setLoading(false);
         }
       }
     };
@@ -1084,10 +1081,6 @@ const App = () => {
     || currentPath.startsWith('/agency')
     || currentPath.startsWith('/join-agency')
     || isStandalonePublicPath(currentPath);
-
-  if (loading && !isAdminRoute) {
-    return <div className="min-h-screen w-full bg-background" aria-hidden="true" />;
-  }
 
   if (isLandingDomain && isAdminRoute) {
     window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
