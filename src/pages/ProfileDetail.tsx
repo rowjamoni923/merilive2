@@ -477,33 +477,52 @@ const ProfileDetail = () => {
     // Set groups
     setGroups((groupMembershipsResult?.data?.map((m: any) => m.groups).filter(Boolean) || []).slice(0, 5));
 
-    // SECOND PARALLEL BATCH - Dependent on profile data
-    if (profileData) {
+    setLoading(false);
+    // NOTE: deliberately NOT depending on resolvedLevel / resolvedLevelLoading
+    // here — the level-dependent second batch lives in its own effect below.
+    // Putting them in this dep list caused the entire 12-query batch + sender
+    // lookup to re-run a second time once useRealtimeLevel resolved, adding
+    // 2-4s to every ProfileDetail cold open. (Phase 2 perf fix.)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // SECOND BATCH — level-dependent queries (frame / level icon / privileges /
+  // block / follow / purchased shop items). Split out of fetchData so it only
+  // re-runs when the resolved level itself changes, not when the level hook
+  // toggles between loading/loaded.
+  useEffect(() => {
+    const profileData = profile;
+    if (!profileData) return;
+    if (resolvedLevelLoading) return; // wait until level resolved once
+    const userIdForBatch = profileData.id;
+    if (!userIdForBatch) return;
+
+    let cancelled = false;
+    (async () => {
       const userLevel = getRequiredDisplayLevel({ ...profileData, is_host: false });
       const hostLevel = Math.max(profileData.host_level || 0, 0);
       const isHostUser = profileData.is_host && (profileData.gender === 'female' || profileData.gender === 'Female');
       const fallbackLevel = isHostUser ? hostLevel : userLevel;
-      const effectiveLevel = resolvedLevelLoading ? fallbackLevel : (resolvedLevel ?? fallbackLevel);
+      const effectiveLevel = resolvedLevel ?? fallbackLevel;
       const targetType = isHostUser ? 'host' : 'user';
+      const viewerId = currentUser?.id;
 
       const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
-        // User's frame based on level
         supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
-        // Level icon from user_level_tiers
         supabase.from("user_level_tiers").select("level_number, icon_url, animation_url, level_name").eq("level_number", effectiveLevel).eq("tier_type", targetType).eq("is_active", true).maybeSingle(),
-        // Level frames
         supabase.from("avatar_frames").select("id, name, frame_url, frame_type, min_level, is_premium, category, target_type").eq("is_active", true).lte("min_level", effectiveLevel).in("target_type", ['both', targetType]).or('frame_url.like.%.svga,frame_url.like.%.json,frame_url.like.%supabase.co/storage%').order("min_level", { ascending: false }).limit(1),
-        // Entry bars
         supabase.from("level_privileges").select("id, name, animation_url, preview_url, unlock_level").eq("privilege_type", "entry_bar").eq("is_active", true).lte("unlock_level", effectiveLevel).order("unlock_level", { ascending: false }).limit(1),
-        // Badges
         supabase.from("level_privileges").select("id, name, icon_name, icon_bg_color, icon_color, unlock_level").eq("privilege_type", "badge").eq("is_active", true).lte("unlock_level", effectiveLevel).order("unlock_level", { ascending: false }).limit(5),
-        // Check if blocked
-        user && userId && user.id !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", user.id).eq("blocked_id", userId).maybeSingle() : { data: null },
-        // Check if following
-        user && userId && user.id !== userId ? supabase.from("followers").select("id").eq("follower_id", user.id).eq("following_id", userId).maybeSingle() : { data: null },
-        // Purchased items (frames + entry animations) from shop — no FK so fetch separately
-        supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()),
+        viewerId && userId && viewerId !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", viewerId).eq("blocked_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
+        viewerId && userId && viewerId !== userId ? supabase.from("followers").select("id").eq("follower_id", viewerId).eq("following_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
+        userId ? supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()) : Promise.resolve({ data: [] } as any),
       ]);
+
+      if (cancelled) return;
 
       if (frameData?.data) setUserFrame(frameData.data as unknown as FrameData);
       if (levelIconData?.data) setLevelIcon(levelIconData.data as unknown as LevelIconData);
@@ -511,25 +530,23 @@ const ProfileDetail = () => {
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
 
-      // Fetch shop_items for purchased items (no FK relationship)
       const purchases = purchasedRes?.data || [];
       if (purchases.length > 0) {
         const itemIds = purchases.map((p: any) => p.item_id).filter(Boolean);
         const { data: shopItems } = await supabase.from("shop_items").select("id, name, preview_url, animation_url, svga_url, image_url, animation_file_url, file_type").in("id", itemIds);
+        if (cancelled) return;
         const shopMap = new Map((shopItems || []).map((s: any) => [s.id, s]));
         const merged = purchases.map((p: any) => ({ ...p, shop_items: shopMap.get(p.item_id) || null }));
         setPurchasedItems(merged);
       } else {
         setPurchasedItems([]);
       }
-    }
+    })();
 
-    setLoading(false);
-  }, [userId, resolvedLevel, resolvedLevelLoading]);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, resolvedLevel, resolvedLevelLoading, currentUser?.id, userId]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   // Countdown timer for purchased items
   useEffect(() => {
