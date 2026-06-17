@@ -8,6 +8,7 @@ import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
+import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 import { 
   X, 
