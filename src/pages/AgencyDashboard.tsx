@@ -459,9 +459,9 @@ const AgencyDashboard = () => {
 
         // ===== Process hosts =====
         const actualHostCount = hostsData.length;
-        setHosts(hostsData.map(host => ({
+        setHosts(hostsData.map(host => normalizeAgencyHost({
           ...host,
-          profile: normalizeAgencyProfile((hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id)) as AgencyHost['profile']
+          profile: normalizeAgencyProfile((hostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id))
         })));
         if (agencyData.total_hosts !== actualHostCount) {
           supabase.from("agencies").update({ total_hosts: actualHostCount }).eq("id", agencyData.id);
@@ -501,7 +501,7 @@ const AgencyDashboard = () => {
         // subAgencyCount already set above
 
         // ===== Process sub-agents =====
-        setSubAgents(subAgentsData.map(sa => ({
+        setSubAgents(subAgentsData.map(sa => normalizeSubAgent({
           ...sa,
           profile: normalizeAgencyProfile((subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id))
         })));
@@ -639,7 +639,7 @@ const AgencyDashboard = () => {
         toast({ title: "✅ Host Approved", description: "Host has been added to your agency!" });
         const approvedHost = pendingHosts.find(h => h.host_id === hostId);
         setPendingHosts(prev => prev.filter(h => h.host_id !== hostId));
-        setHosts(prev => [...prev, { host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: '', profile: approvedHost?.profile }]);
+        setHosts(prev => [...prev, normalizeAgencyHost({ host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: hostId, profile: approvedHost?.profile })]);
         
         // Notify the host about approval
         import('@/utils/agencyNotifications').then(({ notifyHostApprovalResult }) => {
