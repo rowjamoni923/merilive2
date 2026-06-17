@@ -927,11 +927,11 @@ const AgencyDashboard = () => {
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 hover:bg-white/25 transition-all active:scale-95 relative"
               >
                 <Users className="w-3.5 h-3.5 mx-auto mb-0.5" />
-                <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
+                <p className="text-sm font-bold">{safeHosts.length || agency.total_hosts}</p>
                 <p className="text-[7px] text-white/70 uppercase">Hosts</p>
-                {pendingHosts.length > 0 && (
+                {safePendingHosts.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
-                    {pendingHosts.length}
+                    {safePendingHosts.length}
                   </span>
                 )}
               </button>
@@ -940,7 +940,7 @@ const AgencyDashboard = () => {
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 hover:bg-white/25 transition-all active:scale-95"
               >
                 <UserPlus className="w-3.5 h-3.5 mx-auto mb-0.5" />
-                <p className="text-sm font-bold">{subAgencyCount || subAgents.length}</p>
+                <p className="text-sm font-bold">{subAgencyCount || safeSubAgents.length}</p>
                 <p className="text-[7px] text-white/70 uppercase">Agents</p>
               </button>
               <div 
@@ -973,7 +973,7 @@ const AgencyDashboard = () => {
         const now = new Date();
         const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
         const daysRemaining = Math.max(0, 30 - daysSinceCreation);
-        const activeHostCount = hosts.filter(h => h.status === 'active').length;
+        const activeHostCount = safeHosts.filter(h => h.status === 'active').length;
         const progress = Math.min((activeHostCount / 10) * 100, 100);
         
         if (activeHostCount < 10 && daysRemaining > 0) {
