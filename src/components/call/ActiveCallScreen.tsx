@@ -1010,30 +1010,6 @@ export function ActiveCallScreen({
               </div>
             )}
 
-            {/* Signal bars */}
-            <div className="hidden sm:flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
-              style={{
-                background: isConnected
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
-                  : 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(234,88,12,0.15) 100%)',
-                border: `1px solid ${isConnected ? 'rgba(110,231,183,0.5)' : 'rgba(252,211,77,0.5)'}`,
-                boxShadow: isConnected ? '0 6px 14px -6px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' : '0 6px 14px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
-              }}
-            >
-              <div className="flex items-end gap-[2px]">
-                {[1,2,3].map(i => (
-                  <div key={i} className={cn(
-                    "w-[3px] rounded-full transition-all",
-                    i === 1 ? "h-1.5" : i === 2 ? "h-2.5" : "h-3",
-                    isConnected
-                      ? "bg-emerald-300"
-                      : i <= 1 ? "bg-amber-300" : "bg-white/20"
-                  )}
-                    style={isConnected ? { boxShadow: '0 0 4px rgba(16,185,129,0.55)' } : undefined}
-                  />
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
