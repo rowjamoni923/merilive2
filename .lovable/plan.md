@@ -63,6 +63,8 @@ Common patterns: missing RLS grant, null agency_id, hook order violation, type m
 
 **Fix applied:** centralized nullable profile helpers (`getProfileName`, `getProfileInitial`, `getProfileAvatar`) and replaced unsafe avatar/name reads in pending hosts, parent agency owner, top hosts, sub-agents, and parent contact modal.
 
+**Follow-up crash hardening (2026-06-17):** User still hit `TypeError: Cannot read properties of null (reading 'display_name')` from the AgencyDashboard lazy chunk. Re-audited the page and related agency/settings surfaces against React conditional-rendering and Supabase nested-row behavior: missing/deleted profile rows must render as fallback users, not crash the route. Added normalization at data-ingest time for active hosts, pending hosts, and sub-agents so render code receives a tombstone profile object instead of raw `null`; also removed a non-null assertion pattern from the block list profile mapping. References: React conditional rendering docs (https://react.dev/learn/conditional-rendering), Supabase joins/nesting docs (https://supabase.com/docs/guides/database/joins-and-nesting), missing-user fallback pattern discussion (https://stackoverflow.com/questions/79205156/how-to-gracefully-handle-missing-user-data-in-react-without-revealing-backend-is).
+
 ---
 
 ### Issue 5: Agency creation OTP not arriving (in-app notification + Gmail)
