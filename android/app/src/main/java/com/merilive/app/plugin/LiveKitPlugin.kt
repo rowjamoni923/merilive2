@@ -156,6 +156,7 @@ class LiveKitPlugin : Plugin() {
             put("connect"); put("disconnect"); put("disconnectSessionOnly")
             put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
+            put("attachLocal"); put("detachLocal")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
