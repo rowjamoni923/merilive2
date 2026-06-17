@@ -58,3 +58,12 @@ Approve করলে Phase 1 দিয়ে শুরু — call flow পু�
 
 **Verified:** owner-account browser test opened `/agency-dashboard`; dashboard rendered, no ErrorBoundary, no `display_name` TypeError, no failed agency/profile requests.
 
+## Emergency Fix — Remove blocking MeriLive loading card/spinner (2026-06-18)
+**User-visible failure:** `/index` could show a centered branded `MeriLive / Loading...` card instead of the app surface, especially on mobile/slow chunk load.
+
+**Research/pro standard:** NN/g recommends skeleton/content-shaped placeholders for full-page waits because they show the upcoming layout; generic spinners are only acceptable for short/unknown waits. BIGO Lite markets low-resource fast startup as a core live-streaming requirement, so a Chamet/Bigo-class live app should prefer cached/instant surfaces over app-wide blocking loaders.
+
+**Root cause:** `App.tsx` still had a visible Suspense fallback (`PageLoader`) plus first-session splash behavior, so route chunk/auth timing could expose a branded loading card across the whole app.
+
+**Fix shipped:** user app route Suspense fallback is now silent (`null`) and first-launch branded splash is disabled, so the app no longer shows the screenshot-style `MeriLive Loading...` blocker.
+

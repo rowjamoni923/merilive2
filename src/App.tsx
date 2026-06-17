@@ -388,23 +388,11 @@ import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToast
 
 
 // =============================================
-// ROUTE LOADER - visible fallback to prevent blank/black screen during lazy chunk loads
+// ROUTE LOADER
 // =============================================
-const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string }) => (
-  <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
-    <div className="w-full max-w-sm rounded-2xl border border-border bg-card/80 p-6 text-center shadow-sm backdrop-blur-sm">
-      <div className="mb-4 flex justify-center">
-        <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
-      </div>
-      <h1 className="text-base font-semibold text-foreground">MeriLive</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-    </div>
-  </div>
-));
-
-// Route chunks now load on demand; keep a real themed fallback so slow networks
-// never show a white/blank screen while a lazy page chunk downloads.
-const RouteSuspenseFallback = memo(() => <PageLoader message="Loading..." />);
+// User app routes must never show a blocking branded loading card/spinner.
+// Lazy chunks resolve silently; existing/cached UI stays the perceived surface.
+const RouteSuspenseFallback = memo(() => null);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
@@ -536,20 +524,8 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  // Show splash once per tab session, and never on /admin or auth callback routes.
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      if (sessionStorage.getItem('splash_shown') === '1') return false;
-      const host = window.location.hostname;
-      // Landing-only marketing domain — never show the app splash.
-      if (isLandingOnlyHostname(host)) return false;
-      const p = window.location.pathname;
-      if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
-      if (isStandalonePublicPath(p) || (p === '/' && !hasStoredSupabaseSession())) return false;
-      return true;
-    } catch { return false; }
-  });
+  // App must feel instant: no first-launch branded splash/loading overlay.
+  const [showSplash, setShowSplash] = useState(false);
   
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel

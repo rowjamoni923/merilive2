@@ -13,7 +13,7 @@ Every user-facing surface must hit professional live-streaming standard (Chamet 
 ## What this means
 
 - Before any phase ships, the surface must be visually + behaviorally indistinguishable from named competitors on the same flow.
-- No placeholder text, no debug toasts, no "TODO", no skeleton-forever, no blank black frames, no spinner-without-deadline visible to end users.
+- No placeholder text, no debug toasts, no "TODO", no skeleton-forever, no blank black frames, no spinner-without-deadline visible to end users, and no app-wide branded `MeriLive Loading...` card/blocker on user routes.
 - Web design stays sacred (per mem://preferences/web-design-sacred-android-native-pro). Professional upgrade = behavior, performance, resilience, native SDK quality — not redesign.
 - If a fix can only land partially, gate it behind a flag (default OFF) so users never see the half-state. Never ship partial pro polish to production.
 - Every phase must include: research → gap audit → implementation → owner-account verification → "leak check" (screenshot/recording compared to competitor reference).
