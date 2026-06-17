@@ -21,7 +21,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Camera, Mic, Bell, Shield, Loader2, Settings as SettingsIcon } from 'lucide-react';
+import { Eye, Mic, Bell, Shield, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import {
   isNativeApp,
   checkPermissionStatus,
@@ -167,7 +167,7 @@ export function MandatoryPermissionsGate() {
         {/* Permission rows */}
         <div className="mb-5 space-y-2.5">
           <PermissionRow
-            icon={<Camera className="h-5 w-5" />}
+            icon={<Eye className="h-5 w-5" />}
             label="Camera"
             description="Required to go live and join video calls."
             granted={status.camera}

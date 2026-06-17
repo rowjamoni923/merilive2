@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Bell, Gift, Phone, Users, Radio, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
@@ -20,7 +20,7 @@ const CATEGORIES: NotificationCategory[] = [
   { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone },
   { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift },
   { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users },
-  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video },
+  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Radio },
   { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins },
   { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award },
   { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield },

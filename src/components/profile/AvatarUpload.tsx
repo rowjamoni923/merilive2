@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Camera, Loader2, X } from "lucide-react";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,7 +122,7 @@ export const AvatarUpload = ({
         {uploading ? (
           <Loader2 className="w-4 h-4 text-white animate-spin" />
         ) : (
-          <Camera className="w-4 h-4 text-white" />
+          <ImagePlus className="w-4 h-4 text-white" />
         )}
       </button>
 

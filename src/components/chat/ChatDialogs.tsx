@@ -1,5 +1,5 @@
 import React, { type RefObject } from "react";
-import { Camera, Search, Users } from "lucide-react";
+import { ImagePlus, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -138,7 +138,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                 {newGroupPhotoPreview ? (
                   <img loading="lazy" decoding="async" src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-8 h-8 text-muted-foreground" />
+                  <ImagePlus className="w-8 h-8 text-muted-foreground" />
                 )}
               </button>
               <input
