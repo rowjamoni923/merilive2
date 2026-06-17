@@ -3,6 +3,10 @@ package com.merilive.app.activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -119,6 +123,7 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
+    private lateinit var signalBars: Array<View>
 
     // Phase E — overlay views toggled in PIP mode.
     private lateinit var topOverlay: View
@@ -140,6 +145,9 @@ class PrivateCallActivity : ComponentActivity() {
     // Release when routed to speaker/BT/wired or when the call ends so the
     // screen doesn't stay blanked. Null-safe on devices without the sensor.
     private var proximityWakeLock: android.os.PowerManager.WakeLock? = null
+
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     // Phase H — camera resilience controller (last-frame freeze, audio-only
     // fallback banner, thermal-aware throttling, permission-revoke deep link).
@@ -395,6 +403,12 @@ class PrivateCallActivity : ComponentActivity() {
         btnBeauty = findViewById(R.id.privateCallBtnBeauty)
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
+        signalBars = arrayOf(
+            findViewById(R.id.privateCallSignalBar1),
+            findViewById(R.id.privateCallSignalBar2),
+            findViewById(R.id.privateCallSignalBar3),
+            findViewById(R.id.privateCallSignalBar4),
+        )
         topOverlay = findViewById(R.id.privateCallTopOverlay)
         bottomBar = findViewById(R.id.privateCallBottomBar)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
