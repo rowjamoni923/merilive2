@@ -338,6 +338,7 @@ export function ActiveCallScreen({
   // for audio-only. isInPip flips true while in floating window — use it
   // to collapse the heavy chat / gift / settings overlays below.
   const isInNativePip = isInPip;
+  const shouldExposeNativePreview = isNativeAndroidApp() && !localVideoTrack && !isLiveConnected;
 
 
 
@@ -854,7 +855,7 @@ export function ActiveCallScreen({
     >
       <div
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
-        style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
+        style={{ opacity: (showNativeCallingSurface || shouldExposeNativePreview) ? 0 : 1 }}
       />
 
       {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
@@ -1010,30 +1011,6 @@ export function ActiveCallScreen({
               </div>
             )}
 
-            {/* Signal bars */}
-            <div className="hidden sm:flex items-center gap-1 px-2.5 py-2 rounded-full backdrop-blur-xl"
-              style={{
-                background: isConnected
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.15) 100%)'
-                  : 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(234,88,12,0.15) 100%)',
-                border: `1px solid ${isConnected ? 'rgba(110,231,183,0.5)' : 'rgba(252,211,77,0.5)'}`,
-                boxShadow: isConnected ? '0 6px 14px -6px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.25)' : '0 6px 14px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
-              }}
-            >
-              <div className="flex items-end gap-[2px]">
-                {[1,2,3].map(i => (
-                  <div key={i} className={cn(
-                    "w-[3px] rounded-full transition-all",
-                    i === 1 ? "h-1.5" : i === 2 ? "h-2.5" : "h-3",
-                    isConnected
-                      ? "bg-emerald-300"
-                      : i <= 1 ? "bg-amber-300" : "bg-white/20"
-                  )}
-                    style={isConnected ? { boxShadow: '0 0 4px rgba(16,185,129,0.55)' } : undefined}
-                  />
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1060,7 +1037,7 @@ export function ActiveCallScreen({
               </div>
             ) : (
               <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]" />
+                <div className={cn("absolute inset-0", shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]")} />
               </div>
             )}
             

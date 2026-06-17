@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Search, Clock, Smile, Heart, ThumbsUp, PartyPopper, Flame, Star, Sparkles, Crown, Gem, Gift, Music, Camera, Coffee, Pizza, Cake, Apple, Carrot, Salad, Zap, Sun, Moon, Cloud, Rainbow, Snowflake, Umbrella, Droplet, Wind, Mountain, TreePine, Flower2, Leaf, Cat, Dog, Bird, Fish, Rocket, Plane, Car, Ship, Train, Bike, Trophy, Medal, Target, Gamepad2, Dice5, Puzzle, Ghost, Skull, Bot, Baby, UserCircle, Users, Handshake, Waves, Eye, Brain, Ear, Footprints, Hand, Palette, Brush, Scissors, Wrench, Key, Lock, Bell, Bookmark, Flag, Tag, Ticket } from "lucide-react";
+import { X, Search, Clock, Smile, Heart, ThumbsUp, PartyPopper, Flame, Star, Sparkles, Crown, Gem, Gift, Music, Coffee, Pizza, Cake, Apple, Carrot, Salad, Zap, Sun, Moon, Cloud, Rainbow, Snowflake, Umbrella, Droplet, Wind, Mountain, TreePine, Flower2, Leaf, Cat, Dog, Bird, Fish, Rocket, Plane, Car, Ship, Train, Bike, Trophy, Medal, Target, Gamepad2, Dice5, Puzzle, Ghost, Skull, Bot, Baby, UserCircle, Users, Handshake, Waves, Eye, Brain, Ear, Footprints, Hand, Palette, Brush, Scissors, Wrench, Key, Lock, Bell, Bookmark, Flag, Tag, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

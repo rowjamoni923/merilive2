@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
 import { 
-  Download, Users, Video, Gift, Phone, Shield, Star, 
+  Download, Users, Radio, Gift, Phone, Shield, Star, 
   Building2, DollarSign, Globe, Smartphone, Play,
   Heart, Music, Tv, Award, ChevronRight, ExternalLink
 } from "lucide-react";
@@ -21,7 +21,7 @@ const About = () => {
   }, []);
 
   const features = [
-    { icon: Video, title: "Live Streaming", desc: "HD live streaming — interact with hosts in real-time", color: "from-red-500 to-pink-500" },
+    { icon: Radio, title: "Live Streaming", desc: "HD live streaming — interact with hosts in real-time", color: "from-red-500 to-pink-500" },
     { icon: Phone, title: "1v1 Video Call", desc: "Private HD video calling — talk to your favorite host", color: "from-blue-500 to-cyan-500" },
     { icon: Gift, title: "Virtual Gifts", desc: "Send SVGA animated gifts — support your favorite hosts", color: "from-amber-500 to-orange-500" },
     { icon: Users, title: "Party Rooms", desc: "Multi-user party rooms — hang out with friends", color: "from-purple-500 to-indigo-500" },

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Camera, Crown, LogOut, Trash2, Users, UserMinus, Copy, Check } from "lucide-react";
+import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, Copy, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -212,7 +212,7 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
-                  <Camera className="w-4 h-4 text-primary-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
+                  <ImagePlus className="w-4 h-4 text-primary-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
                 </button>
               )}
               <input

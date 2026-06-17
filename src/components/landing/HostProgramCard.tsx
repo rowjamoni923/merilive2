@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Wallet, Trophy, ArrowRight, Download, CheckCircle2, Sparkles, Gift, Video, Clock, Zap, TrendingUp } from "lucide-react";
+import { Wallet, Trophy, ArrowRight, Download, CheckCircle2, Sparkles, Gift, Radio, Clock, Zap, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 import hostHeroImg from "@/assets/landing-host-hero.jpg";
@@ -27,7 +27,7 @@ const earningSteps = [
     step: "03",
     title: "Go Live & Receive Gifts",
     desc: "Start streaming! Viewers send you virtual gifts that convert to real beans (earnings).",
-    icon: Video,
+    icon: Radio,
     color: "from-purple-500 to-indigo-500",
     glow: "shadow-purple-500/20",
   },

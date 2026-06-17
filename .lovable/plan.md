@@ -89,3 +89,14 @@ Approve করলে Phase 1 দিয়ে শুরু — call flow পু�
 
 **Verification status:** Static scan confirms all three fixes are present. Because this changes Android native plugin + native camera timing, **APK rebuild is required** before honest device verification.
 
+## Private Call Final Pass — Room adoption + no camera/video icons (2026-06-18)
+**Uploaded video analyzed:** `VID-20260618-WA0003.mp4` shows caller leaving Home at ~1s, then the private-call dialing screen stays dark with only avatar/Calling UI from ~5s through ~20s, and the receiver side shows only a heads-up notification around ~30s instead of an app-owned full-screen ring surface.
+
+**Research/pro standard:** Agora/Chamet/Bigo pattern is local preview first (`startPreview`) before joining, full-screen incoming call UI before media connect, and real signal bars from SDK/network quality rather than phone status-bar interpretation. LiveKit equivalent is `LocalVideoTrack` prewarm + native renderer attach before/while `Room.connect` runs.
+
+**Root causes found:** `RtcEngineManager.currentRoom()` was still a hardcoded stub returning `null`, so rebuilt APK could connect/publish in `LiveKitPlugin` but `PrivateCallActivity` could not adopt the Room and had nothing to render. Also `startLocalPreview()` opened CameraX but JS did not call `attachLocalWithRetry()`, and React calling fallbacks could paint an opaque dark surface over the native preview. React also had a fake `isConnected`-only signal bar and foreground incoming call UI was a compact banner.
+
+**Fix shipped:** `RtcEngineManager` now stores the active process Room; `LiveKitPlugin` binds/clears that Room on connect/disconnect and exposes `switchCameraFromNative`; native private-call signal bars were added and update from Android `ConnectivityManager.NetworkCallback` (no polling); `startLocalPreview()` now attaches the native local renderer; React calling fallback exposes the native preview instead of covering it; hardcoded fake signal bars were removed; foreground incoming call modal is now full-screen; all visible non-admin Camera/Video lucide glyphs were replaced/removed across call/live/party/visitor/public/helper/chat/settings/profile surfaces.
+
+**Verification status:** Source scan returns no visible non-admin Camera/Video lucide icon components. Native APK rebuild is required to verify the private-call native Room adoption and signal bars on device.
+

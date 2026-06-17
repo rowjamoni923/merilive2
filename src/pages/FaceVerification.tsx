@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { 
   ArrowLeft, 
-  Camera,
   Film,
   User,
   CheckCircle2,
@@ -3421,7 +3420,7 @@ const FaceVerification = () => {
                   {hostPhotosPreviews[index] ? (
                     <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   ) : (
-                    <Camera className="w-8 h-8 text-slate-500" />
+                    <ImagePlus className="w-8 h-8 text-slate-500" />
                   )}
                 </div>
               ))}

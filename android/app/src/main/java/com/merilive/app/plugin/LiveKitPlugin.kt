@@ -14,6 +14,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.merilive.app.rtc.RtcEngineManager
 import io.livekit.android.ConnectOptions
 import io.livekit.android.LiveKit
 import io.livekit.android.RoomOptions
@@ -65,6 +66,22 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        @Volatile private var INSTANCE: LiveKitPlugin? = null
+
+        @JvmStatic
+        fun switchCameraFromNative() {
+            val plugin = INSTANCE ?: return
+            val track = plugin.previewTrack ?: return
+            plugin.scope.launch {
+                try {
+                    val nextPos = if (track.options.position == CameraPosition.FRONT) CameraPosition.BACK else CameraPosition.FRONT
+                    track.switchCamera(nextPos)
+                    plugin.runOnMain { plugin.previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }
+                } catch (t: Throwable) {
+                    Log.w(TAG, "switchCameraFromNative", t)
+                }
+            }
+        }
 
         @JvmStatic
         fun notifyUserLeaveHint(activity: Activity) {
@@ -114,6 +131,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun load() {
         super.load()
+        INSTANCE = this
         // CameraX is the ONLY camera pipeline this plugin uses. We register
         // it globally with the LiveKit SDK so every createVideoTrack() /
         // setCameraEnabled() / startLocalPreview() call goes through CameraX.
@@ -138,6 +156,7 @@ class LiveKitPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { runOnMain { teardownAll() } } catch (_: Throwable) {}
+        if (INSTANCE === this) INSTANCE = null
         scope.cancel()
         super.handleOnDestroy()
     }
@@ -321,6 +340,7 @@ class LiveKitPlugin : Plugin() {
 
         r.connect(args.url, args.token, ConnectOptions())
         isConnected = true
+        RtcEngineManager.bindRoom(r)
 
         if (args.publishAudio) {
             r.localParticipant.setMicrophoneEnabled(true)
@@ -364,6 +384,7 @@ class LiveKitPlugin : Plugin() {
                 try { room?.disconnect() } catch (t: Throwable) {
                     Log.w(TAG, "disconnectSessionOnly room.disconnect failed", t)
                 }
+                RtcEngineManager.clearRoom(room)
                 isConnected = false
                 // Intentionally KEEP: room (re-used by promotePreviewToSession),
                 // previewTrack, previewRenderer, boundedMode, renderer slots' DOM.
@@ -975,6 +996,7 @@ class LiveKitPlugin : Plugin() {
         previewTrack = null
         detachRenderer()
         try { room?.disconnect() } catch (_: Throwable) {}
+        RtcEngineManager.clearRoom(room)
         room = null
         isConnected = false
         boundedMode = false

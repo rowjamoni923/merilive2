@@ -4,18 +4,27 @@ import android.content.Context
 import io.livekit.android.room.Room
 
 /**
- * RtcEngineManager — STUB (2026-06-14 rebuild).
+ * RtcEngineManager — process-local Room registry.
  *
- * The application-scope cross-Activity Room registry was deleted. The
- * new minimal LiveKit plugin creates a fresh Room per session, so there
- * is no shared engine to track. This stub keeps the API surface used by
- * `PrivateCallActivity` and `PrivateCallViewModel` compiling — both
- * call sites already handle `currentRoom() == null` as a no-op path.
+ * PrivateCallActivity is a separate native Activity. The LiveKit Room is
+ * created/connected by LiveKitPlugin before that Activity opens, then the
+ * Activity adopts this exact Room to render native video. Returning null here
+ * makes the accepted call surface finish immediately / appear dark.
  */
 object RtcEngineManager {
+    @Volatile private var room: Room? = null
+
     @JvmStatic
     fun init(@Suppress("UNUSED_PARAMETER") context: Context) { /* no-op */ }
 
     @JvmStatic
-    fun currentRoom(): Room? = null
+    fun bindRoom(next: Room?) { room = next }
+
+    @JvmStatic
+    fun clearRoom(expected: Room? = null) {
+        if (expected == null || room === expected) room = null
+    }
+
+    @JvmStatic
+    fun currentRoom(): Room? = room
 }

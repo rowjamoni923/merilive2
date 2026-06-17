@@ -16,7 +16,7 @@ import {
   Clock,
   Phone,
   Ban,
-  Video,
+  Radio,
   MessageCircle,
   Gift,
   Crown,
@@ -97,7 +97,7 @@ interface DynamicPolicySection {
 
 const iconMap: Record<string, React.ReactNode> = {
   age: <Users className="w-5 h-5" />,
-  camera: <Video className="w-5 h-5" />,
+  camera: <Radio className="w-5 h-5" />,
   communication: <MessageCircle className="w-5 h-5" />,
   avatar: <Star className="w-5 h-5" />
 };
@@ -521,7 +521,7 @@ const AgencyPolicy = () => {
                 <CardContent className="space-y-3">
  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-brand-50 to-info-50 rounded-xl border border-brand-200">
  <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
- <Video className="w-5 h-5 text-brand-600" />
+ <Phone className="w-5 h-5 text-brand-600" />
                     </div>
                     <div>
  <p className="font-semibold text-brand-800">Video Calls</p>

@@ -359,6 +359,7 @@ class NativeLiveKitController {
         await NativeLiveKit.startLocalPreview(opts ?? {});
       }
       this.previewFeature = requestedFeature;
+      if (!opts?.boundedOnly) await this.attachLocalWithRetry().catch(() => undefined);
       return true;
     } catch (e) {
       console.warn('[NativeLiveKitController] startLocalPreview failed:', e);

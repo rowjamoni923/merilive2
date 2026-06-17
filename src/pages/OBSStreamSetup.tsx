@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Copy, Check, Radio, Trash2, Loader2, Video, Mic, Info, ExternalLink, Power } from "lucide-react";
+import { ArrowLeft, Copy, Check, Radio, Trash2, Loader2, Mic, Info, ExternalLink, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -286,7 +286,7 @@ export default function OBSStreamSetup() {
                 <Step n={7} text='Click "Start Streaming" — viewers will see you live in your app' />
                 <Separator />
                 <Alert>
-                  <Video className="w-4 h-4" />
+                  <Radio className="w-4 h-4" />
                   <AlertDescription className="text-xs">
                     Recommended: <strong>1920×1080 @ 30fps</strong>, keyframe interval <strong>2s</strong>,
                     Audio <strong>Opus / AAC 96 kbps stereo</strong>.

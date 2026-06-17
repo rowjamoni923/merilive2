@@ -17,7 +17,7 @@ import {
   LogOut,
   Check,
   Bell,
-  Camera,
+  Eye,
   Mic,
   MapPin,
   UserX,
@@ -1116,7 +1116,7 @@ const Settings = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <Camera className="w-5 h-5 text-primary" />
+                  <Eye className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{t("settings.cameraAccess")}</p>

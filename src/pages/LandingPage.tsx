@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Download, Star, Users, Video, Gift, Phone, Music, Shield, ChevronDown, Play, Sparkles, Globe, Wallet, Zap, ArrowRight, Heart, Clock, Trophy, MessageCircle, X, Building2, Copy, Check } from "lucide-react";
+import { Download, Star, Users, Radio, Gift, Phone, Music, Shield, ChevronDown, Play, Sparkles, Globe, Wallet, Zap, ArrowRight, Heart, Clock, Trophy, MessageCircle, X, Building2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAY_STORE_URL, APK_DOWNLOAD_URL } from "@/utils/shareLinks";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,7 @@ interface AgencyListItem {
 }
 
 const iconMap: Record<string, any> = {
-  Video, Phone, Gift, Music, Users, Shield, Wallet, Zap, Star, Heart, Clock, Trophy, MessageCircle, Globe, Download, Sparkles
+  Video: Radio, Phone, Gift, Music, Users, Shield, Wallet, Zap, Star, Heart, Clock, Trophy, MessageCircle, Globe, Download, Sparkles
 };
 
 interface LandingSection {

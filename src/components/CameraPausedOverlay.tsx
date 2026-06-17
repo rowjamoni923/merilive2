@@ -11,7 +11,7 @@
  * mount on web/iOS — `foreground` stays true so the overlay never appears.
  */
 import { useEffect, useState } from 'react';
-import { VideoOff } from 'lucide-react';
+import { EyeOff } from 'lucide-react';
 import { useRtcLifecycle } from '@/hooks/useRtcLifecycle';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +61,7 @@ export function CameraPausedOverlay({
     >
       <div className="flex flex-col items-center gap-3 px-6 text-center">
         <div className="rounded-full bg-muted p-4">
-          <VideoOff className="h-7 w-7 text-muted-foreground" aria-hidden />
+          <EyeOff className="h-7 w-7 text-muted-foreground" aria-hidden />
         </div>
         <div className="space-y-1">
           <p className="text-base font-semibold text-foreground">{label}</p>

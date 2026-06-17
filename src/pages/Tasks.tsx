@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Gift, Clock, Video, Users, MessageCircle, Star, Sparkles, Flame, Trophy, Upload, ExternalLink, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, Check, Gift, Clock, Radio, Users, MessageCircle, Star, Sparkles, Flame, Trophy, Upload, ExternalLink, CheckCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -49,7 +49,7 @@ interface NewHostBonusProgress {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  video: Video,
+  video: Radio,
   clock: Clock,
   users: Users,
   gift: Gift,
@@ -683,7 +683,7 @@ const Tasks = () => {
                 onClick={() => navigate('/go-live')}
                 className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
               >
-                <Video className="w-4 h-4 mr-1.5" />
+                <Radio className="w-4 h-4 mr-1.5" />
                 Go Live
               </Button>
               <button

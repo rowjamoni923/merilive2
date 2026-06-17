@@ -16,7 +16,7 @@ import {
   Coins,
   Diamond,
   UserPlus,
-  Video,
+  Radio,
   Phone,
   Heart,
   Award,
@@ -120,7 +120,7 @@ const getNotificationIcon = (type: string, priority?: string) => {
     'balance_deducted': { icon: AlertCircle, color: 'bg-red-500' },
     
     // Live & Calls
-    'live_started': { icon: Video, color: 'bg-red-500' },
+    'live_started': { icon: Radio, color: 'bg-red-500' },
     'call_missed': { icon: Phone, color: 'bg-orange-500' },
     'call_received': { icon: Phone, color: 'bg-blue-500' },
     

@@ -3,6 +3,10 @@ package com.merilive.app.activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -119,6 +123,7 @@ class PrivateCallActivity : ComponentActivity() {
     private lateinit var btnBeauty: ImageButton
     private lateinit var btnGift: ImageButton
     private lateinit var btnEnd: ImageButton
+    private lateinit var signalBars: Array<View>
 
     // Phase E — overlay views toggled in PIP mode.
     private lateinit var topOverlay: View
@@ -140,6 +145,9 @@ class PrivateCallActivity : ComponentActivity() {
     // Release when routed to speaker/BT/wired or when the call ends so the
     // screen doesn't stay blanked. Null-safe on devices without the sensor.
     private var proximityWakeLock: android.os.PowerManager.WakeLock? = null
+
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     // Phase H — camera resilience controller (last-frame freeze, audio-only
     // fallback banner, thermal-aware throttling, permission-revoke deep link).
@@ -186,6 +194,7 @@ class PrivateCallActivity : ComponentActivity() {
         registerBillingReceiver()
         registerResumeReceiver()
         wireUiToViewModel()
+        startNetworkQualityIndicator()
         wireBackPress()
         attachResilienceController()
 
@@ -395,6 +404,12 @@ class PrivateCallActivity : ComponentActivity() {
         btnBeauty = findViewById(R.id.privateCallBtnBeauty)
         btnGift = findViewById(R.id.privateCallBtnGift)
         btnEnd = findViewById(R.id.privateCallBtnEnd)
+        signalBars = arrayOf(
+            findViewById(R.id.privateCallSignalBar1),
+            findViewById(R.id.privateCallSignalBar2),
+            findViewById(R.id.privateCallSignalBar3),
+            findViewById(R.id.privateCallSignalBar4),
+        )
         topOverlay = findViewById(R.id.privateCallTopOverlay)
         bottomBar = findViewById(R.id.privateCallBottomBar)
         lowBalanceBannerSlot = findViewById(R.id.privateCallLowBalanceSlot)
@@ -742,7 +757,7 @@ class PrivateCallActivity : ComponentActivity() {
                 callId = id?.callId,
                 callerId = id?.peerId,
                 callerName = id?.peerName,
-                callType = if (id?.isVideo == true) "video" else "audio",
+                callType = "video",
                 action = "end",
             )
         }
@@ -763,12 +778,59 @@ class PrivateCallActivity : ComponentActivity() {
         billingReceiver = null
         resumeReceiver?.let { runCatching { unregisterReceiver(it) } }
         resumeReceiver = null
+        stopNetworkQualityIndicator()
         runCatching { audioRouter?.detach() }
         audioRouter = null
         runCatching { resilienceController?.detach() }
         resilienceController = null
         releaseProximityWakeLock(screenOnImmediately = true)
         super.onDestroy()
+    }
+
+    private fun startNetworkQualityIndicator() {
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        renderSignalBars(scoreNetwork(connectivityManager?.getNetworkCapabilities(connectivityManager?.activeNetwork)))
+        val cm = connectivityManager ?: return
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                renderSignalBars(scoreNetwork(cm.getNetworkCapabilities(network)))
+            }
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                renderSignalBars(scoreNetwork(caps))
+            }
+            override fun onLost(network: Network) { renderSignalBars(0) }
+        }
+        networkCallback = cb
+        runCatching { cm.registerDefaultNetworkCallback(cb) }
+    }
+
+    private fun stopNetworkQualityIndicator() {
+        val cm = connectivityManager
+        val cb = networkCallback
+        if (cm != null && cb != null) runCatching { cm.unregisterNetworkCallback(cb) }
+        networkCallback = null
+        connectivityManager = null
+    }
+
+    private fun scoreNetwork(caps: NetworkCapabilities?): Int {
+        if (caps == null) return 0
+        if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) return 1
+        val down = caps.linkDownstreamBandwidthKbps
+        val up = caps.linkUpstreamBandwidthKbps
+        return when {
+            down >= 10_000 && up >= 2_000 -> 4
+            down >= 4_000 && up >= 1_000 -> 3
+            down >= 1_000 && up >= 300 -> 2
+            else -> 1
+        }
+    }
+
+    private fun renderSignalBars(score: Int) {
+        runOnUiThread {
+            signalBars.forEachIndexed { idx, bar ->
+                bar.setBackgroundColor(if (idx < score) Color.parseColor("#6EE7B7") else Color.parseColor("#55FFFFFF"))
+            }
+        }
     }
 
     // ------------------------------------------------------------------

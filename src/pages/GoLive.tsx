@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 import { useNavigate } from "react-router-dom";
-import { X, RotateCcw, Grid3X3, Camera, AlertCircle, Wand2, Smile, Sparkles, Share2, Eye, Users, Zap, Star, Gift, Heart, Gamepad2, MapPin, Mic, ArrowLeft, CheckCircle, ShieldAlert, ScanFace, UserPlus, Check, LayoutGrid, Settings, Lock, Ban } from "lucide-react";
+import { X, RotateCcw, Grid3X3, AlertCircle, Wand2, Smile, Sparkles, Share2, Eye, Users, Zap, Star, Gift, Heart, Gamepad2, MapPin, Mic, ArrowLeft, CheckCircle, ShieldAlert, ScanFace, UserPlus, Check, LayoutGrid, Settings, Lock, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -1040,7 +1040,7 @@ const GoLive = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-white" />
+                  <UserPlus className="w-8 h-8 text-white" />
                 </div>
               )}
               <div
@@ -1240,7 +1240,7 @@ const GoLive = () => {
             >
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
-                  <Camera className="w-10 h-10 text-red-400" />
+                  <UserPlus className="w-10 h-10 text-red-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
                   Profile Photo Required!
@@ -1437,7 +1437,7 @@ const GoLive = () => {
                 <motion.div className="relative mb-5">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                      <Camera className="w-8 h-8 text-white" />
+                      <ShieldAlert className="w-8 h-8 text-white" />
                     </div>
                   </div>
                   <motion.div
@@ -1499,7 +1499,7 @@ const GoLive = () => {
                       }
                     }}
                   >
-                    <Camera className="w-4 h-4 mr-2" />
+                    <UserPlus className="w-4 h-4 mr-2" />
                     Update Photo
                   </Button>
                 </div>
@@ -1529,7 +1529,7 @@ const GoLive = () => {
                 <div className="relative mb-6">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                      <Camera className="w-8 h-8 text-white" />
+                      <CheckCircle className="w-8 h-8 text-white" />
                     </div>
                   </div>
                   <motion.div
@@ -1555,7 +1555,7 @@ const GoLive = () => {
                 <div className="w-full space-y-3 mb-6">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-pink-400" />
+                      <CheckCircle className="w-5 h-5 text-pink-400" />
                     </div>
                     <div className="text-left flex-1">
                       <p className="text-white text-sm font-medium">Camera</p>
