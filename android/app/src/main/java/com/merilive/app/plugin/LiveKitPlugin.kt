@@ -156,6 +156,7 @@ class LiveKitPlugin : Plugin() {
             put("connect"); put("disconnect"); put("disconnectSessionOnly")
             put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
+            put("attachLocal"); put("detachLocal")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
@@ -353,6 +354,82 @@ class LiveKitPlugin : Plugin() {
             call.resolve(ret)
         }
     }
+
+    /**
+     * Bug-fix 2026-06-17 (Private-call white-screen):
+     *
+     * `connect()` / `promotePreviewToSession()` publishes the camera but never
+     * mounts a fullscreen SurfaceViewRenderer behind the WebView. JS used to
+     * call `attachLocal()` here but there was no native handler — the call
+     * silently no-op'd through the Capacitor Proxy. Result: camera publishes
+     * to LiveKit, but the WebView's opaque white background covers the empty
+     * canvas → user sees a pure white screen the moment the camera "starts".
+     *
+     * This handler mirrors what `startLocalPreview()` does for Go Live:
+     *   1. Find the current local camera track (preview or freshly published).
+     *   2. Ensure a fullscreen renderer is mounted behind the WebView.
+     *   3. Mark WebView transparent so the camera bleeds through.
+     *   4. Bind the track to the renderer.
+     *
+     * Idempotent — safe to call repeatedly. No-ops in bounded (seat) mode so
+     * party rooms keep using per-tile TextureView slots.
+     */
+    @PluginMethod
+    fun attachLocal(call: PluginCall) {
+        val mirror = call.getBoolean("mirror", true) ?: true
+        scope.launch {
+            try {
+                if (boundedMode) {
+                    // Party rooms render local through attachLocalSurface per seat.
+                    call.resolve(JSObject().put("attached", false).put("reason", "bounded"))
+                    return@launch
+                }
+                val track = previewTrack
+                    ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
+                if (track == null) {
+                    call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
+                    return@launch
+                }
+                previewTrack = track
+                ensureRendererAttached(mirror)
+                val renderer = previewRenderer
+                if (renderer != null) {
+                    try { track.addRenderer(renderer) } catch (t: Throwable) {
+                        Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
+                    }
+                }
+                call.resolve(JSObject().put("attached", true))
+            } catch (t: Throwable) {
+                Log.e(TAG, "attachLocal failed", t)
+                call.reject("attachLocal: ${t.message}", t)
+            }
+        }
+    }
+
+    /**
+     * Companion to attachLocal — detaches the fullscreen renderer + restores
+     * WebView background. Used by JS on call end / video-off so the call UI
+     * can return to its normal opaque state without tearing down the room.
+     */
+    @PluginMethod
+    fun detachLocal(call: PluginCall) {
+        scope.launch {
+            try {
+                val track = previewTrack
+                val renderer = previewRenderer
+                if (track != null && renderer != null) {
+                    try { track.removeRenderer(renderer) } catch (_: Throwable) {}
+                }
+                detachRenderer()
+                call.resolve(JSObject().put("detached", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "detachLocal", t)
+                call.resolve(JSObject().put("detached", true))
+            }
+        }
+    }
+
+
 
     /**
      * Phase 3 — Activity lifecycle: mute mic + camera while the host app is
