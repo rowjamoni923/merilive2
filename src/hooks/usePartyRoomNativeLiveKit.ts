@@ -404,8 +404,22 @@ export function usePartyRoomNativeLiveKit(
           try {
             await whenNativeLiveKitKillSwitchReady();
             if (!shouldUseNativeLiveKit({ feature: 'party-room' })) throw new Error('native_livekit_required');
+            const shouldOpenVideo = partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current;
             warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
-            const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+            const tokenPromise = getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+            const previewPromise = shouldOpenVideo
+              ? nativeLiveKitController.startLocalPreview({
+                  lens: 'front',
+                  resolution: '720p',
+                  mirror: true,
+                  roomScope: 'party',
+                  boundedOnly: true,
+                }).catch((e) => {
+                  console.warn('[PartyLiveKit/Native] party preview prewarm failed:', e);
+                  return false;
+                })
+              : Promise.resolve(false);
+            const [{ token, url }] = await Promise.all([tokenPromise, previewPromise]);
             if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
 
             consumePreparedHostPreviewStream()?.getTracks().forEach((track) => { try { track.stop(); } catch {} });
@@ -418,7 +432,7 @@ export function usePartyRoomNativeLiveKit(
             await nativeLiveKitController.connectAndPublish({
               url,
               token,
-              video: partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current,
+              video: shouldOpenVideo,
               audio: partyCanPublish,
               lens: 'front',
               resolution: '720p',
@@ -1081,7 +1095,16 @@ export function usePartyRoomNativeLiveKit(
         try {
           if (partyCanPublish) {
             await nativeLiveKitController.setMicrophoneEnabled(true);
-            if (isVideoPartyType(roomType) && cameraReadyRef.current) await nativeLiveKitController.setCameraEnabled(true);
+            if (isVideoPartyType(roomType) && cameraReadyRef.current) {
+              await nativeLiveKitController.startLocalPreview({
+                lens: 'front',
+                resolution: '720p',
+                mirror: true,
+                roomScope: 'party',
+                boundedOnly: true,
+              }).catch(() => false);
+              await nativeLiveKitController.setCameraEnabled(true);
+            }
             if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: true, isVideoEnabled: isVideoPartyType(roomType) }));
           } else {
             await nativeLiveKitController.setCameraEnabled(false);
