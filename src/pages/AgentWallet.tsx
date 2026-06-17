@@ -249,7 +249,9 @@ const AgentWallet = () => {
     });
     
     // Refresh real balances from DB
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: { session: refreshSession } } = await supabase.auth.getSession();
+    const currentUser = refreshSession?.user ?? null;
+
     if (currentUser) await refreshBalances(currentUser.id);
     
     setIsProcessing(false);
