@@ -112,7 +112,12 @@ const AgentWallet = () => {
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use getSession() — reads from local storage (0ms) instead of
+      // getUser() which makes a network round-trip to validate the JWT
+      // (200-600ms on 4G). Wallet cold-open was waiting on that RTT
+      // before any balance query could start.
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         navigate("/auth");
         return;
@@ -134,6 +139,7 @@ const AgentWallet = () => {
     };
 
     fetchData();
+
 
     // Zero-refresh policy: no visibility/tab-return refetch. Wallet mutations
     // refresh balances inline, and push events update cross-screen state.
