@@ -489,19 +489,8 @@ export const RoomChatOverlay = memo(({
       "flex flex-col relative gap-1.5 w-[68vw] max-w-[520px] min-w-0",
       className
     )}>
-      {/* Admin rule warning — anchored to the TOP of the chat column,
-          just above the chat messages and above the bottom action buttons.
-          This is the Bigo/Chamet/Olamet reference position: the warning
-          lives inside the chat stream, NOT pinned to the very top of the
-          screen. */}
-      {adminBannerRoomType && (
-        <RoomWelcomeBanner roomType={adminBannerRoomType} />
-      )}
-
       {/* SCROLLABLE CHAT CONTAINER — messages + join notifications only.
-          flex-col-reverse: newest at bottom, scroll up to see older.
-          The top static section above is excluded so empty/low-traffic
-          rooms still anchor the warning to the top of the chat column. */}
+          flex-col-reverse: newest at bottom, scroll up to see older. */}
       <div
         ref={chatContainerRef}
         className={cn(
@@ -537,12 +526,22 @@ export const RoomChatOverlay = memo(({
         </AnimatePresence>
       </div>
 
+      {/* Admin rule warning — anchored to the BOTTOM of the chat column,
+          sitting directly above the chat input and the bottom action
+          buttons. This is the placement requested for live + party rooms:
+          the warning lives between the chat stream and the input/button row
+          so it stays visible without covering messages. */}
+      {adminBannerRoomType && (
+        <RoomWelcomeBanner roomType={adminBannerRoomType} />
+      )}
+
       {/* Scroll-to-bottom button — appears when user scrolls up */}
       <ScrollToBottomButton
         scrollRef={chatContainerRef}
         reverse
         className="bottom-2 left-1/2 -translate-x-1/2"
       />
+
     </div>
   );
 });
