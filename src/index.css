@@ -4568,3 +4568,22 @@ a:focus-visible,
   outline-offset: 2px;
   border-radius: inherit;
 }
+
+/* Pkg501 (Defect #7, Chamet/Bigo pattern): subtle Ken-Burns on live-stream
+ * card thumbnails. Even without rotating server snapshots, a slow zoom/pan
+ * makes static live thumbnails feel "alive" — same trick Chamet uses on its
+ * Popular/Live feed. Pure transform, no layout/paint cost. Respects reduced
+ * motion preference. */
+@keyframes pkg501-ken-burns {
+  0%   { transform: scale(1.00) translate(0%, 0%); }
+  50%  { transform: scale(1.08) translate(-1.5%, -1%); }
+  100% { transform: scale(1.05) translate(1.5%, 1%); }
+}
+.live-card-kenburns {
+  animation: pkg501-ken-burns 14s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-card-kenburns { animation: none; }
+}
