@@ -534,6 +534,7 @@ export function useLiveKitCall(
             console.error('[LiveKitCall/Native] init failed after retry:', nativeErr);
             usingNativeRef.current = false;
             setNativeActive(false);
+            clearNativeMediaSurface();
             try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
             toast.error('Call camera failed to start. Please end the call and try again.');
             setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
