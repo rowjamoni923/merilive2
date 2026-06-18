@@ -229,6 +229,19 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // subscription (must be a re-rendering value, not a ref).
   const [nativeActive, setNativeActive] = useState(false);
   const lastNativeReconnectAttemptAtRef = useRef(0);
+  // Phase 2A Step 5 (H4 fix): native viewer needs a bounded reconnect curve
+  // mirroring the web hard-reconnect ladder so APK viewers don't get stuck
+  // on flaky networks. Curve: 0s → 1.5s → 4s → 9s → 18s → give up.
+  const nativeReconnectAttemptRef = useRef(0);
+  const nativeReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const NATIVE_RECONNECT_DELAYS_MS = [0, 1500, 4000, 9000, 18000];
+
+  const clearNativeReconnectTimer = useCallback(() => {
+    if (nativeReconnectTimerRef.current) {
+      clearTimeout(nativeReconnectTimerRef.current);
+      nativeReconnectTimerRef.current = null;
+    }
+  }, []);
 
   const requestNativeReconnect = useCallback(() => {
     const now = Date.now();
@@ -236,6 +249,36 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     lastNativeReconnectAttemptAtRef.current = now;
     return nativeLiveKitController.reconnectNow();
   }, []);
+
+  const scheduleNativeReconnect = useCallback(() => {
+    if (isLeavingRef.current || !usingNativeRef.current) return;
+    const attempt = nativeReconnectAttemptRef.current;
+    if (attempt >= NATIVE_RECONNECT_DELAYS_MS.length) {
+      console.error('[LiveKitClient/Native] reconnect gave up after', attempt, 'attempts');
+      try { toast.error('Connection lost. Tap to retry.', { id: 'lk-live-reconnect' }); } catch { /* ignore */ }
+      return;
+    }
+    clearNativeReconnectTimer();
+    nativeReconnectTimerRef.current = setTimeout(() => {
+      nativeReconnectTimerRef.current = null;
+      if (isLeavingRef.current || !usingNativeRef.current) return;
+      requestNativeReconnect().then((ok) => {
+        if (ok) {
+          nativeReconnectAttemptRef.current = 0;
+          setNativeActive(true);
+          setIsJoined(true);
+          setConnectionState('CONNECTED');
+          try { toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 }); } catch { /* ignore */ }
+        } else {
+          nativeReconnectAttemptRef.current = attempt + 1;
+          scheduleNativeReconnect();
+        }
+      }).catch(() => {
+        nativeReconnectAttemptRef.current = attempt + 1;
+        scheduleNativeReconnect();
+      });
+    }, NATIVE_RECONNECT_DELAYS_MS[attempt]);
+  }, [clearNativeReconnectTimer, requestNativeReconnect]);
 
   // Subscribe to native plugin events while the host session is on the
   // native Android publish path. Surface disconnects back into React.
