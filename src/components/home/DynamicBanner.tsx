@@ -99,69 +99,14 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
 
   return (
     <>
-      <div className="space-y-2">
-        {banners.map((banner) => (
-          <div
-            key={banner.id}
-            onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? '' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-            style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
-            role={banner.link_url ? 'button' : undefined}
-            aria-label={banner.link_url ? banner.title : undefined}
-          >
-            {banner.image_url ? (
-              <img
-                loading={isAboveFold ? 'eager' : 'lazy'}
-                decoding={isAboveFold ? 'sync' : 'async'}
-                src={bannerCdn(banner.image_url)}
-                alt={banner.title}
-                // @ts-expect-error – fetchpriority is a standard HTML hint
-                fetchpriority={isAboveFold ? 'high' : 'low'}
-                className="block w-full h-auto rounded-2xl"
-                onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
-                onError={(e) => {
-                  const t = e.currentTarget;
-                  if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
-                  (t.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 
-                    className="text-xl font-bold"
-                    style={{ color: banner.text_color }}
-                  >
-                    {banner.title}
-                  </h3>
-                  {banner.subtitle && (
-                    <p 
-                      className="text-sm opacity-80"
-                      style={{ color: banner.text_color }}
-                    >
-                      {banner.subtitle}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span 
-                    className="text-4xl font-bold"
-                    style={{ color: banner.accent_color }}
-                  >
-                    {banner.title.split(" ")[0]}
-                  </span>
-                  {banner.link_url && (
-                    <ChevronRight 
-                      className="w-5 h-5 opacity-50" 
-                      style={{ color: banner.text_color }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <BannerCarousel
+        banners={banners}
+        isAboveFold={isAboveFold}
+        onBannerClick={handleBannerClick}
+        loadedImages={loadedImages}
+        setLoadedImages={setLoadedImages}
+      />
+
 
       {popupOpen && (
         <div
