@@ -36,6 +36,7 @@ import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { formatCompactCount } from "@/utils/formatCount";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
