@@ -731,6 +731,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             audioTrack: null as any,
             hasVideo: true,
             hasAudio: false,
+            // Phase 1B: seed mute state from current publication so the viewer
+            // immediately shows the avatar if the host subscribed while camera-off.
+            videoMuted: !!publication.isMuted,
           };
 
           // Also check for audio
