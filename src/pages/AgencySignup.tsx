@@ -444,23 +444,23 @@ const AgencySignup = () => {
             </div>
 
             {foundUser && (
-              <div className="p-3 bg-success-900/30 border border-success-700/50 rounded-xl">
+              <div className="p-3 bg-success-50 border border-success-200 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 border-2 border-success-300">
+                  <Avatar className="w-10 h-10 border-2 border-success-400">
                     <AvatarImage src={enhanceThumbnail(foundUser.avatar_url || undefined, { width: 96, quality: 82 })} />
-                    <AvatarFallback className="bg-success-800 text-success-300">{foundUser.display_name?.charAt(0) || "U"}</AvatarFallback>
+                    <AvatarFallback className="bg-success-100 text-success-700">{foundUser.display_name?.charAt(0) || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold text-success-300">{foundUser.display_name || "Unknown User"}</p>
-                    <p className="text-xs text-success-400">{foundUser.app_uid}</p>
+                    <p className="font-semibold text-success-800">{foundUser.display_name || "Unknown User"}</p>
+                    <p className="text-xs text-success-700">{foundUser.app_uid}</p>
                   </div>
-                  {emailVerified ? <Badge className="bg-success-500 text-white">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-success-500" />}
+                  {emailVerified ? <Badge className="bg-success-500 text-white">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-success-600" />}
                 </div>
               </div>
             )}
 
             {userNotFound && (
-              <div className="p-3 bg-danger-900/30 border border-danger-700/50 rounded-xl flex items-center gap-2 text-danger-500">
+              <div className="p-3 bg-danger-50 border border-danger-200 rounded-xl flex items-center gap-2 text-danger-700">
                 <AlertCircle className="w-5 h-5" />
                 <span className="text-sm">User not found or not eligible for agency</span>
               </div>
