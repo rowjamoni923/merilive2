@@ -294,7 +294,9 @@ self.addEventListener('message', function(event) {
     event.waitUntil(
       caches.keys().then(function(keys) {
         return Promise.all(keys.filter(function(k) {
-          return k.indexOf('meri-assets-') === 0 || k.indexOf('meri-img-cache-') === 0;
+          return k.indexOf('meri-assets-') === 0 ||
+                 k.indexOf('meri-html-') === 0 ||
+                 k.indexOf('meri-img-cache-') === 0;
         }).map(function(k) { return caches.delete(k); }));
       }).catch(function() {})
     );
