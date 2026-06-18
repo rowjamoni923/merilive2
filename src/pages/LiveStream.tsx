@@ -137,6 +137,7 @@ import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSes
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
+import { warmLiveKitToken } from "@/services/livekitService";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
