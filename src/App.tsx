@@ -390,9 +390,70 @@ import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToast
 // =============================================
 // ROUTE LOADER
 // =============================================
-// User app routes must never show a blocking branded loading card/spinner.
-// Lazy chunks resolve silently; existing/cached UI stays the perceived surface.
-const RouteSuspenseFallback = memo(() => null);
+// User app routes must never expose the raw document background while lazy
+// chunks/session data resolve. A professional app keeps a real surface visible:
+// cached content when available, otherwise a lightweight route-shaped skeleton.
+const RouteSuspenseFallback = memo(() => {
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const isAuthRoute = path.startsWith('/auth') || path.startsWith('/reset-password');
+  const isLiveSurface = path.startsWith('/live') || path.startsWith('/party') || path.startsWith('/call');
+
+  if (isAuthRoute) {
+    return (
+      <div className="fixed inset-0 overflow-hidden bg-background" aria-hidden="true">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-background to-accent/20" />
+        <div className="relative z-10 flex min-h-screen flex-col justify-end px-5 pb-8 pt-4">
+          <div className="mb-4 h-14 w-14 rounded-full bg-primary/20 animate-pulse" />
+          <div className="mb-3 h-7 w-40 rounded bg-foreground/10 animate-pulse" />
+          <div className="mb-8 h-4 w-56 rounded bg-foreground/10 animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-14 rounded-2xl bg-primary/20 animate-pulse" />
+            <div className="h-12 rounded-2xl bg-card/70 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLiveSurface) {
+    return (
+      <div className="fixed inset-0 bg-background" aria-hidden="true">
+        <div className="absolute inset-0 bg-muted/50 animate-pulse" />
+        <div className="absolute left-4 right-4 top-safe pt-4 flex items-center gap-3">
+          <div className="h-11 w-11 rounded-full bg-card/80" />
+          <div className="space-y-2">
+            <div className="h-3 w-28 rounded bg-card/80" />
+            <div className="h-3 w-16 rounded bg-card/60" />
+          </div>
+        </div>
+        <div className="absolute bottom-safe left-4 right-4 pb-5 space-y-3">
+          <div className="h-10 rounded-full bg-card/70" />
+          <div className="flex justify-between">
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full bg-card/70" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background px-4 pb-24 pt-safe" aria-hidden="true">
+      <div className="mx-auto max-w-md space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-32 rounded bg-muted animate-pulse" />
+          <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-40 rounded-2xl bg-muted animate-pulse" />
+          <div className="h-40 rounded-2xl bg-muted animate-pulse" />
+        </div>
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)}
+        </div>
+      </div>
+    </div>
+  );
+});
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
