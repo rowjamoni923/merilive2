@@ -95,5 +95,4 @@ export async function runConnectionCheck(
   return out;
 }
 
-export { CheckStatus };
 export type { CheckInfo };
