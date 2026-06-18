@@ -3223,8 +3223,24 @@ const Recharge = () => {
             )}
 
             {/* Packages Grid - Compact */}
+            {(() => {
+              // Compute "Most Popular" package — highest bonus %, tie-broken by mid-tier price.
+              // Research: a flame "Most Popular" pill on the best-value mid-tier doubles conversion
+              // over the cheapest pack (Bigo / Chamet standard).
+              const sorted = [...packages].sort((a: any, b: any) => (a.price_usd || 0) - (b.price_usd || 0));
+              const maxBonus = Math.max(0, ...sorted.map((p: any) => p.bonus_percentage || 0));
+              let popularId: string | null = null;
+              if (sorted.length >= 3) {
+                if (maxBonus > 0) {
+                  popularId = sorted.find((p: any) => (p.bonus_percentage || 0) === maxBonus)?.id ?? null;
+                } else {
+                  popularId = sorted[Math.floor(sorted.length / 2)]?.id ?? null;
+                }
+              }
+              return (
             <div className="grid grid-cols-2 gap-3">
               {packages.map((pkg) => {
+                const isPopular = pkg.id === popularId;
                 // Handle direct purchase when clicking price button
                 const handlePurchaseClick = (e: React.MouseEvent) => {
                   e.stopPropagation();
