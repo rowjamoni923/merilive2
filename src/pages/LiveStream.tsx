@@ -3745,7 +3745,7 @@ const LiveStream = () => {
 
       <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface) ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
-        {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
+        {!isHost && (!remoteVideoTrack || isRemoteHostCameraOff) && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
             <img loading="lazy" decoding="async"
               src={hostInfo.avatar}
@@ -3755,6 +3755,20 @@ const LiveStream = () => {
              
               draggable={false}
  />
+            {/* Phase 1B: camera-off badge so viewers know it's intentional, not a stall */}
+            {isRemoteHostCameraOff && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
+                <img
+                  src={hostInfo.avatar}
+                  alt=""
+                  className="w-28 h-28 rounded-full object-cover ring-4 ring-white/20 shadow-2xl"
+                  draggable={false}
+                />
+                <div className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-white/85 text-xs font-medium">
+                  Camera is off
+                </div>
+              </div>
+            )}
           </div>
         )}
         {/* Pkg100: PK split-screen — both hosts visible during active battle */}
