@@ -1020,19 +1020,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
       });
 
-      // CRYSTAL CLEAR: Keep HIGH quality for viewers without sub-5s polling.
-      // This touches only LiveKit track state (no DB), but must still respect
-      // the $1400 zero-tolerance guard for live/call/party intervals.
+      // Phase 2A Step 1 (H3 fix): quality enforcer must RESPECT the network-aware
+      // cap from applyVideoQualityCapToRoom instead of forcing HIGH every 10s.
+      // Previously this overrode every weak-network downgrade → viewers on bad
+      // networks burned data + stalled because LOW kept bouncing back to HIGH.
+      // Now we re-apply the *preferred* quality (which the QualityHint
+      // subscriber already lowered if network/thermal pressure is high).
       let qualityEnforcer: ReturnType<typeof setInterval> | null = null;
       if (config.role === 'audience') {
-        // Re-enforce HIGH quality every 10 seconds to prevent any downgrade.
         qualityEnforcer = setInterval(() => {
           if (room.state !== ConnectionState.Connected) return;
+          const target = preferredVideoQualityRef.current;
           room.remoteParticipants.forEach((remote) => {
             remote.trackPublications.forEach((pub) => {
               if (pub.kind !== Track.Kind.Video || !pub.isSubscribed) return;
               try {
-                pub.setVideoQuality?.(VideoQuality.HIGH);
+                pub.setVideoQuality?.(target);
               } catch {
                 // ignore optional API failures
               }
