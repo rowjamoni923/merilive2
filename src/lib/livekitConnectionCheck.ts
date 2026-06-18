@@ -17,9 +17,20 @@
  * $1400-rule safe: zero new Supabase channels, zero polling, fires only when
  * the user explicitly taps "Test connection".
  */
-import { ConnectionCheck, CheckStatus, type CheckInfo } from 'livekit-client';
+import { ConnectionCheck, type CheckInfo } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
 import { supabase } from '@/integrations/supabase/client';
+
+// CheckStatus is re-exported as a type-only symbol in livekit-client 2.9.x,
+// so we mirror the underlying numeric enum locally for runtime comparisons.
+export const CheckStatus = {
+  IDLE: 0,
+  RUNNING: 1,
+  SKIPPED: 2,
+  SUCCESS: 3,
+  FAILED: 4,
+} as const;
+export type CheckStatusValue = typeof CheckStatus[keyof typeof CheckStatus];
 
 export type CheckRunStatus = 'idle' | 'running' | 'success' | 'failed';
 
@@ -84,5 +95,4 @@ export async function runConnectionCheck(
   return out;
 }
 
-export { CheckStatus };
 export type { CheckInfo };
