@@ -40,16 +40,16 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     if (isChunkLoadError(error)) {
       this.setState({ recovering: true });
-      // Zero-refresh policy: cleared stale runtime caches best-effort.
-      // After a short delay to show the "Updating" UI, we trigger a reload 
-      // if it's a persistent chunk failure, as that's the only way to fetch 
-      // the new manifest/assets from the server.
+      // Persistent stale chunks cannot be repaired inside the current JS graph:
+      // show the update UI briefly, then force a bounded cache-busting boot.
       void (async () => {
-        try {
-          await scheduleChunkLoadRecovery(error, error.message);
-          // Short pause so the "Updating" UI is visible, then hard-reload to /.
-          await new Promise(r => setTimeout(r, 600));
-        } catch { /* best-effort */ }
+        let didAttempt = false;
+        try { didAttempt = await scheduleChunkLoadRecovery(error, error.message); } catch { /* best-effort */ }
+        if (!didAttempt) {
+          this.setState({ recovering: false });
+          return;
+        }
+        await new Promise(r => setTimeout(r, 250));
         hardReloadForChunkRecovery();
       })();
     }
@@ -69,9 +69,14 @@ class ErrorBoundary extends Component<Props, State> {
       resetChunkRecoveryMarkers();
       this.setState({ recovering: true });
       void (async () => {
+        let didAttempt = false;
         try {
-          await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
+          didAttempt = await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
         } catch { /* best-effort */ }
+        if (!didAttempt) {
+          this.setState({ recovering: false });
+          return;
+        }
         try {
           // One final attempt to clear caches before we give up
           if ('caches' in window) {

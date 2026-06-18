@@ -163,7 +163,8 @@ self.addEventListener('notificationclick', function(event) {
 // =============================================
 var ASSET_CACHE = 'meri-assets-v1';
 var HTML_CACHE = 'meri-html-v1';
-var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
+var ASSET_REGEX = /\.(?:css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
+var SCRIPT_ASSET_REGEX = /\.(?:js|mjs)(?:\?.*)?$/i;
 
 self.addEventListener('install', function(event) {
   // Pkg B pass-3: do NOT auto-skipWaiting; wait for SKIP_WAITING message from
@@ -251,13 +252,18 @@ self.addEventListener('fetch', function(event) {
   // Don't cache HTML — handled in Navigation block
   if (req.mode === 'navigate' || req.destination === 'document') return;
 
+  // Never CacheStorage-cache hashed JS chunks. A stale script response can keep
+  // the old module graph alive after deploy and loop React.lazy into the update
+  // screen. Browser HTTP cache already handles immutable /assets/*.js safely.
+  if (req.destination === 'script' || SCRIPT_ASSET_REGEX.test(url.pathname)) return;
+
   // Don't cache API/auth/realtime
   if (url.pathname.indexOf('/rest/') !== -1) return;
   if (url.pathname.indexOf('/auth/') !== -1) return;
   if (url.pathname.indexOf('/realtime/') !== -1) return;
   if (url.pathname.indexOf('/functions/') !== -1) return;
 
-  // Only cache static assets (JS, CSS, fonts, images)
+  // Only cache non-script static assets (CSS, fonts, images)
   if (!ASSET_REGEX.test(url.pathname)) return;
 
   event.respondWith(
@@ -288,7 +294,9 @@ self.addEventListener('message', function(event) {
     event.waitUntil(
       caches.keys().then(function(keys) {
         return Promise.all(keys.filter(function(k) {
-          return k.indexOf('meri-assets-') === 0 || k.indexOf('meri-img-cache-') === 0;
+          return k.indexOf('meri-assets-') === 0 ||
+                 k.indexOf('meri-html-') === 0 ||
+                 k.indexOf('meri-img-cache-') === 0;
         }).map(function(k) { return caches.delete(k); }));
       }).catch(function() {})
     );
