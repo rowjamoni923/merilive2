@@ -869,9 +869,24 @@ serve(async (req) => {
     // If host gallery photos don't match the live face, force manual review
     // by short-circuiting the auto-finalize RPC call.
     let autoResult: Record<string, unknown> | null = null;
+    // ★ SECURITY GATE (P0 hardening 2026-06-18): Auto-approve is ONLY safe when
+    //    BOTH AWS Rekognition (compare/detect) AND the external liveness +
+    //    duplicate-search provider (VERIFY_FACE_API_KEY) ran successfully.
+    //    If the provider key is missing or its call threw, livenessStatus stays
+    //    null — Rekognition alone CANNOT distinguish a photo-of-a-photo or a
+    //    replay from a live person. In that case we MUST NOT auto-approve;
+    //    leave the row in `submitted` for manual admin review.
+    const livenessProviderAvailable = !!faceProviderEarly;
+    const livenessActuallyRan = livenessStatus !== null;
     if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
+    } else if (!livenessProviderAvailable) {
+      autoResult = { success: false, reason: "liveness_provider_missing" };
+      console.error("[face-verification-analyze] ⚠️ VERIFY_FACE_API_KEY not configured — auto-approve blocked, manual review required");
+    } else if (!livenessActuallyRan) {
+      autoResult = { success: false, reason: "liveness_provider_unreachable" };
+      console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
     } else {
       const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
         "service_auto_finalize_face_verification",
