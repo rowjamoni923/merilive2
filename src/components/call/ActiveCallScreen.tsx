@@ -815,6 +815,74 @@ export function ActiveCallScreen({
     setIsSwapped(!isSwapped);
   };
 
+  // Pkg501 — Native chat bridge.
+  // 1) Forward EVERY accepted incoming peer chat msg into the native
+  //    PrivateCallActivity chat overlay (no-op on old APKs / web).
+  // 2) Listen for `native-call-chat-send` events fired by the native
+  //    composer and publish them via the SAME LiveKit DataPacket path
+  //    so transport remains the single source of truth.
+  useEffect(() => {
+    if (!callId || !isOpen) return;
+    let detach: (() => void) | null = null;
+    const onPeer = (e: Event) => {
+      const detail = (e as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      if (!nativeInCallOpen) return;
+      void NativeCall.pushChatMessage({
+        callId,
+        messageId: detail.messageId,
+        userId: detail.userId,
+        displayName: detail.displayName,
+        avatarUrl: detail.avatarUrl ?? null,
+        message: detail.message,
+        isSelf: detail.userId === userId,
+        timestamp: detail.timestamp || Date.now(),
+      }).catch(() => { /* old APK no-op */ });
+    };
+    window.addEventListener('livekit-chat-message', onPeer as EventListener);
+    (async () => {
+      try {
+        const handle = await NativeCall.addListener('native-call-chat-send', (ev) => {
+          if (!ev || ev.callId !== callId || !ev.text?.trim()) return;
+          const msg = {
+            id: ev.clientId || `${ev.ts}-${userId}`,
+            senderId: userId || '',
+            senderName: myDisplayName,
+            message: ev.text.trim(),
+            timestamp: ev.ts || Date.now(),
+          };
+          setChatMessages((prev) => [...prev, msg]);
+          checkToxic(ev.text, { contextType: 'call', callId }).catch(() => {});
+          void publishChatMessage('call', callId, {
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            message: ev.text.trim(),
+            messageType: 'text',
+            timestamp: msg.timestamp,
+          }).catch(() => { /* non-fatal */ });
+          // Echo own msg back into native overlay too so the user sees
+          // their own bubble immediately.
+          void NativeCall.pushChatMessage({
+            callId,
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            avatarUrl: myAvatarUrl,
+            message: ev.text.trim(),
+            isSelf: true,
+            timestamp: msg.timestamp,
+          }).catch(() => {});
+        });
+        detach = () => { try { handle.remove(); } catch { /* ignore */ } };
+      } catch { /* listener API missing on old APK — fine */ }
+    })();
+    return () => {
+      window.removeEventListener('livekit-chat-message', onPeer as EventListener);
+      detach?.();
+    };
+  }, [callId, isOpen, userId, myDisplayName, myAvatarUrl, nativeInCallOpen, checkToxic]);
+
   // Auto-scroll chat
   useEffect(() => {
     requestAnimationFrame(() => {
