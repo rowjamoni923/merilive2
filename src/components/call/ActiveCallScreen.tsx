@@ -125,6 +125,62 @@ export function ActiveCallScreen({
   const [myDisplayName, setMyDisplayName] = useState<string>("You");
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [myLevel, setMyLevel] = useState<number>(1);
+
+  // ============================================================
+  // PREVIEW-ONLY camera fallback (Lovable web preview).
+  // Production web is always gated by RequireNativeAndroidGate;
+  // here we mirror the local webcam into both tiles so QA can
+  // visually verify the call screen layout (faces, chat, gifts)
+  // without an APK + paired peer device.
+  // ============================================================
+  const isPreviewWeb = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    if (isNativeAndroidApp()) return false;
+    const h = window.location.hostname;
+    return (
+      h === 'localhost' ||
+      h === '127.0.0.1' ||
+      h.endsWith('.lovableproject.com') ||
+      /^id-preview--[a-z0-9-]+\.lovable\.app$/i.test(h)
+    );
+  }, []);
+  const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
+  const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
+  const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
+  useEffect(() => {
+    if (!isOpen || !isPreviewWeb) return;
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 720, height: 1280 },
+          audio: false,
+        });
+        if (cancelled) {
+          stream?.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        setPreviewStream(stream);
+      } catch (err) {
+        console.warn('[ActiveCall][preview] getUserMedia failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      stream?.getTracks().forEach((t) => t.stop());
+      setPreviewStream(null);
+    };
+  }, [isOpen, isPreviewWeb]);
+  useEffect(() => {
+    if (!previewStream) return;
+    if (previewVideoRefPrimary.current && previewVideoRefPrimary.current.srcObject !== previewStream) {
+      previewVideoRefPrimary.current.srcObject = previewStream;
+    }
+    if (previewVideoRefPip.current && previewVideoRefPip.current.srcObject !== previewStream) {
+      previewVideoRefPip.current.srcObject = previewStream;
+    }
+  }, [previewStream]);
   
   // Host photos for calling/ringing screen
   const [hostPhotos, setHostPhotos] = useState<string[]>([]);
@@ -759,6 +815,74 @@ export function ActiveCallScreen({
     setIsSwapped(!isSwapped);
   };
 
+  // Pkg501 — Native chat bridge.
+  // 1) Forward EVERY accepted incoming peer chat msg into the native
+  //    PrivateCallActivity chat overlay (no-op on old APKs / web).
+  // 2) Listen for `native-call-chat-send` events fired by the native
+  //    composer and publish them via the SAME LiveKit DataPacket path
+  //    so transport remains the single source of truth.
+  useEffect(() => {
+    if (!callId || !isOpen) return;
+    let detach: (() => void) | null = null;
+    const onPeer = (e: Event) => {
+      const detail = (e as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      if (!nativeInCallOpen) return;
+      void NativeCall.pushChatMessage({
+        callId,
+        messageId: detail.messageId,
+        userId: detail.userId,
+        displayName: detail.displayName,
+        avatarUrl: detail.avatarUrl ?? null,
+        message: detail.message,
+        isSelf: detail.userId === userId,
+        timestamp: detail.timestamp || Date.now(),
+      }).catch(() => { /* old APK no-op */ });
+    };
+    window.addEventListener('livekit-chat-message', onPeer as EventListener);
+    (async () => {
+      try {
+        const handle = await NativeCall.addListener('native-call-chat-send', (ev) => {
+          if (!ev || ev.callId !== callId || !ev.text?.trim()) return;
+          const msg = {
+            id: ev.clientId || `${ev.ts}-${userId}`,
+            senderId: userId || '',
+            senderName: myDisplayName,
+            message: ev.text.trim(),
+            timestamp: ev.ts || Date.now(),
+          };
+          setChatMessages((prev) => [...prev, msg]);
+          checkToxic(ev.text, { contextType: 'call', callId }).catch(() => {});
+          void publishChatMessage('call', callId, {
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            message: ev.text.trim(),
+            messageType: 'text',
+            timestamp: msg.timestamp,
+          }).catch(() => { /* non-fatal */ });
+          // Echo own msg back into native overlay too so the user sees
+          // their own bubble immediately.
+          void NativeCall.pushChatMessage({
+            callId,
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            avatarUrl: myAvatarUrl,
+            message: ev.text.trim(),
+            isSelf: true,
+            timestamp: msg.timestamp,
+          }).catch(() => {});
+        });
+        detach = () => { try { handle.remove(); } catch { /* ignore */ } };
+      } catch { /* listener API missing on old APK — fine */ }
+    })();
+    return () => {
+      window.removeEventListener('livekit-chat-message', onPeer as EventListener);
+      detach?.();
+    };
+  }, [callId, isOpen, userId, myDisplayName, myAvatarUrl, nativeInCallOpen, checkToxic]);
+
   // Auto-scroll chat
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -1125,9 +1249,47 @@ export function ActiveCallScreen({
                   <div className="relative z-10 flex flex-col items-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-2" />
                   </div>
-                </div>
-              )}
+          </div>
+        )}
+
+        {/* ===== PREVIEW-ONLY camera mirror (Lovable web) ===== */}
+        {isPreviewWeb && previewStream && (
+          <>
+            <video
+              ref={previewVideoRefPrimary}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover z-[4]"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
+              PREVIEW MODE — your camera mirrored to both tiles
             </div>
+            <motion.div
+              whileTap={{ scale: 0.93 }}
+              onClick={handleSwapVideos}
+              className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-[7] cursor-pointer bg-black"
+              style={{
+                boxShadow:
+                  '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+              }}
+            >
+              <video
+                ref={previewVideoRefPip}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+              <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
+                You
+              </div>
+            </motion.div>
+          </>
+        )}
+      </div>
 
             {/* PIP secondary (local) video - tap to swap */}
             <motion.div

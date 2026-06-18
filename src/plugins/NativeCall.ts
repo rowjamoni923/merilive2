@@ -141,6 +141,27 @@ export interface NativeCallPlugin {
     ratePerMinute: number;
   }): Promise<{ ok: boolean }>;
 
+  // ---- Pkg501 — Native in-call chat overlay (PrivateCallActivity) -------
+  /**
+   * Push a single incoming chat message into the active PrivateCallActivity
+   * chat overlay. JS continues to own the LiveKit DataPacket transport via
+   * livekitChatSignaling.publishChatMessage(); this is purely a UI mirror so
+   * the native RecyclerView shows peer messages while the Activity covers
+   * the WebView. No-op when no PrivateCallActivity is foreground. Older
+   * APKs without the chat surface return `{ ok: false }` and JS falls back
+   * to its own React chat overlay.
+   */
+  pushChatMessage(opts: {
+    callId: string;
+    messageId: string;
+    userId: string;
+    displayName?: string;
+    avatarUrl?: string | null;
+    message: string;
+    isSelf: boolean;
+    timestamp: number;
+  }): Promise<{ ok: boolean }>;
+
   addListener(
     eventName: 'call-action',
     cb: (e: NativeCallActionEvent) => void,
@@ -188,6 +209,17 @@ export interface NativeCallPlugin {
   addListener(
     eventName: 'native-call-window',
     cb: (e: { callId: string; state: 'opened' | 'closed'; ts: number }) => void,
+  ): Promise<PluginListenerHandle>;
+
+  /**
+   * Pkg501 — fired when the user taps Send inside the native chat composer
+   * of PrivateCallActivity. JS responds by calling
+   * livekitChatSignaling.publishChatMessage('call', callId, …) so the
+   * DataPacket transport stays the single source of truth.
+   */
+  addListener(
+    eventName: 'native-call-chat-send',
+    cb: (e: { callId: string; clientId: string; text: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
 }
 
