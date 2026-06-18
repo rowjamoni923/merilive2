@@ -1416,7 +1416,10 @@ export function ActiveCallScreen({
   );
 
   return createPortal(
-    <RequireNativeAndroidGate feature="call">{callUi}</RequireNativeAndroidGate>,
+    <RequireNativeAndroidGate feature="call">
+      {resilienceNotifier}
+      {callUi}
+    </RequireNativeAndroidGate>,
     document.body,
   );
 };
