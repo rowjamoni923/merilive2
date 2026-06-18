@@ -118,6 +118,13 @@ export const BlankScreenGuard = memo(() => {
 
     if (timerRef.current) window.clearTimeout(timerRef.current);
 
+    const armBlankCheck = () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => {
+        if (!hasMeaningfulRouteSurface()) setGuardVisible(true);
+      }, BLANK_GUARD_DELAY_MS);
+    };
+
     const check = () => {
       if (hasMeaningfulRouteSurface()) {
         setGuardVisible(false);
@@ -126,10 +133,15 @@ export const BlankScreenGuard = memo(() => {
       }
     };
 
-    timerRef.current = window.setTimeout(check, BLANK_GUARD_DELAY_MS);
+    armBlankCheck();
 
     const observer = new MutationObserver(() => {
-      if (visibleRef.current && hasMeaningfulRouteSurface()) setGuardVisible(false);
+      if (hasMeaningfulRouteSurface()) {
+        if (timerRef.current) window.clearTimeout(timerRef.current);
+        if (visibleRef.current) setGuardVisible(false);
+        return;
+      }
+      if (!visibleRef.current) armBlankCheck();
     });
 
     const root = document.getElementById("root");
