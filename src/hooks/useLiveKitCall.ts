@@ -49,6 +49,7 @@ import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 import { consumePreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
