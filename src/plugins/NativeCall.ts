@@ -210,6 +210,17 @@ export interface NativeCallPlugin {
     eventName: 'native-call-window',
     cb: (e: { callId: string; state: 'opened' | 'closed'; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
+
+  /**
+   * Pkg501 — fired when the user taps Send inside the native chat composer
+   * of PrivateCallActivity. JS responds by calling
+   * livekitChatSignaling.publishChatMessage('call', callId, …) so the
+   * DataPacket transport stays the single source of truth.
+   */
+  addListener(
+    eventName: 'native-call-chat-send',
+    cb: (e: { callId: string; clientId: string; text: string; ts: number }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 
