@@ -3744,6 +3744,12 @@ const LiveStream = () => {
       onTouchStart={handleCombinedTouchStart}
       onTouchEnd={handleCombinedTouchEnd}
     >
+      {/* X1+X2: auto audio-only flips + 20-min hard reconnect abandon toasts. */}
+      <LiveKitResilienceNotifier
+        scope="live"
+        id={id ?? null}
+        onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
+      />
       {/* Tap anywhere to restore UI when hidden */}
       {isUIHidden && (
         <div 
