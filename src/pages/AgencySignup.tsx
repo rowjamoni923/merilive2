@@ -536,7 +536,7 @@ const AgencySignup = () => {
               <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <Phone className="w-4 h-4 text-info-400" />
+                  <Phone className="w-4 h-4 text-info-600" />
                   Phone Number <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <Input type="tel" placeholder="+880 1XXXXXXXXX" value={formData.phone}
