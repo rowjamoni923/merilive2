@@ -1,42 +1,54 @@
-# Phase 5 — Secondary Pages Polish (Sequential)
+# Phase 4 — Party Room Mobile-First Polish
 
-Scope locked by user: all 4 sub-groups. Order chosen by visit-frequency × user-money-sensitivity.
+Presentation-only pass on the Party Room surface, mirroring the Phase 5 workflow (research → read → polish → verify). Business logic, LiveKit wiring, gift/entry-animation pipelines, and Android-native plugins all stay untouched. English-only strings, design-token usage, safe-area + thumb-zone respected.
+
+## Research summary (Chamet · Bigo · Olamet · Poppo · WeJoy · ZEGOCLOUD UIKit ref.)
+
+| Pattern | Industry standard | Our current state | Gap |
+|---|---|---|---|
+| Seat grid | 1+8 / 1+11, host top-center larger | 1+8, host center-bigger ✅ | None |
+| Speaking ring | Dual pulse, ≤3 concurrent, brand accent | Dual emerald/cyan blur ring ✅ | None |
+| Header | Host pill (L) · viewer pill (R) · top-3 gifters | Already implemented ✅ | None |
+| Bottom bar | Max 5, thumb-zone, safe-area | Game · Gift · Join/Seat · More + hero gift ✅ | None |
+| Chat overlay | **Always-visible** floating bubbles (bottom-left ~65% width, 5–7 lines, auto-fade), tap to expand | Modal slide-up only — no passive overlay | **YES — biggest gap** |
+| Long-press seat (host) | Action sheet: Mute · Move · Transfer · Kick seat · Kick room · Lock | Sheets exist (`EmptySeatHostActionsSheet`, `HostModerationSheet`) — coverage uneven | Audit + unify |
+| Gift combo banner | Left side, 120×56, slides in, 4s | `BigoStyleJoinBanner` + `FlyingGiftAnimation` — positions OK | Verify z-index only |
+| CreateParty form | Bottom-sheet-style mobile form, sticky CTA, thumb-zone | 1150-line page-style form | Mobile polish |
+
+Sources: ZEGOCLOUD UIKit seat/menu docs, Bigo 12-seat guide, livecalls.uk vertical layout guide, Tencent TRTC seat APIs.
 
 ## Execution order
 
-### 5A · Profile + EditProfile (highest traffic)
-- `Profile.tsx` (3,478 lines) — collapsible hero header with parallax cover, sticky tab bar on scroll, level/VIP/noble badge cluster, stats row tap-targets (followers/following/diamonds), gift wall horizontal scroll, follow/message CTAs in thumb-zone.
-- `EditProfile.tsx` (1,410 lines) — avatar upload sheet, inline-edit rows with right-chevron, character counter on bio, gender/birthday pickers as bottom sheets, save button safe-area pinned.
-- Reuse existing avatar-frame / level-frame / VIP-medal components — purely presentational pass.
+### 4A · Passive floating chat overlay (highest impact)
+- New presentational component `PartyPassiveChatOverlay.tsx`: bottom-left, ~65% width, 5–7 message tail of existing chat state, per-bubble `rgba(0,0,0,0.45)` background, slide-in-from-left + fade-out after 6 s, tap to open existing `ChametStyleChatPanel`.
+- Wire into `PartyRoom.tsx` next to `ChametStyleChatPanel` — same message source, no new state, no new query, no realtime change.
+- Mute button + chat input affordance stay where they are; this is a read-only ambient layer.
 
-### 5B · Wallet + Recharge + History (money-sensitive)
-- `Recharge.tsx` (4,010 lines) — hero coin balance card with gradient + animated counter, package grid (2-col) with "Best Value" / "+X% Bonus" ribbons, first-recharge offer banner pinned, payment-method bottom-sheet with last-used pin, total + pay CTA sticky.
-- `RechargeHistory.tsx` (431 lines) — date-grouped list, type icons (top-up / refund / bonus / withdrawal), amount color (+green / −red), empty-state illustration, filter chips.
-- `AgentWallet.tsx` (809 lines) — same hero treatment, transfer/withdraw split actions.
+### 4B · Host long-press seat action sheet
+- Audit `ChametStyleSeatGrid` → confirm long-press routes occupied seats into `HostModerationSheet` and empty seats into `EmptySeatHostActionsSheet`.
+- If a path is missing, add long-press handler that calls existing host functions (mute / kick / lock / transfer) — wiring only, no new RPC, no schema change.
+- Add lock-icon overlay on locked seats if not already shown.
 
-### 5C · Leaderboard + PK Leaderboard + Rankings
-- `Leaderboard.tsx` (936 lines) — top-3 podium (rank 1 elevated centre, 2 left, 3 right) with crown/frame, rank 4+ list with rank pill, period tabs (Hourly/Daily/Weekly/Monthly), region chips, sticky self-rank footer.
-- `PKLeaderboard.tsx` (348 lines) — same podium pattern with PK-specific badges (wins/streak).
-- `AgentRank.tsx` — agency leaderboard, same shell.
+### 4C · CreateParty.tsx mobile-first polish
+- Hero section: room name + cover thumbnail picker, big preview tile.
+- Mode selector as segmented control (Audio / Video / Game) instead of stacked cards.
+- Seat-count picker as horizontal chips (4 / 6 / 8 / 12).
+- Settings group: privacy, password, region — iOS-style grouped rows with right-chevron drilldown sheets.
+- Sticky bottom CTA "Start Party" pinned to safe-area, full-width gradient.
+- Preserve every existing handler / mutation / validation.
 
-### 5D · Settings + Notifications + Privacy
-- `Settings.tsx` (1,348 lines) — iOS-style grouped sections (Account / Privacy / Notifications / About / Danger), inline `Switch` toggles, right-chevron drilldown rows, destructive Sign-Out + Delete-Account at bottom in semantic destructive color, app version footer.
-- `settings/NotificationSettings.tsx` — category groups (Calls / Gifts / Followers / System / Marketing) with master toggle + per-category toggles, quiet-hours card.
-- `settings/Blacklist.tsx` — blocked users list with unblock confirm.
+## Per-phase workflow
+1. **Read** current implementation in full.
+2. **Polish** — presentation only; reuse existing components and tokens; English strings; no hardcoded colors that bypass tokens beyond what's already used.
+3. **Verify** — tsc passes; spot-check at preview URL with the owner test account (`smdollarex923@gmail.com`).
+4. **Stop & confirm** before next sub-phase.
 
-## Per-phase workflow (research-first, mandated)
-For each sub-phase (5A → 5D):
-1. **Research** — competitor pattern review (Chamet/Bigo/Poppo/Olamet) via subagent before any code (already in progress for all 4 — findings will be cited inline when each phase starts).
-2. **Read** — current implementation in full.
-3. **Polish** — presentation-only changes; preserve every handler, query, mutation, side effect. Strict design-token usage (no hardcoded colors), English-only strings, safe-area respected, thumb-zone CTAs.
-4. **Verify** — tsc passes; spot-check via owner test account (`smdollarex923@gmail.com`) at preview URL.
-5. **Stop & confirm** before moving to next sub-phase.
-
-## Non-goals (out of scope this phase)
-- No business-logic changes (balance math, RLS, payment flows untouched).
-- No Android-native plugin edits (camera / VAP / gift-anim sacred path).
-- No new tables / edge functions / migrations.
-- No translation work (English-only stays).
+## Non-goals
+- No LiveKit / signaling / realtime changes.
+- No edits to FlyingGiftAnimation, UnifiedEntryAnimation, EntryNameBarAnimation, VAP, SVGA, Lottie, or any Android-native plugin.
+- No schema, migration, edge function, or RLS change.
+- No translation / Bangla strings.
+- No camera, beauty, or sticker pipeline edits.
 
 ## Starting now
-Phase 5A (Profile + EditProfile) kicks off as soon as the research subagent returns. I'll post findings + diff summary before touching any file in 5A.
+Phase 4A (passive floating chat overlay) kicks off as soon as you ack this plan.
