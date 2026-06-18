@@ -449,6 +449,11 @@ export function useLiveKitCall(
               }
               nAttempt++;
               try {
+                // 🚀 Zero-delay reveal: WebView body transparent BEFORE awaiting
+                // Camera2 connect, so the native fullscreen renderer behind the
+                // WebView is visible the moment attachLocal mounts the surface
+                // (instead of being hidden by an opaque white body for 1–3s).
+                setNativeMediaSurface(true);
                 await nativeLiveKitController.connectAndPublish({
                   url,
                   token,
