@@ -1,5 +1,20 @@
 # Phase 1 — Host Go Live Professionalization
 
+## Hotfix — Blank/white screen elimination (2026-06-18)
+
+**Status:** Implemented + preview-verified on `/auth`.
+
+**Professional standard:** Blank screens are not acceptable loading states. NN/g documents skeleton screens as placeholders that mimic the final layout and reduce perceived wait during full-page loads (https://www.nngroup.com/articles/skeleton-screens/). React Suspense is explicitly designed to render a `fallback` UI while lazy children/data load (https://react.dev/reference/react/Suspense; React Router Suspense guide: https://remix-run-react-router.mintlify.app/guides/suspense).
+
+**Root cause found:** app-wide route lazy loading used `fallback={null}` and `/auth` had a blocking session-recovery gate. On slow network/chunk load, users saw only the document/body background (`#FFFBF2`) — visually a blank white/off-white screen.
+
+**Fix shipped:**
+- Replaced the user-route `Suspense` null fallback with route-shaped skeleton surfaces for auth, live/party/call, and general app sections.
+- Removed `/auth` full-screen recovery blocker; auth UI now renders immediately while session recovery continues in background.
+- Verified via Playwright: `/auth` renders interactive controls (`Get Started`, phone/email buttons) with no runtime errors; root height fills viewport.
+
+---
+
 **Date:** 2026-06-18
 **Status:** Research complete, awaiting user approval before code
 **Protocol:** Research-first mandatory (mem://preferences/research-first-mandatory.md)
