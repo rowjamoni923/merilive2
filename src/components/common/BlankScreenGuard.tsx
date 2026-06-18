@@ -125,14 +125,6 @@ export const BlankScreenGuard = memo(() => {
       }, BLANK_GUARD_DELAY_MS);
     };
 
-    const check = () => {
-      if (hasMeaningfulRouteSurface()) {
-        setGuardVisible(false);
-      } else {
-        setGuardVisible(true);
-      }
-    };
-
     armBlankCheck();
 
     const observer = new MutationObserver(() => {
