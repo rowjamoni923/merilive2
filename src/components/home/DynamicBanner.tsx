@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isNativeApp } from "@/utils/nativeUtils";
 import { normalizePublicMediaUrl, toSupabaseCdnUrl } from "@/lib/cdnImage";
+import { cn } from "@/lib/utils";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
@@ -98,69 +99,14 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
 
   return (
     <>
-      <div className="space-y-2">
-        {banners.map((banner) => (
-          <div
-            key={banner.id}
-            onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? '' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-            style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
-            role={banner.link_url ? 'button' : undefined}
-            aria-label={banner.link_url ? banner.title : undefined}
-          >
-            {banner.image_url ? (
-              <img
-                loading={isAboveFold ? 'eager' : 'lazy'}
-                decoding={isAboveFold ? 'sync' : 'async'}
-                src={bannerCdn(banner.image_url)}
-                alt={banner.title}
-                // @ts-expect-error – fetchpriority is a standard HTML hint
-                fetchpriority={isAboveFold ? 'high' : 'low'}
-                className="block w-full h-auto rounded-2xl"
-                onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
-                onError={(e) => {
-                  const t = e.currentTarget;
-                  if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
-                  (t.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 
-                    className="text-xl font-bold"
-                    style={{ color: banner.text_color }}
-                  >
-                    {banner.title}
-                  </h3>
-                  {banner.subtitle && (
-                    <p 
-                      className="text-sm opacity-80"
-                      style={{ color: banner.text_color }}
-                    >
-                      {banner.subtitle}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span 
-                    className="text-4xl font-bold"
-                    style={{ color: banner.accent_color }}
-                  >
-                    {banner.title.split(" ")[0]}
-                  </span>
-                  {banner.link_url && (
-                    <ChevronRight 
-                      className="w-5 h-5 opacity-50" 
-                      style={{ color: banner.text_color }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <BannerCarousel
+        banners={banners}
+        isAboveFold={isAboveFold}
+        onBannerClick={handleBannerClick}
+        loadedImages={loadedImages}
+        setLoadedImages={setLoadedImages}
+      />
+
 
       {popupOpen && (
         <div
@@ -192,5 +138,166 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * BannerCarousel — Bigo/Chamet-style horizontal-snap swipeable banner rail.
+ * - Single banner: renders inline (no scroll affordance, no dots).
+ * - 2+ banners: horizontal scroll-snap with paginated dot indicators
+ *   and 4-second auto-advance that pauses on user touch/drag.
+ */
+interface BannerCarouselProps {
+  banners: Banner[];
+  isAboveFold: boolean;
+  onBannerClick: (banner: Banner) => void;
+  loadedImages: Record<string, boolean>;
+  setLoadedImages: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+}
+
+function BannerCarousel({ banners, isAboveFold, onBannerClick, loadedImages, setLoadedImages }: BannerCarouselProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const userInteractingRef = useRef(false);
+  const autoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isSingle = banners.length <= 1;
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const slideWidth = el.clientWidth;
+    if (slideWidth <= 0) return;
+    const idx = Math.round(el.scrollLeft / slideWidth);
+    setActiveIdx(Math.max(0, Math.min(banners.length - 1, idx)));
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (isSingle) return;
+    const tick = () => {
+      if (userInteractingRef.current) return;
+      const el = scrollRef.current;
+      if (!el) return;
+      const slideWidth = el.clientWidth;
+      if (slideWidth <= 0) return;
+      const next = (activeIdx + 1) % banners.length;
+      el.scrollTo({ left: next * slideWidth, behavior: 'smooth' });
+    };
+    autoTimerRef.current = setInterval(tick, 4000);
+    return () => {
+      if (autoTimerRef.current) clearInterval(autoTimerRef.current);
+      autoTimerRef.current = null;
+    };
+  }, [activeIdx, banners.length, isSingle]);
+
+  const onTouchStart = useCallback(() => { userInteractingRef.current = true; }, []);
+  const onTouchEnd = useCallback(() => {
+    setTimeout(() => { userInteractingRef.current = false; }, 400);
+  }, []);
+
+  const goTo = useCallback((idx: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
+  }, []);
+
+  return (
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onPointerDown={onTouchStart}
+        onPointerUp={onTouchEnd}
+        className={cn(
+          "flex overflow-x-auto overflow-y-hidden scrollbar-hide",
+          !isSingle && "snap-x snap-mandatory"
+        )}
+        style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+        role={isSingle ? undefined : 'region'}
+        aria-roledescription={isSingle ? undefined : 'carousel'}
+        aria-label={isSingle ? undefined : 'Promotional banners'}
+      >
+        {banners.map((banner) => (
+          <div
+            key={banner.id}
+            className={cn("shrink-0 w-full", !isSingle && "snap-center snap-always")}
+          >
+            <div
+              onClick={() => onBannerClick(banner)}
+              className={cn(
+                "rounded-2xl overflow-hidden",
+                !banner.image_url && "p-4",
+                banner.link_url && "cursor-pointer active:scale-[0.98] transition-transform"
+              )}
+              style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
+              role={banner.link_url ? 'button' : undefined}
+              aria-label={banner.link_url ? banner.title : undefined}
+            >
+              {banner.image_url ? (
+                <img
+                  loading={isAboveFold ? 'eager' : 'lazy'}
+                  decoding={isAboveFold ? 'sync' : 'async'}
+                  src={bannerCdn(banner.image_url)}
+                  alt={banner.title}
+                  // @ts-expect-error – fetchpriority is a standard HTML hint
+                  fetchpriority={isAboveFold ? 'high' : 'low'}
+                  className="block w-full h-auto rounded-2xl select-none"
+                  draggable={false}
+                  onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
+                  onError={(e) => {
+                    const t = e.currentTarget;
+                    if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
+                    (t.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold" style={{ color: banner.text_color }}>
+                      {banner.title}
+                    </h3>
+                    {banner.subtitle && (
+                      <p className="text-sm opacity-80" style={{ color: banner.text_color }}>
+                        {banner.subtitle}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-4xl font-bold" style={{ color: banner.accent_color }}>
+                      {banner.title.split(" ")[0]}
+                    </span>
+                    {banner.link_url && (
+                      <ChevronRight className="w-5 h-5 opacity-50" style={{ color: banner.text_color }} />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!isSingle && (
+        <div
+          className="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5 pointer-events-none"
+        >
+          {banners.map((b, i) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); goTo(i); }}
+              aria-label={`Go to banner ${i + 1}`}
+              className={cn(
+                "pointer-events-auto rounded-full transition-all duration-300 touch-manipulation",
+                i === activeIdx
+                  ? "w-5 h-1.5 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.4)]"
+                  : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

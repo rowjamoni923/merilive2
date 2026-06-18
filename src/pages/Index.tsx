@@ -6,7 +6,7 @@ const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPr
 import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
-import { Search, Eye, Trophy } from "lucide-react";
+import { Search, Eye, Trophy, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -837,20 +837,71 @@ const Index = () => {
         ) : isLoading ? (
           <HomeFeedSkeleton />
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
-            {/* Text content only - no icons */}
-            <div className="text-center relative z-10">
-              <h3 className="text-lg font-bold text-display mb-2">
-                {subTab === "live" ? "No Live Streams" : "No Hosts Available"}
-              </h3>
-              <p className="text-sm text-muted-pro max-w-[220px]">
-                {getEmptyMessage()}
-              </p>
+          // Mobile-first empty state — Bigo/Chamet pattern: animated glow halo +
+          // contextual icon + brand CTA. Replaces the previous text-only block
+          // that left a big blank gap on mobile and looked half-loaded.
+          <div className="flex flex-col items-center justify-center px-6 py-10 min-h-[55vh]">
+            {/* Animated glow + icon */}
+            <div className="relative mb-5">
+              <div
+                className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse"
+                style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.55), transparent 70%)' }}
+                aria-hidden="true"
+              />
+              <div
+                className="relative h-24 w-24 rounded-full flex items-center justify-center bg-gradient-primary"
+                style={{
+                  boxShadow:
+                    '0 12px 32px -8px hsl(var(--primary) / 0.55), inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.15)',
+                }}
+              >
+                {subTab === "live" ? (
+                  <Radio className="h-11 w-11 text-on-dark" strokeWidth={2.2} />
+                ) : subTab === "following" ? (
+                  <Heart className="h-11 w-11 text-on-dark" strokeWidth={2.2} fill="currentColor" />
+                ) : subTab === "new" ? (
+                  <Sparkles className="h-11 w-11 text-on-dark" strokeWidth={2.2} />
+                ) : (
+                  <Compass className="h-11 w-11 text-on-dark" strokeWidth={2.2} />
+                )}
+              </div>
             </div>
 
-            {/* Refresh hint */}
-            <p className="mt-4 text-xs text-muted-pro">
-              Pull down to refresh
+            <h3 className="text-xl font-bold text-display mb-2 text-center">
+              {subTab === "live" ? "No live streams right now" : "No hosts here yet"}
+            </h3>
+            <p className="text-sm text-muted-pro text-center max-w-[260px] mb-6 leading-relaxed">
+              {getEmptyMessage()}
+            </p>
+
+            {/* Primary action — Go Live for hosts, Discover for viewers */}
+            <div className="flex flex-col sm:flex-row items-stretch gap-2.5 w-full max-w-[300px]">
+              <button
+                onClick={() => navigate('/go-live')}
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                style={{
+                  boxShadow:
+                    '0 6px 18px -4px hsl(var(--primary) / 0.5), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)',
+                }}
+              >
+                <Radio className="h-4 w-4" strokeWidth={2.5} />
+                <span>Go Live</span>
+              </button>
+              <button
+                onClick={handlePullRefresh}
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-heading bg-card border border-border active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                style={{
+                  boxShadow:
+                    '0 3px 8px -2px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
+                }}
+              >
+                <RefreshCcw className="h-4 w-4" strokeWidth={2.5} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            <p className="mt-5 text-[11px] text-muted-pro/80 text-center">
+              Or pull down to refresh
             </p>
           </div>
         )}
