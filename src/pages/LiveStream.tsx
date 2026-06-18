@@ -907,7 +907,7 @@ const LiveStream = () => {
 
     // 3) Otherwise fall through to vertical stream nav
     swipeTouchEnd(e);
-  }, [swipeTouchEnd, isHost]);
+  }, [swipeTouchEnd, isHost, handleLeaveStream]);
 
   const {
     filterState,
