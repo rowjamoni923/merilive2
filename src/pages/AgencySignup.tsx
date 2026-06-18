@@ -697,9 +697,9 @@ const AgencySignup = () => {
         </div>
 
         {/* Instructions */}
-        <div className="mx-4 mb-8 bg-warning-900/20 rounded-2xl p-4 border border-warning-700/30">
-          <h3 className="font-semibold text-warning-300 mb-2">📋 Instructions</h3>
-          <ul className="text-sm text-warning-200/80 space-y-2">
+        <div className="mx-4 mb-8 bg-warning-50 rounded-2xl p-4 border border-warning-200">
+          <h3 className="font-semibold text-warning-800 mb-2">📋 Instructions</h3>
+          <ul className="text-sm text-warning-800 space-y-2">
             {[
               "Enter agency name",
               "Enter your App UID and search",
@@ -710,13 +710,13 @@ const AgencySignup = () => {
               "Click Create Agency button"
             ].map((text, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="bg-warning-700/50 text-warning-200 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">{i + 1}</span>
+                <span className="bg-warning-200 text-warning-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold shrink-0">{i + 1}</span>
                 <span>{text}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-3 p-2 bg-warning-800/30 rounded-lg">
-            <p className="text-xs text-warning-300/80 flex items-center gap-1">
+          <div className="mt-3 p-2 bg-warning-100 rounded-lg border border-warning-200">
+            <p className="text-xs text-warning-800 flex items-center gap-1">
               <Timer className="w-3 h-3" /> Email OTP is valid for 5 minutes
             </p>
           </div>
