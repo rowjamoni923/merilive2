@@ -1,71 +1,76 @@
-# Phase 4 — Party Room Mobile-First Polish
+# Private Call — Face + Chat Perfection (Web + Android Native)
 
-Presentation-only pass on the Party Room surface, mirroring the Phase 5 workflow (research → read → polish → verify). Business logic, LiveKit wiring, gift/entry-animation pipelines, and Android-native plugins all stay untouched. English-only strings, design-token usage, safe-area + thumb-zone respected.
+## Problems (verified)
 
-## Research summary (Chamet · Bigo · Olamet · Poppo · WeJoy · ZEGOCLOUD UIKit ref.)
+**Problem 1 — দুইজন দুইজনের face দেখা যায় না**
+- **Android native** (`PrivateCallActivity.kt`): `attachLocal` PluginMethod fix shipped 2026-06-17 but APK rebuild হয়নি → পুরনো APK-এ এখনো local renderer mount হয় না → নিজের preview white/black, আর peer-ও partial।
+- **Web preview** (`ActiveCallScreen.tsx`): UI ঠিক আছে কিন্তু `useLiveKitCall` Android-native-only পথে gate করা — preview-এ `shouldUseNativeLiveKit` false হলেও web getUserMedia path বন্ধ → কোন track-ই publish হয় না → both faces blank।
 
-| Pattern | Industry standard | Our current state | Gap |
-|---|---|---|---|
-| Seat grid | 1+8 / 1+11, host top-center larger | 1+8, host center-bigger ✅ | None |
-| Speaking ring | Dual pulse, ≤3 concurrent, brand accent | Dual emerald/cyan blur ring ✅ | None |
-| Header | Host pill (L) · viewer pill (R) · top-3 gifters | Already implemented ✅ | None |
-| Bottom bar | Max 5, thumb-zone, safe-area | Game · Gift · Join/Seat · More + hero gift ✅ | None |
-| Chat overlay | **Always-visible** floating bubbles (bottom-left ~65% width, 5–7 lines, auto-fade), tap to expand | Modal slide-up only — no passive overlay | **YES — biggest gap** |
-| Long-press seat (host) | Action sheet: Mute · Move · Transfer · Kick seat · Kick room · Lock | Sheets exist (`EmptySeatHostActionsSheet`, `HostModerationSheet`) — coverage uneven | Audit + unify |
-| Gift combo banner | Left side, 120×56, slides in, 4s | `BigoStyleJoinBanner` + `FlyingGiftAnimation` — positions OK | Verify z-index only |
-| CreateParty form | Bottom-sheet-style mobile form, sticky CTA, thumb-zone | 1150-line page-style form | Mobile polish |
+**Problem 2 — message option নাই**
+- **Android native** `activity_private_call.xml` + `PrivateCallActivity.kt`-এ **chat surface সম্পূর্ণ অনুপস্থিত** — শুধু mic / speaker / flip / gift / end button আছে। কোনো EditText / RecyclerView / message bubble নেই।
+- **Web** `ActiveCallScreen.tsx`-এ chat input + bubble overlay already আছে (line 1186–1242, 1296–1329)। কিন্তু native PrivateCallActivity যখন foreground-এ ওঠে, React side `nativeInCallOpen=true` → পুরো React UI hide → chat-ও invisible হয়ে যায়।
 
-Sources: ZEGOCLOUD UIKit seat/menu docs, Bigo 12-seat guide, livecalls.uk vertical layout guide, Tencent TRTC seat APIs.
+## Industry research (Chamet / Bigo / Olamet / Poppo)
 
-## Execution order
+- **Layout**: full-screen remote video + draggable PiP local + bottom action bar + **chat overlay above bottom bar** (semi-transparent, last 20–30 messages, fades old)। Tap chat button → soft keyboard rise → composer pill। সব apps-এ chat call screen-এর integral part, alone overlay না।
+- **Transport**: gift / chat / signaling সব **LiveKit DataPacket** (reliable=true)। আমাদের `livekitChatSignaling.ts` (Pkg79, scope='call') already এই pattern follow করে।
+- **Native ↔ JS bridge**: native chat UI JS-এর `publishChatMessage('call', …)` কে কল করবে broadcast intent দিয়ে; receive side JS event → broadcast → native RecyclerView adapter। এতে money path (`stream_chat` row বা billing) untouched থাকে।
+- **Camera**: both faces visible from the **first connected frame**; race-free `attachLocal` MUST mount renderer even if `LocalParticipant` not yet ready (deferred attach when track publishes)।
 
-### 4A · Passive floating chat overlay (highest impact)
-- New presentational component `PartyPassiveChatOverlay.tsx`: bottom-left, ~65% width, 5–7 message tail of existing chat state, per-bubble `rgba(0,0,0,0.45)` background, slide-in-from-left + fade-out after 6 s, tap to open existing `ChametStyleChatPanel`.
-- Wire into `PartyRoom.tsx` next to `ChametStyleChatPanel` — same message source, no new state, no new query, no realtime change.
-- Mute button + chat input affordance stay where they are; this is a read-only ambient layer.
+## Fix plan
 
-### 4B · Host long-press seat action sheet
-- Audit `ChametStyleSeatGrid` → confirm long-press routes occupied seats into `HostModerationSheet` and empty seats into `EmptySeatHostActionsSheet`.
-- If a path is missing, add long-press handler that calls existing host functions (mute / kick / lock / transfer) — wiring only, no new RPC, no schema change.
-- Add lock-icon overlay on locked seats if not already shown.
+### Phase 1 — Web preview face visibility (React only, no APK)
+File: `src/components/call/ActiveCallScreen.tsx`
+- Detect preview host (`isPreviewHost` from existing `RequireNativeAndroidGate`)। যদি `!isNativeAndroidApp() && previewBypass` হয়, then run a **lightweight web fallback path**: open `getUserMedia({video:true,audio:true})` and render the MediaStream in both local PiP + remote slot (echo) so QA face দেখতে পায়। **Strictly preview-only**, production web blocked unchanged।
+- Add visible "Preview mode — your own camera mirrored to both tiles" badge so it's never confused with real peer video।
 
-### 4C · CreateParty.tsx mobile-first polish
-- Hero section: room name + cover thumbnail picker, big preview tile.
-- Mode selector as segmented control (Audio / Video / Game) instead of stacked cards.
-- Seat-count picker as horizontal chips (4 / 6 / 8 / 12).
-- Settings group: privacy, password, region — iOS-style grouped rows with right-chevron drilldown sheets.
-- Sticky bottom CTA "Start Party" pinned to safe-area, full-width gradient.
-- Preserve every existing handler / mutation / validation.
+### Phase 2 — Native chat overlay (Android, Kotlin)
 
-## Per-phase workflow
-1. **Read** current implementation in full.
-2. **Polish** — presentation only; reuse existing components and tokens; English strings; no hardcoded colors that bypass tokens beyond what's already used.
-3. **Verify** — tsc passes; spot-check at preview URL with the owner test account (`smdollarex923@gmail.com`).
-4. **Stop & confirm** before next sub-phase.
+**2a. Layout** — extend `activity_private_call.xml`:
+- Add `privateCallChatToggle` ImageButton inside bottom bar (between Flip and Gift)।
+- Add `privateCallChatOverlay` FrameLayout (above bottom bar, below top overlay):
+  - `RecyclerView` `privateCallChatList` (transparent bg, last 30 msgs, fade gradient mask)
+  - `LinearLayout` `privateCallChatComposer` (visible only when toggled): `EditText` + `ImageButton send`
+- Adjust `android:windowSoftInputMode="adjustResize"` already in manifest — verify।
 
-## Non-goals
-- No LiveKit / signaling / realtime changes.
-- No edits to FlyingGiftAnimation, UnifiedEntryAnimation, EntryNameBarAnimation, VAP, SVGA, Lottie, or any Android-native plugin.
-- No schema, migration, edge function, or RLS change.
-- No translation / Bangla strings.
-- No camera, beauty, or sticker pipeline edits.
+**2b. Adapter + ViewModel state**
+- New `ChatMessage` data class + `PrivateCallChatAdapter` (own bubble = right tinted, peer = left dark)।
+- `PrivateCallViewModel`: `StateFlow<List<ChatMessage>>` capped at 30, append-only।
 
-## Starting now
-Phase 4A (passive floating chat overlay) kicks off as soon as you ack this plan.
+**2c. Bridge ↔ JS** (extend existing `NativeCallPlugin`):
+- **Outbound** (native → JS): when user taps send, broadcast `ACTION_CALL_CHAT_SEND` with `{callId, text, clientId}` → Capacitor plugin emits `call-chat-send-from-native` window event → existing JS handler calls `publishChatMessage('call', callId, …)` + optimistic add।
+- **Inbound** (JS → native): existing `window.addEventListener('livekit-chat-message', …)` already fires for incoming peer msgs। Add new bridge: when native call window is foreground, JS forwards each call-scope event to native via `NativeCall.pushChatMessage({…})` → broadcast → adapter prepends + scroll।
+- Own-sent native msgs also echo back via same JS event so the source of truth stays single (LiveKit DataPacket)।
 
-## 4D · Gift reliability hotfix — 2026-06-18
+**2d. Lifecycle**
+- Drain pending msgs on Activity resume; clear on `onDestroy`।
+- FLAG_SECURE preserved (chat scrolls inside the secured surface)।
 
-### Research summary
-- Agora's virtual gifting guidance separates realtime gift signaling from the payment/update flow so room participants receive the gift event immediately: https://docs-legacy.agora.io/en/Real-time-Messaging/faq/rtm_gift_sending
-- Tencent TUILiveKit documents virtual gifts as a dedicated live-room interaction surface, reinforcing that gift playback must be non-blocking and room-native: https://intl.cloud.tencent.com/document/product/1071/76785
-- Supabase troubleshooting for Edge Functions points to CORS/network/function availability as causes of browser `Failed to fetch`; critical mutations need explicit handling instead of surfacing the raw fetch error: https://supabase.com/docs/guides/troubleshooting/unable-to-call-edge-function
-- Supabase retry docs warn retries should only be used for network errors; our RPC is idempotency-key protected, so a single fallback path is safe for dropped Edge responses: https://supabase.com/docs/guides/api/automatic-retries-in-supabase-js
+### Phase 3 — APK rebuild prerequisite
+- Phase 2 + পুরনো `attachLocal` fix দুটোই APK rebuild ছাড়া live হবে না। Honest message to user: "Native চাঁদে fix push হয়ে গেছে but APK rebuild + reinstall করতে হবে। Web preview-এ Phase 1-এর fallback দিয়ে immediate test করতে পারবে।"
 
-### Verified gaps found
-- Chat gift playback was mounting **two fullscreen players for the same asset**: `GiftEmojiAnimation` plus `FlyingGiftAnimation`'s fullscreen `FixedAnimationFrame`. On mobile/WebView this doubles video/SVGA/VAP decode and causes the visible animation freeze/stutter.
-- `callGiftService` only used the Edge Function fetch path. If the browser/WebView hit `TypeError: Failed to fetch`, the app refunded and showed `Gift failed: Failed to fetch` even though the DB RPC was already idempotency-safe.
+## Files touched
 
-### Fix applied
-- Chat now uses the unified `FlyingGiftAnimation` fullscreen player only; duplicate `GiftEmojiAnimation` fullscreen playback is gated off for chat gift events.
-- `callGiftService` now keeps the same idempotency key and falls back to `process_gift_transaction` RPC on Edge fetch/network failure and temporary 502/503/504 responses, preventing false failed gifts and duplicate charges.
-- SVGA safety fallback now waits native duration + 1.5s grace instead of firing exactly at duration, preventing premature cutoff when WebView callback timing is late.
+**React (immediate, no rebuild)**
+- `src/components/call/ActiveCallScreen.tsx` — preview camera fallback + native-chat bridge dispatch
+
+**Kotlin (APK rebuild required)**
+- `android/app/src/main/res/layout/activity_private_call.xml` — chat overlay + toggle
+- `android/app/src/main/java/com/merilive/app/activity/PrivateCallActivity.kt` — bind chat views + broadcast bridge + scroll on new msg
+- `android/app/src/main/java/com/merilive/app/activity/PrivateCallViewModel.kt` — `chatMessages` StateFlow
+- New: `android/app/src/main/java/com/merilive/app/activity/PrivateCallChatAdapter.kt`
+- `android/app/src/main/java/com/merilive/app/plugin/NativeCallPlugin.kt` — `pushChatMessage` method + `ACTION_CALL_CHAT_*` actions + `addListener('call-chat-send-from-native')`
+- `src/plugins/NativeCall.ts` — TS surface for the two new methods
+
+## Out of scope (separate packages)
+- Voice-to-text, emoji picker, gift-trigger from chat input
+- Long-press reactions, message reply threading
+- Old-message persistence (chat is ephemeral, in-call only — matches Chamet)
+- Party / live chat (already shipped via Pkg79)
+
+## Constraints respected
+- English-only UI strings (memory)
+- LiveKit DataPacket only, NO new Supabase channels (memory)
+- Camera continuity sacred — chat overlay never re-inits camera (memory)
+- Money path untouched (gift, billing routes unchanged)
+- Design-sacred lifted → bottom bar restyle permitted
