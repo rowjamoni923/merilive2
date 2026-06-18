@@ -36,6 +36,7 @@ import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { formatCompactCount } from "@/utils/formatCount";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -210,6 +211,7 @@ const ProfileDetail = () => {
   const [reportReason, setReportReason] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowedByThem, setIsFollowedByThem] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [friendsCount, setFriendsCount] = useState(0);
@@ -511,7 +513,7 @@ const ProfileDetail = () => {
       const targetType = isHostUser ? 'host' : 'user';
       const viewerId = currentUser?.id;
 
-      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
+      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, followBackData, purchasedRes] = await Promise.all([
         supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("user_level_tiers").select("level_number, icon_url, animation_url, level_name").eq("level_number", effectiveLevel).eq("tier_type", targetType).eq("is_active", true).maybeSingle(),
         supabase.from("avatar_frames").select("id, name, frame_url, frame_type, min_level, is_premium, category, target_type").eq("is_active", true).lte("min_level", effectiveLevel).in("target_type", ['both', targetType]).or('frame_url.like.%.svga,frame_url.like.%.json,frame_url.like.%supabase.co/storage%').order("min_level", { ascending: false }).limit(1),
@@ -519,6 +521,7 @@ const ProfileDetail = () => {
         supabase.from("level_privileges").select("id, name, icon_name, icon_bg_color, icon_color, unlock_level").eq("privilege_type", "badge").eq("is_active", true).lte("unlock_level", effectiveLevel).order("unlock_level", { ascending: false }).limit(5),
         viewerId && userId && viewerId !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", viewerId).eq("blocked_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
         viewerId && userId && viewerId !== userId ? supabase.from("followers").select("id").eq("follower_id", viewerId).eq("following_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
+        viewerId && userId && viewerId !== userId ? supabase.from("followers").select("id").eq("follower_id", userId).eq("following_id", viewerId).maybeSingle() : Promise.resolve({ data: null } as any),
         userId ? supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()) : Promise.resolve({ data: [] } as any),
       ]);
 
@@ -529,6 +532,7 @@ const ProfileDetail = () => {
       setUserPrivileges({ frames: framesData?.data || [], entryBars: entryBarsData?.data || [], badges: badgesData?.data || [] });
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
+      setIsFollowedByThem(!!followBackData?.data);
 
       const purchases = purchasedRes?.data || [];
       if (purchases.length > 0) {
@@ -1046,6 +1050,11 @@ const ProfileDetail = () => {
                     </svg>
                   </div>
                 )}
+                {!isOwnProfile && isFollowedByThem && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    Follows you
+                  </span>
+                )}
               </div>
               
               {/* Level Badge, Status & ID */}
@@ -1128,7 +1137,7 @@ const ProfileDetail = () => {
  :"bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-slate-900 shadow-lg shadow-fuchsia-500/30"
                   }`}
                 >
-                  {isFollowing ? "✓ Following" : "💕 Follow"}
+                  {isFollowing ? "✓ Following" : isFollowedByThem ? "💕 Follow Back" : "💕 Follow"}
                 </motion.button>
               )}
             </div>
@@ -1327,37 +1336,46 @@ const ProfileDetail = () => {
           </div>
           )}
 
-          {/* Stats Row - Only visible to profile owner */}
-          {isOwnProfile && (
-            <>
-              <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl profile-home-section">
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/following?type=friends&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{friendsCount}</p>
-                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
-                </motion.button>
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/following?type=following&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
-                >
-                  <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{followingCount}</p>
-                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Following</p>
-                </motion.button>
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/following?type=followers&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{followersCount}</p>
-                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Followers</p>
-                </motion.button>
-              </div>
-            </>
-          )}
+          {/* Stats Row — visible to everyone (industry standard: viewers see follower/following counts) */}
+          <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl profile-home-section">
+            {isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(`/following?type=friends&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{formatCompactCount(friendsCount)}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
+              </motion.button>
+            )}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/following?type=following&user=${userId}`)}
+              className={`text-center py-3 rounded-xl hover:bg-slate-50 transition-colors ${isOwnProfile ? 'border-x border-slate-100' : 'border-r border-slate-100'}`}
+            >
+              <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{formatCompactCount(followingCount)}</p>
+              <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Following</p>
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/following?type=followers&user=${userId}`)}
+              className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{formatCompactCount(followersCount)}</p>
+              <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Followers</p>
+            </motion.button>
+            {!isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(`/following?type=followers&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Lv{level}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Level</p>
+              </motion.button>
+            )}
+          </div>
+
 
           {/* Action Buttons - Only for OTHER users' profiles */}
           {!isOwnProfile && (
