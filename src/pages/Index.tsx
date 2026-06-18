@@ -6,7 +6,7 @@ const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPr
 import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
-import { Search, Eye, Trophy } from "lucide-react";
+import { Search, Eye, Trophy, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
