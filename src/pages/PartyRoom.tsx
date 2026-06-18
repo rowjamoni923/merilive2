@@ -2528,6 +2528,12 @@ const PartyRoom = () => {
   // Video, Audio, Game - same component, same design, same features
   return (
     <>
+      {/* X1+X2: auto audio-only flips + 20-min hard reconnect abandon toasts. */}
+      <LiveKitResilienceNotifier
+        scope="party"
+        id={roomId ?? null}
+        onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
+      />
       {/* ==================== UNIFIED ENTRY ANIMATION ====================
           Same architecture as Gift Animation - Queue-based, ONE at a time */}
       <AnimatePresence>
