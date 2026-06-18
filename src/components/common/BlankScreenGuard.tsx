@@ -106,25 +106,30 @@ export const BlankScreenGuard = memo(() => {
   const location = useLocation();
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const visibleRef = useRef(false);
+
+  const setGuardVisible = (next: boolean) => {
+    visibleRef.current = next;
+    setVisible(next);
+  };
 
   useEffect(() => {
-    const pathname = location.pathname;
-    setVisible(false);
+    setGuardVisible(false);
 
     if (timerRef.current) window.clearTimeout(timerRef.current);
 
     const check = () => {
       if (hasMeaningfulRouteSurface()) {
-        setVisible(false);
+        setGuardVisible(false);
       } else {
-        setVisible(true);
+        setGuardVisible(true);
       }
     };
 
     timerRef.current = window.setTimeout(check, BLANK_GUARD_DELAY_MS);
 
     const observer = new MutationObserver(() => {
-      if (visible && hasMeaningfulRouteSurface()) setVisible(false);
+      if (visibleRef.current && hasMeaningfulRouteSurface()) setGuardVisible(false);
     });
 
     const root = document.getElementById("root");
@@ -134,7 +139,7 @@ export const BlankScreenGuard = memo(() => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
       observer.disconnect();
     };
-  }, [location.pathname, location.search, visible]);
+  }, [location.pathname, location.search]);
 
   return visible ? <GuardFallback kind={getSurfaceKind(location.pathname)} /> : null;
 });
