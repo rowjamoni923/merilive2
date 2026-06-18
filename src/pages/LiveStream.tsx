@@ -654,6 +654,7 @@ const LiveStream = () => {
       window.removeEventListener('beforeunload', sendViewerLeave);
       document.removeEventListener('visibilitychange', onVisibility);
       if (appStateDetach) appStateDetach();
+      if (graceTimer) clearTimeout(graceTimer);
       if (hbTimer) clearInterval(hbTimer);
     };
   }, [id, currentUserId, isHost]);
