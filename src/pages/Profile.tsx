@@ -2084,7 +2084,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
 
   if (!currentUser && isOwnProfile) {
-    return null;
+    return (
+      <PageSkeleton
+        className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-background"
+        headerClassName="bg-purple-200/50 border-b border-purple-200/30"
+        rows={4}
+        hero
+      />
+    );
   }
 
   if (!profile && isOwnProfile && currentUser) {

@@ -384,6 +384,7 @@ import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
+import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 
@@ -1145,7 +1146,7 @@ const App = () => {
 
   if (isLandingDomain && isAdminRoute) {
     window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
-    return null;
+    return <RouteSuspenseFallback />;
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
@@ -1155,7 +1156,7 @@ const App = () => {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       navigateInAppPath('/auth', { replace: true });
-      return null; // ⚡ no full-screen spinner — instant redirect
+      return <RouteSuspenseFallback />; // keep a real surface during instant redirect
     }
   }
 
@@ -1214,6 +1215,7 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <RouteTransitionHost />
+              <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}

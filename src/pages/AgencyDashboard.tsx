@@ -768,7 +768,13 @@ const AgencyDashboard = () => {
   }
 
   if (!agency) {
-    return null;
+    return (
+      <PageSkeleton
+        headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
+        tabs
+        rows={5}
+      />
+    );
   }
 
   const safeHosts = hosts.map(normalizeAgencyHost);

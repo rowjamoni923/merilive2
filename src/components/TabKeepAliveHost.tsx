@@ -65,6 +65,12 @@ export default function TabKeepAliveHost() {
   const mountedRef = useRef<Set<TabKey>>(new Set());
   const [, forceRerender] = useState(0);
 
+  // Seed the active tab synchronously so the first render of tab-keepalive
+  // never produces an empty host frame before useEffect runs.
+  if (activeKey && !mountedRef.current.has(activeKey)) {
+    mountedRef.current.add(activeKey);
+  }
+
   useEffect(() => {
     if (activeKey && !mountedRef.current.has(activeKey)) {
       mountedRef.current.add(activeKey);
