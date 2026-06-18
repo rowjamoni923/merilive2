@@ -43,8 +43,12 @@ class ErrorBoundary extends Component<Props, State> {
       // Persistent stale chunks cannot be repaired inside the current JS graph:
       // show the update UI briefly, then force a bounded cache-busting boot.
       void (async () => {
-        window.setTimeout(() => hardReloadForChunkRecovery(), 900);
-        try { await scheduleChunkLoadRecovery(error, error.message); } catch { /* best-effort */ }
+        let didAttempt = false;
+        try { didAttempt = await scheduleChunkLoadRecovery(error, error.message); } catch { /* best-effort */ }
+        if (!didAttempt) {
+          this.setState({ recovering: false });
+          return;
+        }
         await new Promise(r => setTimeout(r, 250));
         hardReloadForChunkRecovery();
       })();
@@ -65,10 +69,14 @@ class ErrorBoundary extends Component<Props, State> {
       resetChunkRecoveryMarkers();
       this.setState({ recovering: true });
       void (async () => {
-        window.setTimeout(() => hardReloadForChunkRecovery(), 900);
+        let didAttempt = false;
         try {
-          await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
+          didAttempt = await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
         } catch { /* best-effort */ }
+        if (!didAttempt) {
+          this.setState({ recovering: false });
+          return;
+        }
         try {
           // One final attempt to clear caches before we give up
           if ('caches' in window) {
