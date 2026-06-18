@@ -2139,6 +2139,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       } catch (e) {
         console.warn('[Pkg154] registerAutoAudioOnlyRoom(live) failed:', e);
       }
+      // X1: 20-min hard reconnect cap — abandon + emit 'livekit-reconnect-abandoned'.
+      try {
+        const mod = await import('@/lib/livekitHardReconnectCap');
+        if (cancelled) return;
+        mod.registerHardReconnectCap('live', streamId, room);
+      } catch (e) {
+        console.warn('[X1] registerHardReconnectCap(live) failed:', e);
+      }
     })();
     return () => {
       cancelled = true;
@@ -2147,6 +2155,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
       import('@/lib/livekitAutoAudioOnly').then((mod) => {
         mod.unregisterAutoAudioOnlyRoom('live', streamId);
+      }).catch(() => {});
+      import('@/lib/livekitHardReconnectCap').then((mod) => {
+        mod.unregisterHardReconnectCap('live', streamId);
       }).catch(() => {});
     };
   }, [options.connectionQualityStreamId, isJoined]);
