@@ -42,6 +42,44 @@ export interface GiftServiceResponse {
   error?: string;
 }
 
+function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
+  if (!result?.success) {
+    return { success: false, error: result?.error || 'Gift failed' };
+  }
+
+  return {
+    success: true,
+    senderId: result.sender_id,
+    transactionId: result.transaction_id,
+    coinsSpent: Number(result.coins_spent ?? result.total_cost ?? 0),
+    hostReceived: Number(result.beans_earned ?? result.beans_received ?? 0),
+    hostPercent: result.host_percent,
+    newBalance: result.new_balance ?? result.new_sender_balance ?? null,
+    diamondBonus: Number(result.diamond_bonus ?? 0),
+    isLucky: Boolean(result.is_lucky ?? false),
+  };
+}
+
+async function callGiftRpcFallback(payload: GiftServicePayload): Promise<GiftServiceResponse> {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('No active session. Please sign in again.');
+
+  const { data, error } = await supabase.rpc('process_gift_transaction' as any, {
+    p_sender_id: user.id,
+    p_receiver_id: payload.receiverId,
+    p_gift_id: payload.giftId,
+    p_quantity: payload.quantity ?? 1,
+    p_stream_id: payload.streamId ?? null,
+    p_party_room_id: payload.partyRoomId ?? null,
+    p_call_id: payload.callId ?? null,
+    p_reel_id: payload.reelId ?? null,
+    p_idempotency_key: payload.idempotencyKey ?? null,
+  });
+
+  if (error) throw new Error(error.message || 'Gift request failed');
+  return normalizeRpcGiftResponse(data);
+}
+
 
 async function getAccessToken(forceRefresh: boolean): Promise<string | null> {
   if (forceRefresh) {
@@ -84,7 +122,13 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
   if (!accessToken) accessToken = await getAccessToken(true);
   if (!accessToken) throw new Error("No active session. Please sign in again.");
 
-  let response = await doRequest(accessToken, stablePayload);
+  let response: Response;
+  try {
+    response = await doRequest(accessToken, stablePayload);
+  } catch (error) {
+    console.warn('[GiftServiceClient] Edge fetch failed; falling back to RPC:', error);
+    return callGiftRpcFallback(stablePayload);
+  }
 
   // Token may have been revoked server-side (single-device displacement,
   // password change). Try ONE silent refresh + retry before surfacing 401.
@@ -101,6 +145,10 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("Your session expired. Please sign in again to send gifts.");
+    }
+    if (response.status === 502 || response.status === 503 || response.status === 504) {
+      console.warn('[GiftServiceClient] Edge temporarily unavailable; falling back to RPC:', response.status);
+      return callGiftRpcFallback(stablePayload);
     }
     throw new Error(data?.error || `Gift request failed (${response.status})`);
   }
