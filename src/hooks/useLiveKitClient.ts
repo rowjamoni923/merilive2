@@ -291,23 +291,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setIsNativeMediaActive(false);
         setIsJoined(false);
         setConnectionState('DISCONNECTED');
+        clearNativeReconnectTimer();
+        nativeReconnectAttemptRef.current = 0;
         return;
       }
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
-      toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
-      requestNativeReconnect().then((ok) => {
-        if (ok) {
-          setNativeActive(true);
-          setIsJoined(true);
-          setConnectionState('CONNECTED');
-          toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
-        } else {
-          setConnectionState('CONNECTING');
-        }
-      }).catch(() => {
-        setConnectionState('CONNECTING');
-      });
+      try { toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' }); } catch { /* ignore */ }
+      // Phase 2A Step 5 (H4): use bounded retry curve instead of single-shot.
+      nativeReconnectAttemptRef.current = 0;
+      scheduleNativeReconnect();
     },
     // Step 19 — sticky reconnect toast for live broadcasters/viewers.
     onConnectionState: (s) => {
@@ -319,10 +312,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setConnectionState('CONNECTING');
       } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        // Phase 2A Step 5 (H4): bounded retry instead of fire-and-forget.
+        if (nativeReconnectAttemptRef.current === 0) scheduleNativeReconnect();
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
+        nativeReconnectAttemptRef.current = 0;
+        clearNativeReconnectTimer();
       }
     },
     // Step 19 — permanent audio focus loss (PSTN call) — inform broadcaster.
