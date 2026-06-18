@@ -920,9 +920,13 @@ serve(async (req) => {
                 ? `Needs admin review: front-vs-side similarity low (L=${compareFL.toFixed(1)}% R=${compareFR.toFixed(1)}%).`
                 : autoReason === "below_thresholds"
                   ? "Needs admin review: AI confidence below auto-approve threshold."
-                  : autoReason === "host_photos_mismatch"
-                    ? `Needs admin review: one or more host gallery photos do not match the live face (min similarity ${hostPhotosMinScore?.toFixed(1)}%).`
-                    : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                    : autoReason === "host_photos_mismatch"
+                      ? `Needs admin review: one or more host gallery photos do not match the live face (min similarity ${hostPhotosMinScore?.toFixed(1)}%).`
+                      : autoReason === "liveness_provider_missing"
+                        ? "Needs admin review: liveness provider unavailable (VERIFY_FACE_API_KEY not configured). Auto-approve was blocked for safety — verify manually."
+                        : autoReason === "liveness_provider_unreachable"
+                          ? "Needs admin review: liveness provider did not respond. Auto-approve was blocked for safety — verify manually."
+                          : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
 
 
       const flagsLine = softFlags.length ? `\n[soft-flags] ${softFlags.join(", ")}` : "";
