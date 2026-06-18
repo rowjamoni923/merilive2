@@ -25,6 +25,7 @@ import { PictureInPictureButton } from "@/components/livekit/PictureInPictureBut
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
+import LiveKitResilienceNotifier from "@/components/livekit/LiveKitResilienceNotifier";
 
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift, InlineGiftRow, encodeInlineGiftMarker, parseInlineGiftMarker } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
