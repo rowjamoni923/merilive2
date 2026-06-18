@@ -171,3 +171,110 @@ If any step fails → fix before next phase.
 **Q1.** Approve Phase 1A + 1B (Steps 1–4) for immediate implementation?
 **Q2.** Phase 1C (category + cover on pre-join) — design touch, want it included or skip?
 **Q3.** Phase 1D (native beauty filter) — schedule now (with APK rebuild) or defer to a later batch?
+
+---
+
+# Phase 2 — Viewer (Live Watch) Professionalization
+
+**Date:** 2026-06-18
+**Status:** Audit + competitor research complete, awaiting user approval
+**Design rule:** SACRED — no UI changes; functionality + reliability only (loading text + "Camera is off" pill already approved in Phase 1B style — same pattern reused)
+
+---
+
+## Audit summary
+
+**Audited:** `src/pages/LiveStream.tsx`, `src/hooks/useLiveKitClient.ts`, `src/services/liveStreamPreloader.ts`, `src/components/live/LiveKitVideoPlayer.tsx`
+**Findings:** 16 gaps — 5 HIGH, 7 MEDIUM, 4 LOW
+
+### HIGH severity (must-fix)
+
+| # | Gap | File | Impact |
+|---|---|---|---|
+| H1 | Preloaded room missing `TrackMuted`/`ConnectionStateChanged`/reconnect listeners | `useLiveKitClient.ts:1052-1168` | Camera-off avatar broken + no hard-reconnect on preloaded path |
+| H2 | `enter_live_stream` RPC + token fetch sequential (3 RTTs cold start) | `LiveStream.tsx:2406`, `useLiveKitClient.ts:1171` | First frame 800–1500ms slower than needed |
+| H3 | 10s `qualityEnforcer` overwrites network-aware quality cap | `useLiveKitClient.ts:1026-1042` | Weak-network viewers forced back to HIGH every 10s → stall + data burn 🚨 |
+| H4 | Native Android viewer has no bounded reconnect curve | `useLiveKitClient.ts:233`, `useNativeLiveKitEvents` | APK viewers get stuck on flaky network |
+| H5 | `visibilitychange→hidden` instantly fires `leave_live_stream_viewer` w/o re-enter on return | `LiveStream.tsx:582` | Notification-shade swipe wrongly drops count; viewer present in room but absent from DB |
+
+### MEDIUM severity
+
+| # | Gap | Fix |
+|---|---|---|
+| M1 | `consumePreloadedStream` discards room if videoTrack hasn't arrived yet | 300ms poll before declaring unusable |
+| M2 | Preloaded rooms keep `adaptiveStream: false / dynacast: false` after handoff | Re-init flags on consume |
+| M3 | `stallProbe` 3s threshold too loose; no re-subscribe escalation | 1.5s threshold + call `retrySubscription` directly |
+| M4 | `revealWatchdog` 450ms only reveals — no escalation if decoder stalls | Add 2s second-tier watchdog → `onVideoStalled` |
+| M5 | Viewer hard-reconnect fires at 2.5s, kills LiveKit's own ICE-restart (3–8s) | Extend to 6–8s |
+| M6 | No "Connecting…" text in blurred-avatar fallback while `isJoined && !remoteVideoTrack` | Add small pill (same Phase 1B style) |
+| M7 | Dual end-stream detection (LiveKit event + Realtime row) can fire modal twice | Sync `streamEndedRef` guard in Realtime handler |
+
+### LOW severity
+
+L1. `Disconnected` auto-rejoin doesn't check `streamEndedRef` → wastes RPC
+L2. `RoomEndedModal` only has "Exit" — no "Browse Live" / "Follow host" CTA
+L3. LiveKit SFU viewer count not reconciled against DB `viewer_heartbeat` response
+L4. `leave_live_stream_viewer` idempotency unconfirmed when `left_at` already set (open question)
+
+---
+
+## Competitor pattern → LiveKit translation (key validations)
+
+| Chamet/Bigo/Agora pattern | Our current state | LiveKit equivalent |
+|---|---|---|
+| `preloadChannel` on list scroll | ✅ `liveStreamPreloader` does this | `room.prepareConnection` + `autoSubscribe:false` |
+| Wildcard pre-fetched token | ❌ token fetched per-stream sequentially | **H2 fix** — parallel fetch w/ RPC |
+| `setRemoteSubscribeFallbackOption(AUDIO_ONLY)` on poor net | ❌ qualityEnforcer overrides | **H3 fix** — respect `QualityHint`, add audio-only step at `ConnectionQuality.lost` |
+| 20-min retry cap, then give up | ❌ LiveKit retries forever (no cap) | Add app-layer 20-min timer → show "Connection lost" sheet |
+| Wall-clock freeze watchdog (Jitsi pattern: `framesDecoded` delta) | ⚠️ partial (`currentTime` only) | **M3+M4 fix** — escalation ladder: re-attach → re-subscribe → reconnect |
+| Pause video on background, keep audio | ❌ video keeps decoding | Pause `<video>` on `visibilitychange→hidden`; grace-timer leave (H5) |
+| "Stream ended" sheet w/ Follow + Next-stream CTA | ⚠️ only Exit | **L2 fix** — add Browse Live + Follow host |
+| Gift overlay `pointer-events: none` z-30 above video | ✅ already correct | No change |
+| Thumbnail blur + host card from cached room-list before connect | ⚠️ host card flickers null on deep-link/refresh | **M-gap 7.2 fix** — pre-fetch host profile in preloader |
+
+---
+
+## Phase 2 implementation plan (priority order)
+
+### **Phase 2A — HIGH-severity reliability (no UI change)**
+Step 1. **H3 fix first** (highest user impact, smallest change) — gate `qualityEnforcer` behind `preferredVideoQualityRef === HIGH`, so network-aware throttle is preserved
+Step 2. **H1 fix** — extract `wireRoomEvents(room)` helper, call for both new + preloaded room (no divergence)
+Step 3. **H2 fix** — parallelize `enter_live_stream` RPC with `warmLiveKitToken` (Promise.all), cache token result in `joinChannel`
+Step 4. **H5 fix** — 25s grace timer on `visibilitychange→hidden` before firing `leave_live_stream_viewer`; cancel on `visible`; pause `<video>` element immediately for battery
+Step 5. **H4 fix** — mirror web reconnect curve in native viewer disconnect handler (bounded retries, expo backoff, hard-cap)
+
+### **Phase 2B — MEDIUM stall/freeze/reconnect (no UI change)**
+Step 6. **M3+M4** — freeze escalation ladder in `LiveKitVideoPlayer`: 1.5s currentTime stagnation → re-attach; 3s → `setSubscribed(false)`+`true`; 6s → full reconnect
+Step 7. **M5** — extend `viewerHardReconnectTimerRef` 2.5s → 7s
+Step 8. **M1+M2** — preloader handoff: 300ms wait for `videoTrack`, re-init adaptiveStream/dynacast flags on consume
+Step 9. **M7** — sync `streamEndedRef` guard in Realtime end-stream handler
+
+### **Phase 2C — Tiny additive UI (Phase 1B-style minimal)**
+Step 10. **M6** — "Connecting…" pill in blurred-avatar fallback (same glass+gradient as Phase 1B "Camera is off")
+Step 11. **L2** — `RoomEndedModal`: add "Browse Live" + "Follow host" CTA buttons (use existing button styles)
+
+### **Phase 2D — LOW (cleanup, optional)**
+Step 12. L1 — guard auto-rejoin with `streamEndedRef`
+Step 13. L3 — reconcile viewer count from `viewer_heartbeat` RPC response
+Step 14. L4 — verify `leave_live_stream_viewer` idempotency via SQL
+
+---
+
+## Out of scope for Phase 2
+
+- ❌ PiP (Picture-in-Picture) — needs APK rebuild + native module
+- ❌ Auto-redirect to next stream on end — needs recommendation API (separate phase)
+- ❌ VOD/replay — infrastructure phase, deferred
+- ❌ Any design overhaul (SACRED rule)
+
+---
+
+## Decision needed from user
+
+**Q1.** Approve **Phase 2A (Steps 1–5, HIGH severity)** for immediate implementation? এগুলোই real user-impact ফিক্স (data burn, count drop, slow first-frame, native reconnect)।
+
+**Q2.** Phase 2B (Steps 6–9, MEDIUM) — সাথে সাথে যাবে নাকি 2A test করে আলাদা batch?
+
+**Q3.** Phase 2C (Steps 10–11) — minimal additive UI ("Connecting…" pill + ended-modal CTAs) — চাস কিনা?
+
+**Recommendation:** **2A + 2B একসাথে** (all reliability, zero UI) → test → তারপর 2C আলাদা। 2D defer।
