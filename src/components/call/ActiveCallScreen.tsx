@@ -841,6 +841,7 @@ export function ActiveCallScreen({
   if (nativeInCallOpen) {
     return createPortal(
       <RequireNativeAndroidGate feature="call">
+        {resilienceNotifier}
         <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
       </RequireNativeAndroidGate>,
       document.body,
