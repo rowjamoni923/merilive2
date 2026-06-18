@@ -723,11 +723,14 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
-                <Mic className="w-3.5 h-3.5 text-green-400" />
+              <span
+                className="text-white/90 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.45)" }}
+              >
+                <Mic className="w-3.5 h-3.5 text-emerald-300 drop-shadow-[0_0_4px_rgba(110,231,183,0.7)]" />
                 Audio Party
               </span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             </motion.div>
 
             {/* First Row - Host + 4 seats with glow */}
@@ -768,11 +771,14 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-blue-400" />
+              <span
+                className="text-white/90 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.45)" }}
+              >
+                <Radio className="w-3.5 h-3.5 text-sky-300 drop-shadow-[0_0_4px_rgba(125,211,252,0.7)]" />
                 Video Party
               </span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             </motion.div>
 
             <motion.div 
@@ -801,11 +807,14 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
-                <Gamepad2 className="w-3.5 h-3.5 text-orange-400" />
+              <span
+                className="text-white/90 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.45)" }}
+              >
+                <Gamepad2 className="w-3.5 h-3.5 text-amber-300 drop-shadow-[0_0_4px_rgba(252,211,77,0.7)]" />
                 Game Party
               </span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             </motion.div>
 
             <motion.div 
@@ -937,10 +946,13 @@ const CreateParty = () => {
                 onClick={() => void handleModeChange(item.id as PartyMode)}
                 className="relative"
               >
-                <span className={cn(
-                  "text-lg font-semibold transition-colors",
-                  isActive ? "text-white" : "text-slate-500"
-                )}>
+                <span
+                  className={cn(
+                    "text-lg font-semibold transition-colors",
+                    isActive ? "text-white" : "text-white/55"
+                  )}
+                  style={{ textShadow: isActive ? "0 1px 4px rgba(0,0,0,0.5)" : undefined }}
+                >
                   {item.label}
                 </span>
                 {isActive && (
