@@ -867,15 +867,19 @@ const LiveStream = () => {
   const [isUIHidden, setIsUIHidden] = useState(false);
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
+  const hSwipeStartT = useRef(0);
   // `handleLeaveStream` is declared later in the file; use a ref to break the
   // TDZ so this hook can call it without React being told it's a dependency.
   const leaveStreamRef = useRef<(() => void | Promise<void>) | null>(null);
   const EXIT_EDGE_PX = 80;
   const EXIT_MIN_DY = 120;
+  const TAP_MAX_DELTA = 8;       // pixels — finger jitter tolerance
+  const TAP_MAX_DURATION = 250;  // ms — anything longer is a long-press, not a tap
 
   const handleCombinedTouchStart = useCallback((e: React.TouchEvent) => {
     hSwipeStartX.current = e.touches[0].clientX;
     hSwipeStartY.current = e.touches[0].clientY;
+    hSwipeStartT.current = Date.now();
     swipeTouchStart(e);
   }, [swipeTouchStart]);
 
@@ -884,6 +888,7 @@ const LiveStream = () => {
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - hSwipeStartX.current;
     const deltaY = endY - hSwipeStartY.current;
+    const duration = Date.now() - hSwipeStartT.current;
     const startedAtTopEdge = hSwipeStartY.current <= EXIT_EDGE_PX;
 
     // 1) Top-edge swipe-down → exit (viewers only; host needs explicit end-stream confirm).
@@ -899,7 +904,19 @@ const LiveStream = () => {
       return;
     }
 
-    // 2) Horizontal swipe = hide/show UI
+    // 2) Tap on dead space → toggle chrome (Bigo/Chamet modern pattern).
+    //    Interactive chrome elements have their own pointer handlers; tap only
+    //    reaches this root when the touch landed on the stream surface itself.
+    if (
+      Math.abs(deltaX) < TAP_MAX_DELTA &&
+      Math.abs(deltaY) < TAP_MAX_DELTA &&
+      duration < TAP_MAX_DURATION
+    ) {
+      setIsUIHidden(prev => !prev);
+      return;
+    }
+
+    // 3) Horizontal swipe = hide/show UI (kept as a secondary gesture).
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
       if (deltaX > 0) {
         setIsUIHidden(true);
@@ -909,7 +926,7 @@ const LiveStream = () => {
       return;
     }
 
-    // 3) Otherwise fall through to vertical stream nav
+    // 4) Otherwise fall through to vertical stream nav
     swipeTouchEnd(e);
   }, [swipeTouchEnd, isHost]);
 
