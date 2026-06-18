@@ -64,9 +64,14 @@ export async function startPreConnectAudio(
       const handler = (buf: Uint8Array[]) => {
         try { cb(buf?.length ?? 0); } catch { /* swallow */ }
       };
-      track.on(TrackEvent.PreConnectBufferFlushed, handler);
+      // PreConnectBufferFlushed was added in livekit-client 2.10+. On 2.9.x
+      // (matching the self-hosted server) the event doesn't exist — degrade
+      // to a no-op subscription so the publish path still works.
+      const evt = (TrackEvent as unknown as Record<string, string>)['PreConnectBufferFlushed'];
+      if (!evt) return () => {};
+      (track as any).on(evt, handler);
       return () => {
-        try { track.off(TrackEvent.PreConnectBufferFlushed, handler); } catch { /* */ }
+        try { (track as any).off(evt, handler); } catch { /* */ }
       };
     };
 
