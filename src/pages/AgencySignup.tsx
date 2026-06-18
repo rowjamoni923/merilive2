@@ -559,7 +559,7 @@ const AgencySignup = () => {
               <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <Mail className="w-4 h-4 text-info-400" />
+                  <Mail className="w-4 h-4 text-info-600" />
                   Email Address <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <div className="flex items-center gap-2">
@@ -572,19 +572,19 @@ const AgencySignup = () => {
 
                 {/* Email OTP Section */}
                 {formData.email && isValidEmail(formData.email) && !emailVerified && (
-                  <div className="p-4 bg-info-900/30 rounded-xl space-y-3 border border-info-700/30">
+                  <div className="p-4 bg-info-50 rounded-xl space-y-3 border border-info-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-info-400" />
-                        <span className="text-sm font-medium text-info-300">Email OTP Verification</span>
+                        <Mail className="w-4 h-4 text-info-600" />
+                        <span className="text-sm font-medium text-info-800">Email OTP Verification</span>
                       </div>
                       {!emailOtpSent ? (
-                        <Button size="sm" onClick={sendEmailOtp} disabled={sendingEmailOtp} className="bg-info-600 hover:bg-info-700">
+                        <Button size="sm" onClick={sendEmailOtp} disabled={sendingEmailOtp} className="bg-info-600 hover:bg-info-700 text-white">
                           {sendingEmailOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                           Send Code
                         </Button>
                       ) : (
-                        <Badge className={`cursor-pointer ${emailOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
+                        <Badge className={`cursor-pointer text-white ${emailOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
                           onClick={() => { if (emailOtpTimer <= 0) { setEmailOtpSent(false); setEmailOtp(""); } }}>
                           <Timer className="w-3 h-3 mr-1" />
                           {emailOtpTimer > 0 ? `${Math.floor(emailOtpTimer / 60)}:${(emailOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
@@ -593,8 +593,8 @@ const AgencySignup = () => {
                     </div>
                     {emailOtpSent && (
                       <>
-                        <div className="p-3 bg-info-900/40 rounded-lg border border-info-700/50">
-                          <p className="text-xs text-info-300 flex items-center gap-1">
+                        <div className="p-3 bg-info-100 rounded-lg border border-info-200">
+                          <p className="text-xs text-info-800 flex items-center gap-1">
                             <Mail className="w-3 h-3" />
                             A 6-digit code has been sent to your email. Check your inbox/spam folder.
                           </p>
@@ -602,15 +602,15 @@ const AgencySignup = () => {
                         <div className="flex items-center gap-3">
                           <InputOTP maxLength={6} value={emailOtp} onChange={(value) => setEmailOtp(value)}>
                             <InputOTPGroup>
-                              <InputOTPSlot index={0} className="bg-white/80 text-slate-800" />
-                              <InputOTPSlot index={1} className="bg-white/80 text-slate-800" />
-                              <InputOTPSlot index={2} className="bg-white/80 text-slate-800" />
-                              <InputOTPSlot index={3} className="bg-white/80 text-slate-800" />
-                              <InputOTPSlot index={4} className="bg-white/80 text-slate-800" />
-                              <InputOTPSlot index={5} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot index={0} className="bg-white text-slate-800" />
+                              <InputOTPSlot index={1} className="bg-white text-slate-800" />
+                              <InputOTPSlot index={2} className="bg-white text-slate-800" />
+                              <InputOTPSlot index={3} className="bg-white text-slate-800" />
+                              <InputOTPSlot index={4} className="bg-white text-slate-800" />
+                              <InputOTPSlot index={5} className="bg-white text-slate-800" />
                             </InputOTPGroup>
                           </InputOTP>
-                          <Button size="sm" onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || emailOtpTimer <= 0 || verifyingEmailOtp} className="bg-info-600 hover:bg-info-700">
+                          <Button size="sm" onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || emailOtpTimer <= 0 || verifyingEmailOtp} className="bg-info-600 hover:bg-info-700 text-white">
                             {verifyingEmailOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
                           </Button>
                         </div>
@@ -620,13 +620,13 @@ const AgencySignup = () => {
                 )}
 
                 {emailVerified && (
-                  <div className="p-3 bg-success-900/30 rounded-xl flex items-center gap-3 text-success-300 border border-success-700/50">
+                  <div className="p-3 bg-success-50 rounded-xl flex items-center gap-3 text-success-800 border border-success-200">
                     <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-slate-800" />
+                      <CheckCircle2 className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <p className="font-semibold text-sm">Email Verified ✓</p>
-                      <p className="text-xs text-success-400">{formData.email}</p>
+                      <p className="text-xs text-success-700">{formData.email}</p>
                     </div>
                   </div>
                 )}
