@@ -1181,9 +1181,47 @@ export function ActiveCallScreen({
                   <div className="relative z-10 flex flex-col items-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-2" />
                   </div>
-                </div>
-              )}
+          </div>
+        )}
+
+        {/* ===== PREVIEW-ONLY camera mirror (Lovable web) ===== */}
+        {isPreviewWeb && previewStream && (
+          <>
+            <video
+              ref={previewVideoRefPrimary}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover z-[4]"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
+              PREVIEW MODE — your camera mirrored to both tiles
             </div>
+            <motion.div
+              whileTap={{ scale: 0.93 }}
+              onClick={handleSwapVideos}
+              className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-[7] cursor-pointer bg-black"
+              style={{
+                boxShadow:
+                  '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+              }}
+            >
+              <video
+                ref={previewVideoRefPip}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+              <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
+                You
+              </div>
+            </motion.div>
+          </>
+        )}
+      </div>
 
             {/* PIP secondary (local) video - tap to swap */}
             <motion.div
