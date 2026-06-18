@@ -3418,6 +3418,9 @@ const LiveStream = () => {
   const firstRemoteUser = Array.from(remoteUsers.values()).find((user: any) => user?.hasVideo && user?.videoTrack)
     ?? Array.from(remoteUsers.values())[0];
   const remoteVideoTrack = firstRemoteUser?.videoTrack ?? null;
+  // Phase 1B: host's camera-off propagates as TrackMuted → viewer should swap
+  // the (frozen) <video> for the avatar placeholder, not stare at the last frame.
+  const isRemoteHostCameraOff = !!(remoteVideoTrack && (firstRemoteUser as any)?.videoMuted);
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
   const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack;
   const showHostTransitionPreview = isHost && !localVideoTrack && !!hostTransitionPreviewStream;
