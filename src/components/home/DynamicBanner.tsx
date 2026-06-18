@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isNativeApp } from "@/utils/nativeUtils";
 import { normalizePublicMediaUrl, toSupabaseCdnUrl } from "@/lib/cdnImage";
+import { cn } from "@/lib/utils";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
