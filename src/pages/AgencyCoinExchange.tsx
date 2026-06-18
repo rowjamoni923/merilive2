@@ -608,7 +608,16 @@ const AgencyCoinExchange = () => {
     );
   }
 
-  if (!agency) return null;
+  if (!agency) {
+    return (
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20 overflow-hidden"
+        headerClassName="bg-gradient-to-r from-amber-500 to-orange-600"
+        rows={4}
+        tabs
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20">
