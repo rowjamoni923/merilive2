@@ -1128,12 +1128,84 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           clearHostVideoRecoveryTimer();
           setIsJoined(false);
           setConnectionState('DISCONNECTED');
+          // Phase 2A Step 2 (H1 fix): preloaded room was missing auto-rejoin
+          // on a hard disconnect — viewers got stuck on a frozen frame until
+          // they manually backed out. Mirror the normal-path 300ms rejoin.
+          clearViewerHardReconnectTimer();
+          const lastConfig = lastConfigRef.current;
+          if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            lastConfigRef.current = null;
+            setTimeout(() => {
+              if (isLeavingRef.current || isJoiningRef.current) return;
+              joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+            }, 300);
+          }
         });
         pRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
           if (publication.track?.kind === Track.Kind.Video) {
             setLocalVideoTrack(publication.track);
           } else if (publication.track?.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
+          }
+        });
+
+        // Phase 2A Step 2 (H1 fix): preloaded room was missing TrackMuted /
+        // TrackUnmuted listeners — viewers never saw the "camera off" avatar
+        // when the host disabled camera on the preloaded fast-path. Mirror the
+        // normal-path applyVideoMuteState wiring inline (helper is defined in
+        // the upper scope; safe to call here).
+        const applyVideoMuteStatePreloaded = (participant: RemoteParticipant, publication: RemoteTrackPublication, muted: boolean) => {
+          if (publication.kind !== Track.Kind.Video) return;
+          if (publication.source !== Track.Source.Camera) return;
+          const pUid = getUidForParticipant(participant.identity);
+          setRemoteUsers(prev => {
+            const existing = prev.get(pUid);
+            if (!existing) return prev;
+            if ((existing as any).videoMuted === muted) return prev;
+            const newMap = new Map(prev);
+            newMap.set(pUid, { ...existing, videoMuted: muted } as any);
+            return newMap;
+          });
+        };
+        pRoom.on(RoomEvent.TrackMuted, (publication, participant) => {
+          if ('identity' in (participant as any)) {
+            applyVideoMuteStatePreloaded(participant as RemoteParticipant, publication as RemoteTrackPublication, true);
+          }
+        });
+        pRoom.on(RoomEvent.TrackUnmuted, (publication, participant) => {
+          if ('identity' in (participant as any)) {
+            applyVideoMuteStatePreloaded(participant as RemoteParticipant, publication as RemoteTrackPublication, false);
+          }
+        });
+
+        // Phase 2A Step 2 (H1 fix): preloaded room was missing
+        // ConnectionStateChanged → viewerHardReconnectTimerRef was never
+        // armed during a Reconnecting state, so a stalled reconnect on the
+        // preloaded path had no escape hatch. Mirror normal path.
+        pRoom.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
+          if (state === ConnectionState.Connected) {
+            setConnectionState('CONNECTED');
+            setIsReconnecting(false);
+            clearViewerHardReconnectTimer();
+          } else if (state === ConnectionState.Reconnecting) {
+            setConnectionState('CONNECTING');
+            setIsReconnecting(true);
+            if (!viewerHardReconnectTimerRef.current) {
+              viewerHardReconnectTimerRef.current = setTimeout(() => {
+                viewerHardReconnectTimerRef.current = null;
+                const lastConfig = lastConfigRef.current;
+                if (!lastConfig || lastConfig.role !== 'audience' || isJoiningRef.current || isLeavingRef.current) return;
+                console.warn('[LiveKitClient] Preloaded-path audience reconnect stalled, forcing fresh room join');
+                lastConfigRef.current = null;
+                pRoom.disconnect(true);
+                setRemoteUsers(new Map());
+                setIsJoined(false);
+                setConnectionState('CONNECTING');
+                joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+              }, 7000);
+            }
+          } else if (state === ConnectionState.Disconnected) {
+            setConnectionState('DISCONNECTED');
           }
         });
 
