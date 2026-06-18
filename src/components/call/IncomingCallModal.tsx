@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useRef } from "react";
-import { Phone, PhoneOff, Radio, Sparkles } from "lucide-react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { Phone, PhoneOff, Sparkles, Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
@@ -14,6 +14,18 @@ interface IncomingCallModalProps {
   onDecline: () => void;
 }
 
+/**
+ * Chamet/Bigo-class full-screen incoming call surface.
+ *
+ * Layout:
+ *   • Layer 0 — caller avatar as full-screen blurred background
+ *   • Layer 1 — dark vignette + subtle ambient color glow
+ *   • Layer 2 — top safe-area: "Incoming Video Call" label + caller name + avatar (parallax)
+ *   • Layer 3 — bottom thumb-zone: Decline / Accept (≥64dp, far-apart, ≥80px bottom inset)
+ *
+ * Parallax: subtle pointermove translate on the sharp foreground avatar so it
+ * feels alive against the blurred backdrop. CSS-only — no extra deps.
+ */
 export function IncomingCallModal({
   isOpen,
   callerName,
@@ -22,25 +34,24 @@ export function IncomingCallModal({
   onAccept,
   onDecline,
 }: IncomingCallModalProps) {
-  const { startRingtone, stopRingtone, playSound } = useSound();
-  // Pkg444 Phase-5: switch native audio mode to 'ringtone' while modal
-  // is open so the ringtone routes through the ringer stream/volume.
+  const { startRingtone, stopRingtone } = useSound();
+  // Pkg444 Phase-5: route ringtone through the ringer stream/volume while open.
   useNativeAudioFocus({ enabled: isOpen, intent: 'ringtone' });
-  // Section#5 pass-2 (Bug F): in-flight guard so rapid double-tap can't
-  // fire onAccept/onDecline twice and race CallProvider's accept/decline.
+  // Section#5 pass-2 (Bug F): guard against double-tap racing accept/decline.
   const processingRef = useRef(false);
 
-  // Play ringtone when modal opens
+  // Parallax — subtle 2D translate based on pointer/touch position.
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const surfaceRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (isOpen) {
-      processingRef.current = false; // reset on each new incoming call
+      processingRef.current = false;
       startRingtone();
     } else {
       stopRingtone();
     }
-    return () => {
-      stopRingtone();
-    };
+    return () => { stopRingtone(); };
   }, [isOpen, startRingtone, stopRingtone]);
 
   const handleAccept = useCallback(() => {
@@ -59,159 +70,239 @@ export function IncomingCallModal({
     onDecline();
   }, [stopRingtone, onDecline]);
 
-  // Section#5 pass-2 (Bug G): removed `if (!isOpen) return null;` early-return —
-  // it unmounted the motion children before AnimatePresence could play the
-  // exit transition. The inner `{isOpen && (...)}` already gates rendering.
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const rect = surfaceRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    // ±10px parallax range — subtle, professional.
+    setTilt({
+      x: Math.max(-10, Math.min(10, ((e.clientX - cx) / rect.width) * 20)),
+      y: Math.max(-10, Math.min(10, ((e.clientY - cy) / rect.height) * 20)),
+    });
+  }, []);
+
+  const handlePointerLeave = useCallback(() => setTilt({ x: 0, y: 0 }), []);
+
+  // Safe fallback avatar — first letter of caller name.
+  const fallbackLetter = (callerName || '?').trim().charAt(0).toUpperCase();
+  const hasAvatar = !!callerAvatar;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Full-screen incoming ring surface */}
-          <motion.div
-            key="incoming-call-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[2147483640] bg-black/85 backdrop-blur-sm"
+        <motion.div
+          key="incoming-call-surface"
+          ref={surfaceRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[2147483640] overflow-hidden"
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+          style={{ touchAction: 'none' }}
+        >
+          {/* ── Layer 0: blurred caller avatar as full-screen background ── */}
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              transform: `translate3d(${tilt.x * -1.5}px, ${tilt.y * -1.5}px, 0) scale(1.15)`,
+              transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+              willChange: 'transform',
+            }}
+          >
+            {hasAvatar ? (
+              <img
+                src={callerAvatar!}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: 'blur(28px) saturate(1.15) brightness(0.55)' }}
+                draggable={false}
+              />
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(120% 80% at 50% 25%, rgba(34,197,94,0.35) 0%, rgba(15,5,36,0.95) 55%, rgba(0,0,0,1) 100%)',
+                }}
+              />
+            )}
+          </div>
+
+          {/* ── Layer 1: vignette + ambient color wash ── */}
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(80% 60% at 50% 0%, rgba(34,197,94,0.18) 0%, transparent 55%), linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0.85) 100%)',
+            }}
           />
 
-          <motion.div
-            key="incoming-call-card"
-            initial={{ y: 80, opacity: 0, scale: 0.96 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 80, opacity: 0, scale: 0.96 }}
-            transition={{ type: "spring", damping: 24, stiffness: 300 }}
-            className="fixed inset-0 z-[2147483641] flex items-center justify-center p-5"
-            style={{ willChange: 'transform, opacity' }}
-          >
-            <div
-              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10"
+          {/* ── Layer 2: top — label + caller card with parallax ── */}
+          <div className="absolute inset-x-0 top-0 pt-[max(env(safe-area-inset-top),20px)] px-6">
+            {/* "Incoming Video Call" pill */}
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.05, type: 'spring', damping: 22, stiffness: 280 }}
+              className="flex justify-center"
+            >
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/8 backdrop-blur-xl border border-white/15">
+                <div className="relative">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" />
+                </div>
+                <Video className="w-3 h-3 text-green-300" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90">
+                  Incoming Video Call
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Foreground avatar — parallax + ripple */}
+            <motion.div
+              initial={{ y: 30, opacity: 0, scale: 0.92 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ delay: 0.12, type: 'spring', damping: 20, stiffness: 240 }}
+              className="flex flex-col items-center mt-10"
               style={{
-                background: 'linear-gradient(135deg, rgba(15, 5, 36, 0.97) 0%, rgba(26, 10, 53, 0.98) 50%, rgba(13, 4, 32, 0.97) 100%)',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                transform: `translate3d(${tilt.x}px, ${tilt.y}px, 0)`,
+                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                willChange: 'transform',
               }}
             >
-              {/* Animated top glow bar */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-transparent via-green-400 to-transparent animate-pulse"
-                  style={{ animationDuration: '1.5s' }}
+              <div className="relative">
+                {/* Outer ripple rings */}
+                <div
+                  className="absolute -inset-4 rounded-full border border-green-400/35 animate-ping"
+                  style={{ animationDuration: '2.2s' }}
                 />
+                <div
+                  className="absolute -inset-2 rounded-full border border-green-400/55"
+                  style={{ boxShadow: '0 0 28px rgba(34,197,94,0.45)' }}
+                />
+                {/* Avatar */}
+                <div className="relative rounded-full">
+                  {hasAvatar ? (
+                    <AvatarWithFrame
+                      src={callerAvatar}
+                      name={callerName}
+                      level={callerLevel}
+                      size="lg"
+                      showAnimation={false}
+                    />
+                  ) : (
+                    <div
+                      className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white"
+                      style={{
+                        background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
+                        boxShadow: '0 8px 28px rgba(34,197,94,0.45), inset 0 2px 6px rgba(255,255,255,0.25)',
+                      }}
+                    >
+                      {fallbackLetter}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Ambient glow orbs */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/15 to-transparent rounded-full blur-2xl" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-500/10 to-transparent rounded-full blur-xl" />
-
-              {/* Card content */}
-              <div className="relative p-4">
-                {/* Top row: Label + call type */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-green-300/90 text-[11px] font-semibold uppercase tracking-widest">
-                      Incoming Video Call
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20">
-                    <Radio className="w-3 h-3 text-green-400" />
-                    <span className="text-green-300 text-[10px] font-medium">Live</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center gap-5 py-5 text-center">
-                  {/* Caller Avatar with ripple */}
-                  <div className="relative flex-shrink-0">
-                    {/* Ripple ring */}
-                    <div 
-                      className="absolute -inset-1.5 rounded-full border border-green-400/30 animate-ping"
-                      style={{ animationDuration: '2s' }}
-                    />
-                    <div
-                      className="relative rounded-full"
-                      style={{ boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)' }}
-                    >
-                      <AvatarWithFrame
-                        src={callerAvatar}
-                        name={callerName}
-                        level={callerLevel}
-                        size="md"
-                        showAnimation={false}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Caller info */}
-                  <div className="min-w-0">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <h3 className="text-white font-bold text-2xl truncate">
-                        {callerName}
-                      </h3>
-                      {callerLevel >= 20 && (
-                        <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-white/55 text-sm mt-2">
-                      Tap to answer the call
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-10 flex-shrink-0">
-                    {/* Decline */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDecline();
-                      }}
-                      type="button"
-                      className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-600 active:from-red-600 active:to-red-700 text-white flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
-                      style={{
-                        boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)',
-                      }}
-                    >
-                      <PhoneOff className="w-5 h-5" />
-                    </button>
-
-                    {/* Accept - slightly larger with pulse */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleAccept();
-                      }}
-                      type="button"
-                      className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 active:from-green-500 active:to-emerald-600 text-white flex items-center justify-center touch-manipulation active:scale-90 transition-transform"
-                      style={{
-                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3)',
-                        animation: 'pulse 1.5s ease-in-out infinite',
-                      }}
-                    >
-                      <Phone className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bottom sound wave */}
-                <div className="flex justify-center gap-1 mt-3 opacity-40">
-                  {[...Array(12)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 rounded-full bg-gradient-to-t from-green-500/80 to-green-300/80 animate-bounce"
-                      style={{
-                        height: `${8 + Math.sin(i * 0.8) * 6}px`,
-                        animationDelay: `${i * 0.06}s`,
-                        animationDuration: '0.5s',
-                      }}
-                    />
-                  ))}
-                </div>
+              {/* Caller name */}
+              <div className="mt-6 flex items-center gap-2 max-w-[88vw]">
+                <h2 className="text-white font-bold text-3xl truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                  {callerName || 'Unknown'}
+                </h2>
+                {callerLevel >= 20 && (
+                  <Sparkles className="w-5 h-5 text-amber-300 flex-shrink-0" />
+                )}
               </div>
+              <p className="text-white/65 text-sm mt-2 tracking-wide">
+                Calling you…
+              </p>
+
+              {/* Sound wave bars under name */}
+              <div className="flex items-end justify-center gap-1 mt-5 h-4">
+                {[...Array(14)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-[3px] rounded-full bg-gradient-to-t from-green-500/80 to-green-200/90 animate-bounce"
+                    style={{
+                      height: `${6 + Math.abs(Math.sin(i * 0.6)) * 10}px`,
+                      animationDelay: `${i * 0.05}s`,
+                      animationDuration: '0.7s',
+                    }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* ── Layer 3: bottom thumb-zone — Decline / Accept ── */}
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.18, type: 'spring', damping: 22, stiffness: 240 }}
+            className="absolute inset-x-0 bottom-0 pb-[max(env(safe-area-inset-bottom),24px)]"
+          >
+            <div className="flex items-center justify-around px-10 pb-6">
+              {/* Decline — left thumb zone */}
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDecline(); }}
+                type="button"
+                aria-label="Decline call"
+                className="group flex flex-col items-center gap-2 touch-manipulation"
+              >
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                  style={{
+                    background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #b91c1c 100%)',
+                    boxShadow:
+                      '0 10px 28px -6px rgba(239,68,68,0.65), 0 4px 12px -2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(252,165,165,0.45)',
+                  }}
+                >
+                  <PhoneOff className="w-7 h-7 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                </div>
+                <span className="text-[11px] font-semibold text-white/80 tracking-wide">
+                  Decline
+                </span>
+              </button>
+
+              {/* Accept — right thumb zone, slightly larger + breathing pulse */}
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAccept(); }}
+                type="button"
+                aria-label="Accept call"
+                className="group flex flex-col items-center gap-2 touch-manipulation"
+              >
+                <div className="relative">
+                  {/* Breathing pulse halo */}
+                  <div
+                    className="absolute -inset-2 rounded-full border-2 border-green-400/50 animate-ping"
+                    style={{ animationDuration: '1.6s' }}
+                  />
+                  <div
+                    className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                    style={{
+                      background:
+                        'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #15803d 100%)',
+                      boxShadow:
+                        '0 12px 32px -6px rgba(34,197,94,0.65), 0 4px 12px -2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(0,0,0,0.3)',
+                      border: '1px solid rgba(134,239,172,0.5)',
+                    }}
+                  >
+                    <Phone className="w-8 h-8 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                  </div>
+                </div>
+                <span className="text-[11px] font-semibold text-white tracking-wide">
+                  Accept
+                </span>
+              </button>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
