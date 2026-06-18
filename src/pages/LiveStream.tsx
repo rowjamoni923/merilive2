@@ -2859,6 +2859,12 @@ const LiveStream = () => {
     navigate('/', { replace: true });
   };
 
+  // Keep the top-edge swipe-down gesture wired to the current handleLeaveStream.
+  useEffect(() => {
+    leaveStreamRef.current = handleLeaveStream;
+    return () => { leaveStreamRef.current = null; };
+  }, [handleLeaveStream]);
+
   const handleCall = () => {
     // Pkg: Direct call as requested - bypassing confirmation modal
     handleConfirmCall();
