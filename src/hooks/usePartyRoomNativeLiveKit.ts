@@ -29,6 +29,7 @@ import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregiste
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
+import { registerHardReconnectCap, unregisterHardReconnectCap } from '@/lib/livekitHardReconnectCap';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
