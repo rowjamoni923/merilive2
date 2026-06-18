@@ -576,12 +576,34 @@ const LiveStream = () => {
     };
     window.addEventListener('pagehide', sendViewerLeave);
     window.addEventListener('beforeunload', sendViewerLeave);
-    // Pkg425: also fire on tab-hidden + Capacitor app background. iOS Safari and
-    // Android WebView kill tabs without firing pagehide/beforeunload reliably; the
-    // 90s cron cleans those up but the count stays inflated until then. Visibility
-    // and appStateChange give us a sub-second leave on app switch / lock screen.
+    // Phase 2A Step 4 (H5 fix): 25s grace timer on visibility/appState hide.
+    // Previously a 1-second notification-shade swipe fired leave_live_stream_viewer
+    // instantly → count permanently wrong (LiveKit room stayed connected but
+    // stream_viewers row got left_at; no re-enter on return). Now we wait
+    // 25s before leaving; if user returns within window, we cancel.
+    // We also pause the <video> element immediately to save battery/data.
+    const GRACE_MS = 25000;
+    let graceTimer: ReturnType<typeof setTimeout> | null = null;
+    const pauseRemoteVideos = (pause: boolean) => {
+      try {
+        document.querySelectorAll<HTMLVideoElement>('video[data-livekit-media="true"]').forEach((v) => {
+          if (pause) { try { v.pause(); } catch { /* noop */ } }
+          else { try { v.play().catch(() => {}); } catch { /* noop */ } }
+        });
+      } catch { /* ignore */ }
+    };
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') sendViewerLeave();
+      if (document.visibilityState === 'hidden') {
+        pauseRemoteVideos(true);
+        if (graceTimer) clearTimeout(graceTimer);
+        graceTimer = setTimeout(() => {
+          graceTimer = null;
+          if (document.visibilityState === 'hidden') sendViewerLeave();
+        }, GRACE_MS);
+      } else {
+        if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+        pauseRemoteVideos(false);
+      }
     };
     document.addEventListener('visibilitychange', onVisibility);
     let appStateDetach: (() => void) | null = null;
@@ -590,7 +612,17 @@ const LiveStream = () => {
       void import('@capacitor/app').then(({ App }) => {
         try {
           const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
-            if (!isActive) sendViewerLeave();
+            if (!isActive) {
+              pauseRemoteVideos(true);
+              if (graceTimer) clearTimeout(graceTimer);
+              graceTimer = setTimeout(() => {
+                graceTimer = null;
+                sendViewerLeave();
+              }, GRACE_MS);
+            } else {
+              if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+              pauseRemoteVideos(false);
+            }
           }));
           appStateDetach = () => {
             handlePromise
