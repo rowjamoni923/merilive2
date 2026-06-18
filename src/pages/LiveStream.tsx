@@ -2394,8 +2394,8 @@ const LiveStream = () => {
     console.log(`🚀 INSTANT JOIN: Starting as ${initialHostRole ? 'HOST' : 'VIEWER'}`);
     
     // 🚀 CHECK FOR PRELOADED ROOM FIRST (instant video!)
-    const preloaded = !initialHostRole ? consumePreloadedStream(id) : null;
-    
+    const preloadedPromise = !initialHostRole ? consumePreloadedStream(id) : Promise.resolve(null);
+
     const preloadedVideoTrack = initialHostRole
       ? hostTransitionPreviewStream?.getVideoTracks().find((track) => track.readyState === 'live')
       : undefined;
@@ -2407,11 +2407,25 @@ const LiveStream = () => {
       if (initialHostRole && !liveStreamCamera.ready) {
         throw new Error('Camera is in use by another feature. Please close it and try again.');
       }
+      // Phase 2A Step 3 (H2 fix): parallelize enter_live_stream RPC with the
+      // LiveKit token warmup. Previously they ran sequentially (3 RTTs cold).
+      // Token edge fn rejects with `must_enter_stream_first` if RPC hasn't
+      // completed yet — getLiveKitToken's internal backoff (400ms) covers
+      // that race, and by the time the real joinChannel calls it the token
+      // is already cached.
+      let preloaded: Awaited<ReturnType<typeof consumePreloadedStream>> = null;
       if (!initialHostRole) {
-        const { data, error } = await supabase.rpc('enter_live_stream', {
+        const rpcPromise = supabase.rpc('enter_live_stream', {
           p_stream_id: id,
           p_password: null,
         });
+        // Fire token warmup in parallel; harmless if it loses the race.
+        warmLiveKitToken(channelName, 'viewer_stream').catch(() => {});
+        const [{ data, error }, preloadedResult] = await Promise.all([
+          rpcPromise,
+          preloadedPromise,
+        ]);
+        preloaded = preloadedResult;
         const result = data as any;
         if (error || result?.success === false) {
           throw new Error(error?.message || result?.reason || 'Unable to enter live stream');
