@@ -62,6 +62,7 @@ import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomNativeLiveKit } from "@/hooks/usePartyRoomNativeLiveKit";
+import LiveKitResilienceNotifier from "@/components/livekit/LiveKitResilienceNotifier";
 import { useActiveSpeakers } from "@/hooks/useActiveSpeakers";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
@@ -2527,6 +2528,12 @@ const PartyRoom = () => {
   // Video, Audio, Game - same component, same design, same features
   return (
     <>
+      {/* X1+X2: auto audio-only flips + 20-min hard reconnect abandon toasts. */}
+      <LiveKitResilienceNotifier
+        scope="party"
+        id={roomId ?? null}
+        onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
+      />
       {/* ==================== UNIFIED ENTRY ANIMATION ====================
           Same architecture as Gift Animation - Queue-based, ONE at a time */}
       <AnimatePresence>

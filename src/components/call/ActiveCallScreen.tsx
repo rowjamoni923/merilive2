@@ -25,6 +25,7 @@ import { PictureInPictureButton } from "@/components/livekit/PictureInPictureBut
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
+import LiveKitResilienceNotifier from "@/components/livekit/LiveKitResilienceNotifier";
 
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift, InlineGiftRow, encodeInlineGiftMarker, parseInlineGiftMarker } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
@@ -827,9 +828,20 @@ export function ActiveCallScreen({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
+  // X1+X2: surface auto-audio-only flips + 20-min hard reconnect abandon as
+  // professional toasts. Headless; safe to mount unconditionally while open.
+  const resilienceNotifier = (
+    <LiveKitResilienceNotifier
+      scope="call"
+      id={callId ?? null}
+      onRejoin={() => { Promise.resolve(onEndCall()).catch(() => {}); }}
+    />
+  );
+
   if (nativeInCallOpen) {
     return createPortal(
       <RequireNativeAndroidGate feature="call">
+        {resilienceNotifier}
         <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
       </RequireNativeAndroidGate>,
       document.body,
@@ -1404,7 +1416,10 @@ export function ActiveCallScreen({
   );
 
   return createPortal(
-    <RequireNativeAndroidGate feature="call">{callUi}</RequireNativeAndroidGate>,
+    <RequireNativeAndroidGate feature="call">
+      {resilienceNotifier}
+      {callUi}
+    </RequireNativeAndroidGate>,
     document.body,
   );
 };

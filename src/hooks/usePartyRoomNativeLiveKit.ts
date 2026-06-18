@@ -29,6 +29,7 @@ import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregiste
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
+import { registerHardReconnectCap, unregisterHardReconnectCap } from '@/lib/livekitHardReconnectCap';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
@@ -245,6 +246,8 @@ export function usePartyRoomNativeLiveKit(
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterAutoAudioOnlyRoom('party', roomId); } catch { /* ignore */ }
+    // X1: drop 20-min hard reconnect cap.
+    try { unregisterHardReconnectCap('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
@@ -929,6 +932,12 @@ export function usePartyRoomNativeLiveKit(
           registerAutoAudioOnlyRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg154] registerAutoAudioOnlyRoom(party) failed:', err);
+        }
+        // X1: 20-min hard reconnect cap.
+        try {
+          registerHardReconnectCap('party', roomId, room);
+        } catch (err) {
+          console.warn('[X1] registerHardReconnectCap(party) failed:', err);
         }
         // Pkg107: participant metadata sync (AFK/mod flags/theme).
         try {

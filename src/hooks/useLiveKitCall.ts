@@ -30,6 +30,7 @@ import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregiste
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
+import { registerHardReconnectCap, unregisterHardReconnectCap } from '@/lib/livekitHardReconnectCap';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
@@ -278,6 +279,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg154: drop auto audio-only registration.
     try { if (callIdRef.current) unregisterAutoAudioOnlyRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // X1: drop 20-min hard reconnect cap.
+    try { if (callIdRef.current) unregisterHardReconnectCap('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg107: drop participant-metadata registration.
     try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg122: drop room-metadata registration.
@@ -806,6 +809,8 @@ export function useLiveKitCall(
         if (callId) registerConnectionQualityRoom('call', callId, room);
         // Pkg154: bind auto audio-only (unsub remote video on sustained poor).
         if (callId) registerAutoAudioOnlyRoom('call', callId, room);
+        // X1: arm 20-min hard reconnect cap — gives up + dispatches 'livekit-reconnect-abandoned'.
+        if (callId) registerHardReconnectCap('call', callId, room);
         // Pkg107: bind for participant metadata sync (AFK/role/mod flags).
         if (callId) registerMetadataRoom('call', callId, room);
         // Pkg122: bind for room-wide metadata (shared room state).
