@@ -173,6 +173,23 @@ const Settings = () => {
   } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [analyticsConsent, setAnalyticsConsent] = useState<"granted" | "denied" | null>(() => getConsent());
+  const [blockedCount, setBlockedCount] = useState<number | null>(null);
+
+  // Blocked users count — research: shows passively in trailing label so users
+  // remember their block list exists and prompts cleanup (Bigo/Chamet pattern).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { count } = await supabase
+        .from("user_blocks")
+        .select("*", { count: "exact", head: true })
+        .eq("blocker_id", u.user.id);
+      if (!cancelled) setBlockedCount(count ?? 0);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => onConsentChange((s) => setAnalyticsConsent(s)), []);
   
@@ -789,6 +806,7 @@ const Settings = () => {
     {
       icon: Ban,
       label: "Blacklist",
+      value: blockedCount !== null && blockedCount > 0 ? String(blockedCount) : undefined,
       onClick: () => navigate("/settings/blacklist"),
     },
     {
