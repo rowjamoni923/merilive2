@@ -3223,8 +3223,24 @@ const Recharge = () => {
             )}
 
             {/* Packages Grid - Compact */}
+            {(() => {
+              // Compute "Most Popular" package — highest bonus %, tie-broken by mid-tier price.
+              // Research: a flame "Most Popular" pill on the best-value mid-tier doubles conversion
+              // over the cheapest pack (Bigo / Chamet standard).
+              const sorted = [...packages].sort((a: any, b: any) => (a.price_usd || 0) - (b.price_usd || 0));
+              const maxBonus = Math.max(0, ...sorted.map((p: any) => p.bonus_percentage || 0));
+              let popularId: string | null = null;
+              if (sorted.length >= 3) {
+                if (maxBonus > 0) {
+                  popularId = sorted.find((p: any) => (p.bonus_percentage || 0) === maxBonus)?.id ?? null;
+                } else {
+                  popularId = sorted[Math.floor(sorted.length / 2)]?.id ?? null;
+                }
+              }
+              return (
             <div className="grid grid-cols-2 gap-3">
               {packages.map((pkg) => {
+                const isPopular = pkg.id === popularId;
                 // Handle direct purchase when clicking price button
                 const handlePurchaseClick = (e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -3343,11 +3359,25 @@ const Recharge = () => {
                     <div className={cn(
                       "relative p-4 rounded-2xl border-2 transition-colors overflow-hidden",
                       "bg-white",
-                      "border-gray-100 hover:border-purple-300 hover:shadow-xl",
-                      "shadow-[0_4px_20px_-5px_rgba(139,92,246,0.12)]"
+                      isPopular ? "border-orange-300 shadow-[0_8px_28px_-6px_rgba(249,115,22,0.35)]" : "border-gray-100 hover:border-purple-300 hover:shadow-xl shadow-[0_4px_20px_-5px_rgba(139,92,246,0.12)]"
                     )}>
                       {/* Subtle top accent line */}
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 rounded-t-2xl" />
+                      <div className={cn(
+                        "absolute top-0 left-0 right-0 h-1 rounded-t-2xl",
+                        isPopular
+                          ? "bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500"
+                          : "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400"
+                      )} />
+
+                      {/* Most Popular ribbon */}
+                      {isPopular && (
+                        <div
+                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg whitespace-nowrap"
+                          style={{ boxShadow: '0 6px 14px -4px rgba(249,115,22,0.55)' }}
+                        >
+                          🔥 Most Popular
+                        </div>
+                      )}
                       
                       {/* Diamond Icon */}
                       <div className="flex justify-center mb-2.5 pt-1">
@@ -3416,6 +3446,8 @@ const Recharge = () => {
                 );
               })}
             </div>
+              );
+            })()}
 
             {/* Agreement - Compact */}
             <div className="flex items-center gap-1.5 mt-5 justify-center text-[10px] text-heading">
