@@ -933,6 +933,12 @@ export function usePartyRoomNativeLiveKit(
         } catch (err) {
           console.warn('[Pkg154] registerAutoAudioOnlyRoom(party) failed:', err);
         }
+        // X1: 20-min hard reconnect cap.
+        try {
+          registerHardReconnectCap('party', roomId, room);
+        } catch (err) {
+          console.warn('[X1] registerHardReconnectCap(party) failed:', err);
+        }
         // Pkg107: participant metadata sync (AFK/mod flags/theme).
         try {
           registerMetadataRoom('party', roomId, room);
