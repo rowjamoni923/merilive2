@@ -315,6 +315,15 @@ const Leaderboard = () => {
   const top3 = rankings.slice(0, 3);
   const restRankings = rankings.slice(3);
 
+  // Self-rank: industry standard sticky footer — shows your rank + gap to next.
+  // Research (Bigo/Chamet): "Challenge the Top" CTA on self-rank drives last-minute gifting.
+  const filteredAll = allRankings.filter(r => !EXCLUDED_IDS.includes(r.id));
+  const myIndex = currentUserId ? filteredAll.findIndex(r => r.id === currentUserId) : -1;
+  const myRank = myIndex >= 0 ? myIndex + 1 : null;
+  const myEntry = myIndex >= 0 ? filteredAll[myIndex] : null;
+  const nextEntry = myIndex > 0 ? filteredAll[myIndex - 1] : null;
+  const gapToNext = nextEntry && myEntry ? Math.max(0, (nextEntry.stat_value || 0) - (myEntry.stat_value || 0)) : 0;
+
   const getMetricLabel = () => {
     switch (activeCategory) {
       case "host_earning": return "B";
