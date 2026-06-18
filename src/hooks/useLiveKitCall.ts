@@ -809,6 +809,8 @@ export function useLiveKitCall(
         if (callId) registerConnectionQualityRoom('call', callId, room);
         // Pkg154: bind auto audio-only (unsub remote video on sustained poor).
         if (callId) registerAutoAudioOnlyRoom('call', callId, room);
+        // X1: arm 20-min hard reconnect cap — gives up + dispatches 'livekit-reconnect-abandoned'.
+        if (callId) registerHardReconnectCap('call', callId, room);
         // Pkg107: bind for participant metadata sync (AFK/role/mod flags).
         if (callId) registerMetadataRoom('call', callId, room);
         // Pkg122: bind for room-wide metadata (shared room state).
