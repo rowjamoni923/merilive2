@@ -11,6 +11,8 @@ import {
 import EntryAnimationFrame from "@/components/entry/EntryAnimationFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
+import { svgaCacheHas } from "@/utils/svgaCache";
+import { prewarmPopularAssets, prewarmSVGA } from "@/utils/svgaPrewarm";
 
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
@@ -36,10 +38,17 @@ interface EntryNameBarAnimationProps {
 
 
 /**
- * Entry Name Bar Animation - Professional Sliding Banner
- * 
- * CRITICAL FIX: Uses refs for callbacks to prevent timer resets on parent re-renders.
- * The banner slides in, displays for the animation duration, then slides out.
+ * Entry Name Bar Animation - Professional Sliding Banner (Chamet/BIGO parity)
+ *
+ * SYNC FIX (2026-06-18): Removed the artificial 350ms "name-in" phase that
+ * caused SVGA to pop in late after the name. Now:
+ *   1. 'preparing' — silently wait until SVGA binary is parsed & cached (max 600ms
+ *      grace, then proceed regardless). GIF/static use Image preload. No banner
+ *      is visible during this phase.
+ *   2. 'animating' — banner slides in with the SVGA layer + name overlay mounted
+ *      together as one composited unit, frame-synced from the first frame.
+ *   3. 'exiting'   — whole composite slides out.
+ *   4. 'done'      — unmounted.
  */
 const EntryNameBarAnimationInner = memo(({
   userName,
@@ -52,12 +61,7 @@ const EntryNameBarAnimationInner = memo(({
   bottomPosition = '12%',
 }: EntryNameBarAnimationProps) => {
 
-  // Phases:
-  //  - 'name-in'  : Only avatar + name + level slides in (right → center). 350ms.
-  //  - 'animating': SVGA/GIF starts playing as background, name stays composited on top.
-  //  - 'exiting'  : Whole composite slides out left.
-  //  - 'done'     : Unmounted.
-  const [phase, setPhase] = useState<'name-in' | 'animating' | 'exiting' | 'done'>('name-in');
+  const [phase, setPhase] = useState<'preparing' | 'animating' | 'exiting' | 'done'>('preparing');
   const level = ensureValidLevel(userLevel);
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -88,29 +92,7 @@ const EntryNameBarAnimationInner = memo(({
     setTimeout(() => triggerExit(), 800);
   }, [triggerExit]);
 
-  // Stage timer: name shows first (350ms), then animation kicks in.
-  useEffect(() => {
-    mountedRef.current = true;
-
-    const stageTimer = setTimeout(() => {
-      if (mountedRef.current) setPhase('animating');
-    }, 350);
-
-    // SVGA exits via its own onComplete; static / GIF need a manual exit timer.
-    let exitTimer: ReturnType<typeof setTimeout> | null = null;
-    if (!hasSvga) {
-      const totalDuration = hasGifOrImage ? 3000 : 2500;
-      exitTimer = setTimeout(() => triggerExit(), totalDuration);
-    }
-
-    return () => {
-      mountedRef.current = false;
-      clearTimeout(stageTimer);
-      if (exitTimer) clearTimeout(exitTimer);
-    };
-  }, []);
-
-  // For GIF: preload before showing
+  // GIF/static image preload — kept as before.
   const [gifLoaded, setGifLoaded] = useState(!hasGifOrImage);
   useEffect(() => {
     if (hasGifOrImage && cleanAnimUrl) {
@@ -121,14 +103,81 @@ const EntryNameBarAnimationInner = memo(({
     }
   }, [hasGifOrImage, cleanAnimUrl]);
 
-  if (phase === 'done') return null;
+  // PRO-SYNC: prepare phase — warm SVGA before we ever show the banner, so the
+  // moment the slide-in begins the animation's first frame is already painted.
+  // Hard cap at 600ms so a slow/unreachable asset never blocks the welcome.
+  useEffect(() => {
+    mountedRef.current = true;
+
+    let exitTimer: ReturnType<typeof setTimeout> | null = null;
+    let proceeded = false;
+
+    const proceedToAnimating = () => {
+      if (proceeded || !mountedRef.current) return;
+      proceeded = true;
+      setPhase('animating');
+      // SVGA exits via its own onComplete; static / GIF need a manual exit timer.
+      if (!hasSvga) {
+        const totalDuration = hasGifOrImage ? 3000 : 2500;
+        exitTimer = setTimeout(() => triggerExit(), totalDuration);
+      }
+    };
+
+    if (hasSvga && cleanAnimUrl) {
+      if (svgaCacheHas(cleanAnimUrl)) {
+        // Already parsed — start immediately, perfectly synced.
+        proceedToAnimating();
+      } else {
+        // Warm the parser module + fetch+parse this asset in background.
+        prewarmSVGA();
+        prewarmPopularAssets([cleanAnimUrl]).catch(() => {});
+        // Poll for cache readiness up to 600ms; whichever wins, start.
+        const start = Date.now();
+        const poll = setInterval(() => {
+          if (!mountedRef.current) { clearInterval(poll); return; }
+          if (svgaCacheHas(cleanAnimUrl) || Date.now() - start >= 600) {
+            clearInterval(poll);
+            proceedToAnimating();
+          }
+        }, 50);
+        return () => {
+          mountedRef.current = false;
+          clearInterval(poll);
+          if (exitTimer) clearTimeout(exitTimer);
+        };
+      }
+    } else if (hasGifOrImage) {
+      // GIF/image branch waits on gifLoaded flag below.
+      if (gifLoaded) proceedToAnimating();
+    } else {
+      // No animation — just the pill, start immediately.
+      proceedToAnimating();
+    }
+
+    return () => {
+      mountedRef.current = false;
+      if (exitTimer) clearTimeout(exitTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When GIF finishes preloading, kick off the slide-in (synced with first frame).
+  useEffect(() => {
+    if (hasGifOrImage && gifLoaded && phase === 'preparing') {
+      setPhase('animating');
+      const exitTimer = setTimeout(() => triggerExit(), 3000);
+      return () => clearTimeout(exitTimer);
+    }
+  }, [hasGifOrImage, gifLoaded, phase, triggerExit]);
+
+  if (phase === 'done' || phase === 'preparing') return null;
 
   // Professional sizing (Chamet/BIGO parity):
   //  SVGA name bars are wide horizontal ribbons; render at ~5:1 aspect.
   const bannerHeight = hasAnimation ? 110 : 44;
-  // Mount the SVGA/GIF layer only AFTER the name has slid in.
-  const showAnimationLayer = phase === 'animating' || phase === 'exiting';
-  const shouldShow = hasSvga || !hasGifOrImage || gifLoaded;
+  // SVGA/GIF + name overlay mount together from the first frame of slide-in.
+  const showAnimationLayer = true;
+  const shouldShow = true;
 
   return (
     <div
