@@ -118,8 +118,13 @@ export async function preloadStream(streamId: string): Promise<void> {
 
   try {
     const room = new Room({
-      adaptiveStream: false,
-      dynacast: false,
+      // Phase 2B Step 8 (M2 fix): enable adaptiveStream + dynacast so the SFU
+      // pauses unused layers during preload (no element attached → smallest
+      // layer or paused). On handoff, the viewer's element attach naturally
+      // promotes to HIGH. Previously both were false → preloaded paths never
+      // benefited from server-side layer pausing.
+      adaptiveStream: true,
+      dynacast: true,
       reconnectPolicy: {
         nextRetryDelayInMs: (ctx: any) => (ctx.retryCount > 2 ? null : 300),
       },
