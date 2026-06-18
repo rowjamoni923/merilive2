@@ -947,6 +947,48 @@ const Leaderboard = () => {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Self-rank sticky footer — Bigo/Chamet pattern. Only render if user is signed in and the
+          active category produces a personal rank (host/gifter/PK lists). */}
+      {currentUserId && activeCategory !== "pk_competition" && !isLoading && (
+        <div
+          className="fixed left-0 right-0 z-40 px-3 pointer-events-none"
+          style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 12px)` }}
+        >
+          <div
+            className="pointer-events-auto mx-auto max-w-md rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200 px-3.5 py-2.5 flex items-center gap-3"
+            style={{ boxShadow: '0 12px 30px -10px rgba(15,23,42,0.25)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-extrabold text-sm"
+              style={{ background: myRank ? 'linear-gradient(135deg,#a855f7,#ec4899)' : 'linear-gradient(135deg,#94a3b8,#64748b)' }}
+            >
+              {myRank ? `#${myRank}` : '—'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-bold text-slate-900 leading-tight truncate">
+                {myRank ? 'Your rank' : 'Not ranked yet'}
+              </p>
+              <p className="text-[11px] text-slate-500 leading-tight truncate">
+                {myRank
+                  ? (nextEntry
+                    ? `${formatNumber(gapToNext)} ${getMetricLabel()} to reach #${myRank - 1}`
+                    : '🏆 You are #1 — defend your spot')
+                  : `Be active to enter the ${periodType} ranking`}
+              </p>
+            </div>
+            {myRank && nextEntry && (
+              <button
+                onClick={() => navigate(activeCategory === 'host_earning' ? '/go-live' : '/recharge')}
+                className="px-3 py-1.5 rounded-full text-[11px] font-bold text-white whitespace-nowrap active:scale-95 transition-transform"
+                style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)', boxShadow: '0 6px 16px -6px rgba(239,68,68,0.55)' }}
+              >
+                Challenge ↑
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
