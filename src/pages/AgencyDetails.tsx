@@ -179,7 +179,6 @@ const AgencyDetailsPage = () => {
     />
   );
   if (!hostAgency) {
-    navigate('/agency', { replace: true });
     return (
       <PageSkeleton
         className="fixed inset-0 flex flex-col bg-gradient-to-br from-slate-50 via-white to-brand-50/40 overflow-hidden"
