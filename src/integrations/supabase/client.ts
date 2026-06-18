@@ -65,16 +65,23 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       const method = (init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
       if (method !== 'GET' && method !== 'HEAD') clearInstantRestCache('app');
 
-      // Pkg381: When an admin session exists, attach x-admin-token to EVERY request
-      // from the regular client too. ~89 admin pages still call `supabase.rpc(...)`
-      // / `supabase.from(...)` on admin-gated RPCs/tables; without this header those
-      // RPCs see `current_admin_id_from_header() = NULL` and fail with P0001
-      // "unauthorized" across the entire admin panel. Header is harmless for
-      // non-admin endpoints (ignored server-side) and absent when no admin session.
+      // Pkg381: When an admin session exists, attach x-admin-token to admin-scoped
+      // DB requests so RLS (`is_active_admin_session()`) accepts them. We MUST NOT
+      // attach this header to `/functions/v1/` calls — most edge functions don't
+      // list `x-admin-token` in their CORS Access-Control-Allow-Headers, so the
+      // browser's preflight rejects the request and the SDK throws
+      // `FunctionsFetchError: Failed to send a request to the Edge Function`,
+      // even though the function itself is healthy. Admin-only edge functions
+      // already use `adminSupabase` (which sends the header) — the regular
+      // user-app client never needs to authenticate as admin to a function.
       let adminToken: string | null = null;
       try {
         adminToken = getAdminSessionToken();
-        if (adminToken) {
+        const requestUrlForHeader = typeof input === 'string'
+          ? input
+          : input instanceof URL ? input.toString() : (input as Request).url;
+        const isFunctionsCall = requestUrlForHeader.includes('/functions/v1/');
+        if (adminToken && !isFunctionsCall) {
           const opts: RequestInit = init ? { ...init } : {};
           const headers = new Headers(opts.headers || {});
           if (!headers.has('x-admin-token')) headers.set('x-admin-token', adminToken);
