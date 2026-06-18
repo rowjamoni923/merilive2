@@ -687,7 +687,7 @@ const AgencySignup = () => {
             Create Agency
           </Button>
           {!isFormValid && (
-            <p className="text-center text-xs text-slate-400 mt-2">
+            <p className="text-center text-xs text-slate-500 mt-2">
               {!formData.agencyName.trim() ? "⬆️ Enter agency name (scroll up)"
                 : !foundUser ? "Search and find your App UID"
                 : !emailVerified ? "Verify your email address" 
