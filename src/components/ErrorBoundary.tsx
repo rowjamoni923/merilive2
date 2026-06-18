@@ -47,8 +47,8 @@ class ErrorBoundary extends Component<Props, State> {
       void (async () => {
         try {
           await scheduleChunkLoadRecovery(error, error.message);
-          // Wait briefly so user sees the professional "Updating" state
-          await new Promise(r => setTimeout(r, 1200));
+          // Short pause so the "Updating" UI is visible, then hard-reload to /.
+          await new Promise(r => setTimeout(r, 600));
         } catch { /* best-effort */ }
         hardReloadForChunkRecovery();
       })();
