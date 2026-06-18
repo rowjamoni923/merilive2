@@ -532,6 +532,7 @@ const ProfileDetail = () => {
       setUserPrivileges({ frames: framesData?.data || [], entryBars: entryBarsData?.data || [], badges: badgesData?.data || [] });
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
+      setIsFollowedByThem(!!followBackData?.data);
 
       const purchases = purchasedRes?.data || [];
       if (purchases.length > 0) {
