@@ -49,6 +49,7 @@ import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 import { consumePreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -301,6 +302,9 @@ export function useLiveKitCall(
       usingNativeRef.current = false;
       setNativeActive(false);
     }
+    // Always revert WebView transparency on call teardown so other routes
+    // (Home, Profile) paint normally.
+    clearNativeMediaSurface();
 
     if (tokenRefreshDetachRef.current) {
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
@@ -448,6 +452,11 @@ export function useLiveKitCall(
               }
               nAttempt++;
               try {
+                // 🚀 Zero-delay reveal: WebView body transparent BEFORE awaiting
+                // Camera2 connect, so the native fullscreen renderer behind the
+                // WebView is visible the moment attachLocal mounts the surface
+                // (instead of being hidden by an opaque white body for 1–3s).
+                setNativeMediaSurface(true);
                 await nativeLiveKitController.connectAndPublish({
                   url,
                   token,
@@ -525,6 +534,7 @@ export function useLiveKitCall(
             console.error('[LiveKitCall/Native] init failed after retry:', nativeErr);
             usingNativeRef.current = false;
             setNativeActive(false);
+            clearNativeMediaSurface();
             try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
             toast.error('Call camera failed to start. Please end the call and try again.');
             setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));

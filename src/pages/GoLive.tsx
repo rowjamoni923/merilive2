@@ -171,6 +171,13 @@ const GoLive = () => {
   const startNativePreview = useCallback(async () => {
     if (nativePreviewStartInFlightRef.current) return false;
     nativePreviewStartInFlightRef.current = true;
+    // 🚀 Zero-delay reveal: flip the WebView body to transparent SYNCHRONOUSLY
+    // before awaiting Camera2 open. Without this the WebView paints an opaque
+    // white background OVER the native TextureView for the entire ~1–3s
+    // camera bring-up, which users perceive as a long blank delay. The body
+    // class is reverted in the failure branch so we never leave a stale
+    // transparent surface if preview never starts.
+    applyNativePreviewTransparency(true);
     try {
       const started = await nativeLiveKitController.startLocalPreview({
         lens: 'front',
@@ -181,12 +188,17 @@ const GoLive = () => {
       if (started) {
         setNativePreviewActive(true);
         setPreviewHasFrame(true);
+      } else {
+        applyNativePreviewTransparency(false);
       }
       return started;
+    } catch (e) {
+      applyNativePreviewTransparency(false);
+      throw e;
     } finally {
       nativePreviewStartInFlightRef.current = false;
     }
-  }, []);
+  }, [applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
     try { await nativeLiveKitController.stopLocalPreview(); } catch { /* noop */ }
