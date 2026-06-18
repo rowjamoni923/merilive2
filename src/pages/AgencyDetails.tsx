@@ -178,7 +178,16 @@ const AgencyDetailsPage = () => {
       headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
     />
   );
-  if (!hostAgency) return null;
+  if (!hostAgency) {
+    navigate('/agency', { replace: true });
+    return (
+      <PageSkeleton
+        className="fixed inset-0 flex flex-col bg-gradient-to-br from-slate-50 via-white to-brand-50/40 overflow-hidden"
+        headerClassName="bg-gradient-to-r from-brand-600 via-info-600 to-brand-700"
+        rows={4}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-slate-50 via-white to-brand-50/40">
