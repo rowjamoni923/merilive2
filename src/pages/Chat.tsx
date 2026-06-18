@@ -2802,14 +2802,18 @@ const Chat = () => {
                           );
                         }
 
-                        // Image messages - no background
+                        // Image messages - no background, instant display
                         if (isImage) {
                           return (
                             <div className="flex flex-col">
-                              <img loading="lazy" decoding="async" 
-                                src={displayUrl} 
+                              <img
+                                src={displayUrl}
                                 alt="Shared image"
-                                className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                loading="eager"
+                                decoding="async"
+                                fetchPriority="high"
+                                referrerPolicy="no-referrer"
+                                className="max-w-[220px] max-h-[280px] rounded-2xl object-cover cursor-pointer hover:opacity-95 transition-opacity bg-muted"
                                 onClick={() => imageViewer.openImage(displayUrl)}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = '/placeholder.svg';
