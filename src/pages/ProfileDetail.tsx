@@ -1050,6 +1050,11 @@ const ProfileDetail = () => {
                     </svg>
                   </div>
                 )}
+                {!isOwnProfile && isFollowedByThem && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    Follows you
+                  </span>
+                )}
               </div>
               
               {/* Level Badge, Status & ID */}
