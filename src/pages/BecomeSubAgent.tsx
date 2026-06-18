@@ -363,7 +363,7 @@ const BecomeSubAgent = () => {
                   <div className="flex-1">
                     <p className="font-semibold">{agency.name}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-500 text-slate-800 text-xs">{agency.level}</Badge>
+                      <Badge className="bg-green-500 text-white text-xs">{agency.level}</Badge>
                       <span className="text-xs text-gray-500">{agency.total_hosts} Hosts</span>
                     </div>
                   </div>
