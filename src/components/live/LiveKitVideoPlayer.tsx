@@ -209,7 +209,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       const mt = videoTrack?.mediaStreamTrack;
       // Pkg-audit V3: don't reveal until video element has actually decoded a
       // frame (readyState >= HAVE_CURRENT_DATA AND non-zero videoWidth).
-      // Previously this could uncover a black frame on slow connections.
       if (mt && mt.readyState === 'live' && el.readyState >= 2 && el.videoWidth > 0) {
         try {
           if (el.paused) el.play().catch(() => {});
@@ -218,10 +217,22 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       }
     }, 450);
 
+    // Phase 2B Step 6 (M4 fix): second-tier reveal watchdog. If decoder hasn't
+    // produced a single frame after 2.5s while the track is "live", escalate
+    // by asking the parent to retry subscription (which detaches + resubs).
+    const revealEscalation = setTimeout(() => {
+      const mt = videoTrack?.mediaStreamTrack;
+      if (mt && mt.readyState === 'live' && (el.videoWidth === 0 || el.readyState < 2)) {
+        console.warn('[LiveKitVideoPlayer] revealEscalation: no frame after 2.5s → onVideoStalled');
+        onVideoStalledRef.current?.();
+      }
+    }, 2500);
+
     // === STALL WATCHDOG ===
-    // Pkg-audit Bug F: do NOT reassign srcObject on every stall tick — that
-    // blanks the element for 80-200ms on mobile WebViews. Only reassign when
-    // srcObject is actually gone or wrapping a different track.
+    // Phase 2B Step 6 (M3 fix): tightened threshold — live video at 30fps
+    // should never stagnate 3s. Was: stagnant >= 2 (≈3s). Now: stagnant >= 1
+    // (≈1.5s), and we call onVideoStalled on EVERY recovery so the parent
+    // can escalate to setSubscribed(false)+true if re-attach doesn't help.
     let lastTime = -1;
     let stagnant = 0;
     let lastRecovery = 0;
@@ -236,10 +247,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       else stagnant = 0;
       lastTime = t;
 
-      if (stagnant >= 2) {
+      if (stagnant >= 1) {
         stagnant = 0;
         const now = Date.now();
-        if (now - lastRecovery > 5000) {
+        if (now - lastRecovery > 3500) {
           lastRecovery = now;
           const liveTrack = mediaTrack && mediaTrack.readyState !== 'ended';
           const cur = el.srcObject as MediaStream | null;
@@ -249,6 +260,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
             try { el.srcObject = new MediaStream([mediaTrack]); } catch { /* noop */ }
           }
           el.play().catch(() => {});
+          // Always notify parent so it can escalate to re-subscribe / reconnect.
           onVideoStalledRef.current?.();
         }
       }
