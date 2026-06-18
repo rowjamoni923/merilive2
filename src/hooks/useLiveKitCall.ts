@@ -279,6 +279,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg154: drop auto audio-only registration.
     try { if (callIdRef.current) unregisterAutoAudioOnlyRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // X1: drop 20-min hard reconnect cap.
+    try { if (callIdRef.current) unregisterHardReconnectCap('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg107: drop participant-metadata registration.
     try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg122: drop room-metadata registration.
