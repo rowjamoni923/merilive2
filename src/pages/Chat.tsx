@@ -479,6 +479,7 @@ const Chat = () => {
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   // Unified flying-gift pill (same Bigo/Chamet style as Live/Party/Call)
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
+  const USE_UNIFIED_FULLSCREEN_GIFT_PLAYER = true;
   
   // Inline translation for main input
   const [inlineTranslation, setInlineTranslation] = useState("");
@@ -909,13 +910,6 @@ const Chat = () => {
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
-    setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
-    setAnimatingGiftFormat(giftAnimationFormat);
-    setAnimatingGiftConfigUrl(giftConfigUrl || null);
-    setAnimatingGiftSound(giftSoundUrl || null);
-    setGiftAnimationInstance(prev => prev + 1);
-    setShowGiftAnimation(true);
-
     // Unified flying-gift pill — same Bigo/Chamet style as Live/Party/Call
     addFlyingGift({
       senderId: currentUserId,
@@ -1042,12 +1036,12 @@ const Chat = () => {
           : (error && typeof error === 'object' && typeof (error as any).message === 'string')
             ? (error as any).message
             : (typeof error === 'string' ? error : 'Unknown error');
-        console.error('[Chat Gift] Background error:', error);
+      console.error('[Chat Gift] Background error:', error);
         recordClientError({ label: "Chat.messageContent", message: msg });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
         setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
-        toast.error(`Gift failed: ${msg}`);
+      toast.error(msg === 'Failed to fetch' ? 'Gift delivery is temporarily unavailable. Please try again.' : `Gift failed: ${msg}`);
       }
     })();
   };
@@ -1676,12 +1670,14 @@ const Chat = () => {
 
     const { mediaUrl, emoji, soundUrl, animationFormat: parsedFormat, animationConfigUrl: parsedConfigUrl } = parseGiftContent(content || '');
     warmGiftUrlsForInstantPlay([mediaUrl, parsedConfigUrl, animationConfigUrl, soundUrl]);
-    setAnimatingGiftEmoji(mediaUrl || emoji);
-    setAnimatingGiftFormat(animationFormat || parsedFormat || null);
-    setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
-    setAnimatingGiftSound(soundUrl);
-    setGiftAnimationInstance(prev => prev + 1);
-    setShowGiftAnimation(true);
+    if (!USE_UNIFIED_FULLSCREEN_GIFT_PLAYER) {
+      setAnimatingGiftEmoji(mediaUrl || emoji);
+      setAnimatingGiftFormat(animationFormat || parsedFormat || null);
+      setAnimatingGiftConfigUrl(normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || null);
+      setAnimatingGiftSound(soundUrl);
+      setGiftAnimationInstance(prev => prev + 1);
+      setShowGiftAnimation(true);
+    }
 
     // Unified flying-gift pill (Bigo/Chamet parity across DM/Live/Party/Call)
     const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
