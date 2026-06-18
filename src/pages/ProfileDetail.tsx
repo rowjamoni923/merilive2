@@ -513,7 +513,7 @@ const ProfileDetail = () => {
       const targetType = isHostUser ? 'host' : 'user';
       const viewerId = currentUser?.id;
 
-      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
+      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, followBackData, purchasedRes] = await Promise.all([
         supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("user_level_tiers").select("level_number, icon_url, animation_url, level_name").eq("level_number", effectiveLevel).eq("tier_type", targetType).eq("is_active", true).maybeSingle(),
         supabase.from("avatar_frames").select("id, name, frame_url, frame_type, min_level, is_premium, category, target_type").eq("is_active", true).lte("min_level", effectiveLevel).in("target_type", ['both', targetType]).or('frame_url.like.%.svga,frame_url.like.%.json,frame_url.like.%supabase.co/storage%').order("min_level", { ascending: false }).limit(1),
@@ -521,6 +521,7 @@ const ProfileDetail = () => {
         supabase.from("level_privileges").select("id, name, icon_name, icon_bg_color, icon_color, unlock_level").eq("privilege_type", "badge").eq("is_active", true).lte("unlock_level", effectiveLevel).order("unlock_level", { ascending: false }).limit(5),
         viewerId && userId && viewerId !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", viewerId).eq("blocked_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
         viewerId && userId && viewerId !== userId ? supabase.from("followers").select("id").eq("follower_id", viewerId).eq("following_id", userId).maybeSingle() : Promise.resolve({ data: null } as any),
+        viewerId && userId && viewerId !== userId ? supabase.from("followers").select("id").eq("follower_id", userId).eq("following_id", viewerId).maybeSingle() : Promise.resolve({ data: null } as any),
         userId ? supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()) : Promise.resolve({ data: [] } as any),
       ]);
 
