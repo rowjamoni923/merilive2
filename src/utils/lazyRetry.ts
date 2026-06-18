@@ -85,11 +85,16 @@ async function clearStaleRuntimeCaches() {
 export function hardReloadForChunkRecovery() {
   if (typeof window === 'undefined') return;
   try {
-    const u = new URL(window.location.href);
+    // Navigate to root with a cache-buster instead of reloading the current
+    // path. The current route is the one whose lazy chunk just 404'd — a
+    // same-URL reload immediately re-requests that dead chunk and loops the
+    // error screen forever. Root is statically routed and forces the browser
+    // to fetch the fresh index.html + new asset manifest from origin.
+    const u = new URL(window.location.origin + '/');
     u.searchParams.set('_cb', String(Date.now()));
     window.location.replace(u.toString());
   } catch {
-    try { window.location.reload(); } catch { /* noop */ }
+    try { window.location.replace('/'); } catch { /* noop */ }
   }
 }
 
