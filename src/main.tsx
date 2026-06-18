@@ -4,7 +4,7 @@ import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
-import { scheduleChunkLoadRecovery } from "./utils/lazyRetry";
+import { hardReloadForChunkRecovery, scheduleChunkLoadRecovery } from "./utils/lazyRetry";
 import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNormalizer";
 import App from "./App.tsx";
 import "./index.css";
@@ -38,6 +38,17 @@ const schedule = (cb: () => void) => {
 installRealtimeGuard();
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
+
+// Vite emits this before React can render an ErrorBoundary when a lazy route
+// points to a deleted post-deploy chunk. Catch it globally and reboot cleanly.
+window.addEventListener('vite:preloadError', (event: Event) => {
+  event.preventDefault?.();
+  const payload = (event as Event & { payload?: unknown }).payload;
+  void (async () => {
+    const didAttempt = await scheduleChunkLoadRecovery(payload || event, 'vite:preloadError');
+    if (didAttempt) hardReloadForChunkRecovery();
+  })();
+});
 
 schedule(() => {
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
