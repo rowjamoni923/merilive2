@@ -211,6 +211,7 @@ const ProfileDetail = () => {
   const [reportReason, setReportReason] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowedByThem, setIsFollowedByThem] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [friendsCount, setFriendsCount] = useState(0);
