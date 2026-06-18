@@ -258,6 +258,11 @@ export function CallProvider({ children }: CallProviderProps) {
     // `ready=false` and we never call startLocalPreview.
     if (!prejoinCamera.ready) return;
     let cancelled = false;
+    // 🚀 Zero-delay reveal: flip the WebView body to transparent SYNCHRONOUSLY
+    // before awaiting Camera2 open, so the native preview TextureView is
+    // visible the instant the camera produces its first frame instead of
+    // being hidden behind an opaque white WebView for 1–3s.
+    setNativeMediaSurface(true);
     (async () => {
       try {
         await nativeLiveKitController.startLocalPreview({
@@ -268,6 +273,7 @@ export function CallProvider({ children }: CallProviderProps) {
         });
       } catch (e) {
         if (!cancelled) console.warn('[CallProvider] prejoin preview failed (non-fatal):', e);
+        if (!cancelled) clearNativeMediaSurface();
       }
     })();
     return () => { cancelled = true; };
@@ -279,6 +285,7 @@ export function CallProvider({ children }: CallProviderProps) {
     if (!isNativeAndroidApp()) return;
     if (callState.status === 'ended' || (!incomingCall && callState.status === 'idle')) {
       nativeLiveKitController.stopLocalPreview().catch(() => {});
+      clearNativeMediaSurface();
     }
   }, [callState.status, incomingCall]);
 
