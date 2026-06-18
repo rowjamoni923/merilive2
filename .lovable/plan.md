@@ -52,3 +52,20 @@ Sources: ZEGOCLOUD UIKit seat/menu docs, Bigo 12-seat guide, livecalls.uk vertic
 
 ## Starting now
 Phase 4A (passive floating chat overlay) kicks off as soon as you ack this plan.
+
+## 4D · Gift reliability hotfix — 2026-06-18
+
+### Research summary
+- Agora's virtual gifting guidance separates realtime gift signaling from the payment/update flow so room participants receive the gift event immediately: https://docs-legacy.agora.io/en/Real-time-Messaging/faq/rtm_gift_sending
+- Tencent TUILiveKit documents virtual gifts as a dedicated live-room interaction surface, reinforcing that gift playback must be non-blocking and room-native: https://intl.cloud.tencent.com/document/product/1071/76785
+- Supabase troubleshooting for Edge Functions points to CORS/network/function availability as causes of browser `Failed to fetch`; critical mutations need explicit handling instead of surfacing the raw fetch error: https://supabase.com/docs/guides/troubleshooting/unable-to-call-edge-function
+- Supabase retry docs warn retries should only be used for network errors; our RPC is idempotency-key protected, so a single fallback path is safe for dropped Edge responses: https://supabase.com/docs/guides/api/automatic-retries-in-supabase-js
+
+### Verified gaps found
+- Chat gift playback was mounting **two fullscreen players for the same asset**: `GiftEmojiAnimation` plus `FlyingGiftAnimation`'s fullscreen `FixedAnimationFrame`. On mobile/WebView this doubles video/SVGA/VAP decode and causes the visible animation freeze/stutter.
+- `callGiftService` only used the Edge Function fetch path. If the browser/WebView hit `TypeError: Failed to fetch`, the app refunded and showed `Gift failed: Failed to fetch` even though the DB RPC was already idempotency-safe.
+
+### Fix applied
+- Chat now uses the unified `FlyingGiftAnimation` fullscreen player only; duplicate `GiftEmojiAnimation` fullscreen playback is gated off for chat gift events.
+- `callGiftService` now keeps the same idempotency key and falls back to `process_gift_transaction` RPC on Edge fetch/network failure and temporary 502/503/504 responses, preventing false failed gifts and duplicate charges.
+- SVGA safety fallback now waits native duration + 1.5s grace instead of firing exactly at duration, preventing premature cutoff when WebView callback timing is late.
