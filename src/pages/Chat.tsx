@@ -2751,14 +2751,19 @@ const Chat = () => {
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
-                        const isImage = msg.message_type === 'image' || 
-                          (content.includes('supabase.co/storage') && /\.(jpg|jpeg|png|gif|webp)($|\?)/i.test(content));
-                        const isVideo = msg.message_type === 'video' || 
-                          (content.includes('supabase.co/storage') && /\.(mp4|mov|avi|mkv)($|\?)/i.test(content));
-                        const isAudio = msg.message_type === 'audio' || 
-                          (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
+                        const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice):\s*/i, '').replace(/\]$/, '').trim();
+                        const urlNoQuery = cleanUrl.split('?')[0];
+                        const isStorageUrl = /^https?:\/\//i.test(cleanUrl) && cleanUrl.includes('supabase.co/storage');
+                        const isImage = msg.message_type === 'image'
+                          || /^\[Image:/i.test(content)
+                          || (isStorageUrl && /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/i.test(urlNoQuery));
+                        const isVideo = msg.message_type === 'video'
+                          || /^\[Video:/i.test(content)
+                          || (isStorageUrl && /\.(mp4|mov|avi|mkv|webm)$/i.test(urlNoQuery));
+                        const isAudio = msg.message_type === 'audio'
+                          || /^\[(Audio|Voice):/i.test(content)
+                          || (isStorageUrl && /\.(webm|mp3|wav|ogg|m4a|aac|flac)$/i.test(urlNoQuery));
                         const isGift = msg.message_type === 'gift';
-                        const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
                         // Gift messages - canonical inline row, same shared UI as Live/Party/Call
@@ -2797,14 +2802,18 @@ const Chat = () => {
                           );
                         }
 
-                        // Image messages - no background
+                        // Image messages - no background, instant display
                         if (isImage) {
                           return (
                             <div className="flex flex-col">
-                              <img loading="lazy" decoding="async" 
-                                src={displayUrl} 
+                              <img
+                                src={displayUrl}
                                 alt="Shared image"
-                                className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                loading="eager"
+                                decoding="async"
+                                fetchPriority="high"
+                                referrerPolicy="no-referrer"
+                                className="max-w-[220px] max-h-[280px] rounded-2xl object-cover cursor-pointer hover:opacity-95 transition-opacity bg-muted"
                                 onClick={() => imageViewer.openImage(displayUrl)}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = '/placeholder.svg';
