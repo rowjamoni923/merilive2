@@ -269,6 +269,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     return () => {
       timers.forEach(clearTimeout);
       clearTimeout(revealWatchdog);
+      clearTimeout(revealEscalation);
       clearInterval(stallProbe);
       mediaTrack?.removeEventListener('ended', onTrackEnded);
       if (frameHandle !== null && typeof safeVideo.cancelVideoFrameCallback === 'function') {
