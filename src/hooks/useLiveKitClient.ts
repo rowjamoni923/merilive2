@@ -1082,7 +1082,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             attachRemoteAudioOnce(track, participant.identity, publication);
           }
           if (track.kind === Track.Kind.Video) {
-            const userWrapper = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false };
+            // Phase 2A Step 2 (H1): seed videoMuted from publication isMuted so
+            // viewers correctly show avatar overlay if host subscribed with
+            // camera-off on the preloaded fast-path.
+            const userWrapper: any = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false, videoMuted: !!(publication as any).isMuted };
             participant.trackPublications.forEach(pub => {
               if (pub.track?.kind === Track.Kind.Audio) { userWrapper.audioTrack = pub.track; userWrapper.hasAudio = true; }
             });
