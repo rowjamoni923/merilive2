@@ -1137,7 +1137,7 @@ const ProfileDetail = () => {
  :"bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-slate-900 shadow-lg shadow-fuchsia-500/30"
                   }`}
                 >
-                  {isFollowing ? "✓ Following" : "💕 Follow"}
+                  {isFollowing ? "✓ Following" : isFollowedByThem ? "💕 Follow Back" : "💕 Follow"}
                 </motion.button>
               )}
             </div>
