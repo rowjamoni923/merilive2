@@ -135,7 +135,12 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
   if (response.status === 401) {
     const refreshed = await getAccessToken(true);
     if (refreshed && refreshed !== accessToken) {
-      response = await doRequest(refreshed, stablePayload);
+      try {
+        response = await doRequest(refreshed, stablePayload);
+      } catch (error) {
+        console.warn('[GiftServiceClient] Edge retry fetch failed; falling back to RPC:', error);
+        return callGiftRpcFallback(stablePayload);
+      }
     }
   }
 
