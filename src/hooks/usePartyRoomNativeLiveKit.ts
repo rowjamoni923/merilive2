@@ -246,6 +246,8 @@ export function usePartyRoomNativeLiveKit(
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterAutoAudioOnlyRoom('party', roomId); } catch { /* ignore */ }
+    // X1: drop 20-min hard reconnect cap.
+    try { unregisterHardReconnectCap('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
