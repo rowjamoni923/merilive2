@@ -23,6 +23,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 declare global {
   interface Window {
     __meriChunkRecoveryScheduled?: boolean;
+    __meriChunkHardReloading?: boolean;
   }
 }
 
@@ -34,11 +35,25 @@ const getModuleKey = (source: string) => {
   return raw.replace(/[^a-z0-9._/-]+/gi, '_').slice(0, 120);
 };
 
+const withTimeout = async <T,>(promise: Promise<T>, ms: number): Promise<T | undefined> => {
+  let timer: number | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<undefined>((resolve) => {
+        timer = window.setTimeout(() => resolve(undefined), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) window.clearTimeout(timer);
+  }
+};
+
 async function clearStaleRuntimeCaches() {
   try {
     if (typeof caches !== 'undefined') {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((key) => caches.delete(key)));
+      const keys = await withTimeout(caches.keys(), 600) || [];
+      await withTimeout(Promise.all(keys.map((key) => caches.delete(key))), 900);
     }
   } catch {
     // best-effort only
@@ -69,8 +84,8 @@ async function clearStaleRuntimeCaches() {
   // so the next reload fetches a fresh index from origin directly.
   try {
     if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map((reg) => reg.unregister().catch(() => false)));
+      const regs = await withTimeout(navigator.serviceWorker.getRegistrations(), 700) || [];
+      await withTimeout(Promise.all(regs.map((reg) => reg.unregister().catch(() => false))), 900);
     }
   } catch {
     // best-effort only
@@ -84,6 +99,8 @@ async function clearStaleRuntimeCaches() {
  */
 export function hardReloadForChunkRecovery() {
   if (typeof window === 'undefined') return;
+  if (window.__meriChunkHardReloading) return;
+  window.__meriChunkHardReloading = true;
   try {
     // Navigate to root with a cache-buster instead of reloading the current
     // path. The current route is the one whose lazy chunk just 404'd — a
