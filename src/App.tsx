@@ -384,6 +384,7 @@ import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
+import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 
@@ -1214,6 +1215,7 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <RouteTransitionHost />
+              <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
