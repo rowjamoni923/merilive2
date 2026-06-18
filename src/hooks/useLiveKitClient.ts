@@ -932,6 +932,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           setConnectionState('CONNECTING');
           setIsReconnecting(true);
           if (config.role === 'audience' && !viewerHardReconnectTimerRef.current) {
+            // Phase 2B Step 7 (M5 fix): extended 2500ms → 7000ms so LiveKit's
+            // own ICE-restart + TURN fallback (3–8s on mobile) finishes
+            // naturally before we tear down and force a fresh join.
             viewerHardReconnectTimerRef.current = setTimeout(() => {
               viewerHardReconnectTimerRef.current = null;
               const lastConfig = lastConfigRef.current;
@@ -943,7 +946,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               setIsJoined(false);
               setConnectionState('CONNECTING');
               joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
-            }, 2500);
+            }, 7000);
           }
         } else if (state === ConnectionState.Disconnected) {
           setConnectionState('DISCONNECTED');
