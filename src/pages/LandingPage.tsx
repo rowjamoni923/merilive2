@@ -118,7 +118,7 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       const [settingsRes, sectionsRes] = await Promise.all([
-        supabase.from("app_settings").select("setting_key, setting_value").eq("category", "landing"),
+        supabase.from("app_settings").select("setting_key, setting_value").like("setting_key", "landing_%"),
         supabase.from("landing_page_sections").select("*").eq("is_active", true).order("display_order")
       ]);
 
