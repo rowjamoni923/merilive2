@@ -175,7 +175,23 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
       return <>{children}</>;
     }
-    return null;
+    return (
+      <div className="min-h-screen w-full bg-background px-4 pb-24 pt-safe" aria-hidden="true">
+        <div className="mx-auto max-w-md space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <div className="h-8 w-32 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-40 rounded-2xl bg-muted animate-pulse" />
+            <div className="h-40 rounded-2xl bg-muted animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!effectiveSession) {
