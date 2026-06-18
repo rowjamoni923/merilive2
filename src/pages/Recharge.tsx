@@ -3432,6 +3432,8 @@ const Recharge = () => {
                 );
               })}
             </div>
+              );
+            })()}
 
             {/* Agreement - Compact */}
             <div className="flex items-center gap-1.5 mt-5 justify-center text-[10px] text-heading">
