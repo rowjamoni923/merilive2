@@ -473,19 +473,19 @@ const AgencySignup = () => {
               <div className="border-t border-slate-200" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <MessageCircle className="w-4 h-4 text-warning-400" />
+                  <MessageCircle className="w-4 h-4 text-warning-600" />
                   App Notification OTP <span className="text-danger-500">*</span>
                 </Label>
-                <div className="p-4 bg-warning-900/30 rounded-xl space-y-3 border border-warning-700/30">
+                <div className="p-4 bg-warning-50 rounded-xl space-y-3 border border-warning-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-warning-300">Send OTP to App</span>
+                    <span className="text-sm font-medium text-warning-800">Send OTP to App</span>
                     {!appOtpSent ? (
-                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-warning-600 hover:bg-warning-700">
+                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-warning-600 hover:bg-warning-700 text-white">
                         {sendingAppOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                         Send to App
                       </Button>
                     ) : (
-                      <Badge className={`cursor-pointer ${appOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
+                      <Badge className={`cursor-pointer text-white ${appOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
                         onClick={() => { if (appOtpTimer <= 0) { setAppOtpSent(false); setAppOtp(""); } }}>
                         <Timer className="w-3 h-3 mr-1" />
                         {appOtpTimer > 0 ? `${Math.floor(appOtpTimer / 60)}:${(appOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
@@ -494,8 +494,8 @@ const AgencySignup = () => {
                   </div>
                   {appOtpSent && (
                     <>
-                      <div className="p-3 bg-warning-900/40 rounded-lg border border-warning-700/50">
-                        <p className="text-xs text-warning-300 flex items-center gap-1">
+                      <div className="p-3 bg-warning-100 rounded-lg border border-warning-200">
+                        <p className="text-xs text-warning-800 flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
                           OTP sent to {foundUser.display_name || 'user'}'s in-app notifications
                         </p>
@@ -504,11 +504,11 @@ const AgencySignup = () => {
                         <InputOTP maxLength={6} value={appOtp} onChange={(value) => setAppOtp(value)}>
                           <InputOTPGroup>
                             {[0,1,2,3,4,5].map(i => (
-                              <InputOTPSlot key={i} index={i} className="bg-white/80 text-slate-800" />
+                              <InputOTPSlot key={i} index={i} className="bg-white text-slate-800" />
                             ))}
                           </InputOTPGroup>
                         </InputOTP>
-                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-warning-600 hover:bg-warning-700">
+                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-warning-600 hover:bg-warning-700 text-white">
                           {verifyingAppOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
                         </Button>
                       </div>
