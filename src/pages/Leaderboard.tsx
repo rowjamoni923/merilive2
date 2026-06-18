@@ -76,6 +76,15 @@ const Leaderboard = () => {
   const [periodType, setPeriodType] = useState<PeriodType>("weekly");
   const [showRules, setShowRules] = useState(false);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useLeaderboardRealtime(activeCategory, periodType);
 
