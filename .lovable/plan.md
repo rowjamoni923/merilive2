@@ -1,82 +1,173 @@
-# Fix Plan — 7 Defects from Today's Two Videos
+# Phase 1 — Host Go Live Professionalization
 
-Video frame-by-frame audit + staff subagent gap analysis (Chamet/Bigo pattern → our code) সম্পন্ন। প্রতিটা defect-এর root cause file:line সহ verified। Design untouched, শুধু functionality professionalized।
-
----
-
-## Honest split: Lovable-এ verify possible vs APK rebuild required
-
-| # | Defect | Where | APK rebuild? | Lovable-এ verify? |
-|---|---|---|---|---|
-| 1 | Auth toast logo-র উপর overlap | React | ❌ No | ✅ Yes |
-| 2 | Login button faded pale-pink when empty | React | ❌ No | ✅ Yes |
-| 3 | Go Live preview blurry/distorted | Kotlin | ✅ **Yes** | ❌ No |
-| 4 | White flash on navigate away | React | ❌ No | ✅ Yes |
-| 5 | Party Room host seat-1 pitch black | Kotlin + React | ✅ **Yes** | ❌ No |
-| 6 | Private Call caller dialing-screen black | Kotlin + React | ✅ **Yes** | ❌ No |
-| 7 | Home feed live cards static photo (no rotating snapshot) | Edge Fn + React | ❌ No | ✅ Yes (after cron deploy) |
-
-**4টা defect (1, 2, 4, 7) আমি Lovable-এ end-to-end fix + owner account দিয়ে verify করব।**
-**3টা defect (3, 5, 6) Kotlin code লিখব, কিন্তু verify-এর জন্য আপনার APK rebuild লাগবে — সেটা আমি honestly বলে দেব, ভুয়া "verified" claim করব না।**
+**Date:** 2026-06-18
+**Status:** Research complete, awaiting user approval before code
+**Protocol:** Research-first mandatory (mem://preferences/research-first-mandatory.md)
+**Test account:** smdollarex923@gmail.com / Sazzad017@ (mem://preferences/test-account.md)
+**Design:** SACRED — no UI changes unless explicitly asked; functionality professionalized only
 
 ---
 
-## Defect 1 — Auth toast overlaps logo
+## Infrastructure Locked ✅
 
-**Root:** `src/components/ui/sonner.tsx:14` — `position="top-center"` কোনো safe-area inset offset নাই, status-bar (~28dp)-এর পেছনে চলে যাচ্ছে।
+| Component | Version | Status |
+|---|---|---|
+| LiveKit Server | v1.8.4 (pinned) | Running on VPS 194.233.66.70 |
+| LiveKit Egress | v1.12.0 (pinned) | Running |
+| LiveKit Ingress | :latest | Running (not critical for go-live) |
+| Caddy / Redis | stable | Running |
 
-**Fix:** Sonner-এ `offset={{ top: "max(env(safe-area-inset-top) + 8px, 56px)" }}` যোগ + `--sonner-offset` CSS var। Chamet/Bigo এই pattern-ই use করে।
-
-## Defect 2 — Login button pale pink
-
-**Root:** `src/pages/Auth.tsx:2843` — `disabled:opacity-40` + gradient WebView compositor-এ desaturate হয়ে পুরো button পাল্টে যাওয়ার মতো দেখায়।
-
-**Fix:** `disabled:opacity-60 disabled:saturate-100` — brand color অপরিবর্তিত, শুধু opacity দিয়ে disabled communicate। Bigo এই rule follow করে।
-
-## Defect 3 — Go Live preview blurry [APK rebuild]
-
-**Root:** `LiveKitPlugin.kt:909` — `room.initVideoRenderer(renderer)` `parent.addView()`-এর **আগে** call হচ্ছে। EglBase context valid হওয়ার আগে capture start → scrambled frames।  
-Plus `startLocalPreview` (line ~219)-এ explicit `VideoCaptureParameter(720,1280,30fps)` নাই; `livekitCameraTuning.ts` শুধু web path-এ effective।
-
-**Fix:** (a) `initVideoRenderer` কে `addView`-এর পরে move। (b) `LocalVideoTrackOptions(captureParams = VideoCaptureParameter(720,1280,30))` যোগ।
-
-## Defect 4 — White flash on navigate
-
-**Root:** GoLive + PartyRoom-এর 8টা `navigate()` call `clearNativeMediaSurface()` synchronously call না করেই fire হয়। তালিকা:
-- `GoLive.tsx:473, 845, 976`
-- `PartyRoom.tsx:900, 908, 941, 1079, 1324, 1367`
-
-**Fix:** প্রতিটার আগে synchronous `clearNativeMediaSurface()` insert।
-
-## Defect 5 — Party Room host seat black [APK rebuild]
-
-**Root:** `PartyRoom.tsx:2604` host seat-এ local MediaStream pass করে; কিন্তু native `seatRenderer.bindSeatRenderer({identity})` শুধু **remote** participant identity expect করে। Local participant-এর identity কখনো bind হয় না → seat-1 pitch black। Chamet local CameraTrack-কে instantly host seat-এ attach করে, SFU echo-র অপেক্ষা না করে।
-
-**Fix:** (a) React-এ host seat mount-এ `bindSeatRenderer({seatIndex:0, identity: room.localParticipant.identity, mirror:true})` call। (b) Kotlin `bindSeatRenderer`-এ identity match হলে `previewTrack.addRenderer(slot.renderer)` short-circuit।
-
-## Defect 6 — Private Call caller black [APK rebuild]
-
-**Root:** Previous fix (`mem://features/private-call-white-screen-fix-2026-06-17.md`) শুধু callee-side handle করেছিল। Caller-side-এ `PrivateCallActivity.kt` `attachLocal` শুধু room connect-এর পরে call হয় — DIALING/RINGING phase-এ `vm.localVideo` null, তাই no-op → pure black। `CallProvider.tsx`-এ caller path-এ `setNativeMediaSurface(true)` কোথাও call হয় না।
-
-**Fix:** (a) `PrivateCallActivity.kt`-এ DIALING/RINGING state entry-তে `attachLocal(vm.localVideo.value)` immediately। (b) `CallProvider.tsx`-এ outgoing call init-এ `setNativeMediaSurface(true)` synchronously। WhatsApp/Bigo এটাই করে।
-
-## Defect 7 — Home feed: static photo, no live snapshot rotation
-
-**Root:** `src/pages/Index.tsx:252,517` — `live_thumbnail_url` field exist করে, render condition correct, কিন্তু **field কখনো কেউ write করে না** → always avatar। Chamet/Bigo server-side cron snapshot job চালায়।
-
-**Fix:**
-1. New Supabase Edge Function `live-snapshot-cron` — every 15s, active `live_sessions` query, LiveKit egress JPEG snapshot, Storage-এ upload, `profiles.live_thumbnail_url` update। শুধু opt-in host-দের জন্য।
-2. `Index.tsx`-এ Ken-Burns CSS animation (subtle zoom) — Chamet feel।
-3. Realtime subscription `profiles_public.live_thumbnail_url` column change-এ।
+Pin completed via `/opt/livekit/docker-compose.yaml` sed edit + `docker compose up -d`. Zero downtime.
 
 ---
 
-## Execution order (after approval)
+## Research Summary
 
-**Phase A — Pure React (Lovable verify possible):** Defect 1, 2, 4 → owner account দিয়ে preview-এ test।
-**Phase B — Edge function:** Defect 7 cron + React Ken-Burns → preview verify।
-**Phase C — Kotlin (APK rebuild required):** Defect 3, 5, 6 → code ঠিক করে দেব, আপনি rebuild করে test করবেন। আমি ভুয়া "verified" বলব না।
+### Competitor pattern (Chamet/Bigo/Olamet/Poppo/TUILiveKit reference)
 
-কোনো design touch হবে না (memory rule), শুধু English UI strings (memory rule)।
+5-stage canonical flow:
+1. **Pre-join setup** — camera preview + title + cover + category + beauty toggle + audience type
+2. **Permission gate** — OS dialog, deep-link to Settings on denial
+3. **Token fetch** — JWT with role/grants/TTL
+4. **RTC connect + track publish** — sequential, then DB row creation AFTER connect success
+5. **Live UI** — viewer count, gift ticker, controls, end-confirm dialog → stats screen
 
-**Approve করলে Phase A থেকে শুরু করব।**
+### Industry-standard encoding (verified)
+- Base layer: **1280×720 @ 30fps, 1.5 Mbps, H.264** (hardware encoder on mobile)
+- Simulcast layer 2: 640×360 @ 20fps, 500 Kbps
+- Simulcast layer 3: 320×180 @ 15fps, 150 Kbps
+- Audio: DTX on (save bandwidth in silence), RED on (recovery from packet loss)
+- `dynacast: true` to auto-pause unused layers
+- Sources: docs.livekit.io/transport/media/advanced.md, kb.livekit.io optimal video quality, Tencent TUILiveKit
+
+### Critical timing benchmarks
+- Agora `joinChannel` → first frame: ~200–400ms
+- LiveKit `connect` → `TrackPublished`: ~300–600ms (no official benchmark, instrument ourselves)
+- Reconnect window: Agora auto-retries 20min, LiveKit token expiry does NOT block reconnect
+
+---
+
+## Audit Findings — Top 5 Gaps
+
+| # | Severity | Issue | File |
+|---|---|---|---|
+| 1 | 🔴 Critical | Beauty filter completely broken on published track | `useBeautyState.ts:3`, `GoLive.tsx:213` |
+| 2 | 🔴 Critical | `live_streams.status` never transitions `'starting'` → `'live'` | migration `20260510161831` |
+| 3 | 🔴 Critical | No simulcast by default — weak network viewers buffer | `useLiveKitClient.ts:627–628` |
+| 4 | 🟠 High | Orphan `live_streams` row when `room.connect()` fails | `GoLive.tsx:880–937` |
+| 5 | 🟠 High | Camera-off keeps track published — viewers see frozen frame | `useLiveKitClient.ts:1545` |
+| — | 🟡 Med | Missing category + cover photo on pre-join | `GoLive.tsx:884–886` (hardcoded null) |
+
+### Already working ✅ — DO NOT TOUCH
+- Token issuance: 6h TTL, role binding, race-safe (`livekit-token/index.ts`)
+- Pre-join native camera preview (June 11 fix intact)
+- Camera switch (`switchActiveDevice` web, native in-place Android)
+- Reconnect (bounded retries 800/1800/3500/6500ms, token refresh at TTL-600s)
+- Follower push notification (`live_started` → `merilive_live` FCM topic)
+- End-live stats screen (duration / viewers / gift earnings)
+
+---
+
+## 6-Step Fix Order (Phased by Test-ability)
+
+### 🟢 Phase 1A — Pure DB + Edge Function (Lovable-testable, NO APK rebuild)
+
+**Step 1: `status` transition `'starting'` → `'live'`**
+- Modify `update_stream_heartbeat` RPC: on first heartbeat where `status='starting'`, transition to `'live'`
+- OR: add transition inside `livekit-webhook` `room_started` event handler
+- Owner test: go live → check `live_streams.status` in DB within 5s → should be `'live'`
+
+**Step 2: Orphan-row cleanup on connect failure**
+- Wrap `room.connect()` call in `GoLive.tsx` try/catch
+- On failure: call `close_live_stream_now(p_id)` RPC to mark row `is_active=false, status='failed'`
+- Surface user-facing error toast (English): "Couldn't start your live. Please try again."
+- Owner test: kill VPS network temporarily → tap Go Live → verify row marked `failed`, no ghost stream in feed
+
+### 🟢 Phase 1B — Web/React Code (Lovable-testable, NO APK rebuild)
+
+**Step 3: Enable 3-layer simulcast by default**
+- In `useLiveKitClient.ts` web `RoomOptions.publishDefaults`: always set
+  ```typescript
+  simulcast: true,
+  videoSimulcastLayers: [VideoPresets.h360, VideoPresets.h180],
+  videoEncoding: { maxBitrate: 1_500_000, maxFramerate: 30 },
+  dtx: true, red: true,
+  ```
+- Keep host-tier override logic, but default = professional 3-layer
+- Owner test: open live on 2 devices (one throttled to 3G via DevTools), verify smooth viewer experience on weak side
+
+**Step 4: Camera-off → unpublish + avatar placeholder (web path)**
+- In `useLiveKitClient.ts` web toggle: on `setCameraEnabled(false)` → call `unpublishTrack(videoTrack)`
+- On `setCameraEnabled(true)` → republish
+- Viewer side: when `Track.Source.Camera` publication absent, show host avatar fullscreen (already a component in codebase: search for `HostAvatarPlaceholder` or create)
+- Owner test: go live → tap camera off → on viewer device, verify avatar shows (not frozen frame) → tap camera on → verify live resumes
+
+### 🟡 Phase 1C — Optional UX additions (Lovable-testable, design-touching → ASK USER)
+
+**Step 5: Category select + cover photo on pre-join**
+- Only if user approves design touch (memory says design SACRED → MUST ASK)
+- Add 2 fields to GoLive pre-join: category dropdown (from `live_categories` table) + cover image upload (Supabase Storage)
+- Pass `p_category_id` + `p_thumbnail_url` to `start_live_stream` RPC (already accepts them)
+
+### 🔴 Phase 1D — Native Android beauty filter (APK REBUILD REQUIRED, deferred)
+
+**Step 6: GPUPixel integration in native Camera2 pipeline**
+- Reinstate GPUPixel as `VideoSource` between Camera2 and LiveKit publish
+- Pre-warm during `startLocalPreview` (no first-frame delay)
+- Toggle via existing `NativeBeauty.setEnabled()` plugin method
+- **CANNOT BE TESTED IN LOVABLE PREVIEW** — requires APK rebuild
+- Honest disclosure: user must rebuild APK after this step
+
+---
+
+## Owner Test Plan (Phase 1A + 1B)
+
+After Steps 1–4 land:
+1. Log into preview as `smdollarex923@gmail.com`
+2. Go to `/go-live` → tap Go Live
+3. Verify console: no errors, `RoomEvent.Connected` fires
+4. Check Supabase `live_streams` row: `status='live'` within 5s
+5. Open second tab (incognito) → join stream as viewer
+6. Throttle viewer tab to "Slow 3G" in DevTools → verify smooth playback (simulcast working)
+7. Host tab: tap camera off → viewer should see avatar (not frozen frame)
+8. Host tab: tap End Live → verify stats screen → DB row `is_active=false`
+9. Cleanup test: open new tab, tap Go Live, immediately kill network → verify no orphan row
+
+If any step fails → fix before next phase.
+
+---
+
+## Files Touched (planned)
+
+### Phase 1A
+- `supabase/migrations/<new>.sql` — `update_stream_heartbeat` status transition OR `livekit-webhook` patch
+- `src/pages/GoLive.tsx` — wrap `room.connect()` in try/catch + cleanup call
+
+### Phase 1B
+- `src/hooks/useLiveKitClient.ts` — simulcast defaults, camera-off unpublish
+- `src/components/LiveStream/HostAvatarPlaceholder.tsx` (NEW or reuse existing) — viewer-side fallback
+
+### Phase 1C (only if approved)
+- `src/pages/GoLive.tsx` — add category + cover fields
+
+### Phase 1D (deferred, needs APK)
+- `android/app/src/main/java/com/merilive/app/livekit/NativeLiveKitPlugin.kt`
+- `android/app/build.gradle` — GPUPixel dependency
+
+---
+
+## Non-goals (explicitly OUT of scope for Phase 1)
+
+- ❌ ANY design changes (design sacred per memory)
+- ❌ Phase 2/3/4 areas (Watch, Private Call, Party Room) — separate phases
+- ❌ VPS work (deferred per mem://preferences/vps-deferred)
+- ❌ PK Battle (separate effort per mem://features/pk-battle-research.md)
+- ❌ Ingress :latest → pinned (not needed for go-live, separate maintenance)
+
+---
+
+## Decision needed from user
+
+**Q1.** Approve Phase 1A + 1B (Steps 1–4) for immediate implementation?
+**Q2.** Phase 1C (category + cover on pre-join) — design touch, want it included or skip?
+**Q3.** Phase 1D (native beauty filter) — schedule now (with APK rebuild) or defer to a later batch?
