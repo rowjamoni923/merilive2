@@ -2442,10 +2442,9 @@ const LiveStream = () => {
       });
     };
 
-    let _preloadedFlag = false;
-    enterBeforeJoin().then(() => {
+    enterBeforeJoin().then((res: any) => {
       const elapsed = performance.now() - startTime;
-      console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${_preloadedFlag ? ' (PRELOADED!)' : ''}`);
+      console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${res?._preloaded ? ' (PRELOADED!)' : ''}`);
     }).catch(err => {
       console.error('Join failed:', err);
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
