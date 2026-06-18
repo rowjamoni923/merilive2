@@ -2435,6 +2435,18 @@ const LiveStream = () => {
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
       toast.error(err instanceof Error ? err.message : 'Unable to join live stream');
       connectionInitiated.current = false;
+      // Phase 1A: orphan-row cleanup. If the host's LiveKit connect failed
+      // before anyone joined, the live_streams row sits at status='starting',
+      // is_active=true — viewers see a ghost room until the 3-min stale
+      // sweep. The server RPC only acts when status='starting' and
+      // viewer_count=0, so it can never tear down a real live session.
+      if (initialHostRole && id) {
+        supabase
+          .rpc('abort_live_stream', { p_stream_id: id })
+          .then(({ error }) => {
+            if (error) console.warn('[LiveStream] abort_live_stream failed:', error.message);
+          });
+      }
     });
 
       // Cleanup only on unmount
