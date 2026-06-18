@@ -806,6 +806,7 @@ const Settings = () => {
     {
       icon: Ban,
       label: "Blacklist",
+      value: blockedCount !== null && blockedCount > 0 ? String(blockedCount) : undefined,
       onClick: () => navigate("/settings/blacklist"),
     },
     {
