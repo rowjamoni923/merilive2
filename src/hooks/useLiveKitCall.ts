@@ -302,6 +302,9 @@ export function useLiveKitCall(
       usingNativeRef.current = false;
       setNativeActive(false);
     }
+    // Always revert WebView transparency on call teardown so other routes
+    // (Home, Profile) paint normally.
+    clearNativeMediaSurface();
 
     if (tokenRefreshDetachRef.current) {
       try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
