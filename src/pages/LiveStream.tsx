@@ -79,6 +79,7 @@ import { hapticFeedback } from "@/utils/nativeUtils";
 import { toast } from "@/utils/hybridToast";
 
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
+import LiveKitResilienceNotifier from "@/components/livekit/LiveKitResilienceNotifier";
 import { usePKOpponentRoom } from "@/hooks/usePKOpponentRoom";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
