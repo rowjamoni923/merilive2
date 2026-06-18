@@ -858,13 +858,28 @@ const LiveStream = () => {
   } = useLiveStreamSwipe(id);
 
   // ===== HORIZONTAL SWIPE: Hide/Show UI overlay (Chamet-style full-screen toggle) =====
+  // ===== TOP-EDGE SWIPE-DOWN: Exit live stream (Bigo/Chamet pattern) =====
+  //
+  // Gesture priority (highest first):
+  //   1. Top-edge swipe-down (start in top 80px, deltaY > 120, mostly vertical) → exit stream
+  //   2. Horizontal swipe (|deltaX| > |deltaY|, |deltaX| > 60)                  → hide/show UI
+  //   3. Vertical swipe (existing TikTok-style up=next, down=prev)              → useLiveStreamSwipe
   const [isUIHidden, setIsUIHidden] = useState(false);
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
+  const hSwipeStartT = useRef(0);
+  // `handleLeaveStream` is declared later in the file; use a ref to break the
+  // TDZ so this hook can call it without React being told it's a dependency.
+  const leaveStreamRef = useRef<(() => void | Promise<void>) | null>(null);
+  const EXIT_EDGE_PX = 80;
+  const EXIT_MIN_DY = 120;
+  const TAP_MAX_DELTA = 8;       // pixels — finger jitter tolerance
+  const TAP_MAX_DURATION = 250;  // ms — anything longer is a long-press, not a tap
 
   const handleCombinedTouchStart = useCallback((e: React.TouchEvent) => {
     hSwipeStartX.current = e.touches[0].clientX;
     hSwipeStartY.current = e.touches[0].clientY;
+    hSwipeStartT.current = Date.now();
     swipeTouchStart(e);
   }, [swipeTouchStart]);
 
@@ -873,21 +888,47 @@ const LiveStream = () => {
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - hSwipeStartX.current;
     const deltaY = endY - hSwipeStartY.current;
+    const duration = Date.now() - hSwipeStartT.current;
+    const startedAtTopEdge = hSwipeStartY.current <= EXIT_EDGE_PX;
 
-    // Only trigger horizontal swipe if horizontal movement > vertical and > 60px threshold
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
-      if (deltaX > 0) {
-        // Swipe right → hide UI
-        setIsUIHidden(true);
-      } else {
-        // Swipe left → show UI
-        setIsUIHidden(false);
-      }
-      return; // Don't trigger vertical swipe
+    // 1) Top-edge swipe-down → exit (viewers only; host needs explicit end-stream confirm).
+    if (
+      !isHost &&
+      startedAtTopEdge &&
+      deltaY > EXIT_MIN_DY &&
+      Math.abs(deltaY) > Math.abs(deltaX) * 1.5
+    ) {
+      console.log('[LiveStream] top-edge swipe-down → exit');
+      const leave = leaveStreamRef.current;
+      if (leave) { void leave(); }
+      return;
     }
 
+    // 2) Tap on dead space → toggle chrome (Bigo/Chamet modern pattern).
+    //    Interactive chrome elements have their own pointer handlers; tap only
+    //    reaches this root when the touch landed on the stream surface itself.
+    if (
+      Math.abs(deltaX) < TAP_MAX_DELTA &&
+      Math.abs(deltaY) < TAP_MAX_DELTA &&
+      duration < TAP_MAX_DURATION
+    ) {
+      setIsUIHidden(prev => !prev);
+      return;
+    }
+
+    // 3) Horizontal swipe = hide/show UI (kept as a secondary gesture).
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+      if (deltaX > 0) {
+        setIsUIHidden(true);
+      } else {
+        setIsUIHidden(false);
+      }
+      return;
+    }
+
+    // 4) Otherwise fall through to vertical stream nav
     swipeTouchEnd(e);
-  }, [swipeTouchEnd]);
+  }, [swipeTouchEnd, isHost]);
 
   const {
     filterState,
@@ -2834,6 +2875,12 @@ const LiveStream = () => {
     // Navigate directly to home page - NOT navigate(-1) which causes double tab issue
     navigate('/', { replace: true });
   };
+
+  // Keep the top-edge swipe-down gesture wired to the current handleLeaveStream.
+  useEffect(() => {
+    leaveStreamRef.current = handleLeaveStream;
+    return () => { leaveStreamRef.current = null; };
+  }, [handleLeaveStream]);
 
   const handleCall = () => {
     // Pkg: Direct call as requested - bypassing confirmation modal
