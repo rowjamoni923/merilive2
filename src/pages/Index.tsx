@@ -6,7 +6,8 @@ const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPr
 import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
-import { Search, Eye, Trophy, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
+import { Search, Eye, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
+import championTrophy3d from "@/assets/champion-trophy-3d.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -773,7 +774,7 @@ const Index = () => {
             className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/70 hover:-translate-y-0.5"
             style={{ boxShadow: '0 4px 12px -3px rgba(217,119,6,0.25), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(146,64,14,0.08)' }}
           >
-            <Trophy className="w-[18px] h-[18px] text-amber-600" strokeWidth={2.5} fill="currentColor" />
+            <img src={championTrophy3d} alt="Leaderboard" className="w-5 h-5 object-contain drop-shadow-sm" loading="eager" />
           </button>
         </div>
 
