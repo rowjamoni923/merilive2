@@ -867,6 +867,9 @@ const LiveStream = () => {
   const [isUIHidden, setIsUIHidden] = useState(false);
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
+  // `handleLeaveStream` is declared later in the file; use a ref to break the
+  // TDZ so this hook can call it without React being told it's a dependency.
+  const leaveStreamRef = useRef<(() => void | Promise<void>) | null>(null);
   const EXIT_EDGE_PX = 80;
   const EXIT_MIN_DY = 120;
 
@@ -891,7 +894,8 @@ const LiveStream = () => {
       Math.abs(deltaY) > Math.abs(deltaX) * 1.5
     ) {
       console.log('[LiveStream] top-edge swipe-down → exit');
-      handleLeaveStream();
+      const leave = leaveStreamRef.current;
+      if (leave) { void leave(); }
       return;
     }
 
@@ -907,7 +911,7 @@ const LiveStream = () => {
 
     // 3) Otherwise fall through to vertical stream nav
     swipeTouchEnd(e);
-  }, [swipeTouchEnd, isHost, handleLeaveStream]);
+  }, [swipeTouchEnd, isHost]);
 
   const {
     filterState,
