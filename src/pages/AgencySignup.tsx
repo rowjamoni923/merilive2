@@ -520,13 +520,13 @@ const AgencySignup = () => {
           )}
 
           {foundUser && appVerified && (
-            <div className="p-3 bg-success-900/30 rounded-xl flex items-center gap-3 text-success-300 border border-success-700/50">
+            <div className="p-3 bg-success-50 rounded-xl flex items-center gap-3 text-success-800 border border-success-200">
               <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-slate-800" />
+                <CheckCircle2 className="w-5 h-5 text-white" />
               </div>
               <div>
                 <p className="font-semibold text-sm">App OTP Verified ✓</p>
-                <p className="text-xs text-success-400">In-app notification verified</p>
+                <p className="text-xs text-success-700">In-app notification verified</p>
               </div>
             </div>
           )}
