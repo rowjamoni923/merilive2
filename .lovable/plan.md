@@ -13,6 +13,7 @@
 - Removed `/auth` full-screen recovery blocker; auth UI now renders immediately while session recovery continues in background.
 - Replaced protected-route web session-recovery `return null` with the same app-section skeleton so protected sections never expose a blank body during Supabase hydration.
 - Added app-wide `BlankScreenGuard`: if any route/page mistakenly renders no meaningful surface for >160ms, it shows the correct section skeleton (auth/live/app) and auto-removes as soon as content appears. This covers remaining page-level `return null`, data-hydration gaps, and nested lazy boundaries without redesigning each screen.
+- Closed audit-confirmed page-level gaps directly: own Profile current-user gap, TabKeepAlive first-frame empty host, AgencyDetails no-row state, AgencyCoinExchange no-agency state, and AgencyDashboard no-agency state now render existing skeletons instead of `null`.
 - Verified via Playwright: `/auth` renders interactive controls (`Get Started`, phone/email buttons) with no runtime errors; root height fills viewport.
 
 ---
