@@ -828,6 +828,16 @@ export function ActiveCallScreen({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
+  // X1+X2: surface auto-audio-only flips + 20-min hard reconnect abandon as
+  // professional toasts. Headless; safe to mount unconditionally while open.
+  const resilienceNotifier = (
+    <LiveKitResilienceNotifier
+      scope="call"
+      id={callId ?? null}
+      onRejoin={() => { Promise.resolve(onEndCall()).catch(() => {}); }}
+    />
+  );
+
   if (nativeInCallOpen) {
     return createPortal(
       <RequireNativeAndroidGate feature="call">
