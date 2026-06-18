@@ -474,14 +474,23 @@ export async function streamBytes(
   if (!enabled) throw new Error('streams_disabled');
   const entry = registry.get(key(scope, id));
   if (!entry) throw new Error('room_not_registered');
-  const writer = await entry.room.localParticipant.streamBytes({
+  // streamBytes was added in livekit-client 2.10+. On 2.9.x (matching the
+  // self-hosted server) this API is unavailable — callers must fall back to
+  // data-channel publish paths. We surface a typed error rather than crash.
+  const lp = entry.room.localParticipant as unknown as {
+    streamBytes?: (o: unknown) => Promise<unknown>;
+  };
+  if (typeof lp.streamBytes !== 'function') {
+    throw new Error('streamBytes_unsupported_on_server');
+  }
+  const writer = await lp.streamBytes({
     topic: opts.topic,
     destinationIdentities: opts.destinationIdentities,
     mimeType: opts.mimeType,
     name: opts.name,
     attributes: opts.attributes,
     totalSize: opts.totalSize,
-  } as any);
+  });
   return writer;
 }
 
