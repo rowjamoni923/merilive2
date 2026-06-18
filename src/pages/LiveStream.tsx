@@ -1940,8 +1940,14 @@ const LiveStream = () => {
 
   const showViewerStreamEnded = useCallback(async (hostName?: string) => {
     if (isHost) return;
-    // Even if streamEndedRef was set elsewhere (e.g. realtime row update),
-    // we still want the modal to render with avatar + follow + thank-you.
+    // Phase 2B Step 9 (M7 fix): guard duplicate calls. Both the LiveKit
+    // 'livekit-stream-ended' event and the Realtime live_streams row update
+    // can fire within the same microtask batch — without this guard,
+    // leaveChannel() ran twice and two modals raced. Now first caller wins.
+    if (streamEndedRef.current && showStreamEndedModal) {
+      console.log('[LiveStream] 🟣 showViewerStreamEnded skipped — already ended');
+      return;
+    }
     streamEndedRef.current = true;
     setStreamEndedBy(hostName || hostInfo?.name || "Host");
     setShowStreamEndedModal(true);
@@ -1951,7 +1957,7 @@ const LiveStream = () => {
     streamEndRedirectTimerRef.current = setTimeout(() => {
       navigate('/', { replace: true });
     }, 7000);
-  }, [hostInfo?.name, isHost, leaveChannel, navigate]);
+  }, [hostInfo?.name, isHost, leaveChannel, navigate, showStreamEndedModal]);
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
   // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
