@@ -120,6 +120,27 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Phase 1A: Flip live_streams.status 'starting' → 'live' the moment the host
+  // actually joins the LiveKit room. Without this, the row sits in 'starting'
+  // forever (or until cleanup_stale closes it after 3min stale). Idempotent —
+  // the RPC only updates when host_id matches the participant identity.
+  if (eventType === "participant_joined" && roomName && participant?.identity
+      && /^live_[0-9a-f-]{36}$/i.test(roomName)) {
+    try {
+      const { data, error } = await admin.rpc("mark_live_stream_live", {
+        _room_name: roomName,
+        _identity: String(participant.identity),
+      });
+      if (error) {
+        console.error("[livekit-webhook] mark_live error:", error.message);
+      } else if (data === true) {
+        console.log("[livekit-webhook] live_streams → live:", roomName);
+      }
+    } catch (e) {
+      console.error("[livekit-webhook] mark_live throw:", (e as Error)?.message);
+    }
+  }
+
   // Pkg112: Finalize stream_recordings rows on egress lifecycle events.
   // LiveKit EgressInfo status enum (string in webhook payload):
   //   EGRESS_STARTING / EGRESS_ACTIVE / EGRESS_ENDING / EGRESS_COMPLETE / EGRESS_FAILED / EGRESS_ABORTED / EGRESS_LIMIT_REACHED
