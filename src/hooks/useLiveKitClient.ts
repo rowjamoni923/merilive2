@@ -731,6 +731,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             audioTrack: null as any,
             hasVideo: true,
             hasAudio: false,
+            // Phase 1B: seed mute state from current publication so the viewer
+            // immediately shows the avatar if the host subscribed while camera-off.
+            videoMuted: !!publication.isMuted,
           };
 
           // Also check for audio
@@ -817,6 +820,36 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             });
             remoteAudioElementsRef.current.delete(participant.identity);
           }
+        }
+      });
+
+      // Phase 1B: Camera-off → viewer sees avatar placeholder, not frozen frame.
+      // Chamet/Bigo standard: host's setCameraEnabled(false) MUTES the publication
+      // (no costly republish), and viewers detect via TrackMuted to swap the
+      // <video> for an avatar overlay. We don't unpublish — re-publishing forces
+      // camera re-init on unmute (slow), and the publication staying alive lets
+      // the unmute be instantaneous when the host turns camera back on.
+      const applyVideoMuteState = (participant: RemoteParticipant, publication: RemoteTrackPublication, muted: boolean) => {
+        if (publication.kind !== Track.Kind.Video) return;
+        if (publication.source !== Track.Source.Camera) return; // ignore screen-share mutes
+        const pUid = getUidForParticipant(participant.identity);
+        setRemoteUsers(prev => {
+          const existing = prev.get(pUid);
+          if (!existing) return prev;
+          if (existing.videoMuted === muted) return prev;
+          const newMap = new Map(prev);
+          newMap.set(pUid, { ...existing, videoMuted: muted });
+          return newMap;
+        });
+      };
+      room.on(RoomEvent.TrackMuted, (publication, participant) => {
+        if ('identity' in (participant as any)) {
+          applyVideoMuteState(participant as RemoteParticipant, publication as RemoteTrackPublication, true);
+        }
+      });
+      room.on(RoomEvent.TrackUnmuted, (publication, participant) => {
+        if ('identity' in (participant as any)) {
+          applyVideoMuteState(participant as RemoteParticipant, publication as RemoteTrackPublication, false);
         }
       });
 
