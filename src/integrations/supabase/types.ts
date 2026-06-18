@@ -17358,6 +17358,7 @@ export type Database = {
         Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
       }
+      abort_live_stream: { Args: { p_stream_id: string }; Returns: Json }
       accept_pk_battle: { Args: { p_battle_id: string }; Returns: Json }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       accept_seat_invitation: {
@@ -20616,7 +20617,9 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: number
       }
-      mark_live_stream_live: { Args: { p_stream_id: string }; Returns: Json }
+      mark_live_stream_live:
+        | { Args: { _identity: string; _room_name: string }; Returns: boolean }
+        | { Args: { p_stream_id: string }; Returns: Json }
       mark_livekit_participant_left: {
         Args: { _identity: string; _room_name: string }
         Returns: {
