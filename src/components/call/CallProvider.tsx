@@ -14,6 +14,7 @@ import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { useProCamera } from '@/camera/useProCamera';
 import { toast as sonnerToast } from 'sonner';
 import { CallingFallback } from './CallingFallback';
+import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
 // Eagerly kick off the import the moment this module loads (not on
