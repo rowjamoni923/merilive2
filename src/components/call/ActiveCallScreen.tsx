@@ -125,6 +125,62 @@ export function ActiveCallScreen({
   const [myDisplayName, setMyDisplayName] = useState<string>("You");
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [myLevel, setMyLevel] = useState<number>(1);
+
+  // ============================================================
+  // PREVIEW-ONLY camera fallback (Lovable web preview).
+  // Production web is always gated by RequireNativeAndroidGate;
+  // here we mirror the local webcam into both tiles so QA can
+  // visually verify the call screen layout (faces, chat, gifts)
+  // without an APK + paired peer device.
+  // ============================================================
+  const isPreviewWeb = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    if (isNativeAndroidApp()) return false;
+    const h = window.location.hostname;
+    return (
+      h === 'localhost' ||
+      h === '127.0.0.1' ||
+      h.endsWith('.lovableproject.com') ||
+      /^id-preview--[a-z0-9-]+\.lovable\.app$/i.test(h)
+    );
+  }, []);
+  const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
+  const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
+  const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
+  useEffect(() => {
+    if (!isOpen || !isPreviewWeb) return;
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 720, height: 1280 },
+          audio: false,
+        });
+        if (cancelled) {
+          stream?.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        setPreviewStream(stream);
+      } catch (err) {
+        console.warn('[ActiveCall][preview] getUserMedia failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      stream?.getTracks().forEach((t) => t.stop());
+      setPreviewStream(null);
+    };
+  }, [isOpen, isPreviewWeb]);
+  useEffect(() => {
+    if (!previewStream) return;
+    if (previewVideoRefPrimary.current && previewVideoRefPrimary.current.srcObject !== previewStream) {
+      previewVideoRefPrimary.current.srcObject = previewStream;
+    }
+    if (previewVideoRefPip.current && previewVideoRefPip.current.srcObject !== previewStream) {
+      previewVideoRefPip.current.srcObject = previewStream;
+    }
+  }, [previewStream]);
   
   // Host photos for calling/ringing screen
   const [hostPhotos, setHostPhotos] = useState<string[]>([]);
