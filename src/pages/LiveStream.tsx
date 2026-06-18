@@ -858,9 +858,17 @@ const LiveStream = () => {
   } = useLiveStreamSwipe(id);
 
   // ===== HORIZONTAL SWIPE: Hide/Show UI overlay (Chamet-style full-screen toggle) =====
+  // ===== TOP-EDGE SWIPE-DOWN: Exit live stream (Bigo/Chamet pattern) =====
+  //
+  // Gesture priority (highest first):
+  //   1. Top-edge swipe-down (start in top 80px, deltaY > 120, mostly vertical) → exit stream
+  //   2. Horizontal swipe (|deltaX| > |deltaY|, |deltaX| > 60)                  → hide/show UI
+  //   3. Vertical swipe (existing TikTok-style up=next, down=prev)              → useLiveStreamSwipe
   const [isUIHidden, setIsUIHidden] = useState(false);
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
+  const EXIT_EDGE_PX = 80;
+  const EXIT_MIN_DY = 120;
 
   const handleCombinedTouchStart = useCallback((e: React.TouchEvent) => {
     hSwipeStartX.current = e.touches[0].clientX;
@@ -873,21 +881,33 @@ const LiveStream = () => {
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - hSwipeStartX.current;
     const deltaY = endY - hSwipeStartY.current;
+    const startedAtTopEdge = hSwipeStartY.current <= EXIT_EDGE_PX;
 
-    // Only trigger horizontal swipe if horizontal movement > vertical and > 60px threshold
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
-      if (deltaX > 0) {
-        // Swipe right → hide UI
-        setIsUIHidden(true);
-      } else {
-        // Swipe left → show UI
-        setIsUIHidden(false);
-      }
-      return; // Don't trigger vertical swipe
+    // 1) Top-edge swipe-down → exit (viewers only; host needs explicit end-stream confirm).
+    if (
+      !isHost &&
+      startedAtTopEdge &&
+      deltaY > EXIT_MIN_DY &&
+      Math.abs(deltaY) > Math.abs(deltaX) * 1.5
+    ) {
+      console.log('[LiveStream] top-edge swipe-down → exit');
+      handleLeaveStream();
+      return;
     }
 
+    // 2) Horizontal swipe = hide/show UI
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+      if (deltaX > 0) {
+        setIsUIHidden(true);
+      } else {
+        setIsUIHidden(false);
+      }
+      return;
+    }
+
+    // 3) Otherwise fall through to vertical stream nav
     swipeTouchEnd(e);
-  }, [swipeTouchEnd]);
+  }, [swipeTouchEnd, isHost]);
 
   const {
     filterState,
