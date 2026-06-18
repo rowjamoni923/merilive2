@@ -54,12 +54,12 @@ export function markPreloadedStreamForHandoff(streamId: string): void {
  * Consume a preloaded stream (removes from cache, caller owns the Room now).
  * Returns null if no preloaded stream exists for this id.
  */
-export function consumePreloadedStream(streamId: string): {
+export async function consumePreloadedStream(streamId: string): Promise<{
   room: Room;
   videoTrack: RemoteTrack | null;
   audioTrack: RemoteTrack | null;
   participant: RemoteParticipant | null;
-} | null {
+} | null> {
   const entry = preloadedStreams.get(streamId);
   if (!entry) return null;
 
@@ -68,6 +68,16 @@ export function consumePreloadedStream(streamId: string): {
   if (handoffStreamId === streamId) {
     handoffStreamId = null;
     handoffExpiresAt = 0;
+  }
+
+  // Phase 2B Step 8 (M1 fix): if room is connected but TrackSubscribed hasn't
+  // fired yet (stagger delay + slow host), wait up to 300ms before declaring
+  // the preload unusable. Previously we discarded too eagerly → cold-fallback.
+  if (entry.room.state === ConnectionState.Connected && !entry.videoTrack) {
+    const deadline = Date.now() + 300;
+    while (Date.now() < deadline && !entry.videoTrack) {
+      await new Promise((r) => setTimeout(r, 30));
+    }
   }
 
   // Only return if still connected and has video
@@ -108,8 +118,13 @@ export async function preloadStream(streamId: string): Promise<void> {
 
   try {
     const room = new Room({
-      adaptiveStream: false,
-      dynacast: false,
+      // Phase 2B Step 8 (M2 fix): enable adaptiveStream + dynacast so the SFU
+      // pauses unused layers during preload (no element attached → smallest
+      // layer or paused). On handoff, the viewer's element attach naturally
+      // promotes to HIGH. Previously both were false → preloaded paths never
+      // benefited from server-side layer pausing.
+      adaptiveStream: true,
+      dynacast: true,
       reconnectPolicy: {
         nextRetryDelayInMs: (ctx: any) => (ctx.retryCount > 2 ? null : 300),
       },

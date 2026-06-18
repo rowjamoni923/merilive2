@@ -278,3 +278,30 @@ Step 14. L4 — verify `leave_live_stream_viewer` idempotency via SQL
 **Q3.** Phase 2C (Steps 10–11) — minimal additive UI ("Connecting…" pill + ended-modal CTAs) — চাস কিনা?
 
 **Recommendation:** **2A + 2B একসাথে** (all reliability, zero UI) → test → তারপর 2C আলাদা। 2D defer।
+
+---
+
+## Phase 2A + 2B — DONE (2026-06-18)
+
+| # | Step | Files | Status |
+|---|---|---|---|
+| 1 | H3: qualityEnforcer respects preferred quality (was forcing HIGH every 10s) | `useLiveKitClient.ts` | ✅ |
+| 2 | H1: preloaded room TrackMuted/Unmuted + ConnectionStateChanged + Disconnected auto-rejoin + hard-reconnect timer + videoMuted seed | `useLiveKitClient.ts` | ✅ |
+| 3 | H2: parallelize `enter_live_stream` RPC + `warmLiveKitToken` (Promise.all) | `LiveStream.tsx` | ✅ |
+| 4 | H5: 25s grace timer on visibilitychange + appStateChange, pause `<video>` immediately | `LiveStream.tsx` | ✅ |
+| 5 | H4: native viewer bounded reconnect curve (0→1.5→4→9→18s, then give up) | `useLiveKitClient.ts` | ✅ |
+| 6 | M3+M4: stall threshold 3s→1.5s + 2.5s revealEscalation watchdog → onVideoStalled | `LiveKitVideoPlayer.tsx` | ✅ |
+| 7 | M5: viewerHardReconnectTimerRef 2500ms → 7000ms | `useLiveKitClient.ts` | ✅ |
+| 8 | M1+M2: consumePreloadedStream 300ms wait + adaptiveStream:true/dynacast:true in preloader | `liveStreamPreloader.ts` + `LiveStream.tsx` | ✅ |
+| 9 | M7: showViewerStreamEnded dedup guard | `LiveStream.tsx` | ✅ |
+
+**Zero UI changes** — SACRED rule intact. APK rebuild NOT required for any of these (all web/edge logic). Native viewer reconnect ladder lives in TS hook (not in `LiveKitPlugin.kt`), so it ships immediately on next web bundle reload.
+
+**Test plan (owner account smdollarex923):**
+1. Join live stream cold → measure first-frame time (expect ~400–800ms improvement)
+2. Pull notification shade for 5s → return → viewer count stays correct (no decrement)
+3. Pull notification shade for 30s → return → viewer count drops then re-counts on heartbeat
+4. Host camera off → viewer sees avatar (works on preloaded path too)
+5. Throttle network in DevTools → quality stays LOW (no 10s HIGH bounce)
+6. End stream as host → viewer sees ended modal exactly once (no double-fire)
+

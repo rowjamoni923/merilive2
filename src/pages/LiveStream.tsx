@@ -137,6 +137,7 @@ import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSes
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
+import { warmLiveKitToken } from "@/services/livekitService";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
@@ -575,12 +576,34 @@ const LiveStream = () => {
     };
     window.addEventListener('pagehide', sendViewerLeave);
     window.addEventListener('beforeunload', sendViewerLeave);
-    // Pkg425: also fire on tab-hidden + Capacitor app background. iOS Safari and
-    // Android WebView kill tabs without firing pagehide/beforeunload reliably; the
-    // 90s cron cleans those up but the count stays inflated until then. Visibility
-    // and appStateChange give us a sub-second leave on app switch / lock screen.
+    // Phase 2A Step 4 (H5 fix): 25s grace timer on visibility/appState hide.
+    // Previously a 1-second notification-shade swipe fired leave_live_stream_viewer
+    // instantly → count permanently wrong (LiveKit room stayed connected but
+    // stream_viewers row got left_at; no re-enter on return). Now we wait
+    // 25s before leaving; if user returns within window, we cancel.
+    // We also pause the <video> element immediately to save battery/data.
+    const GRACE_MS = 25000;
+    let graceTimer: ReturnType<typeof setTimeout> | null = null;
+    const pauseRemoteVideos = (pause: boolean) => {
+      try {
+        document.querySelectorAll<HTMLVideoElement>('video[data-livekit-media="true"]').forEach((v) => {
+          if (pause) { try { v.pause(); } catch { /* noop */ } }
+          else { try { v.play().catch(() => {}); } catch { /* noop */ } }
+        });
+      } catch { /* ignore */ }
+    };
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') sendViewerLeave();
+      if (document.visibilityState === 'hidden') {
+        pauseRemoteVideos(true);
+        if (graceTimer) clearTimeout(graceTimer);
+        graceTimer = setTimeout(() => {
+          graceTimer = null;
+          if (document.visibilityState === 'hidden') sendViewerLeave();
+        }, GRACE_MS);
+      } else {
+        if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+        pauseRemoteVideos(false);
+      }
     };
     document.addEventListener('visibilitychange', onVisibility);
     let appStateDetach: (() => void) | null = null;
@@ -589,7 +612,17 @@ const LiveStream = () => {
       void import('@capacitor/app').then(({ App }) => {
         try {
           const handlePromise = Promise.resolve(App.addListener('appStateChange', ({ isActive }) => {
-            if (!isActive) sendViewerLeave();
+            if (!isActive) {
+              pauseRemoteVideos(true);
+              if (graceTimer) clearTimeout(graceTimer);
+              graceTimer = setTimeout(() => {
+                graceTimer = null;
+                sendViewerLeave();
+              }, GRACE_MS);
+            } else {
+              if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+              pauseRemoteVideos(false);
+            }
           }));
           appStateDetach = () => {
             handlePromise
@@ -621,6 +654,7 @@ const LiveStream = () => {
       window.removeEventListener('beforeunload', sendViewerLeave);
       document.removeEventListener('visibilitychange', onVisibility);
       if (appStateDetach) appStateDetach();
+      if (graceTimer) clearTimeout(graceTimer);
       if (hbTimer) clearInterval(hbTimer);
     };
   }, [id, currentUserId, isHost]);
@@ -1906,8 +1940,14 @@ const LiveStream = () => {
 
   const showViewerStreamEnded = useCallback(async (hostName?: string) => {
     if (isHost) return;
-    // Even if streamEndedRef was set elsewhere (e.g. realtime row update),
-    // we still want the modal to render with avatar + follow + thank-you.
+    // Phase 2B Step 9 (M7 fix): guard duplicate calls. Both the LiveKit
+    // 'livekit-stream-ended' event and the Realtime live_streams row update
+    // can fire within the same microtask batch — without this guard,
+    // leaveChannel() ran twice and two modals raced. Now first caller wins.
+    if (streamEndedRef.current && showStreamEndedModal) {
+      console.log('[LiveStream] 🟣 showViewerStreamEnded skipped — already ended');
+      return;
+    }
     streamEndedRef.current = true;
     setStreamEndedBy(hostName || hostInfo?.name || "Host");
     setShowStreamEndedModal(true);
@@ -1917,7 +1957,7 @@ const LiveStream = () => {
     streamEndRedirectTimerRef.current = setTimeout(() => {
       navigate('/', { replace: true });
     }, 7000);
-  }, [hostInfo?.name, isHost, leaveChannel, navigate]);
+  }, [hostInfo?.name, isHost, leaveChannel, navigate, showStreamEndedModal]);
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
   // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
@@ -2394,8 +2434,8 @@ const LiveStream = () => {
     console.log(`🚀 INSTANT JOIN: Starting as ${initialHostRole ? 'HOST' : 'VIEWER'}`);
     
     // 🚀 CHECK FOR PRELOADED ROOM FIRST (instant video!)
-    const preloaded = !initialHostRole ? consumePreloadedStream(id) : null;
-    
+    const preloadedPromise = !initialHostRole ? consumePreloadedStream(id) : Promise.resolve(null);
+
     const preloadedVideoTrack = initialHostRole
       ? hostTransitionPreviewStream?.getVideoTracks().find((track) => track.readyState === 'live')
       : undefined;
@@ -2407,11 +2447,25 @@ const LiveStream = () => {
       if (initialHostRole && !liveStreamCamera.ready) {
         throw new Error('Camera is in use by another feature. Please close it and try again.');
       }
+      // Phase 2A Step 3 (H2 fix): parallelize enter_live_stream RPC with the
+      // LiveKit token warmup. Previously they ran sequentially (3 RTTs cold).
+      // Token edge fn rejects with `must_enter_stream_first` if RPC hasn't
+      // completed yet — getLiveKitToken's internal backoff (400ms) covers
+      // that race, and by the time the real joinChannel calls it the token
+      // is already cached.
+      let preloaded: Awaited<ReturnType<typeof consumePreloadedStream>> = null;
       if (!initialHostRole) {
-        const { data, error } = await supabase.rpc('enter_live_stream', {
+        const rpcPromise = supabase.rpc('enter_live_stream', {
           p_stream_id: id,
           p_password: null,
         });
+        // Fire token warmup in parallel; harmless if it loses the race.
+        warmLiveKitToken(channelName, 'viewer_stream').catch(() => {});
+        const [{ data, error }, preloadedResult] = await Promise.all([
+          rpcPromise,
+          preloadedPromise,
+        ]);
+        preloaded = preloadedResult;
         const result = data as any;
         if (error || result?.success === false) {
           throw new Error(error?.message || result?.reason || 'Unable to enter live stream');
@@ -2427,9 +2481,9 @@ const LiveStream = () => {
       });
     };
 
-    enterBeforeJoin().then(() => {
+    enterBeforeJoin().then((res: any) => {
       const elapsed = performance.now() - startTime;
-      console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${preloaded ? ' (PRELOADED!)' : ''}`);
+      console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${res?._preloaded ? ' (PRELOADED!)' : ''}`);
     }).catch(err => {
       console.error('Join failed:', err);
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });

@@ -229,6 +229,19 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // subscription (must be a re-rendering value, not a ref).
   const [nativeActive, setNativeActive] = useState(false);
   const lastNativeReconnectAttemptAtRef = useRef(0);
+  // Phase 2A Step 5 (H4 fix): native viewer needs a bounded reconnect curve
+  // mirroring the web hard-reconnect ladder so APK viewers don't get stuck
+  // on flaky networks. Curve: 0s → 1.5s → 4s → 9s → 18s → give up.
+  const nativeReconnectAttemptRef = useRef(0);
+  const nativeReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const NATIVE_RECONNECT_DELAYS_MS = [0, 1500, 4000, 9000, 18000];
+
+  const clearNativeReconnectTimer = useCallback(() => {
+    if (nativeReconnectTimerRef.current) {
+      clearTimeout(nativeReconnectTimerRef.current);
+      nativeReconnectTimerRef.current = null;
+    }
+  }, []);
 
   const requestNativeReconnect = useCallback(() => {
     const now = Date.now();
@@ -236,6 +249,36 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     lastNativeReconnectAttemptAtRef.current = now;
     return nativeLiveKitController.reconnectNow();
   }, []);
+
+  const scheduleNativeReconnect = useCallback(() => {
+    if (isLeavingRef.current || !usingNativeRef.current) return;
+    const attempt = nativeReconnectAttemptRef.current;
+    if (attempt >= NATIVE_RECONNECT_DELAYS_MS.length) {
+      console.error('[LiveKitClient/Native] reconnect gave up after', attempt, 'attempts');
+      try { toast.error('Connection lost. Tap to retry.', { id: 'lk-live-reconnect' }); } catch { /* ignore */ }
+      return;
+    }
+    clearNativeReconnectTimer();
+    nativeReconnectTimerRef.current = setTimeout(() => {
+      nativeReconnectTimerRef.current = null;
+      if (isLeavingRef.current || !usingNativeRef.current) return;
+      requestNativeReconnect().then((ok) => {
+        if (ok) {
+          nativeReconnectAttemptRef.current = 0;
+          setNativeActive(true);
+          setIsJoined(true);
+          setConnectionState('CONNECTED');
+          try { toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 }); } catch { /* ignore */ }
+        } else {
+          nativeReconnectAttemptRef.current = attempt + 1;
+          scheduleNativeReconnect();
+        }
+      }).catch(() => {
+        nativeReconnectAttemptRef.current = attempt + 1;
+        scheduleNativeReconnect();
+      });
+    }, NATIVE_RECONNECT_DELAYS_MS[attempt]);
+  }, [clearNativeReconnectTimer, requestNativeReconnect]);
 
   // Subscribe to native plugin events while the host session is on the
   // native Android publish path. Surface disconnects back into React.
@@ -248,23 +291,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setIsNativeMediaActive(false);
         setIsJoined(false);
         setConnectionState('DISCONNECTED');
+        clearNativeReconnectTimer();
+        nativeReconnectAttemptRef.current = 0;
         return;
       }
       if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
-      toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
-      requestNativeReconnect().then((ok) => {
-        if (ok) {
-          setNativeActive(true);
-          setIsJoined(true);
-          setConnectionState('CONNECTED');
-          toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
-        } else {
-          setConnectionState('CONNECTING');
-        }
-      }).catch(() => {
-        setConnectionState('CONNECTING');
-      });
+      try { toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' }); } catch { /* ignore */ }
+      // Phase 2A Step 5 (H4): use bounded retry curve instead of single-shot.
+      nativeReconnectAttemptRef.current = 0;
+      scheduleNativeReconnect();
     },
     // Step 19 — sticky reconnect toast for live broadcasters/viewers.
     onConnectionState: (s) => {
@@ -276,10 +312,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setConnectionState('CONNECTING');
       } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
-        requestNativeReconnect().catch(() => {});
+        // Phase 2A Step 5 (H4): bounded retry instead of fire-and-forget.
+        if (nativeReconnectAttemptRef.current === 0) scheduleNativeReconnect();
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
+        nativeReconnectAttemptRef.current = 0;
+        clearNativeReconnectTimer();
       }
     },
     // Step 19 — permanent audio focus loss (PSTN call) — inform broadcaster.
@@ -932,6 +971,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           setConnectionState('CONNECTING');
           setIsReconnecting(true);
           if (config.role === 'audience' && !viewerHardReconnectTimerRef.current) {
+            // Phase 2B Step 7 (M5 fix): extended 2500ms → 7000ms so LiveKit's
+            // own ICE-restart + TURN fallback (3–8s on mobile) finishes
+            // naturally before we tear down and force a fresh join.
             viewerHardReconnectTimerRef.current = setTimeout(() => {
               viewerHardReconnectTimerRef.current = null;
               const lastConfig = lastConfigRef.current;
@@ -943,7 +985,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               setIsJoined(false);
               setConnectionState('CONNECTING');
               joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
-            }, 2500);
+            }, 7000);
           }
         } else if (state === ConnectionState.Disconnected) {
           setConnectionState('DISCONNECTED');
@@ -1020,19 +1062,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
       });
 
-      // CRYSTAL CLEAR: Keep HIGH quality for viewers without sub-5s polling.
-      // This touches only LiveKit track state (no DB), but must still respect
-      // the $1400 zero-tolerance guard for live/call/party intervals.
+      // Phase 2A Step 1 (H3 fix): quality enforcer must RESPECT the network-aware
+      // cap from applyVideoQualityCapToRoom instead of forcing HIGH every 10s.
+      // Previously this overrode every weak-network downgrade → viewers on bad
+      // networks burned data + stalled because LOW kept bouncing back to HIGH.
+      // Now we re-apply the *preferred* quality (which the QualityHint
+      // subscriber already lowered if network/thermal pressure is high).
       let qualityEnforcer: ReturnType<typeof setInterval> | null = null;
       if (config.role === 'audience') {
-        // Re-enforce HIGH quality every 10 seconds to prevent any downgrade.
         qualityEnforcer = setInterval(() => {
           if (room.state !== ConnectionState.Connected) return;
+          const target = preferredVideoQualityRef.current;
           room.remoteParticipants.forEach((remote) => {
             remote.trackPublications.forEach((pub) => {
               if (pub.kind !== Track.Kind.Video || !pub.isSubscribed) return;
               try {
-                pub.setVideoQuality?.(VideoQuality.HIGH);
+                pub.setVideoQuality?.(target);
               } catch {
                 // ignore optional API failures
               }
@@ -1076,7 +1121,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             attachRemoteAudioOnce(track, participant.identity, publication);
           }
           if (track.kind === Track.Kind.Video) {
-            const userWrapper = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false };
+            // Phase 2A Step 2 (H1): seed videoMuted from publication isMuted so
+            // viewers correctly show avatar overlay if host subscribed with
+            // camera-off on the preloaded fast-path.
+            const userWrapper: any = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false, videoMuted: !!(publication as any).isMuted };
             participant.trackPublications.forEach(pub => {
               if (pub.track?.kind === Track.Kind.Audio) { userWrapper.audioTrack = pub.track; userWrapper.hasAudio = true; }
             });
@@ -1122,12 +1170,84 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           clearHostVideoRecoveryTimer();
           setIsJoined(false);
           setConnectionState('DISCONNECTED');
+          // Phase 2A Step 2 (H1 fix): preloaded room was missing auto-rejoin
+          // on a hard disconnect — viewers got stuck on a frozen frame until
+          // they manually backed out. Mirror the normal-path 300ms rejoin.
+          clearViewerHardReconnectTimer();
+          const lastConfig = lastConfigRef.current;
+          if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            lastConfigRef.current = null;
+            setTimeout(() => {
+              if (isLeavingRef.current || isJoiningRef.current) return;
+              joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+            }, 300);
+          }
         });
         pRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
           if (publication.track?.kind === Track.Kind.Video) {
             setLocalVideoTrack(publication.track);
           } else if (publication.track?.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
+          }
+        });
+
+        // Phase 2A Step 2 (H1 fix): preloaded room was missing TrackMuted /
+        // TrackUnmuted listeners — viewers never saw the "camera off" avatar
+        // when the host disabled camera on the preloaded fast-path. Mirror the
+        // normal-path applyVideoMuteState wiring inline (helper is defined in
+        // the upper scope; safe to call here).
+        const applyVideoMuteStatePreloaded = (participant: RemoteParticipant, publication: RemoteTrackPublication, muted: boolean) => {
+          if (publication.kind !== Track.Kind.Video) return;
+          if (publication.source !== Track.Source.Camera) return;
+          const pUid = getUidForParticipant(participant.identity);
+          setRemoteUsers(prev => {
+            const existing = prev.get(pUid);
+            if (!existing) return prev;
+            if ((existing as any).videoMuted === muted) return prev;
+            const newMap = new Map(prev);
+            newMap.set(pUid, { ...existing, videoMuted: muted } as any);
+            return newMap;
+          });
+        };
+        pRoom.on(RoomEvent.TrackMuted, (publication, participant) => {
+          if ('identity' in (participant as any)) {
+            applyVideoMuteStatePreloaded(participant as RemoteParticipant, publication as RemoteTrackPublication, true);
+          }
+        });
+        pRoom.on(RoomEvent.TrackUnmuted, (publication, participant) => {
+          if ('identity' in (participant as any)) {
+            applyVideoMuteStatePreloaded(participant as RemoteParticipant, publication as RemoteTrackPublication, false);
+          }
+        });
+
+        // Phase 2A Step 2 (H1 fix): preloaded room was missing
+        // ConnectionStateChanged → viewerHardReconnectTimerRef was never
+        // armed during a Reconnecting state, so a stalled reconnect on the
+        // preloaded path had no escape hatch. Mirror normal path.
+        pRoom.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
+          if (state === ConnectionState.Connected) {
+            setConnectionState('CONNECTED');
+            setIsReconnecting(false);
+            clearViewerHardReconnectTimer();
+          } else if (state === ConnectionState.Reconnecting) {
+            setConnectionState('CONNECTING');
+            setIsReconnecting(true);
+            if (!viewerHardReconnectTimerRef.current) {
+              viewerHardReconnectTimerRef.current = setTimeout(() => {
+                viewerHardReconnectTimerRef.current = null;
+                const lastConfig = lastConfigRef.current;
+                if (!lastConfig || lastConfig.role !== 'audience' || isJoiningRef.current || isLeavingRef.current) return;
+                console.warn('[LiveKitClient] Preloaded-path audience reconnect stalled, forcing fresh room join');
+                lastConfigRef.current = null;
+                pRoom.disconnect(true);
+                setRemoteUsers(new Map());
+                setIsJoined(false);
+                setConnectionState('CONNECTING');
+                joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+              }, 7000);
+            }
+          } else if (state === ConnectionState.Disconnected) {
+            setConnectionState('DISCONNECTED');
           }
         });
 
