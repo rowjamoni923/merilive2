@@ -397,7 +397,17 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 const RouteSuspenseFallback = memo(() => {
   const path = typeof window !== 'undefined' ? window.location.pathname : '/';
   const isAuthRoute = path.startsWith('/auth') || path.startsWith('/reset-password');
-  const isLiveSurface = path.startsWith('/live') || path.startsWith('/party') || path.startsWith('/call');
+  // Only true full-screen room/call routes — NOT the /live list/lobby page.
+  const isLiveSurface =
+    /^\/live\/[^/]+/.test(path) ||
+    path.startsWith('/live-feed') ||
+    path.startsWith('/party/') ||
+    path === '/go-live' ||
+    path.startsWith('/call/') ||
+    path.startsWith('/active-call') ||
+    path.startsWith('/incoming-call') ||
+    path.startsWith('/outgoing-call') ||
+    path.startsWith('/stream/');
 
   if (isAuthRoute) {
     return (
@@ -417,20 +427,22 @@ const RouteSuspenseFallback = memo(() => {
   }
 
   if (isLiveSurface) {
+    // Pkg504: explicit dark bg (matches index.html data-boot-theme="dark") so the
+    // cream `bg-background` never flashes through during chunk/Suspense boot.
     return (
-      <div className="fixed inset-0 bg-background" aria-hidden="true">
-        <div className="absolute inset-0 bg-muted/50 animate-pulse" />
+      <div className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
+        <div className="absolute inset-0 bg-white/[0.03] animate-pulse" />
         <div className="absolute left-4 right-4 top-safe pt-4 flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full bg-card/80" />
+          <div className="h-11 w-11 rounded-full bg-white/10" />
           <div className="space-y-2">
-            <div className="h-3 w-28 rounded bg-card/80" />
-            <div className="h-3 w-16 rounded bg-card/60" />
+            <div className="h-3 w-28 rounded bg-white/10" />
+            <div className="h-3 w-16 rounded bg-white/[0.07]" />
           </div>
         </div>
         <div className="absolute bottom-safe left-4 right-4 pb-5 space-y-3">
-          <div className="h-10 rounded-full bg-card/70" />
+          <div className="h-10 rounded-full bg-white/10" />
           <div className="flex justify-between">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full bg-card/70" />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full bg-white/10" />)}
           </div>
         </div>
       </div>
