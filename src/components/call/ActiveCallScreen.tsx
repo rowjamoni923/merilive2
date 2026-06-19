@@ -1276,7 +1276,7 @@ export function ActiveCallScreen({
         {isPreviewWeb && previewStream && (
           <>
             <video
-              ref={previewVideoRefPrimary}
+              ref={(el) => attachPreview(el, 'primary')}
               autoPlay
               playsInline
               muted
