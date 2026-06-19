@@ -4505,11 +4505,13 @@ html.reduce-motion [data-tap-press]:active {
   100% { background-position: 200% 0; }
 }
 .pkg434-skel {
+  /* Pkg504: cream `--muted` on cream `--background` was invisible — every
+     skeleton looked like a blank screen. Use concrete neutral with shimmer. */
   background: linear-gradient(
     90deg,
-    hsl(var(--muted) / 0.6) 0%,
-    hsl(var(--muted) / 0.9) 50%,
-    hsl(var(--muted) / 0.6) 100%
+    hsl(35 26% 86%) 0%,
+    hsl(36 36% 92%) 50%,
+    hsl(35 26% 86%) 100%
   );
   background-size: 200% 100%;
   animation: pkg434-skel-shimmer 1.4s ease-in-out infinite;
