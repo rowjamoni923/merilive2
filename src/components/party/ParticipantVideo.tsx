@@ -55,10 +55,17 @@ export function ParticipantVideo({
         el.onloadeddata = reveal;
 
         el.play().then(() => {
-          // If no events fired, reveal after a short delay if the stream is live
+          // First reveal only after a decoded frame; second net trusts the live
+          // upstream track so WebView/Chromium event races do not leave seats
+          // opacity-hidden forever.
           setTimeout(() => {
-            if (stream.active) reveal();
+            if (stream.active && el.videoWidth > 0 && el.videoHeight > 0) reveal();
           }, 450);
+          setTimeout(() => {
+            if (stream.active && stream.getVideoTracks().some((t) => t.readyState === 'live')) {
+              el.style.opacity = '1';
+            }
+          }, 1200);
         }).catch(e => console.log("Video play error:", e));
       }
 
