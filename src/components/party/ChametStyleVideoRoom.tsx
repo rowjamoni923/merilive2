@@ -139,6 +139,7 @@ const StableStreamVideo = ({
   stream: MediaStream;
   mirror: boolean;
 }) => {
+  const remountKeyRef = useRef(0);
   const mediaTrack = stream.getVideoTracks().find((track) => track.readyState === 'live' && track.enabled !== false) ?? null;
   const videoTrack = useMemo(() => {
     if (!mediaTrack) return null;
@@ -158,9 +159,13 @@ const StableStreamVideo = ({
   if (!videoTrack) return null;
   return (
     <LiveKitVideoPlayer
+      key={`${mediaTrack?.id || 'stream'}-${remountKeyRef.current}`}
       videoTrack={videoTrack}
       mirror={mirror}
       fit="cover"
+      onVideoStalled={() => {
+        remountKeyRef.current += 1;
+      }}
       className="w-full h-full"
     />
   );
