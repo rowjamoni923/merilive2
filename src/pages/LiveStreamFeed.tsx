@@ -211,8 +211,11 @@ export default function LiveStreamFeed() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div
+        className="fixed inset-0 flex items-center justify-center"
+        style={{ backgroundColor: '#050208' }}
+      >
+        <Loader2 className="w-8 h-8 text-white/80 animate-spin" />
       </div>
     );
   }
@@ -221,12 +224,15 @@ export default function LiveStreamFeed() {
 
   if (!currentStream) {
     return (
-      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 border border-border">
-          <Radio className="w-8 h-8 text-primary" />
+      <div
+        className="fixed inset-0 flex flex-col items-center justify-center px-6 text-center"
+        style={{ backgroundColor: '#050208' }}
+      >
+        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 border border-white/15">
+          <Radio className="w-8 h-8 text-white/90" />
         </div>
-        <h1 className="text-lg font-bold text-display mb-2">No Live Streams</h1>
-        <p className="text-sm text-muted-pro max-w-[240px]">Live hosts will appear here as soon as they start streaming.</p>
+        <h1 className="text-lg font-bold text-white mb-2">No Live Streams</h1>
+        <p className="text-sm text-white/70 max-w-[240px]">Live hosts will appear here as soon as they start streaming.</p>
         <Button className="mt-5" onClick={() => navigate('/')}>Back Home</Button>
       </div>
     );
