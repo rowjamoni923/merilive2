@@ -816,15 +816,17 @@ const GoLive = () => {
     // before we navigate to /live, otherwise LiveKit connect starts from a
     // cold camera and the user sees a 200-800ms black flash on stream open.
     // One inline retry; if still no preview, abort with a clear toast.
-    if (isNativeAndroid && !nativePreviewActive) {
+    let nativePreviewReadyForHandoff = nativePreviewActive;
+    if (isNativeAndroid && !nativePreviewReadyForHandoff) {
       const retried = await startNativePreview().catch(() => false);
       if (!retried) {
         toast.error('Camera preview not ready. Please tap again.');
         return;
       }
+      nativePreviewReadyForHandoff = true;
     }
 
-    const shouldPreserveNativePreview = isNativeAndroid && nativePreviewActive;
+    const shouldPreserveNativePreview = isNativeAndroid && nativePreviewReadyForHandoff;
     if (shouldPreserveNativePreview) {
       preservePreviewForLiveRef.current = true;
       applyNativePreviewTransparency(true);
@@ -913,7 +915,7 @@ const GoLive = () => {
       // - Web preview: preserve same MediaStream for zero-gap transition
       // - Native preview: preserve the SAME LiveKit Camera2 LocalVideoTrack;
       //   do NOT stopLocalPreview() here or streaming must reopen Camera2.
-      if (isNativeAndroid && nativePreviewActive) {
+      if (isNativeAndroid && nativePreviewReadyForHandoff) {
         preservePreviewForLiveRef.current = true;
         clearPreparedHostPreviewStream({ stopTracks: true });
         if (streamRef.current) {
