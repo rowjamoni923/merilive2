@@ -162,3 +162,6 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 1. `App.tsx` now disables optional welcome/reward/event/rating overlays on live, Go Live, party, and call media routes so route transitions cannot be click-blocked by popups.
 2. `dialog.tsx` now suppresses Radix missing-description warnings for intentionally title-only dialogs by defaulting `aria-describedby` to undefined.
 3. `usePartyRoomNativeLiveKit.ts` native party prewarm/connect resolution is upgraded from 720p to 1080p, matching the existing LiveKit camera standard and avoiding a low-res restart path.
+4. `GoLive.tsx` now uses one shared native-safe route-exit cleanup for Edit Profile, Face Verification, and Join Agency paths: clear prepared preview, stop native preview, stop web tracks, clear native media surface, then navigate.
+5. `RouteTransitionHost.tsx` skips the global route fade during `/go-live` → `/live/:id` so the preserved camera surface is not flashed over during handoff.
+6. `ActiveCallScreen.tsx` no longer opens/stores preview-web camera media when `callId` is still null, preventing a prepared-call media leak under a null key.
