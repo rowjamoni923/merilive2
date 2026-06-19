@@ -554,9 +554,19 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isMediaRoute =
+    /^\/live\/[^/]+/.test(location.pathname) ||
+    location.pathname.startsWith('/live-feed') ||
+    location.pathname.startsWith('/party/') ||
+    location.pathname === '/go-live' ||
+    location.pathname.startsWith('/call/') ||
+    location.pathname.startsWith('/active-call') ||
+    location.pathname.startsWith('/incoming-call') ||
+    location.pathname.startsWith('/outgoing-call') ||
+    location.pathname.startsWith('/stream/');
   const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
   const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
-  const showPopups = !isAdminRoute && !isPublicPage && hasSession;
+  const showPopups = !isAdminRoute && !isPublicPage && !isMediaRoute && hasSession;
 
   useUserBalancePrefetch();
 

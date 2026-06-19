@@ -30,7 +30,13 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const contentProps = {
+    "aria-describedby": undefined,
+    ...props,
+  } as React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>;
+
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -41,7 +47,7 @@ const DialogContent = React.forwardRef<
         className,
       )}
       style={{ WebkitOverflowScrolling: "touch" }}
-      {...props}
+      {...contentProps}
     >
       {children}
       <DialogPrimitive.Close
@@ -60,7 +66,8 @@ const DialogContent = React.forwardRef<
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
