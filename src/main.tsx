@@ -122,6 +122,24 @@ if (isNativeApp()) {
 // Prevent default touch behaviors for native feel
 document.addEventListener('touchstart', () => {}, { passive: true });
 
+const markBootedWhenSurfaceIsReady = () => {
+  const startedAt = Date.now();
+  const hasSurface = () => {
+    const root = document.getElementById("root");
+    if (!root) return false;
+    if ((root.innerText || "").trim().length > 0) return true;
+    return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root],[role='dialog'],[aria-busy='true']");
+  };
+  const tick = () => {
+    if (hasSurface() || Date.now() - startedAt > 4000) {
+      try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
+      return;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+};
+
 // Render app immediately
 const container = document.getElementById("root");
 if (container) {
@@ -134,7 +152,7 @@ if (container) {
     // splash so slow/old WebView devices don't stay stuck on it.
     requestAnimationFrame(() => {
       try { (window as any).__meriliveBooted?.(); } catch { /* ignore */ }
-      try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
+      markBootedWhenSurfaceIsReady();
       if (isNativeApp()) {
         import('@capacitor/splash-screen')
           .then(({ SplashScreen }) => SplashScreen.hide().catch(() => {}))

@@ -38,7 +38,16 @@ const hasMeaningfulRouteSurface = () => {
 
 const getSurfaceKind = (pathname: string) => {
   if (pathname.startsWith("/auth") || pathname.startsWith("/reset-password")) return "auth";
-  if (pathname.startsWith("/live") || pathname.startsWith("/party") || pathname.startsWith("/call")) return "live";
+  if (
+    pathname.startsWith("/live") ||
+    pathname.startsWith("/party") ||
+    pathname === "/go-live" ||
+    pathname.startsWith("/call") ||
+    pathname.startsWith("/active-call") ||
+    pathname.startsWith("/incoming-call") ||
+    pathname.startsWith("/outgoing-call") ||
+    pathname.startsWith("/stream")
+  ) return "live";
   return "app";
 };
 
@@ -62,19 +71,19 @@ const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
 
   if (kind === "live") {
     return (
-      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] bg-background" aria-hidden="true">
-        <div className="absolute inset-0 bg-muted/50 skeleton" />
+      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] blank-guard-live" aria-hidden="true">
+        <div className="absolute inset-0 blank-guard-live-pulse" />
         <div className="absolute left-4 right-4 top-safe pt-4 flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full skeleton" />
+          <div className="h-11 w-11 rounded-full blank-guard-live-block" />
           <div className="space-y-2">
-            <div className="h-3 w-28 rounded skeleton" />
-            <div className="h-3 w-16 rounded skeleton" />
+            <div className="h-3 w-28 rounded blank-guard-live-block" />
+            <div className="h-3 w-16 rounded blank-guard-live-block" />
           </div>
         </div>
         <div className="absolute bottom-safe left-4 right-4 pb-5 space-y-3">
-          <div className="h-10 rounded-full skeleton" />
+          <div className="h-10 rounded-full blank-guard-live-block" />
           <div className="flex justify-between">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full skeleton" />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full blank-guard-live-block" />)}
           </div>
         </div>
       </div>
@@ -82,18 +91,18 @@ const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
   }
 
   return (
-    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] bg-background px-4 pb-24 pt-safe" aria-hidden="true">
+    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] blank-guard-app px-4 pb-24 pt-safe" aria-hidden="true">
       <div className="mx-auto max-w-md space-y-4 pt-4">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-32 rounded skeleton" />
-          <div className="h-10 w-10 rounded-full skeleton" />
+          <div className="h-8 w-32 rounded skl-block" />
+          <div className="h-10 w-10 rounded-full skl-block" />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="h-40 rounded-2xl skeleton" />
-          <div className="h-40 rounded-2xl skeleton" />
+          <div className="h-40 rounded-2xl skl-block" />
+          <div className="h-40 rounded-2xl skl-block" />
         </div>
         <div className="space-y-3">
-          {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-2xl skeleton" />)}
+          {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-2xl skl-block-soft" />)}
         </div>
       </div>
     </div>
