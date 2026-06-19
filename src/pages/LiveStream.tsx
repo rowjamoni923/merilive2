@@ -220,6 +220,7 @@ const LiveStream = () => {
     return null;
   });
   const hostTransitionVideoRef = useRef<HTMLVideoElement>(null);
+  const [hostLiveKitVideoReady, setHostLiveKitVideoReady] = useState(false);
   const [hostInfo, setHostInfo] = useState<{
     name: string;
     avatar: string;
@@ -2447,28 +2448,24 @@ const LiveStream = () => {
   }, [isHost, hostTransitionPreviewStream]);
 
   useEffect(() => {
-    if (localVideoTrack && hostTransitionPreviewStream) {
-      // GAP-2 fix (2026-06-12): When the beauty processor is active, the
-      // published `LocalVideoTrack.mediaStreamTrack` is a NEW track wrapping
-      // the preview source — track-identity comparison would `.stop()` the
-      // still-encoding preview track mid-publish, producing a green/black
-      // frame. Chamet/Bigo (Agora) never have two track objects for one
-      // capture. Safer rule: keep the preview bridge visible until the real
-      // LiveKit player has passed its reveal watchdog, then only stop tracks
-      // the OS has already ended.
-      const previewStream = hostTransitionPreviewStream;
-      const cleanupTimer = window.setTimeout(() => {
-        previewStream.getTracks().forEach((track) => {
-          if (track.readyState === 'ended') {
-            try { track.stop(); } catch { /* ignore */ }
-          }
-        });
-        void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
-        setHostTransitionPreviewStream((current) => current === previewStream ? null : current);
-      }, 1400);
-      return () => window.clearTimeout(cleanupTimer);
-    }
-  }, [localVideoTrack, hostTransitionPreviewStream]);
+    setHostLiveKitVideoReady(false);
+  }, [id, localVideoTrack]);
+
+  useEffect(() => {
+    if (!hostLiveKitVideoReady || !hostTransitionPreviewStream) return;
+    const previewStream = hostTransitionPreviewStream;
+    // Professional handoff rule: never remove the preserved preview on a fixed
+    // timer. Drop it only after the LiveKit renderer has attached/revealed a
+    // real camera surface, so broadcast opens like Bigo/Chamet: same camera,
+    // new UI chrome, no blank gap.
+    previewStream.getTracks().forEach((track) => {
+      if (track.readyState === 'ended') {
+        try { track.stop(); } catch { /* ignore */ }
+      }
+    });
+    void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
+    setHostTransitionPreviewStream((current) => current === previewStream ? null : current);
+  }, [hostLiveKitVideoReady, hostTransitionPreviewStream]);
 
   // ULTRA-FAST Channel join - Start connection IMMEDIATELY, don't wait for full verification
   // This reduces connection time from 2-4 seconds to under 1 second
@@ -4011,7 +4008,7 @@ const LiveStream = () => {
                   transform: 'scaleX(-1)',
                   filter: combinedFilterCSS || undefined,
                   WebkitAppearance: 'none',
-                  zIndex: localVideoTrack ? 0 : 1,
+                  zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
                 }}/>
             )}
             {localVideoTrack && (
@@ -4019,6 +4016,7 @@ const LiveStream = () => {
                 videoTrack={localVideoTrack}
                 mirror={true}
                 fit="cover"
+                onVideoReady={() => setHostLiveKitVideoReady(true)}
                 className="absolute inset-0 w-full h-full"
               />
             )}
