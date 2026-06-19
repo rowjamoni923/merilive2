@@ -1296,7 +1296,7 @@ export function ActiveCallScreen({
               }}
             >
               <video
-                ref={previewVideoRefPip}
+                ref={(el) => attachPreview(el, 'pip')}
                 autoPlay
                 playsInline
                 muted
