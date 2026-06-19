@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
