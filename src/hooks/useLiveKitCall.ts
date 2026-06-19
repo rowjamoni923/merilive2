@@ -874,14 +874,13 @@ export function useLiveKitCall(
         let publishError: Error | null = null;
         while (publishAttempt < 3) {
           try {
-            const preparedStream = publishAttempt === 0
-              ? consumePreparedCallMediaStream(callId)
-              : peekPreparedCallMediaStream(callId);
+            const preparedStream = peekPreparedCallMediaStream(callId);
             await publishReliableLocalMedia(room, {
               needVideo: true,
               needAudio: true,
               preparedStream,
             });
+            clearPreparedCallMediaStream(callId);
             publishError = null;
             break;
           } catch (e) {
