@@ -433,22 +433,7 @@ export function ChametStyleVideoRoom({
                   <div className="w-full h-full relative">
                     {/* Use unified LiveKitVideoPlayer for better reliability and Android watchdog */}
                     {hasVideo ? (
-                      <LiveKitVideoPlayer
-                        videoTrack={{
-                          mediaStreamTrack: streamToUse!.getVideoTracks()[0],
-                          attach: (el: HTMLVideoElement) => {
-                            el.srcObject = new MediaStream([streamToUse!.getVideoTracks()[0]]);
-                            return el;
-                          },
-                          detach: (el: HTMLVideoElement) => {
-                            el.srcObject = null;
-                            return el;
-                          }
-                        } as any}
-                        mirror={isMyself}
-                        fit="cover"
-                        className="w-full h-full"
-                      />
+                      <StableStreamVideo stream={streamToUse!} mirror={isMyself} />
                     ) : (
                       <div
                         className={cn(
