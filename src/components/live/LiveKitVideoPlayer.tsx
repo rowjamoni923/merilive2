@@ -39,6 +39,7 @@ interface LiveKitVideoPlayerProps {
   fit?: 'cover' | 'contain';
   muted?: boolean;
   onVideoStalled?: () => void;
+  onVideoReady?: () => void;
   /** Pkg146: opt-in browser Picture-in-Picture. Adds data-pip-id and drops disablePictureInPicture. */
   enablePictureInPicture?: boolean;
   /** Pkg146: stable id used by <PictureInPictureButton pipId={...} /> to locate this video. */
@@ -52,12 +53,15 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   fit = 'cover',
   muted = true,
   onVideoStalled,
+  onVideoReady,
   enablePictureInPicture = false,
   pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
+  const onVideoReadyRef = useRef(onVideoReady);
+  onVideoReadyRef.current = onVideoReady;
   // Pkg-audit#2: keep `muted` in a ref so toggling mute does NOT re-run the
   // attach effect (which would detach/reattach the track and cause a ~160ms
   // black flash + stall-watchdog reset on every viewer mute click).
@@ -71,10 +75,20 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   // ran `detach(el)` even though the very next attach is the same track).
   const videoTrackRef = useRef(videoTrack);
   videoTrackRef.current = videoTrack;
+  const getRawMediaTrack = (track: Track | null | undefined): MediaStreamTrack | null => {
+    if (!track) return null;
+    return (
+      (track as any).mediaStreamTrack ||
+      (typeof (track as any).getMediaStreamTrack === 'function' ? (track as any).getMediaStreamTrack() : null) ||
+      null
+    );
+  };
+  const rawMediaTrack = getRawMediaTrack(videoTrack);
   const trackKey =
-    videoTrack?.mediaStreamTrack?.id ||
-    (videoTrack as unknown as { sid?: string })?.sid ||
-    null;
+    rawMediaTrack?.id ||
+    (videoTrack as unknown as { sid?: string; trackSid?: string })?.sid ||
+    (videoTrack as unknown as { sid?: string; trackSid?: string })?.trackSid ||
+    (videoTrack ? 'livekit-track-present' : null);
 
   // Hide video element until first real frame arrives — prevents native play-icon flash
   // without painting any visible color (no black overlay, container stays transparent).
@@ -101,7 +115,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const videoTrack = videoTrackRef.current;
     if (!el || !videoTrack) return;
 
-    const mediaTrack = videoTrack.mediaStreamTrack;
+    const mediaTrack = getRawMediaTrack(videoTrack);
 
     // Pkg-audit Bug E: detect re-attach of the SAME track (parent re-render)
     // and keep the element visible instead of blanking it.
@@ -168,6 +182,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       const force = forceOrEvent === true;
       if (!force && !hasDecodedFrame()) return;
       revealVideo();
+      onVideoReadyRef.current?.();
       if (!mutedRef.current) {
         try {
           el.muted = false;
@@ -210,7 +225,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const timers = [0, 60, 180, 400, 800].map((d) => setTimeout(playNow, d));
 
     const revealWatchdog = setTimeout(() => {
-      const mt = videoTrack?.mediaStreamTrack;
+      const mt = getRawMediaTrack(videoTrack);
       // Pkg-audit V3: don't reveal until video element has actually decoded a
       // frame (readyState >= HAVE_CURRENT_DATA AND non-zero videoWidth).
       if (mt && mt.readyState === 'live' && el.readyState >= 2 && el.videoWidth > 0) {
@@ -228,7 +243,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     // track is attached and live, reveal the element after the first-frame
     // budget so users see the camera surface instead of a fake blank room.
     const liveTrackReveal = setTimeout(() => {
-      const mt = videoTrack?.mediaStreamTrack;
+      const mt = getRawMediaTrack(videoTrack);
       const cur = el.srcObject as MediaStream | null;
       const curTrack = cur?.getVideoTracks?.()[0];
       if (mt && mt.readyState === 'live' && curTrack?.id === mt.id) {
@@ -241,7 +256,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     // produced a single frame after 2.5s while the track is "live", escalate
     // by asking the parent to retry subscription (which detaches + resubs).
     const revealEscalation = setTimeout(() => {
-      const mt = videoTrack?.mediaStreamTrack;
+      const mt = getRawMediaTrack(videoTrack);
       if (mt && mt.readyState === 'live' && (el.videoWidth === 0 || el.readyState < 2)) {
         console.warn('[LiveKitVideoPlayer] revealEscalation: no frame after 2.5s → onVideoStalled');
         onVideoStalledRef.current?.();
