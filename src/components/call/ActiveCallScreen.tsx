@@ -712,7 +712,7 @@ export function ActiveCallScreen({
       // Screen black-out protection disabled by request (no app-wide black behavior)
       
       // Add CSS class for screenshot prevention
-      document.body.classList.add('no-screenshot', 'secure-call');
+      document.body.classList.add('no-screenshot');
       
       // Prevent right-click
       const preventContextMenu = (e: MouseEvent) => {
@@ -771,13 +771,13 @@ export function ActiveCallScreen({
       const style = document.createElement('style');
       style.id = 'secure-call-style';
       style.textContent = `
-        .secure-call video {
+        [data-room-shell="call"] video {
           -webkit-touch-callout: none;
           -webkit-user-select: none;
           user-select: none;
           pointer-events: none;
         }
-        .secure-call::before {
+        [data-room-shell="call"]::before {
           content: '';
           position: fixed;
           top: 0;
@@ -789,7 +789,7 @@ export function ActiveCallScreen({
           background: transparent;
         }
         @media print {
-          .secure-call * {
+          [data-room-shell="call"] * {
             display: none !important;
           }
         }
@@ -797,7 +797,7 @@ export function ActiveCallScreen({
       document.head.appendChild(style);
 
       return () => {
-        document.body.classList.remove('no-screenshot', 'secure-call');
+        document.body.classList.remove('no-screenshot');
         document.removeEventListener('contextmenu', preventContextMenu);
         document.removeEventListener('keydown', preventScreenshot, true);
         document.removeEventListener('keyup', preventScreenshot, true);
@@ -985,7 +985,7 @@ export function ActiveCallScreen({
 
   const callUi = (
     <div
-      data-room-shell
+      data-room-shell="call"
       className="fixed inset-0 z-[2147483600] flex select-none overflow-hidden"
       style={{ 
         userSelect: 'none', 
@@ -994,12 +994,12 @@ export function ActiveCallScreen({
         willChange: 'transform',
         width: '100vw',
         height: '100dvh',
-        background: isNativeMediaActive ? 'transparent' : undefined,
+        background: isNativeMediaActive ? 'transparent' : '#050208',
       }}
     >
       <div
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
-        style={{ opacity: (showNativeCallingSurface || shouldExposeNativePreview) ? 0 : 1 }}
+        style={{ opacity: (showNativeCallingSurface || shouldExposeNativePreview) && !isPreviewWeb ? 0 : 1 }}
       />
 
       {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
