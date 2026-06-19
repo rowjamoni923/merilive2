@@ -199,40 +199,40 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     return (
       <div className="min-h-screen w-full bg-background pt-safe" aria-hidden="true">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <div className="h-8 w-32 rounded-lg bg-foreground/10 animate-pulse" />
+          <div className="h-8 w-32 rounded-lg skl-block" />
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-full bg-foreground/10 animate-pulse" />
-            <div className="h-9 w-9 rounded-full bg-foreground/10 animate-pulse" />
+            <div className="h-9 w-9 rounded-full skl-block" />
+            <div className="h-9 w-9 rounded-full skl-block" />
           </div>
         </div>
         <div className="flex gap-2 px-4 pb-3 overflow-hidden">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-7 w-16 rounded-full bg-foreground/[0.07] animate-pulse" />
+            <div key={i} className="h-7 w-16 rounded-full skl-block-soft" />
           ))}
         </div>
         <div className="px-4 pb-24 space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-44 rounded-2xl bg-foreground/[0.08] animate-pulse" />
-            <div className="h-44 rounded-2xl bg-foreground/[0.08] animate-pulse" />
+            <div className="h-44 rounded-2xl skl-block" />
+            <div className="h-44 rounded-2xl skl-block" />
           </div>
           <div className="space-y-2.5 pt-1">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-foreground/[0.05]">
-                <div className="h-12 w-12 rounded-full bg-foreground/10 animate-pulse" />
+              <div key={i} className="flex items-center gap-3 p-3 rounded-2xl skl-block-soft">
+                <div className="h-12 w-12 rounded-full skl-block-dark" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-1/2 rounded bg-foreground/10 animate-pulse" />
-                  <div className="h-3 w-1/3 rounded bg-foreground/[0.07] animate-pulse" />
+                  <div className="h-3.5 w-1/2 rounded skl-block-dark" />
+                  <div className="h-3 w-1/3 rounded skl-block" />
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="fixed inset-x-0 bottom-0 border-t border-foreground/5 bg-background/95 backdrop-blur-sm pb-safe">
+        <div className="fixed inset-x-0 bottom-0 border-t border-foreground/10 bg-background/95 backdrop-blur-sm pb-safe">
           <div className="flex items-center justify-around px-4 py-2.5">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
-                <div className="h-6 w-6 rounded-md bg-foreground/10 animate-pulse" />
-                <div className="h-2 w-8 rounded bg-foreground/[0.07] animate-pulse" />
+                <div className="h-6 w-6 rounded-md skl-block-dark" />
+                <div className="h-2 w-8 rounded skl-block" />
               </div>
             ))}
           </div>
