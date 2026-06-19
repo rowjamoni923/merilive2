@@ -193,3 +193,9 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 **Gap found after user re-test:** The shared `LiveKitVideoPlayer` had a 900ms live-track fallback that called `onVideoReady(true)` even when the element had not decoded a real frame (`videoWidth`/`readyState` still not proven). In the host broadcast path, that fake-ready callback cleared the preserved GoLive preview bridge, exposing the not-yet-painted LiveKit surface as black.
 
 **Code-level fix applied:** `LiveKitVideoPlayer.tsx` now fires `onVideoReady` only from real decoded-frame evidence (`readyState >= 2` and non-zero video dimensions). The 900ms fallback may reveal the video element for Party/Call/visitor recovery, but it no longer triggers host preview cleanup. Result: host preview remains visible until the actual broadcast renderer has a real frame.
+
+**Subagent follow-up fixes applied:**
+1. `GoLive.tsx` resets native preview-preserve/transparency on live-ban failure, preventing black native background after blocked go-live.
+2. `LiveKitVideoPlayer.tsx` uses a WeakMap object identity fallback when LiveKit/native track IDs are not ready, so a new track object still re-attaches.
+3. `LiveKitVideoPlayer.tsx` no longer escalates stall recovery to parent callbacks for local host tracks, avoiding unnecessary detach/resubscribe flashes.
+4. `hostPreviewSession.ts` is StrictMode/HMR-safe for web preview handoff by keeping the prepared stream available after the first valid consume instead of nulling it immediately.
