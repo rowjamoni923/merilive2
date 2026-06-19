@@ -63,6 +63,11 @@ import {
   MicOff,
   Hand,
   Bot,
+  Video,
+  VideoOff,
+  RefreshCcw,
+  Image as ImageIcon,
+  Volume2,
 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
