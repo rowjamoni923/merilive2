@@ -272,6 +272,9 @@ const LiveStream = () => {
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  // Pkg502 — host camera on/off toggle (mutes the video publication without
+  // tearing down the LiveKit track, matching Chamet/Bigo "camera off" UX).
+  const [isHostCamOff, setIsHostCamOff] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
