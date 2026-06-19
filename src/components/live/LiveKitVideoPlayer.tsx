@@ -164,7 +164,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const hasDecodedFrame = () => el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0;
 
-    const markReady = (force = false) => {
+    const markReady = (forceOrEvent?: boolean | Event | void) => {
+      const force = forceOrEvent === true;
       if (!force && !hasDecodedFrame()) return;
       revealVideo();
       if (!mutedRef.current) {
