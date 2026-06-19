@@ -183,3 +183,13 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 4. `ChametStyleVideoRoom.tsx` stable party stream tiles now wire `onVideoStalled` to remount the renderer instead of leaving a stalled seat blank.
 
 **Verification note:** Owner automated login in this sandbox reached Supabase auth `400`, so the full authenticated GoLive route could not be completed from Playwright here. Static/source verification confirms the exact 1.4s broadcast camera gap from the user video is removed; final visual confirmation still requires a valid preview session or manual owner preview reload.
+
+---
+
+## 2026-06-19 — Follow-up: fake broadcast-ready signal removed
+
+**Research re-check:** LiveKit JS docs confirm video rendering must attach the actual `Track`/`LocalVideoTrack` to an `HTMLVideoElement`; with adaptive stream, remote video may not start unless attached. BIGO's public product page describes one-touch live broadcast/video chat, so the expected UX is continuous camera surface with only UI chrome changing.
+
+**Gap found after user re-test:** The shared `LiveKitVideoPlayer` had a 900ms live-track fallback that called `onVideoReady(true)` even when the element had not decoded a real frame (`videoWidth`/`readyState` still not proven). In the host broadcast path, that fake-ready callback cleared the preserved GoLive preview bridge, exposing the not-yet-painted LiveKit surface as black.
+
+**Code-level fix applied:** `LiveKitVideoPlayer.tsx` now fires `onVideoReady` only from real decoded-frame evidence (`readyState >= 2` and non-zero video dimensions). The 900ms fallback may reveal the video element for Party/Call/visitor recovery, but it no longer triggers host preview cleanup. Result: host preview remains visible until the actual broadcast renderer has a real frame.
