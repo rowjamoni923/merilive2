@@ -124,6 +124,40 @@ interface ChametStyleGameRoomProps {
   joinMessages?: JoinMessage[];
 }
 
+const StableGameStreamVideo = ({
+  stream,
+  mirror,
+}: {
+  stream: MediaStream;
+  mirror: boolean;
+}) => {
+  const mediaTrack = stream.getVideoTracks().find((track) => track.readyState === 'live' && track.enabled !== false) ?? null;
+  const videoTrack = useMemo(() => {
+    if (!mediaTrack) return null;
+    return {
+      mediaStreamTrack: mediaTrack,
+      attach: (el: HTMLVideoElement) => {
+        el.srcObject = new MediaStream([mediaTrack]);
+        return el;
+      },
+      detach: (el: HTMLVideoElement) => {
+        el.srcObject = null;
+        return el;
+      }
+    } as any;
+  }, [mediaTrack?.id]);
+
+  if (!videoTrack) return null;
+  return (
+    <LiveKitVideoPlayer
+      videoTrack={videoTrack}
+      mirror={mirror}
+      fit="cover"
+      className="w-full h-full"
+    />
+  );
+};
+
 // Game Overlay Component - Lucky 28 Style
 const Lucky28GameOverlay = ({
   playerCount,
