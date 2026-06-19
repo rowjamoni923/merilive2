@@ -25,6 +25,14 @@ export const consumePreparedCallMediaStream = (callId: string | null | undefined
   return prepared.stream;
 };
 
+export const peekPreparedCallMediaStream = (callId: string | null | undefined): MediaStream | null => {
+  const prepared = preparedCallMedia;
+  if (!prepared || !callId || prepared.callId !== callId) return null;
+  if (Date.now() - prepared.preparedAt > PREPARED_CALL_TTL_MS) return null;
+  if (!isUsable(prepared.stream)) return null;
+  return prepared.stream;
+};
+
 export const clearPreparedCallMediaStream = (callId?: string | null, options?: { stopTracks?: boolean }) => {
   const prepared = preparedCallMedia;
   if (!prepared) return;
