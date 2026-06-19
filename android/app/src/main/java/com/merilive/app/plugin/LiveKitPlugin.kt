@@ -620,8 +620,12 @@ class LiveKitPlugin : Plugin() {
                 val remote = room?.remoteParticipants?.values?.firstOrNull { it.sid?.value == sid }
                 slot.identity = remote?.identity?.value
                 val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-                if (track != null) attachTrackToSlot(slot, track)
-                call.resolve(JSObject().put("attached", true))
+                if (track != null) {
+                    attachTrackToSlot(slot, track)
+                    call.resolve(JSObject().put("attached", true))
+                } else {
+                    call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
+                }
             } catch (t: Throwable) {
                 Log.w(TAG, "attachRemoteSurface", t)
                 call.reject("attachRemoteSurface: ${t.message}", t)
