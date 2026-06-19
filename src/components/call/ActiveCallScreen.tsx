@@ -1179,6 +1179,18 @@ export function ActiveCallScreen({
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
               </div>
+            ) : isPreviewWeb && previewStream ? (
+              <div className="absolute inset-0">
+                <video
+                  ref={(el) => attachPreview(el, 'ringing')}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  style={{ transform: 'scaleX(-1)' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+              </div>
             ) : (
               <div className="absolute inset-0">
                 <div className={cn("absolute inset-0", shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]")} />
