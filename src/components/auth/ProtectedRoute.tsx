@@ -175,6 +175,27 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
       return <>{children}</>;
     }
+    // Pkg504: dark skeleton for room/call routes so cream `bg-background` never
+    // flashes through during the brief auth-recovery window on web/refresh.
+    const p = (typeof window !== 'undefined' ? window.location.pathname : '/').toLowerCase();
+    const isDarkRoute =
+      /^\/live\/[^/]+/.test(p) ||
+      p.startsWith('/live-feed') ||
+      p.startsWith('/party/') ||
+      p === '/go-live' ||
+      p.startsWith('/call/') ||
+      p.startsWith('/active-call') ||
+      p.startsWith('/incoming-call') ||
+      p.startsWith('/outgoing-call') ||
+      p.startsWith('/stream/');
+
+    if (isDarkRoute) {
+      return (
+        <div className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
+          <div className="absolute inset-0 bg-white/[0.03] animate-pulse" />
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen w-full bg-background px-4 pb-24 pt-safe" aria-hidden="true">
         <div className="mx-auto max-w-md space-y-4 pt-4">
