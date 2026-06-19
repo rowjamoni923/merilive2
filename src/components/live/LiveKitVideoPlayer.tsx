@@ -32,6 +32,20 @@ const nativeInlineVideoProps: VendorVideoProps = {
   'x-webkit-airplay': 'deny',
 };
 
+const trackObjectIds = new WeakMap<object, number>();
+let nextTrackObjectId = 1;
+
+const getTrackObjectKey = (track: Track | null) => {
+  if (!track || (typeof track !== 'object' && typeof track !== 'function')) return null;
+  const obj = track as object;
+  let id = trackObjectIds.get(obj);
+  if (!id) {
+    id = nextTrackObjectId++;
+    trackObjectIds.set(obj, id);
+  }
+  return `livekit-track-object-${id}`;
+};
+
 interface LiveKitVideoPlayerProps {
   videoTrack: Track | null;
   className?: string;
@@ -88,7 +102,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     rawMediaTrack?.id ||
     (videoTrack as unknown as { sid?: string; trackSid?: string })?.sid ||
     (videoTrack as unknown as { sid?: string; trackSid?: string })?.trackSid ||
-    (videoTrack ? 'livekit-track-present' : null);
+    getTrackObjectKey(videoTrack);
 
   // Hide video element until first real frame arrives — prevents native play-icon flash
   // without painting any visible color (no black overlay, container stays transparent).
@@ -116,6 +130,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     if (!el || !videoTrack) return;
 
     const mediaTrack = getRawMediaTrack(videoTrack);
+    const isLocalTrack = Boolean((videoTrack as any)?.isLocal);
 
     // Pkg-audit Bug E: detect re-attach of the SAME track (parent re-render)
     // and keep the element visible instead of blanking it.
@@ -178,9 +193,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const hasDecodedFrame = () => el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0;
 
-    const markReady = (forceOrEvent?: boolean | Event | void) => {
-      const force = forceOrEvent === true;
-      if (!force && !hasDecodedFrame()) return;
+    const markReady = () => {
+      if (!hasDecodedFrame()) return;
       revealVideo();
       onVideoReadyRef.current?.();
       if (!mutedRef.current) {
@@ -236,19 +250,18 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       }
     }, 450);
 
-    // 2026-06-19 — Web preview emergency fix: Live/Party/Call all share this
-    // renderer. Chromium WebView/Chrome can publish a live LocalVideoTrack but
-    // never fire loadeddata/requestVideoFrameCallback after LiveKit attach(),
-    // leaving opacity:0 forever even though preview camera worked. If the real
-    // track is attached and live, reveal the element after the first-frame
-    // budget so users see the camera surface instead of a fake blank room.
+    // 2026-06-19 — Web preview fallback: Live/Party/Call all share this
+    // renderer. Chromium/WebView can miss loadeddata/requestVideoFrameCallback
+    // after attach(), leaving opacity:0 forever. Reveal the attached element so
+    // it can paint when frames arrive, but DO NOT call onVideoReady here — the
+    // host preview bridge must stay above it until a real decoded frame exists.
     const liveTrackReveal = setTimeout(() => {
       const mt = getRawMediaTrack(videoTrack);
       const cur = el.srcObject as MediaStream | null;
       const curTrack = cur?.getVideoTracks?.()[0];
       if (mt && mt.readyState === 'live' && curTrack?.id === mt.id) {
         try { if (el.paused) el.play().catch(() => {}); } catch { /* ignore */ }
-        markReady(true);
+        revealVideo();
       }
     }, 900);
 
@@ -277,7 +290,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       if (el.paused || el.readyState < 2) return;
 
       const t = el.currentTime;
-      if (t <= 0) return;
+      if (t <= 0 || !el.videoWidth || !el.videoHeight) return;
       if (Math.abs(t - lastTime) < 0.005) stagnant++;
       else stagnant = 0;
       lastTime = t;
@@ -295,6 +308,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
             try { el.srcObject = new MediaStream([mediaTrack]); } catch { /* noop */ }
           }
           el.play().catch(() => {});
+          if (isLocalTrack) return;
           // Always notify parent so it can escalate to re-subscribe / reconnect.
           onVideoStalledRef.current?.();
         }

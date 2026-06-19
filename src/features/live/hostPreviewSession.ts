@@ -28,11 +28,12 @@ export const setPreparedHostPreviewStream = (stream: MediaStream | null) => {
 
 export const consumePreparedHostPreviewStream = (): MediaStream | null => {
   const prepared = preparedHostPreviewMedia;
-  preparedHostPreviewMedia = null;
 
   if (!prepared) return null;
-  if (isExpired(prepared.preparedAt)) return null;
-  if (!isStreamUsable(prepared.stream)) return null;
+  if (isExpired(prepared.preparedAt) || !isStreamUsable(prepared.stream)) {
+    preparedHostPreviewMedia = null;
+    return null;
+  }
 
   return prepared.stream;
 };

@@ -880,6 +880,8 @@ const GoLive = () => {
           `🚫 Your live has been banned!\n\nReason: ${reason}\nRemaining: ${remainingHours === null ? 'Permanent' : (remainingHours > 24 ? Math.ceil(remainingHours / 24) + ' days' : remainingHours + ' hours')}`,
           { duration: 8000 }
         );
+        preservePreviewForLiveRef.current = false;
+        applyNativePreviewTransparency(false);
         setIsStarting(false);
         return;
       }
