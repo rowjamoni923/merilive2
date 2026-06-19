@@ -14,6 +14,7 @@ import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
+import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from "@/features/call/preparedCallMedia";
 
 import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
@@ -163,16 +164,18 @@ export function ActiveCallScreen({
           return;
         }
         setPreviewStream(stream);
+        setPreparedCallMediaStream(callId, stream);
       } catch (err) {
         console.warn('[ActiveCall][preview] getUserMedia failed:', err);
       }
     })();
     return () => {
       cancelled = true;
+      clearPreparedCallMediaStream(callId);
       stream?.getTracks().forEach((t) => t.stop());
       setPreviewStream(null);
     };
-  }, [isOpen, isPreviewWeb]);
+  }, [isOpen, isPreviewWeb, callId]);
   // Pkg502 — ref-callback attachment so srcObject is wired both when the
   // stream arrives and when a video element mounts later (calling→connected
   // transition mounts a new tile after the stream is already set).

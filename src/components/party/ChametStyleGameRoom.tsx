@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -123,6 +123,40 @@ interface ChametStyleGameRoomProps {
   // Join messages from parent
   joinMessages?: JoinMessage[];
 }
+
+const StableGameStreamVideo = ({
+  stream,
+  mirror,
+}: {
+  stream: MediaStream;
+  mirror: boolean;
+}) => {
+  const mediaTrack = stream.getVideoTracks().find((track) => track.readyState === 'live' && track.enabled !== false) ?? null;
+  const videoTrack = useMemo(() => {
+    if (!mediaTrack) return null;
+    return {
+      mediaStreamTrack: mediaTrack,
+      attach: (el: HTMLVideoElement) => {
+        el.srcObject = new MediaStream([mediaTrack]);
+        return el;
+      },
+      detach: (el: HTMLVideoElement) => {
+        el.srcObject = null;
+        return el;
+      }
+    } as any;
+  }, [mediaTrack?.id]);
+
+  if (!videoTrack) return null;
+  return (
+    <LiveKitVideoPlayer
+      videoTrack={videoTrack}
+      mirror={mirror}
+      fit="cover"
+      className="w-full h-full"
+    />
+  );
+};
 
 // Game Overlay Component - Lucky 28 Style
 const Lucky28GameOverlay = ({
@@ -531,22 +565,7 @@ export function ChametStyleGameRoom({
                   <div className="w-full h-full relative">
                     {/* Video Feed via unified LiveKitVideoPlayer */}
                     {streamToUse && !participant.isVideoOff ? (
-                      <LiveKitVideoPlayer
-                        videoTrack={{
-                          mediaStreamTrack: streamToUse.getVideoTracks()[0],
-                          attach: (el: HTMLVideoElement) => {
-                            el.srcObject = new MediaStream([streamToUse.getVideoTracks()[0]]);
-                            return el;
-                          },
-                          detach: (el: HTMLVideoElement) => {
-                            el.srcObject = null;
-                            return el;
-                          }
-                        } as any}
-                        mirror={isMyself}
-                        fit="cover"
-                        className="w-full h-full"
-                      />
+                      <StableGameStreamVideo stream={streamToUse} mirror={isMyself} />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none">
                         <AvatarWithFrame

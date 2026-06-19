@@ -421,8 +421,9 @@ const VideoGridSeat = ({
   onBeansClick?: () => void;
 }) => {
   const streamToUse = isMyself ? localStream : peerStream;
+  const mediaTrack = streamToUse?.getVideoTracks().find((track) => track.readyState === 'live' && track.enabled !== false) ?? null;
   const hasRenderableVideoTrack = Boolean(
-    streamToUse?.getVideoTracks().some((track) => track.readyState === 'live' && track.enabled !== false)
+    mediaTrack
   );
   
   const canRenderNativeVideo = Boolean(isNativeMediaActive && !participant?.isVideoOff && (isMyself || nativeParticipant?.sid));
@@ -430,14 +431,12 @@ const VideoGridSeat = ({
   
   // Extract video track from stream to use with LiveKitVideoPlayer
   const videoTrack = useMemo(() => {
-    if (!canRenderVideo || !streamToUse) return null;
-    const tracks = streamToUse.getVideoTracks();
-    if (tracks.length === 0) return null;
+    if (!canRenderVideo || !mediaTrack) return null;
     
     return {
-      mediaStreamTrack: tracks[0],
+      mediaStreamTrack: mediaTrack,
       attach: (el: HTMLVideoElement) => {
-        el.srcObject = new MediaStream([tracks[0]]);
+        el.srcObject = new MediaStream([mediaTrack]);
         return el;
       },
       detach: (el: HTMLVideoElement) => {
@@ -445,7 +444,7 @@ const VideoGridSeat = ({
         return el;
       }
     } as any;
-  }, [canRenderVideo, streamToUse]);
+  }, [canRenderVideo, mediaTrack?.id]);
 
   // Format number with shortcut (20M, 1.5K, etc.)
   const formatBeans = (num: number) => {

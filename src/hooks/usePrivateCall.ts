@@ -476,7 +476,7 @@ export function usePrivateCall(userId: string | null) {
 
     try {
       if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
-      if (!shouldUseNativeLiveKit({ feature: 'private-call' })) {
+      if (isNativeAndroidApp() && !shouldUseNativeLiveKit({ feature: 'private-call' })) {
         throw new Error('Native Android LiveKit is required for private calls. Web camera fallback is disabled.');
       }
       // ✅ FIX: Force-clear ALL stale call state before starting new call
@@ -760,7 +760,7 @@ export function usePrivateCall(userId: string | null) {
   const acceptCall = useCallback(async (callId: string) => {
     try {
       if (isNativeAndroidApp()) await whenNativeLiveKitKillSwitchReady();
-      if (!shouldUseNativeLiveKit({ feature: 'private-call' })) {
+      if (isNativeAndroidApp() && !shouldUseNativeLiveKit({ feature: 'private-call' })) {
         throw new Error('Native Android LiveKit is required for private calls. Web camera fallback is disabled.');
       }
       const incomingSnapshot = incomingCallIdRef.current === callId ? incomingCall : null;

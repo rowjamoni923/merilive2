@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -131,6 +131,40 @@ interface ChametStyleVideoRoomProps {
   // Join messages from parent
   joinMessages?: JoinMessage[];
 }
+
+const StableStreamVideo = ({
+  stream,
+  mirror,
+}: {
+  stream: MediaStream;
+  mirror: boolean;
+}) => {
+  const mediaTrack = stream.getVideoTracks().find((track) => track.readyState === 'live' && track.enabled !== false) ?? null;
+  const videoTrack = useMemo(() => {
+    if (!mediaTrack) return null;
+    return {
+      mediaStreamTrack: mediaTrack,
+      attach: (el: HTMLVideoElement) => {
+        el.srcObject = new MediaStream([mediaTrack]);
+        return el;
+      },
+      detach: (el: HTMLVideoElement) => {
+        el.srcObject = null;
+        return el;
+      }
+    } as any;
+  }, [mediaTrack?.id]);
+
+  if (!videoTrack) return null;
+  return (
+    <LiveKitVideoPlayer
+      videoTrack={videoTrack}
+      mirror={mirror}
+      fit="cover"
+      className="w-full h-full"
+    />
+  );
+};
 
 export function ChametStyleVideoRoom({
   roomName,
@@ -399,22 +433,7 @@ export function ChametStyleVideoRoom({
                   <div className="w-full h-full relative">
                     {/* Use unified LiveKitVideoPlayer for better reliability and Android watchdog */}
                     {hasVideo ? (
-                      <LiveKitVideoPlayer
-                        videoTrack={{
-                          mediaStreamTrack: streamToUse!.getVideoTracks()[0],
-                          attach: (el: HTMLVideoElement) => {
-                            el.srcObject = new MediaStream([streamToUse!.getVideoTracks()[0]]);
-                            return el;
-                          },
-                          detach: (el: HTMLVideoElement) => {
-                            el.srcObject = null;
-                            return el;
-                          }
-                        } as any}
-                        mirror={isMyself}
-                        fit="cover"
-                        className="w-full h-full"
-                      />
+                      <StableStreamVideo stream={streamToUse!} mirror={isMyself} />
                     ) : (
                       <div
                         className={cn(

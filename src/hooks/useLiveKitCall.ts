@@ -39,8 +39,9 @@ import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
-import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { clearPreparedCallMediaStream, peekPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -48,7 +49,6 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
-import { consumePreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 interface LiveKitCallState {
@@ -415,10 +415,11 @@ export function useLiveKitCall(
       try {
         console.log('[LiveKitCall] Initializing for call:', callId);
 
-        // 🛰️ Native Android publish path only. Private calls must never fall
-        // back to browser getUserMedia/web LiveKit; fail closed instead.
+        // 🛰️ Android uses native LiveKit; web preview/desktop uses the
+        // livekit-client path below so the call init button is testable and
+        // does not show a fake blank screen in Lovable preview.
         const nativeCallRequired = shouldUseNativeLiveKit({ feature: 'private-call' });
-        if (!nativeCallRequired) {
+        if (isNativeAndroidApp() && !nativeCallRequired) {
           cleanup();
           toast.error('Private calls require the Android app.');
           setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
@@ -434,10 +435,11 @@ export function useLiveKitCall(
             const { token, url } = await getLiveKitToken(roomName, 'call');
             if (deadRef.current) return;
 
-            // Section#5 pass-6 (Bug L — DUAL CAMERA CONFLICT): kill web preview
-            // immediately before starting native connect. Ensures Native Camera2
-            // gets exclusive hardware access on Android.
-            clearPreparedCallMediaStream(callId, { stopTracks: true });
+            // Preview → call handoff: do NOT kill an already-running prepared
+            // camera before native connect. Native Android promotes its LiveKit
+            // preview track into the session; Lovable web preview media is
+            // cleared only after connect succeeds/fails. Stopping here creates
+            // the blank gap when tapping the call init button.
 
             // One quick retry — Camera2 device can be briefly held by the
             // previous preview / freshly-revoked call on the same device.
@@ -464,7 +466,7 @@ export function useLiveKitCall(
                   audio: true,
                   lens: 'front',
                   // 720p is the Chamet/Bigo-style Android call startup tier:
-                  // faster CameraX first frame and lower encoder warmup than
+                  // faster Camera2 first frame and lower encoder warmup than
                   // cold 1080p; quality can adapt upward after connection.
                   resolution: '720p',
                   attachLocal: true,
@@ -481,7 +483,10 @@ export function useLiveKitCall(
                 lastNErr = e;
                 if (nAttempt < 2 && !deadRef.current) {
                   console.warn('[LiveKitCall/Native] connect failed, retrying in 500ms:', e);
-                  try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+                  // Preserve the prejoin preview track between retries so the
+                  // second attempt promotes the SAME camera instead of closing
+                  // and reopening Camera2.
+                  try { await nativeLiveKitController.disconnectSessionOnly(); } catch { /* noop */ }
                   await new Promise((r) => setTimeout(r, 500));
                 }
               }
@@ -491,6 +496,7 @@ export function useLiveKitCall(
               return;
             }
             if (lastNErr) throw lastNErr;
+            clearPreparedCallMediaStream(callId, { stopTracks: true });
 
             // Section#5 pass-2 (Bug I — NATIVE CAMERA LEAK): if cleanup ran
             // while connectAndPublish was awaiting, native side is already
@@ -868,12 +874,13 @@ export function useLiveKitCall(
         let publishError: Error | null = null;
         while (publishAttempt < 3) {
           try {
-            const preparedStream = consumePreparedCallMediaStream(callId);
+            const preparedStream = peekPreparedCallMediaStream(callId);
             await publishReliableLocalMedia(room, {
               needVideo: true,
               needAudio: true,
               preparedStream,
             });
+            clearPreparedCallMediaStream(callId);
             publishError = null;
             break;
           } catch (e) {
