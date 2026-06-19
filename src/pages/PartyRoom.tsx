@@ -2511,9 +2511,9 @@ const PartyRoom = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,255,255,0.12),transparent_34%)]" />
         <header className="relative z-10 flex items-center justify-between px-3 py-3">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full bg-white/12 animate-pulse" />
+            <div className="h-10 w-10 rounded-full bg-white/[0.12] animate-pulse" />
             <div className="space-y-2">
-              <div className="h-3 w-24 rounded-full bg-white/18 animate-pulse" />
+              <div className="h-3 w-24 rounded-full bg-white/[0.18] animate-pulse" />
               <div className="h-2.5 w-16 rounded-full bg-white/10 animate-pulse" />
             </div>
           </div>
@@ -2528,7 +2528,7 @@ const PartyRoom = () => {
         </header>
         <main className="relative z-10 flex h-[calc(100dvh-88px)] flex-col items-center justify-center gap-7 px-5 pb-24">
           <div className="text-center">
-            <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-white/12 animate-pulse" />
+            <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-white/[0.12] animate-pulse" />
             <div className="text-white/75 text-sm font-semibold">{pendingRoomName}</div>
           </div>
           <div className="grid w-full max-w-sm grid-cols-3 gap-3">
