@@ -874,7 +874,9 @@ export function useLiveKitCall(
         let publishError: Error | null = null;
         while (publishAttempt < 3) {
           try {
-            const preparedStream = consumePreparedCallMediaStream(callId);
+            const preparedStream = publishAttempt === 0
+              ? consumePreparedCallMediaStream(callId)
+              : peekPreparedCallMediaStream(callId);
             await publishReliableLocalMedia(room, {
               needVideo: true,
               needAudio: true,
