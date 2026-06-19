@@ -465,7 +465,7 @@ export function useLiveKitCall(
                   audio: true,
                   lens: 'front',
                   // 720p is the Chamet/Bigo-style Android call startup tier:
-                  // faster CameraX first frame and lower encoder warmup than
+                  // faster Camera2 first frame and lower encoder warmup than
                   // cold 1080p; quality can adapt upward after connection.
                   resolution: '720p',
                   attachLocal: true,
@@ -482,7 +482,10 @@ export function useLiveKitCall(
                 lastNErr = e;
                 if (nAttempt < 2 && !deadRef.current) {
                   console.warn('[LiveKitCall/Native] connect failed, retrying in 500ms:', e);
-                  try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+                  // Preserve the prejoin preview track between retries so the
+                  // second attempt promotes the SAME camera instead of closing
+                  // and reopening Camera2.
+                  try { await nativeLiveKitController.disconnectSessionOnly(); } catch { /* noop */ }
                   await new Promise((r) => setTimeout(r, 500));
                 }
               }
@@ -492,6 +495,7 @@ export function useLiveKitCall(
               return;
             }
             if (lastNErr) throw lastNErr;
+            clearPreparedCallMediaStream(callId, { stopTracks: true });
 
             // Section#5 pass-2 (Bug I — NATIVE CAMERA LEAK): if cleanup ran
             // while connectAndPublish was awaiting, native side is already
@@ -536,6 +540,7 @@ export function useLiveKitCall(
             usingNativeRef.current = false;
             setNativeActive(false);
             clearNativeMediaSurface();
+            clearPreparedCallMediaStream(callId, { stopTracks: true });
             try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
             toast.error('Call camera failed to start. Please end the call and try again.');
             setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
