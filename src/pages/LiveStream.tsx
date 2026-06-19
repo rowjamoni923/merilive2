@@ -4640,6 +4640,11 @@ const LiveStream = () => {
                       Heart: <Heart className="w-6 h-6 fill-current" strokeWidth={1.8} />,
                       Mic: <Mic className="w-6 h-6" strokeWidth={1.8} />,
                       MicOff: <MicOff className="w-6 h-6" strokeWidth={1.8} />,
+                      Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
+                      VideoOff: <VideoOff className="w-6 h-6" strokeWidth={1.8} />,
+                      RefreshCcw: <RefreshCcw className="w-6 h-6" strokeWidth={1.8} />,
+                      Image: <ImageIcon className="w-6 h-6" strokeWidth={1.8} />,
+                      Volume2: <Volume2 className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
 
