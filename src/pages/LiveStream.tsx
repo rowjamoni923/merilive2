@@ -3984,44 +3984,48 @@ const LiveStream = () => {
               </div>
             </div>
           </div>
-        ) : isHost && localVideoTrack ? (
+        ) : isHost && (localVideoTrack || hostTransitionPreviewStream) ? (
           <div 
             className="w-full h-full relative flex items-center justify-center"
             style={{ filter: combinedFilterCSS || undefined }}
           >
-            <LiveKitVideoPlayer
-              videoTrack={localVideoTrack}
-              mirror={true}
-              fit="cover"
-              className="absolute inset-0 w-full h-full"
-            />
+            {hostTransitionPreviewStream && (
+              <video
+                ref={hostTransitionVideoRef}
+                autoPlay
+                playsInline
+                muted
+                controls={false}
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                poster=""
+                // @ts-ignore
+                x5-video-player-type="h5"
+                x5-video-player-fullscreen="false"
+                x5-video-orientation="portrait"
+                x5-playsinline="true"
+                webkit-playsinline="true"
+                x-webkit-airplay="deny"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked"
+                style={{
+                  transform: 'scaleX(-1)',
+                  filter: combinedFilterCSS || undefined,
+                  WebkitAppearance: 'none',
+                  zIndex: localVideoTrack ? 0 : 1,
+                }}/>
+            )}
+            {localVideoTrack && (
+              <LiveKitVideoPlayer
+                videoTrack={localVideoTrack}
+                mirror={true}
+                fit="cover"
+                className="absolute inset-0 w-full h-full"
+              />
+            )}
           </div>
         ) : showNativeHostSurface || showNativeViewerSurface ? (
           <div className="absolute inset-0 pointer-events-none bg-transparent" />
-        ) : showHostTransitionPreview ? (
-          <video 
-            ref={hostTransitionVideoRef}
-            autoPlay
-            playsInline
-            muted
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-            poster=""
-            // @ts-ignore
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="false"
-            x5-video-orientation="portrait"
-            x5-playsinline="true"
-            webkit-playsinline="true"
-            x-webkit-airplay="deny"
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked"
-            style={{
-              transform: 'scaleX(-1)',
-              filter: combinedFilterCSS || undefined,
-              WebkitAppearance: 'none',
-            }}/>
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
