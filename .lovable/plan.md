@@ -165,3 +165,21 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 4. `GoLive.tsx` now uses one shared native-safe route-exit cleanup for Edit Profile, Face Verification, and Join Agency paths: clear prepared preview, stop native preview, stop web tracks, clear native media surface, then navigate.
 5. `RouteTransitionHost.tsx` skips the global route fade during `/go-live` → `/live/:id` so the preserved camera surface is not flashed over during handoff.
 6. `ActiveCallScreen.tsx` no longer opens/stores preview-web camera media when `callId` is still null, preventing a prepared-call media leak under a null key.
+
+---
+
+## 2026-06-19 — Uploaded-video camera compare: broadcast renderer gap fixed
+
+**User evidence analyzed:** `Record_2026-06-20-01-57-27...mp4` (MeriLive preview, 30.83s) vs `Record_2026-06-19-13-40-48...mp4` (professional app reference, 20.66s). Frame contact sheets confirmed MeriLive GoLive preview camera appears, then `/live/:id` broadcast room repeatedly shows a blank/dark media surface while the reference app keeps the same full-screen camera surface visible after Go Live.
+
+**Professional standard applied:** Chamet/Bigo/Poppo-style flow keeps the same camera capture visible through preview → broadcast, renders host/visitor video as full-screen `cover`, keeps party seats stable, and uses private-call remote-fullscreen + local PiP. LiveKit/Web translation: attach/render the actual `MediaStreamTrack` deterministically and never remove the preview bridge before the broadcast renderer has revealed a real frame.
+
+**Root cause found:** `LiveStream.tsx` cleaned the preserved host preview bridge on a fixed 1.4s timer after `localVideoTrack` appeared. If LiveKit attach/decoder events lagged, the app removed the only visible camera before the broadcast video was actually visible. Shared `LiveKitVideoPlayer` also depended only on `.mediaStreamTrack`, missing wrapped/fake tracks used by party/call paths, and kept an Android-risky blend overlay over the video layer.
+
+**Code-level fixes applied:**
+1. `LiveStream.tsx` now keeps `hostTransitionPreviewStream` above the LiveKit player until `LiveKitVideoPlayer` reports `onVideoReady`; no fixed-time camera removal.
+2. `LiveKitVideoPlayer.tsx` now resolves tracks via `.mediaStreamTrack` or `.getMediaStreamTrack()`, adds `onVideoReady`, forces live-track reveal only after verifying the expected track is attached, and removes `mixBlendMode` from the video overlay to avoid compositor blanking.
+3. `ParticipantVideo.tsx` party tiles now avoid early blank reveal at 450ms and add a 1.2s live-track opacity fallback so seats do not stay invisible when video events race.
+4. `ChametStyleVideoRoom.tsx` stable party stream tiles now wire `onVideoStalled` to remount the renderer instead of leaving a stalled seat blank.
+
+**Verification note:** Owner automated login in this sandbox reached Supabase auth `400`, so the full authenticated GoLive route could not be completed from Playwright here. Static/source verification confirms the exact 1.4s broadcast camera gap from the user video is removed; final visual confirmation still requires a valid preview session or manual owner preview reload.
