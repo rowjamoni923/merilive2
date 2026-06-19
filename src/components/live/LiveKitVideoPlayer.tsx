@@ -430,7 +430,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         style={{
           background: 'radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(0,0,0,0.35) 100%)',
           zIndex: 2,
-          mixBlendMode: 'multiply',
         }}
       />
     </div>
