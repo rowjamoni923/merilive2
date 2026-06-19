@@ -3464,16 +3464,27 @@ const LiveStream = () => {
     { id: "react", name: "React", iconName: "Smile" as const, color: "from-yellow-400 to-orange-500", shadowColor: "shadow-yellow-500/40", action: () => { setShowMoreOptions(false); setShowReactionPicker(true); } },
   ];
 
-  // Host-only options: Beauty + Mic toggle + PK Battle (all moved off bottom
-  // bar). Beauty uses its own Sparkles icon (was rendering blank before).
+  // Host-only options: full host control surface. Every panel that was
+  // previously mounted-but-unreachable now has a trigger here (Pkg502).
   const hostOnlyOptions = [
     { id: "mic", name: isHostMicMuted ? "Unmute" : "Mute", iconName: (isHostMicMuted ? "MicOff" as const : "Mic" as const), color: isHostMicMuted ? "from-red-400 to-rose-600" : "from-cyan-400 to-teal-500", shadowColor: "shadow-cyan-500/40", action: () => { setShowMoreOptions(false); const next = !isHostMicMuted; setIsHostMicMuted(next); toggleAudio(!next); } },
+    { id: "cam", name: isHostCamOff ? "Camera On" : "Camera Off", iconName: (isHostCamOff ? "VideoOff" as const : "Video" as const), color: isHostCamOff ? "from-red-400 to-rose-600" : "from-sky-400 to-blue-500", shadowColor: "shadow-sky-500/40", action: () => { setShowMoreOptions(false); void handleToggleHostCamera(); } },
+    { id: "flip", name: "Flip Camera", iconName: "RefreshCcw" as const, color: "from-violet-400 to-purple-500", shadowColor: "shadow-violet-500/40", action: () => { setShowMoreOptions(false); void handleFlipCamera(); } },
     { id: "pk", name: "PK Battle", iconName: "Swords" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => { setShowMoreOptions(false); handleOpenPKPanel(); } },
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
+    { id: "sticker", name: "Stickers", iconName: "Smile" as const, color: "from-yellow-400 to-amber-500", shadowColor: "shadow-yellow-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
+    { id: "vbg", name: "Virtual BG", iconName: "Image" as const, color: "from-teal-400 to-emerald-500", shadowColor: "shadow-teal-500/40", action: () => { setShowMoreOptions(false); setShowVirtualBackground(true); } },
+    { id: "noise", name: "Noise Cancel", iconName: "Volume2" as const, color: "from-indigo-400 to-blue-600", shadowColor: "shadow-indigo-500/40", action: () => { setShowMoreOptions(false); setShowNoiseCancellation(true); } },
+    { id: "raisedhands", name: "Raised Hands", iconName: "Hand" as const, color: "from-orange-400 to-red-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowRaiseHandQueue(true); } },
   ];
 
-  // Combined options - host sees host-only + base, viewers see base only
-  const moreOptions = isHost ? [...hostOnlyOptions, ...baseOptions] : baseOptions;
+  // Viewer raise-hand option appended for non-hosts.
+  const viewerExtraOptions = [
+    { id: "raisehand", name: iHaveRaised ? "Lower Hand" : "Raise Hand", iconName: "Hand" as const, color: "from-orange-400 to-red-500", shadowColor: "shadow-orange-500/40", action: () => { void handleToggleRaiseHand(); } },
+  ];
+
+  // Combined options - host sees host-only + base, viewers see base + raise hand
+  const moreOptions = isHost ? [...hostOnlyOptions, ...baseOptions] : [...baseOptions, ...viewerExtraOptions];
 
   const handleSendGift = async (gift: typeof gifts[0]) => {
     if (!currentUserId || !hostInfo || !id) return;
