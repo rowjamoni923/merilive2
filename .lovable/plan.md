@@ -104,3 +104,18 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 **Approve Phase 1 → I start coding immediately** (all changes are JS, no DB, no breaking design). Then I report back, you verify, we move to Phase 2. Same pattern through Phase 4.
 
 কোনো item বদলাতে চাইলে বা priority shuffle করতে চাইলে বলো। Approve করলে Phase 1 শুরু করছি।
+
+---
+
+## 2026-06-19 — Web Preview blank-screen/click-block emergency pass
+
+**Evidence analyzed:** user videos `Record_2026-06-19-13-40-48...mp4` (20.66s competitor) and `Record_2026-06-19-13-38-22...mp4` (45.59s MeriLive preview). Frame scan confirmed MeriLive preview shows repeated white/blank intervals while competitor keeps a visible camera/room surface.
+
+**Professional standard from competitor/LiveKit research:** Chamet/Bigo-style room transitions keep the camera track/surface alive, change UI overlays only, use skeleton/last-frame fallback during joins, and keep close/message/action controls above media with no invisible tap blockers.
+
+**Code-level fixes applied (web/preview only, Android native path untouched):**
+1. `LiveStream.tsx` — button taps no longer bubble into the full-screen tap-to-hide gesture; hidden-UI restore layer is fixed and only restores chrome.
+2. `ActiveCallScreen.tsx` — private-call screenshot CSS is scoped to `[data-room-shell="call"]`, so it no longer leaks to Live/Party room videos; web preview call shell always has a dark background instead of transparent/blank.
+3. `PartyRoom.tsx` — initial DB-loading state now renders a full party-room skeleton with header, close button, seats, and composer placeholder instead of a plain blank spinner screen.
+
+**Verification signal:** Preview health reports healthy and painting after changes.
