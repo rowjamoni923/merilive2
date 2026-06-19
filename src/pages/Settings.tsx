@@ -679,6 +679,11 @@ const Settings = () => {
     void import('@/utils/nativeSessionStorage')
       .then(({ clearNativeSession }) => clearNativeSession())
       .catch(() => {});
+    // Phase 1C: also clear cached balance so the next account doesn't see
+    // stale coins/beans from the previous session.
+    void import('@/hooks/useUserBalance')
+      .then(({ clearBalanceCache }) => clearBalanceCache())
+      .catch(() => {});
   };
 
   const handleClearCache = () => {
