@@ -3579,7 +3579,6 @@ const LiveStream = () => {
   const isRemoteHostCameraOff = !!(remoteVideoTrack && (firstRemoteUser as any)?.videoMuted);
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
   const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack;
-  const showHostTransitionPreview = isHost && !localVideoTrack && !!hostTransitionPreviewStream;
   // Debug: Log remote video state changes
   useEffect(() => {
     if (!isHost) {
