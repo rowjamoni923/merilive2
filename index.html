@@ -42,7 +42,7 @@
     <style>
       html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
       body { margin: 0; padding: 0; background-color: #FFFBF2; color: #1f2937; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-      
+
       /* Professional instant boot: no app-wide spinner/blocker. Native Android
          shows the real cached route as soon as React mounts; before that we only
          keep the final app background stable to avoid white flash. */
@@ -50,11 +50,40 @@
         background-color: #FFFBF2;
         min-height: 100vh;
       }
-      
+
+      /* Pkg504: dark-route boot bg — for deep-link / refresh on live/party/call/reels/go-live,
+         paint a near-black background BEFORE React mounts so users never see the
+         cream "#FFFBF2" body flash before the dark room shell appears. */
+      html[data-boot-theme="dark"],
+      html[data-boot-theme="dark"] body,
+      html[data-boot-theme="dark"] #root:empty {
+        background-color: #050208 !important;
+        color: #ffffff;
+      }
+
       #root { min-height: 100vh; min-height: 100dvh; }
       html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
       html, body { scrollbar-width: none; -ms-overflow-style: none; }
     </style>
+    <script>
+      // Pkg504: pick boot theme from URL before any paint.
+      // Dark only for true full-screen room routes (live room, party room,
+      // go-live, video calls). List/lobby pages stay light.
+      (function () {
+        try {
+          var p = (location.pathname || '/').toLowerCase();
+          var dark =
+            /^\/live\/[^\/]+/.test(p) ||
+            /^\/live-feed(\/|$)/.test(p) ||
+            /^\/party\//.test(p) ||
+            p === '/go-live' ||
+            /^\/call\//.test(p) ||
+            /^\/(active-call|incoming-call|outgoing-call)(\/|$)/.test(p) ||
+            /^\/stream\//.test(p);
+          if (dark) document.documentElement.setAttribute('data-boot-theme', 'dark');
+        } catch (_) { /* ignore */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
