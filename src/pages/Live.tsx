@@ -141,7 +141,7 @@ const Live = () => {
       console.error('Error fetching live streams:', error);
       recordClientError({ label: "Live.startPreload", message: error instanceof Error ? error.message : String(error) });
     } finally {
-      // no-op: cached streams render immediately; errors are logged above
+      if (mountedRef.current) setInitialLoading(false);
     }
   };
 
