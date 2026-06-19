@@ -39,7 +39,7 @@ import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
-import { clearPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
+import { clearPreparedCallMediaStream, peekPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 
 
@@ -434,10 +434,11 @@ export function useLiveKitCall(
             const { token, url } = await getLiveKitToken(roomName, 'call');
             if (deadRef.current) return;
 
-            // Section#5 pass-6 (Bug L — DUAL CAMERA CONFLICT): kill web preview
-            // immediately before starting native connect. Ensures Native Camera2
-            // gets exclusive hardware access on Android.
-            clearPreparedCallMediaStream(callId, { stopTracks: true });
+            // Preview → call handoff: do NOT kill an already-running prepared
+            // camera before native connect. Native Android promotes its LiveKit
+            // preview track into the session; Lovable web preview media is
+            // cleared only after connect succeeds/fails. Stopping here creates
+            // the blank gap when tapping the call init button.
 
             // One quick retry — Camera2 device can be briefly held by the
             // previous preview / freshly-revoked call on the same device.
