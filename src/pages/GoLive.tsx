@@ -981,15 +981,24 @@ const GoLive = () => {
     }
   };
 
-  const goToEditProfile = async () => {
+  const navigateAwayFromGoLive = async (path: string) => {
+    preservePreviewForLiveRef.current = false;
     clearPreparedHostPreviewStream();
     await stopNativePreview();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
     clearNativeMediaSurface();
-    navigate("/edit-profile");
+    navigate(path);
+  };
+
+  const goToEditProfile = async () => {
+    await navigateAwayFromGoLive("/edit-profile");
   };
 
 
@@ -1099,7 +1108,7 @@ const GoLive = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               if (!userProfile?.is_face_verified) {
-                navigate('/face-verification');
+                void navigateAwayFromGoLive('/face-verification');
               } else {
                 toast.success("Face Verification Complete ✓");
               }
