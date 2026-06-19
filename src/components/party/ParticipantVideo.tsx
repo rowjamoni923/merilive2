@@ -212,7 +212,6 @@ export function ParticipantVideo({
             className="absolute inset-0 pointer-events-none z-[2]"
             style={{
               background: 'radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.4) 100%)',
-              mixBlendMode: 'multiply',
             }}
           />
         )}
