@@ -134,6 +134,7 @@ if (container) {
     // splash so slow/old WebView devices don't stay stuck on it.
     requestAnimationFrame(() => {
       try { (window as any).__meriliveBooted?.(); } catch { /* ignore */ }
+      try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
       if (isNativeApp()) {
         import('@capacitor/splash-screen')
           .then(({ SplashScreen }) => SplashScreen.hide().catch(() => {}))
