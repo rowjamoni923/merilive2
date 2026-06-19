@@ -41,6 +41,7 @@ import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemot
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { clearPreparedCallMediaStream, peekPreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -414,10 +415,11 @@ export function useLiveKitCall(
       try {
         console.log('[LiveKitCall] Initializing for call:', callId);
 
-        // 🛰️ Native Android publish path only. Private calls must never fall
-        // back to browser getUserMedia/web LiveKit; fail closed instead.
+        // 🛰️ Android uses native LiveKit; web preview/desktop uses the
+        // livekit-client path below so the call init button is testable and
+        // does not show a fake blank screen in Lovable preview.
         const nativeCallRequired = shouldUseNativeLiveKit({ feature: 'private-call' });
-        if (!nativeCallRequired) {
+        if (isNativeAndroidApp() && !nativeCallRequired) {
           cleanup();
           toast.error('Private calls require the Android app.');
           setState(p => ({ ...p, connectionState: 'failed' as any, isConnected: false, localMediaReady: false }));
