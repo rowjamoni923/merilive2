@@ -1375,12 +1375,7 @@ const GoLive = () => {
                   </Button>
                   <Button
                     className="flex-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold"
-                    onClick={() => {
-                      if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                      }
-                      navigate("/face-verification");
-                    }}
+                    onClick={() => void navigateAwayFromGoLive("/face-verification")}
                   >
                     <ScanFace className="w-4 h-4 mr-2" />
                     Verify Now
@@ -1425,12 +1420,7 @@ const GoLive = () => {
                   </Button>
                   <Button
                     className="flex-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold"
-                    onClick={() => {
-                      if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                      }
-                      navigate("/join-agency");
-                    }}
+                    onClick={() => void navigateAwayFromGoLive("/join-agency")}
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     Join Agency
@@ -1781,12 +1771,7 @@ const GoLive = () => {
           <ChametFaceVerificationModal
             isOpen={showChametFaceVerification}
             onClose={() => setShowChametFaceVerification(false)}
-            onStartVerification={() => {
-              if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-              }
-              navigate("/face-verification");
-            }}
+            onStartVerification={() => void navigateAwayFromGoLive("/face-verification")}
           />
         )}
       </AnimatePresence>
