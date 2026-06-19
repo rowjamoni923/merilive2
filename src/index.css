@@ -35,6 +35,23 @@
   to { transform: translateX(100%); }
 }
 
+.blank-guard-app {
+  background: hsl(42 70% 93%);
+}
+.blank-guard-live {
+  background: #050208;
+}
+.blank-guard-live-pulse {
+  background: #0f0a16;
+  animation: blank-guard-live-pulse 1.2s ease-in-out infinite alternate;
+}
+.blank-guard-live-block {
+  background: rgba(255, 255, 255, 0.1);
+}
+@keyframes blank-guard-live-pulse {
+  to { background: #15101e; }
+}
+
 
 /* ============================================
    Global mobile behavior
