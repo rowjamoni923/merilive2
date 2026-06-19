@@ -149,3 +149,16 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 3. `useLiveKitCall.ts` allows the web/Lovable preview call media path while Android still fails closed to native LiveKit when required.
 4. `ActiveCallScreen.tsx` stores the web preview camera as prepared call media, so the LiveKit web call path reuses that same camera stream.
 5. `LiveKitPlugin.kt` now reports `attachRemoteSurface` as `attached:false/no_track` until a remote camera track exists, letting `NativeVideoView` retry instead of marking a blank party seat as attached forever.
+
+---
+
+## 2026-06-19 — Owner audit follow-up: media routes must stay unblocked
+
+**Research applied:** Agora docs recommend configuring/preloading before channel join and optimizing first-frame rendering for live/video apps; LiveKit JS exposes `mediaStreamTrack`, `attach()`, and `attachedElements` for deterministic rendering; BIGO Live public listing confirms this app category is live streams/video chat rooms at 500M+ downloads / 700M+ users, so camera/room entry cannot be blocked by promotional overlays.
+
+**Gap found:** owner-account browser audit showed the web camera preview itself stayed active, but app-level welcome/reward/event popups can mount over `/go-live`, `/live/:id`, `/party/:roomId`, and call surfaces. Party native handoff also still requested 720p in the prewarm/connect payload despite the existing 1080p camera plan.
+
+**Code-level fixes applied:**
+1. `App.tsx` now disables optional welcome/reward/event/rating overlays on live, Go Live, party, and call media routes so route transitions cannot be click-blocked by popups.
+2. `dialog.tsx` now suppresses Radix missing-description warnings for intentionally title-only dialogs by defaulting `aria-describedby` to undefined.
+3. `usePartyRoomNativeLiveKit.ts` native party prewarm/connect resolution is upgraded from 720p to 1080p, matching the existing LiveKit camera standard and avoiding a low-res restart path.
