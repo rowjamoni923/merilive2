@@ -413,7 +413,7 @@ export function usePartyRoomNativeLiveKit(
             const previewPromise = shouldOpenVideo
               ? nativeLiveKitController.startLocalPreview({
                   lens: 'front',
-                  resolution: '720p',
+                  resolution: '1080p',
                   mirror: true,
                   roomScope: 'party',
                   boundedOnly: true,
@@ -443,7 +443,7 @@ export function usePartyRoomNativeLiveKit(
               video: shouldOpenVideo,
               audio: partyCanPublish,
               lens: 'front',
-              resolution: '720p',
+              resolution: '1080p',
               // Party video/game seats render through <NativeVideoView /> bounded
               // surfaces. Do not also mount the legacy fullscreen local renderer;
               // double-binding the same native track can black out OEM EGL stacks.
