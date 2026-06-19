@@ -119,3 +119,18 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 3. `PartyRoom.tsx` — initial DB-loading state now renders a full party-room skeleton with header, close button, seats, and composer placeholder instead of a plain blank spinner screen.
 
 **Verification signal:** Preview health reports healthy and painting after changes.
+
+---
+
+## 2026-06-19 — Web LiveKit camera render emergency fix
+
+**User evidence:** Android browser preview screenshot shows pre-live camera works, but in-room Live camera is blank; user reports the same camera blank across Live Streaming, Party Room, and Private Call.
+
+**Research applied:** LiveKit JS docs state tracks render through `Track.attach(element)` / `LocalTrack.attach(element)` and expose `mediaStreamTrack` + attached elements; LiveKit React docs recommend rendering actual video tracks via `VideoTrack`. Bigo public materials describe live streaming, video chat rooms, and realtime chat as first-screen camera experiences (500M+ Google Play downloads / 700M+ users in marketing copy), so blank in-room media is below category standard.
+
+**Gap found:** All three flows share `LiveKitVideoPlayer`. The app hid the `<video>` at `opacity:0` until decoded-frame events fired. Chrome/Android WebView can publish a live LocalVideoTrack but miss `loadeddata`/`requestVideoFrameCallback` after attach, causing a permanent blank surface even though preview camera and LiveKit publish succeeded.
+
+**Code-level fixes applied (web/shared LiveKit path):**
+1. `LiveKitVideoPlayer.tsx` now verifies LiveKit attach actually placed the expected `MediaStreamTrack` on the element; if not, it explicitly sets `srcObject` to that track.
+2. `LiveKitVideoPlayer.tsx` adds a 900ms live-track reveal watchdog so Live/Party/Private Call no longer stay opacity-hidden when the track is live but frame callbacks are missing.
+3. `useLiveKitClient.ts` exposes the active web LiveKit room to the existing host camera restart handler and removes the stale `ProCameraEngine.isHeldBy()` recovery block (that engine is currently a no-op stub), so manual recovery can actually republish camera.
