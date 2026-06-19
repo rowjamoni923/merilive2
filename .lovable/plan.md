@@ -1,68 +1,106 @@
-# ৩ টা সমস্যা — ১০০% Fix Plan
+# Multi-Sector Fix Plan — Audit Complete (40 bugs)
 
-ভাই, তোমার ৩ টা সমস্যাই আমি ধরছি। **research-first** rule অনুযায়ী আগে Chamet/Bigo pattern + আমাদের code audit করব, তারপর code। নিচে প্ল্যান — approve করলে কাজ শুরু।
-
----
-
-## সমস্যা ১ — Camera handoff lag (১০-২০ সেকেন্ড black)
-
-**Root cause (suspected):** Preview camera আর Published/Active camera **দুইটা আলাদা track**। Publish button চাপলে preview track stop → LiveKit Room connect → new camera track create → publish। এই full cycle-এ ১০-২০s লাগে।
-
-**Pro pattern (Chamet/Bigo/Olamet):** একটাই `LocalVideoTrack` preview screen-এ তৈরি হয়, publish button শুধু **UI swap** করে + same track-কে Room-এ attach করে। Camera কখনো stop হয় না।
-
-**Fix scope:**
-- `GoLive.tsx` + `ChametStyleGoLive.tsx`: preview-এ তৈরি `LocalVideoTrack` কে handoff করব LiveStream/PartyRoom-এ (in-memory ref, না নতুন `getUserMedia`/`Camera2 open`)।
-- Native side: `LiveKitPlugin.kt`-এ `attachLocal` already আছে — preview phase-এ ওই same renderer track-কে keep alive, publish-এ শুধু `room.localParticipant.setCameraEnabled(true)` call। নতুন capturer create না।
-- Web preview path: `hostPreviewSession.ts` already আছে — শুধু consume নিশ্চিত করা।
-
-**Files:** `src/pages/GoLive.tsx`, `src/pages/LiveStream.tsx`, `src/pages/PartyRoom.tsx`, `src/components/call/ActiveCallScreen.tsx`, `android/.../LiveKitPlugin.kt`.
+৫টা subagent audit-এ মোট 40+ confirmed bug পেলাম। নিচে phased plan। **Phase 1 approve করলে শুরু করব** — পরের phase গুলো এক এক করে শেষ করব।
 
 ---
 
-## সমস্যা ২ — Live stream-এর button + Mood option কাজ করছে না
+## 🎯 Scope Summary
 
-**Action:** sub-agent দিয়ে full audit করব —
-- প্রতিটা button (mic/cam/flip/beauty/gift/PK/stickers/music/co-host/share/end + **Mood**) এর onClick → handler → backend wiring trace।
-- Console-এ click event আসছে কিনা verify (Playwright + owner test account দিয়ে preview-এ login করে real click)।
-- Mood option যদি missing/disabled থাকে — restore বা professional implementation।
-
-**Files (suspected):** `src/pages/LiveStream.tsx`, `src/components/live/*Panel.tsx`, mood-related component (audit-এ confirm)।
-
----
-
-## সমস্যা ৩ — Private call: preview camera receive-এর পর face দেখা যাচ্ছে না
-
-**Root cause (suspected):** Caller preview-এ camera চালু → receiver accept করল → কিন্তু caller side-এ `attachLocal` re-mount race বা preview track lost; receiver side-এ peer track subscribe হচ্ছে কিন্তু renderer mount হচ্ছে না।
-
-**Fix:**
-- Caller flow: preview track-কে accept-এর পরেও alive রাখা (problem #১ same handoff pattern)।
-- Receiver flow: `ActiveCallScreen.tsx`-এ peer `track-subscribed` event-এ immediate renderer attach (web fallback path-এ already করা; native path-এ confirm করব)।
-- Owner test account দিয়ে preview-এ self-call করে verify।
-
-**Files:** `src/components/call/ActiveCallScreen.tsx`, `src/components/call/CallProvider.tsx`, `LiveKitPlugin.kt`, `PrivateCallActivity.kt`.
+| Sector | Bugs | Lovable-fix | Need APK | Need DB migration |
+|---|---|---|---|---|
+| Party Room camera handoff | 6 | ✅ All 6 | ❌ | ❌ |
+| Push notification 404 | 2 | ✅ 1 (JS-only) | ⚠️ 1 (cold-start) | ❌ |
+| Auth + critical triage | 9 | ✅ 9 | ❌ | ❌ |
+| Agency + sub-agency + OTP | 15 | ✅ 13 | ❌ | ✅ 2 (RLS + RPC) |
+| Private call billing | 8 | ⚠️ 3 | ❌ | ✅ 5 (cron + RPC) |
 
 ---
 
-## Honest scope
+## 🔥 Phase 1 — Camera + Push + Critical Auth (this round, Lovable-only, no APK, no DB)
 
-| Layer | Lovable-এ fix হবে? | APK rebuild লাগবে? |
-|---|---|---|
-| React/JS handoff logic (problem #১ web path) | ✅ Yes | ❌ |
-| Live stream button audit (problem #২) | ✅ Yes | ❌ |
-| Web preview self-call (problem #৩ Lovable test) | ✅ Yes | ❌ |
-| Native camera continuity (Android final) | Kotlin edit হবে Lovable-এ | ✅ Yes — তোমাকে APK rebuild করতে হবে |
-| Native private call peer renderer | Kotlin edit | ✅ Yes |
+### A. Party Room camera handoff (matches LiveStream fix)
+6 bugs in `src/hooks/usePartyRoomNativeLiveKit.ts` + `src/lib/nativeLiveKitController.ts`:
+1. Add `getPreviewScope()` getter on controller (line 54)
+2. Skip second `startLocalPreview` when scope already `'party'` (lines 410-424) → removes 10-20s black flash
+3. Fix resolution `720p → 1080p` (line 418 + 1108)
+4. Add `publishInFlightRef` guard (lines 586, 994)
+5. Remove confusing dead `consumePreparedHostPreviewStream` call in native branch (line 428)
 
-আমি **Kotlin code পুরোটা লিখে দেব**, কিন্তু `.apk` Lovable build করে না — তুমি `npx cap sync && cd android && ./gradlew assembleDebug` দিয়ে rebuild করবে। এটাতে miss নাই, just honesty।
+### B. Push notification 404 → inbox (JS-only fix)
+1 file change: `src/utils/notificationDeepLink.ts:31`  
+`/chat/${conversationId}` (404) → `/chat?user=${senderId}` (opens conversation)  
+Cold-start (killed-app) deeplink = Phase 4 (Kotlin).
+
+### C. Critical Auth + Triage bugs
+3 critical + 3 high + 3 medium from app-wide triage:
+1. **Auth.tsx:1658** — phone OTP login: shadowed `data` discards `verified_token` → use saved `phoneVerifiedToken`
+2. **Auth.tsx:1593** — phone OTP: `recordAttempt(false)` unconditional even on success → fix logic
+3. **HostApplication.tsx:295** — direct RLS-protected `profiles.update({is_host, host_status})` → switch to existing SECDEF RPC
+4. **AuthCallback.tsx:24** — web OAuth hard-blocked → allow web fallback or graceful redirect
+5. **Recharge.tsx:1817** — helper-tab submit dead (selectedGateway null check) → relax guard for helper path
+6. **Reels.tsx:20** — GiftData type imported from wrong module → unify with `@/features/shared/gifting`
+7. **Index.tsx:231** — Following tab silent-empty for unauthenticated → add auth guard with redirect prompt
+8. **Settings.tsx:669** — logout missing `clearNativeSession + clearBalanceCache` → add both
+9. **AdminAuth.tsx:67** — lockout redirect to `/landing` loops → redirect to `/admin/auth` after delay
+
+### D. Quick agency fixes (route-only, no DB)
+- **CreateAgency.tsx:229** — `/agency-dashboard` (404) → `/n-dashboard`
+- **BecomeSubAgent.tsx:449** — wrong target → `/create-agency` correct route
+- **App.tsx:1267 vs 1355** — duplicate `/create-agency` route → keep session-conditional only
+
+**Phase 1 verification:** TypeScript green + owner test account (smdollarex923@gmail.com) checks login, party room publish, message-tap → inbox.
 
 ---
 
-## Order of work (approve করলে)
+## 🟠 Phase 2 — Agency BLOCKERS + Sub-Agent Wiring (Lovable + 1 DB migration)
 
-1. **Research** (subagent): Chamet/Bigo camera handoff + LiveKit `LocalVideoTrack` reuse pattern + LiveKit Android `attachLocal` continuity।
-2. **Audit** (subagent): live stream buttons + mood — exact broken handlers list।
-3. **Code** (parallel): problem #১ handoff + problem #২ button fixes + problem #৩ renderer।
-4. **Verify** Lovable preview-এ owner account দিয়ে: GoLive→publish smoothness, button clicks, self-call face visibility।
-5. **APK rebuild instructions** তোমাকে দেব native part-এর জন্য।
+5 BLOCKER bugs from agency audit:
+- **B1** `BrowserSubAgentForm.tsx:292` — handleSubmit only writes localStorage → wire to `create-sub-agency-browser` edge fn
+- **B2** `AgencySignup.tsx:152,320` — `verified_token` discarded → store + pass to RPC; add OTP token consumption
+- **B3** `CreateAgency.tsx:114` — zero OTP → add same in-app OTP step
+- **B4** `BrowserSubAgentForm.tsx:229` — wrong edge fn → swap `send-app-notification` → `agency-app-otp`
+- **B5** `BrowserSubAgentForm.tsx:91,711` — `appVerified` never `true` → wire `setAppVerified(true)` on successful verify
 
-**Approve করলে শুরু করব।** কোনো step বদলাতে চাইলে বলো।
+1 DB migration:
+- **M1** `sub_agent_commissions` RLS uses `sub_agent_id` (row PK) instead of user_id → fix policy:  
+  `USING (auth.uid() IN (SELECT user_id FROM sub_agents WHERE id = sub_agent_id))`
+
+3 minor: code-collision retry loop, sub-agent stats query (replace hardcoded zeros), OTP code prominent rendering in NotificationList.
+
+**Phase 2 verification:** Full agency-create + sub-agent flow end-to-end via owner test account.
+
+---
+
+## 💰 Phase 3 — Private Call Billing (DB migrations + edge function)
+
+2 CRITICAL bugs that may have made billing silently dead:
+- **P0** `migrations/20260608013016:31` — cron sends `Authorization: Bearer null` if `app.settings.service_role_key` config absent → switch to `CRON_SECRET` header pattern (edge fn already supports it)
+- **P0** `migrations/20260608013016:28` — hardcoded project URL → store in `app_settings` or derive
+
+Plus:
+- **P1** `REVOKE EXECUTE` on legacy `deduct_call_coins_per_minute` from `authenticated` → kill double-charge race
+- **P2** `get_effective_host_percent()` returns 0 default → return 50 fallback so hosts don't lose gift beans
+- **P2** Insert into `coin_transactions` from `bill_call_minute` for finance reporting parity
+- **P3** Move `MIN_PREPAY_MINUTES=3` from hardcoded to `app_settings.call_rates.min_prepay_minutes`
+
+**Verification:** Inspect cron logs + run a real call between owner + alt account, watch `billing_ledger` rows + `profiles.coins/beans` deltas.
+
+**NOTE:** Current admin UI already has `AdminCallSettings` + `AdminCommissions` + `AdminPricingHub` that write to `call_rates` + `gift_commission` — that part works ✅. Bugs are in execution pipeline.
+
+---
+
+## 🔧 Phase 4 — APK Rebuild Items (deferred to your next build)
+
+1. **NotificationHelper.java:178** — add `intent.putExtra("route", "/chat?user=" + senderId)` for cold-start deeplink (kills 404 when app was killed)
+2. **PrivateCallViewModel.kt** — `attachToCurrentRoom()` initial-sweep of already-subscribed remote tracks (from last turn's audit)
+3. Co-Host panel + Screen Share button native mounts (still not exposed in LiveStream)
+
+I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android && ./gradlew assembleDebug`.
+
+---
+
+## Order of Execution
+
+**Approve Phase 1 → I start coding immediately** (all changes are JS, no DB, no breaking design). Then I report back, you verify, we move to Phase 2. Same pattern through Phase 4.
+
+কোনো item বদলাতে চাইলে বা priority shuffle করতে চাইলে বলো। Approve করলে Phase 1 শুরু করছি।
