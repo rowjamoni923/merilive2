@@ -2453,8 +2453,9 @@ const LiveStream = () => {
       // the preview source — track-identity comparison would `.stop()` the
       // still-encoding preview track mid-publish, producing a green/black
       // frame. Chamet/Bigo (Agora) never have two track objects for one
-      // capture. Safer rule: only stop tracks the OS has already ended,
-      // and wait 250ms so the publisher fully assumes hardware ownership.
+      // capture. Safer rule: keep the preview bridge visible until the real
+      // LiveKit player has passed its reveal watchdog, then only stop tracks
+      // the OS has already ended.
       const previewStream = hostTransitionPreviewStream;
       const cleanupTimer = window.setTimeout(() => {
         previewStream.getTracks().forEach((track) => {
@@ -2463,8 +2464,8 @@ const LiveStream = () => {
           }
         });
         void releaseAndroidWebViewCameraNow('live-stream:transition-preview-cleared');
-      }, 250);
-      setHostTransitionPreviewStream(null);
+        setHostTransitionPreviewStream((current) => current === previewStream ? null : current);
+      }, 1400);
       return () => window.clearTimeout(cleanupTimer);
     }
   }, [localVideoTrack, hostTransitionPreviewStream]);
