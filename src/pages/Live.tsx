@@ -36,7 +36,7 @@ interface LiveStream {
 const Live = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("/live");
-  const [streams, setStreams] = useState<LiveStream[]>(() => {
+  const initialStreams = (() => {
     try {
       const raw = window.sessionStorage.getItem("live-streams-cache-v1");
       const parsed = raw ? JSON.parse(raw) : [];
@@ -44,7 +44,11 @@ const Live = () => {
     } catch {
       return [];
     }
-  });
+  })();
+  const [streams, setStreams] = useState<LiveStream[]>(initialStreams);
+  // Pkg503: track first-fetch state so cold loads show a skeleton grid
+  // instead of the "No Live Streams" empty-state while data is in flight.
+  const [initialLoading, setInitialLoading] = useState(initialStreams.length === 0);
   const mountedRef = useRef(false);
 
   const fetchLiveStreams = async () => {
