@@ -27,6 +27,9 @@ export function RouteTransitionHost() {
 
     // Skip on initial mount and on same-path navigations.
     if (prev === null || prev === path) return;
+    // Go Live → LiveStream is a camera handoff, not a normal page transition.
+    // Do not apply the global fade class over the preserved video surface.
+    if (prev === "/go-live" && path.startsWith("/live/")) return;
 
     try {
       const body = document.body;

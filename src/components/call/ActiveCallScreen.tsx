@@ -150,7 +150,7 @@ export function ActiveCallScreen({
   const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   useEffect(() => {
-    if (!isOpen || !isPreviewWeb) return;
+    if (!isOpen || !isPreviewWeb || !callId) return;
     let cancelled = false;
     let stream: MediaStream | null = null;
     (async () => {
