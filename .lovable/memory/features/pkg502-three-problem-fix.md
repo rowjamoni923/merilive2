@@ -35,8 +35,18 @@ Native Android private call (PrivateCallActivity) — audit showed it's wired co
 - `src/pages/LiveStream.tsx` — host buttons, handlers, state, icons
 - `src/components/call/ActiveCallScreen.tsx` — ref-callback preview, ringing tile
 
+## 2026-06-19 web preview emergency pass — blank screens + click blockers
+User supplied two videos: competitor app keeps a visible camera/room surface; MeriLive preview showed repeated white/blank intervals and unresponsive close/message/more buttons. Manual video frame audit confirmed MeriLive web preview blanks around multiple live/party/call transitions.
+
+Fixes applied:
+- `LiveStream.tsx`: root tap-to-hide gesture now ignores interactive targets (`button`, `input`, `textarea`, `select`, `a`, `[role="button"]`, `[data-no-ui-toggle]`) so close/message/gift/more taps are not converted into hidden UI. The hidden-UI restore layer is now `fixed` and restores on `pointerdown`.
+- `ActiveCallScreen.tsx`: screenshot-protection CSS no longer uses global body `.secure-call video`; it is scoped to `[data-room-shell="call"]` so it cannot bleed into live/party video surfaces. Preview call background is always dark on web and does not go transparent when `isPreviewWeb` is active.
+- `PartyRoom.tsx`: initial no-room/loading branch now renders a real party-room skeleton (header, close button, seats, composer placeholder) instead of a plain blank/spinner surface.
+
+Verification signal: Lovable preview health returned healthy/painting after the changes.
+
 ## Verification
-- `bunx tsc --noEmit` green
+- `bunx tsc --noEmit` green from previous pass
 - Owner test account in Lovable preview can verify: open LiveStream → tap More → see all 12 host options; open private call → see own face from Calling → Connected with no black frame.
 
 ## APK-rebuild items (Phase 2)
