@@ -138,7 +138,15 @@ const HostBonusLedger = () => {
       </header>
 
       <main className="px-4 py-4 space-y-4 max-w-2xl mx-auto">
-        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {loading && (
+          <div className="space-y-3" aria-busy="true">
+            <div className="grid grid-cols-3 gap-2">
+              {[0,1,2].map(i => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+            </div>
+            <div className="flex gap-2">{[0,1,2,3].map(i => <div key={i} className="h-9 w-20 rounded-full bg-muted animate-pulse" />)}</div>
+            {[0,1,2,3].map(i => <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />)}
+          </div>
+        )}
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {ledger && (

@@ -43,25 +43,38 @@
       html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
       body { margin: 0; padding: 0; background-color: #FFFBF2; color: #1f2937; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
 
-      /* Professional instant boot: no app-wide spinner/blocker. Native Android
-         shows the real cached route as soon as React mounts; before that we only
-         keep the final app background stable to avoid white flash. */
-      #root:empty {
-        background-color: #FFFBF2;
-        min-height: 100vh;
-      }
+      #root { min-height: 100vh; min-height: 100dvh; background-color: #FFFBF2; position: relative; z-index: 1; }
 
-      /* Pkg504: dark-route boot bg — for deep-link / refresh on live/party/call/reels/go-live,
-         paint a near-black background BEFORE React mounts so users never see the
-         cream "#FFFBF2" body flash before the dark room shell appears. */
+      /* Pkg504: dark-route boot bg */
       html[data-boot-theme="dark"],
       html[data-boot-theme="dark"] body,
-      html[data-boot-theme="dark"] #root:empty {
-        background-color: #050208 !important;
-        color: #ffffff;
-      }
+      html[data-boot-theme="dark"] #root { background-color: #050208 !important; color: #ffffff; }
 
-      #root { min-height: 100vh; min-height: 100dvh; }
+      /* ===== Boot shell: inline app skeleton shown before React mounts. ===== */
+      .boot-shell { position: fixed; inset: 0; display: flex; flex-direction: column; pointer-events: none; z-index: 0; }
+      .boot-shell .bs-top { height: 56px; background: #F3EBDC; border-bottom: 1px solid #E8DFCC; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+      .boot-shell .bs-dot { width: 32px; height: 32px; border-radius: 999px; background: #E2D6BE; }
+      .boot-shell .bs-bar { height: 14px; border-radius: 7px; background: #E2D6BE; flex: 1; max-width: 160px; }
+      .boot-shell .bs-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+      .boot-shell .bs-card { height: 72px; border-radius: 16px; background: #F0E7D2; }
+      .boot-shell .bs-card.lg { height: 120px; }
+      .boot-shell .bs-bottom { height: 64px; background: #F3EBDC; border-top: 1px solid #E8DFCC; display: flex; align-items: center; justify-content: space-around; padding: 0 8px; }
+      .boot-shell .bs-tab { width: 28px; height: 28px; border-radius: 8px; background: #E2D6BE; }
+      .boot-shell .bs-shimmer { position: relative; overflow: hidden; }
+      .boot-shell .bs-shimmer::after { content:""; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); transform: translateX(-100%); animation: bs-shimmer 1.4s ease-in-out infinite; }
+      @keyframes bs-shimmer { 100% { transform: translateX(100%); } }
+
+      html[data-boot-theme="dark"] .boot-shell .bs-top,
+      html[data-boot-theme="dark"] .boot-shell .bs-bottom { background: #0d0a14; border-color: #1a1422; }
+      html[data-boot-theme="dark"] .boot-shell .bs-dot,
+      html[data-boot-theme="dark"] .boot-shell .bs-bar,
+      html[data-boot-theme="dark"] .boot-shell .bs-card,
+      html[data-boot-theme="dark"] .boot-shell .bs-tab { background: #1a1422; }
+      html[data-boot-theme="dark"] .boot-shell .bs-shimmer::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); }
+
+      /* Hide boot shell once React mounts. */
+      body.app-booted .boot-shell { display: none !important; }
+
       html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
       html, body { scrollbar-width: none; -ms-overflow-style: none; }
     </style>
@@ -87,6 +100,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <div class="boot-shell" aria-hidden="true">
+      <div class="bs-top bs-shimmer"><div class="bs-dot"></div><div class="bs-bar"></div></div>
+      <div class="bs-body">
+        <div class="bs-card lg bs-shimmer"></div>
+        <div class="bs-card bs-shimmer"></div>
+        <div class="bs-card bs-shimmer"></div>
+        <div class="bs-card bs-shimmer"></div>
+      </div>
+      <div class="bs-bottom"><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

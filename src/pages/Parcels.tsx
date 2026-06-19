@@ -49,10 +49,11 @@ export default function Parcels() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-60">
-          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-            <Package className="w-8 h-8 text-purple-400" />
-          </motion.div>
+        <div className="px-4 py-4 space-y-4" aria-busy="true">
+          <div className="h-32 rounded-2xl bg-muted animate-pulse" />
+          <div className="h-32 rounded-2xl bg-muted animate-pulse" />
+          <div className="h-32 rounded-2xl bg-muted animate-pulse" />
+          <div className="h-32 rounded-2xl bg-muted animate-pulse" />
         </div>
       ) : parcels.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-60 gap-3 px-6">
