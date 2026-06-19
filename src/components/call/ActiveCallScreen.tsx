@@ -146,6 +146,7 @@ export function ActiveCallScreen({
   }, []);
   const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
+  const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   useEffect(() => {
     if (!isOpen || !isPreviewWeb) return;
@@ -172,14 +173,21 @@ export function ActiveCallScreen({
       setPreviewStream(null);
     };
   }, [isOpen, isPreviewWeb]);
+  // Pkg502 — ref-callback attachment so srcObject is wired both when the
+  // stream arrives and when a video element mounts later (calling→connected
+  // transition mounts a new tile after the stream is already set).
+  const attachPreview = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing') => {
+    const refMap = { primary: previewVideoRefPrimary, pip: previewVideoRefPip, ringing: previewVideoRefRinging };
+    refMap[slot].current = el;
+    if (el && previewStream && el.srcObject !== previewStream) {
+      el.srcObject = previewStream;
+    }
+  }, [previewStream]);
   useEffect(() => {
     if (!previewStream) return;
-    if (previewVideoRefPrimary.current && previewVideoRefPrimary.current.srcObject !== previewStream) {
-      previewVideoRefPrimary.current.srcObject = previewStream;
-    }
-    if (previewVideoRefPip.current && previewVideoRefPip.current.srcObject !== previewStream) {
-      previewVideoRefPip.current.srcObject = previewStream;
-    }
+    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging].forEach((r) => {
+      if (r.current && r.current.srcObject !== previewStream) r.current.srcObject = previewStream;
+    });
   }, [previewStream]);
   
   // Host photos for calling/ringing screen
