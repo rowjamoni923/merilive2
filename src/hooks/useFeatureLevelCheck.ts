@@ -52,7 +52,6 @@ export const useFeatureLevelCheck = () => {
         .eq("is_active", true);
 
       if (error) throw error;
-      console.log("[useFeatureLevelCheck] Loaded requirements:", data);
       return (data as FeatureRequirement[]).map(normalizeRequirement);
     },
     // Zero-refresh policy: cached data stays stable; realtime mutates cache instantly.
