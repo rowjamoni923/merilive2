@@ -147,7 +147,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         // fall through
       }
     }
-    if (!attached && mediaTrack && mediaTrack.readyState !== 'ended') {
+    const attachedStream = el.srcObject as MediaStream | null;
+    const attachedTrack = attachedStream?.getVideoTracks?.()[0];
+    const attachMissingTrack = !!(mediaTrack && mediaTrack.readyState !== 'ended' && attachedTrack?.id !== mediaTrack.id);
+    if ((!attached || attachMissingTrack) && mediaTrack && mediaTrack.readyState !== 'ended') {
       try {
         el.srcObject = new MediaStream([mediaTrack]);
       } catch {
@@ -161,8 +164,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const hasDecodedFrame = () => el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0;
 
-    const markReady = () => {
-      if (!hasDecodedFrame()) return;
+    const markReady = (force = false) => {
+      if (!force && !hasDecodedFrame()) return;
       revealVideo();
       if (!mutedRef.current) {
         try {
@@ -217,6 +220,22 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       }
     }, 450);
 
+    // 2026-06-19 — Web preview emergency fix: Live/Party/Call all share this
+    // renderer. Chromium WebView/Chrome can publish a live LocalVideoTrack but
+    // never fire loadeddata/requestVideoFrameCallback after LiveKit attach(),
+    // leaving opacity:0 forever even though preview camera worked. If the real
+    // track is attached and live, reveal the element after the first-frame
+    // budget so users see the camera surface instead of a fake blank room.
+    const liveTrackReveal = setTimeout(() => {
+      const mt = videoTrack?.mediaStreamTrack;
+      const cur = el.srcObject as MediaStream | null;
+      const curTrack = cur?.getVideoTracks?.()[0];
+      if (mt && mt.readyState === 'live' && curTrack?.id === mt.id) {
+        try { if (el.paused) el.play().catch(() => {}); } catch { /* ignore */ }
+        markReady(true);
+      }
+    }, 900);
+
     // Phase 2B Step 6 (M4 fix): second-tier reveal watchdog. If decoder hasn't
     // produced a single frame after 2.5s while the track is "live", escalate
     // by asking the parent to retry subscription (which detaches + resubs).
@@ -269,6 +288,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     return () => {
       timers.forEach(clearTimeout);
       clearTimeout(revealWatchdog);
+      clearTimeout(liveTrackReveal);
       clearTimeout(revealEscalation);
       clearInterval(stallProbe);
       mediaTrack?.removeEventListener('ended', onTrackEnded);
