@@ -1044,6 +1044,36 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
       });
 
+      // Batch B (camera continuity, 2026-06-19): industry-standard
+      // background→foreground recovery. Browsers / WebViews may end the host
+      // camera MediaStreamTrack when the tab is hidden (notification shade
+      // pull, brief app-switch). Without explicit recovery, returning to the
+      // foreground shows a frozen / black local tile until the host toggles
+      // camera manually. Chamet/Bigo (Agora) restart capture on resume; the
+      // LiveKit equivalent is `LocalVideoTrack.restartTrack()`, which
+      // re-acquires getUserMedia with the original constraints and swaps the
+      // underlying track via `RTCRtpSender.replaceTrack()` — no republish, no
+      // renegotiation, no reconnect.
+      const handleVisibilityResume = () => {
+        if (document.visibilityState !== 'visible') return;
+        if (config.role !== 'host') return;
+        if (room.state !== ConnectionState.Connected) return;
+        const pub = Array.from(room.localParticipant.trackPublications.values())
+          .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+        const track = pub?.track as any;
+        const mst = track?.mediaStreamTrack as MediaStreamTrack | undefined;
+        if (!track || !mst) return;
+        if (mst.readyState !== 'ended' && !mst.muted) return;
+        if (typeof track.restartTrack !== 'function') return;
+        Promise.resolve(track.restartTrack())
+          .then(() => console.log('[LiveKitClient] visibility-resume: camera restartTrack() OK'))
+          .catch((err: unknown) => console.warn('[LiveKitClient] visibility-resume restartTrack failed:', err));
+      };
+      document.addEventListener('visibilitychange', handleVisibilityResume);
+      room.once(RoomEvent.Disconnected, () => {
+        try { document.removeEventListener('visibilitychange', handleVisibilityResume); } catch { /* ignore */ }
+      });
+
       // Capture local tracks as they publish (covers late-publish & re-publish after recovery)
       room.on(RoomEvent.LocalTrackPublished, (publication) => {
         if (publication.track) {
