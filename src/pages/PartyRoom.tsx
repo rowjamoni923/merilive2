@@ -2498,28 +2498,47 @@ const PartyRoom = () => {
 
 
   if (!room) {
-    // Pro-app behavior: never flash a white screen during the brief window
-    // between route mount and the first DB fetch. Render a backdrop that
-    // matches the party room visual (deep purple gradient + subtle spinner)
-    // so the transition from CreateParty → /party/:id (or back-nav into a
-    // party) looks like a smooth in-place UI change instead of a blank tab.
+    const pendingRoomName = String((location.state as any)?.roomName || (location.state as any)?.name || 'Party Room');
     return (
       <div
-        className="fixed inset-0 z-0 flex items-center justify-center"
+        data-room-shell
+        className="room-viewport z-0 overflow-hidden"
         style={{
           background:
-            'radial-gradient(ellipse at top, hsl(270 60% 22%) 0%, hsl(265 55% 14%) 45%, hsl(260 50% 8%) 100%)',
+            'radial-gradient(ellipse at top, hsl(270 58% 18%) 0%, hsl(262 48% 10%) 48%, hsl(250 38% 5%) 100%)',
         }}
       >
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className="h-10 w-10 rounded-full border-2 border-white/15 border-t-white/85 animate-spin"
-            aria-label="Loading party room"
-          />
-          <span className="text-white/70 text-xs font-medium tracking-wide">
-            Preparing room…
-          </span>
-        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,255,255,0.12),transparent_34%)]" />
+        <header className="relative z-10 flex items-center justify-between px-3 py-3">
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-full bg-white/12 animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-3 w-24 rounded-full bg-white/18 animate-pulse" />
+              <div className="h-2.5 w-16 rounded-full bg-white/10 animate-pulse" />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/', { replace: true })}
+            className="grid h-9 w-9 place-items-center rounded-full bg-black/45 text-white/80 backdrop-blur-md"
+            aria-label="Leave party"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+        <main className="relative z-10 flex h-[calc(100dvh-88px)] flex-col items-center justify-center gap-7 px-5 pb-24">
+          <div className="text-center">
+            <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-white/12 animate-pulse" />
+            <div className="text-white/75 text-sm font-semibold">{pendingRoomName}</div>
+          </div>
+          <div className="grid w-full max-w-sm grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="aspect-square rounded-2xl bg-white/10 animate-pulse" />
+            ))}
+          </div>
+          <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+18px)] left-4 right-4 h-11 rounded-full bg-white/10 animate-pulse" />
+        </main>
+        <div className="sr-only" aria-label="Loading party room" />
       </div>
     );
   }
