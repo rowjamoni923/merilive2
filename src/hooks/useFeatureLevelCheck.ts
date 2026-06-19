@@ -75,15 +75,14 @@ export const useFeatureLevelCheck = () => {
     return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
   }, [queryClient]);
 
-  const checkFeatureAccess = (
+  const checkFeatureAccess = useCallback((
     featureKey: string,
     userLevel: number,
     isHost: boolean
   ): CheckResult => {
-    // CRITICAL FIX: If requirements haven't loaded yet, DENY access by default
-    // This prevents bypass during the loading window
+    // CRITICAL: If requirements haven't loaded yet, DENY access by default
+    // This prevents bypass during the loading window.
     if (!requirements || requirements.length === 0) {
-      console.log(`[useFeatureLevelCheck] ⚠️ Requirements not loaded yet - DENYING access for ${featureKey}`);
       return {
         canAccess: false,
         requiredLevel: 1,
@@ -92,10 +91,8 @@ export const useFeatureLevelCheck = () => {
         featureName: featureKey,
       };
     }
-    
+
     const requirement = requirements.find((r) => r.feature_key === featureKey);
-    
-    console.log(`[useFeatureLevelCheck] Checking ${featureKey}: userLevel=${userLevel}, isHost=${isHost}, requirement=`, requirement);
 
     if (!requirement) {
       // Feature not configured in admin panel - allow access
@@ -113,8 +110,6 @@ export const useFeatureLevelCheck = () => {
       ? normalizedRequirement.min_level_host ?? 0
       : normalizedRequirement.min_level_user ?? 0;
     const canAccess = userLevel >= requiredLevel;
-    
-    console.log(`[useFeatureLevelCheck] Result: requiredLevel=${requiredLevel}, canAccess=${canAccess}`);
 
     return {
       canAccess,
@@ -123,11 +118,11 @@ export const useFeatureLevelCheck = () => {
       isHost,
       featureName: normalizedRequirement.feature_name,
     };
-  };
+  }, [requirements]);
 
-  const getRequirement = (featureKey: string): FeatureRequirement | undefined => {
+  const getRequirement = useCallback((featureKey: string): FeatureRequirement | undefined => {
     return requirements?.find((r) => r.feature_key === featureKey);
-  };
+  }, [requirements]);
 
   return {
     requirements,
