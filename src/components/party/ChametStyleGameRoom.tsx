@@ -565,22 +565,7 @@ export function ChametStyleGameRoom({
                   <div className="w-full h-full relative">
                     {/* Video Feed via unified LiveKitVideoPlayer */}
                     {streamToUse && !participant.isVideoOff ? (
-                      <LiveKitVideoPlayer
-                        videoTrack={{
-                          mediaStreamTrack: streamToUse.getVideoTracks()[0],
-                          attach: (el: HTMLVideoElement) => {
-                            el.srcObject = new MediaStream([streamToUse.getVideoTracks()[0]]);
-                            return el;
-                          },
-                          detach: (el: HTMLVideoElement) => {
-                            el.srcObject = null;
-                            return el;
-                          }
-                        } as any}
-                        mirror={isMyself}
-                        fit="cover"
-                        className="w-full h-full"
-                      />
+                      <StableGameStreamVideo stream={streamToUse} mirror={isMyself} />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none">
                         <AvatarWithFrame
