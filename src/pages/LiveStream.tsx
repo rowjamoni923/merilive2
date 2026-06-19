@@ -3455,6 +3455,35 @@ const LiveStream = () => {
     }
   };
 
+  // Pkg502 — host camera on/off + flip (industry standard: mute video pub,
+  // keep track alive so toggle-back is instant; flip swaps front/back lens).
+  const handleToggleHostCamera = useCallback(async () => {
+    const next = !isHostCamOff;
+    setIsHostCamOff(next);
+    try {
+      const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+      await nativeLiveKitController.setCameraEnabled(!next);
+    } catch { /* native optional */ }
+    try {
+      const roomAny: any = (window as any).__livekitRoom;
+      if (roomAny?.localParticipant) {
+        await roomAny.localParticipant.setCameraEnabled(!next);
+      }
+    } catch { /* web optional */ }
+    toast.success(next ? 'Camera off' : 'Camera on');
+  }, [isHostCamOff]);
+
+  const handleFlipCamera = useCallback(async () => {
+    try {
+      await switchCamera();
+      toast.success('Camera flipped');
+    } catch (err) {
+      console.warn('[LiveStream] flip camera failed:', err);
+      toast.error('Could not flip camera');
+    }
+  }, [switchCamera]);
+
+
   // Base options for ALL users (viewers + host). Now includes Like — per UX
   // refresh the heart button moved off the bottom bar into More so the chat
   // input gets more breathing room.
