@@ -26,8 +26,11 @@ function getNotificationUrl(data) {
   if (type === 'call_missed') return '/call-history';
   if (type === 'call_received') return '/call-history';
 
-  // Messages
-  if (type === 'message') return '/chat/' + (data.conversation_id || '');
+  // Messages — open Chat focused on the sender. /chat/:id is not a real route.
+  if (type === 'message') {
+    var senderId = data.sender_id || data.senderId || data.from_user_id;
+    return senderId ? ('/chat?user=' + senderId) : '/chat';
+  }
   if (type === 'admin_message' || type === 'admin_message_reply') {
     return data.source === 'helper_messaging' ? '/helper-dashboard?tab=inbox' : '/chat';
   }

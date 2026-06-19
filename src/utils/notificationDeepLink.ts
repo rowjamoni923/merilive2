@@ -26,9 +26,13 @@ export function getNotificationPath(data: NotificationData | null | undefined): 
   }
   if (type === "call_missed" || type === "call_received") return "/call-history";
 
-  // Direct messages
+  // Direct messages — open Chat page focused on the sender's conversation.
+  // The /chat/:id pattern does NOT exist as a route (would 404). Chat.tsx
+  // reads ?user=<senderId> at line 1061 to auto-select the conversation.
   if (type === "message") {
-    return `/chat/${str(data.conversation_id || data.conversationId)}`;
+    const senderId = str(data.sender_id || data.senderId || data.from_user_id);
+    if (senderId) return `/chat?user=${senderId}`;
+    return "/chat";
   }
   if (type === "admin_message" || type === "admin_message_reply") {
     return str(data.source) === "helper_messaging" ? "/helper-dashboard?tab=inbox" : "/chat";

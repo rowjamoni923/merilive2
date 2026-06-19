@@ -109,6 +109,16 @@ class NativeLiveKitController {
     return this.connected;
   }
 
+  /** Phase 1A — read the current preview feature scope (or null when no preview owned). */
+  getPreviewScope(): NativeRoomScope | null {
+    return this.previewFeature;
+  }
+
+  /** Phase 1A — read the currently active session scope (or null when not connected). */
+  getActiveScope(): NativeRoomScope | null {
+    return this.activeFeature;
+  }
+
   async connectAndPublish(opts: NativeJoinOptions): Promise<{ sid: string; identity: string }> {
     await this.waitForIdle('previous media operation');
     this.busy = true;

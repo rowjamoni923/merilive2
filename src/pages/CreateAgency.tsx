@@ -226,7 +226,7 @@ const CreateAgency = () => {
       description: "Your agency has been created successfully",
     });
 
-    navigate("/agency-dashboard");
+    navigate("/n-dashboard");
   };
 
   // Payroll Member Benefits

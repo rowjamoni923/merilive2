@@ -425,7 +425,12 @@ export function usePartyRoomNativeLiveKit(
             const [{ token, url }] = await Promise.all([tokenPromise, previewPromise]);
             if (deadRef.current || sessionSeqRef.current !== sessionSeq) return;
 
-            consumePreparedHostPreviewStream()?.getTracks().forEach((track) => { try { track.stop(); } catch {} });
+            // NOTE (Phase 1A camera handoff): Do NOT consume / stop the prepared
+            // host preview MediaStream here. On the Android native path the
+            // camera lives inside the preview Room and is promoted into the
+            // session Room by `connectInternal()` — stopping the JS-side
+            // MediaStream here was a no-op for the native camera but caused
+            // confusion and was a leftover from the web fallback path.
             const cameraOwner = await getAndroidCameraOwner();
             if (cameraOwner !== 'livekit') {
               await releaseAndroidWebViewCameraNow('party:native-before-connect');
@@ -1105,13 +1110,20 @@ export function usePartyRoomNativeLiveKit(
           if (partyCanPublish) {
             await nativeLiveKitController.setMicrophoneEnabled(true);
             if (isVideoPartyType(roomType) && cameraReadyRef.current) {
-              await nativeLiveKitController.startLocalPreview({
-                lens: 'front',
-                resolution: '720p',
-                mirror: true,
-                roomScope: 'party',
-                boundedOnly: true,
-              }).catch(() => false);
+              // Phase 1A camera handoff fix: do NOT call startLocalPreview when
+              // a party session is already connected — the camera is already
+              // owned by the session Room. Calling startLocalPreview here used
+              // to spin up a fresh CameraX pipeline and caused the 10–20s
+              // black flash on seat-up. Just toggle the camera publish flag.
+              if (!nativeLiveKitController.isConnected()) {
+                await nativeLiveKitController.startLocalPreview({
+                  lens: 'front',
+                  resolution: '720p',
+                  mirror: true,
+                  roomScope: 'party',
+                  boundedOnly: true,
+                }).catch(() => false);
+              }
               await nativeLiveKitController.setCameraEnabled(true);
             }
             if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: true, isVideoEnabled: isVideoPartyType(roomType) }));
