@@ -892,6 +892,11 @@ const LiveStream = () => {
   }, [swipeTouchStart]);
 
   const handleCombinedTouchEnd = useCallback((e: React.TouchEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('button, input, textarea, select, a, [role="button"], [data-no-ui-toggle]')) {
+      return;
+    }
+
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - hSwipeStartX.current;
@@ -3848,8 +3853,11 @@ const LiveStream = () => {
       {/* Tap anywhere to restore UI when hidden */}
       {isUIHidden && (
         <div 
-          className="absolute inset-0 z-[100]" 
-          onClick={() => setIsUIHidden(false)}
+          className="fixed inset-0 z-[100]" 
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            setIsUIHidden(false);
+          }}
         />
       )}
 
