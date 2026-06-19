@@ -134,3 +134,18 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 1. `LiveKitVideoPlayer.tsx` now verifies LiveKit attach actually placed the expected `MediaStreamTrack` on the element; if not, it explicitly sets `srcObject` to that track.
 2. `LiveKitVideoPlayer.tsx` adds a 900ms live-track reveal watchdog so Live/Party/Private Call no longer stay opacity-hidden when the track is live but frame callbacks are missing.
 3. `useLiveKitClient.ts` exposes the active web LiveKit room to the existing host camera restart handler and removes the stale `ProCameraEngine.isHeldBy()` recovery block (that engine is currently a no-op stub), so manual recovery can actually republish camera.
+
+---
+
+## 2026-06-19 — Broadcast / Party Broadcast / Private Call camera handoff hardening
+
+**User evidence:** Pre-live preview camera is visible in Lovable mobile preview, but tapping the broadcast/call entry buttons can transition into Live/Party/Private Call with blank video. User explicitly requires the same running preview camera to continue; only UI should change.
+
+**Professional standard applied:** Chamet/Bigo/Agora-style mobile flow keeps camera capture/surface alive from preview → join/connect → in-room UI, publishes after connect using the existing track where possible, and uses renderer attach retries/watchdogs instead of showing blank screens. LiveKit docs confirm the same model: local tracks are created/enabled/published to the room and subscribed tracks must be attached/rendered by the client.
+
+**Code-level fixes applied:**
+1. `GoLive.tsx` now treats an inline native-preview retry as the handoff source immediately, so tapping Go Live preserves the running preview instead of falling into the cold native path because React state had not updated yet.
+2. `useLiveKitCall.ts` no longer kills prepared call preview before native connect; native retry now uses session-only disconnect so the second attempt promotes the same Camera2 preview track instead of reopening camera.
+3. `useLiveKitCall.ts` allows the web/Lovable preview call media path while Android still fails closed to native LiveKit when required.
+4. `ActiveCallScreen.tsx` stores the web preview camera as prepared call media, so the LiveKit web call path reuses that same camera stream.
+5. `LiveKitPlugin.kt` now reports `attachRemoteSurface` as `attached:false/no_track` until a remote camera track exists, letting `NativeVideoView` retry instead of marking a blank party seat as attached forever.
