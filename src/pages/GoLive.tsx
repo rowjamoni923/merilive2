@@ -694,8 +694,24 @@ const GoLive = () => {
     // tap. Do not run native probes, timeout waits, or a second permission
     // check before getUserMedia — that loses the browser gesture context.
     try {
+      // Step 1b: peek persistent session first (warm camera from a previous
+      // GoLive/LiveStream visit) — no second getUserMedia, no popup.
+      const warm = peekCameraSession();
+      if (warm) {
+        const handle = await acquireCameraSession();
+        cameraHandleRef.current?.release();
+        cameraHandleRef.current = handle;
+        setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+        setStream(handle.stream);
+        setFacingMode('user');
+        attachWebPreviewStream(handle.stream);
+        playSound('notification');
+        return;
+      }
       const mediaStream = await getCameraStream(true);
       if (!mediaStream) throw new Error('Failed to get camera stream');
+      cameraHandleRef.current?.release();
+      cameraHandleRef.current = adoptCameraSession(mediaStream);
       setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
       setStream(mediaStream);
       setFacingMode('user');
