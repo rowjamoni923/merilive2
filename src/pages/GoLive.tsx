@@ -587,9 +587,16 @@ const GoLive = () => {
         void stopNativePreview();
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        // Step 1b: keep web camera warm across unmount/HMR. Only release the
+        // ref; persistentCameraSession owns the tracks until explicit dispose.
+        if (cameraHandleRef.current) {
+          cameraHandleRef.current.release();
+          cameraHandleRef.current = null;
+        } else {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          releaseAndroidWebViewCamera('golive:unmount');
+        }
         streamRef.current = null;
-        releaseAndroidWebViewCamera('golive:unmount');
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
       // stream never leaves a "play" icon ghost in the WebView paint cache.
