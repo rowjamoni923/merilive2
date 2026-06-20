@@ -1,0 +1,163 @@
+/**
+ * persistentCameraSession
+ * -----------------------
+ * A global, reference-counted MediaStream singleton so the camera+mic stay
+ * alive across React route changes. Page A opens camera, navigates to Page B,
+ * navigates back to Page A — no re-permission, no re-init, no black gap.
+ *
+ * This is the foundation for Step 1+ of the "zero loading / zero camera
+ * restart" rebuild. It deliberately does NOT touch LiveKit — it only owns the
+ * raw browser MediaStream. LiveKit LocalTracks are built on top of these
+ * tracks; when a track is shared, LiveKit should be created with
+ * `videoTrack: existingTrack` instead of calling getUserMedia again.
+ *
+ * Lifecycle:
+ *   const handle = await acquireCameraSession({ video: true, audio: true });
+ *   // ... use handle.stream ...
+ *   handle.release();                  // decrements refcount, stream stays
+ *   disposeCameraSessionIfIdle();      // optional GC after a real exit
+ *   forceDisposeCameraSession();       // explicit "End Live" / "Leave Call"
+ */
+
+export type CameraSessionConstraints = {
+  video?: boolean | MediaTrackConstraints;
+  audio?: boolean | MediaTrackConstraints;
+  facingMode?: 'user' | 'environment';
+};
+
+export type CameraSessionHandle = {
+  stream: MediaStream;
+  release: () => void;
+};
+
+type Session = {
+  stream: MediaStream;
+  refCount: number;
+  constraintsKey: string;
+  createdAt: number;
+};
+
+let active: Session | null = null;
+let pending: Promise<Session> | null = null;
+
+const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints => {
+  const video =
+    req.video === false
+      ? false
+      : typeof req.video === 'object'
+        ? { ...req.video, facingMode: req.facingMode ?? (req.video as any).facingMode ?? 'user' }
+        : { facingMode: req.facingMode ?? 'user', width: { ideal: 1280 }, height: { ideal: 720 } };
+  const audio = req.audio === undefined ? true : req.audio;
+  return { video, audio } as MediaStreamConstraints;
+};
+
+const keyOf = (req: CameraSessionConstraints) =>
+  JSON.stringify({ v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
+
+const isStreamUsable = (stream: MediaStream | null | undefined) =>
+  !!stream && stream.getTracks().some((t) => t.readyState === 'live');
+
+export async function acquireCameraSession(
+  req: CameraSessionConstraints = { video: true, audio: true },
+): Promise<CameraSessionHandle> {
+  const wantKey = keyOf(req);
+
+  // Reuse the live session when constraints match.
+  if (active && active.constraintsKey === wantKey && isStreamUsable(active.stream)) {
+    active.refCount += 1;
+    return toHandle(active);
+  }
+
+  // If a different constraint set is active, dispose it first.
+  if (active && active.constraintsKey !== wantKey) {
+    hardStop(active);
+    active = null;
+  }
+
+  if (pending) {
+    const s = await pending;
+    s.refCount += 1;
+    return toHandle(s);
+  }
+
+  pending = (async (): Promise<Session> => {
+    const stream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
+    const session: Session = {
+      stream,
+      refCount: 1,
+      constraintsKey: wantKey,
+      createdAt: Date.now(),
+    };
+    active = session;
+    return session;
+  })();
+
+  try {
+    const session = await pending;
+    return toHandle(session);
+  } finally {
+    pending = null;
+  }
+}
+
+function toHandle(session: Session): CameraSessionHandle {
+  let released = false;
+  return {
+    stream: session.stream,
+    release() {
+      if (released) return;
+      released = true;
+      session.refCount = Math.max(0, session.refCount - 1);
+      // Note: we do NOT stop tracks when refCount hits 0. The whole point is
+      // to survive route changes. Call disposeCameraSessionIfIdle() or
+      // forceDisposeCameraSession() to actually free the camera.
+    },
+  };
+}
+
+function hardStop(session: Session) {
+  try {
+    session.stream.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch {
+        /* ignore */
+      }
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Returns the live stream if a session exists (does not refcount). */
+export function peekCameraSession(): MediaStream | null {
+  return active && isStreamUsable(active.stream) ? active.stream : null;
+}
+
+/** Stops tracks only if no consumer is currently holding the session. */
+export function disposeCameraSessionIfIdle(): boolean {
+  if (!active) return true;
+  if (active.refCount > 0) return false;
+  hardStop(active);
+  active = null;
+  return true;
+}
+
+/** Force-stops the camera regardless of refcount. Use on "End Live" / sign-out. */
+export function forceDisposeCameraSession(): void {
+  if (!active) return;
+  hardStop(active);
+  active = null;
+}
+
+/** Debug helper. */
+export function inspectCameraSession() {
+  return active
+    ? {
+        refCount: active.refCount,
+        constraintsKey: active.constraintsKey,
+        ageMs: Date.now() - active.createdAt,
+        tracks: active.stream.getTracks().map((t) => ({ kind: t.kind, state: t.readyState })),
+      }
+    : null;
+}
