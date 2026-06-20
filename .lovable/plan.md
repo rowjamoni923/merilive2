@@ -230,3 +230,6 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 1. `livekitReliableMedia.ts` now falls back to `peekCameraSession()` and merges unique live tracks before calling `getUserMedia`, so a warm GoLive camera is published even when the route handoff stream is missed.
 2. `useLiveKitClient.ts` passes the persistent warm stream into the initial host publish and every camera publish retry, so `Restart Camera` also republishes the existing live track before cold-opening camera again.
 3. `useLiveKitClient.ts` no longer stops LiveKit local media tracks on plain route unmount/back; it stops/force-disposes only when `LiveStream.handleEndStream()` marks an explicit End Live. This keeps Back → Go Live continuity intact while still freeing hardware on real stream end.
+4. `persistentCameraSession.ts` now throws on dead-stream adoption instead of silently storing a no-op handle, so failed handoff cannot masquerade as a valid persistent camera.
+5. `GoLive.tsx` releases its camera handle immediately after donating the stream to the live-room handoff, and camera-switch now re-adopts the switched stream so LiveStream publishes the current lens track.
+6. `LiveStream.tsx` delays the host recovery overlay while a transition preview exists, preventing a false `Camera not visible` message during a slow but still-valid publish window.
