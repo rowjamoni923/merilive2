@@ -1662,24 +1662,29 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         } catch { /* noop */ }
       }
 
-      // Pkg-fix: explicitly stop local hardware tracks BEFORE disconnect so the
-      // camera/mic LEDs go off immediately on Android WebViews even if a React
-      // ref somewhere still holds the track reference. Read from the live room
-      // (not React state) so stale closures don't leak tracks.
+      const isExplicitLiveEnd = Boolean((window as any).__meriliveEndingLiveStream);
+      // Pkg-camera-persist Step 1d: plain route unmount/back must not stop the
+      // warm camera tracks that GoLive will reuse. Explicit End Live still
+      // disposes hardware immediately.
       try {
         const lp: any = roomRef.current?.localParticipant;
         const pubs = lp?.trackPublications ? Array.from(lp.trackPublications.values()) : [];
         pubs.forEach((pub: any) => {
           const t = pub?.track;
           if (!t) return;
+          if (!isExplicitLiveEnd) return;
           try { if (typeof t.stop === 'function') t.stop(); } catch {}
           try { if (t.mediaStreamTrack?.stop) t.mediaStreamTrack.stop(); } catch {}
         });
       } catch { /* noop */ }
 
+      if (isExplicitLiveEnd) {
+        try { forceDisposeCameraSession(); } catch { /* noop */ }
+      }
+
       if (roomRef.current) {
         const leavingRoom = roomRef.current;
-        roomRef.current.disconnect(true);
+        roomRef.current.disconnect(isExplicitLiveEnd);
         try { if ((window as any).__livekitRoom === leavingRoom) delete (window as any).__livekitRoom; } catch { /* ignore */ }
         roomRef.current = null;
       }
