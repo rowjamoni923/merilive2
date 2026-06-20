@@ -31,6 +31,13 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import {
+  acquireCameraSession,
+  adoptCameraSession,
+  peekCameraSession,
+  forceDisposeCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -83,6 +90,11 @@ const GoLive = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
   const cameraSwitchInFlightRef = useRef<Promise<void> | null>(null);
+  // Step 1b: persistent web-camera handle. When set, the underlying tracks
+  // are owned by persistentCameraSession and MUST NOT be stop()'d on unmount
+  // — only released. forceDisposeCameraSession() is called from explicit
+  // teardown (End Live, native handoff, sign out).
+  const cameraHandleRef = useRef<CameraSessionHandle | null>(null);
 
   useEffect(() => {
     streamRef.current = stream;
@@ -455,9 +467,19 @@ const GoLive = () => {
     clearPreparedHostPreviewStream();
     await stopNativePreview();
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      // Step 1b: on back, KEEP the web camera warm via persistentCameraSession
+      // so the next GoLive/LiveStream open is instant. Only release our ref;
+      // do not stop tracks. Force-dispose only happens on explicit End Live or
+      // a native-handoff path that needs /dev/video0 freed.
+      if (cameraHandleRef.current) {
+        cameraHandleRef.current.release();
+        cameraHandleRef.current = null;
+      } else {
+        // Stream was never adopted (legacy path / native fallback). Stop it.
+        streamRef.current.getTracks().forEach(track => track.stop());
+        releaseAndroidWebViewCamera('golive:back');
+      }
       streamRef.current = null;
-      releaseAndroidWebViewCamera('golive:back');
     }
     // Pkg-fix: null srcObject so the WebView doesn't keep painting the last
     // (now-stopped) frame as a frozen native-controls overlay on re-entry.
@@ -565,9 +587,16 @@ const GoLive = () => {
         void stopNativePreview();
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        // Step 1b: keep web camera warm across unmount/HMR. Only release the
+        // ref; persistentCameraSession owns the tracks until explicit dispose.
+        if (cameraHandleRef.current) {
+          cameraHandleRef.current.release();
+          cameraHandleRef.current = null;
+        } else {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          releaseAndroidWebViewCamera('golive:unmount');
+        }
         streamRef.current = null;
-        releaseAndroidWebViewCamera('golive:unmount');
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
       // stream never leaves a "play" icon ghost in the WebView paint cache.
@@ -598,8 +627,23 @@ const GoLive = () => {
           }
           return;
         }
+        // Step 1b: instant reuse if a previous GoLive/LiveStream visit left a
+        // warm camera in persistentCameraSession. No getUserMedia, no popup,
+        // no black gap on return.
+        const warm = peekCameraSession();
+        if (warm) {
+          const handle = await acquireCameraSession();
+          cameraHandleRef.current?.release();
+          cameraHandleRef.current = handle;
+          setStream(handle.stream);
+          setFacingMode('user');
+          attachWebPreviewStream(handle.stream);
+          return;
+        }
         const mediaStream = await getCameraStream(true);
         if (!mediaStream) throw new Error('Failed to get camera stream');
+        cameraHandleRef.current?.release();
+        cameraHandleRef.current = adoptCameraSession(mediaStream);
         setStream(mediaStream);
         setFacingMode('user');
         attachWebPreviewStream(mediaStream);
@@ -667,8 +711,24 @@ const GoLive = () => {
     // tap. Do not run native probes, timeout waits, or a second permission
     // check before getUserMedia — that loses the browser gesture context.
     try {
+      // Step 1b: peek persistent session first (warm camera from a previous
+      // GoLive/LiveStream visit) — no second getUserMedia, no popup.
+      const warm = peekCameraSession();
+      if (warm) {
+        const handle = await acquireCameraSession();
+        cameraHandleRef.current?.release();
+        cameraHandleRef.current = handle;
+        setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+        setStream(handle.stream);
+        setFacingMode('user');
+        attachWebPreviewStream(handle.stream);
+        playSound('notification');
+        return;
+      }
       const mediaStream = await getCameraStream(true);
       if (!mediaStream) throw new Error('Failed to get camera stream');
+      cameraHandleRef.current?.release();
+      cameraHandleRef.current = adoptCameraSession(mediaStream);
       setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
       setStream(mediaStream);
       setFacingMode('user');
@@ -920,6 +980,9 @@ const GoLive = () => {
       if (isNativeAndroid && nativePreviewReadyForHandoff) {
         preservePreviewForLiveRef.current = true;
         clearPreparedHostPreviewStream({ stopTracks: true });
+        // Native Camera2 path takes over /dev/video0 — kill any warm web session.
+        if (cameraHandleRef.current) { cameraHandleRef.current.release(); cameraHandleRef.current = null; }
+        forceDisposeCameraSession();
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -929,6 +992,8 @@ const GoLive = () => {
       } else if (isNativeAndroid) {
         preservePreviewForLiveRef.current = false;
         clearPreparedHostPreviewStream({ stopTracks: true });
+        if (cameraHandleRef.current) { cameraHandleRef.current.release(); cameraHandleRef.current = null; }
+        forceDisposeCameraSession();
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -936,13 +1001,16 @@ const GoLive = () => {
         }
         await stopNativePreview();
       } else {
-        // Preserve the real WebView camera stream on Android when native preview
-        // was unavailable/no-op. If native LiveKit is disabled or falls back to
-        // web publishing, LiveStream can publish this already-user-approved track
-        // instead of trying getUserMedia again outside the tap gesture.
+        // Web handoff: donate the SAME MediaStream to LiveStream. We release
+        // our local refcount but persistentCameraSession keeps the stream
+        // alive so LiveStream can adopt without re-prompting. (Step 1c will
+        // make LiveStream the new ref-holder; for now setPreparedHostPreviewStream
+        // still mediates the immediate handoff.)
         preservePreviewForLiveRef.current = true;
         if (streamRef.current) {
           setPreparedHostPreviewStream(streamRef.current);
+          // Do NOT release cameraHandleRef yet — keep refcount until LiveStream
+          // adopts (Step 1c). On unmount the cleanup will release it.
         } else {
           clearPreparedHostPreviewStream();
         }
@@ -987,6 +1055,14 @@ const GoLive = () => {
     preservePreviewForLiveRef.current = false;
     clearPreparedHostPreviewStream();
     await stopNativePreview();
+    // Step 1b: leaving the GoLive family entirely (Edit Profile, Face
+    // Verification, Join Agency) — force-dispose so the camera LED turns off
+    // and /dev/video0 is freed for other pipelines.
+    if (cameraHandleRef.current) {
+      cameraHandleRef.current.release();
+      cameraHandleRef.current = null;
+    }
+    forceDisposeCameraSession();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;

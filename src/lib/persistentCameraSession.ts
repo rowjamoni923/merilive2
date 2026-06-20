@@ -100,6 +100,34 @@ export async function acquireCameraSession(
   }
 }
 
+/**
+ * Register an externally-obtained MediaStream (e.g. from a custom getUserMedia
+ * pipeline with Android WebView hacks) into the persistent session so future
+ * acquireCameraSession() calls can reuse it. Returns a handle whose refCount
+ * is 1 (you are the first consumer).
+ */
+export function adoptCameraSession(
+  stream: MediaStream,
+  req: CameraSessionConstraints = { video: true, audio: true },
+): CameraSessionHandle {
+  if (!isStreamUsable(stream)) {
+    // Can't adopt a dead stream — return a no-op handle.
+    return { stream, release() {} };
+  }
+  const wantKey = keyOf(req);
+  if (active && active.stream !== stream) {
+    hardStop(active);
+    active = null;
+  }
+  if (!active) {
+    active = { stream, refCount: 1, constraintsKey: wantKey, createdAt: Date.now() };
+  } else {
+    active.refCount += 1;
+    active.constraintsKey = wantKey;
+  }
+  return toHandle(active);
+}
+
 function toHandle(session: Session): CameraSessionHandle {
   let released = false;
   return {
