@@ -815,6 +815,10 @@ const GoLive = () => {
         setStream(combinedStream);
         setFacingMode(newFacingMode);
         attachWebPreviewStream(combinedStream);
+        try {
+          cameraHandleRef.current?.release();
+          cameraHandleRef.current = adoptCameraSession(combinedStream, { video: true, audio: true, facingMode: newFacingMode });
+        } catch { /* ignore; preview stream remains directly attached */ }
 
         if (previousStream && previousStream !== combinedStream) {
           previousStream.getVideoTracks().forEach((track) => {
