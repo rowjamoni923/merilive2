@@ -2829,10 +2829,16 @@ const LiveStream = () => {
           }
         }
 
-        // 2) Release camera/mic IMMEDIATELY so the host's hardware is freed and
-        // any subsequent video playback gets audio focus back. Stat queries +
-        // end_live_stream RPC run AFTER, off the critical path.
-        try { await leaveChannel(); } catch (e) { console.warn('[LiveStream] leaveChannel failed:', e); }
+        // 2) Release camera/mic IMMEDIATELY on explicit End Live. Plain route
+        // unmount/back keeps the persistent camera session warm; this flag tells
+        // the LiveKit hook this is the real hardware-dispose path.
+        try {
+          (window as any).__meriliveEndingLiveStream = true;
+          await leaveChannel();
+        } catch (e) { console.warn('[LiveStream] leaveChannel failed:', e); }
+        finally {
+          try { delete (window as any).__meriliveEndingLiveStream; } catch { (window as any).__meriliveEndingLiveStream = false; }
+        }
 
         // 3) Background: gather session stats + DB end flow.
         try {
