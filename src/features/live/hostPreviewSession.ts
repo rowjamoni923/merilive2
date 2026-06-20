@@ -1,6 +1,7 @@
 interface PreparedHostPreviewMedia {
   stream: MediaStream;
   preparedAt: number;
+  consumed: boolean;
 }
 
 const PREVIEW_TTL_MS = 45_000;
@@ -23,6 +24,7 @@ export const setPreparedHostPreviewStream = (stream: MediaStream | null) => {
   preparedHostPreviewMedia = {
     stream,
     preparedAt: Date.now(),
+    consumed: false,
   };
 };
 
@@ -35,6 +37,11 @@ export const consumePreparedHostPreviewStream = (): MediaStream | null => {
     return null;
   }
 
+  // Mark as consumed but keep the reference temporarily so React StrictMode/HMR
+  // can read the same prepared stream on a second render without losing the
+  // preview. Once consumed, later `clear(..., stopTracks:true)` must never stop
+  // these tracks because LiveStream may already be rendering/publishing them.
+  prepared.consumed = true;
   return prepared.stream;
 };
 
@@ -43,7 +50,7 @@ export const clearPreparedHostPreviewStream = (options?: { stopTracks?: boolean 
   const prepared = preparedHostPreviewMedia;
   preparedHostPreviewMedia = null;
 
-  if (shouldStopTracks && prepared?.stream) {
+  if (shouldStopTracks && prepared?.stream && !prepared.consumed) {
     prepared.stream.getTracks().forEach((track) => track.stop());
   }
 };
