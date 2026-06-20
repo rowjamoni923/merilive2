@@ -1047,6 +1047,14 @@ const GoLive = () => {
     preservePreviewForLiveRef.current = false;
     clearPreparedHostPreviewStream();
     await stopNativePreview();
+    // Step 1b: leaving the GoLive family entirely (Edit Profile, Face
+    // Verification, Join Agency) — force-dispose so the camera LED turns off
+    // and /dev/video0 is freed for other pipelines.
+    if (cameraHandleRef.current) {
+      cameraHandleRef.current.release();
+      cameraHandleRef.current = null;
+    }
+    forceDisposeCameraSession();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
