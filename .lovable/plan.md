@@ -215,3 +215,21 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 4. `LiveStream.tsx` now shows a visible “Starting camera…” host holding state instead of a silent black void if no transition stream is available.
 
 **Owner test status:** `OWNER_EMAIL_1` is invalid in current secrets (Supabase Auth 400). `OWNER_EMAIL_2` logs in successfully. With `OWNER_EMAIL_2`, Playwright confirmed `/go-live` web preview video is live (`readyState=4`, `1280x720`, audio+video tracks live), but this owner account is level-blocked (`Lv0`, required `Lv6`) so the full `/live/:id` publish cannot be completed from the browser without an eligible owner/host account.
+
+---
+
+## 2026-06-20 — Attached screenshot: `Camera not visible` live-room root fix
+
+**User evidence:** uploaded screenshot `Screenshot_2026-06-20-13-32-21...jpg` shows the host is already inside `/live` with room chrome, but the media area falls to the visible `Camera not visible / Restart Camera` recovery overlay. That means the stream row/room UI loaded, but host local camera publish did not produce `localVideoTrack`.
+
+**Research re-check applied:** LiveKit JS `LocalTrack` docs expose `mediaStreamTrack`, `attach()`, `restartTrack()`, and `replaceTrack()`; official behavior is to reuse/attach a live `MediaStreamTrack` instead of opening duplicate camera captures. Public Chamet black-screen troubleshooting sources describe camera black screen as permission/camera-conflict/WebView capture failure, reinforcing that restart should first recover the already-live camera session before asking for a fresh device capture. Category standard from Chamet/Bigo-style apps remains continuous preview → broadcast camera surface, not a room overlay with no face video.
+
+**Actual root gap found now:** Step 1b/1c preserved/adopted the GoLive camera stream, but `publishReliableLocalMedia()` still ignored `persistentCameraSession` when `preloadedVideoTrack` was missing because the route handoff/StrictMode timing lost `hostTransitionPreviewStream`. In that case it opened a new `getUserMedia()` path; if that failed or raced, LiveKit joined with no local video and `LiveStream.tsx` showed `Camera not visible`.
+
+**Code-level fixes applied:**
+1. `livekitReliableMedia.ts` now falls back to `peekCameraSession()` and merges unique live tracks before calling `getUserMedia`, so a warm GoLive camera is published even when the route handoff stream is missed.
+2. `useLiveKitClient.ts` passes the persistent warm stream into the initial host publish and every camera publish retry, so `Restart Camera` also republishes the existing live track before cold-opening camera again.
+3. `useLiveKitClient.ts` no longer stops LiveKit local media tracks on plain route unmount/back; it stops/force-disposes only when `LiveStream.handleEndStream()` marks an explicit End Live. This keeps Back → Go Live continuity intact while still freeing hardware on real stream end.
+4. `persistentCameraSession.ts` now throws on dead-stream adoption instead of silently storing a no-op handle, so failed handoff cannot masquerade as a valid persistent camera.
+5. `GoLive.tsx` releases its camera handle immediately after donating the stream to the live-room handoff, and camera-switch now re-adopts the switched stream so LiveStream publishes the current lens track.
+6. `LiveStream.tsx` delays the host recovery overlay while a transition preview exists, preventing a false `Camera not visible` message during a slow but still-valid publish window.

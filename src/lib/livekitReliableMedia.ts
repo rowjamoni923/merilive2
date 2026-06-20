@@ -1,6 +1,7 @@
 import { Room, Track, type LocalTrackPublication } from 'livekit-client';
 import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { peekCameraSession } from '@/lib/persistentCameraSession';
 
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
@@ -22,6 +23,17 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints[] = [
 ];
 
 const isLive = (track?: MediaStreamTrack | null) => !!track && track.readyState === 'live';
+
+const mergeUniqueLiveTracks = (...groups: MediaStreamTrack[][]) => {
+  const seen = new Set<string>();
+  const tracks: MediaStreamTrack[] = [];
+  groups.flat().forEach((track) => {
+    if (!isLive(track) || seen.has(track.id)) return;
+    seen.add(track.id);
+    tracks.push(track);
+  });
+  return tracks;
+};
 
 const hasLocalTrack = (room: Room, kind: Track.Kind, source: Track.Source) =>
   Array.from(room.localParticipant.trackPublications.values()).some(
@@ -105,13 +117,20 @@ export async function publishReliableLocalMedia(
   }
 
   const preparedTracks = preparedStream?.getTracks().filter(isLive) ?? [];
-  const preparedHasVideo = preparedTracks.some((track) => track.kind === 'video');
-  const preparedHasAudio = preparedTracks.some((track) => track.kind === 'audio');
-  const fallbackStream = (!preparedTracks.length || (needVideo && !preparedHasVideo) || (needAudio && !preparedHasAudio))
+  // Step 1d: if the direct handoff stream was missed during route/render
+  // timing, still reuse the global warm camera session before opening a new
+  // getUserMedia capture. This is the professional GoLive → room continuity
+  // path and prevents the host from landing on "Camera not visible" while a
+  // perfectly live preview track is already available.
+  const warmTracks = peekCameraSession()?.getTracks().filter(isLive) ?? [];
+  const candidateTracks = mergeUniqueLiveTracks(preparedTracks, warmTracks);
+  const preparedHasVideo = candidateTracks.some((track) => track.kind === 'video');
+  const preparedHasAudio = candidateTracks.some((track) => track.kind === 'audio');
+  const fallbackStream = (!candidateTracks.length || (needVideo && !preparedHasVideo) || (needAudio && !preparedHasAudio))
     ? await createFallbackStream(needVideo && !preparedHasVideo, needAudio && !preparedHasAudio)
     : null;
   const stream = new MediaStream([
-    ...preparedTracks,
+    ...candidateTracks,
     ...(fallbackStream?.getTracks().filter(isLive) ?? []),
   ]);
 

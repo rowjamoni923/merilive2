@@ -111,8 +111,7 @@ export function adoptCameraSession(
   req: CameraSessionConstraints = { video: true, audio: true },
 ): CameraSessionHandle {
   if (!isStreamUsable(stream)) {
-    // Can't adopt a dead stream — return a no-op handle.
-    return { stream, release() {} };
+    throw new Error('Cannot adopt a stopped camera session.');
   }
   const wantKey = keyOf(req);
   if (active && active.stream !== stream) {
