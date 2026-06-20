@@ -1009,8 +1009,12 @@ const GoLive = () => {
         preservePreviewForLiveRef.current = true;
         if (streamRef.current) {
           setPreparedHostPreviewStream(streamRef.current);
-          // Do NOT release cameraHandleRef yet — keep refcount until LiveStream
-          // adopts (Step 1c). On unmount the cleanup will release it.
+          // LiveStream immediately adopts the same stream as the next owner.
+          // Release GoLive's handle now instead of relying on route-unmount
+          // timing; the persistent session keeps tracks alive until explicit
+          // End Live / native handoff.
+          cameraHandleRef.current?.release();
+          cameraHandleRef.current = null;
         } else {
           clearPreparedHostPreviewStream();
         }
