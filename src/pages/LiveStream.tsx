@@ -140,6 +140,11 @@ import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
 // Admin warning banner is rendered INSIDE RoomChatOverlay (top of chat column).
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import {
+  adoptCameraSession,
+  forceDisposeCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
@@ -213,9 +218,19 @@ const LiveStream = () => {
   useHighRefreshRate(isHostVerified || !isHost);
   // Live frame health monitor (face_lost / sleeping / multi-face / NSFW etc.)
   // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
+  const previewCameraHandleRef = useRef<CameraSessionHandle | null>(null);
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
-      return consumePreparedHostPreviewStream();
+      const stream = consumePreparedHostPreviewStream();
+      if (stream) {
+        // Pkg-camera-persist (Step 1c): register the handoff stream with the
+        // global persistent camera session so navigating Back → Go Live can
+        // reuse the same tracks instantly (no re-permission, no re-init).
+        try {
+          previewCameraHandleRef.current = adoptCameraSession(stream, { video: true, audio: true });
+        } catch { /* ignore */ }
+      }
+      return stream;
     }
     return null;
   });
@@ -2561,10 +2576,16 @@ const LiveStream = () => {
       console.log('🧹 Component unmounting, cleaning up...');
       const wasHost = verifiedHostRef.current === true || initialHostRole;
       if (initialHostRole && hostTransitionPreviewStream) {
-        hostTransitionPreviewStream.getTracks().forEach((track) => {
-          try { track.stop(); } catch { /* ignore */ }
-        });
-        void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+        // Pkg-camera-persist (Step 1c): on plain unmount (Back button /
+        // navigation), do NOT stop tracks — release the refcount and let the
+        // persistent camera session keep them warm so Go Live re-opens
+        // instantly. The explicit "End Live" path below force-disposes.
+        try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
+        previewCameraHandleRef.current = null;
+        if (streamEndedRef.current) {
+          try { forceDisposeCameraSession(); } catch { /* ignore */ }
+          void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+        }
       }
       
       // Pkg385: Enhanced host cleanup. We still avoid closing on momentary
