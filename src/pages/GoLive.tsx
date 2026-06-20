@@ -31,6 +31,13 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import {
+  acquireCameraSession,
+  adoptCameraSession,
+  peekCameraSession,
+  forceDisposeCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -83,6 +90,11 @@ const GoLive = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
   const cameraSwitchInFlightRef = useRef<Promise<void> | null>(null);
+  // Step 1b: persistent web-camera handle. When set, the underlying tracks
+  // are owned by persistentCameraSession and MUST NOT be stop()'d on unmount
+  // — only released. forceDisposeCameraSession() is called from explicit
+  // teardown (End Live, native handoff, sign out).
+  const cameraHandleRef = useRef<CameraSessionHandle | null>(null);
 
   useEffect(() => {
     streamRef.current = stream;
