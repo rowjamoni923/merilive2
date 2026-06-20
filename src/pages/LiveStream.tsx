@@ -218,9 +218,19 @@ const LiveStream = () => {
   useHighRefreshRate(isHostVerified || !isHost);
   // Live frame health monitor (face_lost / sleeping / multi-face / NSFW etc.)
   // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
+  const previewCameraHandleRef = useRef<CameraSessionHandle | null>(null);
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
-      return consumePreparedHostPreviewStream();
+      const stream = consumePreparedHostPreviewStream();
+      if (stream) {
+        // Pkg-camera-persist (Step 1c): register the handoff stream with the
+        // global persistent camera session so navigating Back → Go Live can
+        // reuse the same tracks instantly (no re-permission, no re-init).
+        try {
+          previewCameraHandleRef.current = adoptCameraSession(stream, { video: true, audio: true });
+        } catch { /* ignore */ }
+      }
+      return stream;
     }
     return null;
   });
