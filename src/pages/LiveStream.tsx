@@ -140,6 +140,11 @@ import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
 // Admin warning banner is rendered INSIDE RoomChatOverlay (top of chat column).
 import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import {
+  adoptCameraSession,
+  forceDisposeCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { warmGiftForInstantPlay } from "@/utils/instantGiftWarmup";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
