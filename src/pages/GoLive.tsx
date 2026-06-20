@@ -467,9 +467,19 @@ const GoLive = () => {
     clearPreparedHostPreviewStream();
     await stopNativePreview();
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      // Step 1b: on back, KEEP the web camera warm via persistentCameraSession
+      // so the next GoLive/LiveStream open is instant. Only release our ref;
+      // do not stop tracks. Force-dispose only happens on explicit End Live or
+      // a native-handoff path that needs /dev/video0 freed.
+      if (cameraHandleRef.current) {
+        cameraHandleRef.current.release();
+        cameraHandleRef.current = null;
+      } else {
+        // Stream was never adopted (legacy path / native fallback). Stop it.
+        streamRef.current.getTracks().forEach(track => track.stop());
+        releaseAndroidWebViewCamera('golive:back');
+      }
       streamRef.current = null;
-      releaseAndroidWebViewCamera('golive:back');
     }
     // Pkg-fix: null srcObject so the WebView doesn't keep painting the last
     // (now-stopped) frame as a frozen native-controls overlay on re-entry.
