@@ -610,8 +610,23 @@ const GoLive = () => {
           }
           return;
         }
+        // Step 1b: instant reuse if a previous GoLive/LiveStream visit left a
+        // warm camera in persistentCameraSession. No getUserMedia, no popup,
+        // no black gap on return.
+        const warm = peekCameraSession();
+        if (warm) {
+          const handle = await acquireCameraSession();
+          cameraHandleRef.current?.release();
+          cameraHandleRef.current = handle;
+          setStream(handle.stream);
+          setFacingMode('user');
+          attachWebPreviewStream(handle.stream);
+          return;
+        }
         const mediaStream = await getCameraStream(true);
         if (!mediaStream) throw new Error('Failed to get camera stream');
+        cameraHandleRef.current?.release();
+        cameraHandleRef.current = adoptCameraSession(mediaStream);
         setStream(mediaStream);
         setFacingMode('user');
         attachWebPreviewStream(mediaStream);
