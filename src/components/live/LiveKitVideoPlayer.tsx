@@ -72,6 +72,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const readyNotifiedRef = useRef(false);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
   const onVideoReadyRef = useRef(onVideoReady);
@@ -128,6 +129,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const el = videoRef.current;
     const videoTrack = videoTrackRef.current;
     if (!el || !videoTrack) return;
+
+    readyNotifiedRef.current = false;
 
     const mediaTrack = getRawMediaTrack(videoTrack);
     const isLocalTrack = Boolean((videoTrack as any)?.isLocal);
@@ -196,7 +199,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const markReady = () => {
       if (!hasDecodedFrame()) return;
       revealVideo();
-      onVideoReadyRef.current?.();
+      if (!readyNotifiedRef.current) {
+        readyNotifiedRef.current = true;
+        onVideoReadyRef.current?.();
+      }
       if (!mutedRef.current) {
         try {
           el.muted = false;
@@ -262,6 +268,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       if (mt && mt.readyState === 'live' && curTrack?.id === mt.id) {
         try { if (el.paused) el.play().catch(() => {}); } catch { /* ignore */ }
         revealVideo();
+        if (!readyNotifiedRef.current && (el.readyState >= 2 || el.videoWidth > 0 || !onVideoReadyRef.current)) {
+          readyNotifiedRef.current = true;
+          onVideoReadyRef.current?.();
+        }
       }
     }, 900);
 

@@ -199,3 +199,19 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 2. `LiveKitVideoPlayer.tsx` uses a WeakMap object identity fallback when LiveKit/native track IDs are not ready, so a new track object still re-attaches.
 3. `LiveKitVideoPlayer.tsx` no longer escalates stall recovery to parent callbacks for local host tracks, avoiding unnecessary detach/resubscribe flashes.
 4. `hostPreviewSession.ts` is StrictMode/HMR-safe for web preview handoff by keeping the prepared stream available after the first valid consume instead of nulling it immediately.
+
+---
+
+## 2026-06-20 — Owner screenshot re-test: previous fix not complete
+
+**User evidence:** uploaded screenshot `Screenshot_2026-06-20-09-40-26...jpg` shows `/live` room UI overlays visible but the full host broadcast area is dark/blank. This proves the previous “fixed” claim was wrong: camera preview existed earlier, but in-room broadcast video was still not reliably visible.
+
+**Research re-check applied:** Chamet/Bigo/Agora-style live apps keep the same capture surface through preview → broadcast and only change room chrome; LiveKit JS publishing/rendering docs require attaching the actual `Track`/`MediaStreamTrack` and not tearing it down before first frame. Public category scale (BIGO listing: 500M+ Google Play downloads / 700M+ marketing users) makes any blank broadcast surface unacceptable.
+
+**Root gaps fixed now:**
+1. `hostPreviewSession.ts` now marks a prepared preview stream as consumed. Later cleanup with `stopTracks:true` can no longer stop the same tracks that `LiveStream` is already rendering/publishing.
+2. `LiveKitVideoPlayer.tsx` now dedupes `onVideoReady` and lets the 900ms live-track reveal unmask the host transition only when the attached live track is at least paintable; this prevents a black preserved-preview layer from sitting above a working LiveKit video.
+3. `LiveStream.tsx` no longer resets `hostLiveKitVideoReady` on every `localVideoTrack` object replacement, removing repeated black flashes during LiveKit track wrapper changes.
+4. `LiveStream.tsx` now shows a visible “Starting camera…” host holding state instead of a silent black void if no transition stream is available.
+
+**Owner test status:** `OWNER_EMAIL_1` is invalid in current secrets (Supabase Auth 400). `OWNER_EMAIL_2` logs in successfully. With `OWNER_EMAIL_2`, Playwright confirmed `/go-live` web preview video is live (`readyState=4`, `1280x720`, audio+video tracks live), but this owner account is level-blocked (`Lv0`, required `Lv6`) so the full `/live/:id` publish cannot be completed from the browser without an eligible owner/host account.
