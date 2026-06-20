@@ -3650,9 +3650,9 @@ const LiveStream = () => {
   useEffect(() => {
     if (!isHost || !isJoined) { setShowHostCameraRecover(false); return; }
     if (localVideoTrack || isNativeMediaActive) { setShowHostCameraRecover(false); return; }
-    const t = setTimeout(() => setShowHostCameraRecover(true), 6000);
+    const t = setTimeout(() => setShowHostCameraRecover(true), hostTransitionPreviewStream ? 12000 : 9000);
     return () => clearTimeout(t);
-  }, [isHost, isJoined, localVideoTrack, isNativeMediaActive]);
+  }, [isHost, isJoined, localVideoTrack, isNativeMediaActive, hostTransitionPreviewStream]);
 
   const handleHostCameraRecover = useCallback(async () => {
     setShowHostCameraRecover(false);
