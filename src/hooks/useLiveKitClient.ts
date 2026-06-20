@@ -45,6 +45,7 @@ import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregiste
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { clearNativeMediaSurface, setNativeMediaSurface } from '@/utils/nativeMediaSurface';
+import { forceDisposeCameraSession, peekCameraSession } from '@/lib/persistentCameraSession';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -1354,6 +1355,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // If host, publish camera/mic. Reuse preloaded tracks when provided from GoLive preview.
       if (config.role === 'host') {
         try {
+          const warmCameraStream = peekCameraSession();
           const hasPreloadedVideo = !!config.preloadedVideoTrack && config.preloadedVideoTrack.readyState === 'live';
           const hasPreloadedAudio = !!config.preloadedAudioTrack && config.preloadedAudioTrack.readyState === 'live';
 
@@ -1371,7 +1373,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             await publishReliableLocalMedia(room, {
               needVideo: true,
               needAudio: true,
-              preparedStream: preparedTracks.length ? new MediaStream(preparedTracks) : null,
+              preparedStream: new MediaStream([
+                ...preparedTracks,
+                ...(warmCameraStream?.getTracks().filter((track) => track.readyState === 'live') ?? []),
+              ]),
             });
           }
 
@@ -1522,7 +1527,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                 .some((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
               if (hasVideo) return;
               console.log(`[LiveKitClient] 🔁 Camera publish retry ${retryIdx}/${retryDelays.length}`);
-              publishReliableLocalMedia(room, { needVideo: true, needAudio: true })
+              const warmCameraStream = peekCameraSession();
+              publishReliableLocalMedia(room, { needVideo: true, needAudio: true, preparedStream: warmCameraStream })
                 .then(() => {
                   room.localParticipant.trackPublications.forEach((pub) => {
                     if (pub.track?.kind === Track.Kind.Video) setLocalVideoTrack(pub.track);
