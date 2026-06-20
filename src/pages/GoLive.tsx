@@ -980,6 +980,9 @@ const GoLive = () => {
       if (isNativeAndroid && nativePreviewReadyForHandoff) {
         preservePreviewForLiveRef.current = true;
         clearPreparedHostPreviewStream({ stopTracks: true });
+        // Native Camera2 path takes over /dev/video0 — kill any warm web session.
+        if (cameraHandleRef.current) { cameraHandleRef.current.release(); cameraHandleRef.current = null; }
+        forceDisposeCameraSession();
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -989,6 +992,8 @@ const GoLive = () => {
       } else if (isNativeAndroid) {
         preservePreviewForLiveRef.current = false;
         clearPreparedHostPreviewStream({ stopTracks: true });
+        if (cameraHandleRef.current) { cameraHandleRef.current.release(); cameraHandleRef.current = null; }
+        forceDisposeCameraSession();
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -996,13 +1001,16 @@ const GoLive = () => {
         }
         await stopNativePreview();
       } else {
-        // Preserve the real WebView camera stream on Android when native preview
-        // was unavailable/no-op. If native LiveKit is disabled or falls back to
-        // web publishing, LiveStream can publish this already-user-approved track
-        // instead of trying getUserMedia again outside the tap gesture.
+        // Web handoff: donate the SAME MediaStream to LiveStream. We release
+        // our local refcount but persistentCameraSession keeps the stream
+        // alive so LiveStream can adopt without re-prompting. (Step 1c will
+        // make LiveStream the new ref-holder; for now setPreparedHostPreviewStream
+        // still mediates the immediate handoff.)
         preservePreviewForLiveRef.current = true;
         if (streamRef.current) {
           setPreparedHostPreviewStream(streamRef.current);
+          // Do NOT release cameraHandleRef yet — keep refcount until LiveStream
+          // adopts (Step 1c). On unmount the cleanup will release it.
         } else {
           clearPreparedHostPreviewStream();
         }
