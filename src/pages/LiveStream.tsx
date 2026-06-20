@@ -2449,7 +2449,7 @@ const LiveStream = () => {
 
   useEffect(() => {
     setHostLiveKitVideoReady(false);
-  }, [id, localVideoTrack]);
+  }, [id]);
 
   useEffect(() => {
     if (!hostLiveKitVideoReady || !hostTransitionPreviewStream) return;
@@ -4027,7 +4027,13 @@ const LiveStream = () => {
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
                 flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
-            <div className={`w-full h-full ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
+            <div className={`w-full h-full flex items-center justify-center ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`}>
+              {!showHostCameraRecover && (
+                <div className="px-3 py-1.5 rounded-full bg-black/35 backdrop-blur-md text-white/65 text-xs font-medium animate-pulse">
+                  Starting camera…
+                </div>
+              )}
+            </div>
 
             {showHostCameraRecover && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
