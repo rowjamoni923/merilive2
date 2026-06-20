@@ -2576,10 +2576,16 @@ const LiveStream = () => {
       console.log('🧹 Component unmounting, cleaning up...');
       const wasHost = verifiedHostRef.current === true || initialHostRole;
       if (initialHostRole && hostTransitionPreviewStream) {
-        hostTransitionPreviewStream.getTracks().forEach((track) => {
-          try { track.stop(); } catch { /* ignore */ }
-        });
-        void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+        // Pkg-camera-persist (Step 1c): on plain unmount (Back button /
+        // navigation), do NOT stop tracks — release the refcount and let the
+        // persistent camera session keep them warm so Go Live re-opens
+        // instantly. The explicit "End Live" path below force-disposes.
+        try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
+        previewCameraHandleRef.current = null;
+        if (streamEndedRef.current) {
+          try { forceDisposeCameraSession(); } catch { /* ignore */ }
+          void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
+        }
       }
       
       // Pkg385: Enhanced host cleanup. We still avoid closing on momentary
