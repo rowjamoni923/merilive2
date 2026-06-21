@@ -161,7 +161,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   }
 
   if (!effectiveSession) {
-    if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
+    if (!checkedLocalSession && isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
       return <>{children}</>;
     }
 
