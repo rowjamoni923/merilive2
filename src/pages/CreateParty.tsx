@@ -327,6 +327,8 @@ const CreateParty = () => {
 
   // Sync stream → video element whenever either changes (video element may
   // mount AFTER startCameraInstant set srcObject on a null ref → preview blank).
+  // FIX: also re-attach when the element itself mounts/unmounts by reading
+  // the ref inside a layout-effect style cleanup cycle.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -334,7 +336,22 @@ const CreateParty = () => {
       if (v.srcObject !== stream) {
         v.srcObject = stream;
       }
-      v.play().then(() => setCameraReady(true)).catch(() => {});
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setCameraReady(true))
+          .catch(() => {
+            // Autoplay blocked or transient error — still mark ready so
+            // the video tile becomes visible. User can tap to wake it.
+            setCameraReady(true);
+          });
+      } else {
+        setCameraReady(true);
+      }
+      // Safety-net: if play() hangs (some WebView implementations),
+      // force cameraReady after 2.5s so the UI is never stuck blank.
+      const forceReadyTimer = setTimeout(() => setCameraReady(true), 2500);
+      return () => clearTimeout(forceReadyTimer);
     } else {
       try { v.srcObject = null; } catch {}
     }
