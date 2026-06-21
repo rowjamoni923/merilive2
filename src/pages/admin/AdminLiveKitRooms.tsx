@@ -638,6 +638,45 @@ export default function AdminLiveKitRooms() {
         roomName={detailRoom?.name || ""}
         scope={(detailRoom ? scopeOfRoom(detailRoom.name) : "live") as "live" | "party" | "call"}
       />
+
+      <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
+        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-amber-400" />
+              Invisible Admin Viewer · <span className="font-mono">{watchRoom?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+          {watchRoom && (() => {
+            const scope = scopeOfRoom(watchRoom.name);
+            const uuid = watchRoom.name.replace(/^(live|party|call)_/, "");
+            if (scope === "live") {
+              return (
+                <AdminStreamViewer
+                  streamId={uuid}
+                  roomName={watchRoom.name}
+                  hostName={watchRoom.name}
+                  onClose={() => setWatchRoom(null)}
+                />
+              );
+            }
+            if (scope === "party" || scope === "call") {
+              return (
+                <AdminRoomMonitor
+                  roomName={watchRoom.name}
+                  roomType={scope === "party" ? "party" : "call"}
+                  label={watchRoom.name}
+                  onClose={() => setWatchRoom(null)}
+                />
+              );
+            }
+            return null;
+          })()}
+          <p className="px-4 pb-3 text-[11px] text-slate-500">
+            Participants receive no signal. viewer_count, participant list and chat are unaffected.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
