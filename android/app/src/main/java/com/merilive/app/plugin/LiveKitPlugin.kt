@@ -979,8 +979,6 @@ class LiveKitPlugin : Plugin() {
         val text = call.getString("text") ?: ""
         val topic = call.getString("topic", "") ?: ""
         if (text.isBlank()) { call.resolve(JSObject().put("sent", false).put("reason", "empty")); return }
-        val encoded = Base64.encodeToString(text.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
-        val synthetic = object : PluginCall(bridge, "sendData", "") {}
         // Avoid relying on Capacitor internals: publish directly as reliable
         // data with the requested topic. Receivers consume DataReceived.
         scope.launch {
