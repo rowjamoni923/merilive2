@@ -209,9 +209,11 @@ const CreateParty = () => {
       if (videoMode) {
         // Browser preview only. Android native app returns above and never
         // opens WebView getUserMedia for party media setup.
-        // Pkg-PartyGAP-1 — block raw getUserMedia unless ProCameraEngine
-        // has confirmed the streaming-family slot is held by this party.
-        if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+        // Pkg-PartyGAP-1 (post-2026-06-14): the ProCameraEngine arbiter is
+        // now a STUB (single LiveKit camera path), so `isHeldBy` always
+        // returns false and would falsely block every web preview. We
+        // keep the `proCamera.ready` check only — it's the real signal.
+        if (!proCamera.ready) {
           toast.error('Camera is busy. Close other camera screens and try again.');
           return;
         }
@@ -1081,10 +1083,10 @@ const CreateParty = () => {
             return;
           }
           if (stream) {
-            // Pkg-PartyGAP-1 — gate raw getUserMedia behind the streaming
-            // arbiter so face-verify (verification family) cannot race the
-            // camera flip mid-call.
-            if (!proCamera.ready || !ProCameraEngine.isHeldBy(partyCameraOwner)) {
+            // Post-2026-06-14: ProCameraEngine arbiter stubbed → `isHeldBy`
+            // always false and would falsely block the flip. Trust
+            // `proCamera.ready` only (single LiveKit camera path).
+            if (!proCamera.ready) {
               toast.error('Camera is busy. Close other camera screens and try again.');
               return;
             }
