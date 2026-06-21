@@ -78,8 +78,8 @@ export function CallingFallback({
         >
           {!remoteUserAvatar && initial}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, textAlign: 'center' }}>
-          {remoteUserName || 'Connecting'}
+        <div style={{ fontSize: 22, fontWeight: 600, textAlign: 'center', minHeight: 28 }}>
+          {remoteUserName || ''}
         </div>
         {label && (
           <div
