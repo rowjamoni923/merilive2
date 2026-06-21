@@ -75,6 +75,12 @@ const isApprovedLiveHost = (profile?: {
 
 const GoLive = () => {
   const navigate = useNavigate();
+  // When rendered inside <LiveSessionProvider> (route /go-live or
+  // /live-session), this hook returns the live-session context. We use it to
+  // swap to the broadcast phase WITHOUT a route navigation, so the WebView
+  // never unmounts and the camera/LiveKit preview track stays alive.
+  // Outside the Provider it returns null and we fall back to navigate().
+  const liveSession = useLiveSessionOptional();
   // Pkg443 Phase-3: keep host's screen awake on the pre-live setup screen.
   useScreenLock(true);
   // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
