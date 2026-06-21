@@ -46,7 +46,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -96,7 +95,6 @@ const partyCountries = [
 const Discover = () => {
   const navigate = useNavigate();
   const [rooms, setRooms, hadRoomsCache] = usePersistedCache<PartyRoom[]>('discover:rooms', []);
-  const [loading, setLoading] = useState(!hadRoomsCache);
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(hadRoomsCache);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -111,7 +109,7 @@ const Discover = () => {
   const [joiningByCode, setJoiningByCode] = useState(false);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
+  const fetchRoomsRef = useRef<() => Promise<void>>(() => Promise.resolve());
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
   // Pkg360 NO-AUTO-REFRESH: increased debounce to prevent rapid list flashes
@@ -120,7 +118,7 @@ const Discover = () => {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
-      void fetchRoomsRef.current(false);
+      void fetchRoomsRef.current();
     }, 1500); // 1.5s debounce for smooth room list updates
   }, []);
 
@@ -137,12 +135,8 @@ const Discover = () => {
     }
   };
 
-  const fetchRooms = async (isInitialLoad = false) => {
+  const fetchRooms = async () => {
     try {
-      if (isInitialLoad && !initialLoadComplete) {
-        setLoading(true);
-      }
-      
       const [participantsRes, roomsRes] = await Promise.all([
         supabase
           .from('party_room_participants')
@@ -188,7 +182,6 @@ const Discover = () => {
 
       if (activeRoomIds.size === 0) {
         setRooms([]);
-        setLoading(false);
         return;
       }
 
@@ -244,7 +237,6 @@ const Discover = () => {
       if (!initialLoadComplete) {
         setInitialLoadComplete(true);
       }
-      setLoading(false);
     }
   };
 
@@ -254,7 +246,7 @@ const Discover = () => {
 
   useEffect(() => {
     fetchCurrentUser();
-    void fetchRoomsRef.current(true); // Initial load with loading indicator
+    void fetchRoomsRef.current();
 
     // Universal realtime (debounced refetch for adds / participant changes).
     const unsubscribe = subscribeToTables(
@@ -509,7 +501,7 @@ const Discover = () => {
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);
-                await fetchRooms(false);
+                await fetchRooms();
                 setRefreshing(false);
                 toast.success("Rooms refreshed!");
               }}
@@ -629,7 +621,7 @@ const Discover = () => {
       </div>
 
       {/* Scrollable Room List */}
-      <NativePullToRefresh onRefresh={async () => { await fetchRooms(false); }} className="flex-1">
+      <NativePullToRefresh onRefresh={async () => { await fetchRooms(); }} className="flex-1">
       <main className="h-full overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="flex items-center justify-between mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
           <h2 className="font-semibold text-sm text-display flex items-center gap-1.5">
@@ -639,22 +631,7 @@ const Discover = () => {
           <span className="text-xs text-muted-pro">{filteredRooms.length} rooms</span>
         </div>
         
-        {loading ? (
-          <div className="grid grid-cols-2 gap-3" aria-busy="true">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-2xl overflow-hidden bg-card border border-border/60"
-              >
-                <SkeletonPrim className="w-full aspect-[3/4] rounded-none" />
-                <div className="p-3 space-y-2">
-                  <SkeletonPrim className="h-3.5 w-2/3" />
-                  <SkeletonPrim className="h-3 w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filteredRooms.length === 0 ? (
+        {filteredRooms.length === 0 ? (
           <div
             className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl min-h-[50vh]"
             style={{ boxShadow: '0 10px 30px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.8)' }}

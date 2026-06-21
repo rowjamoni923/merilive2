@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
 const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPromoBanners").then(m => ({ default: m.FullScreenPromoBanners })));
-import { HomeFeedSkeleton } from "@/components/home/HomeFeedSkeleton";
 
 
 import { Search, Eye, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
@@ -218,7 +217,7 @@ const Index = () => {
   }, []);
 
   // Fetch hosts based on subTab - Optimized for speed
-  const { data: hosts, isLoading } = useQuery({
+  const { data: hosts } = useQuery({
     queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
     staleTime: 1000 * 30, // Increased staleTime for better cache hits
     gcTime: 1000 * 300,  // Keep in memory longer
@@ -835,8 +834,6 @@ const Index = () => {
               </div>
             )}
           </>
-        ) : isLoading ? (
-          <HomeFeedSkeleton />
         ) : (
           // Mobile-first empty state — Bigo/Chamet pattern: animated glow halo +
           // contextual icon + brand CTA. Replaces the previous text-only block

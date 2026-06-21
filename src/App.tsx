@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, lazy, Suspense, memo } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Discover from "./pages/Discover";
+import Live from "./pages/Live";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,8 +61,6 @@ const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperD
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
-const Index = lazy(lazyRetry(() => import("./pages/Index")));
-const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ConnectionStatus from "./components/system/ConnectionStatus";
@@ -82,8 +84,6 @@ const LiveStreamKeyWrapper = () => {
   return <LiveStream key={id} />;
 };
 const Recharge = lazy(lazyRetry(() => import("./pages/Recharge")));
-const Discover = lazy(lazyRetry(() => import("./pages/Discover")));
-const Live = lazy(lazyRetry(() => import("./pages/Live")));
 
 // Route chunks are loaded on demand. Previous global route preloading created
 // visible startup/network storms on mobile WebView and slow devices.
@@ -1307,7 +1307,7 @@ const App = () => {
                   )}
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
-                  <Suspense fallback={<RouteSuspenseFallback />}>
+                  <Suspense fallback={null}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share

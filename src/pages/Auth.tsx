@@ -197,7 +197,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           style={mediaStyle}
         />
       ) : showMedia && (branding.background_type === 'image' || branding.background_type === 'gif') ? (
-        <img loading="lazy" decoding="async"
+        <img loading="eager" decoding="async"
           src={hdSrc}
           srcSet={hdSrcSet}
           sizes={hdSrcSet ? '100vw' : undefined}
@@ -237,7 +237,6 @@ const Auth = () => {
   const [lastUser, setLastUser] = useState<LastUser | null>(null);
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
-  const [isAutoRecovering, setIsAutoRecovering] = useState(false);
   
   // Email auth state
   const [email, setEmail] = useState("");
@@ -314,7 +313,7 @@ const Auth = () => {
   }, []);
 
   // Branding settings - REALTIME
-  const { branding: realtimeBranding, loading: brandingLoading } = useBrandingRealtime();
+  const { branding: realtimeBranding } = useBrandingRealtime();
   
   const branding = realtimeBranding ? {
     logo_text_primary: realtimeBranding.logo_text_primary ?? '',
@@ -403,7 +402,6 @@ const Auth = () => {
   // NO auto-login from localStorage or device recovery on page load
   useEffect(() => {
     const checkExistingSession = async () => {
-      setIsAutoRecovering(true);
       let recoveryTimeout: ReturnType<typeof setTimeout> | null = null;
       try {
         const timeoutPromise = new Promise<never>((_, reject) => {
@@ -455,7 +453,6 @@ const Auth = () => {
         recordClientError({ label: "Auth.checkExistingSession", message: err instanceof Error ? err.message : String(err) });
       } finally {
         if (recoveryTimeout) clearTimeout(recoveryTimeout);
-        setIsAutoRecovering(false);
       }
     };
 
