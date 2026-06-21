@@ -951,6 +951,8 @@ const ProfileDetail = () => {
               initial={{ opacity: 0, y: -10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               whileTap={{ scale: 0.95 }}
+              onPointerDown={() => prefetchLiveStream(activeLiveStream.id)}
+              onTouchStart={() => prefetchLiveStream(activeLiveStream.id)}
               onClick={() => navigate(`/live/${activeLiveStream.id}`)}
               className="absolute top-16 right-4 safe-area-top flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-xl"
               style={{
@@ -974,6 +976,8 @@ const ProfileDetail = () => {
               initial={{ opacity: 0, y: -10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               whileTap={{ scale: 0.95 }}
+              onPointerDown={() => prefetchPartyRoom(activePartyRoom.id)}
+              onTouchStart={() => prefetchPartyRoom(activePartyRoom.id)}
               onClick={() => navigate(`/party/${activePartyRoom.id}`)}
               className="absolute top-16 right-4 safe-area-top flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-xl"
               style={{
@@ -1391,6 +1395,8 @@ const ProfileDetail = () => {
             <div className={`grid ${canStartProfileCall ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
               <motion.button
                 whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchChat()}
+                onTouchStart={() => prefetchChat()}
                 onClick={() => navigate(`/chat?user=${userId}`)}
  className="flex items-center justify-center gap-2 py-4 rounded-2xl text-slate-900 font-semibold relative overflow-hidden"
                 style={{
@@ -1456,6 +1462,8 @@ const ProfileDetail = () => {
           >
             <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <button
+                onPointerDown={() => prefetchByHref('/leaderboard')}
+                onTouchStart={() => prefetchByHref('/leaderboard')}
                 onClick={() => navigate("/leaderboard")}
                 className="flex items-center gap-1 text-lg font-bold text-slate-950"
               >
