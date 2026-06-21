@@ -24,6 +24,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
+import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -782,7 +783,7 @@ export function useLiveKitCall(
         console.log('[LiveKitCall] Connecting to room...');
         const connectPromise = (async () => {
           await room.prepareConnection(url, token).catch(() => {});
-          await room.connect(url, token);
+          await connectLiveKitRoom(room, url, token, 'call');
         })();
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
