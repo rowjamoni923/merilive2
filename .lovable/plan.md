@@ -189,3 +189,28 @@ After all 4 phases:
 5. `CallProvider` native call-action listener is stable across renders and drains buffered native Accept/Decline actions again on foreground resume, preventing lock-screen action loss during JS remount/resume timing.
 
 **APK note:** Native plugin change requires Android APK rebuild/sync before device verification.
+
+---
+
+## ✅ Android/Web Media Bridge Full Audit Fix — 2026-06-21
+
+**User scope:** Scan Android + web code for Party Room, Private Call, Live Streaming, Audio Party, Video Party, Game Party, and Live+Private Call; fix Android-side missing pieces only.
+
+**Research standard:** Professional Chamet/Bigo/Agora-class apps keep viewer media on native Android renderers, use realtime SFU participant events for instant join/leave, run private calls through foreground/full-screen Android call surfaces, and use high-priority FCM/full-screen intent for minimized/killed incoming calls. Android foreground service start deadline is **5 seconds**; PiP basic support starts at **API 26**, auto-enter PiP at **API 31**; Supabase Realtime production planning requires Pro/no-cap for up to **10,000** concurrent realtime connections and **1,000 presence msg/sec**.
+
+**Verified gaps fixed:**
+1. Android `LiveKitPlugin` had JS-expected methods missing/no-op: `attachRemote`, `reconnectNow`, `getActiveSession`, `setSurviveActivityDestroy`, `updateLiveStats`, `refreshToken`, `sendData`, RPC, text-stream, and subscriber-quality methods. Added native PluginMethods and capability-list entries so live/party/call recovery and signaling no longer silently fall through the Proxy.
+2. `handleOnPause()` previously muted camera+mic for every native room, including private calls when `PrivateCallActivity` opened and party/call viewer/background paths. Added scope-aware guard: never pause private calls or subscriber/viewer sessions from MainActivity pause; only live/party host media can be paused by host-background policy.
+3. Native DataPacket receive/send was missing for Android native sessions; chat/gifts/reactions could fail in live/party/call when no JS Room existed. Added `sendData` plus `data-received` event dispatch from `RoomEvent.DataReceived`.
+4. Native RPC bridge now registers real LiveKit Android RPC handlers, emits `rpc-invocation` to JS, waits for `respondToRpc`, and returns the actual JS result/error to the caller.
+5. Native text-stream bridge now exposes `sendText`, register/unregister handlers, and dispatches `text-stream-chunk`/`text-stream-complete` from native data events for Android session parity.
+6. `NativeCallPlugin.pushChatMessage` was declared in TS but absent in Android, which could throw “method not implemented” during native private calls. Added safe Android PluginMethod returning `{ok:false}` until native chat UI exists so React fallback remains stable.
+7. `PrivateCallViewModel` never called peer-disconnect grace. Clean peer disconnect now clears remote video and starts the existing grace timer, preventing stuck native call timers/last-frame freeze.
+8. `active-speakers-changed` emitted plain strings while JS expected `{identity,audioLevel}` objects. Payload fixed so party/live native speaker rings and levels can work.
+9. Token rotation for long native sessions now updates stored native reconnect token via `refreshToken`, preventing stale-JWT reconnect failures after long live/party/private call sessions.
+
+**Verified checks:**
+- Focused media bridge regression: `src/test/mediaSurfacesAudit.test.ts` → **32/32 passed**.
+- Static method check confirms Android now includes `pushChatMessage`, `reconnectNow`, `sendData`, `registerRpcMethod`, scope-aware pause guard, and active-speaker `audioLevel` payload.
+
+**APK note:** Android native code changed; rebuild/sync APK is required (`npx cap sync android` + Android Studio/CI rebuild) before device verification.
