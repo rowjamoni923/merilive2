@@ -231,6 +231,17 @@ function CampaignFloatingButton() {
     }
 
     draggedRef.current = false;
+
+    // Tap (no drag) — because we captured the pointer on the wrapper, the
+    // browser fires the synthetic `click` on this wrapper rather than the
+    // inner <button>, so the button's onClick never runs. Detect the tap
+    // here and trigger the popup ourselves. Ignore taps on the close (×)
+    // button or other interactive children, which stop propagation in their
+    // own onPointerDown.
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('[data-campaign-no-tap="true"]')) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    setShowPopup(true);
   }, [persistFloatingPosition]);
 
   useEffect(() => {
@@ -844,8 +855,8 @@ function CampaignFloatingButton() {
             <button
               type="button"
               aria-label="Dismiss campaign"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
+              data-campaign-no-tap="true"
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 if (campaign) {
                   try { sessionStorage.setItem(getCampaignDismissedKey(campaign.id), '1'); } catch {}
@@ -854,7 +865,8 @@ function CampaignFloatingButton() {
                 setCampaign(null);
                 setRemainingSeconds(0);
               }}
-              className="absolute -top-2 -left-1 z-30 w-[14px] h-[14px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
+              onClick={(e) => { e.stopPropagation(); }}
+              className="absolute -top-2 -left-1 z-30 w-[18px] h-[18px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
               style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.65))' }}
             >
               <X className="w-[12px] h-[12px] text-white" strokeWidth={3.5} />
