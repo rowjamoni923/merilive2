@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 
@@ -206,6 +207,9 @@ const LiveStream = () => {
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole live session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
+  // Auto-PiP: viewer/host presses Home → app shrinks into floating window so
+  // the stream stays visible; returning lands them back in the same room.
+  useAutoPictureInPicture({ enabled: true, aspect: { x: 9, y: 16 } });
   
   
   // isHost will be verified from database, not just from session/location state

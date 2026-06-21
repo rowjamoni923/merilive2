@@ -6,6 +6,7 @@ import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
@@ -217,6 +218,9 @@ const PartyRoom = () => {
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole party session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
+  // Auto-PiP: leaving the app to home / another app shrinks the party into a
+  // floating window so seat video stays visible; tap returns to the same room.
+  useAutoPictureInPicture({ enabled: true, aspect: { x: 9, y: 16 } });
   const [room, setRoom] = useState<PartyRoom | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
