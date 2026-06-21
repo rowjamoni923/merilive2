@@ -231,3 +231,19 @@ After all 4 phases:
 3. Updated `ANDROID_BUILD_GUIDE.md` with the exact cause and rebuild steps.
 
 **Required local command after pull:** `npm install && npm run build && npx cap sync android`, then rebuild/reinstall APK.
+
+---
+
+## ✅ Android/WebView First-Section Loading Removal — 2026-06-21
+
+**User issue:** App and every section felt late because route/auth gates showed skeleton/loading boxes before real content.
+
+**Research standard:** Chamet/Bigo/Poppo-style apps paint cached/home surfaces immediately, then refresh room/feed/auth data in the background; LiveKit/Supabase startup work must not block first paint.
+
+**Completed surgical fixes:**
+1. Eager-loaded first-viewport routes: `Auth`, `Index`, `Discover`, and `Live`, so main app sections no longer wait on lazy-route skeleton chunks.
+2. Removed the 1.5s protected-route recovery skeleton; native launches render the section surface while Supabase session recovery completes in the background.
+3. Removed first-fetch skeleton grids from Home, Live list, and Party Discover; cached data or the real empty state appears instantly while fresh data refreshes.
+4. Auth background image now loads eagerly instead of lazy so the login screen paints immediately.
+
+**Kept safe:** Button-level loading during actual submit/OTP/login remains, because removing those would allow duplicate account/payment/auth actions.
