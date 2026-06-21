@@ -107,6 +107,10 @@ class LiveKitPlugin : Plugin() {
     private var previewRenderer: SurfaceViewRenderer? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
+    private var activeRoomScope: String? = null
+    private var activeIsHost: Boolean = false
+    private var lastConnectArgs: ConnectArgs? = null
+    private var liveViewerStats: JSObject = JSObject()
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
      *  SurfaceViewRenderer or make the WebView transparent. The camera track
      *  is still alive, but rendering is delegated to seat-bound TextureViews
@@ -185,6 +189,8 @@ class LiveKitPlugin : Plugin() {
             put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
             put("attachLocal"); put("detachLocal")
+            put("attachRemote"); put("reconnectNow"); put("getActiveSession"); put("setSurviveActivityDestroy")
+            put("updateLiveStats"); put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
@@ -276,6 +282,8 @@ class LiveKitPlugin : Plugin() {
         val token: String,
         val publishVideo: Boolean,
         val publishAudio: Boolean,
+        val roomScope: String?,
+        val isHost: Boolean,
     )
 
     // Standalone "warmup" rooms used by the JS connection pool (Phase 5/6).
@@ -371,11 +379,16 @@ class LiveKitPlugin : Plugin() {
             token = token,
             publishVideo = call.getBoolean("video", false) ?: false,
             publishAudio = call.getBoolean("audio", false) ?: false,
+            roomScope = call.getString("roomScope"),
+            isHost = call.getBoolean("isHost", false) ?: false,
         )
 
         scope.launch {
             try {
                 promotePreviewToSession(args)
+                lastConnectArgs = args
+                activeRoomScope = args.roomScope
+                activeIsHost = args.isHost
                 val r = room!!
                 call.resolve(
                     JSObject()
