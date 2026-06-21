@@ -1019,12 +1019,10 @@ const Reels = () => {
                           <motion.button
                             onClick={() => handleFollow(currentReel.user_id)}
                             aria-label="Follow"
-                            whileTap={{ scale: 0.85 }}
-                            className="ml-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide text-white
-                                       bg-gradient-to-r from-indigo-500 to-indigo-700 ring-1 ring-indigo-300/40
-                                       shadow-[0_3px_10px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.25)]"
+                            whileTap={{ scale: 0.9 }}
+                            className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-semibold tracking-wide text-white bg-white/10 backdrop-blur-md ring-1 ring-white/20"
                           >
-                            FOLLOW
+                            Follow
                           </motion.button>
                         )}
                         {currentReel.user?.is_verified && (
