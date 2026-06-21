@@ -141,6 +141,21 @@ class LiveKitTokenCache {
 
 export const livekitTokenCache = new LiveKitTokenCache();
 
+// Auth-state hook: refresh on sign-in, clear on sign-out. Self-contained
+// (no central AuthProvider in this project) so the cache stays in sync
+// regardless of which surface triggers the auth change.
+try {
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      void livekitTokenCache.refresh();
+    } else if (event === "SIGNED_OUT") {
+      livekitTokenCache.clear();
+    }
+  });
+} catch {
+  // SSR / non-browser — ignore
+}
+
 /**
  * Fire-and-forget pre-mint. Call once on app boot (or after sign-in).
  * Non-blocking — safe to call before auth is settled (it just no-ops).
