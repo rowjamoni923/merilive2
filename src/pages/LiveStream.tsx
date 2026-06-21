@@ -4081,15 +4081,12 @@ const LiveStream = () => {
           <div className="absolute inset-0 pointer-events-none bg-transparent" />
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
-            {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
-                flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
-            <div className={`w-full h-full flex items-center justify-center ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`}>
-              {!showHostCameraRecover && !showHostConnectionRecover && (
-                <div className="px-3 py-1.5 rounded-full bg-background/35 backdrop-blur-md text-foreground/65 text-xs font-medium animate-pulse border border-border/20">
-                  Starting camera…
-                </div>
-              )}
-            </div>
+            {/* Phase 3 (instant-entry): "Starting camera…" pill removed.
+                The blurred avatar background (host-side equivalent uses the
+                user's own profile avatar via the global background gradient)
+                + native preview promotion (Android) covers the transient
+                connect window. No loading text shown to user. */}
+            <div className={`w-full h-full ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`} />
 
             {showHostCameraRecover && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
