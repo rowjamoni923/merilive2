@@ -50,10 +50,26 @@
       html[data-boot-theme="dark"] body,
       html[data-boot-theme="dark"] #root { background-color: #050208 !important; color: #ffffff; }
 
-      /* ===== Boot shell: solid app-colored surface before React mounts.
-         NO shimmer, NO pulse, NO animation — instant native feel. ===== */
-      .boot-shell { position: fixed; inset: 0; background-color: #FFFBF2; z-index: 2147482000; pointer-events: none; }
+      /* ===== Boot shell: STATIC painted app chrome before React mounts.
+         NO shimmer, NO pulse, NO spinner — but full app silhouette so no
+         blank/white screen is ever perceived. ===== */
+      .boot-shell { position: fixed; inset: 0; display: flex; flex-direction: column; pointer-events: none; z-index: 2147482000; background-color: #FFFBF2; }
+      .boot-shell .bs-top { height: 56px; background: #F3EBDC; border-bottom: 1px solid #E8DFCC; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+      .boot-shell .bs-dot { width: 32px; height: 32px; border-radius: 999px; background: #E2D6BE; }
+      .boot-shell .bs-bar { height: 14px; border-radius: 7px; background: #E2D6BE; flex: 1; max-width: 160px; }
+      .boot-shell .bs-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+      .boot-shell .bs-card { height: 72px; border-radius: 16px; background: #F0E7D2; }
+      .boot-shell .bs-card.lg { height: 120px; }
+      .boot-shell .bs-bottom { height: 64px; background: #F3EBDC; border-top: 1px solid #E8DFCC; display: flex; align-items: center; justify-content: space-around; padding: 0 8px; }
+      .boot-shell .bs-tab { width: 28px; height: 28px; border-radius: 8px; background: #E2D6BE; }
+
       html[data-boot-theme="dark"] .boot-shell { background-color: #050208; }
+      html[data-boot-theme="dark"] .boot-shell .bs-top,
+      html[data-boot-theme="dark"] .boot-shell .bs-bottom { background: #0d0a14; border-color: #1a1422; }
+      html[data-boot-theme="dark"] .boot-shell .bs-dot,
+      html[data-boot-theme="dark"] .boot-shell .bs-bar,
+      html[data-boot-theme="dark"] .boot-shell .bs-card,
+      html[data-boot-theme="dark"] .boot-shell .bs-tab { background: #1a1422; }
 
       /* Hide boot shell once React mounts. */
       body.app-booted .boot-shell { display: none !important; }
@@ -83,7 +99,16 @@
   </head>
   <body>
     <div id="root"></div>
-    <div class="boot-shell" aria-hidden="true"></div>
+    <div class="boot-shell" aria-hidden="true">
+      <div class="bs-top"><div class="bs-dot"></div><div class="bs-bar"></div></div>
+      <div class="bs-body">
+        <div class="bs-card lg"></div>
+        <div class="bs-card"></div>
+        <div class="bs-card"></div>
+        <div class="bs-card"></div>
+      </div>
+      <div class="bs-bottom"><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div><div class="bs-tab"></div></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
