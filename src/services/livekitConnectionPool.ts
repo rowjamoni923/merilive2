@@ -93,6 +93,24 @@ const prepareSlot = async (slot: PoolSlot): Promise<void> => {
   } catch {
     teardownSlot(slot);
   }
+
+  // Phase 6 (Android native parity): the web `prepareConnection` above warms
+  // the WebView's networking stack. Native publisher paths (host Go Live,
+  // private call, party-room mic) run through the Kotlin LiveKit SDK which
+  // has its OWN OkHttp/WebRTC socket pool — so we also pulse the native
+  // plugin to keep that stack hot. No-op on web/iOS via Proxy.
+  try {
+    const { NativeLiveKit } = await import("@/plugins/NativeLiveKit");
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.getPlatform() === "android" && typeof NativeLiveKit.prepareConnection === "function") {
+      void NativeLiveKit.prepareConnection({
+        url: tokenEntry.url,
+        token: tokenEntry.token,
+      }).catch(() => { /* non-fatal */ });
+    }
+  } catch {
+    /* non-fatal */
+  }
 };
 
 const refreshAllSlots = (): void => {
