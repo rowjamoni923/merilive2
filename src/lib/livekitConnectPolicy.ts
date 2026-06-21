@@ -55,6 +55,18 @@ export async function connectLiveKitRoom(
   token: string,
   profile: LiveKitConnectProfile,
 ): Promise<void> {
+  // Phase 5 (instant-entry): force the connection pool to refresh one
+  // standby slot RIGHT NOW so the about-to-fire TCP/TLS handshake below
+  // resumes from a fresh session ticket instead of doing a full cold
+  // handshake. Non-blocking; fire-and-forget. No-op if pool not booted
+  // (admin routes, public pages) or wildcard viewer token not yet cached.
+  try {
+    void import('@/services/livekitConnectionPool').then(({ pulseConnectionPool }) => {
+      pulseConnectionPool();
+    });
+  } catch {
+    /* non-fatal */
+  }
   try {
     await room.connect(url, token, connectOptions(profile));
     return;
