@@ -89,7 +89,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
     try {
       const { data, error } = await supabase
         .from('gifts')
-        .select('id, name, coin_value, category, icon_url, animation_url, animation_format, animation_config_url, sound_url, display_order')
+        .select('id, name, coin_value, category, icon_url, animation_url, animation_format, animation_config_url, sound_url, display_order, min_level')
         .eq('is_active', true)
         .order('display_order', { ascending: true })
         .order('coin_value', { ascending: true });
@@ -108,6 +108,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
           animation_format: (gift as any).animation_format || null,
           animation_config_url: normalizeGiftMediaUrl((gift as any).animation_config_url),
           sound_url: normalizeGiftMediaUrl(gift.sound_url),
+          min_level: Number((gift as any).min_level ?? 0) || 0,
         }));
         seedAnimationHints(giftCache.gifts);
         // Warm icons (top 8) instantly so the panel grid renders zero-latency.
