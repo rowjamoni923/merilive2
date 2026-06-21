@@ -34,12 +34,20 @@ export function startIdleRoutePrefetch() {
   };
 
   ric(() => {
-    // Tier 1 — most opened from home / bottom nav
+    // Tier 1 — most opened from home / bottom nav + drawer
     warmSequentially([
       () => import('@/pages/Chat'),
       () => import('@/pages/ProfileDetail'),
       () => import('@/pages/LiveStream'),
       () => import('@/pages/PartyRoom'),
+      () => import('@/pages/EditProfile'),
+      () => import('@/pages/Recharge'),
+      () => import('@/pages/Tasks'),
+      () => import('@/pages/Level'),
+      () => import('@/pages/Leaderboard'),
+      () => import('@/pages/PartyRooms'),
+      () => import('@/pages/CreateParty'),
+      () => import('@/pages/CallHistory'),
     ]);
   }, 2000);
 }
