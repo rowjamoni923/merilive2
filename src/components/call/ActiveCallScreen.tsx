@@ -1253,18 +1253,20 @@ export function ActiveCallScreen({
               >
                 {remoteUserName}
               </h2>
-              <div className="flex items-center gap-2 mt-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15"
-                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.35)' }}
-              >
-                <div className="flex gap-1">
-                  {[0,1,2].map(i => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s`, boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
-                  ))}
+              {(callStatus === 'ringing' || callStatus === 'calling') && (
+                <div className="flex items-center gap-2 mt-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15"
+                  style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.35)' }}
+                >
+                  <div className="flex gap-1">
+                    {[0,1,2].map(i => (
+                      <div key={i} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s`, boxShadow: '0 0 4px rgba(255,255,255,0.6)' }} />
+                    ))}
+                  </div>
+                  <span className="text-white/90 text-xs font-bold tracking-wide">
+                    {callStatus === 'ringing' ? 'Ringing...' : 'Calling...'}
+                  </span>
                 </div>
-                <span className="text-white/90 text-xs font-bold tracking-wide">
-                  {callStatus === 'ringing' ? 'Ringing...' : callStatus === 'calling' ? 'Calling...' : 'Connecting...'}
-                </span>
-              </div>
+              )}
               {isHost && (
                 <div className="flex items-center gap-2.5 mt-4 px-5 py-2.5 rounded-2xl border border-emerald-300/40 backdrop-blur-xl"
                   style={{
