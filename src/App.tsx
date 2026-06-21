@@ -1447,6 +1447,7 @@ const App = () => {
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><RequireNoActiveCall><PartyRoom /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><GoLive /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/live-session" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveSessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/reels" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
                 <Route path="/create-party" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><CreateParty /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
