@@ -1,82 +1,100 @@
-## লক্ষ্য
 
-৪০০+ page-এ যে সমস্যাগুলো বারবার আসছে (slow entry, blank screen, 401 unauthorized, session expire, edge function fail, network hiccup) — সেগুলো **প্রতি page-এ আলাদা ভাবে fix করা হবে না**। ৫টি central layer-এ fix → সব page automatic পাবে। এটাই professional standard (Chamet/Bigo/Olamet সবাই এভাবে করে)।
+# New Host Daily Live Bonus — 100% Professional Completion Plan
 
----
+Industry research summary (Bigo, Chamet, Poppo, Olamet, MICO, Hollah → full table in research output):
 
-## ৫টি Central Layer (সব fix এখানেই হবে)
-
-### Layer 1 — Global Auth Guard (`src/providers/AuthProvider.tsx` + `src/lib/authGuard.ts` NEW)
-সব page-এ একই behavior:
-- Session expire detect হলে silent refresh
-- Refresh fail হলে → `/auth` redirect + toast "Session expired, please sign in again"
-- কোনো page-এ blank screen না, কোনো জায়গায় custom auth handling না
-- React Query global `onError` hook → 401 হলে এই guard fire করে
-
-### Layer 2 — Universal API Wrapper (`src/lib/apiClient.ts` NEW)
-সব Supabase call, edge function invoke, fetch — এই wrapper দিয়ে যাবে:
-- Auto-retry (exponential backoff, max 2 retry) on network/5xx
-- Auto session refresh on 401 → retry once → তারপর Layer 1 trigger
-- Timeout (default 15s) + AbortController
-- Unified error type (`ApiError` with `kind: 'network' | 'auth' | 'server' | 'timeout' | 'validation'`)
-- Quiet errors (auth/session) → console-only, no toast spam
-
-### Layer 3 — Global ErrorBoundary + Suspense Shell (`src/components/system/AppShell.tsx` NEW)
-`App.tsx`-এ একবার wrap → সব route এর নিচে আসবে:
-- ErrorBoundary → blank screen এর জায়গায় friendly "Something went wrong, retry" UI
-- Suspense fallback → unified skeleton (per-page custom skeleton-ও override করতে পারবে)
-- Route-level error reset on navigation
-
-### Layer 4 — Global Loading & Connectivity Indicator (`src/components/system/ConnectionStatus.tsx` NEW)
-- Network offline detect → top banner "You're offline, reconnecting…"
-- Supabase realtime disconnect detect → একই banner
-- সব page-এ automatic, কোনো manual wiring না
-
-### Layer 5 — Performance Pre-warm (already done in Phase 1–5, just verify coverage)
-- Token cache, connection pool, DNS prewarm — `main.tsx` থেকে boot হয়, সব page benefit পায়
-- শুধু verify করব কোনো page bypass করছে কিনা
+| Pattern | Adopt? | Why |
+|---|---|---|
+| **Poppo-style per-hour tier** (hour 1 = X beans, hour 2 = Y, … cap = max_hours_per_day) | ✅ | Admin panel already supports `hour_number` + `bonus_beans` + `target_minutes` rows |
+| **Olamet-style manual Claim button** per hour-tier | ✅ | User explicitly asked "claim করে নেবে"; boosts engagement |
+| **Server-side time accumulation from `live_streams` session end** (not client heartbeat) | ✅ | Industry-standard fraud guard. No phone-farm hour-stuffing. |
+| **Per-date isolation + hard expiry** ("unclaimed = forfeited next day") | ✅ | User's exact requirement: 21 তারিখ আলাদা, 22 তারিখ আলাদা |
+| **Min session floor ≥10 min** + face-verified host gate | ✅ | Anti-fraud universal pattern |
+| **Daily reset = same as other tasks** (Europe/London 00:30, `getTaskDate()`) | ✅ | Already used app-wide for `daily_tasks` |
 
 ---
 
-## Rollout Order (Phase-by-Phase, ছোট ছোট merge)
+## Current Gaps (audit confirmed)
 
-| Phase | কাজ | Risk | Verification |
-|------|------|------|--------------|
-| **A** | Layer 2 (apiClient) তৈরি, কিন্তু কেউ ব্যবহার করছে না | Zero | unit test |
-| **B** | Layer 1 (AuthGuard) তৈরি + AuthProvider-এ wire | Low | owner login test, force-expire test |
-| **C** | Layer 3 (ErrorBoundary + Suspense) → App.tsx-এ wrap | Low | force-throw test on 3 random pages |
-| **D** | Layer 4 (ConnectionStatus) → App.tsx-এ mount | Zero | offline simulate |
-| **E** | React Query global config → Layer 2-এ route করা | Medium | smoke test top 10 pages |
-| **F** | Top 20 high-traffic page audit → কেউ direct `supabase.from()` / `fetch()` call করলে wrapper-এ migrate (optional, gradual) | Low | per-page test |
-
-**Phase A–E শেষ হলেই ৪০০+ page automatic সব benefit পাবে।** Phase F শুধু future-proofing।
+| # | Gap | Impact |
+|---|---|---|
+| 1 | `new_host_live_bonus_progress.hours_completed` কখনো increment হয় না | পুরো system dead |
+| 2 | Per-hour tier-wise claim state (which hours claimed) DB-তে নেই | একই hour বার বার claim হতে পারে |
+| 3 | Tasks page-এ Claim button নেই (read-only progress) | User claim করতে পারে না |
+| 4 | Session-end এ live duration calculate করে bonus progress update করে এমন trigger/edge function নেই | Hours auto-credit হয় না |
+| 5 | Admin panel-এ "today's bonus payouts / eligible hosts" stats nei | Admin verify করতে পারে না |
 
 ---
 
-## Owner Account Verification (প্রতি phase শেষে)
+## Implementation (3 phases, all in Lovable preview — no APK rebuild)
 
-প্রতি phase শেষে আমি নিজে preview-এ owner account দিয়ে login করে test করব:
-- Home, Live, Call, Party, Profile, Wallet, Agency — এই ৭টা core flow
-- Force session expire → recover হয় কিনা
-- Network throttle → graceful degrade হয় কিনা
-- Console error count → কমেছে কিনা
+### Phase 1 — DB foundation (migration)
+
+**1.1** Add `claimed_hours INTEGER[]` column to `new_host_live_bonus_progress` (tracks which hour_numbers user has claimed today). Add `last_session_ended_at TIMESTAMPTZ` for incremental accumulation. Add `total_live_seconds_today INTEGER`.
+
+**1.2** Add `min_session_minutes INTEGER DEFAULT 10` to `new_host_live_bonus_settings` (anti-fraud floor — sessions shorter than this don't count).
+
+**1.3** Replace `claim_new_host_live_bonus` RPC with new signature:
+```
+public.claim_new_host_live_bonus_hour(p_hour_number INT) → json
+```
+Returns `{success, beans_credited, hour_number, error}`. Server-side checks:
+- `auth.uid()` matches, host + face-verified
+- Within `eligible_days` window
+- That `hour_number` row exists in settings and `is_active`
+- Today's `total_live_seconds_today >= target_minutes * 60` for that hour
+- `hour_number NOT IN claimed_hours` (idempotent)
+- Atomic UPDATE: append to `claimed_hours`, increment `profiles.beans + pending_earnings + total_earnings`
+- Insert `balance_audit_log` row for traceability
+
+**1.4** New RPC `public.accumulate_host_live_seconds(p_stream_id UUID)` (security definer). Called when a `live_streams` row gets `ended_at` set (via trigger). It:
+- Computes `session_seconds = ended_at - started_at`
+- If `< min_session_minutes * 60` → discard (anti-fraud)
+- Looks up host's bonus eligibility (host, face_verified, in eligible_days window, active settings)
+- Upserts today's `new_host_live_bonus_progress` row, `total_live_seconds_today += session_seconds`, recomputes `hours_completed = total_live_seconds_today / 3600`
+
+**1.5** AFTER UPDATE trigger on `live_streams` (when `ended_at` transitions from NULL → NOT NULL) calls `accumulate_host_live_seconds(NEW.id)`.
+
+**1.6** Safety-net: also accumulate live seconds for currently-active streams via a cron-callable function `accumulate_active_streams_tick()` (every 5 min) — so abandoned/crashed sessions still credit time. Uses `last_session_ended_at` watermark to avoid double-counting.
+
+### Phase 2 — UI claim flow (Lovable, web)
+
+**2.1** Tasks page (`src/pages/Tasks.tsx`): Replace read-only bonus card with **per-hour tier grid**. Each tier shows:
+- Hour number + target ("Hour 5 — 5h live")
+- Bonus amount ("50,000 🫘")
+- State: `locked` (not yet eligible time-wise) / `claimable` (green Claim button) / `claimed` (greyed ✓) / `expired` (next-day reset)
+- Progress bar: current minutes / target minutes for the active hour
+
+**2.2** Claim button → calls `claim_new_host_live_bonus_hour(hour_number)` RPC → toast + balance update + local state.
+
+**2.3** Live room (`LiveTasksCard.tsx`): same per-hour mini-strip when host is streaming, so they can claim mid-stream without leaving live.
+
+**2.4** Realtime subscribe to own `new_host_live_bonus_progress` row → instant tier-unlock animation when threshold crossed.
+
+### Phase 3 — Admin verification & test
+
+**3.1** `AdminTasksSettings.tsx`: add read-only "Today's Stats" panel — eligible hosts count, total bonus paid today, top earners list. Pulls from `new_host_live_bonus_progress` joined with `profiles`.
+
+**3.2** Add `min_session_minutes` field to admin form.
+
+**3.3** Owner test (smdollarex923@gmail.com): go live for 12 min in preview → verify `total_live_seconds_today` updates after end → verify Hour 1 tier becomes claimable → claim → verify beans credited + audit log row + cannot re-claim same hour. Verify next-day reset boundary by manipulating `bonus_date` test-row.
 
 ---
 
-## যা **করব না** (constraints honored)
+## What stays untouched (sacred)
 
-- Android native code touch করব না (LiveKit, camera, gift animation — সব সংরক্ষিত)
-- কোনো design change না — শুধু underlying plumbing
-- UI string সব English
-- কোনো polling/visibility-refresh না
-- ৪০০ page individually edit না — central layer only
+- LiveKit / Camera / GPUPixel / VAP / SVGA / animation paths
+- Reels redesign, all minimal-pro UI work done so far
+- Other task types (`live_minutes`, `viewers`, `first_gift`) and `daily_tasks` flow
+- All English UI strings (no Bangla in code)
 
 ---
 
-## Confirm করো
+## Verification gates
 
-1. এই 5-layer approach OK? নাকি অন্য কিছু চাও?
-2. Phase A থেকে শুরু করি?
-3. প্রতি phase-এর পরে তোমাকে report দিব + owner account verification screenshot — OK?
+1. Migration linter clean (no RLS errors, GRANTs present)
+2. Owner-account end-to-end live → claim → re-claim-blocked test passes
+3. Two consecutive days (manual `bonus_date` row insert) show independent claim quotas
+4. Sub-10-min session = no bonus credited
 
-Approve করলেই Phase A শুরু।
+Confirm, and I'll start with Phase 1 migration.
