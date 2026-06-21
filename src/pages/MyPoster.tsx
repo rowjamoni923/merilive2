@@ -155,9 +155,15 @@ const MyPoster = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 z-10 bg-background border-b border-border">
+      <div className="flex-shrink-0 z-[60] bg-background border-b border-border shadow-sm">
         <div className="flex items-center justify-between px-4 h-14 safe-area-top">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            aria-label="Back"
+            className="text-foreground hover:bg-muted"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-lg font-bold">My Poster</h1>
@@ -169,43 +175,65 @@ const MyPoster = () => {
 
       {/* Description */}
       <p className="text-center text-muted-foreground text-sm py-4">
-        Upload clear and beautiful photos to show yourself
+        Upload clear photos or videos to show yourself
       </p>
 
       {/* Image Grid */}
       <div className="px-4 pb-8">
         <div className="grid grid-cols-3 gap-3">
           <AnimatePresence>
-            {images.map((image, index) => (
-              <motion.div
-                key={image.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="relative aspect-[3/4] rounded-xl overflow-hidden group"
-              >
-                <img loading="lazy" decoding="async" 
-                  src={image.image_url}
-                  alt={`Poster ${index + 1}`}
-                  className="w-full h-full object-cover" />
-                {/* Gradient border for primary */}
-                {index === 0 && (
-                  <div className="absolute inset-0 border-2 border-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-xl pointer-events-none" 
-                    style={{
-                      background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #f472b6, #a855f7, #fb923c) border-box",
-                      border: "3px solid transparent"
-                    }}
-                  />
-                )}
-                {/* Delete button */}
-                <button
-                  onClick={() => handleDelete(image.id, image.image_url)}
-                  className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            {images.map((image, index) => {
+              const isVideo =
+                image.media_type === "video" ||
+                /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(image.image_url);
+              return (
+                <motion.div
+                  key={image.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden group bg-muted"
                 >
-                  <X className="w-4 h-4 text-slate-800" />
-                </button>
-              </motion.div>
-            ))}
+                  {isVideo ? (
+                    <video
+                      src={image.image_url}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                      controls
+                    />
+                  ) : (
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={image.image_url}
+                      alt={`Poster ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  {/* Gradient border for primary */}
+                  {index === 0 && (
+                    <div
+                      className="absolute inset-0 rounded-xl pointer-events-none"
+                      style={{
+                        background:
+                          "linear-gradient(white, white) padding-box, linear-gradient(135deg, #f472b6, #a855f7, #fb923c) border-box",
+                        border: "3px solid transparent",
+                      }}
+                    />
+                  )}
+                  {/* Delete button */}
+                  <button
+                    onClick={() => handleDelete(image.id, image.image_url)}
+                    className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    aria-label="Delete"
+                  >
+                    <X className="w-4 h-4 text-slate-800" />
+                  </button>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
 
           {/* Add new image button */}
@@ -219,7 +247,7 @@ const MyPoster = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 className="hidden"
                 onChange={handleFileSelect}
                 disabled={uploading}
@@ -234,9 +262,10 @@ const MyPoster = () => {
         <div className="bg-muted/50 rounded-xl p-4">
           <h4 className="font-medium mb-2">Tips:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• The first image will be shown as your main profile picture</li>
-            <li>• You can upload up to 9 images</li>
-            <li>• Upload clear and beautiful photos</li>
+            <li>• The first item will be shown as your main profile picture</li>
+            <li>• You can upload up to 9 photos or videos</li>
+            <li>• Max file size: 25MB (photo or video)</li>
+            <li>• Upload clear and beautiful media</li>
           </ul>
         </div>
       </div>
