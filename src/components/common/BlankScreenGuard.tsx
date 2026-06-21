@@ -42,6 +42,7 @@ const getSurfaceKind = (pathname: string) => {
     pathname.startsWith("/live") ||
     pathname.startsWith("/party") ||
     pathname === "/go-live" ||
+    pathname === "/live-session" ||
     pathname.startsWith("/call") ||
     pathname.startsWith("/active-call") ||
     pathname.startsWith("/incoming-call") ||
