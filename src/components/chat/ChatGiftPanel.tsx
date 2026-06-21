@@ -163,6 +163,18 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
   const [userCoins, setUserCoins] = useState(propUserCoins || 0);
   const sendingRef = useRef(false);
 
+  // Current user level for level-gated gifts
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (mounted) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => { mounted = false; };
+  }, []);
+  const { level: userLevel } = useRealtimeLevel(currentUserId);
+  const effectiveUserLevel = Math.max(0, Number(userLevel ?? 0));
+
   // Pkg4-pass4: sync prop changes (parent balance updates were ignored after mount)
   useEffect(() => {
     if (typeof propUserCoins === 'number') setUserCoins(propUserCoins);
