@@ -1857,7 +1857,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-              {isProbing ? "Checking connection..." : (isStarting || livekitLoading) ? "Starting..." : "Go Live"}
+              Go Live
             </span>
           </motion.button>
         </div>
@@ -2059,28 +2059,10 @@ const GoLive = () => {
       {/* Face-tracked Sticker Overlay */}
       <StickerOverlay stickerName={activeSticker} onDismiss={() => handleStickerChange(null)} />
 
-      {/* Pkg157: Pre-join connection warmup overlay (Chamet/Bigo parity) */}
-      <AnimatePresence>
-        {(isProbing || isStarting) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 backdrop-blur-[2px] pointer-events-none"
-          >
-            <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-black/60 border border-white/10 shadow-2xl">
-              <div className="relative h-10 w-10">
-                <div className="absolute inset-0 rounded-full border-2 border-white/15" />
-                <div className="absolute inset-0 rounded-full border-2 border-t-primary border-r-primary/60 border-b-transparent border-l-transparent animate-spin" />
-              </div>
-              <div className="text-white text-sm font-medium tracking-wide">
-                {isProbing ? 'Checking connection…' : 'Going live…'}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* T-shirt rule: camera/mic already warm during preview — Go Live
+          press only swaps UI, never reloads. Pre-join warmup overlay
+          removed so the user never sees a loader between preview and
+          broadcast. LiveKit connection continues in the background. */}
     </div>
   );
 };

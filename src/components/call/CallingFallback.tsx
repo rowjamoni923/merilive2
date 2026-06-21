@@ -27,9 +27,11 @@ export function CallingFallback({
   isHost,
   onEndCall,
 }: CallingFallbackProps) {
+  // T-shirt rule: post-accept ('connected') we never show a loader label —
+  // UI swap is instant, video/audio fills in as tracks arrive.
   const label =
     callStatus === 'connected'
-      ? 'Connecting…'
+      ? ''
       : isHost
         ? 'Incoming call…'
         : 'Calling…';
@@ -79,26 +81,28 @@ export function CallingFallback({
         <div style={{ fontSize: 22, fontWeight: 600, textAlign: 'center' }}>
           {remoteUserName || 'Connecting'}
         </div>
-        <div
-          style={{
-            fontSize: 14,
-            opacity: 0.75,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span
+        {label && (
+          <div
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: '#10b981',
-              animation: 'merilive-calling-pulse 1.2s ease-in-out infinite',
+              fontSize: 14,
+              opacity: 0.75,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
             }}
-          />
-          {label}
-        </div>
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: '#10b981',
+                animation: 'merilive-calling-pulse 1.2s ease-in-out infinite',
+              }}
+            />
+            {label}
+          </div>
+        )}
       </div>
 
       <button
