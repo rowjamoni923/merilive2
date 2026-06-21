@@ -50,6 +50,7 @@ import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
+import { useLiveSessionOptional, type LiveHostState } from "@/features/live-session";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
