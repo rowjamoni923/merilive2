@@ -120,6 +120,33 @@ interface NativeLiveKitPlugin {
    * no billing. Auto-discarded after ~4 min by the plugin. No-op on web/iOS.
    */
   prepareConnection?(opts: { url: string; token: string }): Promise<{ prepared: boolean; reason?: string }>;
+  attachRemote(opts: { sid?: string }): Promise<{ attached: boolean; reason?: string }>;
+  reconnectNow(opts?: Record<string, unknown>): Promise<{ connected: boolean; reason?: string }>;
+  getActiveSession(): Promise<{
+    active: boolean;
+    roomScope?: NativeRoomScope | string;
+    isHost?: boolean;
+    callType?: string;
+    boundAtMs?: number;
+    ageMs?: number;
+    canHardReconnect?: boolean;
+  }>;
+  setSurviveActivityDestroy(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<{ updated: boolean }>;
+  refreshToken(opts: { token: string }): Promise<{ refreshed: boolean }>;
+  setSubscriberVideoQuality(opts: { enabled?: boolean; quality?: string; source?: string }): Promise<{ applied: boolean }>;
+  setRemoteVideoSubscribed(opts: { sid?: string; subscribed?: boolean; source?: string }): Promise<{ applied: boolean }>;
+  sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean; reason?: string }>;
+  registerRpcMethod(opts: { method: string }): Promise<{ registered: boolean; reason?: string }>;
+  unregisterRpcMethod(opts: { method: string }): Promise<{ unregistered: boolean }>;
+  performRpc(opts: { destinationIdentity: string; method: string; payload?: string; responseTimeout?: number }): Promise<{ response: string }>;
+  respondToRpc(opts: { requestId: string; result?: string; errorMessage?: string }): Promise<{ sent: boolean }>;
+  sendText(opts: { text: string; topic?: string; destinationIdentities?: string[] }): Promise<{ sent: boolean; streamId?: string; reason?: string }>;
+  registerTextStreamHandler(opts: { topic: string }): Promise<{ registered: boolean }>;
+  unregisterTextStreamHandler(opts: { topic: string }): Promise<{ unregistered: boolean }>;
+  addListener(eventName: 'rpc-invocation', cb: (e: any) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'text-stream-chunk', cb: (e: any) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'text-stream-complete', cb: (e: any) => void): Promise<PluginListenerHandle>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
@@ -146,8 +173,7 @@ const KNOWN_UNIMPLEMENTED = new Set<string>([
   // implemented (see LiveKitPlugin.kt). Leaving it here would cause the
   // Proxy to short-circuit and the camera surface would never render
   // (root cause of the private-call white-screen bug).
-  'getActiveSession', 'setSurviveActivityDestroy',
-  'updateLiveStats', 'sendData', 'setPreferredCodec', 'reconnectNow',
+  'setPreferredCodec',
   // Audio routing / mode (web-SDK path handles these)
   'setSpeakerphoneEnabled', 'setProximityMonitoring', 'setAudioMode',
   'getAudioDevices', 'setAudioDevice',
@@ -158,8 +184,7 @@ const KNOWN_UNIMPLEMENTED = new Set<string>([
   'isPictureInPictureSupported', 'enterPictureInPicture',
   'setAutoPipOnLeaveHint', 'getPipState',
   // Token / RPC / text-stream / metadata
-  'refreshToken', 'respondToRpc', 'registerRpcMethod', 'unregisterRpcMethod',
-  'performRpc', 'sendTextStream',
+  'sendTextStream',
 ]);
 const warnedDeadCalls = new Set<string>();
 const isDev = typeof import.meta !== 'undefined' && (import.meta as any)?.env?.DEV === true;

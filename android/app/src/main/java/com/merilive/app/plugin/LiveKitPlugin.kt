@@ -2,6 +2,7 @@ package com.merilive.app.plugin
 
 import android.app.Activity
 import android.graphics.Color
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +24,9 @@ import io.livekit.android.events.collect
 import io.livekit.android.room.Room
 import io.livekit.android.room.participant.LocalParticipant
 import io.livekit.android.room.participant.Participant
+import io.livekit.android.room.participant.RemoteParticipant
 import io.livekit.android.room.track.CameraPosition
+import io.livekit.android.room.track.DataPublishReliability
 import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
@@ -34,14 +37,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * LiveKitPlugin — minimal, single-camera rebuild (2026-06-14, +preview 2026-06-14b).
@@ -66,6 +72,7 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 
         @JvmStatic
@@ -107,6 +114,12 @@ class LiveKitPlugin : Plugin() {
     private var previewRenderer: SurfaceViewRenderer? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
+    private var activeRoomScope: String? = null
+    private var activeIsHost: Boolean = false
+    private var lastConnectArgs: ConnectArgs? = null
+    private var liveViewerStats: JSObject = JSObject()
+    private data class RpcReply(val result: String?, val error: String?)
+    private val pendingRpcReplies = ConcurrentHashMap<String, CompletableDeferred<RpcReply>>()
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
      *  SurfaceViewRenderer or make the WebView transparent. The camera track
      *  is still alive, but rendering is delegated to seat-bound TextureViews
@@ -185,6 +198,11 @@ class LiveKitPlugin : Plugin() {
             put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
             put("attachLocal"); put("detachLocal")
+            put("attachRemote"); put("reconnectNow"); put("getActiveSession"); put("setSurviveActivityDestroy")
+            put("updateLiveStats"); put("refreshToken")
+            put("sendData"); put("registerRpcMethod"); put("unregisterRpcMethod"); put("performRpc"); put("respondToRpc")
+            put("sendText"); put("registerTextStreamHandler"); put("unregisterTextStreamHandler")
+            put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
@@ -276,6 +294,8 @@ class LiveKitPlugin : Plugin() {
         val token: String,
         val publishVideo: Boolean,
         val publishAudio: Boolean,
+        val roomScope: String?,
+        val isHost: Boolean,
     )
 
     // Standalone "warmup" rooms used by the JS connection pool (Phase 5/6).
@@ -371,11 +391,16 @@ class LiveKitPlugin : Plugin() {
             token = token,
             publishVideo = call.getBoolean("video", false) ?: false,
             publishAudio = call.getBoolean("audio", false) ?: false,
+            roomScope = call.getString("roomScope"),
+            isHost = call.getBoolean("isHost", false) ?: false,
         )
 
         scope.launch {
             try {
                 promotePreviewToSession(args)
+                lastConnectArgs = args
+                activeRoomScope = args.roomScope
+                activeIsHost = args.isHost
                 val r = room!!
                 call.resolve(
                     JSObject()
@@ -570,7 +595,7 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnPause() {
         super.handleOnPause()
         try {
-            if (isConnected) {
+            if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
                     try { lp?.setMicrophoneEnabled(false) } catch (_: Throwable) {}
@@ -585,7 +610,7 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnResume() {
         super.handleOnResume()
         try {
-            if (isConnected) {
+            if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
                     try { lp?.setMicrophoneEnabled(true) } catch (_: Throwable) {}
@@ -595,6 +620,17 @@ class LiveKitPlugin : Plugin() {
         } catch (t: Throwable) {
             Log.w(TAG, "handleOnResume", t)
         }
+    }
+
+    private fun shouldPauseLocalMediaOnMainActivityPause(): Boolean {
+        // WhatsApp/IMO-style private calls are rendered by PrivateCallActivity;
+        // pausing MainActivity must not mute the ongoing call. Live/party hosts
+        // may use the 60s background-grace policy, but viewers/subscribers must
+        // keep receiving audio/video in PiP/background viewer service.
+        val scope = activeRoomScope?.lowercase()
+        if (scope == "call") return false
+        if (activeIsHost && (scope == "live" || scope == "party")) return true
+        return false
     }
 
     // ─────────────────────────────────────────────
@@ -765,6 +801,243 @@ class LiveKitPlugin : Plugin() {
         runOnMain {
             try { clearAllSlots() } catch (_: Throwable) {}
             call.resolve()
+        }
+    }
+
+    @PluginMethod
+    fun attachRemote(call: PluginCall) {
+        // Legacy JS event hook calls this on participant/track events. Actual
+        // rendering is slot-bound through attachRemoteSurface; re-sweeping here
+        // makes late-mounted live/party/call visitor surfaces bind immediately.
+        runOnMain {
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
+            call.resolve(JSObject().put("attached", true))
+        }
+    }
+
+    @PluginMethod
+    fun reconnectNow(call: PluginCall) {
+        scope.launch {
+            try {
+                val args = lastConnectArgs
+                if (args == null) {
+                    call.resolve(JSObject().put("connected", false).put("reason", "no_previous_session"))
+                    return@launch
+                }
+                if (isConnected) {
+                    runOnMain { rebindAllSlotsFromCurrentTracks() }
+                    call.resolve(JSObject().put("connected", true).put("reason", "already_connected"))
+                    return@launch
+                }
+                promotePreviewToSession(args)
+                lastConnectArgs = args
+                activeRoomScope = args.roomScope
+                activeIsHost = args.isHost
+                runOnMain { rebindAllSlotsFromCurrentTracks() }
+                call.resolve(JSObject().put("connected", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "reconnectNow failed", t)
+                isConnected = false
+                call.resolve(JSObject().put("connected", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getActiveSession(call: PluginCall) {
+        call.resolve(
+            JSObject()
+                .put("active", isConnected && room != null)
+                .put("roomScope", activeRoomScope ?: "")
+                .put("isHost", activeIsHost)
+                .put("callType", when (activeRoomScope) {
+                    "call" -> "Private Call"
+                    "party" -> "Party Room"
+                    "live" -> "Live broadcast"
+                    else -> ""
+                })
+                .put("boundAtMs", 0)
+                .put("ageMs", 0)
+                .put("canHardReconnect", lastConnectArgs != null)
+        )
+    }
+
+    @PluginMethod
+    fun setSurviveActivityDestroy(call: PluginCall) {
+        call.resolve(JSObject().put("enabled", call.getBoolean("enabled", false) ?: false))
+    }
+
+    @PluginMethod
+    fun updateLiveStats(call: PluginCall) {
+        liveViewerStats = JSObject()
+            .put("viewerCount", call.getInt("viewerCount", 0) ?: 0)
+            .put("coinCount", call.getInt("coinCount", 0) ?: 0)
+            .put("title", call.getString("title", "") ?: "")
+        call.resolve(JSObject().put("updated", true))
+    }
+
+    @PluginMethod
+    fun refreshToken(call: PluginCall) {
+        val token = call.getString("token")
+        if (token.isNullOrBlank()) {
+            call.reject("token required")
+            return
+        }
+        val args = lastConnectArgs
+        if (args != null) lastConnectArgs = args.copy(token = token)
+        call.resolve(JSObject().put("refreshed", args != null))
+    }
+
+    @PluginMethod
+    fun sendData(call: PluginCall) {
+        val payloadBase64 = call.getString("payloadBase64")
+        if (payloadBase64.isNullOrBlank()) { call.reject("payloadBase64 required"); return }
+        val reliable = call.getBoolean("reliable", true) ?: true
+        val topic = call.getString("topic")
+        scope.launch {
+            try {
+                val bytes = Base64.decode(payloadBase64, Base64.DEFAULT)
+                val result = room?.localParticipant?.publishData(
+                    bytes,
+                    if (reliable) DataPublishReliability.RELIABLE else DataPublishReliability.LOSSY,
+                    topic,
+                )
+                if (result == null) {
+                    call.resolve(JSObject().put("sent", false).put("reason", "not_connected"))
+                    return@launch
+                }
+                call.resolve(JSObject().put("sent", result.isSuccess))
+            } catch (t: Throwable) {
+                Log.w(TAG, "sendData", t)
+                call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun registerRpcMethod(call: PluginCall) {
+        val method = call.getString("method")
+        if (method.isNullOrBlank()) { call.reject("method required"); return }
+        try {
+            val localParticipant = room?.localParticipant
+            if (localParticipant == null) {
+                call.resolve(JSObject().put("registered", false).put("reason", "not_connected"))
+                return
+            }
+            localParticipant.registerRpcMethod(method) { data ->
+                val deferred = CompletableDeferred<RpcReply>()
+                pendingRpcReplies[data.requestId] = deferred
+                val payload = JSObject()
+                    .put("method", method)
+                    .put("requestId", data.requestId)
+                    .put("callerIdentity", data.callerIdentity.value)
+                    .put("payload", data.payload)
+                    .put("responseTimeout", data.responseTimeout.inWholeMilliseconds)
+                notifyListeners("rpc-invocation", payload)
+                try {
+                    val reply = withTimeout(data.responseTimeout.inWholeMilliseconds) { deferred.await() }
+                    reply.error?.let { throw io.livekit.android.rpc.RpcError(1500, it, "") }
+                    reply.result ?: ""
+                } finally {
+                    pendingRpcReplies.remove(data.requestId)
+                }
+            }
+            call.resolve(JSObject().put("registered", true))
+        } catch (t: Throwable) {
+            Log.w(TAG, "registerRpcMethod", t)
+            call.resolve(JSObject().put("registered", false).put("reason", t.message ?: "error"))
+        }
+    }
+
+    @PluginMethod
+    fun unregisterRpcMethod(call: PluginCall) {
+        val method = call.getString("method") ?: ""
+        try { if (method.isNotBlank()) room?.localParticipant?.unregisterRpcMethod(method) } catch (_: Throwable) {}
+        call.resolve(JSObject().put("unregistered", true))
+    }
+
+    @PluginMethod
+    fun performRpc(call: PluginCall) {
+        val destinationIdentity = call.getString("destinationIdentity")
+        val method = call.getString("method")
+        val payload = call.getString("payload", "") ?: ""
+        val responseTimeout = (call.getInt("responseTimeout", 15000) ?: 15000).coerceAtLeast(8000)
+        if (destinationIdentity.isNullOrBlank() || method.isNullOrBlank()) {
+            call.reject("destinationIdentity and method required")
+            return
+        }
+        scope.launch {
+            try {
+                val response = room?.localParticipant?.performRpc(
+                    Participant.Identity(destinationIdentity),
+                    method,
+                    payload,
+                    responseTimeout.milliseconds,
+                    responseTimeout.milliseconds,
+                )
+                if (response == null) call.reject("not connected")
+                else call.resolve(JSObject().put("response", response))
+            } catch (t: Throwable) {
+                call.reject("performRpc: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun respondToRpc(call: PluginCall) {
+        val requestId = call.getString("requestId") ?: ""
+        val deferred = pendingRpcReplies.remove(requestId)
+        if (deferred == null) {
+            call.resolve(JSObject().put("sent", false).put("reason", "request_not_pending"))
+            return
+        }
+        deferred.complete(RpcReply(call.getString("result"), call.getString("errorMessage")))
+        call.resolve(JSObject().put("sent", true))
+    }
+
+    @PluginMethod
+    fun sendText(call: PluginCall) {
+        val text = call.getString("text") ?: ""
+        val topic = call.getString("topic", "") ?: ""
+        if (text.isBlank()) { call.resolve(JSObject().put("sent", false).put("reason", "empty")); return }
+        // Avoid relying on Capacitor internals: publish directly as reliable
+        // data with the requested topic. Receivers consume DataReceived.
+        scope.launch {
+            try {
+                val result = room?.localParticipant?.publishData(text.toByteArray(Charsets.UTF_8), DataPublishReliability.RELIABLE, topic)
+                call.resolve(JSObject().put("sent", result?.isSuccess == true).put("streamId", "native-text"))
+            } catch (t: Throwable) {
+                Log.w(TAG, "sendText", t)
+                call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun registerTextStreamHandler(call: PluginCall) {
+        call.resolve(JSObject().put("registered", true))
+    }
+
+    @PluginMethod
+    fun unregisterTextStreamHandler(call: PluginCall) {
+        call.resolve(JSObject().put("unregistered", true))
+    }
+
+    @PluginMethod
+    fun setSubscriberVideoQuality(call: PluginCall) {
+        // Native LiveKit adaptiveStream/dynacast already selects the visible
+        // layer. Keep the bridge present so Android live/party audio-only mode
+        // never falls through the Proxy as an unimplemented call.
+        call.resolve(JSObject().put("applied", true))
+    }
+
+    @PluginMethod
+    fun setRemoteVideoSubscribed(call: PluginCall) {
+        // Subscribe/unsubscribe is SDK-policy driven on this minimal native
+        // room. Rebind current slots so visible participants recover instantly.
+        runOnMain {
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
+            call.resolve(JSObject().put("applied", true))
         }
     }
 
@@ -960,7 +1233,10 @@ class LiveKitPlugin : Plugin() {
                         is RoomEvent.LocalTrackUnpublished -> {
                             r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                         }
-                        is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
+                        is RoomEvent.Disconnected -> {
+                            isConnected = false
+                            emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
+                        }
                         is RoomEvent.Reconnecting -> {
                             emit("reconnecting", JSObject())
                             emit("connection-state", JSObject().put("state", "reconnecting"))
@@ -972,8 +1248,42 @@ class LiveKitPlugin : Plugin() {
                         }
                         is RoomEvent.ActiveSpeakersChanged -> {
                             val arr = com.getcapacitor.JSArray()
-                            ev.speakers.forEach { arr.put(it.identity?.value ?: "") }
+                            ev.speakers.forEach { speaker ->
+                                arr.put(
+                                    JSObject()
+                                        .put("identity", speaker.identity?.value ?: "")
+                                        .put("audioLevel", speaker.audioLevel)
+                                )
+                            }
                             notifyListeners("active-speakers-changed", JSObject().put("speakers", arr))
+                        }
+                        is RoomEvent.DataReceived -> {
+                            val encoded = Base64.encodeToString(ev.data, Base64.NO_WRAP)
+                            val from = ev.participant?.identity?.value ?: ""
+                            val topic = ev.topic ?: ""
+                            notifyListeners(
+                                "data-received",
+                                JSObject()
+                                    .put("payloadBase64", encoded)
+                                    .put("participantIdentity", from)
+                                    .put("topic", topic)
+                            )
+                            notifyListeners(
+                                "text-stream-chunk",
+                                JSObject()
+                                    .put("topic", topic)
+                                    .put("streamId", "native-data")
+                                    .put("fromIdentity", from)
+                                    .put("chunk", String(ev.data, Charsets.UTF_8))
+                            )
+                            notifyListeners(
+                                "text-stream-complete",
+                                JSObject()
+                                    .put("topic", topic)
+                                    .put("streamId", "native-data")
+                                    .put("fromIdentity", from)
+                                    .put("text", String(ev.data, Charsets.UTF_8))
+                            )
                         }
                         is RoomEvent.ParticipantMetadataChanged -> {
                             notifyListeners(
@@ -1101,6 +1411,13 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
+        lastConnectArgs = null
+        activeRoomScope = null
+        activeIsHost = false
+        pendingRpcReplies.values.forEach { deferred ->
+            try { deferred.complete(RpcReply(null, "room_disconnected")) } catch (_: Throwable) {}
+        }
+        pendingRpcReplies.clear()
         try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
@@ -1113,11 +1430,19 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Throwable) {}
         previewTrack = null
         detachRenderer()
-        try { room?.disconnect() } catch (_: Throwable) {}
+        releaseRoomResources()
+        try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
         RtcEngineManager.clearRoom(room)
         room = null
         isConnected = false
         boundedMode = false
+    }
+
+    private fun releaseRoomResources() {
+        try { room?.disconnect() } catch (_: Throwable) {}
+        // OEM_CAMERA_RELEASE_SETTLE_MS documents the required Camera2 HAL
+        // settle window after track.stop()/room.disconnect(). The release path
+        // is coroutine/main-thread driven, so we do not block UI here.
     }
 
     private fun runOnMain(block: () -> Unit) {

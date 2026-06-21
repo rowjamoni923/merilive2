@@ -125,9 +125,7 @@ class NativeLiveKitController {
     try {
       const requestedFeature = opts.roomScope ?? null;
       if (this.previewFeature && requestedFeature && this.previewFeature !== requestedFeature) {
-        try { await NativeLiveKit.stopLocalPreview(); } catch { /* stale preview / old APK */ }
-        this.previewFeature = null;
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        throw new Error(`NativeLiveKit preview active for ${this.previewFeature}; refusing ${requestedFeature} takeover before explicit cleanup`);
       }
       if (this.connected && this.activeFeature && requestedFeature && this.activeFeature !== requestedFeature) {
         throw new Error(`NativeLiveKit session already active for ${this.activeFeature}; refusing ${requestedFeature} takeover`);

@@ -896,8 +896,9 @@ const GoLive = () => {
       }
       nativePreviewReadyForHandoff = true;
     }
+    const nativePreviewActiveForHandoff = nativePreviewReadyForHandoff;
 
-    const shouldPreserveNativePreview = isNativeAndroid && nativePreviewReadyForHandoff;
+    const shouldPreserveNativePreview = isNativeAndroid && nativePreviewActiveForHandoff;
     if (shouldPreserveNativePreview) {
       preservePreviewForLiveRef.current = true;
       applyNativePreviewTransparency(true);
@@ -988,7 +989,7 @@ const GoLive = () => {
       // - Web preview: preserve same MediaStream for zero-gap transition
       // - Native preview: preserve the SAME LiveKit Camera2 LocalVideoTrack;
       //   do NOT stopLocalPreview() here or streaming must reopen Camera2.
-      if (isNativeAndroid && nativePreviewReadyForHandoff) {
+      if (isNativeAndroid && nativePreviewActiveForHandoff) {
         preservePreviewForLiveRef.current = true;
         clearPreparedHostPreviewStream({ stopTracks: true });
         // Native Camera2 path takes over /dev/video0 — kill any warm web session.
