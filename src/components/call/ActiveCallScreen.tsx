@@ -15,6 +15,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from "@/features/call/preparedCallMedia";
+import {
+  acquireCameraSession,
+  peekCameraSession,
+  adoptCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 
 import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
@@ -149,33 +155,64 @@ export function ActiveCallScreen({
   const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
+  // Pkg-shirt Phase-B: reuse the global persistentCameraSession that
+  // CallProvider warmed during ringing/dialing. This makes accept feel
+  // instant — same MediaStream, no fresh getUserMedia, no permission
+  // re-prompt, no black flash. Falls back to a direct getUserMedia +
+  // adopt if no warm session exists (deep-link to active call, etc.).
+  const callCameraHandleRef = useRef<CameraSessionHandle | null>(null);
   useEffect(() => {
     if (!isOpen || !isPreviewWeb || !callId) return;
     let cancelled = false;
-    let stream: MediaStream | null = null;
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 720, height: 1280 },
-          audio: false,
-        });
-        if (cancelled) {
-          stream?.getTracks().forEach((t) => t.stop());
+        // Try warm session first (Provider already acquired during ring).
+        const warm = peekCameraSession();
+        if (warm) {
+          const handle = await acquireCameraSession({ video: true, audio: true });
+          if (cancelled) { handle.release(); return; }
+          callCameraHandleRef.current?.release();
+          callCameraHandleRef.current = handle;
+          setPreviewStream(handle.stream);
+          setPreparedCallMediaStream(callId, handle.stream);
           return;
         }
+        // Cold path — no Provider warm-up reached us. Acquire fresh and
+        // register so subsequent screens (Live/Party) can reuse it too.
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 720, height: 1280 },
+          audio: true,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        try {
+          callCameraHandleRef.current?.release();
+          callCameraHandleRef.current = adoptCameraSession(stream, {
+            video: true,
+            audio: true,
+          });
+        } catch { /* non-fatal */ }
         setPreviewStream(stream);
         setPreparedCallMediaStream(callId, stream);
       } catch (err) {
-        console.warn('[ActiveCall][preview] getUserMedia failed:', err);
+        console.warn('[ActiveCall][preview] camera acquire failed:', err);
       }
     })();
     return () => {
       cancelled = true;
       clearPreparedCallMediaStream(callId);
-      stream?.getTracks().forEach((t) => t.stop());
+      // Pkg-shirt Phase-B: do NOT stop tracks — release our refcount and
+      // let the global session decide. CallProvider still holds its own
+      // refcount while ringing, and after end-call the next consumer
+      // (or disposeCameraSessionIfIdle) frees the camera.
+      callCameraHandleRef.current?.release();
+      callCameraHandleRef.current = null;
       setPreviewStream(null);
     };
   }, [isOpen, isPreviewWeb, callId]);
+
   // Pkg502 — ref-callback attachment so srcObject is wired both when the
   // stream arrives and when a video element mounts later (calling→connected
   // transition mounts a new tile after the stream is already set).
