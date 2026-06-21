@@ -1,5 +1,5 @@
 import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
-import { X, Gift, Send } from "lucide-react";
+import { X, Gift, Send, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -7,6 +7,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
+import { toast } from "sonner";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
