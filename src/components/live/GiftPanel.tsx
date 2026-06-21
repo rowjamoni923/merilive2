@@ -144,6 +144,19 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const userCoinsRef = useRef<number>(propUserCoins || 0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
+  // Current user level (for level-gated gifts)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (mounted) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => { mounted = false; };
+  }, []);
+  const { level: userLevel } = useRealtimeLevel(currentUserId);
+  const effectiveUserLevel = Math.max(0, Number(userLevel ?? 0));
+
+
 
   const { isNative } = useNativeGiftPanel(
     isOpen,
