@@ -92,6 +92,7 @@ import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { NativeVideoView } from "@/components/NativeVideoView";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
@@ -992,6 +993,7 @@ const LiveStream = () => {
     localVideoTrack,
     localAudioTrack,
     isNativeMediaActive,
+    nativeParticipants,
     remoteUsers,
     error: livekitError,
     isRemoteAudioMuted,
@@ -3629,11 +3631,21 @@ const LiveStream = () => {
   const firstRemoteUser = Array.from(remoteUsers.values()).find((user: any) => user?.hasVideo && user?.videoTrack)
     ?? Array.from(remoteUsers.values())[0];
   const remoteVideoTrack = firstRemoteUser?.videoTrack ?? null;
+  const nativeHostParticipant = useMemo(() => {
+    if (!isNativeMediaActive || isHost) return null;
+    if (streamData?.host_id) {
+      const direct = nativeParticipants.get(streamData.host_id)
+        ?? nativeParticipants.get(`user-${streamData.host_id}`)
+        ?? nativeParticipants.get(`user_${streamData.host_id}`);
+      if (direct) return direct;
+    }
+    return Array.from(nativeParticipants.values()).find((p) => !/^admin[-_]/i.test(p.identity)) ?? null;
+  }, [isNativeMediaActive, isHost, nativeParticipants, streamData?.host_id]);
   // Phase 1B: host's camera-off propagates as TrackMuted → viewer should swap
   // the (frozen) <video> for the avatar placeholder, not stare at the last frame.
   const isRemoteHostCameraOff = !!(remoteVideoTrack && (firstRemoteUser as any)?.videoMuted);
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
-  const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack;
+  const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack && !!nativeHostParticipant?.sid;
   // Debug: Log remote video state changes
   useEffect(() => {
     if (!isHost) {
@@ -4081,8 +4093,14 @@ const LiveStream = () => {
               />
             )}
           </div>
-        ) : showNativeHostSurface || showNativeViewerSurface ? (
+        ) : showNativeHostSurface ? (
           <div className="absolute inset-0 pointer-events-none bg-transparent" />
+        ) : showNativeViewerSurface && nativeHostParticipant?.sid ? (
+          <NativeVideoView
+            kind="remote"
+            sid={nativeHostParticipant.sid}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+          />
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Phase 3 (instant-entry): "Starting camera…" pill removed.
