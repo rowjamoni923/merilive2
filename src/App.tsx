@@ -392,18 +392,16 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 // =============================================
-// ROUTE LOADER — INSTANT, ZERO-ANIMATION APP SHELL
+// ROUTE LOADER — STATIC PAINTED APP CHROME (zero animation, zero blank)
 // =============================================
-// Professional native-app behavior: cached pages render instantly via
-// PersistQueryClient. For the brief moment a lazy chunk is parsing, we
-// paint ONLY the destination route's solid background + static silhouette
-// (no spinners, no shimmer, no pulse, no skeleton boxes). This is visually
-// indistinguishable from the loaded page background, so the user perceives
-// the navigation as 0ms — exactly like Chamet / Bigo / Instagram.
+// Cached pages render instantly via PersistQueryClient. For the brief moment
+// a lazy chunk parses, we paint the destination route's full app silhouette
+// (top bar + content cards + bottom nav) with STATIC colors — no spinner,
+// no shimmer, no pulse, no skeleton animation. The user never sees a blank
+// white screen AND never sees a loading indicator.
 const RouteSuspenseFallback = memo(() => {
   const path = typeof window !== 'undefined' ? window.location.pathname : '/';
   const isAuthRoute = path.startsWith('/auth') || path.startsWith('/reset-password');
-  // Only true full-screen room/call routes — NOT the /live list/lobby page.
   const isLiveSurface =
     /^\/live\/[^/]+/.test(path) ||
     path.startsWith('/live-feed') ||
@@ -418,37 +416,76 @@ const RouteSuspenseFallback = memo(() => {
     path.startsWith('/outgoing-call') ||
     path.startsWith('/stream/');
 
-  // Auth surface — solid cream background only (matches body bg in index.html).
   if (isAuthRoute) {
     return (
-      <div
-        className="fixed inset-0 bg-background"
-        style={{ backgroundColor: '#FFFBF2' }}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/15" />
+        <div className="relative z-10 flex min-h-screen flex-col justify-end px-5 pb-8">
+          <div className="mb-4 h-14 w-14 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+          <div className="mb-3 h-7 w-40 rounded" style={{ backgroundColor: '#E2D6BE' }} />
+          <div className="mb-8 h-4 w-56 rounded" style={{ backgroundColor: '#EADFC6' }} />
+          <div className="space-y-3">
+            <div className="h-14 rounded-2xl" style={{ backgroundColor: '#E2D6BE' }} />
+            <div className="h-12 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+          </div>
+        </div>
+      </div>
     );
   }
 
-  // Live/call/party surface — solid black (matches data-boot-theme="dark").
   if (isLiveSurface) {
     return (
-      <div
-        className="fixed inset-0"
-        style={{ backgroundColor: '#050208' }}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
+        <div className="absolute left-4 right-4 pt-4" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+            <div className="space-y-2">
+              <div className="h-3 w-28 rounded" style={{ backgroundColor: '#1a1422' }} />
+              <div className="h-3 w-16 rounded" style={{ backgroundColor: '#15101c' }} />
+            </div>
+          </div>
+        </div>
+        <div className="absolute left-4 right-4 pb-5 space-y-3" style={{ bottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="h-10 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+          <div className="flex justify-between">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-11 w-11 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
-  // Default app surface — solid background + static (non-animated) top bar
-  // and bottom nav silhouettes so the chrome shape is preserved during the
-  // chunk swap. NO pulse, NO shimmer, NO skeleton — fully static.
+  // Default app surface — full static painted chrome.
   return (
-    <div
-      className="min-h-screen bg-background pt-safe"
-      style={{ backgroundColor: '#FFFBF2' }}
-      aria-hidden="true"
-    />
+    <div className="fixed inset-0 flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
+      <div className="flex items-center px-4 gap-3" style={{ height: 56, backgroundColor: '#F3EBDC', borderBottom: '1px solid #E8DFCC' }}>
+        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+        <div className="h-3.5 w-32 rounded" style={{ backgroundColor: '#E2D6BE' }} />
+        <div className="ml-auto flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+          <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden px-4 pt-4 space-y-3">
+        <div className="h-28 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        </div>
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-16 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-around px-2" style={{ height: 64, backgroundColor: '#F3EBDC', borderTop: '1px solid #E8DFCC' }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-7 w-7 rounded-lg" style={{ backgroundColor: '#E2D6BE' }} />
+        ))}
+      </div>
+    </div>
   );
 });
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
