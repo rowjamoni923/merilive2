@@ -2908,7 +2908,14 @@ const LiveStream = () => {
 
   const handleCloseSummary = () => {
     setShowLiveEndSummary(false);
-    navigate('/');
+    if (liveSession) {
+      // Session-aware: swap to ended phase, no route change. EndedPhase
+      // owns the "back to home" button which will tear down the Provider
+      // and release the camera at that point.
+      liveSession.goToEnded();
+    } else {
+      navigate('/');
+    }
   };
 
   // Handle viewer leaving the stream
@@ -2923,10 +2930,15 @@ const LiveStream = () => {
         setViewerCount(data);
       }
     }
-    
+
     await leaveChannel();
-    // Navigate directly to home page - NOT navigate(-1) which causes double tab issue
-    navigate('/', { replace: true });
+    if (liveSession && isHost) {
+      // Host swipe-down end: stay inside the session container, show ended UI.
+      liveSession.goToEnded();
+    } else {
+      // Viewer leave (or legacy mode): go home as before.
+      navigate('/', { replace: true });
+    }
   };
 
   // Keep the top-edge swipe-down gesture wired to the current handleLeaveStream.
