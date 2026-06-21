@@ -153,6 +153,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
+import { describeLiveKitConnectFailure, isLiveKitPeerConnectionError } from "@/lib/livekitConnectPolicy";
 import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
@@ -1033,6 +1034,10 @@ const LiveStream = () => {
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.
       if (location.state?.isHost === true) {
+        if (isLiveKitPeerConnectionError(error)) {
+          toast.error(describeLiveKitConnectFailure(error));
+          return;
+        }
         if (/camera|microphone|publish|getUserMedia|NotAllowed|NotReadable|Permission/i.test(msg)) {
           toast.error('Camera failed to start — please check camera permission and try again.');
         }
@@ -2555,7 +2560,7 @@ const LiveStream = () => {
     }).catch(err => {
       console.error('Join failed:', err);
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
-      toast.error(err instanceof Error ? err.message : 'Unable to join live stream');
+      toast.error(describeLiveKitConnectFailure(err));
       connectionInitiated.current = false;
       // Phase 1A: orphan-row cleanup. If the host's LiveKit connect failed
       // before anyone joined, the live_streams row sits at status='starting',
@@ -3654,6 +3659,8 @@ const LiveStream = () => {
     return () => clearTimeout(t);
   }, [isHost, isJoined, localVideoTrack, isNativeMediaActive, hostTransitionPreviewStream]);
 
+  const showHostConnectionRecover = isHost && !isJoined && connectionState === 'DISCONNECTED' && Boolean(livekitError);
+
   const handleHostCameraRecover = useCallback(async () => {
     setShowHostCameraRecover(false);
     try {
@@ -4055,7 +4062,7 @@ const LiveStream = () => {
             {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
                 flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
             <div className={`w-full h-full flex items-center justify-center ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`}>
-              {!showHostCameraRecover && (
+              {!showHostCameraRecover && !showHostConnectionRecover && (
                 <div className="px-3 py-1.5 rounded-full bg-background/35 backdrop-blur-md text-foreground/65 text-xs font-medium animate-pulse border border-border/20">
                   Starting camera…
                 </div>
@@ -4073,6 +4080,21 @@ const LiveStream = () => {
                   className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/30 active:scale-95 transition"
                 >
                   🔄 Restart Camera
+                </button>
+              </div>
+            )}
+
+            {showHostConnectionRecover && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
+                <div className="text-white text-base font-semibold">Live connection failed</div>
+                <div className="text-white/70 text-xs max-w-[270px]">
+                  The video server connection could not be established. Switch network or retry.
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/30 active:scale-95 transition"
+                >
+                  Retry
                 </button>
               </div>
             )}

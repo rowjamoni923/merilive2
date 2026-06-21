@@ -233,3 +233,19 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 4. `persistentCameraSession.ts` now throws on dead-stream adoption instead of silently storing a no-op handle, so failed handoff cannot masquerade as a valid persistent camera.
 5. `GoLive.tsx` releases its camera handle immediately after donating the stream to the live-room handoff, and camera-switch now re-adopts the switched stream so LiveStream publishes the current lens track.
 6. `LiveStream.tsx` delays the host recovery overlay while a transition preview exists, preventing a false `Camera not visible` message during a slow but still-valid publish window.
+
+---
+
+## 2026-06-21 — Screenshot re-test: `could not establish pc connection`
+
+**User evidence:** attached screenshots at 7:33/7:34 show `/live/:id` room chrome loaded but media stuck on `Starting camera…`, with toast `could not establish pc connection`. Console confirms `ConnectionError`, `reasonName=InternalError`, after `livekit-token` returned 200 and `url=wss://livekit.merilive.xyz`; therefore token/backend route is not the failing point — the browser reached signaling but LiveKit initial PeerConnection/ICE did not connect.
+
+**Research applied:** LiveKit KB says this exact error should be diagnosed as WebRTC media connectivity using WebSocket/WebRTC/TURN checks (`https://kb.livekit.io/articles/3972989092-diagnosing-connection-errors-with-connectionchecker`), and LiveKit firewall docs split media connection into ICE candidate probing then DTLS/SRTP (`https://kb.livekit.io/articles/1724892785-establishing-media-connection-firewall-troubleshooting`); mobile networks may need TURN relay fallback. Competitor-standard live apps (Chamet/Bigo/Agora category) keep room UI responsive and retry/fallback network transport rather than leaving hosts on an endless camera loader.
+
+**Code-level fixes applied now:**
+1. Added shared `connectLiveKitRoom()` wrapper with mobile-safe connect options: `peerConnectionTimeout` raised from LiveKit default 15s to 32s on mobile live/party/call, `websocketTimeout` 22s, `maxRetries=2`, ICE pool enabled.
+2. On `could not establish pc connection`, the wrapper retries once with `iceTransportPolicy:'relay'` so TURN is attempted explicitly if direct ICE fails.
+3. Wired the wrapper into Live Streaming, Private Call, Party Audio/Video/Game, PK opponent bridge, and stream preloader web LiveKit paths.
+4. Live room now maps this error to a professional user-facing network message plus Retry overlay instead of showing raw `could not establish pc connection` while the center still says `Starting camera…`.
+
+**Honest verification boundary:** This app-side fix can recover when TURN is available but direct ICE fails. If relay retry still fails, the remaining root cause is self-hosted LiveKit/TURN/VPS firewall configuration for `wss://livekit.merilive.xyz`, which is outside Lovable code and must be checked on the VPS when VPS work is allowed.

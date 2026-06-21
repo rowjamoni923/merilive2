@@ -25,6 +25,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 
 export interface OpponentRoomTracks {
   /** Opponent's video track (for split-screen rendering) */
@@ -162,7 +163,7 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
           }
         });
 
-        await room.connect(tokenData.url, tokenData.token);
+        await connectLiveKitRoom(room, tokenData.url, tokenData.token, 'pk-opponent');
 
         if (cancelled) {
           room.disconnect();

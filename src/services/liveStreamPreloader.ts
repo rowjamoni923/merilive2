@@ -25,6 +25,7 @@ import {
   RemoteParticipant,
 } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
+import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 
 const PRELOAD_TTL_MS = 60_000; // auto-disconnect after 60s if unused
 const STAGGER_DELAY_MS = 200; // delay between each connection to avoid spikes
@@ -181,7 +182,7 @@ export async function preloadStream(streamId: string): Promise<void> {
     }
 
     await room.prepareConnection(url, token).catch(() => {});
-    await room.connect(url, token);
+    await connectLiveKitRoom(room, url, token, 'preload');
 
     // Force-subscribe to existing participants
     room.remoteParticipants.forEach((p) => {
