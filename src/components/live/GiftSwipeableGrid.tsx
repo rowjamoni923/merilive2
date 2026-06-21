@@ -355,6 +355,7 @@ export const GiftSwipeableGrid = memo(({
                 onTap={() => onGiftTap(gift)}
                 getAnimationTypeColor={getAnimationTypeColor}
                 getAnimationTypeBadge={getAnimationTypeBadge}
+                userLevel={userLevel}
               />
             ))}
           </div>
