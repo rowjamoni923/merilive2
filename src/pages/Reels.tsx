@@ -979,8 +979,8 @@ const Reels = () => {
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                     className="absolute top-14 left-3 flex items-center gap-1 rounded-full px-2 py-0.5 backdrop-blur-md bg-black/40 ring-1 ring-amber-300/30"
                   >
-                    <Coins className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
-                    <span className="text-white text-[11px] font-extrabold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">{formatCount(currentReel.beans_earned || 0)}</span>
+                    <Coins className="w-3 h-3 text-amber-300" />
+                    <span className="text-white text-[10.5px] font-semibold tracking-wide">{formatCount(currentReel.beans_earned || 0)}</span>
                   </motion.div>
                 )}
 
