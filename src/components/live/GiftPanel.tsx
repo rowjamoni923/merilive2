@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { useNativeGiftPanel } from "@/hooks/useNativeGiftPanel";
 
-import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
+import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { GiftSwipeableGrid } from "./GiftSwipeableGrid";
@@ -12,6 +12,8 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
+import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
+import { toast } from "sonner";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -32,6 +34,7 @@ export interface GiftData {
   animation_format?: string | null;
   animation_config_url?: string | null;
   sound_url?: string | null;
+  min_level?: number;
 }
 
 export interface GiftCategory {
@@ -141,6 +144,19 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const userCoinsRef = useRef<number>(propUserCoins || 0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
+  // Current user level (for level-gated gifts)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (mounted) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => { mounted = false; };
+  }, []);
+  const { level: userLevel } = useRealtimeLevel(currentUserId);
+  const effectiveUserLevel = Math.max(0, Number(userLevel ?? 0));
+
+
 
   const { isNative } = useNativeGiftPanel(
     isOpen,
@@ -229,6 +245,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animation_format: (gift as any).animation_format || null,
         animation_config_url: normalizeGiftAssetUrl((gift as any).animation_config_url),
         sound_url: normalizeGiftAssetUrl(gift.sound_url),
+        min_level: Number((gift as any).min_level ?? 0) || 0,
       }));
       setGifts(transformedGifts);
       // Pkg C pass-2 — prewarm visible gift assets so first tap plays instantly.
@@ -366,6 +383,13 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const isSingleOnly = !!selectedGift && selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
 
   const handleGiftTap = useCallback((gift: GiftData) => {
+    const required = Number(gift.min_level ?? 0) || 0;
+    if (required > 0 && effectiveUserLevel < required) {
+      toast.error(`Reach Lv ${required} to unlock "${gift.name}"`, {
+        description: `Your current level: Lv ${effectiveUserLevel}`,
+      });
+      return;
+    }
     if (selectedGift?.id === gift.id) {
       setSelectedGift(null);
       resetCombo();
@@ -375,7 +399,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       resetCombo();
       warmSelectedVideoGift(gift.animation_url || gift.icon_url);
     }
-  }, [selectedGift, resetCombo]);
+  }, [selectedGift, resetCombo, effectiveUserLevel]);
 
 
   // Keep ref in sync with userCoins (mirror, not state-source).
@@ -648,6 +672,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               onGiftTap={handleGiftTap}
               getAnimationTypeColor={getAnimationTypeColor}
               getAnimationTypeBadge={getAnimationTypeBadge}
+              userLevel={effectiveUserLevel}
             />
           )}
         </div>
