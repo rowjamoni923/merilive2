@@ -126,8 +126,9 @@ export async function preloadStream(streamId: string): Promise<void> {
       // benefited from server-side layer pausing.
       adaptiveStream: true,
       dynacast: true,
+      // T-shirt rule: one connect per viewer session. Drop = end. New tap = new connect.
       reconnectPolicy: {
-        nextRetryDelayInMs: (ctx: any) => (ctx.retryCount > 2 ? null : 300),
+        nextRetryDelayInMs: () => null,
       },
       disconnectOnPageLeave: false,
     });

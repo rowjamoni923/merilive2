@@ -674,12 +674,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // no stalls for weak networks, no quality loss for strong networks.
         adaptiveStream: true,
         dynacast: true,
+        // T-shirt rule: one connect per broadcast. Any transport drop =
+        // stream ends permanently. New Go Live = brand new connect.
         reconnectPolicy: {
-          nextRetryDelayInMs: (context: any) => {
-            if (context.retryCount > 15) return null;
-            const base = isViewer ? 120 : 250;
-            return Math.min(base * Math.pow(1.3, context.retryCount), 8000);
-          },
+          nextRetryDelayInMs: () => null,
         },
         videoCaptureDefaults: {
           resolution: captureRes,
