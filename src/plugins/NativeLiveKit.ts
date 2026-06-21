@@ -144,6 +144,9 @@ interface NativeLiveKitPlugin {
   sendText(opts: { text: string; topic?: string; destinationIdentities?: string[] }): Promise<{ sent: boolean; streamId?: string; reason?: string }>;
   registerTextStreamHandler(opts: { topic: string }): Promise<{ registered: boolean }>;
   unregisterTextStreamHandler(opts: { topic: string }): Promise<{ unregistered: boolean }>;
+  addListener(eventName: 'rpc-invocation', cb: (e: any) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'text-stream-chunk', cb: (e: any) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'text-stream-complete', cb: (e: any) => void): Promise<PluginListenerHandle>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
