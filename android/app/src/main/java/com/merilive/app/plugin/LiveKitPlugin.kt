@@ -930,7 +930,7 @@ class LiveKitPlugin : Plugin() {
                     .put("responseTimeout", data.responseTimeout.inWholeMilliseconds)
                 notifyListeners("rpc-invocation", payload)
                 try {
-                    val reply = withTimeout(data.responseTimeout) { deferred.await() }
+                    val reply = withTimeout(data.responseTimeout.inWholeMilliseconds) { deferred.await() }
                     reply.error?.let { throw io.livekit.android.rpc.RpcError(1500, it, "") }
                     reply.result ?: ""
                 } finally {
