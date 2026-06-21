@@ -48,7 +48,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
-import { prefetchByHref, prefetchChat, prefetchLiveStream, prefetchPartyRoom, prefetchProfileDetail } from "@/utils/routePrefetch";
+import { prefetchByHref, prefetchChat, prefetchLiveStream, prefetchPartyRoom } from "@/utils/routePrefetch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import {
