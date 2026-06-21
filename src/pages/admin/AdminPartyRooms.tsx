@@ -79,6 +79,7 @@ export default function AdminPartyRooms() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRooms, setTotalRooms] = useState(0);
   const [selectedRoom, setSelectedRoom] = useState<PartyRoom | null>(null);
+  const [watchRoom, setWatchRoom] = useState<PartyRoom | null>(null);
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -535,6 +536,28 @@ export default function AdminPartyRooms() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
+        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-amber-400" />
+              Invisible Party Monitor — {watchRoom?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {watchRoom && (
+            <AdminRoomMonitor
+              roomName={`party_${watchRoom.id}`}
+              roomType="party"
+              label={watchRoom.name}
+              onClose={() => setWatchRoom(null)}
+            />
+          )}
+          <p className="px-4 pb-3 text-[11px] text-slate-500">
+            You are invisible to all participants. Viewer count, seat list and chat are unaffected.
+          </p>
         </DialogContent>
       </Dialog>
     </div>
