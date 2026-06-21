@@ -36,6 +36,14 @@
         <trust-anchors><certificates src="system" /></trust-anchors>
     </domain-config>
 
+    <!-- Capacitor local WebView/dev origins only. Production API/media domains
+         stay TLS-only above. This prevents Android WebView local-origin launch
+         checks from becoming a separate blocker during emulator/live-reload QA. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
     <!-- Debug-only: allow user-installed CAs (Charles / mitmproxy) for QA
          and reverse-engineering of upstream APIs. Release ignores this. -->
     <debug-overrides>
