@@ -1033,19 +1033,24 @@ const GoLive = () => {
 
       // Navigate IMMEDIATELY - don't wait for anything else
       // LiveStream page will handle LiveKit connection in background
-      navigate(`/live/${liveStream.id}`, { 
-        state: { 
-          isHost: true,
-          title: title.trim(),
-          hostInfo: userProfile ? {
-            id: userProfile.id,
-            name: userProfile.display_name || 'Host',
-            avatar: userProfile.avatar_url || '',
-            level: getRequiredDisplayLevel(userProfile),
-            gender: userProfile.gender || 'female',
-          } : undefined,
-        } 
-      });
+      const hostState: LiveHostState = {
+        isHost: true,
+        title: title.trim(),
+        hostInfo: userProfile ? {
+          id: userProfile.id,
+          name: userProfile.display_name || 'Host',
+          avatar: userProfile.avatar_url || '',
+          level: getRequiredDisplayLevel(userProfile),
+          gender: userProfile.gender || 'female',
+        } : undefined,
+      };
+      if (liveSession) {
+        // Session-aware path: swap phase, no route change, camera continuous.
+        liveSession.goToBroadcast(liveStream.id, hostState);
+      } else {
+        // Legacy path (in case GoLive is rendered outside the Provider).
+        navigate(`/live/${liveStream.id}`, { state: hostState });
+      }
     } catch (error) {
       const rawMessage = error instanceof Error
         ? error.message
