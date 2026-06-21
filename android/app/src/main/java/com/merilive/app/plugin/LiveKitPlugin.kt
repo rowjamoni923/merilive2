@@ -1230,7 +1230,13 @@ class LiveKitPlugin : Plugin() {
                         }
                         is RoomEvent.ActiveSpeakersChanged -> {
                             val arr = com.getcapacitor.JSArray()
-                            ev.speakers.forEach { arr.put(it.identity?.value ?: "") }
+                            ev.speakers.forEach { speaker ->
+                                arr.put(
+                                    JSObject()
+                                        .put("identity", speaker.identity?.value ?: "")
+                                        .put("audioLevel", speaker.audioLevel)
+                                )
+                            }
                             notifyListeners("active-speakers-changed", JSObject().put("speakers", arr))
                         }
                         is RoomEvent.DataReceived -> {
