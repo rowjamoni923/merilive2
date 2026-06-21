@@ -113,6 +113,13 @@ interface NativeLiveKitPlugin {
    */
   attachLocal?(opts?: { mirror?: boolean }): Promise<{ attached: boolean; reason?: string }>;
   detachLocal?(): Promise<{ detached: boolean }>;
+  /**
+   * Phase 6 (instant-entry) — native equivalent of `Room.prepareConnection`
+   * on the Kotlin SDK. Warms DNS + TLS on the OkHttp/WebRTC socket pool used
+   * by native publisher paths (host, private call, party). Cheap, no media,
+   * no billing. Auto-discarded after ~4 min by the plugin. No-op on web/iOS.
+   */
+  prepareConnection?(opts: { url: string; token: string }): Promise<{ prepared: boolean; reason?: string }>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
