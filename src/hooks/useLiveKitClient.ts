@@ -168,6 +168,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [localVideoTrack, setLocalVideoTrack] = useState<any>(null);
   const [localAudioTrack, setLocalAudioTrack] = useState<any>(null);
   const [isNativeMediaActive, setIsNativeMediaActive] = useState(false);
+  const [nativeParticipants, setNativeParticipants] = useState<Map<string, { sid: string; identity: string }>>(new Map());
   const [screenTrack, setScreenTrack] = useState<any>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<Map<number, any>>(new Map());
@@ -251,6 +252,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     return nativeLiveKitController.reconnectNow();
   }, []);
 
+  const refreshNativeParticipants = useCallback(async () => {
+    if (!usingNativeRef.current) return;
+    const participants = await nativeLiveKitController.getRemoteParticipants();
+    const next = new Map<string, { sid: string; identity: string }>();
+    participants.forEach((p) => {
+      if (!p.sid || !p.identity || /^admin[-_]/i.test(p.identity)) return;
+      next.set(p.identity, p);
+      const stripped = p.identity.replace(/^user[-_]/i, '').replace(/^live[-_]/i, '').replace(/^livekit[-_]/i, '');
+      next.set(stripped, p);
+      next.set(`user-${stripped}`, p);
+      next.set(`user_${stripped}`, p);
+    });
+    setNativeParticipants(next);
+    nativeLiveKitController.attachAllRemotes().catch(() => {});
+  }, []);
+
   const scheduleNativeReconnect = useCallback(() => {
     if (isLeavingRef.current || !usingNativeRef.current) return;
     const attempt = nativeReconnectAttemptRef.current;
@@ -284,12 +301,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Subscribe to native plugin events while the host session is on the
   // native Android publish path. Surface disconnects back into React.
   useNativeLiveKitEvents(nativeActive, {
+    onParticipantConnected: () => { refreshNativeParticipants().catch(() => {}); },
+    onParticipantDisconnected: () => { refreshNativeParticipants().catch(() => {}); },
     onDisconnected: (reason) => {
       console.log('[LiveKitClient/Native] disconnected:', reason);
       if (reason === 'PROCESS_BACKGROUND' || reason === 'CLIENT_INITIATED') {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        setNativeParticipants(new Map());
         setIsJoined(false);
         setConnectionState('DISCONNECTED');
         clearNativeReconnectTimer();
@@ -318,6 +338,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
+        refreshNativeParticipants().catch(() => {});
         nativeReconnectAttemptRef.current = 0;
         clearNativeReconnectTimer();
       }
