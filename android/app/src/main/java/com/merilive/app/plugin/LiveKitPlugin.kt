@@ -156,6 +156,15 @@ class LiveKitPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         try { runOnMain { teardownAll() } } catch (_: Throwable) {}
+        // Phase 6: tear down any warmup rooms held by the JS connection pool.
+        try {
+            synchronized(warmupLock) {
+                warmupTimers.forEach { try { it.cancel() } catch (_: Throwable) {} }
+                warmupTimers.clear()
+                warmupRooms.forEach { r -> try { r.disconnect() } catch (_: Throwable) {} }
+                warmupRooms.clear()
+            }
+        } catch (_: Throwable) {}
         if (INSTANCE === this) INSTANCE = null
         scope.cancel()
         super.handleOnDestroy()
