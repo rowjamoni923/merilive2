@@ -6,6 +6,7 @@ import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
+import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
