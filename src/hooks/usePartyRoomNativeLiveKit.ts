@@ -484,11 +484,10 @@ export function usePartyRoomNativeLiveKit(
           // Saves uplink/downlink bandwidth, prevents "host crisp, viewers blurry" stalls.
           adaptiveStream: true,
           dynacast: true,
+          // T-shirt rule: one connect per session. Any transport drop =
+          // session ends permanently. New party = brand new connect.
           reconnectPolicy: {
-            nextRetryDelayInMs: (context: any) => {
-              if (context.retryCount > 15) return null;
-              return Math.min(300 * Math.pow(1.5, context.retryCount), 15000);
-            },
+            nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
             resolution: VideoPresets.h1080.resolution,
