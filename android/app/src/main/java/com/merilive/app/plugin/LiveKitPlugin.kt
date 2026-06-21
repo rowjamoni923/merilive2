@@ -2,6 +2,7 @@ package com.merilive.app.plugin
 
 import android.app.Activity
 import android.graphics.Color
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -44,8 +45,6 @@ import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
