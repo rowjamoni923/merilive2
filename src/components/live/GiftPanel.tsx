@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { useNativeGiftPanel } from "@/hooks/useNativeGiftPanel";
 
-import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play } from "lucide-react";
+import { X, Diamond, Sparkles, Send, Plus, Minus, Gift, Play, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { GiftSwipeableGrid } from "./GiftSwipeableGrid";
@@ -12,6 +12,8 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
+import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
+import { toast } from "sonner";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
