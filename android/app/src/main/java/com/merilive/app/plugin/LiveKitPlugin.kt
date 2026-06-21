@@ -190,7 +190,8 @@ class LiveKitPlugin : Plugin() {
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
             put("attachLocal"); put("detachLocal")
             put("attachRemote"); put("reconnectNow"); put("getActiveSession"); put("setSurviveActivityDestroy")
-            put("updateLiveStats"); put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
+            put("updateLiveStats"); put("refreshToken")
+            put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
@@ -862,6 +863,18 @@ class LiveKitPlugin : Plugin() {
             .put("coinCount", call.getInt("coinCount", 0) ?: 0)
             .put("title", call.getString("title", "") ?: "")
         call.resolve(JSObject().put("updated", true))
+    }
+
+    @PluginMethod
+    fun refreshToken(call: PluginCall) {
+        val token = call.getString("token")
+        if (token.isNullOrBlank()) {
+            call.reject("token required")
+            return
+        }
+        val args = lastConnectArgs
+        if (args != null) lastConnectArgs = args.copy(token = token)
+        call.resolve(JSObject().put("refreshed", args != null))
     }
 
     @PluginMethod
