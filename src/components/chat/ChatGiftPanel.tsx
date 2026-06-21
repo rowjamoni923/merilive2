@@ -198,6 +198,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
       animation_url: normalizeGiftAssetUrl(gift.animation_url),
+      min_level: Number(gift.min_level ?? 0) || 0,
     }));
   }, []);
 
