@@ -27,9 +27,11 @@ export function CallingFallback({
   isHost,
   onEndCall,
 }: CallingFallbackProps) {
+  // T-shirt rule: post-accept ('connected') we never show a loader label —
+  // UI swap is instant, video/audio fills in as tracks arrive.
   const label =
     callStatus === 'connected'
-      ? 'Connecting…'
+      ? ''
       : isHost
         ? 'Incoming call…'
         : 'Calling…';
