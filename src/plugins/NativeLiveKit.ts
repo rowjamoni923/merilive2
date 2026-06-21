@@ -120,6 +120,21 @@ interface NativeLiveKitPlugin {
    * no billing. Auto-discarded after ~4 min by the plugin. No-op on web/iOS.
    */
   prepareConnection?(opts: { url: string; token: string }): Promise<{ prepared: boolean; reason?: string }>;
+  attachRemote?(opts: { sid?: string }): Promise<{ attached: boolean; reason?: string }>;
+  reconnectNow?(): Promise<{ connected: boolean; reason?: string }>;
+  getActiveSession?(): Promise<{
+    active: boolean;
+    roomScope?: NativeRoomScope | string;
+    isHost?: boolean;
+    callType?: string;
+    boundAtMs?: number;
+    ageMs?: number;
+    canHardReconnect?: boolean;
+  }>;
+  setSurviveActivityDestroy?(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  updateLiveStats?(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<{ updated: boolean }>;
+  setSubscriberVideoQuality?(opts: { enabled?: boolean; quality?: string }): Promise<{ applied: boolean }>;
+  setRemoteVideoSubscribed?(opts: { sid?: string; subscribed?: boolean }): Promise<{ applied: boolean }>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
@@ -146,8 +161,7 @@ const KNOWN_UNIMPLEMENTED = new Set<string>([
   // implemented (see LiveKitPlugin.kt). Leaving it here would cause the
   // Proxy to short-circuit and the camera surface would never render
   // (root cause of the private-call white-screen bug).
-  'getActiveSession', 'setSurviveActivityDestroy',
-  'updateLiveStats', 'sendData', 'setPreferredCodec', 'reconnectNow',
+  'sendData', 'setPreferredCodec',
   // Audio routing / mode (web-SDK path handles these)
   'setSpeakerphoneEnabled', 'setProximityMonitoring', 'setAudioMode',
   'getAudioDevices', 'setAudioDevice',
