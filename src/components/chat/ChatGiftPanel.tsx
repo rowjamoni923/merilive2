@@ -60,61 +60,99 @@ const GiftItem = memo(({
   gift, 
   isSelected, 
   onSelect, 
-  formatCoins 
+  formatCoins,
+  userLevel,
 }: { 
   gift: GiftData; 
   isSelected: boolean; 
   onSelect: () => void;
   formatCoins: (n: number) => string;
-}) => (
-  <button
-    onClick={onSelect}
-    className={cn(
-      "relative flex flex-col items-center gap-1 p-2 rounded-xl overflow-hidden transition-all duration-150 active:scale-95",
-      isSelected
-        ? "bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-blue-500/30 ring-2 ring-pink-400"
-        : "bg-muted/30 active:bg-muted/50 border border-border/30"
-    )}
-  >
-    <div className="relative w-11 h-11 flex items-center justify-center">
-      {gift.icon_url ? (
-        gift.icon_url.split('?')[0].toLowerCase().endsWith('.svga') ? (
-          <div className="w-11 h-11">
-            <img loading="lazy" decoding="async" src={gift.icon_url} alt={gift.name} className="w-11 h-11 object-contain" 
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          </div>
-        ) : (
-          <img loading="lazy" decoding="async"
-            src={gift.icon_url}
-            alt={gift.name}
-            className="w-11 h-11 object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        )
-      ) : (
-        <div className="w-11 h-11 rounded-lg bg-white/5" />
+  userLevel: number;
+}) => {
+  const requiredLevel = Number(gift.min_level ?? 0) || 0;
+  const isLocked = requiredLevel > 0 && userLevel < requiredLevel;
+  return (
+    <button
+      onClick={onSelect}
+      aria-label={isLocked ? `${gift.name} — unlock at level ${requiredLevel}` : gift.name}
+      className={cn(
+        "relative flex flex-col items-center gap-1 p-2 rounded-xl overflow-hidden transition-all duration-150 active:scale-95",
+        isSelected
+          ? "bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-blue-500/30 ring-2 ring-pink-400"
+          : "bg-muted/30 active:bg-muted/50 border border-border/30"
       )}
-    </div>
-    
-    <span className="text-[9px] font-semibold text-foreground/90 truncate max-w-full">
-      {gift.name}
-    </span>
-    
-    <div className={cn(
-      "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold border",
-      gift.coins >= 10000 
-        ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-400/30" 
-        : gift.coins >= 1000
-          ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/30"
-          : "bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-cyan-400/20"
-    )}>
-      <Diamond3DIcon size={9} />
-      <span className="bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
-        {formatCoins(gift.coins)}
+    >
+      {requiredLevel > 0 && (
+        <span
+          className={cn(
+            "absolute top-1 left-1 z-[2] flex items-center gap-[2px] px-1.5 py-[1px] rounded-full text-[8.5px] font-extrabold tracking-wide border leading-none shadow-sm",
+            isLocked
+              ? "bg-gradient-to-r from-rose-500/95 to-red-600/95 text-white border-white/30"
+              : "bg-gradient-to-r from-amber-400/95 to-yellow-500/95 text-black border-white/40"
+          )}
+        >
+          {isLocked && <Lock className="w-2 h-2" strokeWidth={3} />}
+          Lv{requiredLevel}
+        </span>
+      )}
+      <div className={cn(
+        "relative w-11 h-11 flex items-center justify-center",
+        isLocked && "grayscale opacity-60"
+      )}>
+        {gift.icon_url ? (
+          gift.icon_url.split('?')[0].toLowerCase().endsWith('.svga') ? (
+            <div className="w-11 h-11">
+              <img loading="lazy" decoding="async" src={gift.icon_url} alt={gift.name} className="w-11 h-11 object-contain" 
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            </div>
+          ) : (
+            <img loading="lazy" decoding="async"
+              src={gift.icon_url}
+              alt={gift.name}
+              className="w-11 h-11 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )
+        ) : (
+          <div className="w-11 h-11 rounded-lg bg-white/5" />
+        )}
+        {isLocked && (
+          <span className="absolute inset-0 grid place-items-center bg-black/35 rounded-lg">
+            <Lock className="w-4 h-4 text-white drop-shadow" strokeWidth={2.5} />
+          </span>
+        )}
+      </div>
+      
+      <span className={cn(
+        "text-[9px] font-semibold truncate max-w-full",
+        isLocked ? "text-foreground/50" : "text-foreground/90"
+      )}>
+        {gift.name}
       </span>
-    </div>
-  </button>
-));
+      
+      <div className={cn(
+        "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold border",
+        isLocked
+          ? "bg-muted/30 border-border/40"
+          : gift.coins >= 10000 
+            ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-400/30" 
+            : gift.coins >= 1000
+              ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/30"
+              : "bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-cyan-400/20"
+      )}>
+        <Diamond3DIcon size={9} />
+        <span className={cn(
+          "bg-clip-text text-transparent",
+          isLocked
+            ? "bg-gradient-to-r from-foreground/60 to-foreground/40"
+            : "bg-gradient-to-r from-cyan-300 to-purple-400"
+        )}>
+          {formatCoins(gift.coins)}
+        </span>
+      </div>
+    </button>
+  );
+});
 GiftItem.displayName = 'GiftItem';
 
 function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUserCoins }: ChatGiftPanelProps) {
