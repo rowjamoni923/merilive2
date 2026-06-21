@@ -172,7 +172,7 @@ class LiveKitPlugin : Plugin() {
         val methods = com.getcapacitor.JSArray().apply {
             put("isAvailable")
             put("startLocalPreview"); put("stopLocalPreview")
-            put("connect"); put("disconnect"); put("disconnectSessionOnly")
+            put("connect"); put("disconnect"); put("disconnectSessionOnly"); put("prepareConnection")
             put("setCameraEnabled"); put("setMicrophoneEnabled"); put("switchCamera")
             put("getCameraOwner"); put("claimCameraForWebView"); put("releaseCameraForWebView")
             put("attachLocal"); put("detachLocal")
