@@ -281,9 +281,18 @@ class PrivateCallViewModel : ViewModel() {
             runCatching {
                 r.events.collect { ev ->
                     when (ev) {
-                        is RoomEvent.ParticipantConnected -> Unit
+                        is RoomEvent.ParticipantConnected -> {
+                            if (ev.participant.identity?.value == _identity.value?.peerId) {
+                                cancelPeerGrace()
+                            }
+                        }
 
-                        is RoomEvent.ParticipantDisconnected -> Unit
+                        is RoomEvent.ParticipantDisconnected -> {
+                            if (ev.participant.identity?.value == _identity.value?.peerId) {
+                                _remoteVideo.value = null
+                                startPeerGrace()
+                            }
+                        }
 
                         is RoomEvent.TrackSubscribed -> {
                             val track = ev.track
