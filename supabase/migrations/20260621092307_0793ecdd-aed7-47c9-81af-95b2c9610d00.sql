@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public read posters bucket" ON storage.objects;

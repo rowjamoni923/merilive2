@@ -127,3 +127,24 @@ After all 4 phases:
 4. Switch to viewer browser → count still 1, no "admin joined" toast, chat empty
 5. End live → AdminRecordings → new recording listed with MP4 playback
 6. Repeat for party room (Phase 1) and private call (Phase 2)
+
+---
+
+## ✅ Poster Photo/Video Upload Fix — 2026-06-21
+
+**User issue:** `/my-poster` upload failed with `new row violates row-level security policy`; profile details also needed every uploaded photo/video visible one after another.
+
+**Research standard:** Chamet/Bigo/Poppo-style profile media uses a public-viewable profile album/carousel with owner-only upload/delete. BIGO cover/profile media guidance emphasizes immediate visual profile media visibility; Chamet profile guidance emphasizes multiple profile photos as discovery/match signals.
+
+
+**Completed fixes:**
+1. `posters` Storage RLS fixed: authenticated owner-only upload/update/delete by first folder segment = `auth.uid()`; broad public object-listing policy removed so users cannot enumerate the bucket.
+2. `poster_images` Data API grants fixed: public can read; authenticated users can create/update/delete rows only where `user_id = auth.uid()`; service role retained.
+3. Upload supports both `image/*` and `video/*` up to **25MB** in UI; storage bucket already allows **50MB**, so app-side 25MB limit is enforced.
+4. `ProfileDetail` now respects `media_type='video'` plus video extensions (`mp4/webm/mov/m4v/ogg`) so signed URLs/public URLs with query strings still render as video.
+5. Profile details now shows uploaded media both in the hero slideshow and as a horizontal photo/video strip, so photos/videos appear one after another and are selectable.
+
+**Verified checks:**
+- Storage policies for `posters` now exist for owner upload/update/delete; public URL delivery remains through the public bucket without broad object-listing RLS.
+- `poster_images` table privileges verified: anon read-only; authenticated read/create/edit/delete; service role all.
+- Browser-session upload test could not run in sandbox because no preview auth session env was available, but the exact failing layer was confirmed from console logs as Storage RLS and fixed at DB policy level.
