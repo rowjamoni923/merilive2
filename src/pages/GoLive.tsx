@@ -903,17 +903,17 @@ const GoLive = () => {
       applyNativePreviewTransparency(true);
     }
 
-    // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.
-    // Shows "Checking connection…" overlay so the tap feels responsive while
-    // we measure RTT; warns on poor network but never blocks Go Live.
-    setIsProbing(true);
-    try {
-      const probe = await runPreflightProbe();
-      if (probe.quality === 'poor') {
-        toast.warning('Weak network detected — video may start in low quality.');
-      }
-    } catch { /* probe never throws, just in case */ }
-    setIsProbing(false);
+    // Phase 4 (instant-entry): preflight probe runs in background (was
+    // blocking up to 1.5s). Publish navigation no longer waits on it; if
+    // network is genuinely poor the warning still fires asynchronously
+    // after the user is already in the stream. Saves 1.5s per Go Live.
+    void runPreflightProbe()
+      .then((probe) => {
+        if (probe?.quality === 'poor') {
+          toast.warning('Weak network detected — video may start in low quality.');
+        }
+      })
+      .catch(() => { /* probe never throws */ });
 
     setIsStarting(true);
 
