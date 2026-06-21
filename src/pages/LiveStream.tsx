@@ -3659,6 +3659,8 @@ const LiveStream = () => {
     return () => clearTimeout(t);
   }, [isHost, isJoined, localVideoTrack, isNativeMediaActive, hostTransitionPreviewStream]);
 
+  const showHostConnectionRecover = isHost && !isJoined && connectionState === 'DISCONNECTED' && Boolean(livekitError);
+
   const handleHostCameraRecover = useCallback(async () => {
     setShowHostCameraRecover(false);
     try {
@@ -4060,7 +4062,7 @@ const LiveStream = () => {
             {/* Pkg381 + camera-rebuild Phase 8: on Android host, stay transparent BEFORE isNativeMediaActive
                 flips so the promoted native preview behind the WebView is visible during the SFU connect window. */}
             <div className={`w-full h-full flex items-center justify-center ${isNativeMediaActive ? 'bg-transparent' : 'bg-gradient-to-b from-slate-950 via-[#0c0818] to-slate-950'}`}>
-              {!showHostCameraRecover && (
+              {!showHostCameraRecover && !showHostConnectionRecover && (
                 <div className="px-3 py-1.5 rounded-full bg-background/35 backdrop-blur-md text-foreground/65 text-xs font-medium animate-pulse border border-border/20">
                   Starting camera…
                 </div>
@@ -4078,6 +4080,21 @@ const LiveStream = () => {
                   className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/30 active:scale-95 transition"
                 >
                   🔄 Restart Camera
+                </button>
+              </div>
+            )}
+
+            {showHostConnectionRecover && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
+                <div className="text-white text-base font-semibold">Live connection failed</div>
+                <div className="text-white/70 text-xs max-w-[270px]">
+                  The video server connection could not be established. Switch network or retry.
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/30 active:scale-95 transition"
+                >
+                  Retry
                 </button>
               </div>
             )}
