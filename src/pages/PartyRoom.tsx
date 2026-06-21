@@ -2891,7 +2891,13 @@ const PartyRoom = () => {
         onAccepted={(invRoomId) => {
           // If invitee accepted while on a different page, route them into the room.
           if (invRoomId && invRoomId !== room?.id) {
-            navigate(`/party/${invRoomId}`);
+            if (partySession) {
+              // In-session: swap roomId in place so the Provider (and the
+              // active LiveKit/native audio session) stays mounted.
+              partySession.setRoomId(invRoomId);
+            } else {
+              navigate(`/party/${invRoomId}`);
+            }
           }
         }}
       />
