@@ -855,8 +855,8 @@ function CampaignFloatingButton() {
             <button
               type="button"
               aria-label="Dismiss campaign"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
+              data-campaign-no-tap="true"
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 if (campaign) {
                   try { sessionStorage.setItem(getCampaignDismissedKey(campaign.id), '1'); } catch {}
@@ -865,7 +865,8 @@ function CampaignFloatingButton() {
                 setCampaign(null);
                 setRemainingSeconds(0);
               }}
-              className="absolute -top-2 -left-1 z-30 w-[14px] h-[14px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
+              onClick={(e) => { e.stopPropagation(); }}
+              className="absolute -top-2 -left-1 z-30 w-[18px] h-[18px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
               style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.65))' }}
             >
               <X className="w-[12px] h-[12px] text-white" strokeWidth={3.5} />
