@@ -35,6 +35,10 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import {
+  adoptCameraSession,
+  type CameraSessionHandle,
+} from "@/lib/persistentCameraSession";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
@@ -112,6 +116,14 @@ const CreateParty = () => {
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
   const [roomEntryFee, setRoomEntryFee] = useState<number>(0);
   const preserveStreamRef = useRef(false);
+  // Pkg-shirt Phase-A: register the web getUserMedia stream into the global
+  // persistentCameraSession (mirror of GoLive). This back-stops the brief
+  // unmount→mount window when CreatePhase swaps to InRoomPhase — without it
+  // the stream is only held by streamRef which dies on unmount, so PartyRoom's
+  // consumePreparedHostPreviewStream() can race with track stop. Audio-only
+  // mode does not adopt (the audio-only constraint key would mismatch a later
+  // video-mode acquire and force a re-getUserMedia).
+  const cameraHandleRef = useRef<CameraSessionHandle | null>(null);
   const isNativeAndroid = isNativeAndroidApp();
   useEffect(() => {
     streamRef.current = stream;
@@ -219,6 +231,17 @@ const CreateParty = () => {
         }
         const mediaStream = await getCameraStream(true); // Include audio
         if (mediaStream) {
+          // Pkg-shirt Phase-A: register into global persistent camera session
+          // BEFORE setState so the swap to PartyRoom is back-stopped.
+          try {
+            cameraHandleRef.current?.release();
+            cameraHandleRef.current = adoptCameraSession(mediaStream, {
+              video: true,
+              audio: true,
+            });
+          } catch (e) {
+            console.warn('[CreateParty] adoptCameraSession failed (non-fatal):', e);
+          }
           setStream(mediaStream);
           // Pkg-fix: do NOT set srcObject here — the sync useEffect below
           // attaches stream → video element whenever either changes. Setting
@@ -314,6 +337,14 @@ const CreateParty = () => {
         streamRef.current = null;
         releaseAndroidWebViewCamera('create-party:unmount');
       }
+      // Pkg-shirt Phase-A: always release our adopted handle, but the global
+      // session keeps the tracks alive until refcount hits 0. When the user
+      // tapped Create, PartySessionProvider holds another refcount during
+      // inRoom phase → tracks survive the swap. When the user backed out,
+      // PartyRoom never mounts → refcount drops to 0 → next caller can
+      // dispose via disposeCameraSessionIfIdle().
+      cameraHandleRef.current?.release();
+      cameraHandleRef.current = null;
       // Native prejoin preview: keep alive if PartyRoom will reuse it
       // (preserveStreamRef === true means user tapped Create). Otherwise
       // user backed out → release Camera2 immediately.

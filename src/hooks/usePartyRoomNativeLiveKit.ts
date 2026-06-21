@@ -22,6 +22,7 @@ import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
+import { adoptCameraSession } from '@/lib/persistentCameraSession';
 
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -592,6 +593,15 @@ export function usePartyRoomNativeLiveKit(
         const publishLocalMediaWithRetry = async () => {
           const previewStream = consumePreparedHostPreviewStream();
           const preparedStream = previewStream?.getTracks().every((track) => track.readyState === 'live') ? previewStream : undefined;
+          // Pkg-shirt Phase-A: re-register the consumed handoff stream into
+          // the global persistentCameraSession (mirror of LiveStream). Without
+          // this, navigating back to CreateParty would fall through to a
+          // fresh getUserMedia even though the tracks are still live.
+          if (preparedStream) {
+            try {
+              adoptCameraSession(preparedStream, { video: true, audio: true });
+            } catch { /* non-fatal */ }
+          }
           // Pkg418 hard gate: if arbiter not clear, publish audio-only.
           const needsVideo = isVideoPartyType(roomType) && cameraReadyRef.current;
           let cameraClaimed = false;
