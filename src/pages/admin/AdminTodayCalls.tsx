@@ -4,10 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Phone, Search, RefreshCw, Clock, Coins } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Phone, Search, RefreshCw, Clock, Coins, EyeOff, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface CallRecord {
@@ -27,6 +30,7 @@ interface CallRecord {
   connected_at: string | null;
   ended_at: string | null;
   end_reason: string | null;
+  e2ee_key: string | null;
   caller_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null } | null;
   host_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null } | null;
 }
@@ -68,6 +72,7 @@ export default function AdminTodayCalls() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [monitorCall, setMonitorCall] = useState<CallRecord | null>(null);
 
   const fetchCalls = async () => {
     setLoading(true);
@@ -81,7 +86,7 @@ export default function AdminTodayCalls() {
           id, caller_id, host_id, status, duration_seconds, coins_spent,
           total_coins_deducted, host_earned, host_earnings_amount, host_earnings_credited,
           host_earnings_credited_at, coins_per_minute, created_at,
-          connected_at, ended_at, end_reason
+          connected_at, ended_at, end_reason, e2ee_key
         `)
         .gte("created_at", todayStart.toISOString())
         .order("created_at", { ascending: false })
