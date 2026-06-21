@@ -1230,6 +1230,34 @@ class LiveKitPlugin : Plugin() {
                             ev.speakers.forEach { arr.put(it.identity?.value ?: "") }
                             notifyListeners("active-speakers-changed", JSObject().put("speakers", arr))
                         }
+                        is RoomEvent.DataReceived -> {
+                            val encoded = Base64.encodeToString(ev.data, Base64.NO_WRAP)
+                            val from = ev.participant?.identity?.value ?: ""
+                            val topic = ev.topic ?: ""
+                            notifyListeners(
+                                "data-received",
+                                JSObject()
+                                    .put("payloadBase64", encoded)
+                                    .put("participantIdentity", from)
+                                    .put("topic", topic)
+                            )
+                            notifyListeners(
+                                "text-stream-chunk",
+                                JSObject()
+                                    .put("topic", topic)
+                                    .put("streamId", "native-data")
+                                    .put("fromIdentity", from)
+                                    .put("chunk", String(ev.data, Charsets.UTF_8))
+                            )
+                            notifyListeners(
+                                "text-stream-complete",
+                                JSObject()
+                                    .put("topic", topic)
+                                    .put("streamId", "native-data")
+                                    .put("fromIdentity", from)
+                                    .put("text", String(ev.data, Charsets.UTF_8))
+                            )
+                        }
                         is RoomEvent.ParticipantMetadataChanged -> {
                             notifyListeners(
                                 "participant-metadata-changed",
