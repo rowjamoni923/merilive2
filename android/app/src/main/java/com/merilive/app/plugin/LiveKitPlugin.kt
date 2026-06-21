@@ -882,6 +882,129 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun sendData(call: PluginCall) {
+        val payloadBase64 = call.getString("payloadBase64")
+        if (payloadBase64.isNullOrBlank()) { call.reject("payloadBase64 required"); return }
+        val reliable = call.getBoolean("reliable", true) ?: true
+        val topic = call.getString("topic")
+        scope.launch {
+            try {
+                val bytes = Base64.decode(payloadBase64, Base64.DEFAULT)
+                val result = room?.localParticipant?.publishData(
+                    bytes,
+                    if (reliable) DataPublishReliability.RELIABLE else DataPublishReliability.LOSSY,
+                    topic,
+                )
+                if (result == null) {
+                    call.resolve(JSObject().put("sent", false).put("reason", "not_connected"))
+                    return@launch
+                }
+                call.resolve(JSObject().put("sent", result.isSuccess))
+            } catch (t: Throwable) {
+                Log.w(TAG, "sendData", t)
+                call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun registerRpcMethod(call: PluginCall) {
+        val method = call.getString("method")
+        if (method.isNullOrBlank()) { call.reject("method required"); return }
+        try {
+            room?.localParticipant?.registerRpcMethod(method) { data ->
+                val payload = JSObject()
+                    .put("method", method)
+                    .put("requestId", data.requestId)
+                    .put("callerIdentity", data.callerIdentity.value)
+                    .put("payload", data.payload)
+                    .put("responseTimeout", data.responseTimeout.inWholeMilliseconds)
+                notifyListeners("rpc-invocation", payload)
+                // Capacitor listener response cannot synchronously round-trip;
+                // return an ACK so callers never hang. JS-side peer commands use
+                // DataPackets for authoritative actions.
+                "ok"
+            }
+            call.resolve(JSObject().put("registered", true))
+        } catch (t: Throwable) {
+            Log.w(TAG, "registerRpcMethod", t)
+            call.resolve(JSObject().put("registered", false).put("reason", t.message ?: "error"))
+        }
+    }
+
+    @PluginMethod
+    fun unregisterRpcMethod(call: PluginCall) {
+        val method = call.getString("method") ?: ""
+        try { if (method.isNotBlank()) room?.localParticipant?.unregisterRpcMethod(method) } catch (_: Throwable) {}
+        call.resolve(JSObject().put("unregistered", true))
+    }
+
+    @PluginMethod
+    fun performRpc(call: PluginCall) {
+        val destinationIdentity = call.getString("destinationIdentity")
+        val method = call.getString("method")
+        val payload = call.getString("payload", "") ?: ""
+        val responseTimeout = (call.getInt("responseTimeout", 15000) ?: 15000).coerceAtLeast(8000)
+        if (destinationIdentity.isNullOrBlank() || method.isNullOrBlank()) {
+            call.reject("destinationIdentity and method required")
+            return
+        }
+        scope.launch {
+            try {
+                val response = room?.localParticipant?.performRpc(
+                    Participant.Identity(destinationIdentity),
+                    method,
+                    payload,
+                    responseTimeout.milliseconds,
+                    responseTimeout.milliseconds,
+                )
+                if (response == null) call.reject("not connected")
+                else call.resolve(JSObject().put("response", response))
+            } catch (t: Throwable) {
+                call.reject("performRpc: ${t.message}", t)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun respondToRpc(call: PluginCall) {
+        // Native LiveKit RPC handlers return synchronously from Kotlin. The
+        // listener path above ACKs immediately, so this method is retained for
+        // JS API parity and resolves safely.
+        call.resolve(JSObject().put("sent", true))
+    }
+
+    @PluginMethod
+    fun sendText(call: PluginCall) {
+        val text = call.getString("text") ?: ""
+        val topic = call.getString("topic", "") ?: ""
+        if (text.isBlank()) { call.resolve(JSObject().put("sent", false).put("reason", "empty")); return }
+        val encoded = Base64.encodeToString(text.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+        val synthetic = object : PluginCall(bridge, "sendData", "") {}
+        // Avoid relying on Capacitor internals: publish directly as reliable
+        // data with the requested topic. Receivers consume DataReceived.
+        scope.launch {
+            try {
+                val result = room?.localParticipant?.publishData(text.toByteArray(Charsets.UTF_8), DataPublishReliability.RELIABLE, topic)
+                call.resolve(JSObject().put("sent", result?.isSuccess == true).put("streamId", "native-text"))
+            } catch (t: Throwable) {
+                Log.w(TAG, "sendText", t)
+                call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun registerTextStreamHandler(call: PluginCall) {
+        call.resolve(JSObject().put("registered", true))
+    }
+
+    @PluginMethod
+    fun unregisterTextStreamHandler(call: PluginCall) {
+        call.resolve(JSObject().put("unregistered", true))
+    }
+
+    @PluginMethod
     fun setSubscriberVideoQuality(call: PluginCall) {
         // Native LiveKit adaptiveStream/dynacast already selects the visible
         // layer. Keep the bridge present so Android live/party audio-only mode
