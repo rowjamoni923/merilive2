@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
 import { LevelBadge } from "@/components/common/LevelBadge";
-const ReelUploadModal = lazy(() => import("@/components/reels/ReelUploadModal").then(m => ({ default: m.ReelUploadModal })));
+const loadReelUploadModal = () => import("@/components/reels/ReelUploadModal");
+const ReelUploadModal = lazy(() => loadReelUploadModal().then(m => ({ default: m.ReelUploadModal })));
 const GiftPanel = lazy(() => import("@/components/live/GiftPanel").then(m => ({ default: m.GiftPanel })));
 import type { GiftData } from "@/components/live/GiftPanel";
 import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
@@ -767,6 +768,8 @@ const Reels = () => {
 
           {currentUserId && (
             <motion.button
+              onPointerDown={() => loadReelUploadModal().catch(() => {})}
+              onTouchStart={() => loadReelUploadModal().catch(() => {})}
               onClick={() => setShowUploadModal(true)}
               aria-label="Upload reel"
               whileTap={{ scale: 0.88 }}

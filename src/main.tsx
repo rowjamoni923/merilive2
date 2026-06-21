@@ -16,6 +16,7 @@ import { installColdStartCapture } from "./utils/coldStartCapture";
 import { installRippleTracker } from "./utils/rippleTracker";
 import { installGlobalHaptics } from "./utils/globalHaptics";
 import { installRoutePrefetch } from "./utils/routePrefetch";
+import { startIdleRoutePrefetch } from "./utils/idleRoutePrefetch";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 
@@ -58,6 +59,9 @@ schedule(() => {
   installRippleTracker();
   installGlobalHaptics();
   installRoutePrefetch();
+  if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
+    startIdleRoutePrefetch();
+  }
 });
 
 // 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.

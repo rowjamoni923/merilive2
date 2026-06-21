@@ -1,7 +1,7 @@
 /**
  * Idle-time route warm-up — APP-WIDE.
  *
- * After first paint, silently import every user-facing page chunk in tiers
+   * After first paint, silently import every user-facing page chunk in tiers
  * so within ~15-20 seconds of app open, ANY navigation the user makes is
  * served from the in-memory module cache (0 ms chunk fetch, no skeleton).
  *
@@ -11,9 +11,9 @@
  * - Each import is wrapped in .catch(()=>{}) so a single 404 / chunk error
  *   never breaks the chain.
  * - Tiered + sequential at 250 ms gaps to avoid saturating the network.
- * - On Capacitor native, runs only tier-1 (WebView already prefetches the
- *   next route on touch via routePrefetch.ts and bulk-importing dozens of
- *   chunks competes with REST/realtime/media on real devices).
+   * - On Capacitor native, still runs in smaller waves so every profile/menu/
+   *   search/party/live/reels/game section becomes warm without creating one
+   *   startup network storm.
  */
 
 let started = false;
@@ -40,9 +40,18 @@ export function startIdleRoutePrefetch() {
 
   // TIER 1 — bottom nav + most-tapped (warm immediately, both web & native)
   const tier1: Array<() => Promise<unknown>> = [
+    () => import('@/pages/Index'),
+    () => import('@/pages/Discover'),
+    () => import('@/pages/Reels'),
+    () => import('@/pages/Live'),
+    () => import('@/pages/Settings'),
+    () => import('@/pages/GoLive'),
     () => import('@/pages/Chat'),
+    () => import('@/pages/Profile'),
     () => import('@/pages/ProfileDetail'),
     () => import('@/pages/LiveStream'),
+    () => import('@/pages/LiveStreamFeed'),
+    () => import('@/pages/PartyRooms'),
     () => import('@/pages/PartyRoom'),
     () => import('@/pages/EditProfile'),
     () => import('@/pages/Recharge'),
@@ -50,10 +59,9 @@ export function startIdleRoutePrefetch() {
     () => import('@/pages/Level'),
   ];
 
-  // TIER 2 — drawer + secondary screens (web full, native skipped)
+  // TIER 2 — drawer + profile/search/settings/party/reels secondary screens
   const tier2: Array<() => Promise<unknown>> = [
     () => import('@/pages/Leaderboard'),
-    () => import('@/pages/PartyRooms'),
     () => import('@/pages/CreateParty'),
     () => import('@/pages/CallHistory'),
     () => import('@/pages/FollowingList'),
@@ -71,13 +79,21 @@ export function startIdleRoutePrefetch() {
     () => import('@/pages/MyPoster'),
     () => import('@/pages/MyRecordings'),
     () => import('@/pages/Tags'),
-    () => import('@/pages/Live'),
-    () => import('@/pages/LiveStreamFeed'),
+    () => import('@/pages/Parcels'),
+    () => import('@/pages/RatingProofHistory'),
+    () => import('@/pages/FaceVerification'),
+    () => import('@/pages/settings/Blacklist'),
+    () => import('@/pages/settings/ContentPage'),
+    () => import('@/pages/settings/CustomerService'),
+    () => import('@/pages/settings/NotificationSettings'),
+    () => import('@/pages/settings/UserManagement'),
   ];
 
-  // TIER 3 — agency suite + settings sub-pages + games hub
+  // TIER 3 — agency suite + games + lower-frequency support routes
   const tier3: Array<() => Promise<unknown>> = [
     () => import('@/pages/Agency'),
+    () => import('@/pages/AgencySignup'),
+    () => import('@/pages/AgencyDashboard'),
     () => import('@/pages/AgencyCoinExchange'),
     () => import('@/pages/AgencyCoinTrader'),
     () => import('@/pages/AgencyCommissionHistory'),
@@ -91,22 +107,21 @@ export function startIdleRoutePrefetch() {
     () => import('@/pages/JoinAgency'),
     () => import('@/pages/BecomeSubAgent'),
     () => import('@/pages/CreateAgency'),
-    () => import('@/pages/settings/Blacklist'),
-    () => import('@/pages/settings/ContentPage'),
-    () => import('@/pages/settings/CustomerService'),
-    () => import('@/pages/settings/NotificationSettings'),
-    () => import('@/pages/settings/UserManagement'),
+    () => import('@/pages/HelperDashboard'),
+    () => import('@/pages/Level5HelperDashboard'),
     () => import('@/pages/games/GamesHub'),
+    () => import('@/pages/games/RoulettePage'),
+    () => import('@/pages/games/FerrisWheelPage'),
+    () => import('@/pages/games/TeenPattiPage'),
+    () => import('@/pages/games/LuckyWheelTestPage'),
   ];
 
   ric(() => {
     warmSequentially(tier1, 250);
-    if (!isNative) {
-      window.setTimeout(() => warmSequentially(tier2, 300), tier1.length * 250 + 500);
-      window.setTimeout(
-        () => warmSequentially(tier3, 350),
-        tier1.length * 250 + tier2.length * 300 + 1500,
-      );
-    }
+    window.setTimeout(() => warmSequentially(tier2, isNative ? 650 : 300), tier1.length * 250 + 500);
+    window.setTimeout(
+      () => warmSequentially(tier3, isNative ? 900 : 350),
+      tier1.length * 250 + tier2.length * (isNative ? 650 : 300) + 1500,
+    );
   }, 2000);
 }

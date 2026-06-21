@@ -60,16 +60,34 @@ export function prefetchChat() {
  */
 const genericPrefetched = new Set<string>();
 const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
+  '/': () => import('@/pages/Index'),
+  '/index': () => import('@/pages/Index'),
+  '/discover': () => import('@/pages/Discover'),
+  '/live': () => import('@/pages/Live'),
+  '/live-feed': () => import('@/pages/LiveStreamFeed'),
+  '/go-live': () => import('@/pages/GoLive'),
+  '/profile': () => import('@/pages/Profile'),
   '/settings': () => import('@/pages/Settings'),
+  '/settings/blacklist': () => import('@/pages/settings/Blacklist'),
+  '/settings/privacy-policy': () => import('@/pages/settings/ContentPage'),
+  '/settings/user-agreement': () => import('@/pages/settings/ContentPage'),
+  '/settings/about-us': () => import('@/pages/settings/ContentPage'),
+  '/settings/user-management': () => import('@/pages/settings/UserManagement'),
+  '/settings/notifications': () => import('@/pages/settings/NotificationSettings'),
+  '/settings/customer-service': () => import('@/pages/settings/CustomerService'),
+  '/developer-options': () => import('@/pages/DeveloperOptions'),
   '/edit-profile': () => import('@/pages/EditProfile'),
   '/recharge': () => import('@/pages/Recharge'),
   '/recharge-history': () => import('@/pages/RechargeHistory'),
+  '/payment-success': () => import('@/pages/PaymentSuccess'),
   '/tasks': () => import('@/pages/Tasks'),
   '/level': () => import('@/pages/Level'),
   '/leaderboard': () => import('@/pages/Leaderboard'),
   '/pk-leaderboard': () => import('@/pages/PKLeaderboard'),
   '/agency-dashboard': () => import('@/pages/AgencyDashboard'),
   '/agency': () => import('@/pages/Agency'),
+  '/agency-signup': () => import('@/pages/AgencySignup'),
+  '/agency-details': () => import('@/pages/AgencyDetails'),
   '/agency-coin-exchange': () => import('@/pages/AgencyCoinExchange'),
   '/agency-coin-trader': () => import('@/pages/AgencyCoinTrader'),
   '/agency-commission-history': () => import('@/pages/AgencyCommissionHistory'),
@@ -88,8 +106,12 @@ const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
   '/create-agency': () => import('@/pages/CreateAgency'),
   '/call-history': () => import('@/pages/CallHistory'),
   '/following': () => import('@/pages/FollowingList'),
+  '/following-list': () => import('@/pages/FollowingList'),
+  '/search': () => import('@/pages/SearchUsers'),
   '/search-users': () => import('@/pages/SearchUsers'),
   '/rewards': () => import('@/pages/Rewards'),
+  '/rewards/rating-history': () => import('@/pages/RatingProofHistory'),
+  '/parcels': () => import('@/pages/Parcels'),
   '/invitation': () => import('@/pages/Invitation'),
   '/vip': () => import('@/pages/VIP'),
   '/shop': () => import('@/pages/Shop'),
@@ -98,16 +120,27 @@ const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
   '/tags': () => import('@/pages/Tags'),
   '/party-rooms': () => import('@/pages/PartyRooms'),
   '/create-party': () => import('@/pages/CreateParty'),
+  '/reels': () => import('@/pages/Reels'),
+  '/host-verification': () => import('@/pages/FaceVerification'),
+  '/face-verification': () => import('@/pages/FaceVerification'),
+  '/helper-dashboard': () => import('@/pages/HelperDashboard'),
+  '/level5-helper-dashboard': () => import('@/pages/Level5HelperDashboard'),
   '/games': () => import('@/pages/games/GamesHub'),
+  '/games/roulette': () => import('@/pages/games/RoulettePage'),
+  '/games/ferris-wheel': () => import('@/pages/games/FerrisWheelPage'),
+  '/games/teen-patti': () => import('@/pages/games/TeenPattiPage'),
+  '/games/lucky-wheel-test': () => import('@/pages/games/LuckyWheelTestPage'),
 };
 
 export function prefetchByHref(href: string) {
   if (!href || genericPrefetched.has(href)) return;
   // strip query / hash for lookup
   const path = href.split(/[?#]/)[0];
+  if (genericPrefetched.has(path)) return;
   const loader = GENERIC_ROUTES[path];
   if (loader) {
     genericPrefetched.add(href);
+    genericPrefetched.add(path);
     loader().catch(() => {});
   }
 }
@@ -152,10 +185,14 @@ export function installRoutePrefetch() {
       const href = anchor.getAttribute('href') || '';
       if (href.startsWith('/live/')) {
         prefetchLiveStream(href.slice(6).split(/[/?#]/)[0]);
+      } else if (href === '/live-feed' || href.startsWith('/live-feed/')) {
+        prefetchByHref('/live-feed');
       } else if (href.startsWith('/party/')) {
         prefetchPartyRoom(href.slice(7).split(/[/?#]/)[0]);
       } else if (href.startsWith('/profile-detail/') || href.startsWith('/profile/')) {
         prefetchProfileDetail();
+      } else if (href.startsWith('/pk-leaderboard/')) {
+        prefetchByHref('/pk-leaderboard');
       } else if (href === '/chat' || href.startsWith('/chat/')) {
         prefetchChat();
       } else {
