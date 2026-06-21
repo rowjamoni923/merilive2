@@ -1,0 +1,3 @@
+CREATE POLICY "Users insert own poster images" ON public.poster_images FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users update own poster images" ON public.poster_images FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own poster images" ON public.poster_images FOR DELETE TO authenticated USING (auth.uid() = user_id);
