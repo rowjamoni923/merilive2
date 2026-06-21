@@ -54,6 +54,65 @@ export function prefetchChat() {
 }
 
 /**
+ * Generic per-route chunk prefetcher — fires on pointerdown for ANY anchor
+ * whose href matches a known user-facing route. Keeps a Set so each chunk
+ * is requested at most once. Silent on failure.
+ */
+const genericPrefetched = new Set<string>();
+const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
+  '/settings': () => import('@/pages/Settings'),
+  '/edit-profile': () => import('@/pages/EditProfile'),
+  '/recharge': () => import('@/pages/Recharge'),
+  '/recharge-history': () => import('@/pages/RechargeHistory'),
+  '/tasks': () => import('@/pages/Tasks'),
+  '/level': () => import('@/pages/Level'),
+  '/leaderboard': () => import('@/pages/Leaderboard'),
+  '/pk-leaderboard': () => import('@/pages/PKLeaderboard'),
+  '/agency-dashboard': () => import('@/pages/AgencyDashboard'),
+  '/agency': () => import('@/pages/Agency'),
+  '/agency-coin-exchange': () => import('@/pages/AgencyCoinExchange'),
+  '/agency-coin-trader': () => import('@/pages/AgencyCoinTrader'),
+  '/agency-commission-history': () => import('@/pages/AgencyCommissionHistory'),
+  '/agency-host-management': () => import('@/pages/AgencyHostManagement'),
+  '/agency-transfer-history': () => import('@/pages/AgencyTransferHistory'),
+  '/agency-withdrawal': () => import('@/pages/AgencyWithdrawal'),
+  '/agent-wallet': () => import('@/pages/AgentWallet'),
+  '/agent-rank': () => import('@/pages/AgentRank'),
+  '/transfer-history': () => import('@/pages/TransferHistory'),
+  '/host-application': () => import('@/pages/HostApplication'),
+  '/host-dashboard': () => import('@/pages/HostDashboard'),
+  '/host-bonus-ledger': () => import('@/pages/HostBonusLedger'),
+  '/host-transfer-history': () => import('@/pages/HostTransferHistory'),
+  '/join-agency': () => import('@/pages/JoinAgency'),
+  '/become-sub-agent': () => import('@/pages/BecomeSubAgent'),
+  '/create-agency': () => import('@/pages/CreateAgency'),
+  '/call-history': () => import('@/pages/CallHistory'),
+  '/following': () => import('@/pages/FollowingList'),
+  '/search-users': () => import('@/pages/SearchUsers'),
+  '/rewards': () => import('@/pages/Rewards'),
+  '/invitation': () => import('@/pages/Invitation'),
+  '/vip': () => import('@/pages/VIP'),
+  '/shop': () => import('@/pages/Shop'),
+  '/my-poster': () => import('@/pages/MyPoster'),
+  '/my-recordings': () => import('@/pages/MyRecordings'),
+  '/tags': () => import('@/pages/Tags'),
+  '/party-rooms': () => import('@/pages/PartyRooms'),
+  '/create-party': () => import('@/pages/CreateParty'),
+  '/games': () => import('@/pages/games/GamesHub'),
+};
+
+export function prefetchByHref(href: string) {
+  if (!href || genericPrefetched.has(href)) return;
+  // strip query / hash for lookup
+  const path = href.split(/[?#]/)[0];
+  const loader = GENERIC_ROUTES[path];
+  if (loader) {
+    genericPrefetched.add(href);
+    loader().catch(() => {});
+  }
+}
+
+/**
  * Global delegated pointer-down listener — fires the right prefetcher
  * the instant the user starts a tap on any element with the matching
  * `data-prefetch` attribute or a known route href. No per-card wiring
@@ -99,6 +158,9 @@ export function installRoutePrefetch() {
         prefetchProfileDetail();
       } else if (href === '/chat' || href.startsWith('/chat/')) {
         prefetchChat();
+      } else {
+        // Generic table lookup for every other known user-facing route
+        prefetchByHref(href);
       }
     }
   };
