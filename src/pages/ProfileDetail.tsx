@@ -48,6 +48,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
+import { prefetchByHref, prefetchChat, prefetchLiveStream, prefetchPartyRoom, prefetchProfileDetail } from "@/utils/routePrefetch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -1341,6 +1342,8 @@ const ProfileDetail = () => {
             {isOwnProfile && (
               <motion.button
                 whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchByHref('/following')}
+                onTouchStart={() => prefetchByHref('/following')}
                 onClick={() => navigate(`/following?type=friends&user=${userId}`)}
                 className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
               >
@@ -1350,6 +1353,8 @@ const ProfileDetail = () => {
             )}
             <motion.button
               whileTap={{ scale: 0.95 }}
+              onPointerDown={() => prefetchByHref('/following')}
+              onTouchStart={() => prefetchByHref('/following')}
               onClick={() => navigate(`/following?type=following&user=${userId}`)}
               className={`text-center py-3 rounded-xl hover:bg-slate-50 transition-colors ${isOwnProfile ? 'border-x border-slate-100' : 'border-r border-slate-100'}`}
             >
@@ -1358,6 +1363,8 @@ const ProfileDetail = () => {
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
+              onPointerDown={() => prefetchByHref('/following')}
+              onTouchStart={() => prefetchByHref('/following')}
               onClick={() => navigate(`/following?type=followers&user=${userId}`)}
               className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
             >
@@ -1367,6 +1374,8 @@ const ProfileDetail = () => {
             {!isOwnProfile && (
               <motion.button
                 whileTap={{ scale: 0.95 }}
+                  onPointerDown={() => prefetchByHref('/following')}
+                  onTouchStart={() => prefetchByHref('/following')}
                 onClick={() => navigate(`/following?type=followers&user=${userId}`)}
                 className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
               >

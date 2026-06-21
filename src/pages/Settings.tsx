@@ -58,6 +58,7 @@ import {
 } from "@/utils/nativePermissions";
 // AutoRecordSettingsRow removed — Auto-record feature hidden from users app-wide.
 import AppLockToggle from "@/components/settings/AppLockToggle";
+import { prefetchByHref } from "@/utils/routePrefetch";
 
 
 // World languages - English names only (no native scripts)
@@ -123,6 +124,7 @@ type SettingsItem = {
   label: string;
   value?: string;
   onClick?: () => void;
+  prefetchPath?: string;
   showArrow?: boolean;
   danger?: boolean;
 };
@@ -812,16 +814,19 @@ const Settings = () => {
       icon: Ban,
       label: "Blacklist",
       value: blockedCount !== null && blockedCount > 0 ? String(blockedCount) : undefined,
+      prefetchPath: "/settings/blacklist",
       onClick: () => navigate("/settings/blacklist"),
     },
     {
       icon: Users,
       label: "User Management",
+      prefetchPath: "/settings/user-management",
       onClick: () => navigate("/settings/user-management"),
     },
     {
       icon: Shield,
       label: t("settings.privacyPolicy"),
+      prefetchPath: "/settings/privacy-policy",
       onClick: () => navigate("/settings/privacy-policy"),
     },
     {
@@ -833,11 +838,13 @@ const Settings = () => {
     {
       icon: FileText,
       label: t("settings.userAgreement"),
+      prefetchPath: "/settings/user-agreement",
       onClick: () => navigate("/settings/user-agreement"),
     },
     {
       icon: Info,
       label: t("settings.aboutUs"),
+      prefetchPath: "/settings/about-us",
       onClick: () => navigate("/settings/about-us"),
     },
     // Rate & Clear Cache only for native apps
@@ -868,6 +875,7 @@ const Settings = () => {
     {
       icon: Headphones,
       label: t("settings.customerService"),
+      prefetchPath: "/settings/customer-service",
       onClick: () => navigate("/settings/customer-service"),
     },
     // Developer Options — only visible to whitelisted dev emails (see src/config/devAccess.ts)
@@ -952,6 +960,8 @@ const Settings = () => {
           return (
             <button
               key={index}
+              onPointerDown={() => item.prefetchPath && prefetchByHref(item.prefetchPath)}
+              onTouchStart={() => item.prefetchPath && prefetchByHref(item.prefetchPath)}
               onClick={item.onClick}
               className={`w-full flex items-center justify-between px-4 py-3.5 transition-all duration-200 hover:bg-muted/50 active:bg-muted active:scale-[0.995] ${
                 isDanger ? 'text-destructive' : ''

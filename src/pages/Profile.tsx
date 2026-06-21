@@ -76,6 +76,7 @@ import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel 
 import { getCachedUser } from "@/utils/cachedAuth";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
+import { prefetchByHref, prefetchProfileDetail } from "@/utils/routePrefetch";
 
 interface ProfileStats {
   followersCount: number;
@@ -2176,6 +2177,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         {/* Avatar with Level-Based Frame */}
         <div 
           className="relative mb-3 cursor-pointer group"
+          onPointerDown={() => prefetchProfileDetail()}
+          onTouchStart={() => prefetchProfileDetail()}
           onClick={() => navigate(isOwnProfile ? `/profile-detail/${profileId}` : `/profile-detail/${profileId}`)}
         >
           {/* Avatar with Level-Based SVGA Frame */}
@@ -2546,6 +2549,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               {menuItems.map((item, index) => (
                 <button
                   key={index}
+                  onPointerDown={() => item.path && prefetchByHref(item.path)}
+                  onTouchStart={() => item.path && prefetchByHref(item.path)}
                   onClick={() => {
                     if ((item as any).onClick) {
                       (item as any).onClick();
