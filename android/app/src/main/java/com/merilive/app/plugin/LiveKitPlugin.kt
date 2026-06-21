@@ -70,6 +70,7 @@ class LiveKitPlugin : Plugin() {
 
     companion object {
         private const val TAG = "LiveKitPlugin"
+        private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 
         @JvmStatic
@@ -1401,11 +1402,19 @@ class LiveKitPlugin : Plugin() {
         } catch (_: Throwable) {}
         previewTrack = null
         detachRenderer()
-        try { room?.disconnect() } catch (_: Throwable) {}
+        releaseRoomResources()
+        try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
         RtcEngineManager.clearRoom(room)
         room = null
         isConnected = false
         boundedMode = false
+    }
+
+    private fun releaseRoomResources() {
+        try { room?.disconnect() } catch (_: Throwable) {}
+        // OEM_CAMERA_RELEASE_SETTLE_MS documents the required Camera2 HAL
+        // settle window after track.stop()/room.disconnect(). The release path
+        // is coroutine/main-thread driven, so we do not block UI here.
     }
 
     private fun runOnMain(block: () -> Unit) {
