@@ -395,6 +395,11 @@ export function ActiveCallScreen({
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
 
+  // Auto-PiP: when the user presses Home while in a connected call, shrink
+  // into a floating window so the partner's face stays visible. Returning to
+  // the app lands them back on the same call. Pure native Android — web no-op.
+  useAutoPictureInPicture({ enabled: isLiveConnected, aspect: { x: 9, y: 16 } });
+
   // Android professional path: JS connects/signals the LiveKit Room, then the
   // native PrivateCallActivity adopts that SAME Room and owns the visible call
   // UI. React must not also render a second call chrome/video surface on top.
