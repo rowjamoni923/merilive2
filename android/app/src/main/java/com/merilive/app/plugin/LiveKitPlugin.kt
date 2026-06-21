@@ -37,9 +37,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
@@ -116,6 +118,8 @@ class LiveKitPlugin : Plugin() {
     private var activeIsHost: Boolean = false
     private var lastConnectArgs: ConnectArgs? = null
     private var liveViewerStats: JSObject = JSObject()
+    private data class RpcReply(val result: String?, val error: String?)
+    private val pendingRpcReplies = ConcurrentHashMap<String, CompletableDeferred<RpcReply>>()
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
      *  SurfaceViewRenderer or make the WebView transparent. The camera track
      *  is still alive, but rendering is delegated to seat-bound TextureViews
