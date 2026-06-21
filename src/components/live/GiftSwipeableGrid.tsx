@@ -213,6 +213,7 @@ export const GiftSwipeableGrid = memo(({
   onGiftTap,
   getAnimationTypeColor,
   getAnimationTypeBadge,
+  userLevel = 0,
 }: GiftSwipeableGridProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
