@@ -122,6 +122,7 @@ const PartyRoom = lazy(lazyRetry(() => import("./pages/PartyRoom")));
 const GoLive = lazy(lazyRetry(() => import("./pages/GoLive")));
 const LiveSessionPage = lazy(lazyRetry(() => import("./pages/LiveSessionPage")));
 const CreateParty = lazy(lazyRetry(() => import("./pages/CreateParty")));
+const PartySessionPage = lazy(lazyRetry(() => import("./pages/PartySessionPage")));
 const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 
 const Tags = lazy(lazyRetry(() => import("./pages/Tags")));
@@ -405,6 +406,8 @@ const RouteSuspenseFallback = memo(() => {
     path.startsWith('/party/') ||
     path === '/go-live' ||
     path === '/live-session' ||
+    path === '/create-party' ||
+    path === '/party-session' ||
     path.startsWith('/call/') ||
     path.startsWith('/active-call') ||
     path.startsWith('/incoming-call') ||
@@ -562,6 +565,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
     location.pathname.startsWith('/party/') ||
     location.pathname === '/go-live' ||
     location.pathname === '/live-session' ||
+    location.pathname === '/create-party' ||
+    location.pathname === '/party-session' ||
     location.pathname.startsWith('/call/') ||
     location.pathname.startsWith('/active-call') ||
     location.pathname.startsWith('/incoming-call') ||
@@ -1451,7 +1456,8 @@ const App = () => {
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveSessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-session" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveSessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/reels" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
-                <Route path="/create-party" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><CreateParty /></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/create-party" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><RequireNoActiveCall><PartySessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/party-session" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><RequireNoActiveCall><PartySessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
                 <Route path="/profile-detail/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
                 
