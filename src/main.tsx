@@ -76,11 +76,9 @@ schedule(() => {
     // token mint never delays the pool. The pool internally short-circuits
     // until the wildcard viewer token is cached, then auto-warms on its own.
     setTimeout(() => {
-      console.log('[InstantEntry] booting LiveKit connection pool');
       import('./services/livekitConnectionPool').then(({ initConnectionPool }) => {
         initConnectionPool();
-        console.log('[InstantEntry] connection pool init dispatched');
-      }).catch((e) => { console.warn('[InstantEntry] pool import failed', e); });
+      }).catch(() => { /* non-fatal */ });
     }, 1000);
   }
 });
