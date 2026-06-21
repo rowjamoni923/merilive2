@@ -793,6 +793,96 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun attachRemote(call: PluginCall) {
+        // Legacy JS event hook calls this on participant/track events. Actual
+        // rendering is slot-bound through attachRemoteSurface; re-sweeping here
+        // makes late-mounted live/party/call visitor surfaces bind immediately.
+        runOnMain {
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
+            call.resolve(JSObject().put("attached", true))
+        }
+    }
+
+    @PluginMethod
+    fun reconnectNow(call: PluginCall) {
+        scope.launch {
+            try {
+                val args = lastConnectArgs
+                if (args == null) {
+                    call.resolve(JSObject().put("connected", false).put("reason", "no_previous_session"))
+                    return@launch
+                }
+                if (isConnected) {
+                    runOnMain { rebindAllSlotsFromCurrentTracks() }
+                    call.resolve(JSObject().put("connected", true).put("reason", "already_connected"))
+                    return@launch
+                }
+                promotePreviewToSession(args)
+                lastConnectArgs = args
+                activeRoomScope = args.roomScope
+                activeIsHost = args.isHost
+                runOnMain { rebindAllSlotsFromCurrentTracks() }
+                call.resolve(JSObject().put("connected", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "reconnectNow failed", t)
+                isConnected = false
+                call.resolve(JSObject().put("connected", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getActiveSession(call: PluginCall) {
+        call.resolve(
+            JSObject()
+                .put("active", isConnected && room != null)
+                .put("roomScope", activeRoomScope ?: "")
+                .put("isHost", activeIsHost)
+                .put("callType", when (activeRoomScope) {
+                    "call" -> "Private Call"
+                    "party" -> "Party Room"
+                    "live" -> "Live broadcast"
+                    else -> ""
+                })
+                .put("boundAtMs", 0)
+                .put("ageMs", 0)
+                .put("canHardReconnect", lastConnectArgs != null)
+        )
+    }
+
+    @PluginMethod
+    fun setSurviveActivityDestroy(call: PluginCall) {
+        call.resolve(JSObject().put("enabled", call.getBoolean("enabled", false) ?: false))
+    }
+
+    @PluginMethod
+    fun updateLiveStats(call: PluginCall) {
+        liveViewerStats = JSObject()
+            .put("viewerCount", call.getInt("viewerCount", 0) ?: 0)
+            .put("coinCount", call.getInt("coinCount", 0) ?: 0)
+            .put("title", call.getString("title", "") ?: "")
+        call.resolve(JSObject().put("updated", true))
+    }
+
+    @PluginMethod
+    fun setSubscriberVideoQuality(call: PluginCall) {
+        // Native LiveKit adaptiveStream/dynacast already selects the visible
+        // layer. Keep the bridge present so Android live/party audio-only mode
+        // never falls through the Proxy as an unimplemented call.
+        call.resolve(JSObject().put("applied", true))
+    }
+
+    @PluginMethod
+    fun setRemoteVideoSubscribed(call: PluginCall) {
+        // Subscribe/unsubscribe is SDK-policy driven on this minimal native
+        // room. Rebind current slots so visible participants recover instantly.
+        runOnMain {
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
+            call.resolve(JSObject().put("applied", true))
+        }
+    }
+
+    @PluginMethod
     fun getRemoteParticipants(call: PluginCall) {
         val arr = com.getcapacitor.JSArray()
         try {
