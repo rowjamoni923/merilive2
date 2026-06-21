@@ -421,6 +421,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
                   isSelected={selectedGift?.id === gift.id}
                   onSelect={() => handleGiftSelect(gift)}
                   formatCoins={formatCoins}
+                  userLevel={effectiveUserLevel}
                 />
               ))
             )}
