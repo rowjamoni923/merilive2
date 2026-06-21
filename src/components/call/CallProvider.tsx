@@ -15,6 +15,10 @@ import { useProCamera } from '@/camera/useProCamera';
 import { toast as sonnerToast } from 'sonner';
 import { CallingFallback } from './CallingFallback';
 import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
+import {
+  acquireCameraSession,
+  type CameraSessionHandle,
+} from '@/lib/persistentCameraSession';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
 // Eagerly kick off the import the moment this module loads (not on
@@ -288,6 +292,55 @@ export function CallProvider({ children }: CallProviderProps) {
       clearNativeMediaSurface();
     }
   }, [callState.status, incomingCall]);
+
+  // Pkg-shirt Phase-B (web): mirror of the native Camera2 prejoin above.
+  // The moment a call is ringing/dialing on web, warm the global
+  // persistentCameraSession so ActiveCallScreen's preview tile reuses the
+  // SAME MediaStream when it mounts on accept — no fresh getUserMedia,
+  // no permission re-prompt, no black flash. Native Android path is
+  // unaffected (Camera2 + LiveKit native takes over there).
+  const callPrejoinHandleRef = useRef<CameraSessionHandle | null>(null);
+  useEffect(() => {
+    if (isNativeAndroidApp()) return;
+    const ringing = !!incomingCall || callState.status === 'calling' || callState.status === 'ringing';
+    if (!ringing) {
+      const h = callPrejoinHandleRef.current;
+      callPrejoinHandleRef.current = null;
+      if (h) {
+        try { h.release(); } catch { /* noop */ }
+      }
+      return;
+    }
+    if (callPrejoinHandleRef.current) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const handle = await acquireCameraSession({ video: true, audio: true });
+        if (cancelled) {
+          handle.release();
+          return;
+        }
+        callPrejoinHandleRef.current = handle;
+      } catch (err) {
+        // Non-fatal: ActiveCallScreen will fall back to its own getUserMedia.
+        console.warn('[CallProvider] web prejoin acquire failed (non-fatal):', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [incomingCall, callState.status]);
+
+  // Final release on provider unmount.
+  useEffect(() => {
+    return () => {
+      const h = callPrejoinHandleRef.current;
+      callPrejoinHandleRef.current = null;
+      if (h) {
+        try { h.release(); } catch { /* noop */ }
+      }
+    };
+  }, []);
+
+
 
 
   // usePrivateCall handles ALL detection (broadcast + realtime + polling)
