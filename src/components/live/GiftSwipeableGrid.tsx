@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 import { GiftData, formatCoinValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import { Play } from "lucide-react";
+import { Play, Lock } from "lucide-react";
 
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
 
@@ -17,6 +17,7 @@ interface GiftSwipeableGridProps {
   onGiftTap: (gift: GiftData) => void;
   getAnimationTypeColor: (type: GiftData['animationType']) => string;
   getAnimationTypeBadge: (type: GiftData['animationType']) => ReactNode;
+  userLevel?: number;
 }
 
 const ITEMS_PER_PAGE = 8; // 4 columns x 2 rows
