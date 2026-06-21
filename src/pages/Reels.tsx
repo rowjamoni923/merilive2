@@ -761,7 +761,7 @@ const Reels = () => {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="pointer-events-auto text-[18px] font-extrabold tracking-[-0.02em] bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(79,70,229,0.45)]"
+            className="pointer-events-auto text-[16px] font-semibold tracking-[-0.01em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
           >
             Reels
           </motion.h1>
@@ -773,14 +773,9 @@ const Reels = () => {
               onClick={() => setShowUploadModal(true)}
               aria-label="Upload reel"
               whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.06 }}
-              className="pointer-events-auto relative w-10 h-10 rounded-full flex items-center justify-center text-white transition-shadow
-                         bg-gradient-to-br from-indigo-500/90 via-indigo-600/80 to-[#1e1e5a]/90
-                         shadow-[0_6px_20px_-4px_rgba(79,70,229,0.65),inset_0_1px_0_rgba(255,255,255,0.25)]
-                         ring-1 ring-indigo-300/30 backdrop-blur-xl"
+              className="pointer-events-auto w-8 h-8 rounded-full flex items-center justify-center text-white bg-white/10 backdrop-blur-md ring-1 ring-white/15"
             >
-              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-              <Plus className="w-[18px] h-[18px] relative z-10" strokeWidth={2.6} />
+              <Plus className="w-[16px] h-[16px]" strokeWidth={2.4} />
             </motion.button>
           )}
         </div>
