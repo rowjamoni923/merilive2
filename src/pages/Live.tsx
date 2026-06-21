@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { preloadAllStreams, cleanupAllPreloaded, markPreloadedStreamForHandoff } from "@/services/liveStreamPreloader";
+import { useLiveKitPrewarm } from "@/hooks/useLiveKitPrewarm";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
@@ -242,33 +243,15 @@ const Live = () => {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {streams.map((stream) => (
-              <div 
-                key={stream.id} 
-                onClick={() => {
+              <LiveStreamTile
+                key={stream.id}
+                stream={stream}
+                onTap={() => {
                   markPreloadedStreamForHandoff(stream.id);
                   import("@/pages/LiveStream").catch(() => {});
                   navigate(`/live/${stream.id}`);
                 }}
-                className="cursor-pointer"
-              >
-                <PremiumLiveStreamCard
-                  id={stream.id}
-                  hostId={stream.host?.id}
-                  hostName={stream.host?.display_name || 'Unknown Host'}
-                  hostAvatar={stream.host?.avatar_url || ''}
-                  hostGender={(stream.host?.is_host || stream.host?.gender === 'female' || stream.host?.gender === 'Female') ? 'female' : (stream.host?.gender === 'male' || stream.host?.gender === 'Male' ? 'male' : 'female')}
-                  thumbnailUrl={stream.thumbnail_url || stream.host?.avatar_url || ''}
-                  viewerCount={stream.viewer_count || 0}
-                  country=""
-                  countryFlag={stream.host?.country_flag || '🌍'}
-                  countryCode={stream.host?.country_code || null}
-                  tags={['Live']}
-                  userLevel={getRequiredDisplayLevel(stream.host)}
-                  isVIP={stream.host?.is_verified || false}
-                  giftCount={0}
-                />
-
-              </div>
+              />
             ))}
           </div>
         )}
