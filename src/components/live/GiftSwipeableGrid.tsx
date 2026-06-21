@@ -51,22 +51,27 @@ const GiftItem = memo(({
   isSelected, 
   onTap, 
   getAnimationTypeColor, 
-  getAnimationTypeBadge
+  getAnimationTypeBadge,
+  userLevel,
 }: {
   gift: GiftData;
   isSelected: boolean;
   onTap: () => void;
   getAnimationTypeColor: (type: GiftData['animationType']) => string;
   getAnimationTypeBadge: (type: GiftData['animationType']) => ReactNode;
+  userLevel: number;
 }) => {
   const { url, isSvga, isVideo } = useMemo(() => getDisplayInfo(gift), [gift]);
 
   const isLegendary = gift.animationType === 'legendary';
   const isLuxury = gift.animationType === 'luxury';
+  const requiredLevel = Number(gift.min_level ?? 0) || 0;
+  const isLocked = requiredLevel > 0 && userLevel < requiredLevel;
 
   return (
     <button
       onClick={onTap}
+      aria-label={isLocked ? `${gift.name} — unlock at level ${requiredLevel}` : gift.name}
       className={cn(
         "flex flex-col items-center p-2 rounded-2xl relative border overflow-hidden",
         getAnimationTypeColor(gift.animationType),
@@ -110,12 +115,34 @@ const GiftItem = memo(({
       )}
 
       {getAnimationTypeBadge(gift.animationType)}
-      
+
+      {/* Level Requirement Badge — top-left, professional */}
+      {requiredLevel > 0 && (
+        <span
+          aria-hidden
+          className={cn(
+            "absolute top-1 left-1 z-[2] flex items-center gap-[2px] px-1.5 py-[1px] rounded-full text-[8.5px] font-extrabold tracking-wide border shadow-sm leading-none",
+            isLocked
+              ? "bg-gradient-to-r from-rose-500/90 to-red-600/90 text-white border-white/30"
+              : "bg-gradient-to-r from-amber-400/95 to-yellow-500/95 text-black border-white/40"
+          )}
+          style={{
+            boxShadow: isLocked
+              ? '0 2px 6px rgba(244,63,94,0.35)'
+              : '0 2px 6px rgba(251,191,36,0.35)',
+          }}
+        >
+          {isLocked && <Lock className="w-2 h-2" strokeWidth={3} />}
+          Lv{requiredLevel}
+        </span>
+      )}
+
       {/* Gift Icon Container */}
       <div 
         className={cn(
           "w-12 h-12 flex items-center justify-center rounded-xl overflow-hidden bg-gradient-to-br from-black/40 to-black/20 border border-white/5 relative z-[1]",
-          isLegendary && "ring-1 ring-amber-400/40"
+          isLegendary && "ring-1 ring-amber-400/40",
+          isLocked && "grayscale opacity-60"
         )}
         style={{ contain: 'layout style' }}
       >
@@ -142,17 +169,35 @@ const GiftItem = memo(({
         ) : (
           <div className="w-10 h-10 rounded-lg bg-white/5" />
         )}
+        {isLocked && (
+          <span className="absolute inset-0 grid place-items-center bg-black/35 rounded-xl">
+            <Lock className="w-4 h-4 text-white/95 drop-shadow" strokeWidth={2.5} />
+          </span>
+        )}
       </div>
 
       {/* Gift Name */}
-      <span className="text-white/90 text-[10px] mt-1.5 truncate w-full text-center font-semibold leading-tight relative z-[1]">
+      <span className={cn(
+        "text-[10px] mt-1.5 truncate w-full text-center font-semibold leading-tight relative z-[1]",
+        isLocked ? "text-white/55" : "text-white/90"
+      )}>
         {gift.name}
       </span>
       
       {/* Price Badge */}
-      <div className="flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/25 relative z-[1]">
+      <div className={cn(
+        "flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full border relative z-[1]",
+        isLocked
+          ? "bg-white/5 border-white/10"
+          : "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-cyan-400/25"
+      )}>
         <Diamond3DIcon size={10} />
-        <span className="text-[9px] font-bold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
+        <span className={cn(
+          "text-[9px] font-bold bg-clip-text text-transparent",
+          isLocked
+            ? "bg-gradient-to-r from-white/60 to-white/40"
+            : "bg-gradient-to-r from-cyan-300 to-purple-400"
+        )}>
           {formatCoinValue(gift.coins)}
         </span>
       </div>
