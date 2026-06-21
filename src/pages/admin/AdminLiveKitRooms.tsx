@@ -15,7 +15,9 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {Radio, RefreshCw, Loader2, Search, Users, Eye, Mic, Camera, Clock, X, Circle, Square, Bot, } from "lucide-react";
+import {Radio, RefreshCw, Loader2, Search, Users, Eye, EyeOff, Mic, Camera, Clock, X, Circle, Square, Bot, } from "lucide-react";
+import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
+import AdminStreamViewer from "@/components/admin/AdminStreamViewer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +72,7 @@ export default function AdminLiveKitRooms() {
   const [trackEgress, setTrackEgress] = useState<Record<string, string>>({});
   const [trackBusy, setTrackBusy] = useState<Record<string, boolean>>({});
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
+  const [watchRoom, setWatchRoom] = useState<LiveKitRoomSummary | null>(null);
 
   const handleStartTrack = useCallback(
     async (
@@ -376,18 +379,35 @@ export default function AdminLiveKitRooms() {
                         </p>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDetail(r);
-                      }}
-                    >
-                      <Eye className="w-3.5 h-3.5 mr-1" />
-                      Inspect
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {scopeOfRoom(r.name) !== "other" && r.numPublishers > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWatchRoom(r);
+                          }}
+                          title="Invisible admin viewer — participants see nothing"
+                        >
+                          <EyeOff className="w-3.5 h-3.5 mr-1" />
+                          Watch
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDetail(r);
+                        }}
+                      >
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                        Inspect
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -618,6 +638,45 @@ export default function AdminLiveKitRooms() {
         roomName={detailRoom?.name || ""}
         scope={(detailRoom ? scopeOfRoom(detailRoom.name) : "live") as "live" | "party" | "call"}
       />
+
+      <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
+        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-amber-400" />
+              Invisible Admin Viewer · <span className="font-mono">{watchRoom?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+          {watchRoom && (() => {
+            const scope = scopeOfRoom(watchRoom.name);
+            const uuid = watchRoom.name.replace(/^(live|party|call)_/, "");
+            if (scope === "live") {
+              return (
+                <AdminStreamViewer
+                  streamId={uuid}
+                  roomName={watchRoom.name}
+                  hostName={watchRoom.name}
+                  onClose={() => setWatchRoom(null)}
+                />
+              );
+            }
+            if (scope === "party" || scope === "call") {
+              return (
+                <AdminRoomMonitor
+                  roomName={watchRoom.name}
+                  roomType={scope === "party" ? "party" : "call"}
+                  label={watchRoom.name}
+                  onClose={() => setWatchRoom(null)}
+                />
+              );
+            }
+            return null;
+          })()}
+          <p className="px-4 pb-3 text-[11px] text-slate-500">
+            Participants receive no signal. viewer_count, participant list and chat are unaffected.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
