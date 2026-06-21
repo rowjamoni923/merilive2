@@ -1,8 +1,15 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
+import { maybeTriggerAuthGuardFromError } from '@/lib/authGuard';
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (err) => { maybeTriggerAuthGuardFromError(err); },
+  }),
+  mutationCache: new MutationCache({
+    onError: (err) => { maybeTriggerAuthGuardFromError(err); },
+  }),
   defaultOptions: {
     queries: {
       // Instant app-wide loading: prefer persisted/cache data on navigation.
