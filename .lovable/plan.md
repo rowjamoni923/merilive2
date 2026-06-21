@@ -249,3 +249,19 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 4. Live room now maps this error to a professional user-facing network message plus Retry overlay instead of showing raw `could not establish pc connection` while the center still says `Starting camera…`.
 
 **Honest verification boundary:** This app-side fix can recover when TURN is available but direct ICE fails. If relay retry still fails, the remaining root cause is self-hosted LiveKit/TURN/VPS firewall configuration for `wss://livekit.merilive.xyz`, which is outside Lovable code and must be checked on the VPS when VPS work is allowed.
+
+---
+
+## 2026-06-21 — Whole-app navigation coverage pass
+
+**User scope clarified:** This is not one page. Home, Party, Create Reels, Profile Details, all Profile/Settings menu sections, Leaderboard, Search, Live, Private Call/Party/Game entry surfaces, and viewer-side navigation all need the same instant/blank-screen protection.
+
+**Research applied:** BIGO Live publicly lists live streams, live games, chat rooms, 500M+ Google Play downloads and 700M+ users, setting the category expectation that tab/menu/room transitions feel immediate and never expose blank screens (`https://play.google.com/store/apps/details?id=sg.bigo.live`, `https://www.bigo.tv/`). Supabase Realtime docs and PR #2201 confirm `postgres_changes` handlers must be registered before `subscribe()` and channel names must not collide after subscription (`https://supabase.com/docs/guides/realtime/postgres-changes`, `https://github.com/supabase/supabase-js/pull/2201`).
+
+**Gaps found:** `startIdleRoutePrefetch()` existed but was not called from boot, so the 49-route warm-up never actually started. The generic pointerdown prefetch map also missed `/`, Home/Discover/Profile/Go Live/Reels, Settings sub-pages, Search alias, Profile menus, Game subroutes, dynamic `/live-feed/:id`, and dynamic `/pk-leaderboard/:id`. Create Reels opened a separately lazy upload modal only after click.
+
+**Code-level fixes applied now:**
+1. `main.tsx` now starts idle route warm-up for every non-admin app session after first paint.
+2. `idleRoutePrefetch.ts` now covers every major user-facing section in tiers: Home/Discover/Reels/Profile/Settings/GoLive/Live/Party first, then Profile/Search/Settings/Reels menus, then Agency/Games/support routes; native Android uses slower waves instead of skipping most routes.
+3. `routePrefetch.ts` now covers all same user-facing static routes plus dynamic route normalization for `/live-feed/:id` and `/pk-leaderboard/:id`.
+4. `Reels.tsx` now preloads the Create Reels upload modal on pointer/touch start before opening it.
