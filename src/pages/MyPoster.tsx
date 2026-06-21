@@ -58,31 +58,34 @@ const MyPoster = () => {
     const file = event.target.files?.[0];
     if (!file || !userId) return;
 
-    // Validate file
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Only images can be uploaded", variant: "destructive" });
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (!isImage && !isVideo) {
+      toast({ title: "Only photos or videos can be uploaded", variant: "destructive" });
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "Image must be less than 10MB", variant: "destructive" });
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast({ title: "File must be less than 25MB", variant: "destructive" });
       return;
     }
 
     if (images.length >= 9) {
-      toast({ title: "You can upload up to 9 images", variant: "destructive" });
+      toast({ title: "You can upload up to 9 items", variant: "destructive" });
       return;
     }
 
     setUploading(true);
 
     try {
-      const fileName = `${userId}/${Date.now()}-${file.name}`;
-      
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const fileName = `${userId}/${Date.now()}-${safeName}`;
+
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("posters")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { upsert: true, contentType: file.type });
 
       if (uploadError) throw uploadError;
 
@@ -98,19 +101,20 @@ const MyPoster = () => {
           user_id: userId,
           image_url: publicUrl,
           display_order: images.length,
-          is_primary: images.length === 0
-        })
+          is_primary: images.length === 0,
+          media_type: isVideo ? "video" : "image",
+        } as any)
         .select()
         .single();
 
       if (dbError) throw dbError;
 
-      setImages([...images, newImage]);
-      toast({ title: "Image uploaded!" });
+      setImages([...images, newImage as PosterImage]);
+      toast({ title: isVideo ? "Video uploaded!" : "Image uploaded!" });
     } catch (error) {
       console.error("Upload error:", error);
       recordClientError({ label: "MyPoster.fileName", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: "Upload failed", variant: "destructive" });
+      toast({ title: "Upload failed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
