@@ -166,3 +166,24 @@ After all 4 phases:
 - User invite link → stores inviter `app_uid` only; creates `user_invitations.status='pending'` at signup; becomes `verified` only after total completed paid purchase amount reaches **$2 USD**.
 - Agency link/code → stores agency code only; host signup auto-sends agency join request through `join_agency(..., _joined_via='agency_link')`; invitation links never count as agency.
 - Auth page manual referral/agency-code entry removed; Play Store/share pages state automatic link attribution.
+
+---
+
+## ✅ Visitor-Side Live/Party/Private Call Media Audit — 2026-06-21
+
+**User scope:** Only audit/fix visitor-side face/video visibility, join/presence visibility, and minimized/background incoming-call acceptance for Live Streaming, Private Room/Call, and Party Room.
+
+**Research standard:** Chamet/Bigo/Poppo-style apps use SFU participant events for instant join/leave visibility and native Android video surfaces for reliable camera rendering; LiveKit equivalent is `RoomEvent.ParticipantConnected/TrackSubscribed` plus native `TextureViewRenderer` binding. Android call delivery must use high-priority FCM data payload + CallStyle/full-screen intent/Telecom-style accept path, matching WhatsApp/IMO behavior.
+
+**Verified current state:**
+1. Live/party/call all use LiveKit, not polling. Supabase tables remain durable presence (`stream_viewers`, `party_room_participants`, `private_calls`).
+2. Party native seats already bind per-seat `NativeVideoView` using `nativeParticipants` and `attachRemoteSurface`.
+3. Private call native activity already attaches local/remote renderers and FCM path posts high-priority call notification with accept/decline receivers.
+4. Gap found: Android live **viewer** native path connected subscribe-only, but `LiveStream.tsx` waited for web `remoteVideoTrack`; native branch only rendered a transparent placeholder. Result: visitor could be connected while host face surface was not deterministically mounted.
+
+**Completed surgical fixes:**
+1. `useLiveKitClient` now tracks native remote participants for live sessions, refreshes after connect/reconnect/join/leave, filters hidden/admin identities, and clears state on disconnect/leave.
+2. `LiveStream.tsx` now renders `NativeVideoView kind="remote"` for Android live viewers using the host participant SID, so host face is bound through native `TextureViewRenderer` even when no web remote track exists.
+3. `LiveKitPlugin.kt` now emits normalized `connection-state` events for Reconnecting/Reconnected and rebinds all native slots after reconnected, so live/party/call native surfaces recover after transient network/app-background transitions.
+
+**APK note:** Native plugin change requires Android APK rebuild/sync before device verification.
