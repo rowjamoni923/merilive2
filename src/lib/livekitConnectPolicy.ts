@@ -1,8 +1,8 @@
 import {
-  ConnectionError,
   ConnectionErrorReason,
   type Room,
   type RoomConnectOptions,
+  type ConnectionError,
 } from 'livekit-client';
 
 type LiveKitConnectProfile = 'live' | 'party' | 'call' | 'preload' | 'pk-opponent';
