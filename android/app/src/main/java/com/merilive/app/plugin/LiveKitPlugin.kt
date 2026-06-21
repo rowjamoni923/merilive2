@@ -920,6 +920,8 @@ class LiveKitPlugin : Plugin() {
         if (method.isNullOrBlank()) { call.reject("method required"); return }
         try {
             room?.localParticipant?.registerRpcMethod(method) { data ->
+                val deferred = CompletableDeferred<RpcReply>()
+                pendingRpcReplies[data.requestId] = deferred
                 val payload = JSObject()
                     .put("method", method)
                     .put("requestId", data.requestId)
@@ -927,10 +929,13 @@ class LiveKitPlugin : Plugin() {
                     .put("payload", data.payload)
                     .put("responseTimeout", data.responseTimeout.inWholeMilliseconds)
                 notifyListeners("rpc-invocation", payload)
-                // Capacitor listener response cannot synchronously round-trip;
-                // return an ACK so callers never hang. JS-side peer commands use
-                // DataPackets for authoritative actions.
-                "ok"
+                try {
+                    val reply = withTimeout(data.responseTimeout) { deferred.await() }
+                    reply.error?.let { throw io.livekit.android.rpc.RpcError(1500, it, "") }
+                    reply.result ?: ""
+                } finally {
+                    pendingRpcReplies.remove(data.requestId)
+                }
             }
             call.resolve(JSObject().put("registered", true))
         } catch (t: Throwable) {
@@ -975,9 +980,13 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun respondToRpc(call: PluginCall) {
-        // Native LiveKit RPC handlers return synchronously from Kotlin. The
-        // listener path above ACKs immediately, so this method is retained for
-        // JS API parity and resolves safely.
+        val requestId = call.getString("requestId") ?: ""
+        val deferred = pendingRpcReplies.remove(requestId)
+        if (deferred == null) {
+            call.resolve(JSObject().put("sent", false).put("reason", "request_not_pending"))
+            return
+        }
+        deferred.complete(RpcReply(call.getString("result"), call.getString("errorMessage")))
         call.resolve(JSObject().put("sent", true))
     }
 
