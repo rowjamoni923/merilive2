@@ -25,6 +25,7 @@ interface GiftCacheItem {
   animation_config_url?: string | null;
   sound_url: string | null;
   display_order: number;
+  min_level: number;
 }
 
 interface GiftCache {
