@@ -13,7 +13,10 @@ interface PosterImage {
   image_url: string;
   display_order: number;
   is_primary: boolean;
+  media_type?: "image" | "video" | null;
 }
+
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // 25 MB
 
 const MyPoster = () => {
   const navigate = useNavigate();
