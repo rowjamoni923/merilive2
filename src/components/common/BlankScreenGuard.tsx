@@ -52,29 +52,52 @@ const getSurfaceKind = (pathname: string) => {
   return "app";
 };
 
-// Static, animation-free shell. Solid background only — matches destination
-// route. No spinners, no shimmer, no pulse, no skeleton boxes. The user
-// perceives navigation as instant because the surface color is identical
-// to the loaded page bg.
+// Static painted app chrome — no spinner, no shimmer, no blank/white.
 const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
   if (kind === "live") {
     return (
-      <div
-        data-blank-screen-guard
-        className="fixed inset-0 z-[2147483000]"
-        style={{ backgroundColor: '#050208' }}
-        aria-hidden="true"
-      />
+      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000]" style={{ backgroundColor: '#050208' }} aria-hidden="true">
+        <div className="absolute left-4 right-4 pt-4" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+            <div className="space-y-2">
+              <div className="h-3 w-28 rounded" style={{ backgroundColor: '#1a1422' }} />
+              <div className="h-3 w-16 rounded" style={{ backgroundColor: '#15101c' }} />
+            </div>
+          </div>
+        </div>
+        <div className="absolute left-4 right-4 pb-5 space-y-3" style={{ bottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="h-10 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+          <div className="flex justify-between">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-11 w-11 rounded-full" style={{ backgroundColor: '#1a1422' }} />
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
-  // auth + default app — solid cream (matches body bg).
   return (
-    <div
-      data-blank-screen-guard
-      className="fixed inset-0 z-[2147483000] bg-background"
-      style={{ backgroundColor: '#FFFBF2' }}
-      aria-hidden="true"
-    />
+    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
+      <div className="flex items-center px-4 gap-3" style={{ height: 56, backgroundColor: '#F3EBDC', borderBottom: '1px solid #E8DFCC' }}>
+        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+        <div className="h-3.5 w-32 rounded" style={{ backgroundColor: '#E2D6BE' }} />
+        <div className="ml-auto h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+      </div>
+      <div className="flex-1 overflow-hidden px-4 pt-4 space-y-3">
+        <div className="h-28 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        </div>
+        <div className="h-16 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+      </div>
+      <div className="flex items-center justify-around px-2" style={{ height: 64, backgroundColor: '#F3EBDC', borderTop: '1px solid #E8DFCC' }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-7 w-7 rounded-lg" style={{ backgroundColor: '#E2D6BE' }} />
+        ))}
+      </div>
+    </div>
   );
 });
 
