@@ -546,60 +546,64 @@ const CreateParty = () => {
     </div>
   );
 
-  // Host Video Cell
+  // Host Video Cell — ALWAYS renders the video element so the ref is in the
+  // DOM before the stream→video useEffect fires. Visibility is CSS-driven.
   const HostVideoCell = ({ className }: { className?: string }) => {
     const showNativeVideo = isNativeAndroid && nativePreviewActive && isVideoEnabled && cameraReady && mode !== "audio";
-    const showVideo = showNativeVideo || (!!stream && isVideoEnabled && cameraReady);
+    const hasStream = !!stream && isVideoEnabled;
+    const showVideo = showNativeVideo || (hasStream && cameraReady);
     return (
       <div className={cn(
         "relative rounded-2xl overflow-hidden bg-purple-800/40 border border-purple-500/30",
         className
       )}>
-        {/* Always-rendered avatar fallback (under video) — prevents native <video> play-icon flash */}
+        {/* Avatar fallback — visible only when video is NOT ready */}
         <div className={cn(
-          "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50",
-          showVideo && "opacity-0 pointer-events-none"
+          "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50 z-10 transition-opacity duration-200",
+          showVideo ? "opacity-0 pointer-events-none" : "opacity-100"
         )}>
           <AvatarWithFrame
             userId={currentUser?.id}
             src={currentUser?.profile?.avatar_url}
             name={currentUser?.profile?.display_name}
             level={getRequiredDisplayLevel(currentUser?.profile)}
-            isHost={currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female'}
+            isHost={currentUser?.profile?.is_host || currentUser?.profile?.gender === "female"}
             size="md"
             showAnimation={true}
             showGlow={true}
           />
         </div>
+        {/* Native preview overlay (Android native app only) */}
         {showNativeVideo && (
           <NativeVideoView
             kind="local"
             mirror={facingMode === "user"}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full z-20"
           />
         )}
-        {stream && isVideoEnabled && (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-            poster=""
-            // @ts-ignore
-            x5-video-player-type="h5"
-            webkit-playsinline="true"
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-opacity duration-200",
-              showVideo ? "opacity-100" : "opacity-0",
-              facingMode === "user" && "scale-x-[-1]"
-            )}
-            style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-          />
-        )}
+        {/* Web camera preview — ALWAYS rendered so ref is present,
+            but opacity-controlled so it doesn't show a dead frame. */}
+        <video
+          key={stream?.id || 'no-stream'}
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+          poster=""
+          // @ts-ignore
+          x5-video-player-type="h5"
+          webkit-playsinline="true"
+          className={cn(
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-200 z-20",
+            showVideo ? "opacity-100" : "opacity-0",
+            facingMode === "user" && "scale-x-[-1]"
+          )}
+          style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+        />
       </div>
     );
   };
