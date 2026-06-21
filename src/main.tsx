@@ -62,6 +62,15 @@ schedule(() => {
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
     startIdleRoutePrefetch();
   }
+  // Phase 1 (instant-entry): pre-mint a 6h wildcard LiveKit viewer token in
+  // the background so the first live-room / party-browse tap pays zero
+  // token-fetch latency. Safe before auth resolves — silently no-ops if
+  // user is not signed in; AuthProvider will retry on sign-in.
+  if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
+    import('./services/livekitTokenCache').then(({ preMintViewerWildcardToken }) => {
+      preMintViewerWildcardToken();
+    }).catch(() => { /* non-fatal */ });
+  }
 });
 
 // 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.
