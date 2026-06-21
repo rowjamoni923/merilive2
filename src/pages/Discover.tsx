@@ -109,7 +109,7 @@ const Discover = () => {
   const [joiningByCode, setJoiningByCode] = useState(false);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
+  const fetchRoomsRef = useRef<() => Promise<void>>(() => Promise.resolve());
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
   // Pkg360 NO-AUTO-REFRESH: increased debounce to prevent rapid list flashes
@@ -135,7 +135,7 @@ const Discover = () => {
     }
   };
 
-  const fetchRooms = async (isInitialLoad = false) => {
+  const fetchRooms = async () => {
     try {
       const [participantsRes, roomsRes] = await Promise.all([
         supabase
@@ -246,7 +246,7 @@ const Discover = () => {
 
   useEffect(() => {
     fetchCurrentUser();
-    void fetchRoomsRef.current(true); // Initial load with loading indicator
+    void fetchRoomsRef.current();
 
     // Universal realtime (debounced refetch for adds / participant changes).
     const unsubscribe = subscribeToTables(
@@ -621,7 +621,7 @@ const Discover = () => {
       </div>
 
       {/* Scrollable Room List */}
-      <NativePullToRefresh onRefresh={async () => { await fetchRooms(false); }} className="flex-1">
+      <NativePullToRefresh onRefresh={async () => { await fetchRooms(); }} className="flex-1">
       <main className="h-full overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="flex items-center justify-between mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
           <h2 className="font-semibold text-sm text-display flex items-center gap-1.5">
