@@ -139,8 +139,19 @@ const requestFreshToken = async (
   // Handle auth race after app resume/background by refreshing session once
   if (error && isAuthLikeError(error)) {
     console.warn('[LiveKit] Token request unauthorized, refreshing session and retrying once...');
-    await supabase.auth.refreshSession();
+    const { error: refreshErr } = await supabase.auth.refreshSession();
     const refreshedToken = await getAuthAccessToken();
+    if (refreshErr || !refreshedToken) {
+      // Refresh token is gone / expired — the user's session is dead, no point
+      // retrying the edge call (it would 401 again and bubble a hard error that
+      // can blank the screen). Emit a quiet, throttled "session_expired" error
+      // so callers back off cleanly and AuthProvider's own listener handles the
+      // redirect to /auth on its next tick.
+      const quiet = new Error('session_expired') as Error & { code?: string; quiet?: boolean };
+      quiet.code = 'session_expired';
+      quiet.quiet = true;
+      throw quiet;
+    }
     ({ data, error } = await invokeLiveKitToken(request, refreshedToken));
   }
 
@@ -155,6 +166,13 @@ const requestFreshToken = async (
   }
 
   if (error) {
+    // Final unauthorized after refresh attempt → same quiet session_expired path.
+    if (isAuthLikeError(error)) {
+      const quiet = new Error('session_expired') as Error & { code?: string; quiet?: boolean };
+      quiet.code = 'session_expired';
+      quiet.quiet = true;
+      throw quiet;
+    }
     console.error('[LiveKit] Token error:', error);
     throw new Error((error as any)?.message || 'Failed to get LiveKit token');
   }
