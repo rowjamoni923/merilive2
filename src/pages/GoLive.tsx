@@ -50,6 +50,7 @@ import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
+import { useLiveSessionOptional, type LiveHostState } from "@/features/live-session";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
@@ -74,6 +75,12 @@ const isApprovedLiveHost = (profile?: {
 
 const GoLive = () => {
   const navigate = useNavigate();
+  // When rendered inside <LiveSessionProvider> (route /go-live or
+  // /live-session), this hook returns the live-session context. We use it to
+  // swap to the broadcast phase WITHOUT a route navigation, so the WebView
+  // never unmounts and the camera/LiveKit preview track stays alive.
+  // Outside the Provider it returns null and we fall back to navigate().
+  const liveSession = useLiveSessionOptional();
   // Pkg443 Phase-3: keep host's screen awake on the pre-live setup screen.
   useScreenLock(true);
   // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
@@ -1026,19 +1033,24 @@ const GoLive = () => {
 
       // Navigate IMMEDIATELY - don't wait for anything else
       // LiveStream page will handle LiveKit connection in background
-      navigate(`/live/${liveStream.id}`, { 
-        state: { 
-          isHost: true,
-          title: title.trim(),
-          hostInfo: userProfile ? {
-            id: userProfile.id,
-            name: userProfile.display_name || 'Host',
-            avatar: userProfile.avatar_url || '',
-            level: getRequiredDisplayLevel(userProfile),
-            gender: userProfile.gender || 'female',
-          } : undefined,
-        } 
-      });
+      const hostState: LiveHostState = {
+        isHost: true,
+        title: title.trim(),
+        hostInfo: userProfile ? {
+          id: userProfile.id,
+          name: userProfile.display_name || 'Host',
+          avatar: userProfile.avatar_url || '',
+          level: getRequiredDisplayLevel(userProfile),
+          gender: userProfile.gender || 'female',
+        } : undefined,
+      };
+      if (liveSession) {
+        // Session-aware path: swap phase, no route change, camera continuous.
+        liveSession.goToBroadcast(liveStream.id, hostState);
+      } else {
+        // Legacy path (in case GoLive is rendered outside the Provider).
+        navigate(`/live/${liveStream.id}`, { state: hostState });
+      }
     } catch (error) {
       const rawMessage = error instanceof Error
         ? error.message

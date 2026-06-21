@@ -1,28 +1,20 @@
 /**
- * LiveSessionProvider
- * -------------------
- * Step 1 of the "persistent session container" pattern (user's "shirt পরে বাজারে
- * যাওয়া" model). This Provider mounts ONCE for the entire Go Live flow and
- * holds:
+ * LiveSessionProvider — Delivery 1, real session container.
  *
- *   1. A persistentCameraSession refcount → keeps the raw camera/mic stream
- *      alive across phase swaps (preview → broadcast → ended). Without this,
- *      the refcount briefly hits 0 when PreviewPhase unmounts before
- *      BroadcastPhase mounts, causing the camera to release and restart.
+ * Mounts ONCE for the whole Go Live flow. Holds:
+ *   1. A persistentCameraSession refcount so the camera/mic stream never
+ *      releases between phases (preview → broadcast → ended).
+ *   2. `phase` state. Children swap UI by reading this and MUST NOT
+ *      `navigate()` between phases — phase changes are local state, so the
+ *      WebView never reloads and native plugins never see a "page gone".
+ *   3. The stream id + host state once broadcast begins; LiveStream reads
+ *      these instead of useParams/useLocation when running inside the
+ *      session.
  *
- *   2. The current `phase` state. Children swap UI by reading this — they
- *      MUST NOT use react-router navigate() between phases. Phase changes are
- *      pure local state updates, so the WebView never reloads and native
- *      plugins (LiveKitPlugin) never see a "page gone" event.
- *
- * What this Provider does NOT do yet (future steps):
- *   - Own the LiveKit room directly. For now, phases continue to manage
- *     LiveKit via the existing nativeLiveKitController; because the Provider
- *     holds a camera refcount, the native preview track is reused instead of
- *     being torn down and recreated.
- *   - Render the actual UI. Phases (PreviewPhase, BroadcastPhase, EndedPhase)
- *     render the existing GoLive / LiveStream components for now; the next
- *     migration step moves their internals up into this Provider.
+ * Pages opt in via `useLiveSessionOptional()`. When the hook returns null
+ * the page falls back to the legacy navigate()-based flow, so this
+ * Provider is purely additive — nothing breaks if a page renders without
+ * it.
  */
 
 import {
@@ -42,12 +34,30 @@ import {
 
 export type LiveSessionPhase = 'preview' | 'broadcast' | 'ended';
 
+export type LiveHostState = {
+  isHost: true;
+  title?: string;
+  hostInfo?: {
+    id: string;
+    name: string;
+    avatar: string;
+    level?: number;
+    gender?: string;
+    country?: string;
+  };
+};
+
 export type LiveSessionContextValue = {
   phase: LiveSessionPhase;
   setPhase: (next: LiveSessionPhase) => void;
-  /** Stream/room id once the broadcast actually starts. */
   streamId: string | null;
   setStreamId: (id: string | null) => void;
+  hostState: LiveHostState | null;
+  /** Called by GoLive after the stream row is created. Atomically flips
+   *  phase to 'broadcast' and stores id + host state in one render. */
+  goToBroadcast: (streamId: string, state: LiveHostState) => void;
+  /** Called by LiveStream when the host ends the stream. */
+  goToEnded: () => void;
   /** True while the Provider holds a camera refcount. */
   cameraHeld: boolean;
 };
@@ -63,13 +73,12 @@ export function LiveSessionProvider({
   initialStreamId?: string | null;
   children: ReactNode;
 }) {
-  const [phase, setPhase] = useState<LiveSessionPhase>(initialPhase);
+  const [phase, setPhaseState] = useState<LiveSessionPhase>(initialPhase);
   const [streamId, setStreamId] = useState<string | null>(initialStreamId);
+  const [hostState, setHostState] = useState<LiveHostState | null>(null);
   const [cameraHeld, setCameraHeld] = useState(false);
 
-  // Hold one persistent camera refcount for the entire session. PreviewPhase
-  // and BroadcastPhase may also acquire their own handles; the Provider's
-  // handle guarantees the refcount never drops to 0 during phase transitions.
+  // Hold one persistent camera refcount for the entire session.
   const handleRef = useRef<CameraSessionHandle | null>(null);
 
   useEffect(() => {
@@ -84,8 +93,6 @@ export function LiveSessionProvider({
         handleRef.current = handle;
         setCameraHeld(true);
       } catch (err) {
-        // Camera permission denied / no device — phases will surface the
-        // error through their own UI. Provider stays alive either way.
         console.warn('[LiveSession] camera acquire failed', err);
       }
     })();
@@ -104,19 +111,35 @@ export function LiveSessionProvider({
     };
   }, []);
 
-  const setPhaseStable = useCallback((next: LiveSessionPhase) => {
-    setPhase((prev) => (prev === next ? prev : next));
+  const setPhase = useCallback((next: LiveSessionPhase) => {
+    setPhaseState((prev) => (prev === next ? prev : next));
+  }, []);
+
+  const goToBroadcast = useCallback(
+    (id: string, state: LiveHostState) => {
+      setStreamId(id);
+      setHostState(state);
+      setPhaseState('broadcast');
+    },
+    [],
+  );
+
+  const goToEnded = useCallback(() => {
+    setPhaseState('ended');
   }, []);
 
   const value = useMemo<LiveSessionContextValue>(
     () => ({
       phase,
-      setPhase: setPhaseStable,
+      setPhase,
       streamId,
       setStreamId,
+      hostState,
+      goToBroadcast,
+      goToEnded,
       cameraHeld,
     }),
-    [phase, setPhaseStable, streamId, cameraHeld],
+    [phase, setPhase, streamId, hostState, goToBroadcast, goToEnded, cameraHeld],
   );
 
   return (
@@ -126,10 +149,17 @@ export function LiveSessionProvider({
   );
 }
 
+/** Required form — throws if not inside the Provider. */
 export function useLiveSession(): LiveSessionContextValue {
   const ctx = useContext(LiveSessionContext);
   if (!ctx) {
     throw new Error('useLiveSession must be used inside <LiveSessionProvider>');
   }
   return ctx;
+}
+
+/** Optional form — returns null when the page is rendered outside the
+ *  Provider so legacy navigate()-based flows keep working. */
+export function useLiveSessionOptional(): LiveSessionContextValue | null {
+  return useContext(LiveSessionContext);
 }

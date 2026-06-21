@@ -27,6 +27,7 @@ import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useLiveSessionOptional } from "@/features/live-session";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
@@ -190,20 +191,29 @@ const LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
 
 const LiveStream = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const params = useParams();
   const location = useLocation();
+  // When rendered inside <LiveSessionProvider> (route /live-session,
+  // broadcast phase), prefer the in-memory streamId/hostState from the
+  // session over the URL/location.state so the host path works without a
+  // route change. Outside the Provider this hook returns null and we fall
+  // back to the legacy URL/location-based reads.
+  const liveSession = useLiveSessionOptional();
+  const id = liveSession?.streamId ?? params.id;
+  const sessionHostState = liveSession?.hostState ?? null;
+  const sessionState = sessionHostState ?? location.state;
   // Pkg443 Phase-3: keep screen on for the entire viewer/host session.
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole live session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
   
   
-  // isHost will be verified from database, not just from location state
-  const [isHost, setIsHost] = useState(location.state?.isHost || false);
+  // isHost will be verified from database, not just from session/location state
+  const [isHost, setIsHost] = useState(sessionState?.isHost || false);
   const numberWarning = useNumberSharingWarning();
   const [isHostVerified, setIsHostVerified] = useState(false);
   const [isHostMicMuted, setIsHostMicMuted] = useState(false);
-  const streamTitle = location.state?.title || "";
+  const streamTitle = sessionState?.title || "";
 
   // Pkg-bgcontinuity — viewers (not the host) keep audio + LiveKit subscriber
   // connection alive when the app is minimized or the screen turns off. Host
@@ -221,7 +231,7 @@ const LiveStream = () => {
   // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
   const previewCameraHandleRef = useRef<CameraSessionHandle | null>(null);
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
-    if (location.state?.isHost === true) {
+    if (sessionState?.isHost === true) {
       const stream = consumePreparedHostPreviewStream();
       if (stream) {
         // Pkg-camera-persist (Step 1c): register the handoff stream with the
@@ -248,16 +258,16 @@ const LiveStream = () => {
     frameId?: string | null;
     appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
-  } | null>(() => location.state?.hostInfo ? {
-    name: location.state.hostInfo.name || "Host",
-    avatar: location.state.hostInfo.avatar || "",
-    country: location.state.hostInfo.country || "🌍",
-    language: location.state.hostInfo.language || "English",
-    gender: location.state.hostInfo.gender || "female",
-    level: Number(location.state.hostInfo.level ?? 1),
-    id: location.state.hostInfo.id || "",
-    frameId: location.state.hostInfo.frameId || null,
-    appUid: location.state.hostInfo.appUid || null,
+  } | null>(() => sessionState?.hostInfo ? {
+    name: sessionState.hostInfo.name || "Host",
+    avatar: sessionState.hostInfo.avatar || "",
+    country: sessionState.hostInfo.country || "🌍",
+    language: sessionState.hostInfo.language || "English",
+    gender: sessionState.hostInfo.gender || "female",
+    level: Number(sessionState.hostInfo.level ?? 1),
+    id: sessionState.hostInfo.id || "",
+    frameId: sessionState.hostInfo.frameId || null,
+    appUid: sessionState.hostInfo.appUid || null,
     isVerifiedHost: true,
   } : null);
   
@@ -1017,7 +1027,7 @@ const LiveStream = () => {
       const msg = error instanceof Error ? error.message : String(error);
       recordClientError({ label: "LiveStream.deltaY", message: msg });
       // Viewer-side: stream ended/inactive → show the premium ended dialog (no blank screen)
-      if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
+      if (sessionState?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
         // Phase G bug-fix #1: differentiate the two cases — `stream_inactive`
         // really means the host ended the stream, `must_enter_stream_first`
         // only fires now for non-public (password / followers / pk_only)
@@ -1033,7 +1043,7 @@ const LiveStream = () => {
       }
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.
-      if (location.state?.isHost === true) {
+      if (sessionState?.isHost === true) {
         if (isLiveKitPeerConnectionError(error)) {
           toast.error(describeLiveKitConnectFailure(error));
           return;
@@ -1045,7 +1055,7 @@ const LiveStream = () => {
     },
   });
 
-  const liveStreamCamera = useProCamera('live-stream', location.state?.isHost === true || (isHost && isHostVerified));
+  const liveStreamCamera = useProCamera('live-stream', sessionState?.isHost === true || (isHost && isHostVerified));
 
   useEffect(() => {
     if (liveStreamCamera.error) {
@@ -2498,7 +2508,7 @@ const LiveStream = () => {
     
     if (!id) return;
     
-    const initialHostRole = location.state?.isHost === true;
+    const initialHostRole = sessionState?.isHost === true;
     
     connectionInitiated.current = true;
     const channelName = `live_${id}`;
@@ -2635,7 +2645,7 @@ const LiveStream = () => {
         import('sonner').then(({ toast: t }) => { try { t.dismiss('lk-live-reconnect'); } catch { /* ignore */ } }).catch(() => {});
       } catch { /* ignore */ }
     };
-  }, [id, location.state?.isHost, liveStreamCamera.ready]); // Only depends on id and initial isHost
+  }, [id, sessionState?.isHost, liveStreamCamera.ready]); // Only depends on id and initial isHost
 
   // Call button shows only for female hosts - visible to all viewers
   const shouldShowCallButton = hostInfo?.isVerifiedHost && (hostInfo?.gender === "female" || hostInfo?.gender === "Female") && !isHost;
@@ -2898,7 +2908,14 @@ const LiveStream = () => {
 
   const handleCloseSummary = () => {
     setShowLiveEndSummary(false);
-    navigate('/');
+    if (liveSession) {
+      // Session-aware: swap to ended phase, no route change. EndedPhase
+      // owns the "back to home" button which will tear down the Provider
+      // and release the camera at that point.
+      liveSession.goToEnded();
+    } else {
+      navigate('/');
+    }
   };
 
   // Handle viewer leaving the stream
@@ -2913,10 +2930,15 @@ const LiveStream = () => {
         setViewerCount(data);
       }
     }
-    
+
     await leaveChannel();
-    // Navigate directly to home page - NOT navigate(-1) which causes double tab issue
-    navigate('/', { replace: true });
+    if (liveSession && isHost) {
+      // Host swipe-down end: stay inside the session container, show ended UI.
+      liveSession.goToEnded();
+    } else {
+      // Viewer leave (or legacy mode): go home as before.
+      navigate('/', { replace: true });
+    }
   };
 
   // Keep the top-edge swipe-down gesture wired to the current handleLeaveStream.
