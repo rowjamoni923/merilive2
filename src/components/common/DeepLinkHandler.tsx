@@ -34,7 +34,6 @@ const DeepLinkHandler = () => {
 
     if (ref) {
       localStorage.setItem('meri_pending_invitation_ref', ref);
-      localStorage.setItem('meri_pending_referral', ref);
       return { pathname: '/auth', searchParams: `?ref=${encodeURIComponent(ref)}` };
     }
 
@@ -95,7 +94,6 @@ const DeepLinkHandler = () => {
 
       if (data.ref) {
         localStorage.setItem('meri_pending_invitation_ref', data.ref);
-        localStorage.setItem('meri_pending_referral', data.ref);
       }
       if (data.code) {
         localStorage.setItem('meri_pending_referral', data.code);

@@ -20929,6 +20929,16 @@ export type Database = {
         }
         Returns: Json
       }
+      qualify_invitation_after_purchase: {
+        Args: {
+          p_amount_coins?: number
+          p_amount_usd?: number
+          p_reference?: string
+          p_source?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       raise_security_alert: {
         Args: {
           p_alert_type: string

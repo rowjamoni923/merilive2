@@ -148,3 +148,21 @@ After all 4 phases:
 - Storage policies for `posters` now exist for owner upload/update/delete; public URL delivery remains through the public bucket without broad object-listing RLS.
 - `poster_images` table privileges verified: anon read-only; authenticated read/create/edit/delete; service role all.
 - Browser-session upload test could not run in sandbox because no preview auth session env was available, but the exact failing layer was confirmed from console logs as Storage RLS and fixed at DB policy level.
+
+---
+
+## ✅ Referral + Agency Link Audit Plan — 2026-06-21
+
+**Research standard:** Google Play Install Referrer is the Android-supported deferred deep-link channel for referral content through Play Store install; Bigo-style invite rewards commonly unlock larger bonuses only after the referred user becomes qualified through verification/engagement/first purchase; Chamet-style agencies recruit and manage hosts through agency/sub-agent invite links.
+
+**Verified gaps in current app:**
+1. `Auth.tsx` still shows a manual referral-code input and incorrectly stores `?ref=` as both invitation and agency referral.
+2. `DeepLinkHandler.tsx` deferred link flow also stores invitation `ref` into agency referral storage.
+3. `SmartLink.tsx` web landing text still tells users to copy and manually enter a referral/agency code after install.
+4. `record_invitation()` marks invites as `verified` immediately on signup; user requirement is to count only after minimum **$2** diamond purchase.
+5. Google Play, helper top-up, standard payment approval, and `safe_credit_diamonds()` purchase paths need one shared qualification function so invite counting is consistent.
+
+**Locked fix:**
+- User invite link → stores inviter `app_uid` only; creates `user_invitations.status='pending'` at signup; becomes `verified` only after total completed paid purchase amount reaches **$2 USD**.
+- Agency link/code → stores agency code only; host signup auto-sends agency join request through `join_agency(..., _joined_via='agency_link')`; invitation links never count as agency.
+- Auth page manual referral/agency-code entry removed; Play Store/share pages state automatic link attribution.

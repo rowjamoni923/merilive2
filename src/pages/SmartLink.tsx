@@ -245,8 +245,6 @@ const SmartLink = () => {
   const playStoreUrl = getPlayStoreUrlWithReferrer();
   const apkDownloadUrl = APK_DOWNLOAD_URL;
 
-  const [codeCopied, setCodeCopied] = useState(false);
-
   const handleDownload = () => {
     storePendingDeepLink();
     window.location.href = playStoreUrl;
@@ -255,13 +253,6 @@ const SmartLink = () => {
   const handleDirectDownload = () => {
     storePendingDeepLink();
     window.location.href = apkDownloadUrl;
-  };
-
-  const copyRefCode = () => {
-    const codeToCopy = invitationRef || code || rawRef || '';
-    navigator.clipboard.writeText(codeToCopy);
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
   };
 
   if (isCheckingRefType && rawRef && !agencyParam && !isNativeApp) {
@@ -296,27 +287,11 @@ const SmartLink = () => {
         </p>
 
         <div className="w-full max-w-sm space-y-4">
-          {/* Referral Code - Very Prominent */}
+          {/* Automatic attribution */}
           <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-2xl p-5 border border-amber-400/30">
-            <p className="text-amber-300 text-xs font-bold mb-1 text-center">🎁 YOUR REFERRAL CODE</p>
-            <p className="text-amber-200/60 text-[11px] text-center mb-3">
-              Copy this code → Download app → Enter code after signup
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white/80 rounded-xl px-4 py-3.5 border border-amber-400/30">
-                <p className="text-slate-800 font-mono text-2xl font-bold tracking-widest text-center">
-                  {invitationRef}
-                </p>
-              </div>
-              <button
-                onClick={copyRefCode}
-                className="w-14 h-14 bg-amber-500/30 hover:bg-amber-500/50 rounded-xl flex items-center justify-center text-xl transition-colors shrink-0"
-              >
-                {codeCopied ? '✅' : '📋'}
-              </button>
-            </div>
-            <p className="text-green-300 text-[11px] mt-2 text-center font-medium">
-              ✨ Enter this code after signup to get rewards!
+            <p className="text-amber-300 text-xs font-bold mb-1 text-center">🎁 INVITATION LINK READY</p>
+            <p className="text-amber-200/70 text-[12px] text-center">
+              Install from this link and signup will be attributed automatically.
             </p>
           </div>
 
@@ -334,7 +309,7 @@ const SmartLink = () => {
             <p className="text-slate-700 text-xs font-semibold mb-2">📋 How to get rewards:</p>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">1</span>
-              <p className="text-slate-500 text-xs">Copy the referral code above</p>
+              <p className="text-slate-500 text-xs">Open Play Store from this link</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">2</span>
@@ -342,7 +317,7 @@ const SmartLink = () => {
             </div>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">3</span>
-              <p className="text-slate-500 text-xs">Sign up and enter the referral code</p>
+              <p className="text-slate-500 text-xs">Sign up; attribution is applied automatically</p>
             </div>
           </div>
 
@@ -404,22 +379,9 @@ const SmartLink = () => {
 
           {(code || (rawRef && resolvedRefType === "agency")) && (
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-2xl p-4 border border-amber-400/30">
-              <p className="text-amber-300 text-xs font-medium mb-2">📋 Agency Code — Use in the app</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-white/80 rounded-xl px-4 py-3 border border-amber-400/20">
-                  <p className="text-slate-800 font-mono text-xl font-bold tracking-wider text-center">
-                    {code || rawRef}
-                  </p>
-                </div>
-                <button
-                  onClick={copyRefCode}
-                  className="w-12 h-12 bg-amber-500/30 hover:bg-amber-500/50 rounded-xl flex items-center justify-center text-xl transition-colors"
-                >
-                  {codeCopied ? '✅' : '📋'}
-                </button>
-              </div>
-              <p className="text-amber-200/60 text-[11px] mt-2 text-center">
-                Enter this code in "Join Agency" after installing the app
+              <p className="text-amber-300 text-xs font-medium mb-2 text-center">📋 Agency link ready</p>
+              <p className="text-amber-200/70 text-[12px] text-center">
+                Install from this link and eligible host signup will be sent to the agency automatically.
               </p>
             </div>
           )}
@@ -451,13 +413,6 @@ const SmartLink = () => {
         </div>
       )}
 
-      {rawRef && !code && resolvedRefType !== "agency" && (
-        <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-amber-200/60">
-          <p className="text-slate-500 text-xs">
-            Referral Code: <span className="text-slate-800 font-mono font-bold">{rawRef}</span>
-          </p>
-        </div>
-      )}
     </div>
   );
 };
