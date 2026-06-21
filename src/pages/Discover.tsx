@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PrewarmDiv } from "@/components/live/PrewarmDiv";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -833,7 +834,7 @@ const Discover = () => {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </PrewarmDiv>
                 );
               })}
             </>
