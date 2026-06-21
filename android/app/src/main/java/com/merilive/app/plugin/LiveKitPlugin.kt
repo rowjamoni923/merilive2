@@ -269,6 +269,86 @@ class LiveKitPlugin : Plugin() {
         val publishAudio: Boolean,
     )
 
+    // Standalone "warmup" rooms used by the JS connection pool (Phase 5/6).
+    // Never connected, never published to — only `prepareConnection` is called
+    // on them to keep DNS + TLS session-resumption hot for the SDK's OkHttp /
+    // WebRTC stack (separate from the WebView's networking stack). Auto-
+    // discarded after WARMUP_TTL_MS so a stale warmup never leaks.
+    private val warmupRooms: MutableList<Room> = mutableListOf()
+    private val warmupTimers: MutableList<kotlinx.coroutines.Job> = mutableListOf()
+    private val warmupLock = Any()
+    private val WARMUP_TTL_MS = 4L * 60_000L
+    private val MAX_WARMUP_ROOMS = 2
+
+    /**
+     * Phase 6 — native equivalent of `Room.prepareConnection(url, token)` on
+     * the Kotlin SDK. Warms DNS + TLS for the SFU on the OkHttp/WebRTC stack
+     * used by the native publisher paths (host Go Live, private call,
+     * party-room mic publish). Cheap, no media, no signaling, non-billable.
+     *
+     * The JS pool pulses this right before any native `connect()` so the
+     * about-to-fire TCP handshake hits TLS session resumption instead of a
+     * cold 3-RTT handshake. Safe to call repeatedly; bounded to MAX_WARMUP_ROOMS.
+     */
+    @PluginMethod
+    fun prepareConnection(call: PluginCall) {
+        val url = call.getString("url")
+        val token = call.getString("token")
+        if (url.isNullOrBlank() || token.isNullOrBlank()) {
+            call.reject("url and token are required")
+            return
+        }
+        scope.launch {
+            try {
+                val warmRoom = withContext(Dispatchers.IO) {
+                    LiveKit.create(
+                        appContext = context.applicationContext,
+                        options = RoomOptions(adaptiveStream = true, dynacast = false),
+                    )
+                }
+                try {
+                    warmRoom.prepareConnection(url, token)
+                } catch (t: Throwable) {
+                    Log.w(TAG, "prepareConnection: SDK call failed", t)
+                    try { warmRoom.disconnect() } catch (_: Throwable) {}
+                    call.resolve(JSObject().put("prepared", false).put("reason", t.message ?: "error"))
+                    return@launch
+                }
+
+                // Track it so we can teardown on app destroy / overflow.
+                val toDiscard: List<Room>
+                synchronized(warmupLock) {
+                    warmupRooms.add(warmRoom)
+                    toDiscard = if (warmupRooms.size > MAX_WARMUP_ROOMS) {
+                        val excess = warmupRooms.subList(0, warmupRooms.size - MAX_WARMUP_ROOMS).toList()
+                        excess.forEach { warmupRooms.remove(it) }
+                        excess
+                    } else emptyList()
+                }
+                toDiscard.forEach { r ->
+                    try { r.disconnect() } catch (_: Throwable) {}
+                }
+
+                // Auto-discard after TTL so a forgotten warmup never leaks.
+                val timer = scope.launch {
+                    kotlinx.coroutines.delay(WARMUP_TTL_MS)
+                    synchronized(warmupLock) {
+                        warmupRooms.remove(warmRoom)
+                    }
+                    try { warmRoom.disconnect() } catch (_: Throwable) {}
+                }
+                synchronized(warmupLock) { warmupTimers.add(timer) }
+
+                call.resolve(JSObject().put("prepared", true))
+            } catch (t: Throwable) {
+                Log.w(TAG, "prepareConnection failed", t)
+                call.resolve(JSObject().put("prepared", false).put("reason", t.message ?: "error"))
+            }
+        }
+    }
+
+
+
     @PluginMethod
     fun connect(call: PluginCall) {
         val url = call.getString("url")
