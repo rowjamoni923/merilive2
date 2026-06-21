@@ -265,3 +265,4 @@ I'll write the Kotlin/Java code in Lovable; you do `npx cap sync && cd android &
 2. `idleRoutePrefetch.ts` now covers every major user-facing section in tiers: Home/Discover/Reels/Profile/Settings/GoLive/Live/Party first, then Profile/Search/Settings/Reels menus, then Agency/Games/support routes; native Android uses slower waves instead of skipping most routes.
 3. `routePrefetch.ts` now covers all same user-facing static routes plus dynamic route normalization for `/live-feed/:id` and `/pk-leaderboard/:id`.
 4. `Reels.tsx` now preloads the Create Reels upload modal on pointer/touch start before opening it.
+5. Imperative `navigate()` buttons inside Profile, Profile Details, and Settings menus now warm their destination chunks on pointer/touch start too, so profile menu sections are not dependent on anchor-only global prefetch.
