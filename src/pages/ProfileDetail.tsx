@@ -811,7 +811,6 @@ const ProfileDetail = () => {
     ? (profile.host_level ?? 0)
     : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
   const level = resolvedLevelLoading ? fallbackLevel : (resolvedLevel ?? fallbackLevel);
-  const isVideo = isPosterVideo(posterImages[currentSlideIndex]);
   const isProfileLive = !!activeLiveStream;
   const isProfileInParty = !!activePartyRoom;
   const canStartProfileCall = isPresenceOnline
