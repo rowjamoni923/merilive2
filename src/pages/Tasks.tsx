@@ -597,101 +597,32 @@ const Tasks = () => {
         </motion.div>
 
         {/* ========== NEW HOST LIVE BONUS SECTION ========== */}
-        {isEligibleForBonus && bonusSettings && (
+        {/* Per-hour tier claim card (uses server RPC get_host_live_bonus_state + claim_host_live_hour_bonus). */}
+        {/* isStreamActive={false} → no minute-heartbeat from Tasks page; minutes only accumulate while host is actually live. */}
+        {/* Card auto-hides if user is not an eligible verified host within the program window. */}
+        {currentUserId && (
           <motion.div
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="mb-6 rounded-2xl overflow-hidden shadow-xl"
-            style={{
-              background: 'linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #1a0533 100%)',
-              border: '1px solid rgba(168,85,247,0.3)',
-            }}
+            className="mb-6 flex flex-col items-center"
           >
-            {/* Header */}
-            <div className="p-4 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
-                    <Flame className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
-                      🔥 New Host Live Bonus
-                      <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold text-slate-900">
-                        LIMITED
-                      </span>
-                    </h3>
-                    <p className="text-[11px] text-purple-200/80">
-                      {bonusDaysRemaining} day{bonusDaysRemaining !== 1 ? 's' : ''} remaining
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
-                  <p className="text-[10px] text-purple-200/70">beans/hour</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Hourly Progress Slots */}
-            <div className="px-4 pb-3">
-              <div className="flex gap-1.5">
-                {Array.from({ length: bonusSettings.max_hours_per_day }, (_, i) => {
-                  const completed = (bonusProgress?.hours_completed || 0) > i;
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-1 h-10 rounded-xl flex flex-col items-center justify-center ${
-                        completed
-                          ? 'bg-gradient-to-b from-fuchsia-500 to-purple-600 shadow-lg shadow-fuchsia-500/30'
-                          : 'bg-white/5 border border-white/10'
-                      }`}
-                    >
-                      {completed ? (
-                        <Check className="w-4 h-4 text-white" />
-                      ) : (
-                        <Clock className="w-3.5 h-3.5 text-purple-200/70" />
-                      )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-purple-200/70'}`}>
-                        {i + 1}h
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
-              {/* Stats row */}
-              <div className="flex items-center justify-around mb-3">
-                <div className="text-center">
-                  <p className="text-amber-300 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-purple-200/70">Earned Today</p>
-                </div>
-                <div className="w-px h-6 bg-white/10" />
-                <div className="text-center">
-                  <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
-                  <p className="text-[9px] text-purple-200/70">Max/Day</p>
-                </div>
-                <div className="w-px h-6 bg-white/10" />
-                <div className="text-center">
-                  <p className="text-fuchsia-300 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
-                  <p className="text-[9px] text-purple-200/70">Period</p>
-                </div>
-              </div>
-              {/* Go Live button - full width */}
+            <NewHostBonusCard
+              hostId={currentUserId}
+              isStreamActive={false}
+              onBeansClaimed={() => updateCachedBalance(0)}
+            />
+            <div className="w-full max-w-[320px] mt-3 flex flex-col gap-2">
               <Button
                 size="sm"
                 onClick={() => navigate('/go-live')}
                 className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
               >
                 <Radio className="w-4 h-4 mr-1.5" />
-                Go Live
+                Go Live to Earn Bonus
               </Button>
               <button
                 onClick={() => navigate('/host-bonus-ledger')}
-                className="w-full mt-2 text-[11px] text-purple-200/80 hover:text-white underline underline-offset-2"
+                className="w-full text-[11px] text-purple-700/80 hover:text-purple-900 underline underline-offset-2"
               >
                 View bonus ledger →
               </button>
