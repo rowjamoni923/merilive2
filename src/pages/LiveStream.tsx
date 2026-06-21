@@ -190,20 +190,29 @@ const LIVE_ROOM_CHAT_STACK_BOTTOM_FALLBACK =
 
 const LiveStream = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const params = useParams();
   const location = useLocation();
+  // When rendered inside <LiveSessionProvider> (route /live-session,
+  // broadcast phase), prefer the in-memory streamId/hostState from the
+  // session over the URL/location.state so the host path works without a
+  // route change. Outside the Provider this hook returns null and we fall
+  // back to the legacy URL/location-based reads.
+  const liveSession = useLiveSessionOptional();
+  const id = liveSession?.streamId ?? params.id;
+  const sessionHostState = liveSession?.hostState ?? null;
+  const sessionState = sessionHostState ?? location.state;
   // Pkg443 Phase-3: keep screen on for the entire viewer/host session.
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole live session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
   
   
-  // isHost will be verified from database, not just from location state
-  const [isHost, setIsHost] = useState(location.state?.isHost || false);
+  // isHost will be verified from database, not just from session/location state
+  const [isHost, setIsHost] = useState(sessionState?.isHost || false);
   const numberWarning = useNumberSharingWarning();
   const [isHostVerified, setIsHostVerified] = useState(false);
   const [isHostMicMuted, setIsHostMicMuted] = useState(false);
-  const streamTitle = location.state?.title || "";
+  const streamTitle = sessionState?.title || "";
 
   // Pkg-bgcontinuity — viewers (not the host) keep audio + LiveKit subscriber
   // connection alive when the app is minimized or the screen turns off. Host
