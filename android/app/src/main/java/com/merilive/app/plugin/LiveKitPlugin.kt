@@ -961,8 +961,15 @@ class LiveKitPlugin : Plugin() {
                             r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                         }
                         is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
-                        is RoomEvent.Reconnecting -> emit("reconnecting", JSObject())
-                        is RoomEvent.Reconnected -> emit("reconnected", JSObject())
+                        is RoomEvent.Reconnecting -> {
+                            emit("reconnecting", JSObject())
+                            emit("connection-state", JSObject().put("state", "reconnecting"))
+                        }
+                        is RoomEvent.Reconnected -> {
+                            emit("reconnected", JSObject())
+                            emit("connection-state", JSObject().put("state", "reconnected"))
+                            runOnMain { rebindAllSlotsFromCurrentTracks() }
+                        }
                         is RoomEvent.ActiveSpeakersChanged -> {
                             val arr = com.getcapacitor.JSArray()
                             ev.speakers.forEach { arr.put(it.identity?.value ?: "") }
