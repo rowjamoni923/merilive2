@@ -383,6 +383,13 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const isSingleOnly = !!selectedGift && selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
 
   const handleGiftTap = useCallback((gift: GiftData) => {
+    const required = Number(gift.min_level ?? 0) || 0;
+    if (required > 0 && effectiveUserLevel < required) {
+      toast.error(`Reach Lv ${required} to unlock "${gift.name}"`, {
+        description: `Your current level: Lv ${effectiveUserLevel}`,
+      });
+      return;
+    }
     if (selectedGift?.id === gift.id) {
       setSelectedGift(null);
       resetCombo();
@@ -392,7 +399,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       resetCombo();
       warmSelectedVideoGift(gift.animation_url || gift.icon_url);
     }
-  }, [selectedGift, resetCombo]);
+  }, [selectedGift, resetCombo, effectiveUserLevel]);
 
 
   // Keep ref in sync with userCoins (mirror, not state-source).
