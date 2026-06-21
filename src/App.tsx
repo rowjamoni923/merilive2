@@ -61,6 +61,7 @@ const Index = lazy(lazyRetry(() => import("./pages/Index")));
 const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
+import ConnectionStatus from "./components/system/ConnectionStatus";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
 const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
@@ -1279,6 +1280,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <SonnerToaster />
+            <ConnectionStatus />
             <BrowserRouter>
               <ScrollToTop />
               <RouteTransitionHost />
