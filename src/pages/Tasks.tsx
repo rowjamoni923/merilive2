@@ -189,6 +189,7 @@ const Tasks = () => {
     try {
       const user = await getCachedUser();
       if (!user) return false;
+      setCurrentUserId(user.id);
 
       // Fetch settings
       const { data: settings } = await supabase
