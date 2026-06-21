@@ -40,6 +40,7 @@ import {
 import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
+import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
@@ -1330,7 +1331,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Prepare socket/TLS path first, then connect
       await room.prepareConnection(url, token).catch(() => {});
-      await room.connect(url, token);
+      await connectLiveKitRoom(room, url, token, 'live');
       setIsJoined(true);
       setConnectionState('CONNECTED');
       setCurrentRole(config.role);
