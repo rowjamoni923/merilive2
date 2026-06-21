@@ -47,9 +47,6 @@ const Live = () => {
     }
   })();
   const [streams, setStreams] = useState<LiveStream[]>(initialStreams);
-  // Pkg503: track first-fetch state so cold loads show a skeleton grid
-  // instead of the "No Live Streams" empty-state while data is in flight.
-  const [initialLoading, setInitialLoading] = useState(initialStreams.length === 0);
   const mountedRef = useRef(false);
 
   const fetchLiveStreams = async () => {
@@ -141,8 +138,6 @@ const Live = () => {
     } catch (error) {
       console.error('Error fetching live streams:', error);
       recordClientError({ label: "Live.startPreload", message: error instanceof Error ? error.message : String(error) });
-    } finally {
-      if (mountedRef.current) setInitialLoading(false);
     }
   };
 
@@ -211,22 +206,7 @@ const Live = () => {
       </header>
 
       <main className="flex-1 overflow-y-auto overscroll-contain px-4 py-4" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        {initialLoading && streams.length === 0 ? (
-          <div className="grid grid-cols-2 gap-3" aria-busy="true" aria-live="polite">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-2xl bg-muted/40 border border-border/40 overflow-hidden"
-              >
-                <div className="aspect-[3/4] bg-gradient-to-br from-muted/60 to-muted/30 animate-pulse" />
-                <div className="p-2 space-y-2">
-                  <div className="h-3 w-2/3 rounded bg-muted animate-pulse" />
-                  <div className="h-2 w-1/3 rounded bg-muted/70 animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : streams.length === 0 ? (
+        {streams.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Flame className="w-16 h-16 text-muted-foreground/30 mb-4" />
             <h3 className="text-lg font-semibold text-muted-foreground">No Live Streams</h3>

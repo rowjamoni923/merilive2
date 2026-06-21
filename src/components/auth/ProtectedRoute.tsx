@@ -24,6 +24,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const [banReason, setBanReason] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [profileMissing, setProfileMissing] = useState(false);
+  const [checkedLocalSession, setCheckedLocalSession] = useState(!!session);
   const checkingRef = useRef(false);
   const effectiveSession = session ?? localSession;
 
@@ -35,6 +36,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   useEffect(() => {
     if (session) {
       setLocalSession(session);
+      setCheckedLocalSession(true);
       return;
     }
 
@@ -47,6 +49,9 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       .catch(() => {
         if (cancelled) return;
         setLocalSession(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCheckedLocalSession(true);
       });
 
     return () => {
@@ -157,6 +162,10 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
   if (!effectiveSession) {
     if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
+      return <>{children}</>;
+    }
+
+    if (!checkedLocalSession) {
       return <>{children}</>;
     }
 
