@@ -39,6 +39,8 @@ npm install
 npm run build
 ```
 
+> **Important:** Android Studio must not build the APK before the web assets are copied into `android/app/src/main/assets/public`. If that folder is missing, Capacitor opens `https://localhost` and Android shows `net::ERR_CONNECTION_REFUSED` on launch.
+
 ### Step 3: Add Android Platform
 ```bash
 # Add Android platform (first time only)
@@ -151,6 +153,19 @@ keytool -genkey -v -keystore merilive-release-key.keystore \
 npm run build
 npx cap sync android
 ```
+
+### `https://localhost` / `net::ERR_CONNECTION_REFUSED` on app launch
+Cause: the Capacitor web bundle was not packaged into the APK (`android/app/src/main/assets/public/index.html` missing), or Android Studio built an old unsynced Android project.
+
+Fix:
+```bash
+npm install
+npm run build
+npx cap sync android
+npx cap open android
+```
+
+Then rebuild/reinstall the APK from Android Studio. The Gradle build now also blocks APK creation with a clear error if the bundled web assets are missing.
 
 ### Build fails
 ```bash
