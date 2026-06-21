@@ -153,6 +153,14 @@ export function CallProvider({ children }: CallProviderProps) {
     dismissCall,
     notifyMediaConnected,
   } = usePrivateCall(userId);
+  const acceptCallRef = useRef(acceptCall);
+  const declineCallRef = useRef(declineCall);
+  const endCallRef = useRef(endCall);
+  useEffect(() => {
+    acceptCallRef.current = acceptCall;
+    declineCallRef.current = declineCall;
+    endCallRef.current = endCall;
+  }, [acceptCall, declineCall, endCall]);
 
   // Pkg500 Phase D — push (balance, rate) into the native PrivateCallActivity
   // every time the caller's wallet or the call's per-minute rate changes.
@@ -555,13 +563,13 @@ export function CallProvider({ children }: CallProviderProps) {
             p_device_info: { source: 'NativeCall', action: 'accept', ts: event.ts },
           });
         } catch (_) {}
-        await acceptCall(event.callId);
+        await acceptCallRef.current(event.callId);
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
         return;
       }
 
       if (event.action === 'decline' || event.action === 'timeout') {
-        await declineCall(event.callId, event.action === 'timeout' ? 'timeout' : 'declined');
+        await declineCallRef.current(event.callId, event.action === 'timeout' ? 'timeout' : 'declined');
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
         return;
       }
@@ -573,7 +581,7 @@ export function CallProvider({ children }: CallProviderProps) {
       // remote/system hangup so JS runs full teardown.
       if (event.action === 'ended') {
         try {
-          await endCall();
+          await endCallRef.current();
         } catch (e) {
           console.warn('[CallProvider] endCall on native "ended" failed:', e);
         }
@@ -586,7 +594,7 @@ export function CallProvider({ children }: CallProviderProps) {
       // settle path or the native Room + billing can leak after the Activity closes.
       if (event.action === 'end') {
         try {
-          await endCall();
+          await endCallRef.current();
         } catch (e) {
           console.warn('[CallProvider] endCall on native "end" failed:', e);
         }
@@ -623,11 +631,25 @@ export function CallProvider({ children }: CallProviderProps) {
       actions?.forEach((action) => void handleNativeAction(action));
     }).catch(() => undefined);
 
+    const drainBufferedActions = () => {
+      if (disposed || typeof document === 'undefined' || document.visibilityState !== 'visible') return;
+      void NativeCall.getLastAction().then(({ actions }) => {
+        if (disposed) return;
+        actions?.forEach((action) => void handleNativeAction(action));
+      }).catch(() => undefined);
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', drainBufferedActions);
+    }
+
     return () => {
       disposed = true;
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', drainBufferedActions);
+      }
       void listener?.remove().catch(() => undefined);
     };
-  }, [userId, acceptCall, declineCall]);
+  }, [userId]);
 
 
   const handleEndCall = async () => {
