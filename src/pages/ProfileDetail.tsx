@@ -632,6 +632,10 @@ const ProfileDetail = () => {
     return () => clearInterval(timer);
   }, [posterImages.length, slideshowInterval, isPaused]);
 
+  useEffect(() => {
+    if (currentSlideIndex >= posterImages.length) setCurrentSlideIndex(0);
+  }, [currentSlideIndex, posterImages.length]);
+
   const copyId = () => {
     if (profile?.id) {
       navigator.clipboard.writeText(profile.id.slice(0, 8));
@@ -897,7 +901,54 @@ const ProfileDetail = () => {
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
-        {/* Slideshow auto-plays 24/7; controls intentionally hidden */}
+        {posterImages.length > 1 && (
+          <div className="absolute left-0 right-0 bottom-28 z-10 px-4 overflow-x-auto no-scrollbar">
+            <div className="flex gap-2 min-w-max">
+              {posterImages.map((poster, idx) => {
+                const thumbIsVideo = isPosterVideo(poster);
+                const active = idx === currentSlideIndex;
+                return (
+                  <button
+                    key={`poster-thumb-${poster.id || idx}`}
+                    type="button"
+                    onClick={() => {
+                      setCurrentSlideIndex(idx);
+                      setIsPaused(false);
+                    }}
+                    aria-label={`Show profile media ${idx + 1}`}
+                    className={cn(
+                      "relative h-14 w-11 flex-shrink-0 overflow-hidden rounded-lg border bg-background/35 shadow-sm backdrop-blur-md transition-transform active:scale-95",
+                      active ? "border-primary ring-2 ring-primary/50" : "border-border/40"
+                    )}
+                  >
+                    {thumbIsVideo ? (
+                      <>
+                        <video
+                          src={poster.image_url}
+                          className="h-full w-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                        <span className="absolute inset-0 flex items-center justify-center bg-foreground/25">
+                          <Play className="h-4 w-4 text-background" />
+                        </span>
+                      </>
+                    ) : (
+                      <img
+                        src={enhanceThumbnail(poster.image_url, { width: 120, quality: 75 })}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
 
         {/* Header Buttons */}
