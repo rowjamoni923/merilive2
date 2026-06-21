@@ -1100,15 +1100,11 @@ const GoLive = () => {
   };
 
 
-  // Don't show loading spinner - camera should start immediately
-  // Only block if truly loading profile AND camera hasn't started
-  if (isLoading && !stream) {
-    return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 z-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-      </div>
-    );
-  }
+  // Phase 4 (instant-entry): NO full-screen spinner. If profile is still
+  // loading, render the shell with a transparent surface so the camera /
+  // native preview can already promote behind it. The page mounts instantly;
+  // the host never sees a "loading" state.
+  // (Block kept as a no-op for callers that depend on early-return shape.)
 
   return (
     <div className={cn(
