@@ -24,45 +24,33 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const [banReason, setBanReason] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [profileMissing, setProfileMissing] = useState(false);
-  const [waitedForRecovery, setWaitedForRecovery] = useState(!!session);
   const checkingRef = useRef(false);
   const effectiveSession = session ?? localSession;
 
   // Session hijacking protection
   useSessionSecurity();
 
-  // If no session, wait briefly for background recovery before redirecting
+  // Never block protected sections behind a timed loader. Supabase session
+  // recovery runs in App; this guard only mirrors the latest local session.
   useEffect(() => {
     if (session) {
       setLocalSession(session);
-      setWaitedForRecovery(true);
       return;
     }
 
-    // Give background session recovery up to 1.5s to complete
-    setWaitedForRecovery(false);
     let cancelled = false;
-
-    const timer = setTimeout(() => {
-      void supabase.auth.getSession()
-        .then(({ data }) => {
-          if (cancelled) return;
-          setLocalSession(data.session ?? null);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          setLocalSession(null);
-        })
-        .finally(() => {
-          if (!cancelled) {
-            setWaitedForRecovery(true);
-          }
-        });
-    }, 1500);
+    void supabase.auth.getSession()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setLocalSession(data.session ?? null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLocalSession(null);
+      });
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
     };
   }, [session]);
 
@@ -167,84 +155,11 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Native app cold starts must not show a branded loading blocker while
-  // Capacitor Preferences hydrates Supabase auth. Render the cached route
-  // surface during the short recovery window, then redirect only if recovery
-  // actually fails.
-  if (!effectiveSession && !waitedForRecovery) {
+  if (!effectiveSession) {
     if (isNativeApp() && localStorage.getItem('meri_manual_logout') !== 'true') {
       return <>{children}</>;
     }
-    // Pkg504: dark skeleton for room/call routes so cream `bg-background` never
-    // flashes through during the brief auth-recovery window on web/refresh.
-    const p = (typeof window !== 'undefined' ? window.location.pathname : '/').toLowerCase();
-    const isDarkRoute =
-      /^\/live\/[^/]+/.test(p) ||
-      p.startsWith('/live-feed') ||
-      p.startsWith('/party/') ||
-      p === '/go-live' ||
-      p === '/live-session' ||
-      p === '/create-party' ||
-      p === '/party-session' ||
-      p.startsWith('/call/') ||
-      p.startsWith('/active-call') ||
-      p.startsWith('/incoming-call') ||
-      p.startsWith('/outgoing-call') ||
-      p.startsWith('/stream/');
 
-    if (isDarkRoute) {
-      return (
-        <div className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
-          <div className="absolute inset-0 bg-white/[0.03] animate-pulse" />
-        </div>
-      );
-    }
-    return (
-      <div className="min-h-screen w-full bg-background pt-safe" aria-hidden="true">
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <div className="h-8 w-32 rounded-lg skl-block" />
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-full skl-block" />
-            <div className="h-9 w-9 rounded-full skl-block" />
-          </div>
-        </div>
-        <div className="flex gap-2 px-4 pb-3 overflow-hidden">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-7 w-16 rounded-full skl-block-soft" />
-          ))}
-        </div>
-        <div className="px-4 pb-24 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="h-44 rounded-2xl skl-block" />
-            <div className="h-44 rounded-2xl skl-block" />
-          </div>
-          <div className="space-y-2.5 pt-1">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-2xl skl-block-soft">
-                <div className="h-12 w-12 rounded-full skl-block-dark" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-1/2 rounded skl-block-dark" />
-                  <div className="h-3 w-1/3 rounded skl-block" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="fixed inset-x-0 bottom-0 border-t border-foreground/10 bg-background/95 backdrop-blur-sm pb-safe">
-          <div className="flex items-center justify-around px-4 py-2.5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex flex-col items-center gap-1.5">
-                <div className="h-6 w-6 rounded-md skl-block-dark" />
-                <div className="h-2 w-8 rounded skl-block" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!effectiveSession) {
     const returnTo = location.pathname + location.search;
     const shouldStoreReturn = 
       returnTo !== '/' && 
