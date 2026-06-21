@@ -118,7 +118,7 @@ const Discover = () => {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
-      void fetchRoomsRef.current(false);
+      void fetchRoomsRef.current();
     }, 1500); // 1.5s debounce for smooth room list updates
   }, []);
 
@@ -501,7 +501,7 @@ const Discover = () => {
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);
-                await fetchRooms(false);
+                await fetchRooms();
                 setRefreshing(false);
                 toast.success("Rooms refreshed!");
               }}
