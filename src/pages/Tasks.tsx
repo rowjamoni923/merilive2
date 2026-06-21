@@ -95,6 +95,7 @@ const Tasks = () => {
   const [bonusProgress, setBonusProgress] = useState<NewHostBonusProgress | null>(null);
   const [isEligibleForBonus, setIsEligibleForBonus] = useState(false);
   const [bonusDaysRemaining, setBonusDaysRemaining] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
