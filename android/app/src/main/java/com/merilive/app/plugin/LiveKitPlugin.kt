@@ -583,7 +583,7 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnPause() {
         super.handleOnPause()
         try {
-            if (isConnected) {
+            if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
                     try { lp?.setMicrophoneEnabled(false) } catch (_: Throwable) {}
@@ -598,7 +598,7 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnResume() {
         super.handleOnResume()
         try {
-            if (isConnected) {
+            if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
                     try { lp?.setMicrophoneEnabled(true) } catch (_: Throwable) {}
@@ -608,6 +608,17 @@ class LiveKitPlugin : Plugin() {
         } catch (t: Throwable) {
             Log.w(TAG, "handleOnResume", t)
         }
+    }
+
+    private fun shouldPauseLocalMediaOnMainActivityPause(): Boolean {
+        // WhatsApp/IMO-style private calls are rendered by PrivateCallActivity;
+        // pausing MainActivity must not mute the ongoing call. Live/party hosts
+        // may use the 60s background-grace policy, but viewers/subscribers must
+        // keep receiving audio/video in PiP/background viewer service.
+        val scope = activeRoomScope?.lowercase()
+        if (scope == "call") return false
+        if (activeIsHost && (scope == "live" || scope == "party")) return true
+        return false
     }
 
     // ─────────────────────────────────────────────
