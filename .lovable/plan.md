@@ -238,7 +238,7 @@ After all 4 phases:
 
 **User issue:** App and every section felt late because route/auth gates showed skeleton/loading boxes before real content.
 
-**Research standard:** Chamet/Bigo/Poppo-style apps paint cached/home surfaces immediately, then refresh room/feed/auth data in the background; LiveKit/Supabase startup work must not block first paint.
+**Research standard:** Chamet/Bigo/Poppo-style apps paint cached/home surfaces immediately, then refresh room/feed/auth data in the background; LiveKit/Supabase startup work must not block first paint. References: Android startup vitals (`developer.android.com/topic/performance/vitals/launch-time`), Agora channel preload pattern (`docs.agora.io/.../preload-channels`), LiveKit room preconnect/prepare pattern (`docs.livekit.io`).
 
 **Completed surgical fixes:**
 1. Eager-loaded first-viewport routes: `Auth`, `Index`, `Discover`, and `Live`, so main app sections no longer wait on lazy-route skeleton chunks.
@@ -247,3 +247,5 @@ After all 4 phases:
 4. Auth background image now loads eagerly instead of lazy so the login screen paints immediately.
 
 **Kept safe:** Button-level loading during actual submit/OTP/login remains, because removing those would allow duplicate account/payment/auth actions.
+
+**Verified:** Playwright cold-open check on `/auth`, `/live`, `/discover` showed `startup_skeletons=0`; unauthenticated protected routes redirect to `/auth` without skeleton/error.
