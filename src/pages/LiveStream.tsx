@@ -231,7 +231,7 @@ const LiveStream = () => {
   // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
   const previewCameraHandleRef = useRef<CameraSessionHandle | null>(null);
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
-    if (location.state?.isHost === true) {
+    if (sessionState?.isHost === true) {
       const stream = consumePreparedHostPreviewStream();
       if (stream) {
         // Pkg-camera-persist (Step 1c): register the handoff stream with the
@@ -258,16 +258,16 @@ const LiveStream = () => {
     frameId?: string | null;
     appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
-  } | null>(() => location.state?.hostInfo ? {
-    name: location.state.hostInfo.name || "Host",
-    avatar: location.state.hostInfo.avatar || "",
-    country: location.state.hostInfo.country || "🌍",
-    language: location.state.hostInfo.language || "English",
-    gender: location.state.hostInfo.gender || "female",
-    level: Number(location.state.hostInfo.level ?? 1),
-    id: location.state.hostInfo.id || "",
-    frameId: location.state.hostInfo.frameId || null,
-    appUid: location.state.hostInfo.appUid || null,
+  } | null>(() => sessionState?.hostInfo ? {
+    name: sessionState.hostInfo.name || "Host",
+    avatar: sessionState.hostInfo.avatar || "",
+    country: sessionState.hostInfo.country || "🌍",
+    language: sessionState.hostInfo.language || "English",
+    gender: sessionState.hostInfo.gender || "female",
+    level: Number(sessionState.hostInfo.level ?? 1),
+    id: sessionState.hostInfo.id || "",
+    frameId: sessionState.hostInfo.frameId || null,
+    appUid: sessionState.hostInfo.appUid || null,
     isVerifiedHost: true,
   } : null);
   
