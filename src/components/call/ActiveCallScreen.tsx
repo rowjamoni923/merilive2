@@ -50,6 +50,7 @@ import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { LowBalanceBanner } from "@/components/call/LowBalanceBanner";
 import { ReconnectingOverlay } from "@/components/call/ReconnectingOverlay";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
+import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 
 
 
