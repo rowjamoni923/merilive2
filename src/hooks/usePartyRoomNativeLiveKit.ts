@@ -18,6 +18,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
+import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
@@ -858,7 +859,7 @@ export function usePartyRoomNativeLiveKit(
         if (!isActiveSession(room)) return;
         await room.prepareConnection(url, token).catch(() => {});
         if (!isActiveSession(room)) return;
-        await room.connect(url, token);
+        await connectLiveKitRoom(room, url, token, 'party');
         if (!isActiveSession(room)) {
           try { room.disconnect(true); } catch { /* ignore */ }
           return;
