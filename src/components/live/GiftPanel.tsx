@@ -672,6 +672,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               onGiftTap={handleGiftTap}
               getAnimationTypeColor={getAnimationTypeColor}
               getAnimationTypeBadge={getAnimationTypeBadge}
+              userLevel={effectiveUserLevel}
             />
           )}
         </div>
