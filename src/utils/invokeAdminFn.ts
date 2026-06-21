@@ -7,6 +7,7 @@
  */
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { maybeTriggerAuthGuardFromError } from "@/lib/authGuard";
 
 export async function invokeAdminFn<T = unknown>(
   name: string,
@@ -15,6 +16,8 @@ export async function invokeAdminFn<T = unknown>(
   try {
     const { data, error } = await adminSupabase.functions.invoke(name, options as any);
     if (error) {
+      const status = (error as any)?.context?.status;
+      if (status === 401) maybeTriggerAuthGuardFromError({ status: 401 });
       recordAdminError({
         kind: 'edge',
         label: `fn:${name}`,
