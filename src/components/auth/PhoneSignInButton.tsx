@@ -220,8 +220,8 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
      const result = await verifyOtp(otpCode, displayName, selectedGender);
      
      if (result.success) {
-       if (referralCode && selectedGender === 'female') {
-         localStorage.setItem("meri_pending_referral", referralCode);
+        if (referralCode) {
+          localStorage.setItem("meri_pending_invitation_ref", referralCode);
        }
        setShowDialog(false);
        resetState();

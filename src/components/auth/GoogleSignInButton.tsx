@@ -101,7 +101,7 @@ export const GoogleSignInButton = ({ agreed, referralCode, onSuccess }: GoogleSi
 
     // Store referral code for after OAuth callback
     if (referralCode) {
-      localStorage.setItem("meri_pending_referral", referralCode);
+      localStorage.setItem("meri_pending_invitation_ref", referralCode);
     }
 
     const result = await signInWithGoogle();

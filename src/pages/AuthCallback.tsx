@@ -162,7 +162,7 @@ const AuthCallback = () => {
                 await supabase.rpc('join_agency', {
                   _host_id: session.user.id,
                   _agency_code: pendingReferral.trim().toUpperCase(),
-                  _joined_via: 'link'
+                    _joined_via: 'agency_link'
                 });
                 localStorage.removeItem("meri_pending_referral");
               }

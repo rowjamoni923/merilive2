@@ -1,7 +1,7 @@
 import { useState, useEffect, type ImgHTMLAttributes } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
-import { Mail, User, Heart, X, Building2, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search, Gift, CheckCircle } from "lucide-react";
+import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search } from "lucide-react";
  import { Rocket3DIcon } from "@/components/ui/Rocket3DIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { getDetectedCountry } from "@/utils/countryDetectionCache";
 
 type Gender = "male" | "female" | null;
-type AuthStep = "gender" | "name" | "email" | "login" | "agency_code" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
+type AuthStep = "gender" | "name" | "email" | "login" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
 
 type AuthBranding = {
   background_type: 'image' | 'video' | 'gif' | 'gradient';
@@ -52,13 +52,6 @@ interface LastUser {
   email: string;
   displayName: string;
   avatarUrl: string | null;
-}
-
-interface AgencyInfo {
-  id: string;
-  name: string;
-  level: string;
-  total_hosts: number;
 }
 
 // Generate unique device ID - NOW USES PERSISTENT NATIVE ID
@@ -245,8 +238,6 @@ const Auth = () => {
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
   const [isAutoRecovering, setIsAutoRecovering] = useState(false);
-  const [showReferralInput, setShowReferralInput] = useState(false);
-  const [manualReferralCode, setManualReferralCode] = useState("");
   
   // Email auth state
   const [email, setEmail] = useState("");
@@ -322,12 +313,6 @@ const Auth = () => {
     detectUserCountry();
   }, []);
 
-  // Agency referral state
-  const [referralCode, setReferralCode] = useState<string | null>(null);
-  const [agencyInfo, setAgencyInfo] = useState<AgencyInfo | null>(null);
-  const [manualAgencyCode, setManualAgencyCode] = useState("");
-  const [showAgencySuccess, setShowAgencySuccess] = useState(false);
-
   // Branding settings - REALTIME
   const { branding: realtimeBranding, loading: brandingLoading } = useBrandingRealtime();
   
@@ -347,19 +332,18 @@ const Auth = () => {
     logo_image_url: null
   };
 
-  // Check for agency referral or sub-agent in URL
+  // Capture link attribution from URL. Invitation refs and agency codes must stay separate.
   useEffect(() => {
     const ref = searchParams.get("ref");
+    const agencyCode = searchParams.get("agency") || searchParams.get("agency_code") || searchParams.get("code");
     const subagent = searchParams.get("subagent");
     
     if (ref) {
-      setReferralCode(ref);
-      // Fetch agency info
-      fetchAgencyInfo(ref);
-      // Store as potential user invitation ref (for male users)
       localStorage.setItem("meri_pending_invitation_ref", ref);
-      // Also store as agency referral (for female/host users to auto-join)
-      localStorage.setItem("meri_pending_referral", ref);
+    }
+
+    if (agencyCode) {
+      localStorage.setItem("meri_pending_referral", agencyCode.trim().toUpperCase());
     }
     
     // Store sub-agent code for after signup
@@ -367,19 +351,6 @@ const Auth = () => {
       localStorage.setItem("meri_pending_subagent", subagent);
     }
   }, [searchParams]);
-
-  const fetchAgencyInfo = async (code: string) => {
-    try {
-      const normalizedCode = code.trim().toUpperCase();
-      const { data, error } = await supabase.rpc('get_agency_by_code', { agency_code: normalizedCode });
-      if (data && data.length > 0) {
-        setAgencyInfo(data[0] as AgencyInfo);
-      }
-    } catch (error) {
-      console.error("Error fetching agency:", error);
-      recordClientError({ label: "Auth.normalizedCode", message: error instanceof Error ? error.message : String(error) });
-    }
-  };
 
   // Track user invitation after signup
   const trackUserInvitation = async (newUserId: string) => {
@@ -518,10 +489,7 @@ const Auth = () => {
           localStorage.setItem(`gender_selected_${user.id}`, 'true');
         }
 
-        // Join agency if referral code exists
-        if (pending.referralCode && isHost) {
-          await joinAgencyAfterSignup(user.id, pending.referralCode);
-        }
+        await joinPendingAgencyAfterSignup(user.id, isHost);
 
         // Track user invitation
         await trackUserInvitation(user.id);
@@ -945,13 +913,22 @@ const Auth = () => {
       const { data } = await supabase.rpc('join_agency', {
         _host_id: userId,
         _agency_code: normalizedCode,
-        _joined_via: referralCode ? 'link' : 'invitation'
+        _joined_via: 'agency_link'
       });
       return data;
     } catch (error) {
       console.error("Error joining agency:", error);
       recordClientError({ label: "Auth.normalizedCode", message: error instanceof Error ? error.message : String(error) });
       return false;
+    }
+  };
+
+  const joinPendingAgencyAfterSignup = async (userId: string, isHost: boolean) => {
+    const pendingReferral = localStorage.getItem("meri_pending_referral");
+    if (!pendingReferral) return;
+    localStorage.removeItem("meri_pending_referral");
+    if (isHost) {
+      await joinAgencyAfterSignup(userId, pendingReferral);
     }
   };
 
@@ -1121,12 +1098,7 @@ const Auth = () => {
         // Track invitation if user came via referral link
         await trackUserInvitation(userId);
 
-        // Join agency if referral code exists (for hosts)
-        const pendingReferral = localStorage.getItem("meri_pending_referral");
-        if (pendingReferral) {
-          await joinAgencyAfterSignup(userId, pendingReferral);
-          localStorage.removeItem("meri_pending_referral");
-        }
+        await joinPendingAgencyAfterSignup(userId, selectedGender === 'female');
 
         if (selectedGender === 'female') {
           toast({
@@ -1153,59 +1125,6 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Handle manual agency code submission
-  const handleJoinAgencyManually = async () => {
-    if (!manualAgencyCode.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter agency code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigateAfterAuth();
-        return;
-      }
-
-      const joined = await joinAgencyAfterSignup(user.id, manualAgencyCode.trim().toUpperCase());
-      
-      if (joined) {
-        toast({
-          title: "Success!",
-          description: "Successfully joined the agency!",
-        });
-        navigateAfterAuth();
-      } else {
-        toast({
-          title: "Error",
-          description: "Invalid agency code or already in an agency",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to join agency",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const skipAgencyJoin = () => {
-    toast({
-      title: "Join Later",
-      description: "You can join an agency from your profile later",
-    });
-    navigateAfterAuth();
   };
 
   // NEW Email Flow - Step 1: Send OTP using Supabase Auth email OTP
@@ -1493,7 +1412,7 @@ const Auth = () => {
         // Instant country detection (non-blocking)
         detectAndSaveLocation(user.id);
 
-        // Note: Agency join will happen after gender selection on home page
+        await joinPendingAgencyAfterSignup(user.id, selectedGender === 'female');
 
         // Save last user info
         localStorage.setItem("meri_last_user", JSON.stringify({
@@ -1770,6 +1689,7 @@ const Auth = () => {
 
         detectAndSaveLocation(data.user.id);
         await trackUserInvitation(data.user.id);
+        await joinPendingAgencyAfterSignup(data.user.id, selectedGender === 'female');
 
         localStorage.setItem("meri_last_user", JSON.stringify({
           email: phoneEmail,
@@ -2029,10 +1949,7 @@ const Auth = () => {
             localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
           }
 
-          // Join agency if referral code exists
-          if (referralCode && isHost) {
-            await joinAgencyAfterSignup(data.user.id, referralCode);
-          }
+          await joinPendingAgencyAfterSignup(data.user.id, isHost);
 
           // Track user invitation
           await trackUserInvitation(data.user.id);
@@ -2160,26 +2077,6 @@ const Auth = () => {
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-8 safe-area-top safe-area-bottom">
-          {/* Agency Referral Banner */}
-          {agencyInfo && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-white" /> {/* dark-ok */}
-                </div>
-                <div className="flex-1">
-                  <p className="text-white/80 text-xs">You've been invited by</p> {/* dark-ok */}
-                  <p className="text-white font-bold">{agencyInfo.name}</p> {/* dark-ok */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className="bg-white/20 text-white text-[10px] border-white/20">{agencyInfo.level}</Badge> {/* dark-ok */}
-                    <span className="text-white/80 text-xs">{agencyInfo.total_hosts} hosts</span> {/* dark-ok */}
-                  </div>
-                </div>
-                <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-              </div>
-            </div>
-          )}
-
         {/* Auth Buttons */}
         <div className="space-y-2 pb-2">
           {/* Latest Login - Only show if user previously logged in */}
@@ -2274,62 +2171,6 @@ const Auth = () => {
             <Mail className="w-5 h-5 mr-2 text-white" />
             <span className="drop-shadow-md tracking-wide">Continue with Email</span>
           </Button>
-
-
-          {/* Referral Code Entry */}
-          {!referralCode && (
-            <div className="mt-1">
-              {!showReferralInput ? (
-                <button
-                  onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-white/70 hover:text-white text-[11px] py-1.5 transition-colors tracking-wide" /* dark-ok */
-                >
-                  Have a referral code? Enter it here
-                </button>
-              ) : (
-                <div className="flex gap-2 items-center">
-                  <div className="relative flex-1">
-                    <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400/70" />
-                    <Input
-                      value={manualReferralCode}
-                      onChange={(e) => setManualReferralCode(e.target.value.toUpperCase())}
-                      placeholder="Enter referral code"
-                      className="pl-9 h-10 bg-white/10 border-amber-400/40 text-white placeholder:text-white/50 rounded-xl text-sm font-mono tracking-wider" /* dark-ok */
-                    />
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (manualReferralCode.trim()) {
-                        const code = manualReferralCode.trim().toUpperCase();
-                        localStorage.setItem("meri_pending_invitation_ref", code);
-                        // If it looks like an agency code, also save as pending referral
-                        // so female users auto-join the agency after signup
-                        if (code.startsWith("AG") || code.length >= 6) {
-                          localStorage.setItem("meri_pending_referral", code);
-                        }
-                        setReferralCode(code);
-                        fetchAgencyInfo(code);
-                        toast({ title: "Code applied", description: "Your referral code has been saved." });
-                        setShowReferralInput(false);
-                      }
-                    }}
-                    size="sm"
-  className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold" /* dark-ok */
-                  >
-                    Apply
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Referral code applied indicator */}
-          {referralCode && !agencyInfo && (
-            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-emerald-500/15 border border-emerald-400/30 rounded-xl">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
-              <span className="text-emerald-200 text-[11px] font-medium tracking-wide">Referral applied: {referralCode}</span>
-            </div>
-          )}
 
           {/* Terms agreement */}
           <button
