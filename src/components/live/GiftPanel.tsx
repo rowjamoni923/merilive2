@@ -32,6 +32,7 @@ export interface GiftData {
   animation_format?: string | null;
   animation_config_url?: string | null;
   sound_url?: string | null;
+  min_level?: number;
 }
 
 export interface GiftCategory {
