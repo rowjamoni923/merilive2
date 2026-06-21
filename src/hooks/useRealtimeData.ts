@@ -37,7 +37,7 @@ export function useRealtimeProfile(userId: string | null) {
     // Pkg361: direct Realtime on own profile row — instant coins / beans /
     // diamonds / level / host_status / avatar updates across every page.
     const channel = supabase
-      .channel(`rt-profile-${userId}`)
+      .channel(`rt-profile-${userId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
@@ -97,7 +97,7 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
 
     // Pkg361: direct Realtime on agency row + this week's performance row.
     const channel = supabase
-      .channel(`rt-agency-${agencyId}`)
+      .channel(`rt-agency-${agencyId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
@@ -209,7 +209,7 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
     // refetch so the leaderboard reflects new beans/diamonds instantly.
     let debounce: ReturnType<typeof setTimeout> | null = null;
     const channel = supabase
-      .channel(`rt-rankings-${rankingType}-${periodType}`)
+      .channel(`rt-rankings-${rankingType}-${periodType}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agency_performance' },
@@ -292,7 +292,7 @@ export function useRealtimeEarnings(userId: string | null) {
     };
 
     const channel = supabase
-      .channel(`rt-earnings-${userId}`)
+      .channel(`rt-earnings-${userId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'gift_transactions', filter: `receiver_id=eq.${userId}` },
