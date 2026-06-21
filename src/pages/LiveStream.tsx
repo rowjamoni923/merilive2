@@ -153,6 +153,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { claimAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from "@/lib/androidCameraHandoff";
+import { describeLiveKitConnectFailure, isLiveKitPeerConnectionError } from "@/lib/livekitConnectPolicy";
 import { useProCamera } from "@/camera/useProCamera";
 import { PremiumCloseButton } from "@/components/ui/PremiumCloseButton";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
@@ -1033,6 +1034,10 @@ const LiveStream = () => {
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.
       if (location.state?.isHost === true) {
+        if (isLiveKitPeerConnectionError(error)) {
+          toast.error(describeLiveKitConnectFailure(error));
+          return;
+        }
         if (/camera|microphone|publish|getUserMedia|NotAllowed|NotReadable|Permission/i.test(msg)) {
           toast.error('Camera failed to start — please check camera permission and try again.');
         }
@@ -2555,7 +2560,7 @@ const LiveStream = () => {
     }).catch(err => {
       console.error('Join failed:', err);
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
-      toast.error(err instanceof Error ? err.message : 'Unable to join live stream');
+      toast.error(describeLiveKitConnectFailure(err));
       connectionInitiated.current = false;
       // Phase 1A: orphan-row cleanup. If the host's LiveKit connect failed
       // before anyone joined, the live_streams row sits at status='starting',
