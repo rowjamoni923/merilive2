@@ -95,6 +95,10 @@ window.addEventListener('unhandledrejection', (e) => {
   const reason: any = e.reason;
   // Quiet expected LiveKit lifecycle errors (stream ended, viewer not yet entered, etc.)
   const isQuiet = reason && (reason.quiet === true || ['stream_inactive', 'must_enter_stream_first'].includes(reason.code));
+  // Route auth-shaped errors through the global guard (Layer 1).
+  try {
+    import('@/lib/authGuard').then(m => { m.maybeTriggerAuthGuardFromError(reason); }).catch(() => {});
+  } catch { /* noop */ }
   if (!isQuiet) {
     try { console.error('[unhandled promise]', reason); } catch { /* noop */ }
   }
