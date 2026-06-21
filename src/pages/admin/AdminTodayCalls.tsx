@@ -298,6 +298,28 @@ export default function AdminTodayCalls() {
                           </Badge>
                         )
                       )}
+
+                      {(call.status === "active" || call.status === "connected") && (
+                        call.e2ee_key ? (
+                          <Badge
+                            className="bg-slate-700/40 text-slate-300 border-slate-500/30 cursor-default"
+                            title="End-to-end encrypted — admin cannot view media, metadata only."
+                          >
+                            <ShieldCheck className="w-3 h-3 mr-1" />
+                            E2EE
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px] border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20"
+                            onClick={() => setMonitorCall(call)}
+                          >
+                            <EyeOff className="w-3 h-3 mr-1" />
+                            Monitor
+                          </Button>
+                        )
+                      )}
                     </div>
                   </div>
 
@@ -314,6 +336,28 @@ export default function AdminTodayCalls() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!monitorCall} onOpenChange={(o) => { if (!o) setMonitorCall(null); }}>
+        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-amber-400" />
+              Invisible Call Monitor
+            </DialogTitle>
+          </DialogHeader>
+          {monitorCall && (
+            <AdminRoomMonitor
+              roomName={`call_${monitorCall.id}`}
+              roomType="call"
+              label={`${monitorCall.caller_profile?.display_name || "Caller"} ↔ ${monitorCall.host_profile?.display_name || "Host"}`}
+              onClose={() => setMonitorCall(null)}
+            />
+          )}
+          <p className="px-4 pb-3 text-[11px] text-slate-500">
+            Neither participant receives any signal. No row is written to call_events. Audio starts muted.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
