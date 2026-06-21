@@ -185,5 +185,7 @@ After all 4 phases:
 1. `useLiveKitClient` now tracks native remote participants for live sessions, refreshes after connect/reconnect/join/leave, filters hidden/admin identities, and clears state on disconnect/leave.
 2. `LiveStream.tsx` now renders `NativeVideoView kind="remote"` for Android live viewers using the host participant SID, so host face is bound through native `TextureViewRenderer` even when no web remote track exists.
 3. `LiveKitPlugin.kt` now emits normalized `connection-state` events for Reconnecting/Reconnected and rebinds all native slots after reconnected, so live/party/call native surfaces recover after transient network/app-background transitions.
+4. `usePrivateCall` now runs a one-shot foreground-resume pending-call catch-up (not polling) so a minimized WebView cannot miss a pending call created while JS was suspended.
+5. `CallProvider` native call-action listener is stable across renders and drains buffered native Accept/Decline actions again on foreground resume, preventing lock-screen action loss during JS remount/resume timing.
 
 **APK note:** Native plugin change requires Android APK rebuild/sync before device verification.
