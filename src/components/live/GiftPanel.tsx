@@ -230,6 +230,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animation_format: (gift as any).animation_format || null,
         animation_config_url: normalizeGiftAssetUrl((gift as any).animation_config_url),
         sound_url: normalizeGiftAssetUrl(gift.sound_url),
+        min_level: Number((gift as any).min_level ?? 0) || 0,
       }));
       setGifts(transformedGifts);
       // Pkg C pass-2 — prewarm visible gift assets so first tap plays instantly.
