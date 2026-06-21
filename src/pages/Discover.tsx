@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PrewarmDiv } from "@/components/live/PrewarmDiv";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -688,8 +689,9 @@ const Discover = () => {
                 const gameColor = room.game_mode ? getGameModeColor(room.game_mode) : null;
                 
                 return (
-                  <div
+                  <PrewarmDiv
                     key={room.id}
+                    roomName={`party_${room.id}`}
                     onClick={() => joinRoom(room)}
                     className="relative rounded-2xl overflow-hidden bg-card cursor-pointer transition-all hover:-translate-y-0.5 active:scale-[0.98]"
                     style={{
@@ -832,7 +834,7 @@ const Discover = () => {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </PrewarmDiv>
                 );
               })}
             </>
