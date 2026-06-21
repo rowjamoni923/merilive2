@@ -69,6 +69,16 @@ schedule(() => {
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
     import('./services/livekitTokenCache').then(({ preMintViewerWildcardToken }) => {
       preMintViewerWildcardToken();
+      // Phase 5 (instant-entry): once the wildcard viewer token is in flight,
+      // boot the LiveKit connection pool. It maintains 2 standby Rooms in the
+      // "prepared" state, keeping DNS + TLS session-resumption tickets hot so
+      // every real `Room.connect()` (host, viewer, party, private call, PK)
+      // pays a ~1-RTT TLS handshake instead of full 3-RTT cold path.
+      setTimeout(() => {
+        import('./services/livekitConnectionPool').then(({ initConnectionPool }) => {
+          initConnectionPool();
+        }).catch(() => { /* non-fatal */ });
+      }, 800);
     }).catch(() => { /* non-fatal */ });
   }
 });
