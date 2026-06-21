@@ -404,6 +404,7 @@ const RouteSuspenseFallback = memo(() => {
     path.startsWith('/live-feed') ||
     path.startsWith('/party/') ||
     path === '/go-live' ||
+    path === '/live-session' ||
     path.startsWith('/call/') ||
     path.startsWith('/active-call') ||
     path.startsWith('/incoming-call') ||
@@ -560,6 +561,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
     location.pathname.startsWith('/live-feed') ||
     location.pathname.startsWith('/party/') ||
     location.pathname === '/go-live' ||
+    location.pathname === '/live-session' ||
     location.pathname.startsWith('/call/') ||
     location.pathname.startsWith('/active-call') ||
     location.pathname.startsWith('/incoming-call') ||
