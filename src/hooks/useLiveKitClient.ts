@@ -614,6 +614,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = true;
         setNativeActive(true);
         setIsNativeMediaActive(true);
+        await refreshNativeParticipants();
+        setTimeout(() => { if (usingNativeRef.current) refreshNativeParticipants().catch(() => {}); }, 120);
+        setTimeout(() => { if (usingNativeRef.current) refreshNativeParticipants().catch(() => {}); }, 450);
         if (options.liveSignalingStreamId) {
           try {
             const mod = await import('@/lib/livekitLiveSignaling');
@@ -636,6 +639,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        setNativeParticipants(new Map());
         clearNativeMediaSurface();
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         lastConfigRef.current = null;
@@ -1672,6 +1676,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         usingNativeRef.current = false;
         setNativeActive(false);
         setIsNativeMediaActive(false);
+        setNativeParticipants(new Map());
         // Belt-and-suspenders: Android can emit camera-state:failed
         // synchronously inside disconnect(). Re-dismiss after the await so
         // any toast re-raised mid-teardown is cleared before unmount.
@@ -1713,6 +1718,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       setLocalVideoTrack(null);
       setLocalAudioTrack(null);
       setIsNativeMediaActive(false);
+      setNativeParticipants(new Map());
       setScreenTrack(null);
       setIsScreenSharing(false);
       setIsJoined(false);
@@ -2404,6 +2410,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     localVideoTrack,
     localAudioTrack,
     isNativeMediaActive,
+    nativeParticipants,
     screenTrack,
     remoteScreenTracks,
     isScreenSharing,
