@@ -195,6 +195,8 @@ class LiveKitPlugin : Plugin() {
             put("attachLocal"); put("detachLocal")
             put("attachRemote"); put("reconnectNow"); put("getActiveSession"); put("setSurviveActivityDestroy")
             put("updateLiveStats"); put("refreshToken")
+            put("sendData"); put("registerRpcMethod"); put("unregisterRpcMethod"); put("performRpc"); put("respondToRpc")
+            put("sendText"); put("registerTextStreamHandler"); put("unregisterTextStreamHandler")
             put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
