@@ -498,7 +498,7 @@ const Tasks = () => {
   }
 
 
-  const totalDailyBonus = bonusSettings ? bonusSettings.beans_per_hour * bonusSettings.max_hours_per_day : 0;
+  // Note: totalDailyBonus removed — per-hour tier visualization moved into <NewHostBonusCard /> which reads server state directly.
 
   return (
     <div data-page="tasks" className="fixed inset-0 flex flex-col bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-y-auto overflow-x-hidden">
