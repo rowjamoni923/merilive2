@@ -919,7 +919,12 @@ class LiveKitPlugin : Plugin() {
         val method = call.getString("method")
         if (method.isNullOrBlank()) { call.reject("method required"); return }
         try {
-            room?.localParticipant?.registerRpcMethod(method) { data ->
+            val localParticipant = room?.localParticipant
+            if (localParticipant == null) {
+                call.resolve(JSObject().put("registered", false).put("reason", "not_connected"))
+                return
+            }
+            localParticipant.registerRpcMethod(method) { data ->
                 val deferred = CompletableDeferred<RpcReply>()
                 pendingRpcReplies[data.requestId] = deferred
                 val payload = JSObject()
@@ -1409,6 +1414,10 @@ class LiveKitPlugin : Plugin() {
         lastConnectArgs = null
         activeRoomScope = null
         activeIsHost = false
+        pendingRpcReplies.values.forEach { deferred ->
+            try { deferred.complete(RpcReply(null, "room_disconnected")) } catch (_: Throwable) {}
+        }
+        pendingRpcReplies.clear()
         try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
