@@ -30,6 +30,7 @@ interface GiftData {
   category: string;
   icon_url?: string | null;
   animation_url?: string | null;
+  min_level?: number;
 }
 
 interface GiftCategory {
