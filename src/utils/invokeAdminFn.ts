@@ -16,8 +16,9 @@ export async function invokeAdminFn<T = unknown>(
   try {
     const { data, error } = await adminSupabase.functions.invoke(name, options as any);
     if (error) {
-      const status = (error as any)?.context?.status;
-      if (status === 401) maybeTriggerAuthGuardFromError({ status: 401 });
+      // Pass the real error — guard only fires for genuine session-invalid signals,
+      // not for app-level 401 (e.g. role / permission checks inside edge fns).
+      maybeTriggerAuthGuardFromError(error);
       recordAdminError({
         kind: 'edge',
         label: `fn:${name}`,
