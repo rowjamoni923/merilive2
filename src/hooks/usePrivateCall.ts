@@ -1158,12 +1158,26 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
-    // Zero-refresh policy: no fallback polling and no foreground/resume checks.
     // FCM + scoped Supabase Realtime below are the instant authoritative paths.
+    // Foreground-resume runs ONE catch-up snapshot only (not polling) so an
+    // incoming call created while the WebView was suspended is still shown when
+    // the user returns without tapping the native notification.
     void checkPendingCalls();
+
+    const handleVisibilityResume = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState !== 'visible') return;
+      void checkPendingCalls();
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityResume);
+    }
 
     return () => {
       isCleanedUp = true;
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityResume);
+      }
     };
   }, [userId, showVerifiedIncomingCall]);
 
