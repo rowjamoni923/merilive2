@@ -120,6 +120,7 @@ const PaymentSuccess = lazy(lazyRetry(() => import("./pages/PaymentSuccess")));
 const PartyRooms = lazy(lazyRetry(() => import("./pages/PartyRooms")));
 const PartyRoom = lazy(lazyRetry(() => import("./pages/PartyRoom")));
 const GoLive = lazy(lazyRetry(() => import("./pages/GoLive")));
+const LiveSessionPage = lazy(lazyRetry(() => import("./pages/LiveSessionPage")));
 const CreateParty = lazy(lazyRetry(() => import("./pages/CreateParty")));
 const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 
