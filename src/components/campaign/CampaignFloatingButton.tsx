@@ -231,6 +231,17 @@ function CampaignFloatingButton() {
     }
 
     draggedRef.current = false;
+
+    // Tap (no drag) — because we captured the pointer on the wrapper, the
+    // browser fires the synthetic `click` on this wrapper rather than the
+    // inner <button>, so the button's onClick never runs. Detect the tap
+    // here and trigger the popup ourselves. Ignore taps on the close (×)
+    // button or other interactive children, which stop propagation in their
+    // own onPointerDown.
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('[data-campaign-no-tap="true"]')) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    setShowPopup(true);
   }, [persistFloatingPosition]);
 
   useEffect(() => {
