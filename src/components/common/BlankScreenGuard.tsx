@@ -52,61 +52,29 @@ const getSurfaceKind = (pathname: string) => {
   return "app";
 };
 
+// Static, animation-free shell. Solid background only — matches destination
+// route. No spinners, no shimmer, no pulse, no skeleton boxes. The user
+// perceives navigation as instant because the surface color is identical
+// to the loaded page bg.
 const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
-  if (kind === "auth") {
-    return (
-      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] overflow-hidden bg-background" aria-hidden="true">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-background to-accent/20" />
-        <div className="relative z-10 flex min-h-screen flex-col justify-end px-5 pb-8 pt-4">
-          <div className="mb-4 h-14 w-14 rounded-full bg-primary/20 skeleton" />
-          <div className="mb-3 h-7 w-40 rounded skeleton" />
-          <div className="mb-8 h-4 w-56 rounded skeleton" />
-          <div className="space-y-3">
-            <div className="h-14 rounded-2xl skeleton" />
-            <div className="h-12 rounded-2xl skeleton" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (kind === "live") {
     return (
-      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] blank-guard-live" aria-hidden="true">
-        <div className="absolute inset-0 blank-guard-live-pulse" />
-        <div className="absolute left-4 right-4 top-safe pt-4 flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full blank-guard-live-block" />
-          <div className="space-y-2">
-            <div className="h-3 w-28 rounded blank-guard-live-block" />
-            <div className="h-3 w-16 rounded blank-guard-live-block" />
-          </div>
-        </div>
-        <div className="absolute bottom-safe left-4 right-4 pb-5 space-y-3">
-          <div className="h-10 rounded-full blank-guard-live-block" />
-          <div className="flex justify-between">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-11 w-11 rounded-full blank-guard-live-block" />)}
-          </div>
-        </div>
-      </div>
+      <div
+        data-blank-screen-guard
+        className="fixed inset-0 z-[2147483000]"
+        style={{ backgroundColor: '#050208' }}
+        aria-hidden="true"
+      />
     );
   }
-
+  // auth + default app — solid cream (matches body bg).
   return (
-    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] blank-guard-app px-4 pb-24 pt-safe" aria-hidden="true">
-      <div className="mx-auto max-w-md space-y-4 pt-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-32 rounded skl-block" />
-          <div className="h-10 w-10 rounded-full skl-block" />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="h-40 rounded-2xl skl-block" />
-          <div className="h-40 rounded-2xl skl-block" />
-        </div>
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded-2xl skl-block-soft" />)}
-        </div>
-      </div>
-    </div>
+    <div
+      data-blank-screen-guard
+      className="fixed inset-0 z-[2147483000] bg-background"
+      style={{ backgroundColor: '#FFFBF2' }}
+      aria-hidden="true"
+    />
   );
 });
 
