@@ -1,100 +1,129 @@
+# Admin Panel Professional Audit + Fix Plan
 
-# New Host Daily Live Bonus — 100% Professional Completion Plan
-
-Industry research summary (Bigo, Chamet, Poppo, Olamet, MICO, Hollah → full table in research output):
-
-| Pattern | Adopt? | Why |
-|---|---|---|
-| **Poppo-style per-hour tier** (hour 1 = X beans, hour 2 = Y, … cap = max_hours_per_day) | ✅ | Admin panel already supports `hour_number` + `bonus_beans` + `target_minutes` rows |
-| **Olamet-style manual Claim button** per hour-tier | ✅ | User explicitly asked "claim করে নেবে"; boosts engagement |
-| **Server-side time accumulation from `live_streams` session end** (not client heartbeat) | ✅ | Industry-standard fraud guard. No phone-farm hour-stuffing. |
-| **Per-date isolation + hard expiry** ("unclaimed = forfeited next day") | ✅ | User's exact requirement: 21 তারিখ আলাদা, 22 তারিখ আলাদা |
-| **Min session floor ≥10 min** + face-verified host gate | ✅ | Anti-fraud universal pattern |
-| **Daily reset = same as other tasks** (Europe/London 00:30, `getTaskDate()`) | ✅ | Already used app-wide for `daily_tasks` |
+**Locked:** 2026-06-21
+**Approach:** Research-validated (Bigo/Chamet/Poppo/Olamet/MICO/Hollah patterns). Surgical fixes only — 154 admin pages-এর 90% already professional, শুধু 4 specific gaps fix হবে।
 
 ---
 
-## Current Gaps (audit confirmed)
+## 🔒 Invariant: Admin Monitoring 100% Invisible to Users
 
-| # | Gap | Impact |
-|---|---|---|
-| 1 | `new_host_live_bonus_progress.hours_completed` কখনো increment হয় না | পুরো system dead |
-| 2 | Per-hour tier-wise claim state (which hours claimed) DB-তে নেই | একই hour বার বার claim হতে পারে |
-| 3 | Tasks page-এ Claim button নেই (read-only progress) | User claim করতে পারে না |
-| 4 | Session-end এ live duration calculate করে bonus progress update করে এমন trigger/edge function নেই | Hours auto-credit হয় না |
-| 5 | Admin panel-এ "today's bonus payouts / eligible hosts" stats nei | Admin verify করতে পারে না |
+**Locked behavior (industry standard, Bigo/Chamet/Agora SDK pattern):**
+1. Admin join LiveKit with `hidden=true` flag → other participants এর কাছে `ParticipantConnected` event fire হবে না
+2. Admin identity prefix `admin-{role}-{uuid}` → server filters before any client-visible event
+3. Admin NEVER inserts row into `stream_viewers`, `party_room_participants`, `call_events` (participant tables)
+4. Admin NEVER triggers `viewer_joined` broadcast, entrance animation, chat join notice, gift permission grant
+5. Admin token = `canSubscribe=true, canPublish=false, canPublishData=false` → cannot send any signal that user side renders
+6. `viewer_count` calculations exclude admin identities (both LiveKit-side ParticipantConnected counter + Postgres `stream_viewers` row count are clean)
+
+**Current verified state:**
+- ✅ `livekit-token` edge fn (lines 91-101, 274-345): admin token → `hide=true` always, identity `admin-{role}-{uuid8}`
+- ✅ `AdminStreamViewer.tsx` (line 30): identity `admin-monitor-{ts}`, no stream_viewers write, no chat send, no gift, audio starts muted
+- ✅ LiveKit SFU honors `hidden=true` → SFU strips the participant from `ParticipantConnected/Disconnected` notifications to other participants
+
+**Gap to fix in Phase 1+2:** Same invariant must hold for party rooms (`party_room_*` tables) and private calls (`private_calls`, `call_events`).
 
 ---
 
-## Implementation (3 phases, all in Lovable preview — no APK rebuild)
+## 📋 Audit Result (evidence-based, file-line cited)
 
-### Phase 1 — DB foundation (migration)
+| # | Capability | File | Status |
+|---|---|---|---|
+| 1 | Live stream admin viewer | `AdminStreams.tsx:624,726` + `AdminStreamViewer.tsx` | ✅ Built, invisible |
+| 2 | LiveKit Rooms dashboard | `AdminLiveKitRooms.tsx` | ✅ Read-only OK, ⚠️ no per-room watch button |
+| 3 | Auto recording infra | `livekit-auto-record/index.ts` + R2/Supabase storage fallback | ✅ Built, ❌ disabled |
+| 4 | Manual recording | `livekit-egress/`, `livekit-stream-egress/`, `livekit-track-egress/`, `livekit-hls-egress/` | ✅ |
+| 5 | Recording playback/download | `AdminRecordings.tsx` (512 lines) | ✅ |
+| 6 | Moderation (kick/mute/ban) | `AdminModeration.tsx`, `livekit-moderate/` | ✅ |
+| 7 | Face verification | `AdminFaceVerification.tsx` (1566 lines) | ✅ |
+| 8 | Webhook events | `livekit-webhook/`, `livekit-webhook-events-ops/` | ✅ |
+| 9 | Cost monitor | `AdminCostMonitor.tsx` | ✅ |
+| 10 | Party Room admin watch | `AdminPartyRooms.tsx:336` | ❌ Eye only opens detail dialog |
+| 11 | Private Call admin watch | `AdminTodayCalls.tsx` | ❌ No monitor UI at all |
+| 12 | Auto-record default | migration `20260525214856` line 31-32 | ❌ `auto_record_live=false` for all approved hosts |
 
-**1.1** Add `claimed_hours INTEGER[]` column to `new_host_live_bonus_progress` (tracks which hour_numbers user has claimed today). Add `last_session_ended_at TIMESTAMPTZ` for incremental accumulation. Add `total_live_seconds_today INTEGER`.
+---
 
-**1.2** Add `min_session_minutes INTEGER DEFAULT 10` to `new_host_live_bonus_settings` (anti-fraud floor — sessions shorter than this don't count).
+## 🎯 Fix Plan — 4 Phases
 
-**1.3** Replace `claim_new_host_live_bonus` RPC with new signature:
+### Phase 1 — Party Room Invisible Admin Monitor
+**Files:** `src/pages/admin/AdminPartyRooms.tsx`
+- Add "Watch Room" button next to existing Eye button
+- On click → open `AdminStreamViewer` modal with `roomName=party_{room_id}`
+- `AdminStreamViewer` already invisible — same component handles party scope
+- Test: open party room as user → admin watches → user side participant count, seat list, chat join notice **must show zero change**
+
+### Phase 2 — Private Call Invisible Admin Monitor
+**Files:** `src/pages/admin/AdminTodayCalls.tsx`, `src/components/admin/AdminCallMonitor.tsx` (new)
+- New `AdminCallMonitor` component (clone of `AdminStreamViewer` adapted for call scope):
+  - `roomName=call_{call_id}`
+  - Subscribe to both caller + callee video/audio tracks (2 video tiles side-by-side)
+  - Admin token always `hidden=true`, identity `admin-call-monitor-{ts}`
+- In `AdminTodayCalls.tsx`, only show "Monitor" button when `status='active'`
+- **E2EE guard:** if `private_calls.e2ee_enabled=true` → button disabled, show "End-to-end encrypted — metadata only" badge (security correctness, matches Signal/WhatsApp model)
+- Test: active call between 2 users → admin monitor opens → both users see no notification, call_events table no admin row
+
+### Phase 3 — Auto-record Default ON (industry standard)
+**Migration:**
+```sql
+-- 1. Change column default
+ALTER TABLE public.profiles ALTER COLUMN auto_record_live SET DEFAULT true;
+
+-- 2. Backfill all approved/face-verified hosts
+UPDATE public.profiles
+SET auto_record_live = true
+WHERE host_status = 'approved'
+  AND is_face_verified = true
+  AND auto_record_live = false;
 ```
-public.claim_new_host_live_bonus_hour(p_hour_number INT) → json
-```
-Returns `{success, beans_credited, hour_number, error}`. Server-side checks:
-- `auth.uid()` matches, host + face-verified
-- Within `eligible_days` window
-- That `hour_number` row exists in settings and `is_active`
-- Today's `total_live_seconds_today >= target_minutes * 60` for that hour
-- `hour_number NOT IN claimed_hours` (idempotent)
-- Atomic UPDATE: append to `claimed_hours`, increment `profiles.beans + pending_earnings + total_earnings`
-- Insert `balance_audit_log` row for traceability
+**Admin UI:**
+- `AdminFaceVerification.tsx` host detail panel → add toggle row (re-use existing `AutoRecordSettingsRow` component)
+- `AdminStreams.tsx` → bulk action: "Enable recording for all approved hosts"
+**Test:** new host approve → row default true → host goes live → `livekit-auto-record` trigger fires → `stream_recordings` row created → AdminRecordings shows playback
 
-**1.4** New RPC `public.accumulate_host_live_seconds(p_stream_id UUID)` (security definer). Called when a `live_streams` row gets `ended_at` set (via trigger). It:
-- Computes `session_seconds = ended_at - started_at`
-- If `< min_session_minutes * 60` → discard (anti-fraud)
-- Looks up host's bonus eligibility (host, face_verified, in eligible_days window, active settings)
-- Upserts today's `new_host_live_bonus_progress` row, `total_live_seconds_today += session_seconds`, recomputes `hours_completed = total_live_seconds_today / 3600`
-
-**1.5** AFTER UPDATE trigger on `live_streams` (when `ended_at` transitions from NULL → NOT NULL) calls `accumulate_host_live_seconds(NEW.id)`.
-
-**1.6** Safety-net: also accumulate live seconds for currently-active streams via a cron-callable function `accumulate_active_streams_tick()` (every 5 min) — so abandoned/crashed sessions still credit time. Uses `last_session_ended_at` watermark to avoid double-counting.
-
-### Phase 2 — UI claim flow (Lovable, web)
-
-**2.1** Tasks page (`src/pages/Tasks.tsx`): Replace read-only bonus card with **per-hour tier grid**. Each tier shows:
-- Hour number + target ("Hour 5 — 5h live")
-- Bonus amount ("50,000 🫘")
-- State: `locked` (not yet eligible time-wise) / `claimable` (green Claim button) / `claimed` (greyed ✓) / `expired` (next-day reset)
-- Progress bar: current minutes / target minutes for the active hour
-
-**2.2** Claim button → calls `claim_new_host_live_bonus_hour(hour_number)` RPC → toast + balance update + local state.
-
-**2.3** Live room (`LiveTasksCard.tsx`): same per-hour mini-strip when host is streaming, so they can claim mid-stream without leaving live.
-
-**2.4** Realtime subscribe to own `new_host_live_bonus_progress` row → instant tier-unlock animation when threshold crossed.
-
-### Phase 3 — Admin verification & test
-
-**3.1** `AdminTasksSettings.tsx`: add read-only "Today's Stats" panel — eligible hosts count, total bonus paid today, top earners list. Pulls from `new_host_live_bonus_progress` joined with `profiles`.
-
-**3.2** Add `min_session_minutes` field to admin form.
-
-**3.3** Owner test (smdollarex923@gmail.com): go live for 12 min in preview → verify `total_live_seconds_today` updates after end → verify Hour 1 tier becomes claimable → claim → verify beans credited + audit log row + cannot re-claim same hour. Verify next-day reset boundary by manipulating `bonus_date` test-row.
+### Phase 4 — AdminLiveKitRooms Per-Room Quick-Watch
+**Files:** `src/pages/admin/AdminLiveKitRooms.tsx`
+- Per-room "Watch" button in rooms list
+- Route by `scopeOfRoom()` (already exists):
+  - `live` → `AdminStreamViewer`
+  - `party` → `AdminStreamViewer` with party params
+  - `call` → `AdminCallMonitor` (from Phase 2)
+- Single entry point for "see any room in real time"
 
 ---
 
-## What stays untouched (sacred)
+## ✋ NOT touching (already professional)
 
-- LiveKit / Camera / GPUPixel / VAP / SVGA / animation paths
-- Reels redesign, all minimal-pro UI work done so far
-- Other task types (`live_minutes`, `viewers`, `first_gift`) and `daily_tasks` flow
-- All English UI strings (no Bangla in code)
+- LiveKit SFU infra (VPS-side, deferred per rule)
+- R2 + Supabase Storage dual-fallback (working, both kept per user instruction)
+- AdminRecordings playback / download / expiry
+- `livekit-moderate`, `livekit-auto-moderator`, `live-voice-moderate`, `live-face-warnings`
+- Face verification flow (1566 lines, separate scope)
+- Recording webhook → DB write pipeline
+- All other 144 admin pages (agencies, finance, gifts, vips, etc.)
+- App-side live/party/call user experience (zero user-facing changes)
 
 ---
 
-## Verification gates
+## ✅ Verification Gates (all must pass per phase)
 
-1. Migration linter clean (no RLS errors, GRANTs present)
-2. Owner-account end-to-end live → claim → re-claim-blocked test passes
-3. Two consecutive days (manual `bonus_date` row insert) show independent claim quotas
-4. Sub-10-min session = no bonus credited
+| Gate | How verified |
+|---|---|
+| G1: User sees zero admin signal | Open page in 2nd browser as user → admin monitors → screenshot user side → participant list, viewer_count, seat count, chat notice all unchanged |
+| G2: DB clean | `SELECT * FROM stream_viewers WHERE participant_identity LIKE 'admin-%'` → 0 rows. Same for party_room_participants, call_events |
+| G3: viewer_count unchanged | `live_streams.viewer_count` before/after admin watch → equal |
+| G4: Recording fires | New live → wait 5s → `stream_recordings` row + `egress_id` populated |
+| G5: Playback works | AdminRecordings → click play → MP4 streams |
+| G6: E2EE call respected | Call with e2ee_enabled=true → admin monitor button disabled |
+| G7: No regression | Existing AdminStreams live viewer still works post-Phase-4 |
 
-Confirm, and I'll start with Phase 1 migration.
+---
+
+## Owner Test Recipe (smdollarex923@gmail.com)
+
+After all 4 phases:
+1. Login owner → Go Live → keep live
+2. Open 2nd browser/incognito → join as viewer → note participant count = 1
+3. Open admin panel → AdminStreams → Watch → admin sees host camera
+4. Switch to viewer browser → count still 1, no "admin joined" toast, chat empty
+5. End live → AdminRecordings → new recording listed with MP4 playback
+6. Repeat for party room (Phase 1) and private call (Phase 2)
