@@ -1857,7 +1857,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-              {isProbing ? "Checking connection..." : (isStarting || livekitLoading) ? "Starting..." : "Go Live"}
+              Go Live
             </span>
           </motion.button>
         </div>
