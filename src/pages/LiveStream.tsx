@@ -1027,7 +1027,7 @@ const LiveStream = () => {
       const msg = error instanceof Error ? error.message : String(error);
       recordClientError({ label: "LiveStream.deltaY", message: msg });
       // Viewer-side: stream ended/inactive → show the premium ended dialog (no blank screen)
-      if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
+      if (sessionState?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
         // Phase G bug-fix #1: differentiate the two cases — `stream_inactive`
         // really means the host ended the stream, `must_enter_stream_first`
         // only fires now for non-public (password / followers / pk_only)
@@ -1043,7 +1043,7 @@ const LiveStream = () => {
       }
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.
-      if (location.state?.isHost === true) {
+      if (sessionState?.isHost === true) {
         if (isLiveKitPeerConnectionError(error)) {
           toast.error(describeLiveKitConnectFailure(error));
           return;
@@ -1055,7 +1055,7 @@ const LiveStream = () => {
     },
   });
 
-  const liveStreamCamera = useProCamera('live-stream', location.state?.isHost === true || (isHost && isHostVerified));
+  const liveStreamCamera = useProCamera('live-stream', sessionState?.isHost === true || (isHost && isHostVerified));
 
   useEffect(() => {
     if (liveStreamCamera.error) {
@@ -2508,7 +2508,7 @@ const LiveStream = () => {
     
     if (!id) return;
     
-    const initialHostRole = location.state?.isHost === true;
+    const initialHostRole = sessionState?.isHost === true;
     
     connectionInitiated.current = true;
     const channelName = `live_${id}`;
@@ -2645,7 +2645,7 @@ const LiveStream = () => {
         import('sonner').then(({ toast: t }) => { try { t.dismiss('lk-live-reconnect'); } catch { /* ignore */ } }).catch(() => {});
       } catch { /* ignore */ }
     };
-  }, [id, location.state?.isHost, liveStreamCamera.ready]); // Only depends on id and initial isHost
+  }, [id, sessionState?.isHost, liveStreamCamera.ready]); // Only depends on id and initial isHost
 
   // Call button shows only for female hosts - visible to all viewers
   const shouldShowCallButton = hostInfo?.isVerifiedHost && (hostInfo?.gender === "female" || hostInfo?.gender === "Female") && !isHost;
