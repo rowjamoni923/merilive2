@@ -57,7 +57,11 @@ const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperD
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
-const Index = lazy(lazyRetry(() => import("./pages/Index")));
+// Pkg-Nav — Hot routes eager-bundled. These 6 are the most-visited entry
+// points (Home / Profile / Settings / Go Live / Agency Dashboard / Reels).
+// Loading them eagerly removes the lazy chunk fetch + skeleton flash on
+// first navigation. All other 250+ routes stay lazy.
+import Index from "./pages/Index";
 const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -71,7 +75,7 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // LAZY LOADED PAGES - Load on demand
 // =============================================
 // Main Pages
-const Profile = lazy(lazyRetry(() => import("./pages/Profile")));
+import Profile from "./pages/Profile"; // Pkg-Nav hot eager
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
 const LiveStreamFeed = lazy(lazyRetry(() => import("./pages/LiveStreamFeed")));
@@ -92,7 +96,7 @@ const Level = lazy(lazyRetry(() => import("./pages/Level")));
 const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
 const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
 const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
-const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+import Settings from "./pages/Settings"; // Pkg-Nav hot eager
 const DeveloperOptions = lazy(lazyRetry(() => import("./pages/DeveloperOptions")));
 const ShareReceive = lazy(lazyRetry(() => import("./pages/ShareReceive")));
 const DebugReferrer = lazy(lazyRetry(() => import("./pages/DebugReferrer")));
@@ -109,7 +113,7 @@ const TransferHistory = lazy(lazyRetry(() => import("./pages/TransferHistory")))
 const CreateAgency = lazy(lazyRetry(() => import("./pages/CreateAgency")));
 const SmartLink = lazy(lazyRetry(() => import("./pages/SmartLink")));
 const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
-const AgencyDashboard = lazy(lazyRetry(() => import("./pages/AgencyDashboard")));
+import AgencyDashboard from "./pages/AgencyDashboard"; // Pkg-Nav hot eager
 const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
 const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
@@ -119,7 +123,7 @@ const RechargeHistory = lazy(lazyRetry(() => import("./pages/RechargeHistory")))
 const PaymentSuccess = lazy(lazyRetry(() => import("./pages/PaymentSuccess")));
 const PartyRooms = lazy(lazyRetry(() => import("./pages/PartyRooms")));
 const PartyRoom = lazy(lazyRetry(() => import("./pages/PartyRoom")));
-const GoLive = lazy(lazyRetry(() => import("./pages/GoLive")));
+import GoLive from "./pages/GoLive"; // Pkg-Nav hot eager
 const CreateParty = lazy(lazyRetry(() => import("./pages/CreateParty")));
 const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 
@@ -159,7 +163,7 @@ const NotFound = lazy(lazyRetry(() => import("./pages/NotFound")));
 const ResetPassword = lazy(lazyRetry(() => import("./pages/ResetPassword")));
 const AuthCallback = lazy(lazyRetry(() => import("./pages/AuthCallback")));
 const Shop = lazy(lazyRetry(() => import("./pages/Shop")));
-const Reels = lazy(lazyRetry(() => import("./pages/Reels")));
+import Reels from "./pages/Reels"; // Pkg-Nav hot eager
 const VIP = lazy(lazyRetry(() => import("./pages/VIP")));
 const Parcels = lazy(lazyRetry(() => import("./pages/Parcels")));
 const PlaceholderPage = lazy(lazyRetry(() => import("./components/common/PlaceholderPage")));
