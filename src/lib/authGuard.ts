@@ -69,26 +69,48 @@ export async function triggerAuthGuard(reason: GuardReason = 'session_expired'):
 }
 
 /**
- * Inspect an arbitrary thrown value and trigger the guard if it looks like
- * an auth failure. Returns true if the guard fired.
+ * Inspect an arbitrary thrown value and trigger the guard ONLY when the
+ * current Supabase session is genuinely invalid.
+ *
+ * Important: a 401 from an edge function does NOT necessarily mean the
+ * user's session is dead. Many edge functions return 401 for their own
+ * authorization reasons (missing role, IP block, custom JWT, etc.).
+ * Logging the user out on every such 401 would be a regression.
+ *
+ * Strategy:
+ *  1. Quickly detect "auth-shaped" errors (PostgREST JWT errors, explicit
+ *     session-expired strings).
+ *  2. Re-validate with `supabase.auth.getSession()` — only if there is
+ *     no session (or refresh fails) do we trigger the guard.
+ *
+ * Returns true if the guard was scheduled to fire.
  */
 export function maybeTriggerAuthGuardFromError(err: unknown): boolean {
-  const status = (err as { status?: number; statusCode?: number })?.status
-    ?? (err as { statusCode?: number })?.statusCode;
   const code = (err as { code?: string })?.code;
   const message = (err as { message?: string })?.message?.toLowerCase() ?? '';
 
-  const looksLikeAuth =
-    status === 401 ||
+  // PostgREST returns PGRST301 specifically for JWT issues.
+  // The string "jwt expired" / "jwt malformed" come from Supabase auth itself.
+  const looksLikeSupabaseAuth =
     code === 'PGRST301' ||
-    code === '401' ||
-    message.includes('jwt') ||
-    message.includes('unauthorized') ||
-    message.includes('session') && message.includes('expire');
+    message.includes('jwt expired') ||
+    message.includes('jwt malformed') ||
+    message.includes('invalid jwt') ||
+    message.includes('refresh token') && message.includes('not found') ||
+    (message.includes('session') && message.includes('expire'));
 
-  if (looksLikeAuth) {
-    void triggerAuthGuard('session_expired');
-    return true;
-  }
-  return false;
+  if (!looksLikeSupabaseAuth) return false;
+
+  // Verify before redirecting — getSession() is local & cheap.
+  void (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data?.session) {
+        await triggerAuthGuard('session_expired');
+      }
+    } catch {
+      await triggerAuthGuard('session_expired');
+    }
+  })();
+  return true;
 }
