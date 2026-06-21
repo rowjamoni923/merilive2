@@ -17,7 +17,9 @@ import {
   ChevronRight, 
   XCircle, 
   Clock, 
-  Crown} from "lucide-react";
+  Crown,
+  EyeOff} from "lucide-react";
+import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -338,6 +340,16 @@ export default function AdminPartyRooms() {
                           </DropdownMenuItem>
                           {room.is_active && (
                             <>
+                              <DropdownMenuSeparator className="bg-slate-200" />
+                              <DropdownMenuItem
+                                className="text-indigo-600 focus:text-indigo-700"
+                                onClick={() => {
+                                  setWatchRoom(room);
+                                }}
+                              >
+                                <EyeOff className="w-4 h-4 mr-2" />
+                                Watch (Invisible)
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-slate-200" />
                               <DropdownMenuItem 
                                 className="text-red-500"
