@@ -133,8 +133,8 @@ interface NativeLiveKitPlugin {
   }>;
   setSurviveActivityDestroy?(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   updateLiveStats?(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<{ updated: boolean }>;
-  setSubscriberVideoQuality?(opts: { enabled?: boolean; quality?: string }): Promise<{ applied: boolean }>;
-  setRemoteVideoSubscribed?(opts: { sid?: string; subscribed?: boolean }): Promise<{ applied: boolean }>;
+  setSubscriberVideoQuality?(opts: { enabled?: boolean; quality?: string; source?: string }): Promise<{ applied: boolean }>;
+  setRemoteVideoSubscribed?(opts: { sid?: string; subscribed?: boolean; source?: string }): Promise<{ applied: boolean }>;
 
   // Loose `any` event payload — legacy callers index many ad-hoc fields
   // (sid, identity, kind, state, reason, payloadBase64, isInPip, etc.)
