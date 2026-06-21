@@ -1074,7 +1074,10 @@ class LiveKitPlugin : Plugin() {
                         is RoomEvent.LocalTrackUnpublished -> {
                             r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                         }
-                        is RoomEvent.Disconnected -> emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
+                        is RoomEvent.Disconnected -> {
+                            isConnected = false
+                            emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
+                        }
                         is RoomEvent.Reconnecting -> {
                             emit("reconnecting", JSObject())
                             emit("connection-state", JSObject().put("state", "reconnecting"))
@@ -1215,6 +1218,9 @@ class LiveKitPlugin : Plugin() {
     private fun teardownAll() {
         eventsJob?.cancel()
         eventsJob = null
+        lastConnectArgs = null
+        activeRoomScope = null
+        activeIsHost = false
         try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
