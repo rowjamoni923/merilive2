@@ -146,7 +146,13 @@ interface PosterImage {
   image_url: string;
   display_order: number;
   is_primary: boolean;
+  media_type?: "image" | "video" | null;
 }
+
+const isPosterVideo = (poster?: Pick<PosterImage, "image_url" | "media_type"> | null) => {
+  if (!poster) return false;
+  return poster.media_type === "video" || /\.(mp4|webm|mov|m4v|ogg)(?:$|[?#])/i.test(poster.image_url || "");
+};
 
 interface GiftSent {
   id: string;
@@ -801,7 +807,7 @@ const ProfileDetail = () => {
     ? (profile.host_level ?? 0)
     : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
   const level = resolvedLevelLoading ? fallbackLevel : (resolvedLevel ?? fallbackLevel);
-  const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
+  const isVideo = isPosterVideo(posterImages[currentSlideIndex]);
   const isProfileLive = !!activeLiveStream;
   const isProfileInParty = !!activePartyRoom;
   const canStartProfileCall = isPresenceOnline
@@ -827,7 +833,7 @@ const ProfileDetail = () => {
         {/* Preload + render all posters stacked; toggle opacity for instant switching */}
         {posterImages.map((p, idx) => {
           const url = p.image_url;
-          const isV = !!url?.match(/\.(mp4|webm|mov)$/i);
+          const isV = isPosterVideo(p);
           const active = idx === currentSlideIndex;
           return (
             <motion.div
