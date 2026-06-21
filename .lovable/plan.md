@@ -138,13 +138,13 @@ After all 4 phases:
 
 
 **Completed fixes:**
-1. `posters` Storage RLS fixed: public read, authenticated owner-only upload/update/delete by first folder segment = `auth.uid()`.
+1. `posters` Storage RLS fixed: authenticated owner-only upload/update/delete by first folder segment = `auth.uid()`; broad public object-listing policy removed so users cannot enumerate the bucket.
 2. `poster_images` Data API grants fixed: public can read; authenticated users can create/update/delete rows only where `user_id = auth.uid()`; service role retained.
 3. Upload supports both `image/*` and `video/*` up to **25MB** in UI; storage bucket already allows **50MB**, so app-side 25MB limit is enforced.
 4. `ProfileDetail` now respects `media_type='video'` plus video extensions (`mp4/webm/mov/m4v/ogg`) so signed URLs/public URLs with query strings still render as video.
 5. Profile details now shows uploaded media both in the hero slideshow and as a horizontal photo/video strip, so photos/videos appear one after another and are selectable.
 
 **Verified checks:**
-- Storage policies for `posters` now exist for public read + owner upload/update/delete.
+- Storage policies for `posters` now exist for owner upload/update/delete; public URL delivery remains through the public bucket without broad object-listing RLS.
 - `poster_images` table privileges verified: anon read-only; authenticated read/create/edit/delete; service role all.
 - Browser-session upload test could not run in sandbox because no preview auth session env was available, but the exact failing layer was confirmed from console logs as Storage RLS and fixed at DB policy level.
