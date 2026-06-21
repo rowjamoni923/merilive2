@@ -284,8 +284,15 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
   }, [availableCategories, activeCategory]);
 
   const handleGiftSelect = useCallback((gift: GiftData) => {
+    const required = Number(gift.min_level ?? 0) || 0;
+    if (required > 0 && effectiveUserLevel < required) {
+      toast.error(`Reach Lv ${required} to unlock "${gift.name}"`, {
+        description: `Your current level: Lv ${effectiveUserLevel}`,
+      });
+      return;
+    }
     setSelectedGift(prev => prev?.id === gift.id ? null : gift);
-  }, []);
+  }, [effectiveUserLevel]);
 
   const handleSend = useCallback(() => {
     if (sendingRef.current) return; // Pkg4-pass4: double-tap guard
