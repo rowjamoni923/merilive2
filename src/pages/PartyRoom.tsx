@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { usePartySessionOptional } from "@/features/party-session";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useScreenLock } from "@/hooks/useScreenLock";
@@ -193,7 +194,25 @@ interface ChatMessage {
 const PartyRoom = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { roomId } = useParams<{ roomId: string }>();
+  const params = useParams<{ roomId: string }>();
+  // Delivery 2: prefer the PartySessionProvider's roomId when present so
+  // the parent container stays mounted across phase swaps. Fall back to
+  // useParams for legacy `/party/:roomId` deep links (invites, profile
+  // jumps, push notifications).
+  const partySession = usePartySessionOptional();
+  const roomId = partySession?.roomId ?? params.roomId;
+  // When in a session container, end-of-room callbacks swap phases
+  // instead of navigating away — Provider stays alive for EndedPhase.
+  const exitToLobby = useCallback(
+    (fallback: string = '/party-rooms') => {
+      if (partySession) {
+        partySession.goToEnded();
+      } else {
+        navigate(fallback);
+      }
+    },
+    [partySession, navigate],
+  );
   // Pkg443 Phase-3: keep screen awake for the entire party-room session.
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole party session.
@@ -1758,12 +1777,12 @@ const PartyRoom = () => {
         // Password gating removed — but if a stale RPC ever raises this, just bounce to lobby cleanly.
         if (/Password required/i.test(msg) || /Invalid password/i.test(msg)) {
           toast.error('Room temporarily unavailable');
-          navigate('/party-rooms');
+          exitToLobby('/party-rooms');
           return;
         }
         if (/Insufficient coins for entry fee/i.test(msg)) {
           toast.error('Not enough coins for this room\'s entry fee');
-          navigate('/party-rooms');
+          exitToLobby('/party-rooms');
           return;
         }
         throw enterError;
@@ -2696,7 +2715,7 @@ const PartyRoom = () => {
           await leaveRoom();
           cleanupNativeLiveKit();
           clearNativeMediaSurface();
-          navigate('/');
+          exitToLobby('/');
         }}
         getPeerStream={getPeerStream}
         seatRequests={seatRequests.map(sr => ({

@@ -184,6 +184,8 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       p.startsWith('/party/') ||
       p === '/go-live' ||
       p === '/live-session' ||
+      p === '/create-party' ||
+      p === '/party-session' ||
       p.startsWith('/call/') ||
       p.startsWith('/active-call') ||
       p.startsWith('/incoming-call') ||

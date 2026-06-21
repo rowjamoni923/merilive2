@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 
 import { useNavigate } from "react-router-dom";
+import { usePartySessionOptional } from "@/features/party-session";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -84,6 +85,10 @@ const ShootingStar = ({ delay = 0 }: { delay: number }) => {
 
 const CreateParty = () => {
   const navigate = useNavigate();
+  // Delivery 2: when rendered inside <PartySessionProvider>, swap to the
+  // InRoomPhase via local state instead of `navigate(/party/:id)` so the
+  // native LiveKit prejoin preview is never torn down.
+  const partySession = usePartySessionOptional();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<PartyMode>("video");
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -438,7 +443,11 @@ const CreateParty = () => {
         releaseAndroidWebViewCamera('create-party:no-stream-handoff');
       }
 
-      navigate(`/party/${partyRoomId}`);
+      if (partySession) {
+        partySession.goToInRoom(partyRoomId, mode);
+      } else {
+        navigate(`/party/${partyRoomId}`);
+      }
     } catch (error) {
       console.error("Error creating party:", error);
       recordClientError({ label: "CreateParty.defaultName", message: error instanceof Error ? error.message : String(error) });
@@ -468,6 +477,8 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.handleClose", message: e instanceof Error ? e.message : String(e) });
     }
     navigate("/party-rooms");
+    // No partySession.goToEnded() here — closing the create form should
+    // unmount the Provider entirely and return the user to the lobby.
   };
 
   const handleModeChange = async (newMode: PartyMode) => {
