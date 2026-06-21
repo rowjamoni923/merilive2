@@ -214,3 +214,20 @@ After all 4 phases:
 - Static method check confirms Android now includes `pushChatMessage`, `reconnectNow`, `sendData`, `registerRpcMethod`, scope-aware pause guard, and active-speaker `audioLevel` payload.
 
 **APK note:** Android native code changed; rebuild/sync APK is required (`npx cap sync android` + Android Studio/CI rebuild) before device verification.
+
+---
+
+## ✅ Android Launch `https://localhost` / `ERR_CONNECTION_REFUSED` Fix — 2026-06-21
+
+**User screenshot:** App launch shows Android WebView error: `Webpage not available`, URL starts with `https://localhost`, error `net::ERR_CONNECTION_REFUSED`.
+
+**Research standard:** Capacitor Android serves bundled web assets through an internal local WebView server using the app origin (`https://localhost` when `androidScheme='https'`). Ionic/Capacitor issue reports for `ERR_CONNECTION_REFUSED localhost` point to Android builds still referencing a dev/local server or missing/unsynced packaged web assets after building from Android Studio.
+
+**Verified current repo signal:** `capacitor.config.ts` correctly has `webDir: 'dist'` and no `server.url`, but `android/app/src/main/assets/` had no `public/index.html`; only `gpupixel/` existed. Therefore the APK had no packaged React bundle for Capacitor to serve, causing WebView launch to fail at `https://localhost`.
+
+**Completed fix:** Added Gradle task `ensureCapacitorWebAssets` in `android/app/build.gradle`:
+1. If root `dist/index.html` exists, copy `dist/` into `android/app/src/main/assets/public` before `preBuild`.
+2. If neither `dist/index.html` nor packaged `assets/public/index.html` exists, fail the Android build with an explicit fix command instead of producing a broken APK.
+3. Updated `ANDROID_BUILD_GUIDE.md` with the exact cause and rebuild steps.
+
+**Required local command after pull:** `npm install && npm run build && npx cap sync android`, then rebuild/reinstall APK.

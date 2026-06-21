@@ -82,6 +82,45 @@ android {
     }
 }
 
+// Launch guard: Capacitor Android loads the React bundle from
+// android/app/src/main/assets/public through its local https://localhost
+// WebView server. If that folder is missing, the APK opens to
+// net::ERR_CONNECTION_REFUSED on launch. Keep Android Studio builds safe even
+// when the developer ran the Vite build but forgot `npx cap sync android`.
+def rootWebDistDir = file("$rootDir/../dist")
+def androidWebAssetsDir = file("$projectDir/src/main/assets/public")
+def androidWebIndex = file("$projectDir/src/main/assets/public/index.html")
+
+tasks.register('ensureCapacitorWebAssets') {
+    group = 'merilive'
+    description = 'Ensures Android has bundled Capacitor web assets before APK build.'
+    inputs.dir(rootWebDistDir).optional()
+    outputs.dir(androidWebAssetsDir)
+
+    doLast {
+        if (file("$rootWebDistDir/index.html").exists()) {
+            delete(androidWebAssetsDir)
+            copy {
+                from rootWebDistDir
+                into androidWebAssetsDir
+            }
+        }
+
+        if (!androidWebIndex.exists()) {
+            throw new GradleException(
+                "Missing Capacitor web assets: android/app/src/main/assets/public/index.html. " +
+                "Build the web app, then sync Android before building the APK: " +
+                "npm run build && npx cap sync android. Without these assets the app launches to " +
+                "https://localhost with net::ERR_CONNECTION_REFUSED."
+            )
+        }
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn('ensureCapacitorWebAssets')
+}
+
 repositories {
     flatDir {
         dirs 'libs'
