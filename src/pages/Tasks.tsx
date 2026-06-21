@@ -15,6 +15,7 @@ import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import NewHostBonusCard from "@/components/live/NewHostBonusCard";
 
 interface DailyTask {
   id: string;
