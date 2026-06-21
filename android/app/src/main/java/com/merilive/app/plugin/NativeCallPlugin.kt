@@ -656,6 +656,20 @@ class NativeCallPlugin : Plugin() {
         ret.put("ok", true)
         call.resolve(ret)
     }
+
+    /**
+     * Pkg501 safety bridge — JS mirrors incoming call chat here when the native
+     * call Activity covers the WebView. This APK has no native chat composer UI
+     * yet, so return ok=false instead of throwing "method not implemented";
+     * React falls back to the existing WebView chat overlay.
+     */
+    @PluginMethod
+    fun pushChatMessage(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("ok", false)
+        ret.put("reason", "native_chat_ui_unavailable")
+        call.resolve(ret)
+    }
 }
 
 
