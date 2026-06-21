@@ -562,11 +562,10 @@ export function useLiveKitCall(
           // Both sides save uplink/downlink based on visible video size + connection quality.
           adaptiveStream: true,
           dynacast: true,
+          // T-shirt rule: one connect per call. Any transport drop =
+          // call ends permanently. New call = brand new connect.
           reconnectPolicy: {
-            nextRetryDelayInMs: (context: any) => {
-              if (context.retryCount > 12) return null;
-              return Math.min(100 * Math.pow(1.3, context.retryCount), 5000);
-            },
+            nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
             resolution: VideoPresets.h1080.resolution,
