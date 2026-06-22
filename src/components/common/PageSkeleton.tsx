@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
+
 interface PageSkeletonProps {
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   /** Deprecated — kept for API compatibility. No fake rows/hero/tabs are rendered. */
   headerClassName?: string;
   rows?: number;
