@@ -14,6 +14,7 @@
 3. Enabled React Router transition mode on `<BrowserRouter>` so lazy route changes keep already-revealed UI instead of immediately hiding it behind fallback.
 4. Added app-wide anchor navigation warm-up: known lazy route chunks are imported first, then SPA navigation occurs, preventing route switch into an empty Suspense boundary.
 5. Changed boot/native splash/status/base color back to the real light app surface (`#f8fafc` / `hsl(var(--background))`) so no black loading layer is used for normal app pages.
+6. Promoted the recording-proven critical route trio (`Profile`, `AgencyDashboard`, `Level5HelperDashboard`) from lazy chunks to eager imports, so direct/cold navigation to those pages cannot show a blank Suspense frame.
 
 **Citations:** React Suspense fallback/transition guidance — https://react.dev/reference/react/Suspense ; React Router future flags / startTransition — https://reactrouter.com/v6/upgrading/future
 
