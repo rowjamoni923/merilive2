@@ -3836,6 +3836,7 @@ export type Database = {
       }
       country_payroll_admins: {
         Row: {
+          agreement_pdf_url: string | null
           allowed_payment_methods: Json
           application_id: string | null
           assigned_at: string
@@ -3848,9 +3849,11 @@ export type Database = {
           daily_cap_usd: number
           deposit_amount_usd: number
           deposit_locked: boolean
+          helper_tier: string
           id: string
           max_withdraw_usd: number
           min_withdraw_usd: number
+          priority: number
           revoked_at: string | null
           status: string
           suspended_reason: string | null
@@ -3858,6 +3861,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agreement_pdf_url?: string | null
           allowed_payment_methods?: Json
           application_id?: string | null
           assigned_at?: string
@@ -3870,9 +3874,11 @@ export type Database = {
           daily_cap_usd?: number
           deposit_amount_usd?: number
           deposit_locked?: boolean
+          helper_tier?: string
           id?: string
           max_withdraw_usd?: number
           min_withdraw_usd?: number
+          priority?: number
           revoked_at?: string | null
           status?: string
           suspended_reason?: string | null
@@ -3880,6 +3886,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agreement_pdf_url?: string | null
           allowed_payment_methods?: Json
           application_id?: string | null
           assigned_at?: string
@@ -3892,9 +3899,11 @@ export type Database = {
           daily_cap_usd?: number
           deposit_amount_usd?: number
           deposit_locked?: boolean
+          helper_tier?: string
           id?: string
           max_withdraw_usd?: number
           min_withdraw_usd?: number
+          priority?: number
           revoked_at?: string | null
           status?: string
           suspended_reason?: string | null
@@ -3913,6 +3922,10 @@ export type Database = {
       }
       country_super_admin_applications: {
         Row: {
+          agreement_ip: string | null
+          agreement_pdf_url: string | null
+          agreement_signed_at: string | null
+          agreement_version: string | null
           applicant_user_id: string
           business_doc_url: string | null
           business_name: string | null
@@ -3921,9 +3934,14 @@ export type Database = {
           deposit_amount_usd: number
           deposit_proof_url: string | null
           deposit_tx_ref: string | null
+          full_address: string | null
           full_name: string
           id: string
           national_id_url: string | null
+          nid_back_url: string | null
+          nid_country: string | null
+          nid_front_url: string | null
+          nid_number: string | null
           notes: string | null
           official_email: string
           official_phone: string
@@ -3931,13 +3949,19 @@ export type Database = {
           reviewed_at: string | null
           reviewer_id: string | null
           reviewer_notes: string | null
+          signature_data_url: string | null
           signed_contract_url: string | null
           status: string
           telegram: string | null
           updated_at: string
+          verification_checklist: Json
           whatsapp: string | null
         }
         Insert: {
+          agreement_ip?: string | null
+          agreement_pdf_url?: string | null
+          agreement_signed_at?: string | null
+          agreement_version?: string | null
           applicant_user_id: string
           business_doc_url?: string | null
           business_name?: string | null
@@ -3946,9 +3970,14 @@ export type Database = {
           deposit_amount_usd?: number
           deposit_proof_url?: string | null
           deposit_tx_ref?: string | null
+          full_address?: string | null
           full_name: string
           id?: string
           national_id_url?: string | null
+          nid_back_url?: string | null
+          nid_country?: string | null
+          nid_front_url?: string | null
+          nid_number?: string | null
           notes?: string | null
           official_email: string
           official_phone: string
@@ -3956,13 +3985,19 @@ export type Database = {
           reviewed_at?: string | null
           reviewer_id?: string | null
           reviewer_notes?: string | null
+          signature_data_url?: string | null
           signed_contract_url?: string | null
           status?: string
           telegram?: string | null
           updated_at?: string
+          verification_checklist?: Json
           whatsapp?: string | null
         }
         Update: {
+          agreement_ip?: string | null
+          agreement_pdf_url?: string | null
+          agreement_signed_at?: string | null
+          agreement_version?: string | null
           applicant_user_id?: string
           business_doc_url?: string | null
           business_name?: string | null
@@ -3971,9 +4006,14 @@ export type Database = {
           deposit_amount_usd?: number
           deposit_proof_url?: string | null
           deposit_tx_ref?: string | null
+          full_address?: string | null
           full_name?: string
           id?: string
           national_id_url?: string | null
+          nid_back_url?: string | null
+          nid_country?: string | null
+          nid_front_url?: string | null
+          nid_number?: string | null
           notes?: string | null
           official_email?: string
           official_phone?: string
@@ -3981,10 +4021,12 @@ export type Database = {
           reviewed_at?: string | null
           reviewer_id?: string | null
           reviewer_notes?: string | null
+          signature_data_url?: string | null
           signed_contract_url?: string | null
           status?: string
           telegram?: string | null
           updated_at?: string
+          verification_checklist?: Json
           whatsapp?: string | null
         }
         Relationships: []
@@ -20344,6 +20386,7 @@ export type Database = {
       get_active_country_payroll_config: {
         Args: { _country_code: string }
         Returns: {
+          agreement_pdf_url: string | null
           allowed_payment_methods: Json
           application_id: string | null
           assigned_at: string
@@ -20356,9 +20399,11 @@ export type Database = {
           daily_cap_usd: number
           deposit_amount_usd: number
           deposit_locked: boolean
+          helper_tier: string
           id: string
           max_withdraw_usd: number
           min_withdraw_usd: number
+          priority: number
           revoked_at: string | null
           status: string
           suspended_reason: string | null
