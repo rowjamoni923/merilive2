@@ -379,9 +379,7 @@ const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/Gl
 // back press never falls through to the system default (which would exit the app).
 import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonHandler";
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
-const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
-import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
@@ -391,16 +389,9 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 
-// Route lazy-loads must not paint any alternate/fake screen. BlankScreenGuard
-// retains the previous real screen until the next real route has mounted.
-
-// Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
-// users see when entering /admin?access=<token> on a cold cache.
-const AdminChunkLoader = memo(() => (
-  <div data-page-root="admin-route-fallback" className="min-h-screen w-full bg-slate-950" aria-hidden="true">
-    <div className="sr-only">Loading admin panel</div>
-  </div>
-));
+// Route lazy-loads must not paint any alternate/fake screen.
+// Navigation warms chunks before route switch instead.
+const AdminChunkLoader = memo(() => null);
 AdminChunkLoader.displayName = "AdminChunkLoader";
 
 // =============================================
@@ -1145,11 +1136,6 @@ const App = () => {
         },
       }}
     >
-      {showSplash && (
-        <Suspense fallback={null}>
-          <SplashScreen onComplete={() => { try { sessionStorage.setItem('splash_shown', '1'); } catch {} setShowSplash(false); }} />
-        </Suspense>
-      )}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
@@ -1165,7 +1151,6 @@ const App = () => {
             <ConnectionStatus />
             <BrowserRouter>
               <ScrollToTop />
-              <RouteTransitionHost />
               <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
