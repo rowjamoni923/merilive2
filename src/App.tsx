@@ -1285,7 +1285,7 @@ const App = () => {
                   )}
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<RouteSuspenseFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
