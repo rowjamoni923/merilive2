@@ -6,6 +6,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Discover from "./pages/Discover";
 import Live from "./pages/Live";
+import Profile from "./pages/Profile";
+import AgencyDashboard from "./pages/AgencyDashboard";
+import Level5HelperDashboard from "./pages/Level5HelperDashboard";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +60,6 @@ import DeferredAppHooks from "./components/common/DeferredAppHooks";
 // firebase messaging shims, etc.) never block first paint. They mount inside <Suspense>.
 const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
-const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperDashboard")));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -74,7 +76,6 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // LAZY LOADED PAGES - Load on demand
 // =============================================
 // Main Pages
-const Profile = lazy(lazyRetry(() => import("./pages/Profile")));
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
 const LiveStreamFeed = lazy(lazyRetry(() => import("./pages/LiveStreamFeed")));
@@ -110,7 +111,6 @@ const TransferHistory = lazy(lazyRetry(() => import("./pages/TransferHistory")))
 const CreateAgency = lazy(lazyRetry(() => import("./pages/CreateAgency")));
 const SmartLink = lazy(lazyRetry(() => import("./pages/SmartLink")));
 const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
-const AgencyDashboard = lazy(lazyRetry(() => import("./pages/AgencyDashboard")));
 const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
 const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
