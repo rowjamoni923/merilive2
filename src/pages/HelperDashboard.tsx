@@ -30,6 +30,7 @@ import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+import ApplyLevel6Card from "@/components/helper/ApplyLevel6Card";
 const SwiftPayDepositModal = lazy(() => import("@/components/recharge/SwiftPayDepositModal"));
 import { recordClientError } from "@/utils/clientErrorLog";
 const HelperApplicationForm = lazy(() => import("@/components/helper/HelperApplicationForm"));
@@ -1282,6 +1283,11 @@ const HelperDashboard = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Level 6 — Country Super Admin entry card (no dashboard, secret apply link) */}
+      <div className="px-4 mt-4">
+        <ApplyLevel6Card currentLevel={helperData?.trader_level || 1} />
       </div>
 
       {/* ============ MAIN TABS (L5 parity) ============ */}
