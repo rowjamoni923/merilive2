@@ -2,21 +2,19 @@
 
 ## ✅ White/Blank Route Surface Fix — 2026-06-22
 
-**User issue:** Bottom-tab navigation could show a pale/white empty screen for seconds (recording showed `/profile` painting only a blank gradient while data loaded).
+**User issue:** Uploaded recording still showed route loading as a pale/white empty screen. Frame audit confirmed repeated near-white frames during navigation: 0.98 white-pixel ratio on frames 002/004/006/011/015/017.
 
-**Research standard:** React Suspense explicitly swaps suspended UI to a fallback until code/data is ready; React 18 transitions/startTransition are intended to keep navigation responsive while non-urgent route work loads. Professional live/social apps must show a stable native-like surface, not a spinner or blank white screen.
+**Research standard:** React Suspense swaps suspended UI to `fallback`; React recommends transitions/startTransition so already-visible UI is not hidden by a fallback. React Router documents React transitions as the professional path for keeping navigation responsive. Chamet/Bigo-class apps should retain the previous real screen or native shell, not show fake skeletons, spinners, or blank white pages.
 
-**Verified root cause:** `PageSkeleton` had been changed to an invisible background-only div to avoid double UI. That removed fake UI, but it also made every page using `PageSkeleton` look like a white/empty screen during cache/data misses. Global `main,[data-page-root]` page-enter animation could also fade the placeholder in from opacity 0.
+**Verified root cause:** The previous fake skeleton removal changed `PageSkeleton` into a plain light background, but `App.tsx` still used `<Suspense fallback={<RouteSuspenseFallback />}>`. During lazy route/data loading this fallback replaced the real screen with `PageSkeleton`, producing exactly the white loading screen in the video. `BlankScreenGuard` also used a plain `bg-background` overlay when it detected no route surface.
 
 **Completed fixes:**
-1. `PageSkeleton` now renders a textless, non-animated structural surface: header blocks, optional tabs/hero, and rows — no fake labels, no fake buttons, no spinner, no shimmer.
-2. `RouteSuspenseFallback` now uses the same textless surface for normal app routes instead of a plain white/background div.
-3. `BlankScreenGuard` now paints the same textless surface if a real route surface is missing, instead of covering the app with a blank white layer.
-4. Global page-enter animation excludes `data-page-root="instant-ready-shell"` so the fallback itself never fades from invisible.
-5. Side-effect dynamic imports now use retry/cache-clear recovery, so LiveKit warmups cannot silently fail forever on stale chunks.
-6. Global chunk errors now trigger bounded cache-busting recovery instead of leaving the WebView stuck on a blank route.
+1. Removed the app-route `RouteSuspenseFallback` UI path entirely; route Suspense now uses `fallback={null}` so no alternate/fake screen is painted.
+2. Reworked `BlankScreenGuard` to retain a DOM snapshot of the last real screen and show that only if the next route has no meaningful surface yet.
+3. Excluded `PageSkeleton`/blank guard/snapshot DOM from blank-surface detection so blank placeholders no longer count as “real UI”.
+4. Kept admin chunk loader separate because admin routes are outside the user app flow.
 
-**Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React 18 transitions overview in React Router docs — https://reactrouter.com/7.13.0/explanation/react-transitions
+**Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React transitions in React Router — https://reactrouter.com/explanation/react-transitions
 
 ---
 
