@@ -946,7 +946,11 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   html.native-face-camera-active,
   body.native-face-camera-active,
   html.native-media-active,
-  body.native-media-active {
+  body.native-media-active,
+  html.lk-camera-live,
+  body.lk-camera-live,
+  html.lk-camera-live #root,
+  body.lk-camera-live #root {
     background: transparent !important;
     background-color: transparent !important;
   }
@@ -961,9 +965,18 @@ video::-webkit-media-controls-toggle-closed-captions-button {
      normally because they have their own non-transparent surfaces. */
   body.native-media-active .room-viewport,
   body.native-media-active [data-room-shell],
-  body.native-media-active [data-native-video-view] {
+  body.native-media-active [data-native-video-view],
+  body.lk-camera-live .room-viewport,
+  body.lk-camera-live [data-room-shell],
+  body.lk-camera-live [data-native-video-view],
+  body.lk-camera-live [data-livekit-camera-surface] {
     background: transparent !important;
     background-color: transparent !important;
+  }
+
+  body.lk-camera-live video,
+  body.native-media-active video {
+    background: transparent !important;
   }
 
   /* 🎯 Private Call is a portal overlay on top of any route. Hide the

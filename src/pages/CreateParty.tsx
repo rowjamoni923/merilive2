@@ -612,29 +612,29 @@ const CreateParty = () => {
             className="absolute inset-0 w-full h-full z-20"
           />
         )}
-        {/* Web camera preview — ALWAYS rendered so ref is present,
-            but opacity-controlled so it doesn't show a dead frame. */}
-        <video
-          key={stream?.id || 'no-stream'}
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-          poster=""
-          // @ts-ignore
-          x5-video-player-type="h5"
-          webkit-playsinline="true"
-          className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-opacity duration-200 z-20",
-            showVideo ? "opacity-100" : "opacity-0",
-            facingMode === "user" && "scale-x-[-1]"
-          )}
-          style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-        />
+        {!isNativeAndroid && (
+          <video
+            key={stream?.id || 'no-stream'}
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+            poster=""
+            // @ts-ignore
+            x5-video-player-type="h5"
+            webkit-playsinline="true"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-200 z-20",
+              showVideo ? "opacity-100" : "opacity-0",
+              facingMode === "user" && "scale-x-[-1]"
+            )}
+            style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+          />
+        )}
       </div>
     );
   };

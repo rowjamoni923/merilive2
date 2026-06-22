@@ -475,9 +475,6 @@ export function useLiveKitCall(
                   audioProfile: 'voice',
                   roomScope: 'call',
                 });
-                // Step 29 — auto-enable PiP on leave hint for 1:1 calls.
-                // Parity with WhatsApp/Meet: home button = floating window.
-                nativeLiveKitController.setAutoPipOnLeaveHint(true, '9:16').catch(() => {});
                 lastNErr = null;
                 break;
               } catch (e) {

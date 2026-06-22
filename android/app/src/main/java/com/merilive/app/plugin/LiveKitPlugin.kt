@@ -1327,6 +1327,14 @@ class LiveKitPlugin : Plugin() {
 
         act.runOnUiThread {
             try {
+                if (webViewOriginalBg == null) {
+                    webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+                }
+                wv.setBackgroundColor(Color.TRANSPARENT)
+                wv.background = null
+                try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+                try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
+
                 if (previewRenderer == null) {
                     val renderer = SurfaceViewRenderer(act).apply {
                         setEnableHardwareScaler(true)
@@ -1352,18 +1360,6 @@ class LiveKitPlugin : Plugin() {
                     parent.addView(renderer, 0, lp)
                     previewRenderer = renderer
 
-                    // Stash original WebView bg so detachRenderer can restore it.
-                    if (webViewOriginalBg == null) {
-                        webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
-                    }
-                    // Force WebView transparent on every level so renderer bleeds through.
-                    wv.setBackgroundColor(Color.TRANSPARENT)
-                    wv.background = null
-                    try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
-                    // Also paint the WebView's parent black so partially-transparent
-                    // HTML body still gets a solid camera-friendly backdrop instead
-                    // of OS window white that bleeds through the React DOM.
-                    try { (wv.parent as? ViewGroup)?.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
                 } else {
                     previewRenderer?.setMirror(mirror)
                 }

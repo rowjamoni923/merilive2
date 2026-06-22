@@ -17,6 +17,8 @@ export function clearNativeMediaSurface(): void {
   try {
     document.documentElement.classList.remove('native-media-active');
     document.body.classList.remove('native-media-active');
+    document.documentElement.classList.remove('lk-camera-live');
+    document.body.classList.remove('lk-camera-live');
   } catch {
     /* noop */
   }
@@ -38,6 +40,8 @@ export function setNativeMediaSurface(active: boolean): void {
     if (active) {
       document.documentElement.classList.add('native-media-active');
       document.body.classList.add('native-media-active');
+      document.documentElement.classList.add('lk-camera-live');
+      document.body.classList.add('lk-camera-live');
     } else {
       clearNativeMediaSurface();
     }
