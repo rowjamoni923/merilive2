@@ -1286,7 +1286,7 @@ const GoLive = () => {
           />
         ) : (
           <div className="relative w-full h-full camera-locked">
-            {isNativeAndroid && nativePreviewActive ? (
+            {isNativeAndroid ? (
               <div className="absolute inset-0 pointer-events-none" />
             ) : (
               <>
@@ -1322,7 +1322,7 @@ const GoLive = () => {
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    backgroundColor: previewHasFrame ? 'transparent' : '#000',
+                    backgroundColor: (isNativeAndroid || previewHasFrame) ? 'transparent' : '#000',
                     transition: 'background-color 200ms ease',
                   }}
                 />

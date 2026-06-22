@@ -2,15 +2,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { usePartySessionOptional } from "@/features/party-session";
-import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
-import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
-import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 import { 
   X, 
@@ -218,9 +216,6 @@ const PartyRoom = () => {
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole party session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
-  // Auto-PiP: leaving the app to home / another app shrinks the party into a
-  // floating window so seat video stays visible; tap returns to the same room.
-  useAutoPictureInPicture({ enabled: true, aspect: { x: 9, y: 16 } });
   const [room, setRoom] = useState<PartyRoom | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
@@ -249,9 +244,6 @@ const PartyRoom = () => {
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
 
-  // Pkg245 — auto-PiP for party rooms (multi-guest grid; 1:1 square window
-  // works best for 2-9 seats). Active once the room loaded successfully.
-  useNativeAndroidPip({ active: !!room && !loading, aspect: '1:1' });
   // Pkg247 — boost panel to highest Hz while in the party
   useHighRefreshRate(!!room && !loading);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -816,6 +808,11 @@ const PartyRoom = () => {
     ((room as any)?.audio_profile as 'voice' | 'music' | undefined)
       ?? (room?.room_type === 'audio' ? 'voice' : 'music')
   );
+
+  useEffect(() => {
+    setNativeMediaSurface(isNativeMediaActive);
+    return () => clearNativeMediaSurface();
+  }, [isNativeMediaActive]);
 
   // Pkg98: Real-time active speaker set, powered by LiveKit's server-side
   // RoomEvent.ActiveSpeakersChanged (registered inside usePartyRoomNativeLiveKit).

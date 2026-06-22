@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
-import { useAutoPictureInPicture } from "@/hooks/useAutoPictureInPicture";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 
@@ -29,7 +28,6 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useLiveSessionOptional } from "@/features/live-session";
-import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
@@ -43,6 +41,7 @@ import {
   Grid3X3,
   Users,
   Eye,
+  EyeOff,
   Wand2,
   Smile,
   Sparkles,
@@ -65,8 +64,6 @@ import {
   MicOff,
   Hand,
   Bot,
-  Video,
-  VideoOff,
   RefreshCcw,
   Image as ImageIcon,
   Volume2,
@@ -93,7 +90,6 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { NativeVideoView } from "@/components/NativeVideoView";
-import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
@@ -208,9 +204,6 @@ const LiveStream = () => {
   useScreenLock(true);
   // Pkg444 Phase-5: hold media audio focus for the whole live session.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
-  // Auto-PiP: viewer/host presses Home → app shrinks into floating window so
-  // the stream stays visible; returning lands them back in the same room.
-  useAutoPictureInPicture({ enabled: true, aspect: { x: 9, y: 16 } });
   
   
   // isHost will be verified from database, not just from session/location state
@@ -226,10 +219,6 @@ const LiveStream = () => {
   // LiveKitPlugin.connect().
   useViewerSession({ active: !isHost, kind: 'live', title: 'Watching live' });
 
-  // Pkg245 — auto-PiP when user taps home button while watching/hosting a
-  // live stream (Bigo/YouTube parity). 9:16 portrait window; reuses native
-  // bridge (Pkg207). No-op on web/iOS.
-  useNativeAndroidPip({ active: isHostVerified || !isHost, aspect: '9:16' });
   // Pkg247 — boost to 90/120Hz while live for smooth video + chat scroll
   useHighRefreshRate(isHostVerified || !isHost);
   // Live frame health monitor (face_lost / sleeping / multi-face / NSFW etc.)
@@ -3568,7 +3557,7 @@ const LiveStream = () => {
   // previously mounted-but-unreachable now has a trigger here (Pkg502).
   const hostOnlyOptions = [
     { id: "mic", name: isHostMicMuted ? "Unmute" : "Mute", iconName: (isHostMicMuted ? "MicOff" as const : "Mic" as const), color: isHostMicMuted ? "from-red-400 to-rose-600" : "from-cyan-400 to-teal-500", shadowColor: "shadow-cyan-500/40", action: () => { setShowMoreOptions(false); const next = !isHostMicMuted; setIsHostMicMuted(next); toggleAudio(!next); } },
-    { id: "cam", name: isHostCamOff ? "Camera On" : "Camera Off", iconName: (isHostCamOff ? "VideoOff" as const : "Video" as const), color: isHostCamOff ? "from-red-400 to-rose-600" : "from-sky-400 to-blue-500", shadowColor: "shadow-sky-500/40", action: () => { setShowMoreOptions(false); void handleToggleHostCamera(); } },
+    { id: "cam", name: isHostCamOff ? "Camera On" : "Camera Off", iconName: (isHostCamOff ? "EyeOff" as const : "Eye" as const), color: isHostCamOff ? "from-red-400 to-rose-600" : "from-sky-400 to-blue-500", shadowColor: "shadow-sky-500/40", action: () => { setShowMoreOptions(false); void handleToggleHostCamera(); } },
     { id: "flip", name: "Flip Camera", iconName: "RefreshCcw" as const, color: "from-violet-400 to-purple-500", shadowColor: "shadow-violet-500/40", action: () => { setShowMoreOptions(false); void handleFlipCamera(); } },
     { id: "pk", name: "PK Battle", iconName: "Swords" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => { setShowMoreOptions(false); handleOpenPKPanel(); } },
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
@@ -4155,8 +4144,6 @@ const LiveStream = () => {
                 retrySubscription();
               }}
               className="absolute inset-0 w-full h-full"
-              enablePictureInPicture
-              pipId="live-host"
             />
 
           </div>
@@ -4746,8 +4733,8 @@ const LiveStream = () => {
                       Heart: <Heart className="w-6 h-6 fill-current" strokeWidth={1.8} />,
                       Mic: <Mic className="w-6 h-6" strokeWidth={1.8} />,
                       MicOff: <MicOff className="w-6 h-6" strokeWidth={1.8} />,
-                      Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
-                      VideoOff: <VideoOff className="w-6 h-6" strokeWidth={1.8} />,
+                      Eye: <Eye className="w-6 h-6" strokeWidth={1.8} />,
+                      EyeOff: <EyeOff className="w-6 h-6" strokeWidth={1.8} />,
                       RefreshCcw: <RefreshCcw className="w-6 h-6" strokeWidth={1.8} />,
                       Image: <ImageIcon className="w-6 h-6" strokeWidth={1.8} />,
                       Volume2: <Volume2 className="w-6 h-6" strokeWidth={1.8} />,

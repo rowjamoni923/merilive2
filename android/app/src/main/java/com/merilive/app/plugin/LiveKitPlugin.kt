@@ -1193,8 +1193,16 @@ class LiveKitPlugin : Plugin() {
 
     /** Push local preview track into any slot already bound to local identity. */
     private fun rebindSeatSlotsForLocalTrack(track: LocalVideoTrack) {
-        val id = room?.localParticipant?.identity?.value ?: return
-        onIdentityTrackAvailable(id, track)
+        val id = room?.localParticipant?.identity?.value
+        runOnMain {
+            slots.values
+                .filter { slot -> slot.isLocal && slot.attachedTrack !== track && (slot.identity == null || slot.identity == id) }
+                .forEach { slot ->
+                    if (slot.identity == null && id != null) slot.identity = id
+                    attachTrackToSlot(slot, track)
+                }
+        }
+        if (id != null) onIdentityTrackAvailable(id, track)
     }
 
     // ─────────────────────────────────────────────
@@ -1327,6 +1335,14 @@ class LiveKitPlugin : Plugin() {
 
         act.runOnUiThread {
             try {
+                if (webViewOriginalBg == null) {
+                    webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+                }
+                wv.setBackgroundColor(Color.TRANSPARENT)
+                wv.background = null
+                try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+                try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
+
                 if (previewRenderer == null) {
                     val renderer = SurfaceViewRenderer(act).apply {
                         setEnableHardwareScaler(true)
@@ -1343,27 +1359,13 @@ class LiveKitPlugin : Plugin() {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
-                    // Pkg502 (Camera white-screen fix 2026-06-22):
-                    // initVideoRenderer FIRST (binds EglBase context), then
-                    // addView at index 0 so renderer sits BEHIND the WebView.
-                    // SurfaceView must be a child of the WebView's parent and
-                    // drawn first; WebView (drawn on top) must be transparent.
-                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
+                    // SurfaceView must be attached before initVideoRenderer on
+                    // several OEM EGL stacks; still inserted at index 0 so it
+                    // sits BEHIND the transparent WebView.
                     parent.addView(renderer, 0, lp)
+                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
 
-                    // Stash original WebView bg so detachRenderer can restore it.
-                    if (webViewOriginalBg == null) {
-                        webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
-                    }
-                    // Force WebView transparent on every level so renderer bleeds through.
-                    wv.setBackgroundColor(Color.TRANSPARENT)
-                    wv.background = null
-                    try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
-                    // Also paint the WebView's parent black so partially-transparent
-                    // HTML body still gets a solid camera-friendly backdrop instead
-                    // of OS window white that bleeds through the React DOM.
-                    try { (wv.parent as? ViewGroup)?.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
                 } else {
                     previewRenderer?.setMirror(mirror)
                 }
