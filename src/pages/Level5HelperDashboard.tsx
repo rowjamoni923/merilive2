@@ -39,6 +39,7 @@ import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
+import TraderLevelsCard from "@/components/helper/TraderLevelsCard";
 
 const ManualTopupCard = lazy(() => import("@/components/helper/ManualTopupCard"));
 
@@ -1481,6 +1482,14 @@ const Level5HelperDashboard = () => {
         </Dialog>
 
 
+      </div>
+
+      {/* Trader Levels — full L1→L6 ladder with upgrade actions */}
+      <div className="px-4 mt-4">
+        <TraderLevelsCard
+          currentLevel={helperData?.trader_level || 5}
+          helperId={helperData?.id || null}
+        />
       </div>
 
       {/* Main Tabs */}
