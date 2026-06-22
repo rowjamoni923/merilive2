@@ -2116,14 +2116,10 @@ const Auth = () => {
   className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
-            {loading ? (
-  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> /* dark-ok */
-            ) : (
-              <span className="flex items-center gap-2">
-                <Rocket3DIcon className="w-5 h-5" />
-                <span className="drop-shadow-lg tracking-wide">Get Started</span>
-              </span>
-            )}
+            <span className="flex items-center gap-2">
+              <Rocket3DIcon className="w-5 h-5" />
+              <span className="drop-shadow-lg tracking-wide">Get Started</span>
+            </span>
           </Button>
 
           {/* Phone Number Button */}
@@ -2320,14 +2316,8 @@ const Auth = () => {
                 disabled={loading || !displayName.trim() || !selectedGender}
  className="w-full h-12 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold text-base disabled:opacity-40 shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    {isEmailFlow ? "Continue" : "Get Started"}
-                  </>
-                )}
+                <Sparkles className="w-5 h-5 mr-2" />
+                {isEmailFlow ? "Continue" : "Get Started"}
               </Button>
             </div>
           </div>
@@ -2402,14 +2392,8 @@ const Auth = () => {
                 disabled={loading || !email.trim()}
  className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Mail className="w-5 h-5 mr-2.5" />
-                    Send Verification Code
-                  </>
-                )}
+                <Mail className="w-5 h-5 mr-2.5" />
+                Send Verification Code
               </Button>
 
               <div className="text-center pt-1">
@@ -2485,14 +2469,8 @@ const Auth = () => {
                 disabled={otpLoading || otpCode.length !== 6}
  className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {otpLoading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2.5" />
-                    Verify Code
-                  </>
-                )}
+                <Check className="w-5 h-5 mr-2.5" />
+                Verify Code
               </Button>
               
               {/* Resend Code — industry-standard 60s countdown (Phase 1 audit 2026-06-09) */}
@@ -2565,14 +2543,8 @@ const Auth = () => {
               </div>
               
  <Button onClick={handleCreateEmailAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 hover:from-violet-500 hover:via-purple-400 hover:to-pink-400 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="mr-2">🚀</span>
-                    Create Account
-                  </>
-                )}
+                <span className="mr-2">🚀</span>
+                Create Account
               </Button>
             </div>
           </div>
@@ -2611,14 +2583,8 @@ const Auth = () => {
               </div>
               
  <Button onClick={handleVerifyOtp} disabled={otpLoading || otpCode.length !== 6} className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
-                {otpLoading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2.5" />
-                    Verify & Continue
-                  </>
-                )}
+                <Check className="w-5 h-5 mr-2.5" />
+                Verify & Continue
               </Button>
               
               <div className="text-center space-y-2">
@@ -2665,11 +2631,7 @@ const Auth = () => {
               </div>
               
  <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:saturate-100 disabled:hover:scale-100 disabled:cursor-not-allowed">
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Login"
-                )}
+                Login
               </Button>
               
               <div className="text-center pt-1">
@@ -2803,14 +2765,8 @@ const Auth = () => {
                 disabled={loading || !phoneNumber.trim()}
  className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <MessageCircle className="w-5 h-5 mr-2.5" />
-                    Send WhatsApp Code
-                  </>
-                )}
+                <MessageCircle className="w-5 h-5 mr-2.5" />
+                Send WhatsApp Code
               </Button>
 
               <div className="text-center pt-1">
@@ -2876,14 +2832,8 @@ const Auth = () => {
                 disabled={phoneOtpLoading || phoneOtpCode.length !== 6}
  className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {phoneOtpLoading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2.5" />
-                    Verify Code
-                  </>
-                )}
+                <Check className="w-5 h-5 mr-2.5" />
+                Verify Code
               </Button>
 
               <div className="text-center space-y-2">
@@ -2952,14 +2902,8 @@ const Auth = () => {
               </div>
 
  <Button onClick={handleCreatePhoneAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-400 hover:to-teal-400 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="mr-2">🚀</span>
-                    Create Account
-                  </>
-                )}
+                <span className="mr-2">🚀</span>
+                Create Account
               </Button>
             </div>
           </div>

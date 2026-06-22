@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { Capacitor } from '@capacitor/core';
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -15,7 +15,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Verifying authentication...');
+  const [message, setMessage] = useState('meriLIVE');
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -231,7 +231,7 @@ const AuthCallback = () => {
         {/* Status Icon */}
         {status === 'loading' && (
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <span className="text-2xl font-black text-primary">M</span>
           </div>
         )}
         {status === 'success' && (
@@ -248,9 +248,6 @@ const AuthCallback = () => {
         {/* Message */}
         <div className="space-y-2">
           <p className="text-lg font-medium text-foreground">{message}</p>
-          {status === 'loading' && (
-            <p className="text-sm text-muted-foreground">Please wait...</p>
-          )}
           {status === 'success' && (
             <p className="text-sm text-muted-foreground">Taking you to home page...</p>
           )}
@@ -259,14 +256,6 @@ const AuthCallback = () => {
           )}
         </div>
 
-        {/* Progress dots for loading */}
-        {status === 'loading' && (
-          <div className="flex justify-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-        )}
       </div>
     </div>
   );

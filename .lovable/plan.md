@@ -249,3 +249,20 @@ After all 4 phases:
 **Kept safe:** Button-level loading during actual submit/OTP/login remains, because removing those would allow duplicate account/payment/auth actions.
 
 **Verified:** Playwright cold-open check on `/auth`, `/live`, `/discover` showed `startup_skeletons=0`; unauthenticated protected routes redirect to `/auth` without skeleton/error.
+
+---
+
+## ✅ App-wide No Spinner / Instant Painted Surface Pass — 2026-06-22
+
+**User issue:** `/auth` and other sections could still show a static boot/loading shell for multiple seconds on slow route chunk/auth work, and auth submit/callback/reset pages still contained visible spinning loaders.
+
+**Research standard:** Chamet/Bigo/Poppo-style apps avoid blank full-screen waits by painting cached/native shell immediately, then resolving network/auth/media in background; LiveKit/Supabase work cannot be made physically zero-ms, but visible UX must be painted immediately with no spinner/blank state.
+
+**Completed fixes:**
+1. Main app route `<Suspense>` now uses `RouteSuspenseFallback` instead of `null`, so lazy pages always show static painted app chrome rather than blank/boot-only state.
+2. Route fallback surfaces now expose `data-page-root`, allowing boot-shell removal as soon as React paints a fallback surface.
+3. Boot readiness detection now treats fixed full-screen route surfaces as valid, preventing the HTML boot shell from staying over React during slow auth/route parsing.
+4. Global skeleton primitives no longer shimmer/pulse; global `animate-spin` is neutralized so spinning loaders do not visually spin.
+5. Auth callback, reset password, and `/auth` submit buttons were changed from spinner-only indicators to static disabled/action states.
+
+**Reality boundary:** Network/API/media operations still take real time, but the user-facing surface is immediate and non-spinning; buttons remain disabled during submits to prevent duplicate auth/account actions.

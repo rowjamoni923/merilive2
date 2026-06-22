@@ -418,7 +418,7 @@ const RouteSuspenseFallback = memo(() => {
 
   if (isAuthRoute) {
     return (
-      <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
+      <div data-page-root="route-fallback-auth" className="fixed inset-0 overflow-hidden" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/15" />
         <div className="relative z-10 flex min-h-screen flex-col justify-end px-5 pb-8">
           <div className="mb-4 h-14 w-14 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
@@ -435,7 +435,7 @@ const RouteSuspenseFallback = memo(() => {
 
   if (isLiveSurface) {
     return (
-      <div className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
+      <div data-page-root="route-fallback-live" className="fixed inset-0" style={{ backgroundColor: '#050208' }} aria-hidden="true">
         <div className="absolute left-4 right-4 pt-4" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-full" style={{ backgroundColor: '#1a1422' }} />
@@ -459,7 +459,7 @@ const RouteSuspenseFallback = memo(() => {
 
   // Default app surface — full static painted chrome.
   return (
-    <div className="fixed inset-0 flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
+    <div data-page-root="route-fallback-app" className="fixed inset-0 flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
       <div className="flex items-center px-4 gap-3" style={{ height: 56, backgroundColor: '#F3EBDC', borderBottom: '1px solid #E8DFCC' }}>
         <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
         <div className="h-3.5 w-32 rounded" style={{ backgroundColor: '#E2D6BE' }} />
@@ -493,7 +493,7 @@ RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
 // users see when entering /admin?access=<token> on a cold cache.
 const AdminChunkLoader = memo(() => (
-  <div className="min-h-screen w-full bg-slate-950" aria-hidden="true">
+  <div data-page-root="admin-route-fallback" className="min-h-screen w-full bg-slate-950" aria-hidden="true">
     <div className="sr-only">Loading admin panel</div>
   </div>
 ));
@@ -1285,7 +1285,7 @@ const App = () => {
                   )}
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<RouteSuspenseFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
