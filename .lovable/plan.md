@@ -1,5 +1,20 @@
 # Admin Panel Professional Audit + Fix Plan
 
+## ✅ Duplicate UI Root Cause Follow-up — 2026-06-22
+
+**User issue:** Duplicate/ghost UI was still visible after earlier blank-screen fixes.
+
+**Research standard:** Professional live apps keep one visual owner per screen; prefetch can run on pointer-down, but navigation should not be delayed behind a second retained route tree. React Suspense/Router transition guidance supports keeping revealed UI stable without painting separate fake overlays. References: https://react.dev/reference/react/Suspense ; https://reactrouter.com/v6/upgrading/future ; LiveKit recommends high-level room lifecycle ownership for media continuity: https://docs.livekit.io/home/client/connect/
+
+**Verified root cause:** We had removed the cloned `BlankScreenGuard`, but two duplicate-producing mechanisms remained: `TabKeepAliveHost` was default-on and kept a second fixed full-screen page tree mounted for bottom tabs, and `routePrefetch` intercepted clicks, prevented the normal route commit, then navigated after chunk warm-up. On fast taps/slow chunks this leaves stale real UI visible after the tap, which users perceive as duplicate UI.
+
+**Completed fixes:**
+1. `TabKeepAliveHost` is now hard-disabled by default, so only one route page tree owns the screen.
+2. `routePrefetch` now only warms chunks on pointer-down and no longer blocks/intercepts click navigation.
+3. App route comments updated to lock the single-owner route lifecycle rule.
+
+---
+
 ## ✅ Duplicate UI / Black-White Loading Removal — 2026-06-22
 
 **User issue:** New recording still showed duplicate/stale UI and one hard black frame. Frame audit of `Recording_2026-06-22_080314.mp4` confirmed the real app pages were visible most of the time, but frame 015 was ~70.3% black/dark and several route frames were pale because the route tree could temporarily become empty.

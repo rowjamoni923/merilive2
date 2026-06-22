@@ -11,8 +11,6 @@
  * on failure — never block UI, never throw.
  */
 
-import { navigateInAppPath } from '@/utils/inAppNavigation';
-
 let livePrefetched = false;
 let partyPrefetched = false;
 let profilePrefetched = false;
@@ -196,20 +194,6 @@ export function prefetchByHref(href: string) {
   }
 }
 
-const shouldNativeNavigate = (ev: MouseEvent) => {
-  if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return false;
-  const target = ev.target as Element | null;
-  if (!target || !('closest' in target)) return false;
-  const anchor = target.closest<HTMLAnchorElement>('a[href]');
-  if (!anchor || anchor.target || anchor.hasAttribute('download')) return false;
-  const href = anchor.getAttribute('href') || '';
-  const route = getInternalRouteFromHref(href);
-  if (!route) return false;
-  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  if (route === current) return false;
-  return { route };
-};
-
 /**
  * Global delegated pointer-down listener — fires the right prefetcher
  * the instant the user starts a tap on any element with the matching
@@ -271,20 +255,8 @@ export function installRoutePrefetch() {
   // the head start we exploit. `passive: true` keeps scrolling smooth.
   window.addEventListener('pointerdown', handler, { passive: true, capture: true });
 
-  // Professional mobile navigation rule: never switch the route to an empty
-  // Suspense boundary. If a known lazy page is tapped, load its chunk first,
-  // then push the SPA route. The user stays on the real current screen instead
-  // of seeing a white/black/fake loading surface.
-  window.addEventListener('click', (ev) => {
-    const next = shouldNativeNavigate(ev);
-    if (!next) return;
-
-    const warm = warmRouteForNavigation(next.route);
-    if (!warm) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    void warm.then(() => navigateInAppPath(next.route)).catch(() => navigateInAppPath(next.route));
-  }, { capture: true });
+  // Do NOT intercept click navigation. Blocking the click until a chunk warms
+  // leaves the old screen visible after the tap, which looks like stale/duplicate
+  // UI. Pointer-down warming above is enough; React Router transition mode owns
+  // the actual route commit.
 }
