@@ -388,67 +388,11 @@ import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
-import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 
 
-// =============================================
-// ROUTE LOADER — textless painted surface (zero spinner, zero fake UI)
-// =============================================
-// Cached pages render instantly via PersistQueryClient. For the brief moment
-// a lazy chunk parses, we paint the destination route's full app silhouette
-// (top bar + content cards + bottom nav) with STATIC colors — no spinner,
-// no shimmer, no pulse, no skeleton animation. The user never sees a blank
-// white screen AND never sees a loading indicator.
-const RouteSuspenseFallback = memo(() => {
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/';
-  const isAuthRoute = path.startsWith('/auth') || path.startsWith('/reset-password');
-  const isLiveSurface =
-    /^\/live\/[^/]+/.test(path) ||
-    path.startsWith('/live-feed') ||
-    path.startsWith('/party/') ||
-    path === '/go-live' ||
-    path === '/live-session' ||
-    path === '/create-party' ||
-    path === '/party-session' ||
-    path.startsWith('/call/') ||
-    path.startsWith('/active-call') ||
-    path.startsWith('/incoming-call') ||
-    path.startsWith('/outgoing-call') ||
-    path.startsWith('/stream/');
-
-  if (isAuthRoute) {
-    return (
-      <div
-        data-page-root="route-fallback-auth"
-        className="fixed inset-0"
-        style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 42%, #24243e 72%, #0f0c29 100%)' }}
-        aria-hidden="true"
-      />
-    );
-  }
-
-  if (isLiveSurface) {
-    return (
-      <div
-        data-page-root="route-fallback-live"
-        className="fixed inset-0"
-        style={{ backgroundColor: '#050208' }}
-        aria-hidden="true"
-      />
-    );
-  }
-
-  return (
-    <PageSkeleton
-      className="fixed inset-0 bg-background"
-      rows={5}
-      tabs
-      hero
-    />
-  );
-});
-RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
+// Route lazy-loads must not paint any alternate/fake screen. BlankScreenGuard
+// retains the previous real screen until the next real route has mounted.
 
 // Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
 // users see when entering /admin?access=<token> on a cold cache.
@@ -1152,7 +1096,7 @@ const App = () => {
 
   if (isLandingDomain && isAdminRoute) {
     window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
-    return <RouteSuspenseFallback />;
+    return null;
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
@@ -1162,7 +1106,7 @@ const App = () => {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       navigateInAppPath('/auth', { replace: true });
-      return <RouteSuspenseFallback />; // keep a real surface during instant redirect
+      return null;
     }
   }
 
@@ -1243,9 +1187,8 @@ const App = () => {
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
                   )}
-                  {/* Stable, light-themed Suspense fallback. Memoized identity
-                       prevents flicker on parent re-renders during route swaps. */}
-                  <Suspense fallback={<RouteSuspenseFallback />}>
+                  {/* No fake fallback UI: keep previous real screen via BlankScreenGuard. */}
+                  <Suspense fallback={null}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
