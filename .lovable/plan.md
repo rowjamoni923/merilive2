@@ -1,5 +1,24 @@
 # Admin Panel Professional Audit + Fix Plan
 
+## ✅ Duplicate UI / Black-White Loading Removal — 2026-06-22
+
+**User issue:** New recording still showed duplicate/stale UI and one hard black frame. Frame audit of `Recording_2026-06-22_080314.mp4` confirmed the real app pages were visible most of the time, but frame 015 was ~70.3% black/dark and several route frames were pale because the route tree could temporarily become empty.
+
+**Research standard:** React Suspense shows `fallback` when a lazy child suspends, and React recommends transitions so already-revealed UI is not hidden by a fallback. React Router 6.30 supports `future={{ v7_startTransition: true }}` for transition-wrapped navigations. Professional Chamet/Bigo/Poppo-style apps avoid generic skeleton/loading pages by keeping the current real surface visible until the next surface/chunk/video is ready.
+
+**Verified root cause:** `BlankScreenGuard` cloned `#root` and rendered it as a fixed overlay, which looked like duplicate UI. Removing fake skeletons then left `Suspense fallback={null}` with no previous-surface protection, so the browser/native base layer showed as white or black. `RouteTransitionHost` and global page-enter animation were also still touching every route during navigation.
+
+**Completed fixes:**
+1. Disabled `BlankScreenGuard` snapshot rendering entirely — no cloned/duplicate UI can appear app-wide.
+2. Removed global `RouteTransitionHost` wiring and disabled page-enter opacity/transform animations so routes do not fade through blank layers.
+3. Enabled React Router transition mode on `<BrowserRouter>` so lazy route changes keep already-revealed UI instead of immediately hiding it behind fallback.
+4. Added app-wide anchor navigation warm-up: known lazy route chunks are imported first, then SPA navigation occurs, preventing route switch into an empty Suspense boundary.
+5. Changed boot/native splash/status/base color back to the real light app surface (`#f8fafc` / `hsl(var(--background))`) so no black loading layer is used for normal app pages.
+
+**Citations:** React Suspense fallback/transition guidance — https://react.dev/reference/react/Suspense ; React Router future flags / startTransition — https://reactrouter.com/v6/upgrading/future
+
+---
+
 ## ✅ White/Blank Route Surface Fix — 2026-06-22
 
 **User issue:** Uploaded recording still showed route loading as a pale/white empty screen. Frame audit confirmed repeated near-white frames during navigation: 0.98 white-pixel ratio on frames 002/004/006/011/015/017.
