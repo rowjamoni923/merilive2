@@ -14,9 +14,7 @@ interface LoadingSpinnerProps {
  * current painted surface; this component renders only optional static text.
  */
 export const LoadingSpinner = ({
-  text,
   fullScreen = false,
-  className,
   variant = "default",
 }: LoadingSpinnerProps) => {
   const staticStatus = null;
