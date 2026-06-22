@@ -39,6 +39,11 @@ const schedule = (cb: () => void) => {
 installRealtimeGuard();
 installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
+installRoutePrefetch();
+
+if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
+  setTimeout(() => startIdleRoutePrefetch(), 500);
+}
 
 // Vite emits this before React can render an ErrorBoundary when a lazy route
 // points to a deleted post-deploy chunk. Catch it globally and reboot cleanly.
@@ -58,10 +63,6 @@ schedule(() => {
   installAudioUnlock();
   installRippleTracker();
   installGlobalHaptics();
-  installRoutePrefetch();
-  if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
-    startIdleRoutePrefetch();
-  }
   // Phase 1 (instant-entry): pre-mint a 6h wildcard LiveKit viewer token in
   // the background so the first live-room / party-browse tap pays zero
   // token-fetch latency. Safe before auth resolves — silently no-ops if
