@@ -76,9 +76,11 @@ const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
     );
   }
   return (
-    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000]" aria-hidden="true">
-      <PageSkeleton className="min-h-screen bg-background" rows={5} tabs hero />
-    </div>
+    <div
+      data-blank-screen-guard
+      className="fixed inset-0 z-[2147483000] bg-background"
+      aria-hidden="true"
+    />
   );
 });
 
