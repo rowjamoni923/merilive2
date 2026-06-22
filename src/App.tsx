@@ -6,6 +6,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Discover from "./pages/Discover";
 import Live from "./pages/Live";
+import Profile from "./pages/Profile";
+import AgencyDashboard from "./pages/AgencyDashboard";
+import Level5HelperDashboard from "./pages/Level5HelperDashboard";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +60,6 @@ import DeferredAppHooks from "./components/common/DeferredAppHooks";
 // firebase messaging shims, etc.) never block first paint. They mount inside <Suspense>.
 const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
-const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperDashboard")));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -74,7 +76,6 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // LAZY LOADED PAGES - Load on demand
 // =============================================
 // Main Pages
-const Profile = lazy(lazyRetry(() => import("./pages/Profile")));
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
 const LiveStreamFeed = lazy(lazyRetry(() => import("./pages/LiveStreamFeed")));
@@ -110,7 +111,6 @@ const TransferHistory = lazy(lazyRetry(() => import("./pages/TransferHistory")))
 const CreateAgency = lazy(lazyRetry(() => import("./pages/CreateAgency")));
 const SmartLink = lazy(lazyRetry(() => import("./pages/SmartLink")));
 const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
-const AgencyDashboard = lazy(lazyRetry(() => import("./pages/AgencyDashboard")));
 const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
 const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
@@ -379,9 +379,7 @@ const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/Gl
 // back press never falls through to the system default (which would exit the app).
 import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonHandler";
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
-const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
-import { RouteTransitionHost } from "@/components/RouteTransitionHost";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
@@ -391,16 +389,9 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 
-// Route lazy-loads must not paint any alternate/fake screen. BlankScreenGuard
-// retains the previous real screen until the next real route has mounted.
-
-// Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
-// users see when entering /admin?access=<token> on a cold cache.
-const AdminChunkLoader = memo(() => (
-  <div data-page-root="admin-route-fallback" className="min-h-screen w-full bg-slate-950" aria-hidden="true">
-    <div className="sr-only">Loading admin panel</div>
-  </div>
-));
+// Route lazy-loads must not paint any alternate/fake screen.
+// Navigation warms chunks before route switch instead.
+const AdminChunkLoader = memo(() => null);
 AdminChunkLoader.displayName = "AdminChunkLoader";
 
 // =============================================
@@ -515,8 +506,6 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  // App must feel instant: no first-launch branded splash/loading overlay.
-  const [showSplash, setShowSplash] = useState(false);
   
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
@@ -1145,11 +1134,6 @@ const App = () => {
         },
       }}
     >
-      {showSplash && (
-        <Suspense fallback={null}>
-          <SplashScreen onComplete={() => { try { sessionStorage.setItem('splash_shown', '1'); } catch {} setShowSplash(false); }} />
-        </Suspense>
-      )}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
@@ -1163,9 +1147,8 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true }}>
               <ScrollToTop />
-              <RouteTransitionHost />
               <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>

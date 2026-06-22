@@ -15,6 +15,7 @@ import { lazyRetry } from "@/utils/lazyRetry";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
+import { warmRouteForNavigation } from "@/utils/routePrefetch";
 
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
@@ -95,8 +96,16 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
       hapticFeedback('medium');
       setShowActionMenu(prev => !prev);
     } else {
-      startTransition(() => { navigate(item.path); });
-      onTabChange?.(item.path);
+      const warm = warmRouteForNavigation(item.path);
+      if (warm) {
+        void warm.catch(() => undefined).then(() => {
+          startTransition(() => { navigate(item.path); });
+          onTabChange?.(item.path);
+        });
+      } else {
+        startTransition(() => { navigate(item.path); });
+        onTabChange?.(item.path);
+      }
       setShowActionMenu(false);
     }
   }, [navigate, onTabChange, startTransition]);
@@ -153,6 +162,14 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     }
     
     setShowActionMenu(false);
+    const warm = warmRouteForNavigation(path);
+    if (warm) {
+      void warm.catch(() => undefined).then(() => {
+        startTransition(() => { navigate(path); });
+        onTabChange?.(path);
+      });
+      return;
+    }
     startTransition(() => { navigate(path); });
     onTabChange?.(path);
   };

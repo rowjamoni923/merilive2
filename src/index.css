@@ -288,8 +288,8 @@ img {
   100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 .page-enter {
-  animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-  will-change: opacity, transform;
+  animation: none !important;
+  will-change: auto;
 }
 /* Pkg434 Pass 7+13 — auto-animate [data-page] OR the primary <main> /
    [data-page-root] wrapper during route changes. Pass 13 widens the selector
@@ -4065,7 +4065,7 @@ button:active, [role="button"]:active, a[href]:active {
 }
 main:not([data-page-root="instant-ready-shell"]),
 [data-page-root]:not([data-page-root="instant-ready-shell"]) {
-  animation: premium-page-in 280ms cubic-bezier(0.2, 0, 0, 1);
+  animation: none !important;
 }
 
 /* 4. Bottom-sheet grab handle (auto-applied to bottom sheets) */
@@ -4576,10 +4576,10 @@ html, body {
   overscroll-behavior-y: none;
 }
 
-/* Zero-white base layer: when React/Suspense/data has no real page mounted yet,
-   the browser/native WebView must show the app's dark native base, not white. */
+/* App base must match the real light app surface. Route navigation is chunk-warmed
+   before switching, so this layer should never appear as a black loading screen. */
 html, body, #root {
-  background-color: #050208;
+  background-color: hsl(var(--background));
 }
 
 button, a, [role="button"], .tappable {

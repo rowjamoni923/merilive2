@@ -33,7 +33,7 @@
     <meta name="author" content="MeriLive" />
     <link rel="canonical" href="https://merilive.top/" />
     
-    <meta name="theme-color" content="#050208" />
+    <meta name="theme-color" content="#f8fafc" />
     <link rel="manifest" href="/manifest.json" />
     
     <!-- Howler.js for SVGA Audio Support - Deferred -->
@@ -41,9 +41,9 @@
     
     <style>
       html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-      body { margin: 0; padding: 0; background-color: #050208; color: #ffffff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+      body { margin: 0; padding: 0; background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
 
-      #root { min-height: 100vh; min-height: 100dvh; background-color: #050208; position: relative; z-index: 1; }
+      #root { min-height: 100vh; min-height: 100dvh; background-color: #f8fafc; position: relative; z-index: 1; }
 
       /* Pkg504: dark-route boot bg */
       html[data-boot-theme="dark"],
@@ -62,7 +62,6 @@
           var p = (location.pathname || '/').toLowerCase();
           var dark =
             /^\/live\/[^\/]+/.test(p) ||
-            /^\/live-feed(\/|$)/.test(p) ||
             /^\/party\//.test(p) ||
             p === '/go-live' ||
             /^\/call\//.test(p) ||

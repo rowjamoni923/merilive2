@@ -11,11 +11,62 @@
  * on failure — never block UI, never throw.
  */
 
+import { navigateInAppPath } from '@/utils/inAppNavigation';
+
 let livePrefetched = false;
 let partyPrefetched = false;
 let profilePrefetched = false;
 let chatPrefetched = false;
 let installed = false;
+const warmedRoutePromises = new Map<string, Promise<unknown>>();
+
+const getInternalRouteFromHref = (href: string) => {
+  if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return null;
+
+  try {
+    const url = href.startsWith('/')
+      ? new URL(href, window.location.origin)
+      : new URL(href);
+
+    if (url.origin !== window.location.origin) return null;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return href.startsWith('/') ? href : null;
+  }
+};
+
+const loadKnownRouteChunk = (route: string): Promise<unknown> | null => {
+  const path = route.split(/[?#]/)[0];
+
+  if (path.startsWith('/live/') && path !== '/live/') return import('@/pages/LiveStream');
+  if (path === '/live-feed' || path.startsWith('/live-feed/')) return import('@/pages/LiveStreamFeed');
+  if (path.startsWith('/party/') && path !== '/party/') return import('@/pages/PartyRoom');
+  if (path.startsWith('/profile-detail/') || (path.startsWith('/profile/') && path !== '/profile/')) return import('@/pages/ProfileDetail');
+  if (path.startsWith('/chat/')) return import('@/pages/Chat');
+  if (path.startsWith('/pk-leaderboard/')) return import('@/pages/PKLeaderboard');
+
+  const loader = GENERIC_ROUTES[path];
+  return loader ? loader() : null;
+};
+
+export function warmRouteForNavigation(route: string): Promise<unknown> | null {
+  if (!route || typeof window === 'undefined') return null;
+  const target = getInternalRouteFromHref(route);
+  if (!target) return null;
+  const cacheKey = target.split('#')[0];
+
+  if (warmedRoutePromises.has(cacheKey)) return warmedRoutePromises.get(cacheKey)!;
+
+  const promise = loadKnownRouteChunk(target);
+  if (!promise) return null;
+
+  const safePromise = promise.catch((error) => {
+    warmedRoutePromises.delete(cacheKey);
+    throw error;
+  });
+  warmedRoutePromises.set(cacheKey, safePromise);
+  return safePromise;
+}
 
 export function prefetchLiveStream(streamId?: string) {
   if (!livePrefetched) {
@@ -145,6 +196,20 @@ export function prefetchByHref(href: string) {
   }
 }
 
+const shouldNativeNavigate = (ev: MouseEvent) => {
+  if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return false;
+  const target = ev.target as Element | null;
+  if (!target || !('closest' in target)) return false;
+  const anchor = target.closest<HTMLAnchorElement>('a[href]');
+  if (!anchor || anchor.target || anchor.hasAttribute('download')) return false;
+  const href = anchor.getAttribute('href') || '';
+  const route = getInternalRouteFromHref(href);
+  if (!route) return false;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (route === current) return false;
+  return { route };
+};
+
 /**
  * Global delegated pointer-down listener — fires the right prefetcher
  * the instant the user starts a tap on any element with the matching
@@ -205,4 +270,21 @@ export function installRoutePrefetch() {
   // `pointerdown` fires ~50-150ms before `click` on touch devices — that's
   // the head start we exploit. `passive: true` keeps scrolling smooth.
   window.addEventListener('pointerdown', handler, { passive: true, capture: true });
+
+  // Professional mobile navigation rule: never switch the route to an empty
+  // Suspense boundary. If a known lazy page is tapped, load its chunk first,
+  // then push the SPA route. The user stays on the real current screen instead
+  // of seeing a white/black/fake loading surface.
+  window.addEventListener('click', (ev) => {
+    const next = shouldNativeNavigate(ev);
+    if (!next) return;
+
+    const warm = warmRouteForNavigation(next.route);
+    if (!warm) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    void warm.then(() => navigateInAppPath(next.route)).catch(() => navigateInAppPath(next.route));
+  }, { capture: true });
 }

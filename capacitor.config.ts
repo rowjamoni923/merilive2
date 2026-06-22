@@ -88,7 +88,7 @@ const config: CapacitorConfig = {
       // a real app surface exists, preventing native white/blank flashes.
       launchShowDuration: 0,
       launchAutoHide: false,
-      backgroundColor: '#0a0a0f',
+      backgroundColor: '#f8fafc',
       showSpinner: false,
       androidSpinnerStyle: 'small',
       spinnerColor: '#e91e63',
@@ -126,7 +126,7 @@ const config: CapacitorConfig = {
     // 'Light' style = dark icons (used on bright backgrounds)
     StatusBar: {
       style: 'Light',
-      backgroundColor: '#050208',
+      backgroundColor: '#f8fafc',
       overlaysWebView: false
     },
     // Local notifications
