@@ -115,10 +115,11 @@ const LEVEL_COLORS: { [key: number]: string } = {
   2: 'from-emerald-400 to-emerald-600',
   3: 'from-blue-400 to-blue-600',
   4: 'from-purple-400 to-purple-600',
-  5: 'from-amber-400 to-amber-600'
+  5: 'from-amber-400 to-amber-600',
+  6: 'from-violet-600 to-fuchsia-600'
 };
 
-const LEVEL_NAMES = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
+const LEVEL_NAMES = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Country Super Admin'];
 
 const DEFAULT_LEVEL_TIERS: LevelTier[] = [
   { id: 'temp-1', level_number: 1, level_name: 'Bronze Trader', upgrade_cost_usd: 0, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 0, badge_color: '#94A3B8', description: 'Entry level helper access', is_active: true },
@@ -126,6 +127,7 @@ const DEFAULT_LEVEL_TIERS: LevelTier[] = [
   { id: 'temp-3', level_number: 3, level_name: 'Gold Trader', upgrade_cost_usd: 50, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 4, badge_color: '#3B82F6', description: 'Higher commission and larger limits', is_active: true },
   { id: 'temp-4', level_number: 4, level_name: 'Platinum Trader', upgrade_cost_usd: 100, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 6, badge_color: '#8B5CF6', description: 'Advanced helper privileges', is_active: true },
   { id: 'temp-5', level_number: 5, level_name: 'Diamond Trader', upgrade_cost_usd: 200, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 8, badge_color: '#F59E0B', description: 'Payroll helper access', is_active: true },
+  { id: 'temp-6', level_number: 6, level_name: 'Country Super Admin', upgrade_cost_usd: 10000, min_withdrawal_amount: 5000, max_withdrawal_amount: 500000, commission_rate: 25, badge_color: '#7C3AED', description: 'Country-wide payroll authority with signed contract', is_active: true },
 ];
 
 const getTierDescription = (benefits: any) => {
