@@ -8,7 +8,7 @@ import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
-import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
+import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
 import { 
   X, 
@@ -808,6 +808,11 @@ const PartyRoom = () => {
     ((room as any)?.audio_profile as 'voice' | 'music' | undefined)
       ?? (room?.room_type === 'audio' ? 'voice' : 'music')
   );
+
+  useEffect(() => {
+    setNativeMediaSurface(isNativeMediaActive);
+    return () => clearNativeMediaSurface();
+  }, [isNativeMediaActive]);
 
   // Pkg98: Real-time active speaker set, powered by LiveKit's server-side
   // RoomEvent.ActiveSpeakersChanged (registered inside usePartyRoomNativeLiveKit).
