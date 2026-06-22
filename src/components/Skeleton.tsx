@@ -18,14 +18,7 @@ import { cn } from "@/lib/utils";
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      className={cn("rounded-md bg-muted/60", className)}
-      {...props}
-    />
-  )
+  () => null
 );
 Skeleton.displayName = "Skeleton";
 
@@ -35,34 +28,14 @@ export interface SkeletonTextProps {
 }
 
 export const SkeletonText: React.FC<SkeletonTextProps> = ({ lines = 3, className }) => (
-  <div className={cn("flex flex-col gap-2", className)}>
-    {Array.from({ length: lines }).map((_, i) => (
-      <Skeleton
-        key={i}
-        className={cn("h-3", i === lines - 1 ? "w-2/3" : "w-full")}
-      />
-    ))}
-  </div>
+  null
 );
 
 export const SkeletonAvatar: React.FC<{ size?: number; className?: string }> = ({
   size = 48,
   className,
-}) => (
-  <Skeleton
-    className={cn("rounded-full", className)}
-    style={{ width: size, height: size }}
-  />
-);
+}) => null;
 
-export const SkeletonCard: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn("flex items-center gap-3 p-3", className)}>
-    <SkeletonAvatar />
-    <div className="flex-1">
-      <Skeleton className="h-4 w-2/3 mb-2" />
-      <Skeleton className="h-3 w-1/2" />
-    </div>
-  </div>
-);
+export const SkeletonCard: React.FC<{ className?: string }> = ({ className }) => null;
 
 export default Skeleton;
