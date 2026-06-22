@@ -208,16 +208,43 @@ export default function AdminSuperAdminManagement() {
                   ${app.deposit_amount_usd.toLocaleString()} deposit
                 </Badge>
               </CardHeader>
-              <CardContent className="text-sm space-y-1">
-                <div>📧 {app.official_email} · 📱 {app.official_phone}</div>
-                {app.whatsapp && <div>WhatsApp: {app.whatsapp}</div>}
-                {app.telegram && <div>Telegram: {app.telegram}</div>}
-                <div>Requested commission: {app.requested_commission_percent}%</div>
-                {app.signed_contract_url && (
-                  <a href={app.signed_contract_url} target="_blank" rel="noreferrer" className="text-primary underline text-xs">View signed contract</a>
-                )}
-                {app.deposit_proof_url && (
-                  <div><a href={app.deposit_proof_url} target="_blank" rel="noreferrer" className="text-primary underline text-xs">View deposit proof</a></div>
+              <CardContent className="text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>📧 {app.official_email}</div>
+                  <div>📱 {app.official_phone}</div>
+                  {app.whatsapp && <div>WhatsApp: {app.whatsapp}</div>}
+                  {app.telegram && <div>Telegram: {app.telegram}</div>}
+                  <div className="col-span-2">🏠 {(app as any).full_address || "—"}</div>
+                  <div>NID ({(app as any).nid_country}): <b>{(app as any).nid_number || "—"}</b></div>
+                  <div>Commission requested: <b>{app.requested_commission_percent}%</b></div>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {(app as any).agreement_pdf_url && (
+                    <a href={(app as any).agreement_pdf_url} target="_blank" rel="noreferrer"
+                       className="px-2 py-1 rounded bg-primary/10 text-primary">📄 Signed Agreement PDF</a>
+                  )}
+                  {(app as any).nid_front_url && (
+                    <a href={(app as any).nid_front_url} target="_blank" rel="noreferrer"
+                       className="px-2 py-1 rounded bg-muted">🪪 NID Front</a>
+                  )}
+                  {(app as any).nid_back_url && (
+                    <a href={(app as any).nid_back_url} target="_blank" rel="noreferrer"
+                       className="px-2 py-1 rounded bg-muted">🪪 NID Back</a>
+                  )}
+                  {app.business_doc_url && (
+                    <a href={app.business_doc_url} target="_blank" rel="noreferrer"
+                       className="px-2 py-1 rounded bg-muted">📁 Business Doc</a>
+                  )}
+                  {app.deposit_proof_url && (
+                    <a href={app.deposit_proof_url} target="_blank" rel="noreferrer"
+                       className="px-2 py-1 rounded bg-muted">💵 Deposit Proof</a>
+                  )}
+                </div>
+                {(app as any).signature_data_url && (
+                  <div className="border rounded p-2 bg-white inline-block">
+                    <div className="text-[10px] text-muted-foreground mb-1">Signature</div>
+                    <img src={(app as any).signature_data_url} alt="signature" className="h-16" />
+                  </div>
                 )}
                 {app.notes && <div className="text-xs text-muted-foreground italic">"{app.notes}"</div>}
                 <div className="flex gap-2 pt-3">
