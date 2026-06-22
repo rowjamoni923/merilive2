@@ -7,9 +7,8 @@
   user-select: none;
 }
 
-/* Pkg504: clearly-visible skeleton primitives. Cream `bg-muted` / low-opacity
-   tokens were invisible on `bg-background`, so every route looked blank
-   during chunk-load / data-fetch. These give real contrast + shimmer. */
+/* Pkg504/PkgInstant: static painted primitives only.
+   No shimmer/pulse/spinner: async pages must look already painted, not loading. */
 .skl-block {
   position: relative;
   overflow: hidden;
@@ -19,20 +18,7 @@
 .skl-block-dark { background-color: hsl(34 18% 80%); }
 .skl-block::after,
 .skl-block-soft::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(
-    100deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.55) 50%,
-    transparent 80%
-  );
-  transform: translateX(-100%);
-  animation: skl-shimmer 1.4s ease-in-out infinite;
-}
-@keyframes skl-shimmer {
-  to { transform: translateX(100%); }
+  content: none;
 }
 
 .blank-guard-app {
@@ -43,13 +29,16 @@
 }
 .blank-guard-live-pulse {
   background: #0f0a16;
-  animation: blank-guard-live-pulse 1.2s ease-in-out infinite alternate;
+  animation: none !important;
 }
 .blank-guard-live-block {
   background: rgba(255, 255, 255, 0.1);
 }
-@keyframes blank-guard-live-pulse {
-  to { background: #15101e; }
+.animate-spin[data-loading-indicator="page"],
+[data-loading-indicator="page"] .animate-spin,
+[data-loading-indicator="route"] .animate-spin {
+  animation: none !important;
+  display: none !important;
 }
 
 
