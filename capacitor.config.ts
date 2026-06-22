@@ -84,11 +84,10 @@ const config: CapacitorConfig = {
   ],
   plugins: {
     SplashScreen: {
-      // Android must not sit on a timed splash/loading screen. The native
-      // window is removed as soon as the WebView is ready; main.tsx still calls
-      // SplashScreen.hide() as a safety net after React mounts.
+      // Never auto-reveal an unpainted WebView. main.tsx hides this only after
+      // a real app surface exists, preventing native white/blank flashes.
       launchShowDuration: 0,
-      launchAutoHide: true,
+      launchAutoHide: false,
       backgroundColor: '#0a0a0f',
       showSpinner: false,
       androidSpinnerStyle: 'small',
@@ -127,7 +126,7 @@ const config: CapacitorConfig = {
     // 'Light' style = dark icons (used on bright backgrounds)
     StatusBar: {
       style: 'Light',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#050208',
       overlaysWebView: false
     },
     // Local notifications

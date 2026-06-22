@@ -33,7 +33,7 @@
     <meta name="author" content="MeriLive" />
     <link rel="canonical" href="https://merilive.top/" />
     
-    <meta name="theme-color" content="#F8FAFC" />
+    <meta name="theme-color" content="#050208" />
     <link rel="manifest" href="/manifest.json" />
     
     <!-- Howler.js for SVGA Audio Support - Deferred -->
@@ -41,33 +41,14 @@
     
     <style>
       html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-      body { margin: 0; padding: 0; background-color: #F8FAFC; color: #1f2937; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+      body { margin: 0; padding: 0; background-color: #050208; color: #ffffff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
 
-      #root { min-height: 100vh; min-height: 100dvh; background-color: #F8FAFC; position: relative; z-index: 1; }
+      #root { min-height: 100vh; min-height: 100dvh; background-color: #050208; position: relative; z-index: 1; }
 
       /* Pkg504: dark-route boot bg */
       html[data-boot-theme="dark"],
       html[data-boot-theme="dark"] body,
       html[data-boot-theme="dark"] #root { background-color: #050208 !important; color: #ffffff; }
-
-      /* ===== Boot shell: real-looking static screen before React mounts.
-         Not a skeleton, not a loader: it resembles the actual first screen. ===== */
-      .boot-shell { position: fixed; inset: 0; display: flex; flex-direction: column; pointer-events: none; z-index: 2147482000; background: linear-gradient(135deg, #0f0c29 0%, #302b63 42%, #24243e 72%, #0f0c29 100%); color: #fff; overflow: hidden; }
-      .boot-shell::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,.08), rgba(0,0,0,.48)); }
-      .boot-shell .bs-auth { position: relative; z-index: 1; min-height: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 16px 20px 32px; box-sizing: border-box; }
-      .boot-shell .bs-logo { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; font: 900 28px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(135deg, #a855f7, #ec4899); box-shadow: 0 18px 50px rgba(236,72,153,.35); }
-      .boot-shell .bs-title { margin: 0 0 4px; font: 900 30px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
-      .boot-shell .bs-sub { margin: 0 0 12px; font: 600 14px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: rgba(255,255,255,.78); }
-      .boot-shell .bs-btn { height: 40px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font: 800 14px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; box-shadow: 0 12px 34px rgba(0,0,0,.22); }
-      .boot-shell .bs-btn.primary { background: linear-gradient(90deg, #9333ea, #d946ef, #ec4899); color: #fff; }
-      .boot-shell .bs-btn.phone { background: linear-gradient(90deg, #22c55e, #10b981, #16a34a); color: #fff; }
-      .boot-shell .bs-btn.email { background: rgba(255,255,255,.92); color: #111827; }
-      .boot-shell .bs-terms { align-self: center; margin-top: 4px; font: 600 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: rgba(255,255,255,.78); }
-
-      html[data-boot-theme="dark"] .boot-shell { background: #050208; }
-
-      /* Hide boot shell once React mounts. */
-      body.app-booted .boot-shell { display: none !important; }
 
       html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
       html, body { scrollbar-width: none; -ms-overflow-style: none; }
@@ -94,7 +75,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <div class="boot-shell" aria-hidden="true"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
