@@ -48,6 +48,14 @@
   animation: none !important;
 }
 
+.animate-pulse,
+.animate-bounce,
+.pkg434-skel,
+.skeleton,
+[data-skeleton] {
+  animation: none !important;
+}
+
 
 /* ============================================
    Global mobile behavior
