@@ -126,7 +126,7 @@ export const BlankScreenGuard = memo(() => {
       {...{ [SNAPSHOT_ATTR]: "true" }}
       className="fixed inset-0 z-[2147483000] overflow-hidden pointer-events-none"
       aria-hidden="true"
-      inert=""
+      {...({ inert: "" } as Record<string, string>)}
       dangerouslySetInnerHTML={{ __html: snapshotHtml }}
     />
   );
