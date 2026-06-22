@@ -1,5 +1,22 @@
 # Admin Panel Professional Audit + Fix Plan
 
+## ✅ LiveKit Camera White Screen + Video Icon Removal — 2026-06-22
+
+**User evidence:** Uploaded `VID-20260622-WA0021.mp4` is 70.185s, 480×864, 1,399 frames. Frame audit showed native camera surfaces/party seats opening, but white/grey WebView layers and large default video-placeholder icons still covered the real camera on live, private call, audio/video/game party surfaces.
+
+**Research standard:** Chamet/Bigo/Agora-style Android live apps keep one native SDK camera owner and render local/remote video in native surfaces while the web/UI overlay remains transparent; LiveKit Android requires initialized renderers bound to tracks, and web `<video>` elements must not be left as empty placeholders on native-rendered screens. References: LiveKit Android rendering/track model — https://docs.livekit.io/home/client/tracks/ ; LiveKit Android SDK — https://github.com/livekit/client-sdk-android ; Android WebView media settings/inline controls behavior — https://developer.android.com/reference/android/webkit/WebSettings
+
+**Completed fixes:**
+1. `LiveKitPlugin.ensureRendererAttached()` now forces WebView transparency every attach/re-attach, clears drawable background, uses hardware layer, and paints the parent black before/while the native SurfaceViewRenderer is mounted.
+2. Global native media CSS now also uses `lk-camera-live` on `html/body/#root`, room shells, native video placeholders, and video tags so React backgrounds cannot cover the native renderer.
+3. Go Live and Create Party no longer render empty web `<video>` elements on Android native preview; this removes the default large play/video placeholder icon source.
+4. Live, party, and private call auto-PiP/minimized floating video triggers were disabled, so pressing close/home will not produce a floating video icon.
+5. Live host camera control icon no longer uses `Video`/`VideoOff`; it uses `Eye`/`EyeOff`, leaving no video icon control in the targeted live surface.
+
+**APK note:** Native Kotlin changes require Android rebuild/install before device verification.
+
+---
+
 ## ✅ Duplicate UI Root Cause Follow-up — 2026-06-22
 
 **User issue:** Duplicate/ghost UI was still visible after earlier blank-screen fixes.
