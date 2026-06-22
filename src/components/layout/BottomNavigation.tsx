@@ -98,10 +98,10 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     } else {
       const warm = warmRouteForNavigation(item.path);
       if (warm) {
-        void warm.then(() => {
+        void warm.catch(() => undefined).then(() => {
           startTransition(() => { navigate(item.path); });
           onTabChange?.(item.path);
-        }).catch(() => undefined);
+        });
       } else {
         startTransition(() => { navigate(item.path); });
         onTabChange?.(item.path);
@@ -164,10 +164,10 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     setShowActionMenu(false);
     const warm = warmRouteForNavigation(path);
     if (warm) {
-      void warm.then(() => {
+      void warm.catch(() => undefined).then(() => {
         startTransition(() => { navigate(path); });
         onTabChange?.(path);
-      }).catch(() => undefined);
+      });
       return;
     }
     startTransition(() => { navigate(path); });
