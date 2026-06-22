@@ -1,8 +1,8 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 const BLANK_GUARD_DELAY_MS = 160;
+const SNAPSHOT_ATTR = "data-real-screen-retention";
 
 const isVisibleElement = (element: Element) => {
   const rect = element.getBoundingClientRect();
@@ -13,8 +13,8 @@ const isVisibleElement = (element: Element) => {
 
 const hasMeaningfulRouteSurface = () => {
   const selectors = [
-    "[data-page]",
-    "[data-page-root]",
+    "[data-page]:not([data-page-root='instant-ready-shell'])",
+    "[data-page-root]:not([data-page-root='instant-ready-shell'])",
     "main",
     "header",
     "nav",
@@ -28,84 +28,72 @@ const hasMeaningfulRouteSurface = () => {
   ].join(",");
 
   const elements = Array.from(document.querySelectorAll(selectors))
-    .filter((el) => !el.closest("[data-blank-screen-guard]"));
+    .filter((el) => !el.closest(`[data-blank-screen-guard], [${SNAPSHOT_ATTR}], [data-page-root='instant-ready-shell']`));
 
   if (elements.some(isVisibleElement)) return true;
 
   const root = document.getElementById("root");
-  const visibleText = (root?.innerText || "").trim();
-  return visibleText.length > 0;
+  if (!root) return false;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || parent.closest(`[data-blank-screen-guard], [${SNAPSHOT_ATTR}], [data-page-root='instant-ready-shell'], script, style`)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return (node.textContent || "").trim().length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  return !!walker.nextNode();
 };
 
-const getSurfaceKind = (pathname: string) => {
-  if (pathname.startsWith("/auth") || pathname.startsWith("/reset-password")) return "auth";
-  if (
-    pathname.startsWith("/live") ||
-    pathname.startsWith("/party") ||
-    pathname === "/go-live" ||
-    pathname === "/live-session" ||
-    pathname.startsWith("/call") ||
-    pathname.startsWith("/active-call") ||
-    pathname.startsWith("/incoming-call") ||
-    pathname.startsWith("/outgoing-call") ||
-    pathname.startsWith("/stream")
-  ) return "live";
-  return "app";
+const captureRealScreen = () => {
+  const root = document.getElementById("root");
+  if (!root || !hasMeaningfulRouteSurface()) return null;
+  const clone = root.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(`[data-blank-screen-guard], [${SNAPSHOT_ATTR}], script, style`).forEach((el) => el.remove());
+  return clone.innerHTML.trim() || null;
 };
-
-// Static painted app chrome — no spinner, no shimmer, no blank/white.
-const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
-  if (kind === "live") {
-    return (
-      <div
-        data-blank-screen-guard
-        className="fixed inset-0 z-[2147483000]"
-        style={{ backgroundColor: '#050208' }}
-        aria-hidden="true"
-      />
-    );
-  }
-  if (kind === "auth") {
-    return (
-      <div
-        data-blank-screen-guard
-        className="fixed inset-0 z-[2147483000]"
-        style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 42%, #24243e 72%, #0f0c29 100%)' }}
-        aria-hidden="true"
-      />
-    );
-  }
-  return (
-    <div
-      data-blank-screen-guard
-      className="fixed inset-0 z-[2147483000] bg-background"
-      aria-hidden="true"
-    />
-  );
-});
-
-GuardFallback.displayName = "GuardFallback";
 
 export const BlankScreenGuard = memo(() => {
   const location = useLocation();
   const [visible, setVisible] = useState(false);
+  const [snapshotHtml, setSnapshotHtml] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
   const visibleRef = useRef(false);
+  const snapshotRef = useRef<string | null>(null);
 
   const setGuardVisible = (next: boolean) => {
     visibleRef.current = next;
     setVisible(next);
   };
 
+  const refreshSnapshot = () => {
+    if (visibleRef.current) return;
+    const html = captureRealScreen();
+    if (html) {
+      snapshotRef.current = html;
+      setSnapshotHtml(html);
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (snapshotRef.current && !hasMeaningfulRouteSurface()) {
+      setGuardVisible(true);
+    }
+  }, [location.pathname, location.search]);
+
   useEffect(() => {
-    setGuardVisible(false);
+    if (hasMeaningfulRouteSurface()) {
+      setGuardVisible(false);
+      refreshSnapshot();
+    }
 
     if (timerRef.current) window.clearTimeout(timerRef.current);
 
     const armBlankCheck = () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
       timerRef.current = window.setTimeout(() => {
-        if (!hasMeaningfulRouteSurface()) setGuardVisible(true);
+        if (!hasMeaningfulRouteSurface() && snapshotRef.current) setGuardVisible(true);
       }, BLANK_GUARD_DELAY_MS);
     };
 
@@ -115,6 +103,7 @@ export const BlankScreenGuard = memo(() => {
       if (hasMeaningfulRouteSurface()) {
         if (timerRef.current) window.clearTimeout(timerRef.current);
         if (visibleRef.current) setGuardVisible(false);
+        refreshSnapshot();
         return;
       }
       if (!visibleRef.current) armBlankCheck();
@@ -129,7 +118,18 @@ export const BlankScreenGuard = memo(() => {
     };
   }, [location.pathname, location.search]);
 
-  return visible ? <GuardFallback kind={getSurfaceKind(location.pathname)} /> : null;
+  if (!visible || !snapshotHtml) return null;
+
+  return (
+    <div
+      data-blank-screen-guard
+      {...{ [SNAPSHOT_ATTR]: "true" }}
+      className="fixed inset-0 z-[2147483000] overflow-hidden pointer-events-none"
+      aria-hidden="true"
+      inert=""
+      dangerouslySetInnerHTML={{ __html: snapshotHtml }}
+    />
+  );
 });
 
 BlankScreenGuard.displayName = "BlankScreenGuard";
