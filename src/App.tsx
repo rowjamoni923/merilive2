@@ -480,8 +480,8 @@ const RouteSuspenseFallback = memo(() => {
         </div>
       </div>
       <div className="flex items-center justify-around px-2" style={{ height: 64, backgroundColor: '#F3EBDC', borderTop: '1px solid #E8DFCC' }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-7 w-7 rounded-lg" style={{ backgroundColor: '#E2D6BE' }} />
+        {['🏠', '🎥', '💬', '🎁', '👤'].map((icon, i) => (
+          <div key={i} className="flex h-10 w-10 items-center justify-center rounded-xl text-xl">{icon}</div>
         ))}
       </div>
     </div>
