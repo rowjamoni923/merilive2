@@ -4639,3 +4639,32 @@ a:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .live-card-kenburns { animation: none; }
 }
+
+/* PkgInstant global hard rule: never show screenshot-like skeleton/spinner pages.
+   Keep async work behind already-painted UI; these legacy primitives become
+   static/invisible instead of animated beige placeholders. */
+.animate-spin,
+.animate-pulse,
+.animate-bounce,
+.ptr-spinner,
+.skeleton,
+.pkg434-skel,
+[data-skeleton],
+[data-loading-indicator] {
+  animation: none !important;
+}
+
+.animate-spin,
+.ptr-spinner,
+[data-loading-indicator] .animate-spin,
+.premium-spinner,
+[role="status"] svg.animate-spin {
+  display: none !important;
+}
+
+.skeleton,
+.pkg434-skel,
+[data-skeleton] {
+  background-image: none !important;
+  background-color: hsl(var(--card)) !important;
+}
