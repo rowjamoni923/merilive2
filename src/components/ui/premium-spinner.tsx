@@ -15,20 +15,6 @@ interface PremiumSpinnerProps {
   hideCore?: boolean;
 }
 
-const SIZE_PX: Record<PremiumSpinnerSize, number> = {
-  sm: 16,
-  md: 24,
-  lg: 40,
-  xl: 64,
-};
-
-const STROKE: Record<PremiumSpinnerSize, number> = {
-  sm: 2,
-  md: 2.5,
-  lg: 3,
-  xl: 4,
-};
-
 export function PremiumSpinner({
   className,
   label,
