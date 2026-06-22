@@ -70,7 +70,7 @@ schedule(() => {
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
     resilientImport(() => import('./services/livekitTokenCache'), 'livekitTokenCache').then((module) => {
       if (!module) return;
-      preMintViewerWildcardToken();
+      module.preMintViewerWildcardToken();
     }).catch(() => { /* non-fatal */ });
 
     // Phase 5/6 (instant-entry): boot the LiveKit connection pool ~1s after
@@ -80,7 +80,7 @@ schedule(() => {
     setTimeout(() => {
       resilientImport(() => import('./services/livekitConnectionPool'), 'livekitConnectionPool').then((module) => {
         if (!module) return;
-        initConnectionPool();
+        module.initConnectionPool();
       }).catch(() => { /* non-fatal */ });
     }, 1000);
   }
