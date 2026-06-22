@@ -1,10 +1,10 @@
 /**
  * Lazy import with automatic retry on chunk load failure.
  * 
- * Zero-refresh lazy import recovery.
- * Retries dynamic imports inline and clears stale runtime caches, but never
- * calls window.location.reload/replace/href. The user explicitly requires no
- * automatic app reloads.
+ * Lazy import recovery.
+ * Retries dynamic imports inline and clears stale runtime caches; persistent
+ * stale chunks can trigger a bounded cache-busting boot so WebView never stays
+ * on a blank screen.
  */
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
 const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
