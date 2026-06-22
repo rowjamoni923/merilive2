@@ -1,5 +1,25 @@
 # Admin Panel Professional Audit + Fix Plan
 
+## ✅ White/Blank Route Surface Fix — 2026-06-22
+
+**User issue:** Bottom-tab navigation could show a pale/white empty screen for seconds (recording showed `/profile` painting only a blank gradient while data loaded).
+
+**Research standard:** React Suspense explicitly swaps suspended UI to a fallback until code/data is ready; React 18 transitions/startTransition are intended to keep navigation responsive while non-urgent route work loads. Professional live/social apps must show a stable native-like surface, not a spinner or blank white screen.
+
+**Verified root cause:** `PageSkeleton` had been changed to an invisible background-only div to avoid double UI. That removed fake UI, but it also made every page using `PageSkeleton` look like a white/empty screen during cache/data misses. Global `main,[data-page-root]` page-enter animation could also fade the placeholder in from opacity 0.
+
+**Completed fixes:**
+1. `PageSkeleton` now renders a textless, non-animated structural surface: header blocks, optional tabs/hero, and rows — no fake labels, no fake buttons, no spinner, no shimmer.
+2. `RouteSuspenseFallback` now uses the same textless surface for normal app routes instead of a plain white/background div.
+3. `BlankScreenGuard` now paints the same textless surface if a real route surface is missing, instead of covering the app with a blank white layer.
+4. Global page-enter animation excludes `data-page-root="instant-ready-shell"` so the fallback itself never fades from invisible.
+5. Side-effect dynamic imports now use retry/cache-clear recovery, so LiveKit warmups cannot silently fail forever on stale chunks.
+6. Global chunk errors now trigger bounded cache-busting recovery instead of leaving the WebView stuck on a blank route.
+
+**Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React 18 transitions overview in React Router docs — https://reactrouter.com/7.13.0/explanation/react-transitions
+
+---
+
 **Locked:** 2026-06-21
 **Approach:** Research-validated (Bigo/Chamet/Poppo/Olamet/MICO/Hollah patterns). Surgical fixes only — 154 admin pages-এর 90% already professional, শুধু 4 specific gaps fix হবে।
 

@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 const BLANK_GUARD_DELAY_MS = 160;
 
@@ -75,11 +76,9 @@ const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
     );
   }
   return (
-    <div
-      data-blank-screen-guard
-      className="fixed inset-0 z-[2147483000] bg-background"
-      aria-hidden="true"
-    />
+    <div data-blank-screen-guard className="fixed inset-0 z-[2147483000]" aria-hidden="true">
+      <PageSkeleton className="min-h-screen bg-background" rows={5} tabs hero />
+    </div>
   );
 });
 

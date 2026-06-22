@@ -1,10 +1,10 @@
 /**
  * Lazy import with automatic retry on chunk load failure.
  * 
- * Zero-refresh lazy import recovery.
- * Retries dynamic imports inline and clears stale runtime caches, but never
- * calls window.location.reload/replace/href. The user explicitly requires no
- * automatic app reloads.
+ * Lazy import recovery.
+ * Retries dynamic imports inline and clears stale runtime caches; persistent
+ * stale chunks can trigger a bounded cache-busting boot so WebView never stays
+ * on a blank screen.
  */
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
 const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
@@ -217,4 +217,42 @@ export function lazyRetryOptional<T>(
       return { default: fallback };
     }
   };
+}
+
+export async function resilientImport<T>(
+  importFn: () => Promise<T>,
+  source = 'side-effect-import',
+): Promise<T | undefined> {
+  const delays = [250, 750, 1500];
+  let lastError: unknown;
+
+  try {
+    return await importFn();
+  } catch (error) {
+    lastError = error;
+    if (!isChunkLoadError(error)) throw error;
+  }
+
+  for (const delay of delays) {
+    await sleep(delay);
+    try {
+      return await importFn();
+    } catch (error) {
+      lastError = error;
+      if (!isChunkLoadError(error)) throw error;
+    }
+  }
+
+  const recovered = await scheduleChunkLoadRecovery(lastError, source);
+  if (recovered) {
+    await sleep(300);
+    try {
+      return await importFn();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  console.error('[LazyRetry] Side-effect import failed after retries:', source, lastError);
+  return undefined;
 }
