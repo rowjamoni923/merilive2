@@ -218,3 +218,41 @@ export function lazyRetryOptional<T>(
     }
   };
 }
+
+export async function resilientImport<T>(
+  importFn: () => Promise<T>,
+  source = 'side-effect-import',
+): Promise<T | undefined> {
+  const delays = [250, 750, 1500];
+  let lastError: unknown;
+
+  try {
+    return await importFn();
+  } catch (error) {
+    lastError = error;
+    if (!isChunkLoadError(error)) throw error;
+  }
+
+  for (const delay of delays) {
+    await sleep(delay);
+    try {
+      return await importFn();
+    } catch (error) {
+      lastError = error;
+      if (!isChunkLoadError(error)) throw error;
+    }
+  }
+
+  const recovered = await scheduleChunkLoadRecovery(lastError, source);
+  if (recovered) {
+    await sleep(300);
+    try {
+      return await importFn();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  console.error('[LazyRetry] Side-effect import failed after retries:', source, lastError);
+  return undefined;
+}
