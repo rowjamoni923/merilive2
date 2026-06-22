@@ -1343,21 +1343,27 @@ class LiveKitPlugin : Plugin() {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
-                    // Pkg501 (Pro pattern, Chamet/Bigo + WebRTC docs): the
-                    // SurfaceViewRenderer MUST be attached to its parent window
-                    // BEFORE `initVideoRenderer()` binds an EglBase context.
-                    // Attaching after init causes the first ~10 frames to write
-                    // into a partially-initialised EGL surface → scrambled /
-                    // motion-blurred preview (Defect #3, video 2026-06-18).
-                    parent.addView(renderer, 0, lp)
+                    // Pkg502 (Camera white-screen fix 2026-06-22):
+                    // initVideoRenderer FIRST (binds EglBase context), then
+                    // addView at index 0 so renderer sits BEHIND the WebView.
+                    // SurfaceView must be a child of the WebView's parent and
+                    // drawn first; WebView (drawn on top) must be transparent.
                     try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
+                    parent.addView(renderer, 0, lp)
                     previewRenderer = renderer
 
-                    // Make WebView transparent so renderer behind it is visible.
+                    // Stash original WebView bg so detachRenderer can restore it.
                     if (webViewOriginalBg == null) {
                         webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
                     }
+                    // Force WebView transparent on every level so renderer bleeds through.
                     wv.setBackgroundColor(Color.TRANSPARENT)
+                    wv.background = null
+                    try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+                    // Also paint the WebView's parent black so partially-transparent
+                    // HTML body still gets a solid camera-friendly backdrop instead
+                    // of OS window white that bleeds through the React DOM.
+                    try { (wv.parent as? ViewGroup)?.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
                 } else {
                     previewRenderer?.setMirror(mirror)
                 }
