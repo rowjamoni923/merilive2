@@ -4,7 +4,7 @@ import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
-import { hardReloadForChunkRecovery, scheduleChunkLoadRecovery } from "./utils/lazyRetry";
+import { hardReloadForChunkRecovery, resilientImport, scheduleChunkLoadRecovery } from "./utils/lazyRetry";
 import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNormalizer";
 import App from "./App.tsx";
 import "./index.css";
@@ -68,7 +68,8 @@ schedule(() => {
   // token-fetch latency. Safe before auth resolves — silently no-ops if
   // user is not signed in; AuthProvider will retry on sign-in.
   if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
-    import('./services/livekitTokenCache').then(({ preMintViewerWildcardToken }) => {
+    resilientImport(() => import('./services/livekitTokenCache'), 'livekitTokenCache').then((module) => {
+      if (!module) return;
       preMintViewerWildcardToken();
     }).catch(() => { /* non-fatal */ });
 
@@ -77,7 +78,8 @@ schedule(() => {
     // token mint never delays the pool. The pool internally short-circuits
     // until the wildcard viewer token is cached, then auto-warms on its own.
     setTimeout(() => {
-      import('./services/livekitConnectionPool').then(({ initConnectionPool }) => {
+      resilientImport(() => import('./services/livekitConnectionPool'), 'livekitConnectionPool').then((module) => {
+        if (!module) return;
         initConnectionPool();
       }).catch(() => { /* non-fatal */ });
     }, 1000);
@@ -88,7 +90,10 @@ schedule(() => {
 // React render errors are still caught by the in-tree <ErrorBoundary>.
 window.addEventListener('error', (e) => {
   try { console.error('[global error]', e.error || e.message); } catch { /* noop */ }
-  void scheduleChunkLoadRecovery(e.error || e, String(e.message || ''));
+  void (async () => {
+    const didAttempt = await scheduleChunkLoadRecovery(e.error || e, String(e.message || ''));
+    if (didAttempt) hardReloadForChunkRecovery();
+  })();
   // Prevent default browser "Uncaught" overlay that can stall WebViews
   e.preventDefault?.();
 });
@@ -103,7 +108,10 @@ window.addEventListener('unhandledrejection', (e) => {
   if (!isQuiet) {
     try { console.error('[unhandled promise]', reason); } catch { /* noop */ }
   }
-  void scheduleChunkLoadRecovery(reason, String(reason?.message || reason || ''));
+  void (async () => {
+    const didAttempt = await scheduleChunkLoadRecovery(reason, String(reason?.message || reason || ''));
+    if (didAttempt) hardReloadForChunkRecovery();
+  })();
   e.preventDefault?.();
 });
 
