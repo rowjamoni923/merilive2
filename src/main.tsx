@@ -159,15 +159,24 @@ if (isNativeApp()) {
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 const markBootedWhenSurfaceIsReady = () => {
+  let nativeSplashHidden = false;
+  const hideNativeSplash = () => {
+    if (nativeSplashHidden || !isNativeApp()) return;
+    nativeSplashHidden = true;
+    import('@capacitor/splash-screen')
+      .then(({ SplashScreen }) => SplashScreen.hide().catch(() => {}))
+      .catch(() => {});
+  };
   const hasSurface = () => {
     const root = document.getElementById("root");
     if (!root) return false;
     if ((root.innerText || "").trim().length > 0) return true;
-    return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root],[role='dialog'],[aria-busy='true'],.fixed.inset-0");
+    return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root]:not([data-page-root='instant-ready-shell']),[role='dialog'],[aria-busy='true']");
   };
   const tick = () => {
     if (hasSurface()) {
       try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
+      hideNativeSplash();
       return;
     }
     requestAnimationFrame(tick);
@@ -188,11 +197,6 @@ if (container) {
     requestAnimationFrame(() => {
       try { (window as any).__meriliveBooted?.(); } catch { /* ignore */ }
       markBootedWhenSurfaceIsReady();
-      if (isNativeApp()) {
-        import('@capacitor/splash-screen')
-          .then(({ SplashScreen }) => SplashScreen.hide().catch(() => {}))
-          .catch(() => {});
-      }
     });
   } catch (err) {
     console.error('[boot] React mount failed:', err);
