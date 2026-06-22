@@ -20,20 +20,6 @@ let chatPrefetched = false;
 let installed = false;
 const warmedRoutePromises = new Map<string, Promise<unknown>>();
 
-const NAVIGATION_WARM_WAIT_MS = 3500;
-
-const withNavigationTimeout = (promise: Promise<unknown>, ms = NAVIGATION_WARM_WAIT_MS) => {
-  let timer: number | undefined;
-  return Promise.race([
-    promise,
-    new Promise<void>((resolve) => {
-      timer = window.setTimeout(resolve, ms);
-    }),
-  ]).finally(() => {
-    if (timer) window.clearTimeout(timer);
-  });
-};
-
 const getInternalRouteFromHref = (href: string) => {
   if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return null;
 
@@ -299,8 +285,6 @@ export function installRoutePrefetch() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    void withNavigationTimeout(warm)
-      .catch(() => undefined)
-      .then(() => navigateInAppPath(next.route));
+    void warm.then(() => navigateInAppPath(next.route)).catch(() => undefined);
   }, { capture: true });
 }
