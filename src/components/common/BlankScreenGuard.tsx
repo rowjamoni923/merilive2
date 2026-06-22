@@ -77,24 +77,43 @@ const GuardFallback = memo(({ kind }: { kind: "auth" | "live" | "app" }) => {
       </div>
     );
   }
+  if (kind === "auth") {
+    return (
+      <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] overflow-hidden text-white" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 42%, #24243e 72%, #0f0c29 100%)' }} aria-hidden="true">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50" />
+        <div className="relative z-10 flex min-h-screen flex-col justify-end gap-2 px-5 pb-8">
+          <div className="mb-2 grid h-14 w-14 place-items-center rounded-[18px] bg-gradient-to-br from-purple-500 to-pink-500 text-2xl font-black shadow-[0_18px_50px_rgba(236,72,153,0.35)]">M</div>
+          <h1 className="m-0 text-[30px] font-black leading-none tracking-normal">meriLIVE</h1>
+          <p className="mb-3 text-sm font-semibold text-white/80">Connect • Chat • Share</p>
+          <div className="flex h-10 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 text-sm font-bold shadow-[0_12px_34px_rgba(0,0,0,0.22)]">Get Started</div>
+          <div className="flex h-10 items-center justify-center rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-sm font-semibold shadow-[0_12px_34px_rgba(0,0,0,0.18)]">Continue with Phone</div>
+          <div className="flex h-10 items-center justify-center rounded-2xl bg-white/95 text-sm font-semibold text-slate-900 shadow-[0_12px_34px_rgba(0,0,0,0.18)]">Continue with Email</div>
+          <div className="mt-1 text-center text-[11px] font-semibold text-white/75">I agree to the Terms of Service & Privacy Policy • 18+</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div data-blank-screen-guard className="fixed inset-0 z-[2147483000] flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
       <div className="flex items-center px-4 gap-3" style={{ height: 56, backgroundColor: '#F3EBDC', borderBottom: '1px solid #E8DFCC' }}>
-        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
-        <div className="h-3.5 w-32 rounded" style={{ backgroundColor: '#E2D6BE' }} />
-        <div className="ml-auto h-8 w-8 rounded-full" style={{ backgroundColor: '#E2D6BE' }} />
+        <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-sm font-black text-white">M</div>
+        <div className="text-lg font-black tracking-normal text-slate-900">meriLIVE</div>
+        <div className="ml-auto flex items-center gap-2 text-lg"><span>🔍</span><span>💬</span></div>
       </div>
       <div className="flex-1 overflow-hidden px-4 pt-4 space-y-3">
-        <div className="h-28 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
-        <div className="grid grid-cols-2 gap-3">
-          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
-          <div className="h-40 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        <div className="rounded-2xl bg-gradient-to-r from-pink-500 to-amber-400 p-4 text-white shadow-sm">
+          <div className="text-xl font-black tracking-normal">Live now</div>
+          <div className="text-sm font-semibold text-white/85">Discover hosts and rooms instantly</div>
         </div>
-        <div className="h-16 rounded-2xl" style={{ backgroundColor: '#F0E7D2' }} />
+        <div className="grid grid-cols-2 gap-3 text-slate-900">
+          <div className="h-36 rounded-2xl bg-white p-3 shadow-sm"><div className="text-2xl">🎥</div><div className="mt-8 font-bold">Live</div></div>
+          <div className="h-36 rounded-2xl bg-white p-3 shadow-sm"><div className="text-2xl">🎉</div><div className="mt-8 font-bold">Party</div></div>
+        </div>
+        <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-sm"><div className="font-bold">Recommended</div><div className="mt-1 text-sm text-slate-500">Rooms, chats, gifts and creators</div></div>
       </div>
       <div className="flex items-center justify-around px-2" style={{ height: 64, backgroundColor: '#F3EBDC', borderTop: '1px solid #E8DFCC' }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-7 w-7 rounded-lg" style={{ backgroundColor: '#E2D6BE' }} />
+        {['🏠', '🎥', '💬', '🎁', '👤'].map((icon, i) => (
+          <div key={i} className="flex h-10 w-10 items-center justify-center rounded-xl text-xl">{icon}</div>
         ))}
       </div>
     </div>
