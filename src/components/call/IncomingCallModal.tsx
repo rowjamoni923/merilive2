@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from "react";
-import { Phone, PhoneOff, Sparkles, Video } from "lucide-react";
+import { Phone, PhoneOff, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
@@ -156,7 +156,7 @@ export function IncomingCallModal({
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
                   <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" />
                 </div>
-                <Video className="w-3 h-3 text-green-300" />
+                {/* Video icon removed per design — green pulse dot is the only indicator */}
                 <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90">
                   Incoming Video Call
                 </span>
