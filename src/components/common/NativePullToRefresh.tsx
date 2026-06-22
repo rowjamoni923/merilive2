@@ -4,7 +4,6 @@
  */
 import { useState, useRef, useCallback, ReactNode } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 import { hapticFeedback } from '@/utils/nativeUtils';
 
 interface NativePullToRefreshProps {
@@ -107,15 +106,11 @@ export function NativePullToRefresh({
         style={{ y: indicatorY, opacity: indicatorOpacity, scale: indicatorScale }}
       >
         <div className="w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center">
-          {isRefreshing ? (
-            <Loader2 className="w-5 h-5 text-primary animate-spin" />
-          ) : (
-            <motion.div style={{ rotate: rotation }}>
-              <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 5v14M5 12l7-7 7 7" />
-              </svg>
-            </motion.div>
-          )}
+          <motion.div style={{ rotate: isRefreshing ? 0 : rotation }}>
+            <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 5v14M5 12l7-7 7 7" />
+            </svg>
+          </motion.div>
         </div>
       </motion.div>
 

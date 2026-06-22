@@ -2,7 +2,6 @@
  * Professional Native Splash Screen
  * Animated brand logo + name + version on app launch.
  */
-import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 // Bundled via Vite so the splash logo is hashed, fingerprinted, and served
 // from the same chunk pipeline as the rest of the app — never broken by a
@@ -21,8 +20,7 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenProps) {
-  const [isVisible, setIsVisible] = useState(true);
+export function SplashScreen({ onComplete, minDuration = 0 }: SplashScreenProps) {
   // ★ Live version: on native, pulled from the actual installed APK / IPA so
   //   the splash always matches what's on the device. Falls back to the JS
   //   APP_VERSION constant on web. The (build) code is appended on native.
@@ -47,52 +45,21 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onComplete, 450);
+      onComplete();
     }, minDuration);
     return () => clearTimeout(timer);
   }, [onComplete, minDuration]);
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+        <div
           className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
           style={{
             background:
-              'radial-gradient(ellipse at top, #FFFBF2 0%, #FAF5EA 55%, #F5EFDF 100%)',
+              'radial-gradient(ellipse at top, #F8FAFC 0%, #F1F5F9 55%, #E2E8F0 100%)',
           }}
         >
-          {/* Animated soft particles */}
-          {[...Array(18)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: Math.random() * 4 + 2,
-                height: Math.random() * 4 + 2,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                background: i % 2 === 0 ? 'rgba(236,72,153,0.35)' : 'rgba(168,85,247,0.3)',
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.7, 0.1] }}
-              transition={{
-                duration: 2 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 1.5,
-              }}
-            />
-          ))}
-
           {/* Glow halo */}
-          <motion.div
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1.1, opacity: 0.55 }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
+          <div
             className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
             style={{
               background:
@@ -102,10 +69,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           />
 
           {/* Logo */}
-          <motion.div
-            initial={{ scale: 0.4, opacity: 0, rotate: -8 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            transition={{ delay: 0.05, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+          <div
             className="relative z-10"
           >
             <div
@@ -134,76 +98,39 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
                 className="absolute inset-0 block h-full w-full object-cover"
                 style={{ objectPosition: 'center center' }}/>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Brand name with shimmer */}
-          <motion.div
-            initial={{ y: 16, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.45, duration: 0.5 }}
+          {/* Brand name */}
+          <div
             className="relative z-10 mt-6"
           >
             <h1
-              className="text-[40px] font-extrabold tracking-tight text-transparent bg-clip-text"
+              className="text-[40px] font-extrabold tracking-normal text-transparent bg-clip-text"
               style={{
                 backgroundImage:
                   'linear-gradient(110deg, #be185d 0%, #ec4899 25%, #a855f7 50%, #ec4899 75%, #be185d 100%)',
-                backgroundSize: '200% auto',
-                animation: 'splash-shimmer 2.4s linear infinite',
-                letterSpacing: '-0.02em',
+                backgroundSize: '100% auto',
+                letterSpacing: '0',
               }}
             >
               MeriLive
             </h1>
-          </motion.div>
+          </div>
 
           {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0.85, y: 0 }}
-            transition={{ delay: 0.75, duration: 0.4 }}
-            className="relative z-10 mt-1 text-[12px] text-slate-600 tracking-[0.25em] uppercase font-semibold"
+          <p
+            className="relative z-10 mt-1 text-[12px] text-slate-600 uppercase font-semibold"
           >
             Live · Connect · Earn
-          </motion.p>
-
-          {/* Loading dots */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="absolute bottom-24 flex gap-1.5"
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-2 h-2 rounded-full"
-                style={{ background: '#ec4899' }}
-                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
-              />
-            ))}
-          </motion.div>
+          </p>
 
           {/* Version */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            transition={{ delay: 1.1, duration: 0.5 }}
+          <div
             className="absolute bottom-8 text-[11px] text-slate-500 tracking-wider font-medium"
           >
             Version {displayVersion}
-          </motion.div>
-
-          <style>{`
-            @keyframes splash-shimmer {
-              0% { background-position: 0% center; }
-              100% { background-position: 200% center; }
-            }
-          `}</style>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
   );
 }
 

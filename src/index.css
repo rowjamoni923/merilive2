@@ -12,17 +12,17 @@
 .skl-block {
   position: relative;
   overflow: hidden;
-  background-color: hsl(35 26% 86%);
+  background-color: transparent;
 }
-.skl-block-soft { background-color: hsl(36 32% 90%); }
-.skl-block-dark { background-color: hsl(34 18% 80%); }
+.skl-block-soft { background-color: transparent; }
+.skl-block-dark { background-color: transparent; }
 .skl-block::after,
 .skl-block-soft::after {
   content: none;
 }
 
 .blank-guard-app {
-  background: hsl(42 70% 93%);
+  background: hsl(var(--background));
 }
 .blank-guard-live {
   background: #050208;
@@ -297,8 +297,8 @@ img {
 body.route-changing [data-page],
 body.route-changing main,
 body.route-changing [data-page-root] {
-  animation: pkg434-page-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-  will-change: opacity, transform;
+  animation: none !important;
+  will-change: auto;
 }
 html.reduce-motion body.route-changing [data-page],
 html.reduce-motion body.route-changing main,
@@ -412,8 +412,8 @@ img.fade-in-on-load[data-loaded="true"] {
 
 @layer base {
   :root {
-    /* Pearl-cream luxurious LIGHT theme — App default */
-    --background: 42 100% 98%;
+    /* Neutral instant surface — never beige/skeleton-looking */
+    --background: 210 40% 98%;
     --foreground: 222 42% 12%;
 
     --card: 0 0% 100%;
@@ -430,7 +430,7 @@ img.fade-in-on-load[data-loaded="true"] {
     --secondary: 270 70% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 42 60% 95%;
+    --muted: 210 40% 96%;
     --muted-foreground: 222 22% 32%;
 
     /* Gold Accent */
@@ -440,8 +440,8 @@ img.fade-in-on-load[data-loaded="true"] {
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 60% 88%;
-    --input: 42 60% 90%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 330 85% 55%;
 
     --radius: 1rem;
@@ -449,10 +449,10 @@ img.fade-in-on-load[data-loaded="true"] {
     /* Premium Gradients - Light luxury */
     --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%) 0%, hsl(270 70% 55%) 50%, hsl(220 80% 55%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 90% 55%) 50%, hsl(25 85% 50%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(42 100% 98%) 0%, hsl(42 80% 94%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(210 40% 98%) 0%, hsl(214 32% 94%) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(42 60% 96%) 100%);
-    --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(180,140,60,0.12) 50%, transparent 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 97%) 100%);
+    --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.12) 50%, transparent 100%);
     --gradient-live: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(330 85% 55%) 100%);
     --gradient-online: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(160 84% 39%) 100%);
 
@@ -4638,4 +4638,33 @@ a:focus-visible,
 }
 @media (prefers-reduced-motion: reduce) {
   .live-card-kenburns { animation: none; }
+}
+
+/* PkgInstant global hard rule: never show screenshot-like skeleton/spinner pages.
+   Keep async work behind already-painted UI; these legacy primitives become
+   static/invisible instead of animated beige placeholders. */
+.animate-spin,
+.animate-pulse,
+.animate-bounce,
+.ptr-spinner,
+.skeleton,
+.pkg434-skel,
+[data-skeleton],
+[data-loading-indicator] {
+  animation: none !important;
+}
+
+.animate-spin,
+.ptr-spinner,
+[data-loading-indicator] .animate-spin,
+.premium-spinner,
+[role="status"] svg.animate-spin {
+  display: none !important;
+}
+
+.skeleton,
+.pkg434-skel,
+[data-skeleton] {
+  background-image: none !important;
+  background-color: hsl(var(--card)) !important;
 }

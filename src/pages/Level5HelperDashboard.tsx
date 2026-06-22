@@ -1337,7 +1337,7 @@ const Level5HelperDashboard = () => {
   };
 
   if (loading) {
-    return <PageSkeleton className="bg-[#F7F8FA]" rows={6} hero />;
+    return <PageSkeleton className="fixed inset-0 flex flex-col bg-background overflow-hidden" rows={6} hero />;
   }
 
   return (

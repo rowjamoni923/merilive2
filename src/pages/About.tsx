@@ -51,7 +51,7 @@ const About = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FFFBF2] text-slate-800 overflow-x-hidden"
+      className="min-h-screen bg-background text-slate-800 overflow-x-hidden"
       style={{ touchAction: 'pan-y', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}
     >
       {/* JSON-LD Structured Data */}

@@ -459,8 +459,8 @@ const RouteSuspenseFallback = memo(() => {
 
   // Default app surface — full static painted chrome.
   return (
-    <div data-page-root="route-fallback-app" className="fixed inset-0 flex flex-col" style={{ backgroundColor: '#FFFBF2' }} aria-hidden="true">
-      <div className="flex items-center gap-3 px-4" style={{ height: 56, backgroundColor: '#F3EBDC', borderBottom: '1px solid #E8DFCC' }}>
+    <div data-page-root="route-fallback-app" className="fixed inset-0 flex flex-col bg-background" aria-hidden="true">
+      <div className="flex items-center gap-3 border-b border-border bg-card px-4" style={{ height: 56 }}>
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-sm font-black text-white">M</div>
         <div className="text-lg font-black tracking-normal text-slate-900">meriLIVE</div>
         <div className="ml-auto flex items-center gap-2 text-lg"><span>🔍</span><span>💬</span></div>
@@ -471,15 +471,15 @@ const RouteSuspenseFallback = memo(() => {
           <div className="text-sm font-semibold text-white/85">Discover hosts and rooms instantly</div>
         </div>
         <div className="grid grid-cols-2 gap-3 text-slate-900">
-          <div className="h-36 rounded-2xl bg-white p-3 shadow-sm"><div className="text-2xl">🎥</div><div className="mt-8 font-bold">Live</div></div>
-          <div className="h-36 rounded-2xl bg-white p-3 shadow-sm"><div className="text-2xl">🎉</div><div className="mt-8 font-bold">Party</div></div>
+          <div className="h-36 rounded-2xl bg-card p-3 shadow-sm"><div className="text-2xl">🎥</div><div className="mt-8 font-bold text-foreground">Live</div></div>
+          <div className="h-36 rounded-2xl bg-card p-3 shadow-sm"><div className="text-2xl">🎉</div><div className="mt-8 font-bold text-foreground">Party</div></div>
         </div>
-        <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-sm">
+        <div className="rounded-2xl bg-card p-4 text-foreground shadow-sm">
           <div className="font-bold">Recommended</div>
-          <div className="mt-1 text-sm text-slate-500">Rooms, chats, gifts and creators</div>
+          <div className="mt-1 text-sm text-muted-foreground">Rooms, chats, gifts and creators</div>
         </div>
       </div>
-      <div className="flex items-center justify-around px-2" style={{ height: 64, backgroundColor: '#F3EBDC', borderTop: '1px solid #E8DFCC' }}>
+      <div className="flex items-center justify-around border-t border-border bg-card px-2" style={{ height: 64 }}>
         {['🏠', '🎥', '💬', '🎁', '👤'].map((icon, i) => (
           <div key={i} className="flex h-10 w-10 items-center justify-center rounded-xl text-xl">{icon}</div>
         ))}

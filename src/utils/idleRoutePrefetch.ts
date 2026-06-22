@@ -10,7 +10,7 @@
  *   with first-paint or user input.
  * - Each import is wrapped in .catch(()=>{}) so a single 404 / chunk error
  *   never breaks the chain.
- * - Tiered + sequential at 250 ms gaps to avoid saturating the network.
+ * - Tiered + small-wave gaps so common routes warm before the user reaches them.
    * - On Capacitor native, still runs in smaller waves so every profile/menu/
    *   search/party/live/reels/game section becomes warm without creating one
    *   startup network storm.
@@ -32,7 +32,7 @@ export function startIdleRoutePrefetch() {
 
   const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
 
-  const warmSequentially = (imports: Array<() => Promise<unknown>>, gap = 250) => {
+  const warmSequentially = (imports: Array<() => Promise<unknown>>, gap = 90) => {
     imports.forEach((load, index) => {
       window.setTimeout(() => load().catch(() => {}), index * gap);
     });
@@ -117,11 +117,11 @@ export function startIdleRoutePrefetch() {
   ];
 
   ric(() => {
-    warmSequentially(tier1, 250);
-    window.setTimeout(() => warmSequentially(tier2, isNative ? 650 : 300), tier1.length * 250 + 500);
+    warmSequentially(tier1, isNative ? 120 : 70);
+    window.setTimeout(() => warmSequentially(tier2, isNative ? 180 : 90), tier1.length * (isNative ? 120 : 70) + 150);
     window.setTimeout(
-      () => warmSequentially(tier3, isNative ? 900 : 350),
-      tier1.length * 250 + tier2.length * (isNative ? 650 : 300) + 1500,
+      () => warmSequentially(tier3, isNative ? 240 : 120),
+      tier1.length * (isNative ? 120 : 70) + tier2.length * (isNative ? 180 : 90) + 350,
     );
-  }, 2000);
+  }, 650);
 }

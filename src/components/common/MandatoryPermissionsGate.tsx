@@ -21,7 +21,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Eye, Mic, Bell, Shield, Loader2, Settings as SettingsIcon } from 'lucide-react';
+import { Eye, Mic, Bell, Shield, Settings as SettingsIcon } from 'lucide-react';
 import {
   isNativeApp,
   checkPermissionStatus,
@@ -210,14 +210,7 @@ export function MandatoryPermissionsGate() {
             onClick={handleAllow}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-base font-semibold text-white shadow-lg active:scale-[0.98] disabled:opacity-60"
           >
-            {busy ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Requesting…
-              </>
-            ) : (
-              'Allow All'
-            )}
+            Allow All
           </button>
         )}
 

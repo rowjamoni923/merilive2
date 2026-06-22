@@ -11,6 +11,10 @@ import SVGAPlayer from './SVGAPlayer';
 import SVGAPlayerWithAudio from './SVGAPlayerWithAudio';
 import VAPPlayer from './VAPPlayer';
 
+const StaticFrameFallback = ({ className }: { className?: string }) => (
+  <div className={cn("bg-transparent", className)} aria-hidden="true" />
+);
+
 export type FrameType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
 interface UniversalFramePlayerProps {
@@ -110,11 +114,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
     // Use SVGAPlayerWithAudio when sound is enabled
     if (!muted) {
       return (
-        <Suspense fallback={
-          <div className={cn("flex items-center justify-center", className)}>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          </div>
-        }>
+        <Suspense fallback={<StaticFrameFallback className={className} />}>
           <SVGAPlayerWithAudio
             src={resolvedSrc}
             className={className}
@@ -127,11 +127,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
       );
     }
     return (
-      <Suspense fallback={
-        <div className={cn("flex items-center justify-center", className)}>
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
-      }>
+      <Suspense fallback={<StaticFrameFallback className={className} />}>
         <SVGAPlayer
           src={resolvedSrc}
           className={className}
@@ -148,11 +144,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   // VAP Animation (Pkg423 — Tencent transparent video)
   if (frameType === 'vap') {
     return (
-      <Suspense fallback={
-        <div className={cn("flex items-center justify-center", className)}>
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
-      }>
+      <Suspense fallback={<StaticFrameFallback className={className} />}>
         <VAPPlayer
           src={resolvedSrc}
           configSrc={configSrc}
@@ -172,9 +164,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   if (frameType === 'lottie') {
     if (lottieLoading) {
       return (
-        <div className={cn("flex items-center justify-center", className)}>
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
+        <StaticFrameFallback className={className} />
       );
     }
 
@@ -199,7 +189,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
       <div className={cn("relative", className)}>
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
           </div>
         )}
         <video 
@@ -240,7 +230,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
     <div className={cn("relative", className)}>
       {!imageLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
         </div>
       )}
       <img loading="lazy" decoding="async" 

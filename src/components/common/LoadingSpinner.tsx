@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { PremiumSpinner, type PremiumSpinnerSize } from "@/components/ui/premium-spinner";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -9,55 +8,35 @@ interface LoadingSpinnerProps {
   variant?: "default" | "overlay" | "inline";
 }
 
-const SIZE_MAP: Record<NonNullable<LoadingSpinnerProps["size"]>, PremiumSpinnerSize> = {
-  sm: "sm",
-  md: "md",
-  lg: "lg",
-  xl: "xl",
-};
-
 /**
- * App-wide premium loader. Backwards-compatible API — every page using
- * <LoadingSpinner /> automatically gets the luxurious dual-ring design.
+ * App-wide loading placeholder kept for backward compatibility.
+ * User mandate: no visible spinners/loading pages. Async work must keep the
+ * current painted surface; this component renders only optional static text.
  */
 export const LoadingSpinner = ({
-  size = "md",
-  text,
   fullScreen = false,
-  className,
   variant = "default",
 }: LoadingSpinnerProps) => {
-  const spinner = (
-    <PremiumSpinner size={SIZE_MAP[size]} label={text} className={className} />
-  );
+  const staticStatus = null;
 
   if (variant === "overlay") {
-    return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-        {spinner}
-      </div>
-    );
+    return staticStatus;
   }
 
   if (fullScreen) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        {spinner}
-      </div>
-    );
+    return <div className="min-h-screen bg-background" data-page-root="instant-static-status">{staticStatus}</div>;
   }
 
-  return spinner;
+  return staticStatus;
 };
 
-/** Tiny inline loader for buttons. Inherits current text color. */
+/** Tiny inline loader replacement for buttons: no visual spinner. */
 export const InlineLoader = ({ className }: { className?: string }) => (
   <span
     className={cn(
-      "inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin align-[-2px]",
+      "inline-block w-0 h-0 overflow-hidden align-[-2px]",
       className
     )}
-    style={{ animationDuration: "0.7s" }}
     aria-hidden
   />
 );
