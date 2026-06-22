@@ -12,7 +12,9 @@
 1. Removed the app-route `RouteSuspenseFallback` UI path entirely; route Suspense now uses `fallback={null}` so no alternate/fake screen is painted.
 2. Reworked `BlankScreenGuard` to retain a DOM snapshot of the last real screen and show that only if the next route has no meaningful surface yet.
 3. Excluded `PageSkeleton`/blank guard/snapshot DOM from blank-surface detection so blank placeholders no longer count as “real UI”.
-4. Kept admin chunk loader separate because admin routes are outside the user app flow.
+4. Made `PageSkeleton` and shared skeleton primitives render nothing, removing page-level fake/blank loading UI across the app.
+5. Changed the root/browser/native base surface to dark `#050208` and disabled Capacitor splash auto-hide; native splash is hidden only after a real surface exists.
+6. Kept admin chunk loader separate because admin routes are outside the user app flow.
 
 **Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React transitions in React Router — https://reactrouter.com/explanation/react-transitions
 
