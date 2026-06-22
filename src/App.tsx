@@ -1183,6 +1183,7 @@ const App = () => {
                       <Route path="/landing" element={<LandingPage />} />
                       <Route path="/download" element={<LandingPage />} />
                       <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                      <Route path="/super-admin/apply" element={publicPage(<SuperAdminApply />)} />
                       <Route path="/share" element={publicPage(<ShareReceive />)} />
                       <Route path="/link" element={publicPage(<SmartLink />)} />
                       <Route path="/policies" element={publicPage(<PublicPolicies />)} />
