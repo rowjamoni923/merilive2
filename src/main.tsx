@@ -155,7 +155,7 @@ const markBootedWhenSurfaceIsReady = () => {
     const root = document.getElementById("root");
     if (!root) return false;
     if ((root.innerText || "").trim().length > 0) return true;
-    return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root],[role='dialog'],[aria-busy='true']");
+    return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root],[role='dialog'],[aria-busy='true'],.fixed.inset-0");
   };
   const tick = () => {
     if (hasSurface() || Date.now() - startedAt > 4000) {
