@@ -1193,8 +1193,16 @@ class LiveKitPlugin : Plugin() {
 
     /** Push local preview track into any slot already bound to local identity. */
     private fun rebindSeatSlotsForLocalTrack(track: LocalVideoTrack) {
-        val id = room?.localParticipant?.identity?.value ?: return
-        onIdentityTrackAvailable(id, track)
+        val id = room?.localParticipant?.identity?.value
+        runOnMain {
+            slots.values
+                .filter { slot -> slot.isLocal && slot.attachedTrack !== track && (slot.identity == null || slot.identity == id) }
+                .forEach { slot ->
+                    if (slot.identity == null && id != null) slot.identity = id
+                    attachTrackToSlot(slot, track)
+                }
+        }
+        if (id != null) onIdentityTrackAvailable(id, track)
     }
 
     // ─────────────────────────────────────────────
