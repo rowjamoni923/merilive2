@@ -1351,13 +1351,11 @@ class LiveKitPlugin : Plugin() {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
-                    // Pkg502 (Camera white-screen fix 2026-06-22):
-                    // initVideoRenderer FIRST (binds EglBase context), then
-                    // addView at index 0 so renderer sits BEHIND the WebView.
-                    // SurfaceView must be a child of the WebView's parent and
-                    // drawn first; WebView (drawn on top) must be transparent.
-                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
+                    // SurfaceView must be attached before initVideoRenderer on
+                    // several OEM EGL stacks; still inserted at index 0 so it
+                    // sits BEHIND the transparent WebView.
                     parent.addView(renderer, 0, lp)
+                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
 
                 } else {
