@@ -4576,10 +4576,10 @@ html, body {
   overscroll-behavior-y: none;
 }
 
-/* Zero-white base layer: when React/Suspense/data has no real page mounted yet,
-   the browser/native WebView must show the app's dark native base, not white. */
+/* App base must match the real light app surface. Route navigation is chunk-warmed
+   before switching, so this layer should never appear as a black loading screen. */
 html, body, #root {
-  background-color: #050208;
+  background-color: hsl(var(--background));
 }
 
 button, a, [role="button"], .tappable {
