@@ -506,8 +506,6 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  // App must feel instant: no first-launch branded splash/loading overlay.
-  const [showSplash, setShowSplash] = useState(false);
   
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
@@ -1149,7 +1147,7 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true }}>
               <ScrollToTop />
               <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
