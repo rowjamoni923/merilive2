@@ -1483,6 +1483,14 @@ const Level5HelperDashboard = () => {
 
       </div>
 
+      {/* Trader Levels — full L1→L6 ladder with upgrade actions */}
+      <div className="px-4 mt-4">
+        <TraderLevelsCard
+          currentLevel={helperData?.trader_level || 5}
+          helperId={helperData?.id || null}
+        />
+      </div>
+
       {/* Main Tabs */}
       <div className="px-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
