@@ -2832,14 +2832,8 @@ const Auth = () => {
                 disabled={phoneOtpLoading || phoneOtpCode.length !== 6}
  className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {phoneOtpLoading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2.5" />
-                    Verify Code
-                  </>
-                )}
+                <Check className="w-5 h-5 mr-2.5" />
+                Verify Code
               </Button>
 
               <div className="text-center space-y-2">
@@ -2908,14 +2902,8 @@ const Auth = () => {
               </div>
 
  <Button onClick={handleCreatePhoneAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-400 hover:to-teal-400 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="mr-2">🚀</span>
-                    Create Account
-                  </>
-                )}
+                <span className="mr-2">🚀</span>
+                Create Account
               </Button>
             </div>
           </div>
