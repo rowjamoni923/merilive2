@@ -13,6 +13,8 @@
 2. `RouteSuspenseFallback` now uses the same textless surface for normal app routes instead of a plain white/background div.
 3. `BlankScreenGuard` now paints the same textless surface if a real route surface is missing, instead of covering the app with a blank white layer.
 4. Global page-enter animation excludes `data-page-root="instant-ready-shell"` so the fallback itself never fades from invisible.
+5. Side-effect dynamic imports now use retry/cache-clear recovery, so LiveKit warmups cannot silently fail forever on stale chunks.
+6. Global chunk errors now trigger bounded cache-busting recovery instead of leaving the WebView stuck on a blank route.
 
 **Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React 18 transitions overview in React Router docs — https://reactrouter.com/7.13.0/explanation/react-transitions
 
