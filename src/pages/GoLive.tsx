@@ -1286,50 +1286,53 @@ const GoLive = () => {
           />
         ) : (
           <div className="relative w-full h-full camera-locked">
-            {isNativeAndroid ? (
-              <div className="absolute inset-0 pointer-events-none" />
-            ) : (
-              <>
-                {/* Video element — must remain in DOM for WebGL texture source */}
-                <video 
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  controls={false}
-                  disablePictureInPicture
-                  disableRemotePlayback
-                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                  poster=""
-                  onLoadedMetadata={markPreviewReady}
-                  onCanPlay={markPreviewReady}
-                  onCanPlayThrough={markPreviewReady}
-                  onLoadedData={markPreviewReady}
-                  onPlaying={markPreviewReady}
-                  // @ts-ignore - vendor-specific attributes for Android
-                  x5-video-player-type="h5"
-                  x5-video-player-fullscreen="false"
-                  x5-video-orientation="portrait"
-                  x5-playsinline="true"
-                  webkit-playsinline="true"
-                  x-webkit-airplay="deny"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  style={{
-                    transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
-                    filter: beautyCSS || undefined,
-                    WebkitAppearance: 'none',
-                  }}/>
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundColor: (isNativeAndroid || previewHasFrame) ? 'transparent' : '#000',
-                    transition: 'background-color 200ms ease',
-                  }}
-                />
-              </>
-            )}
+            {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
+                On native Android, hidden visually when native renderer is confirmed
+                active (nativePreviewActive). If the native renderer ever fails to
+                mount (old APK, OEM EGL issue, race), this web <video> stays visible
+                as a safety fallback so the host NEVER sees a blank/white screen. */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              onLoadedMetadata={markPreviewReady}
+              onCanPlay={markPreviewReady}
+              onCanPlayThrough={markPreviewReady}
+              onLoadedData={markPreviewReady}
+              onPlaying={markPreviewReady}
+              // @ts-ignore - vendor-specific attributes for Android
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="false"
+              x5-video-orientation="portrait"
+              x5-playsinline="true"
+              webkit-playsinline="true"
+              x-webkit-airplay="deny"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{
+                transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+                filter: beautyCSS || undefined,
+                WebkitAppearance: 'none',
+                // On native Android, hide web video only when native preview is
+                // actively rendering. Otherwise keep it visible as fallback.
+                opacity: (isNativeAndroid && nativePreviewActive) ? 0 : 1,
+                transition: 'opacity 180ms ease',
+              }}/>
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundColor: ((isNativeAndroid && nativePreviewActive) || previewHasFrame) ? 'transparent' : '#000',
+                transition: 'background-color 200ms ease',
+              }}
+            />
           </div>
         )}
+
 
         {/* Grid Overlay for better framing */}
         {showGrid && (
