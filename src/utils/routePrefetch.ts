@@ -271,20 +271,8 @@ export function installRoutePrefetch() {
   // the head start we exploit. `passive: true` keeps scrolling smooth.
   window.addEventListener('pointerdown', handler, { passive: true, capture: true });
 
-  // Professional mobile navigation rule: never switch the route to an empty
-  // Suspense boundary. If a known lazy page is tapped, load its chunk first,
-  // then push the SPA route. The user stays on the real current screen instead
-  // of seeing a white/black/fake loading surface.
-  window.addEventListener('click', (ev) => {
-    const next = shouldNativeNavigate(ev);
-    if (!next) return;
-
-    const warm = warmRouteForNavigation(next.route);
-    if (!warm) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    void warm.then(() => navigateInAppPath(next.route)).catch(() => navigateInAppPath(next.route));
-  }, { capture: true });
+  // Do NOT intercept click navigation. Blocking the click until a chunk warms
+  // leaves the old screen visible after the tap, which looks like stale/duplicate
+  // UI. Pointer-down warming above is enough; React Router transition mode owns
+  // the actual route commit.
 }

@@ -1166,7 +1166,7 @@ const App = () => {
               {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
               <LuckyGiftHost />
               <CallProvider>
-                  {/* Pkg434 — Phase 14 — Tab keep-alive host (opt-in via localStorage 'tabKeepAlive=on') */}
+                  {/* Tab keep-alive is explicit opt-in only; default route owner stays single to prevent duplicate UI. */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
                   )}

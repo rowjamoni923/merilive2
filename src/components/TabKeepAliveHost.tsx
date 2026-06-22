@@ -39,15 +39,15 @@ const ALL_TAB_PATHS = new Set<string>(
   Object.values(TABS).flatMap((t) => t.paths)
 );
 
-// Pkg-Nav: keep-alive is now DEFAULT ON for the 4 bottom tabs so swapping
-// Home/Discover/Chat/Reels feels instant (no remount, no spinner). Users
-// can opt out by setting localStorage.setItem('tabKeepAlive','off').
+// User mandate: no duplicate/ghost UI. Keep-alive creates a second mounted
+// page tree, so it must be explicit opt-in only while we keep route rendering
+// single-owner and clean by default.
 export function isTabKeepAliveEnabled(): boolean {
   try {
-    if (typeof localStorage === 'undefined') return true;
-    return localStorage.getItem('tabKeepAlive') !== 'off';
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem('tabKeepAlive') === 'on';
   } catch {
-    return true;
+    return false;
   }
 }
 
