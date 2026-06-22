@@ -106,17 +106,6 @@ const ResetPassword = () => {
     </>
   );
 
-  if (!sessionChecked) {
-    return (
-      <div className="fixed inset-0 overflow-hidden">
-        <Background />
-        <div className="relative z-10 min-h-screen flex items-center justify-center">
-          <div className="w-12 h-12 border-[3px] border-white/25 border-t-white rounded-full animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
   if (success) {
     return (
       <div className="fixed inset-0 overflow-hidden">
@@ -192,14 +181,10 @@ const ResetPassword = () => {
 
               <Button
                 onClick={handleResetPassword}
-                disabled={loading}
+                disabled={loading || !sessionChecked}
                 className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-[0_6px_24px_-6px_rgba(168,85,247,0.55)] disabled:opacity-60"
               >
-                {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Update Password"
-                )}
+                {loading || !sessionChecked ? "Update Password" : "Update Password"}
               </Button>
             </div>
 
