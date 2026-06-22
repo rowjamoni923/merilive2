@@ -1096,7 +1096,7 @@ const App = () => {
 
   if (isLandingDomain && isAdminRoute) {
     window.location.replace(`https://merilive.com${currentPath}${window.location.search}${window.location.hash}`);
-    return <RouteSuspenseFallback />;
+    return null;
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
@@ -1106,7 +1106,7 @@ const App = () => {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       navigateInAppPath('/auth', { replace: true });
-      return <RouteSuspenseFallback />; // keep a real surface during instant redirect
+      return null;
     }
   }
 
@@ -1187,9 +1187,8 @@ const App = () => {
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
                   )}
-                  {/* Stable, light-themed Suspense fallback. Memoized identity
-                       prevents flicker on parent re-renders during route swaps. */}
-                  <Suspense fallback={<RouteSuspenseFallback />}>
+                  {/* No fake fallback UI: keep previous real screen via BlankScreenGuard. */}
+                  <Suspense fallback={null}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
