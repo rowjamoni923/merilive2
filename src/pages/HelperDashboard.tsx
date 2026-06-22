@@ -1474,6 +1474,31 @@ const HelperDashboard = () => {
                         </Button>
                       )}
 
+                      {canUpgrade && !hasPendingRequest && level.level_number === 6 && (
+                        <div className="mt-3 space-y-2">
+                          <div className="p-3 rounded-lg bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 border border-white/20 shadow-md">
+                            <p className="text-white text-xs leading-relaxed">
+                              <strong className="text-amber-200">Country Super Admin (L6 Contract):</strong> Sign the official agreement, upload NID, and deposit ${level.upgrade_cost_usd.toLocaleString()} to manage your country's payroll and earn {level.commission_rate}% on every withdrawal.
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => navigate('/super-admin/apply')}
+                            className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white h-10"
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            Apply for Level 6 — Country Super Admin
+                          </Button>
+                        </div>
+                      )}
+
+                      {level.level_number === 6 && !canUpgrade && !isUnlocked && (helperData?.trader_level || 0) < 5 && (
+                        <div className="mt-3 p-2 rounded-lg bg-slate-100 border border-slate-200">
+                          <p className="text-slate-600 text-xs text-center">
+                            🔒 Reach Level 5 first to unlock the Country Super Admin contract.
+                          </p>
+                        </div>
+                      )}
+
                       {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
                         <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 border border-white/20 shadow-md">
                           <p className="text-white text-xs leading-relaxed">
