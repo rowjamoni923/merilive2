@@ -63,8 +63,6 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    // The user explicitly asked for no automatic refreshes.
-    // Manual "Try Again" is the only way to recover from a hard failure.
     if (this.state.error && isChunkLoadError(this.state.error)) {
       resetChunkRecoveryMarkers();
       this.setState({ recovering: true });
@@ -89,7 +87,8 @@ class ErrorBoundary extends Component<Props, State> {
       })();
       return;
     }
-    this.setState({ hasError: false, error: null, errorInfo: null, recovering: false });
+    this.setState({ recovering: true });
+    window.setTimeout(() => hardReloadForChunkRecovery(), 80);
   };
 
 
