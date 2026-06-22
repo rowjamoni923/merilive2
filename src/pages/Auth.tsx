@@ -2116,14 +2116,10 @@ const Auth = () => {
   className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
-            {loading ? (
-  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> /* dark-ok */
-            ) : (
-              <span className="flex items-center gap-2">
-                <Rocket3DIcon className="w-5 h-5" />
-                <span className="drop-shadow-lg tracking-wide">Get Started</span>
-              </span>
-            )}
+            <span className="flex items-center gap-2">
+              <Rocket3DIcon className="w-5 h-5" />
+              <span className="drop-shadow-lg tracking-wide">Get Started</span>
+            </span>
           </Button>
 
           {/* Phone Number Button */}
@@ -2320,14 +2316,8 @@ const Auth = () => {
                 disabled={loading || !displayName.trim() || !selectedGender}
  className="w-full h-12 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold text-base disabled:opacity-40 shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    {isEmailFlow ? "Continue" : "Get Started"}
-                  </>
-                )}
+                <Sparkles className="w-5 h-5 mr-2" />
+                {isEmailFlow ? "Continue" : "Get Started"}
               </Button>
             </div>
           </div>
