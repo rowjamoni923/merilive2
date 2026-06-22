@@ -285,6 +285,6 @@ export function installRoutePrefetch() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    void warm.then(() => navigateInAppPath(next.route)).catch(() => undefined);
+    void warm.then(() => navigateInAppPath(next.route)).catch(() => navigateInAppPath(next.route));
   }, { capture: true });
 }
