@@ -39,6 +39,7 @@ import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
+import TraderLevelsCard from "@/components/helper/TraderLevelsCard";
 
 const ManualTopupCard = lazy(() => import("@/components/helper/ManualTopupCard"));
 
