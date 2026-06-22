@@ -150,7 +150,6 @@ if (isNativeApp()) {
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 const markBootedWhenSurfaceIsReady = () => {
-  const startedAt = Date.now();
   const hasSurface = () => {
     const root = document.getElementById("root");
     if (!root) return false;
@@ -158,7 +157,7 @@ const markBootedWhenSurfaceIsReady = () => {
     return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root],[role='dialog'],[aria-busy='true'],.fixed.inset-0");
   };
   const tick = () => {
-    if (hasSurface() || Date.now() - startedAt > 4000) {
+    if (hasSurface()) {
       try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
       return;
     }
