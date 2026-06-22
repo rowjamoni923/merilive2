@@ -17,30 +17,14 @@ interface PremiumSpinnerProps {
 
 export function PremiumSpinner({
   className,
-  label,
-  labelClassName,
 }: PremiumSpinnerProps) {
-  return (
-    <div className={cn("inline-flex flex-col items-center justify-center", className)} role="status" aria-live="polite">
-      {label && (
-        <span
-          className={cn(
-            "text-xs font-medium tracking-wide",
-            labelClassName ?? "text-muted-foreground"
-          )}
-        >
-          {label}
-        </span>
-      )}
-    </div>
-  );
+  return <span className={cn("inline-block h-0 w-0 overflow-hidden", className)} aria-hidden="true" />;
 }
 
 /**
  * Full-screen premium loader — use as a Suspense fallback or initial app loader.
  */
 export function PremiumSpinnerScreen({
-  label = "Loading…",
   className,
 }: {
   label?: string;
@@ -49,12 +33,11 @@ export function PremiumSpinnerScreen({
   return (
     <div
       className={cn(
-        "min-h-[40vh] w-full flex items-center justify-center px-6",
+        "min-h-[40vh] w-full bg-background px-6",
         className
       )}
-    >
-      <PremiumSpinner size="lg" label={label} />
-    </div>
+      data-page-root="instant-static-status"
+    />
   );
 }
 

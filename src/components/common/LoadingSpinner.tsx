@@ -19,9 +19,7 @@ export const LoadingSpinner = ({
   className,
   variant = "default",
 }: LoadingSpinnerProps) => {
-  const staticStatus = text ? (
-    <span className={cn("text-xs font-semibold text-muted-foreground", className)}>{text}</span>
-  ) : null;
+  const staticStatus = null;
 
   if (variant === "overlay") {
     return staticStatus;
