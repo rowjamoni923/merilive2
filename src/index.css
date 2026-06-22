@@ -41,6 +41,13 @@
   display: none !important;
 }
 
+/* User mandate: no visible spinning loaders anywhere in the app chrome.
+   Buttons may still disable to prevent duplicate submits; they just won't spin. */
+.animate-spin,
+[class*="animate-[spin_"] {
+  animation: none !important;
+}
+
 
 /* ============================================
    Global mobile behavior
