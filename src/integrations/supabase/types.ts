@@ -3733,6 +3733,298 @@ export type Database = {
         }
         Relationships: []
       }
+      country_payroll_admin_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          after_data: Json | null
+          before_data: Json | null
+          country_code: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          target_application_id: string | null
+          target_payroll_admin_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          target_application_id?: string | null
+          target_payroll_admin_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          target_application_id?: string | null
+          target_payroll_admin_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      country_payroll_admin_commissions: {
+        Row: {
+          commission_amount_usd: number
+          commission_percent: number
+          country_code: string
+          created_at: string
+          id: string
+          payroll_admin_id: string
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
+          status: string
+          withdrawal_amount_usd: number
+          withdrawal_request_id: string
+          withdrawal_source: string
+        }
+        Insert: {
+          commission_amount_usd: number
+          commission_percent: number
+          country_code: string
+          created_at?: string
+          id?: string
+          payroll_admin_id: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
+          status?: string
+          withdrawal_amount_usd: number
+          withdrawal_request_id: string
+          withdrawal_source: string
+        }
+        Update: {
+          commission_amount_usd?: number
+          commission_percent?: number
+          country_code?: string
+          created_at?: string
+          id?: string
+          payroll_admin_id?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
+          status?: string
+          withdrawal_amount_usd?: number
+          withdrawal_request_id?: string
+          withdrawal_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_payroll_admin_commissions_payroll_admin_id_fkey"
+            columns: ["payroll_admin_id"]
+            isOneToOne: false
+            referencedRelation: "country_payroll_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      country_payroll_admins: {
+        Row: {
+          allowed_payment_methods: Json
+          application_id: string | null
+          assigned_at: string
+          assigned_by: string | null
+          auto_pay_enabled: boolean
+          commission_percent: number
+          contract_url: string | null
+          country_code: string
+          created_at: string
+          daily_cap_usd: number
+          deposit_amount_usd: number
+          deposit_locked: boolean
+          id: string
+          max_withdraw_usd: number
+          min_withdraw_usd: number
+          revoked_at: string | null
+          status: string
+          suspended_reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allowed_payment_methods?: Json
+          application_id?: string | null
+          assigned_at?: string
+          assigned_by?: string | null
+          auto_pay_enabled?: boolean
+          commission_percent?: number
+          contract_url?: string | null
+          country_code: string
+          created_at?: string
+          daily_cap_usd?: number
+          deposit_amount_usd?: number
+          deposit_locked?: boolean
+          id?: string
+          max_withdraw_usd?: number
+          min_withdraw_usd?: number
+          revoked_at?: string | null
+          status?: string
+          suspended_reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allowed_payment_methods?: Json
+          application_id?: string | null
+          assigned_at?: string
+          assigned_by?: string | null
+          auto_pay_enabled?: boolean
+          commission_percent?: number
+          contract_url?: string | null
+          country_code?: string
+          created_at?: string
+          daily_cap_usd?: number
+          deposit_amount_usd?: number
+          deposit_locked?: boolean
+          id?: string
+          max_withdraw_usd?: number
+          min_withdraw_usd?: number
+          revoked_at?: string | null
+          status?: string
+          suspended_reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_payroll_admins_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "country_super_admin_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      country_super_admin_applications: {
+        Row: {
+          applicant_user_id: string
+          business_doc_url: string | null
+          business_name: string | null
+          country_code: string
+          created_at: string
+          deposit_amount_usd: number
+          deposit_proof_url: string | null
+          deposit_tx_ref: string | null
+          full_name: string
+          id: string
+          national_id_url: string | null
+          notes: string | null
+          official_email: string
+          official_phone: string
+          requested_commission_percent: number
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          signed_contract_url: string | null
+          status: string
+          telegram: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          applicant_user_id: string
+          business_doc_url?: string | null
+          business_name?: string | null
+          country_code: string
+          created_at?: string
+          deposit_amount_usd?: number
+          deposit_proof_url?: string | null
+          deposit_tx_ref?: string | null
+          full_name: string
+          id?: string
+          national_id_url?: string | null
+          notes?: string | null
+          official_email: string
+          official_phone: string
+          requested_commission_percent?: number
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          signed_contract_url?: string | null
+          status?: string
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          applicant_user_id?: string
+          business_doc_url?: string | null
+          business_name?: string | null
+          country_code?: string
+          created_at?: string
+          deposit_amount_usd?: number
+          deposit_proof_url?: string | null
+          deposit_tx_ref?: string | null
+          full_name?: string
+          id?: string
+          national_id_url?: string | null
+          notes?: string | null
+          official_email?: string
+          official_phone?: string
+          requested_commission_percent?: number
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          signed_contract_url?: string | null
+          status?: string
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      country_super_admin_settings: {
+        Row: {
+          created_at: string
+          default_commission_percent: number
+          id: string
+          is_program_open: boolean
+          max_commission_percent: number
+          min_deposit_usd: number
+          require_official_contact: boolean
+          require_signed_contract: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_commission_percent?: number
+          id?: string
+          is_program_open?: boolean
+          max_commission_percent?: number
+          min_deposit_usd?: number
+          require_official_contact?: boolean
+          require_signed_contract?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_commission_percent?: number
+          id?: string
+          is_program_open?: boolean
+          max_commission_percent?: number
+          min_deposit_usd?: number
+          require_official_contact?: boolean
+          require_signed_contract?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       currency_rates: {
         Row: {
           country_code: string | null
@@ -19172,6 +19464,18 @@ export type Database = {
         Args: { _withdrawal_id: string }
         Returns: Json
       }
+      approve_country_super_admin_application: {
+        Args: {
+          _allowed_payment_methods?: Json
+          _application_id: string
+          _auto_pay_enabled?: boolean
+          _commission_percent?: number
+          _daily_cap_usd?: number
+          _max_withdraw_usd?: number
+          _min_withdraw_usd?: number
+        }
+        Returns: string
+      }
       approve_host_request:
         | {
             Args: { _agency_id: string; _approver_id: string; _host_id: string }
@@ -19657,6 +19961,15 @@ export type Database = {
         }
         Returns: string
       }
+      credit_country_payroll_commission: {
+        Args: {
+          _country_code: string
+          _withdrawal_amount_usd: number
+          _withdrawal_request_id: string
+          _withdrawal_source: string
+        }
+        Returns: string
+      }
       credit_helper_wallet_from_swift_pay: {
         Args: { p_diamonds: number; p_helper_id: string; p_topup_id: string }
         Returns: Json
@@ -20028,6 +20341,37 @@ export type Database = {
         }[]
       }
       get_active_beauty_assets: { Args: never; Returns: Json }
+      get_active_country_payroll_config: {
+        Args: { _country_code: string }
+        Returns: {
+          allowed_payment_methods: Json
+          application_id: string | null
+          assigned_at: string
+          assigned_by: string | null
+          auto_pay_enabled: boolean
+          commission_percent: number
+          contract_url: string | null
+          country_code: string
+          created_at: string
+          daily_cap_usd: number
+          deposit_amount_usd: number
+          deposit_locked: boolean
+          id: string
+          max_withdraw_usd: number
+          min_withdraw_usd: number
+          revoked_at: string | null
+          status: string
+          suspended_reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "country_payroll_admins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_admin_analytics_chart_data: {
         Args: { p_days?: number }
         Returns: Json
@@ -20408,6 +20752,7 @@ export type Database = {
         }[]
       }
       get_user_balance: { Args: { _user_id: string }; Returns: Json }
+      get_user_country_code: { Args: { _user_id: string }; Returns: string }
       get_user_live_ban: {
         Args: { p_user_id: string }
         Returns: {
@@ -20435,6 +20780,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_user_payroll_country: { Args: { _user_id: string }; Returns: string }
       handle_game_callback: {
         Args: {
           p_action: string
@@ -20522,6 +20868,11 @@ export type Database = {
       is_caller_owner: { Args: never; Returns: boolean }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_country_payroll_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_country_payroll_admin_for: {
+        Args: { _country_code: string; _user_id: string }
         Returns: boolean
       }
       is_dm_blocked: {

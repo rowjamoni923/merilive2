@@ -189,6 +189,8 @@ const AdminAgencyDetail = lazy(lazyRetry(() => import("./pages/admin/AdminAgency
 const AdminProfitAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminProfitAnalytics")));
 const AdminPayoutsAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminPayoutsAnalytics")));
 const AdminUserManagement = lazy(lazyRetry(() => import("./pages/admin/AdminUserManagement")));
+const AdminSuperAdminManagement = lazy(lazyRetry(() => import("./pages/admin/AdminSuperAdminManagement")));
+const SuperAdminApply = lazy(lazyRetry(() => import("./pages/SuperAdminApply")));
 const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraders")));
 const AdminTopupTraderApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminTopupTraderApprovals")));
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
@@ -1181,6 +1183,7 @@ const App = () => {
                       <Route path="/landing" element={<LandingPage />} />
                       <Route path="/download" element={<LandingPage />} />
                       <Route path="/smart-link" element={publicPage(<SmartLink />)} />
+                      <Route path="/super-admin/apply" element={publicPage(<SuperAdminApply />)} />
                       <Route path="/share" element={publicPage(<ShareReceive />)} />
                       <Route path="/link" element={publicPage(<SmartLink />)} />
                       <Route path="/policies" element={publicPage(<PublicPolicies />)} />
@@ -1345,6 +1348,7 @@ const App = () => {
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
+                  <Route path="super-admin-management" element={<AdminRouteGuard routeSegment="user-management"><AdminSuperAdminManagement /></AdminRouteGuard>} />
                   <Route path="coin-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
                   <Route path="coin-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
                   <Route path="coin-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
