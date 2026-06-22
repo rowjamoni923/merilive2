@@ -1,0 +1,2 @@
+ALTER PUBLICATION supabase_realtime ADD TABLE public.country_super_admin_applications;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.country_payroll_admins;

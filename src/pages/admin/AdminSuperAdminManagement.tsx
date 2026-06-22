@@ -98,6 +98,24 @@ export default function AdminSuperAdminManagement() {
 
   useEffect(() => { load(); }, []);
 
+  // Realtime: instantly refresh when a helper submits / updates an application
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-super-admin-apps')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'country_super_admin_applications' },
+        () => { load(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'country_payroll_admins' },
+        () => { load(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const updateSettings = async (patch: Partial<Settings>) => {
     if (!settings) return;
     const { error } = await supabase.from("country_super_admin_settings").update(patch).eq("id", settings.id);

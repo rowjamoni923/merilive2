@@ -1229,6 +1229,7 @@ const App = () => {
                 <Route path="/smart-link" element={publicPage(<SmartLink />)} />
                 <Route path="/share" element={publicPage(<ShareReceive />)} />
                 <Route path="/link" element={publicPage(<SmartLink />)} />
+                <Route path="/super-admin/apply" element={publicPage(<SuperAdminApply />)} />
                 <Route path="/policies" element={publicPage(<PublicPolicies />)} />
                 <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
