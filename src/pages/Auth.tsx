@@ -2583,14 +2583,8 @@ const Auth = () => {
               </div>
               
  <Button onClick={handleVerifyOtp} disabled={otpLoading || otpCode.length !== 6} className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
-                {otpLoading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2.5" />
-                    Verify & Continue
-                  </>
-                )}
+                <Check className="w-5 h-5 mr-2.5" />
+                Verify & Continue
               </Button>
               
               <div className="text-center space-y-2">
@@ -2637,11 +2631,7 @@ const Auth = () => {
               </div>
               
  <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:saturate-100 disabled:hover:scale-100 disabled:cursor-not-allowed">
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Login"
-                )}
+                Login
               </Button>
               
               <div className="text-center pt-1">
@@ -2775,14 +2765,8 @@ const Auth = () => {
                 disabled={loading || !phoneNumber.trim()}
  className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
-                {loading ? (
- <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <MessageCircle className="w-5 h-5 mr-2.5" />
-                    Send WhatsApp Code
-                  </>
-                )}
+                <MessageCircle className="w-5 h-5 mr-2.5" />
+                Send WhatsApp Code
               </Button>
 
               <div className="text-center pt-1">
