@@ -1,8 +1,8 @@
 /**
  * PKG434 Pass 9 — Skeleton primitive
  *
- * Lightweight skeleton placeholder with smooth shimmer (driven by CSS in
- * index.css: `.pkg434-skel`). Use anywhere a list/card/avatar is loading.
+ * Lightweight static placeholder. No shimmer/pulse/spinner — async surfaces
+ * must not look like loading pages.
  *
  * Examples:
  *   <Skeleton className="h-4 w-32" />
@@ -22,7 +22,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
     <div
       ref={ref}
       aria-hidden="true"
-      className={cn("pkg434-skel", className)}
+      className={cn("rounded-md bg-muted/60", className)}
       {...props}
     />
   )

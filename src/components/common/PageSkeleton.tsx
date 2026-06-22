@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 
 interface PageSkeletonProps {
   /** Optional gradient/background class applied to the outer shell. */
@@ -17,8 +16,8 @@ interface PageSkeletonProps {
 }
 
 /**
- * Full-screen shimmer skeleton used as a cold-load placeholder for
- * heavy pages while their data is loading. Pure presentational.
+ * Real-looking static app surface used while async data settles.
+ * It must never look like a loading/skeleton page.
  */
 export function PageSkeleton({
   className = "fixed inset-0 flex flex-col bg-background overflow-hidden",
@@ -29,21 +28,25 @@ export function PageSkeleton({
   tabs = false,
 }: PageSkeletonProps) {
   return (
-    <div className={className} style={style} aria-busy="true">
-
-
+    <div className={className} style={style} aria-busy="false" data-page-root="instant-ready-shell">
       <div className={`flex-shrink-0 ${headerClassName}`}>
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top">
-          <SkeletonPrim className="w-9 h-9 rounded-full bg-white/30" />
-          <SkeletonPrim className="h-5 w-32 bg-white/30" />
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-sm font-black text-white">M</div>
+          <div className="text-lg font-black tracking-normal text-foreground">meriLIVE</div>
+          <div className="ml-auto flex items-center gap-2 text-lg"><span>🔍</span><span>💬</span></div>
         </div>
       </div>
       <div className="flex-1 overflow-hidden px-4 py-4 space-y-4">
-        {hero ? <SkeletonPrim className="h-32 w-full rounded-2xl" /> : null}
+        {hero ? (
+          <div className="rounded-2xl bg-gradient-to-r from-pink-500 to-amber-400 p-4 text-white shadow-sm">
+            <div className="text-xl font-black tracking-normal">Live now</div>
+            <div className="text-sm font-semibold text-white/85">Discover hosts and rooms instantly</div>
+          </div>
+        ) : null}
         {tabs ? (
           <div className="flex gap-2 overflow-hidden">
             {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonPrim key={i} className="h-9 w-20 rounded-full flex-shrink-0" />
+              <div key={i} className="h-9 w-20 flex-shrink-0 rounded-full bg-card px-3 py-2 text-center text-xs font-bold text-muted-foreground shadow-sm">{['Live','Party','Chat','Gift','VIP'][i]}</div>
             ))}
           </div>
         ) : null}
@@ -52,12 +55,12 @@ export function PageSkeleton({
             key={i}
             className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border"
           >
-            <SkeletonPrim className="w-10 h-10 rounded-full" />
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-base">{['🎥','🎉','💬','🎁','👤','⭐'][i % 6]}</div>
             <div className="flex-1 space-y-2">
-              <SkeletonPrim className="h-4 w-1/3" />
-              <SkeletonPrim className="h-3 w-1/2" />
+              <div className="text-sm font-bold text-foreground">{['Live room','Party room','Message','Gift store','Creator','Rewards'][i % 6]}</div>
+              <div className="text-xs text-muted-foreground">Ready</div>
             </div>
-            <SkeletonPrim className="h-6 w-16 rounded-full" />
+            <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">Open</div>
           </div>
         ))}
       </div>

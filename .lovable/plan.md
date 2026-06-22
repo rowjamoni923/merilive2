@@ -266,3 +266,5 @@ After all 4 phases:
 5. Auth callback, reset password, and `/auth` submit buttons were changed from spinner-only indicators to static disabled/action states.
 
 **Reality boundary:** Network/API/media operations still take real time, but the user-facing surface is immediate and non-spinning; buttons remain disabled during submits to prevent duplicate auth/account actions.
+
+**2026-06-22 refinement:** User rejected beige/block placeholder shells as still looking like a loading page. Updated boot shell, route fallback, BlankScreenGuard, and PageSkeleton to real-looking static app/auth surfaces with actual labels/buttons/icons. Generic Skeleton primitives and global pulse/bounce/spin animations are neutralized so no shimmer/spinner/loading-looking motion remains.
