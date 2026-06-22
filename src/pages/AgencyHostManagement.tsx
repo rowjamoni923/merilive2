@@ -265,7 +265,7 @@ const AgencyHostManagement = () => {
   });
 
   if (loading) {
-    return <PageSkeleton className="bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF]" rows={6} hero />;
+    return <PageSkeleton className="fixed inset-0 flex flex-col bg-background overflow-hidden" rows={6} hero />;
   }
 
   return (

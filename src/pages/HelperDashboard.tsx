@@ -1035,7 +1035,7 @@ const HelperDashboard = () => {
   const canManageCountryPaymentMethods = (helperData?.trader_level || 1) >= 5 && helperData?.payroll_enabled === true;
 
   if (loading) {
-    return <PageSkeleton className="bg-[#F7F8FA]" rows={6} hero />;
+    return <PageSkeleton className="fixed inset-0 flex flex-col bg-background overflow-hidden" rows={6} hero />;
   }
 
   // Pkg432: First-time / not-yet-verified users see the L1 application form inline.
