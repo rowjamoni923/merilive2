@@ -388,11 +388,12 @@ import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 
 
 // =============================================
-// ROUTE LOADER — STATIC PAINTED APP CHROME (zero animation, zero blank)
+// ROUTE LOADER — textless painted surface (zero spinner, zero fake UI)
 // =============================================
 // Cached pages render instantly via PersistQueryClient. For the brief moment
 // a lazy chunk parses, we paint the destination route's full app silhouette
@@ -439,10 +440,11 @@ const RouteSuspenseFallback = memo(() => {
   }
 
   return (
-    <div
-      data-page-root="route-fallback-app"
+    <PageSkeleton
       className="fixed inset-0 bg-background"
-      aria-hidden="true"
+      rows={5}
+      tabs
+      hero
     />
   );
 });
