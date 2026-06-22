@@ -160,6 +160,14 @@ const storeResponse = async (namespace: string, key: string, method: string, res
 const REQUEST_TIMEOUT_MS = 12_000;
 const RETRY_BACKOFF_MS = 600;
 
+const friendlyTimeoutError = () => {
+  // Surface a readable message instead of the browser's raw
+  // "signal is aborted without reason" DOMException text.
+  const err = new Error('Network is slow. Please check your connection and try again.');
+  err.name = 'NetworkTimeoutError';
+  return err;
+};
+
 const fetchWithTimeoutAndRetry = async (
   input: RequestInfo | URL,
   init: RequestInit | undefined,
@@ -172,11 +180,17 @@ const fetchWithTimeoutAndRetry = async (
   const externalSignal = init?.signal;
   const attempt = async (): Promise<Response> => {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; ctrl.abort(); }, REQUEST_TIMEOUT_MS);
     const onExternalAbort = () => ctrl.abort();
     externalSignal?.addEventListener('abort', onExternalAbort);
     try {
       return await fetch(input, { ...(init || {}), signal: ctrl.signal });
+    } catch (err) {
+      // Translate our own timeout-driven abort into a friendly error so
+      // toasts never show "signal is aborted without reason".
+      if (timedOut && !externalSignal?.aborted) throw friendlyTimeoutError();
+      throw err;
     } finally {
       clearTimeout(timer);
       externalSignal?.removeEventListener('abort', onExternalAbort);
@@ -195,6 +209,7 @@ const fetchWithTimeoutAndRetry = async (
     return attempt();
   }
 };
+
 
 export function fetchWithInstantRestCache(
   input: RequestInfo | URL,
