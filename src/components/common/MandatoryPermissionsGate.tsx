@@ -21,7 +21,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Eye, Mic, Bell, Shield, Loader2, Settings as SettingsIcon } from 'lucide-react';
+import { Eye, Mic, Bell, Shield, Settings as SettingsIcon } from 'lucide-react';
 import {
   isNativeApp,
   checkPermissionStatus,
