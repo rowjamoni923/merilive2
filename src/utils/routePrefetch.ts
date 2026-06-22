@@ -11,8 +11,6 @@
  * on failure — never block UI, never throw.
  */
 
-import { navigateInAppPath } from '@/utils/inAppNavigation';
-
 let livePrefetched = false;
 let partyPrefetched = false;
 let profilePrefetched = false;
@@ -195,20 +193,6 @@ export function prefetchByHref(href: string) {
     loader().catch(() => {});
   }
 }
-
-const shouldNativeNavigate = (ev: MouseEvent) => {
-  if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return false;
-  const target = ev.target as Element | null;
-  if (!target || !('closest' in target)) return false;
-  const anchor = target.closest<HTMLAnchorElement>('a[href]');
-  if (!anchor || anchor.target || anchor.hasAttribute('download')) return false;
-  const href = anchor.getAttribute('href') || '';
-  const route = getInternalRouteFromHref(href);
-  if (!route) return false;
-  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  if (route === current) return false;
-  return { route };
-};
 
 /**
  * Global delegated pointer-down listener — fires the right prefetcher

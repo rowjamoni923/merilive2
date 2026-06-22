@@ -43,12 +43,7 @@ const ALL_TAB_PATHS = new Set<string>(
 // page tree, so it must be explicit opt-in only while we keep route rendering
 // single-owner and clean by default.
 export function isTabKeepAliveEnabled(): boolean {
-  try {
-    if (typeof localStorage === 'undefined') return false;
-    return localStorage.getItem('tabKeepAlive') === 'on';
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 export function isKeepAliveTabPath(pathname: string): boolean {
