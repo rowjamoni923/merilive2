@@ -5349,6 +5349,17 @@ const LiveStream = () => {
 
         </>
       )}
+
+      {/* Host-side post-call choice (Back to Live / Back to Home) */}
+      <HostCallReturnModal
+        open={showHostReturnModal && isHost}
+        hostName={hostInfo?.name}
+        onBackToLive={() => setShowHostReturnModal(false)}
+        onBackToHome={() => {
+          setShowHostReturnModal(false);
+          handleLeaveStream();
+        }}
+      />
     </div>
   );
 };
