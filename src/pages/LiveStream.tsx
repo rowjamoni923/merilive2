@@ -110,6 +110,7 @@ import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { CallButton } from "@/components/call/CallButton";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useCall } from "@/features/call";
+import HostCallReturnModal from "@/components/live/HostCallReturnModal";
 import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGameOverlay";
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
@@ -507,10 +508,31 @@ const LiveStream = () => {
   
   // Call system - use unified call hook for proper call management
   const { startCall: unifiedStartCall, isInCall } = useCall();
-  
+
   // Host busy on call state - for viewer overlay
   const [hostBusyOnCall, setHostBusyOnCall] = useState(false);
   const [hostPhotos, setHostPhotos] = useState<string[]>([]);
+
+  // Host-side: show "Back to Live / Back to Home" modal after a private
+  // call (accepted or placed while broadcasting) ends. The LiveStream
+  // route stays mounted underneath the call portal overlay, so on call
+  // end we just need to ask the host whether to resume or end the stream.
+  const [showHostReturnModal, setShowHostReturnModal] = useState(false);
+  const wasHostInCallRef = useRef(false);
+  useEffect(() => {
+    if (!isHost) return;
+    if (isInCall) {
+      wasHostInCallRef.current = true;
+      return;
+    }
+    // Transition: in-call -> idle while still on LiveStream as the host.
+    if (wasHostInCallRef.current) {
+      wasHostInCallRef.current = false;
+      if (!showLiveEndSummary && !showStreamEndedModal) {
+        setShowHostReturnModal(true);
+      }
+    }
+  }, [isHost, isInCall, showLiveEndSummary, showStreamEndedModal]);
   
   // ==================== UNIFIED ENTRY ANIMATION SYSTEM ====================
   // Same queue-based architecture as Gift System
