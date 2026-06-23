@@ -189,35 +189,38 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
     setUploading(true);
     try {
-      // Step 1: Automatic Detector - verify image via Edge Function using Google Vision API
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-      const base64Image = await base64Promise;
+      // Per spec: admin approves/rejects the screenshot manually. We do NOT
+      // hard-block the user with a client-side Vision pre-check anymore —
+      // that was rejecting legitimate Play Store screenshots (non-English
+      // locales, different layouts, dark mode, etc.) and preventing upload.
+      // The image still goes through admin review in AdminRatingRewards.
+      // Fire-and-forget hint to the Vision function for telemetry only.
+      try {
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        base64Promise.then((b64) => {
+          supabase.functions
+            .invoke('verify-rating-screenshot', { body: { base64_image: b64 } })
+            .catch(() => { /* hint only — never blocks upload */ });
+        });
+      } catch { /* ignore hint failures */ }
 
-      const { data: verificationData, error: verificationError } = await supabase.functions.invoke('verify-rating-screenshot', {
-        body: { base64_image: base64Image }
-      });
-
-      if (verificationError || !verificationData?.success) {
-        console.error('Verification error:', verificationError, verificationData);
-        const msg = verificationData?.message || 'You submitted a different image, which is why your submission is not being accepted. Please upload a screenshot of your 5-star rating on the Play Store.';
-        toast.error(msg, { duration: 6000 });
-        setUploading(false);
-        return;
-      }
-
-      // Step 2: Upload to storage if verified
-      const ext = file.name.split('.').pop() || 'png';
+      // Upload to storage
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
       const path = `${userId}/rating_${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('rating-screenshots')
         .upload(path, file, { contentType: file.type || 'image/png', upsert: false });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Rating screenshot upload error:', uploadError);
+        toast.error(uploadError.message || 'Failed to upload screenshot. Please try again.');
+        return;
+      }
 
       const screenshotRef = path;
 
