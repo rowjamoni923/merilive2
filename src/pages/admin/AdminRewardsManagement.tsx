@@ -89,23 +89,31 @@ const AdminRewardsManagement = () => {
 
   // ===== FIRST RECHARGE HANDLERS =====
   const saveFirstRecharge = async () => {
-    if (!firstRechargeConfig?.id) return;
-    const { error } = await supabase
-      .from("first_recharge_bonus")
-      .update({
-        bonus_multiplier: firstRechargeConfig.bonus_multiplier,
-        bonus_label: firstRechargeConfig.bonus_label,
-        description: firstRechargeConfig.description,
-        is_active: firstRechargeConfig.is_active,
-        banner_image_url: firstRechargeConfig.banner_image_url || null,
-        banner_title: firstRechargeConfig.banner_title || 'First Recharge Bonus!',
-        banner_subtitle: firstRechargeConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase',
-        banner_type: firstRechargeConfig.banner_type || 'image',
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", firstRechargeConfig.id);
-    if (error) toast.error("Failed to save");
-    else toast.success("First recharge config saved");
+    if (!firstRechargeConfig) return;
+
+    const payload = {
+      bonus_coins: firstRechargeConfig.bonus_coins ?? 0,
+      bonus_percentage: firstRechargeConfig.bonus_percentage ?? 0,
+      bonus_multiplier: firstRechargeConfig.bonus_multiplier,
+      bonus_label: firstRechargeConfig.bonus_label,
+      description: firstRechargeConfig.description,
+      is_active: firstRechargeConfig.is_active,
+      banner_image_url: firstRechargeConfig.banner_image_url || null,
+      banner_title: firstRechargeConfig.banner_title || 'First Recharge Bonus!',
+      banner_subtitle: firstRechargeConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase',
+      banner_type: firstRechargeConfig.banner_type || 'image',
+      updated_at: new Date().toISOString(),
+    };
+
+    const result = firstRechargeConfig.id
+      ? await supabase.from("first_recharge_bonus").update(payload).eq("id", firstRechargeConfig.id).select().single()
+      : await supabase.from("first_recharge_bonus").insert(payload).select().single();
+
+    if (result.error) toast.error("Failed to save");
+    else {
+      setFirstRechargeConfig(result.data || firstRechargeConfig);
+      toast.success("First recharge config saved");
+    }
   };
 
   // Banner image upload handler
