@@ -75,7 +75,10 @@ const AdminLeaderboardManagement = () => {
     fetchLeaderboardData();
   }, [selectedCategory, selectedPeriod]);
 
-  useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => fetchIconSettings());
+  useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => {
+    fetchIconSettings();
+    fetchLeaderboardData();
+  });
 
   const fetchIconSettings = async () => {
     const data = await loadAppSettingsByPrefix<string>("leaderboard_");
