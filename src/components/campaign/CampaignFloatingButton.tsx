@@ -724,8 +724,9 @@ function CampaignFloatingButton() {
       const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('payment-proofs').upload(fileName, file);
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
-      setHelperPaymentProof(data.publicUrl);
+      // payment-proofs is a PRIVATE bucket — use a long-lived signed URL so admin can view it.
+      const { data: signed } = await supabase.storage.from('payment-proofs').createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10);
+      setHelperPaymentProof(signed?.signedUrl ?? fileName);
       toast({ title: 'Screenshot uploaded' });
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message || 'Failed to upload screenshot', variant: 'destructive' });
