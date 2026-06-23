@@ -1310,14 +1310,14 @@ export function ActiveCallScreen({
                       <img
                         src={enhanceThumbnail(isSwapped ? myAvatarUrl : remoteUserAvatar, { width: 160, quality: 86 })}
                         alt={isSwapped ? 'You' : remoteUserName}
-                        className="w-24 h-24 rounded-full object-cover border-2 border-white/35 shadow-2xl shadow-black/50"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-primary-foreground/35 shadow-2xl shadow-foreground/50"
                       />
                     ) : (
-                      <div className="w-24 h-24 rounded-full border-2 border-white/25 bg-white/10 flex items-center justify-center text-3xl font-bold text-white">
+                      <div className="w-24 h-24 rounded-full border-2 border-primary-foreground/25 bg-primary-foreground/10 flex items-center justify-center text-3xl font-bold text-on-dark">
                         {(isSwapped ? 'Y' : remoteUserName?.charAt(0) || 'U').toUpperCase()}
                       </div>
                     )}
-                    <div className="mt-4 px-3 py-1 rounded-full bg-black/35 border border-white/15 text-white/85 text-xs font-semibold backdrop-blur-md">
+                    <div className="mt-4 px-3 py-1 rounded-full bg-foreground/35 border border-primary-foreground/15 text-on-dark/85 text-xs font-semibold backdrop-blur-md">
                       Connecting…
                     </div>
                   </div>
