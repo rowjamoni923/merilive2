@@ -441,9 +441,59 @@ const BecomeSubAgent = () => {
                   </div>
                 </div>
                 
+                {/* In-app OTP gate */}
+                <div className="mt-4 bg-white rounded-xl border border-orange-200 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">In-app verification</p>
+                      <p className="text-[11px] text-slate-500">
+                        {otpVerified
+                          ? "Verified. You can proceed."
+                          : otpSent
+                            ? `Code sent to your in-app notifications${otpTimer > 0 ? ` · expires in ${Math.floor(otpTimer/60)}:${String(otpTimer%60).padStart(2,'0')}` : ' · expired'}`
+                            : "Send a 6-digit code to your in-app notifications"}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={sendOtp}
+                      disabled={sendingOtp || otpVerified || (otpSent && otpTimer > 240)}
+                    >
+                      {sendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : otpSent ? "Resend" : "Send code"}
+                    </Button>
+                  </div>
+
+                  {otpSent && !otpVerified && (
+                    <div className="flex flex-col items-center gap-2">
+                      <InputOTP maxLength={6} value={otpCode} onChange={(v) => setOtpCode(v)}>
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={verifyOtp}
+                        disabled={verifyingOtp || otpCode.length !== 6 || otpTimer <= 0}
+                        className="w-full"
+                      >
+                        {verifyingOtp ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
+                        Verify code
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   onClick={becomeSubAgent}
-                  disabled={loading}
+                  disabled={loading || !otpVerified}
                   className="w-full mt-4 bg-orange-500 hover:bg-orange-600"
                 >
                   {loading ? (
