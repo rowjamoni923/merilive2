@@ -21,6 +21,7 @@
  * no React imports.
  */
 import { Capacitor } from '@capacitor/core';
+import { getNotificationPath } from '@/utils/notificationDeepLink';
 
 declare global {
   interface Window {
@@ -44,33 +45,14 @@ function routeTo(path: string) {
 
 function pathFromPushData(data: Record<string, any> | undefined): string | null {
   if (!data) return null;
-  const type = String(data.type || '');
-  const get = (k: string) => (data[k] ? String(data[k]) : '');
-
-  if (type === 'incoming_call' || type === 'call') {
-    return `/call?callId=${get('call_id') || get('callId')}`;
-  }
-  if (type === 'call_missed' || type === 'call_received') return '/call-history';
-  if (type === 'message') return `/chat/${get('conversation_id') || get('conversationId')}`;
-  if (type === 'follow' || type === 'new_follower') return `/profile-detail/${get('follower_id')}`;
-  if (type === 'live' || type === 'live_started') {
-    const sid = get('stream_id');
-    return sid ? `/live/${sid}` : '/discover';
-  }
-  if (type === 'party_invite') {
-    const rid = get('room_id');
-    return rid ? `/party/${rid}` : '/party-rooms';
-  }
-  if (type === 'support_reply') {
-    return `/settings/customer-service?mode=live_chat&ticket_id=${get('ticket_id')}`;
-  }
-  if (type.startsWith('agency_')) return '/agency-dashboard';
-
-  // Explicit deep-link path
-  const explicit = get('path') || get('route') || get('deep_link');
-  if (explicit) return explicit;
-  return null;
+  // Delegate to the single source of truth (src/utils/notificationDeepLink.ts)
+  // so cold-start taps and warm taps always land on the exact same route.
+  // Previously this duplicated the routing table and used `/chat/<id>` for
+  // message taps — which is NOT a real route → cold-start message tap 404'd.
+  const path = getNotificationPath(data as Record<string, string>);
+  return path || null;
 }
+
 
 export function installColdStartCapture(): void {
   if (!Capacitor.isNativePlatform()) return;
