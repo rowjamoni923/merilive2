@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, ScrollText, IdCard, PenLine } from "lucide-react";
+import { Loader2, ShieldCheck, ScrollText, IdCard, PenLine, ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SignaturePad, SignaturePadHandle } from "@/components/SignaturePad";
 import { AGREEMENT_VERSION, buildAgreementText } from "@/lib/superAdminAgreement";
