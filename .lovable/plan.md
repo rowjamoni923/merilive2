@@ -63,3 +63,13 @@
 - Professional mobile target size: W3C WCAG guidance says custom touch targets should be at least **44×44 CSS px**; current homepage button was **36×36 px**, so it looked tiny and under-premium. Source: W3C Understanding SC 2.5.5 Target Size Enhanced (`w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html`).
 - Live-streaming competitor pattern: BIGO highlights ranking/host support flows as important engagement surfaces, so ranking entry should read like a prominent reward/status object, not a flat small icon. Source: BIGO Live operating/ranking materials surfaced in web research.
 - Fix plan: enlarge homepage leaderboard to **52×52 px**, keep it perfectly circular, use the existing transparent 3D trophy asset at **38×38 px**, add layered gold coin-like bevel, inner depth shadow, glass highlight, rotating shine, premium glow, and reduced-motion fallback.
+
+## 2026-06-23 — Admin setup/config failure audit
+
+- User-reported class: admin setup forms fail when required DB columns are omitted, and numeric inputs do not type correctly when every keystroke writes to DB then refetches.
+- Professional pattern: admin CRUD/config tools should validate typed fields, keep local controlled draft state, and commit on explicit save or blur instead of refetching every keystroke; inline CRUD tools use smart forms and typed column handling. Sources: Makerkit/Supamode Data Explorer CRUD docs (`makerkit.dev/docs/supamode/features/data-explorer-crud`), React controlled form/draft guidance (`reactuse.com/blog/react-form-handling-hooks/`), UX StackExchange save-on-blur discussion (`ux.stackexchange.com/questions/87638/...`).
+- DB audit verified: `limited_time_offers` had required `coins_amount`, `original_price`, `offer_price`, `starts_at`; admin UI omitted them. Fixed with safe defaults and explicit insert values. UI also referenced `bonus_percentage`, `badge_text`, `total_claimed`, `total_max_claims`; fixed by adding columns.
+- DB audit verified: `daily_login_rewards_config` required `reward_type` and `reward_amount`; fixed safe defaults so config rows cannot fail from omitted legacy fields.
+- DB audit verified: `user_beans_exchange_tiers.tier_name` required; fixed safe default.
+- Frontend audit fixed: `AdminLeaderboardManagement` already uses controlled commit-on-blur for reward tiers; added same pattern to `PKCompetitionManager` reward tiers and `AdminRewardsManagement` daily-login/cashback tiers.
+- Exact logic bug fixed: `AdminInvitationSettings.toggleActive` was updating `invitation_settings` instead of `invitation_reward_tiers`.
