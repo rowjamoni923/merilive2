@@ -242,6 +242,7 @@ const FaceVerification = () => {
   // Step 2: Video & Photos (Hosts only)
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoPoster, setVideoPoster] = useState<string | null>(null);
   const [hostPhotos, setHostPhotos] = useState<File[]>([]);
   const [hostPhotosPreviews, setHostPhotosPreviews] = useState<string[]>([]);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -585,6 +586,55 @@ const FaceVerification = () => {
     });
   };
 
+  const generateVideoPosterFromUrl = useCallback((sourceUrl: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      let settled = false;
+      const settle = (poster: string | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(poster);
+      };
+
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      video.crossOrigin = 'anonymous';
+      video.onloadedmetadata = () => {
+        try {
+          video.currentTime = Number.isFinite(video.duration) && video.duration > 0.4 ? 0.35 : 0;
+        } catch {
+          settle(null);
+        }
+      };
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, video.videoWidth || 640);
+          canvas.height = Math.max(1, video.videoHeight || 360);
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return settle(null);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          settle(canvas.toDataURL('image/jpeg', 0.82));
+        } catch {
+          settle(null);
+        }
+      };
+      video.onerror = () => settle(null);
+      setTimeout(() => settle(null), 2500);
+      video.src = sourceUrl;
+      video.load();
+    });
+  }, []);
+
+  const setHostIntroVideoPreview = useCallback((url: string) => {
+    setVideoPreview(url);
+    setVideoPoster(null);
+    generateVideoPosterFromUrl(url).then((poster) => {
+      if (poster) setVideoPoster(poster);
+    });
+  }, [generateVideoPosterFromUrl]);
+
   // ⛔ Removed (Pkg357): the old single-shot `auto-face-verify` path produced
   // unreliable male/female detection because it analysed ONE frame with no
   // cross-checks. All face verification now goes through the 3-API pipeline
@@ -824,7 +874,7 @@ const FaceVerification = () => {
       }
       setVideoFile(file);
       const url = URL.createObjectURL(file);
-      setVideoPreview(url);
+      setHostIntroVideoPreview(url);
     }
   };
 
@@ -868,7 +918,7 @@ const FaceVerification = () => {
         const blob = new Blob(chunksRef.current, { type });
         const file = new File([blob], `verification-video.${type.includes('mp4') ? 'mp4' : 'webm'}`, { type });
         setVideoFile(file);
-        setVideoPreview(URL.createObjectURL(blob));
+        setHostIntroVideoPreview(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
       };
       
@@ -2262,9 +2312,9 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className={`${usingNativeFaceCamera ? 'bg-transparent border-transparent shadow-none' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]'} rounded-3xl p-5 border`}>
+    <div className={`${usingNativeFaceCamera ? 'fixed inset-0 z-[2147483646] bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
+      {!usingNativeFaceCamera && <div className="flex items-center gap-3 mb-5">
         <div className="relative">
           <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
             <ScanFace className="w-6 h-6 text-white" />
@@ -2286,10 +2336,10 @@ const FaceVerification = () => {
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
           </p>
         </div>
-      </div>
+      </div>}
 
       {/* Progress Bar */}
-      {verificationRecording && (
+      {verificationRecording && !usingNativeFaceCamera && (
         <div className="mb-4">
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span className="font-medium">Liveness Progress</span>
@@ -2307,7 +2357,10 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`}>
+      <div className={usingNativeFaceCamera
+        ? 'fixed inset-0 z-0 w-screen h-screen overflow-hidden bg-transparent'
+        : `relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`
+      }>
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
@@ -2731,7 +2784,7 @@ const FaceVerification = () => {
             
             {/* Verification failed overlay */}
             {verificationFailed && (
-              <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center backdrop-blur-sm">
+              <div className={`absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm ${usingNativeFaceCamera ? 'bg-black/35' : 'bg-white/80'}`}>
                 <motion.div 
                   initial={{ scale: 0 }} 
                   animate={{ scale: 1 }} 
@@ -2779,7 +2832,7 @@ const FaceVerification = () => {
       )}
 
       {faceCameraActive && !verificationStarted && !faceVerified && (
-        <div className="space-y-3">
+        <div className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 space-y-3' : 'space-y-3'}`}>
           <div className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-2 text-slate-900 font-semibold text-sm">
               <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
@@ -2800,7 +2853,7 @@ const FaceVerification = () => {
       )}
       
       {verificationFailed && (
-        <div className="space-y-2">
+        <div className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 space-y-2' : 'space-y-2'}`}>
           {instructionsCompleted.filter(Boolean).length >= 2 && (
             <Button
               className="w-full h-14 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-2xl text-lg font-bold"
@@ -2833,7 +2886,7 @@ const FaceVerification = () => {
       
       {faceVerified && (
         <Button
-          className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20"
+          className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 w-auto' : 'w-full'} h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
           disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
@@ -3404,15 +3457,16 @@ const FaceVerification = () => {
               {videoPreview ? (
                 <video
                   src={videoPreview}
+                  poster={videoPoster || undefined}
                   muted
                   autoPlay
                   loop
                   playsInline
-                  controls={false}
-                  preload="auto"
+                  controls
+                  preload="metadata"
                   disablePictureInPicture
                   disableRemotePlayback
-                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                  controlsList="nodownload noremoteplayback noplaybackrate"
                   className="w-full h-full object-cover bg-black"
                   onLoadedData={(event) => event.currentTarget.play().catch(() => {})}
                 />
@@ -3479,6 +3533,7 @@ const FaceVerification = () => {
                   className="w-full border-amber-300 text-slate-800 hover:bg-amber-100 h-12 rounded-xl font-semibold"
                   onClick={() => {
                     setVideoPreview(null);
+                    setVideoPoster(null);
                     setVideoFile(null);
                   }}
                 >
