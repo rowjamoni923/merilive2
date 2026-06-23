@@ -305,7 +305,7 @@ const AdminTraderOrders = () => {
                       <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                         <span>Helper:</span>
                         <Avatar className="w-5 h-5">
-                          <UserAvatarImage seed={(((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id)} gender={((user) as any)?.gender} src={(order.helper as any)?.user?.avatar_url} />
+                          <UserAvatarImage seed={(((order.helper as any)?.user)?.id ?? ((order.helper as any)?.user)?.user_id ?? ((order.helper as any)?.user)?.host_id)} gender={((order.helper as any)?.user)?.gender} src={(order.helper as any)?.user?.avatar_url} />
                           <AvatarFallback className="text-xs">{(order.helper as any)?.user?.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <span>{(order.helper as any)?.user?.display_name}</span>
