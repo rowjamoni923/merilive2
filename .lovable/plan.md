@@ -84,6 +84,15 @@
 - Comparable live-streaming admin products advertise real-time user/stream/gift/admin modules across dozens of pages; consistent profile imagery across management modules is table-stakes for operator scanning. Source: https://teraa.live/admin.html
 - Implementation implication: admin avatars should use `avatar_url` when present and deterministic user-level seed fallback (`user_id` / row `id`) when not; nested joined profile objects do not always expose `id`, so React/TS must not read `profile.id` unless the local type includes it.
 
+## Face verification + media icon audit — 2026-06-23
+
+- Chamet-style host face verification is an active liveness workflow, not a static file-picker: Chamet guidance describes mandatory host face verification, and current app logic already uses front/left/right liveness steps. Source: https://chametagency.id/how-to-complete-chamet-live-face-verification/
+- Bigo host verification uses admin-only identity/selfie review; operator/admin media must be real reviewable photos/videos, not placeholders or generic icons. Source: https://peakentertainmentph.com/how-to-upload-my-id-for-host-verification-in-bigo/
+- Android/Capacitor camera-preview white-screen cases commonly come from camera surface + WebView overlay/z-order/background issues; professional fix is native camera behind transparent UI, not another WebView camera probe. Source: https://forum.ionicframework.com/t/camera-preview-shows-white-screen-in-apk-overlay-visible-but-camera-not-displayed/242597 and https://github.com/capacitor-community/camera-preview/issues/199
+- Android messaging guidance says media thumbnails provide quick visual previews, save bandwidth/memory, and improve browsing performance; video messages should render actual media/posters, not generic video icons. Source: https://developer.android.com/social-and-messaging/guides/media-thumbnails
+- P0 fixes applied: FaceVerification native CameraX mode now uses a full-screen transparent React overlay so opaque cards/page backgrounds cannot cover the camera; host intro video now generates a canvas poster and renders a real playable `<video controls preload="metadata">`; direct chat media resolves stored `chat-media` paths through long-lived signed URLs, renders photos/videos as real media, and disables the optional text-only native chat overlay when a thread contains media.
+- Honest verification note: Lovable preview can verify React/web rendering only. Native CameraX visibility requires APK rebuild + Android device test because `android/app/src/main/java/com/merilive/app/plugin/NativeCameraPlugin.java` behavior is inside the installed APK.
+
 ## Questions before I start
 
 1. **প্রথম priority কোনটা?** — P0 হিসেবে আমি face verification + host application + recharge/withdrawal ধরছি। আপনি কি অন্য কিছু আগে চান?
