@@ -10,7 +10,7 @@ import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
-const DEFAULT_THUMB = "/placeholder.svg";
+const DEFAULT_THUMB = "";
 
 interface PremiumLiveStreamCardProps {
   id: string;
@@ -91,8 +91,8 @@ export const PremiumLiveStreamCard = ({
       {(() => {
         const avatarFallback = hostId
           ? getDisplayAvatar(hostId, normalizeProfileMediaUrl(hostAvatar) || hostAvatar || null, { gender: hostGender ?? "female", isOwner })
-          : (normalizeProfileMediaUrl(hostAvatar) || hostAvatar || DEFAULT_THUMB);
-        const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
+          : (normalizeProfileMediaUrl(hostAvatar) || hostAvatar || getDisplayAvatar(hostId || hostName || 'live-host', null, { gender: hostGender ?? "female", isOwner: false }));
+        const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== "/placeholder.svg";
         const normalizedThumb = normalizeProfileMediaUrl(thumbnailUrl) || thumbnailUrl;
         const primarySrc = hasLiveThumb
           ? enhanceThumbnail(normalizedThumb, { width: 600, quality: 90, sharpen: 1.4 })
@@ -118,8 +118,9 @@ export const PremiumLiveStreamCard = ({
                 img.src = avatarFallback;
                 return;
               }
-              // Step 3: final placeholder
-              if (img.src !== DEFAULT_THUMB) img.src = DEFAULT_THUMB;
+              // Step 3: final real-photo fallback — never a generic broken/video icon.
+              const finalFallback = getDisplayAvatar(hostId || hostName || 'live-host', null, { gender: hostGender ?? "female", isOwner: false });
+              if (img.src !== finalFallback) img.src = finalFallback;
             }}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             style={{

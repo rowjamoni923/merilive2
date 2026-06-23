@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface LiveStream {
   id: string;
@@ -247,7 +249,7 @@ export default function LiveStreamFeed() {
     >
       <div className="relative h-full w-full">
         <img loading="lazy" decoding="async" 
-          src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
+          src={currentStream.thumbnail_url || normalizeProfileMediaUrl(currentStream.host?.avatar_url) || currentStream.host?.avatar_url || getDisplayAvatar(currentStream.host_id, null, { gender: 'female' })}
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
           className="h-full w-full object-cover"
           onClick={() => navigate(`/live/${currentStream.id}`)}
@@ -255,7 +257,7 @@ export default function LiveStreamFeed() {
             const img = event.currentTarget;
             if (!img.dataset.fallbackApplied) {
               img.dataset.fallbackApplied = "1";
-              img.src = "/placeholder.svg";
+              img.src = normalizeProfileMediaUrl(currentStream.host?.avatar_url) || currentStream.host?.avatar_url || getDisplayAvatar(currentStream.host_id, null, { gender: 'female' });
             }
           }}
         />
