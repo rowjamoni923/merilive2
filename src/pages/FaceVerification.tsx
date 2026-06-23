@@ -1280,6 +1280,7 @@ const FaceVerification = () => {
       toast({ title: "Recording failed", description: "Please try again", variant: "destructive" });
       setVerificationStarted(false);
       setVerificationRecording(false);
+      verifyInProgressRef.current = false; // BUG-06: release lock on error
     }
   };
 
