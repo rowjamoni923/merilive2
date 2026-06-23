@@ -60,37 +60,63 @@ const generateDeviceId = async (): Promise<string> => {
   return await getPersistentDeviceId();
 };
 
-// Recover account by device ID - returns credentials for automatic login
+// Recover account by device ID — returns a single-use exchange token that
+// the device-session-recover edge function will trade for a real Supabase
+// session. NO password ever leaves the server.
 const recoverAccountByDevice = async (deviceId: string): Promise<{
   userId: string;
   displayName: string;
   avatarUrl: string | null;
   gender: string | null;
   isHost: boolean;
-  recoveryEmail: string;
-  recoveryPassword: string;
+  exchangeToken: string;
 } | null> => {
   try {
-    const { data, error } = await supabase.rpc('recover_session_by_device', { 
-      p_device_id: deviceId
+    const { data, error } = await supabase.rpc('recover_session_by_device', {
+      p_device_id: deviceId,
     });
-    
+
     if (error || !data || data.length === 0) return null;
-    
-    const account = data[0];
+
+    const account: any = data[0];
+    if (!account?.exchange_token) return null;
     return {
       userId: account.user_id,
       displayName: account.display_name || 'User',
       avatarUrl: account.avatar_url,
       gender: account.gender,
       isHost: account.is_host || false,
-      recoveryEmail: account.recovery_email,
-      recoveryPassword: account.recovery_password,
+      exchangeToken: account.exchange_token,
     };
   } catch (error) {
     console.error('Error checking device account:', error);
     recordClientError({ label: "Auth.account", message: error instanceof Error ? error.message : String(error) });
     return null;
+  }
+};
+
+// Exchange the device token for a real Supabase session (sets session locally).
+const completeDeviceRecovery = async (deviceId: string, exchangeToken: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('device-session-recover', {
+      body: { device_id: deviceId, exchange_token: exchangeToken },
+    });
+    if (error || !data?.success || !data?.access_token || !data?.refresh_token) {
+      console.warn('[Auth] device-session-recover failed', error || data);
+      return false;
+    }
+    const { error: setError } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    if (setError) {
+      console.error('[Auth] setSession after recovery failed', setError);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[Auth] completeDeviceRecovery error', err);
+    return false;
   }
 };
 
