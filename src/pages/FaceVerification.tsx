@@ -1641,6 +1641,7 @@ const FaceVerification = () => {
 
   // Reset verification
   const resetVerification = () => {
+    verifyInProgressRef.current = false; // BUG-06: release lock on reset
     autoFaceStartRef.current = false;
     if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
       nativeFaceCam.stopRecording().catch(() => null);
