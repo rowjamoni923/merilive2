@@ -7595,7 +7595,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
-          leaderboard_type: string
+          leaderboard_type?: string
           min_target?: number | null
           period_type?: string | null
           rank_from?: number | null

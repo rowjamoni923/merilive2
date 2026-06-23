@@ -226,13 +226,17 @@ const AdminLeaderboardManagement = () => {
     const newTo = Math.min(newFrom, 50);
 
     const { error } = await supabase.from("leaderboard_reward_config").insert({
+      leaderboard_type: selectedCategory,
       category: selectedCategory,
       period_type: selectedPeriod,
       rank_from: newFrom,
       rank_to: newTo,
+      rank_position: newFrom,
       reward_coins: 0,
       reward_diamonds: 0,
       reward_beans: 0,
+      reward_amount: 0,
+      reward_type: 'coins',
       is_active: true,
     });
 
@@ -509,9 +513,11 @@ const AdminLeaderboardManagement = () => {
                 ];
                 for (const t of tiers) {
                   await supabase.from("leaderboard_reward_config").insert({
+                    leaderboard_type: selectedCategory,
                     category: selectedCategory, period_type: selectedPeriod,
-                    rank_from: t.from, rank_to: t.to,
-                    reward_coins: 0, reward_diamonds: 0, reward_beans: 0, is_active: true,
+                    rank_from: t.from, rank_to: t.to, rank_position: t.from,
+                    reward_coins: 0, reward_diamonds: 0, reward_beans: 0,
+                    reward_amount: 0, reward_type: 'coins', is_active: true,
                   });
                 }
                 toast.success("Reward tiers created (set values manually)");
