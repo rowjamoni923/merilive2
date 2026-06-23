@@ -786,7 +786,7 @@ const AdminTopupSystem = () => {
                         className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
                       >
                         <Avatar className="w-10 h-10">
-                          <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
+                          <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
                           <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-left">
@@ -806,7 +806,7 @@ const AdminTopupSystem = () => {
                   <div className="p-3 sm:p-4 bg-amber-50 rounded-xl border border-amber-200">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 ring-2 ring-amber-300">
-                        <UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} />
+                        <UserAvatarImage gender={((selectedUser) as any)?.gender} seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} />
                         <AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -880,7 +880,7 @@ const AdminTopupSystem = () => {
                       {recentTopups.map(log => (
                         <div key={log.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50">
                           <Avatar className="w-8 h-8">
-                            <UserAvatarImage src={log.user?.avatar_url ?? undefined} />
+                            <UserAvatarImage seed={(((log.user) as any)?.id ?? ((log.user) as any)?.user_id ?? ((log.user) as any)?.host_id)} gender={((log.user) as any)?.gender} src={log.user?.avatar_url ?? undefined} />
                             <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
@@ -951,7 +951,7 @@ const AdminTopupSystem = () => {
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="relative">
                           <Avatar className="w-12 h-12 ring-2 ring-emerald-200">
-                            <UserAvatarImage src={helper.user?.avatar_url || ''} />
+                            <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url || ''} />
                             <AvatarFallback>{helper.user?.display_name?.charAt(0) || 'T'}</AvatarFallback>
                           </Avatar>
                           {helper.user?.is_online && (
@@ -1092,7 +1092,7 @@ const AdminTopupSystem = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar className="w-8 h-8">
-                                <UserAvatarImage src={order.user?.avatar_url} />
+                                <UserAvatarImage seed={(((order.user) as any)?.id ?? ((order.user) as any)?.user_id ?? ((order.user) as any)?.host_id)} gender={((order.user) as any)?.gender} src={order.user?.avatar_url} />
                                 <AvatarFallback>{order.user?.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div>
@@ -1187,7 +1187,7 @@ const AdminTopupSystem = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar className="w-8 h-8">
-                                <UserAvatarImage src={txn.helper?.user?.avatar_url} />
+                                <UserAvatarImage seed={(((txn.helper?.user) as any)?.id ?? ((txn.helper?.user) as any)?.user_id ?? ((txn.helper?.user) as any)?.host_id)} gender={((txn.helper?.user) as any)?.gender} src={txn.helper?.user?.avatar_url} />
                                 <AvatarFallback>{txn.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <p className="font-medium text-sm">{txn.helper?.user?.display_name}</p>
@@ -1430,7 +1430,7 @@ const AdminTopupSystem = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-slate-50"
                   >
                     <Avatar className="w-10 h-10">
-                      <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
+                      <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
                       <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
@@ -1446,7 +1446,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 ring-2 ring-emerald-300">
-                    <UserAvatarImage seed={((selectedUserForHelper) as any)?.id ?? ((selectedUserForHelper) as any)?.user_id ?? ((selectedUserForHelper) as any)?.host_id} src={selectedUserForHelper.avatar_url} />
+                    <UserAvatarImage gender={((selectedUserForHelper) as any)?.gender} seed={((selectedUserForHelper) as any)?.id ?? ((selectedUserForHelper) as any)?.user_id ?? ((selectedUserForHelper) as any)?.host_id} src={selectedUserForHelper.avatar_url} />
                     <AvatarFallback>{selectedUserForHelper.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -1486,7 +1486,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <UserAvatarImage src={selectedHelper.user?.avatar_url} />
+                    <UserAvatarImage seed={(((selectedHelper.user) as any)?.id ?? ((selectedHelper.user) as any)?.user_id ?? ((selectedHelper.user) as any)?.host_id)} gender={((selectedHelper.user) as any)?.gender} src={selectedHelper.user?.avatar_url} />
                     <AvatarFallback>{selectedHelper.user?.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -1545,7 +1545,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <UserAvatarImage src={levelUpHelper.user?.avatar_url} />
+                    <UserAvatarImage seed={(((levelUpHelper.user) as any)?.id ?? ((levelUpHelper.user) as any)?.user_id ?? ((levelUpHelper.user) as any)?.host_id)} gender={((levelUpHelper.user) as any)?.gender} src={levelUpHelper.user?.avatar_url} />
                     <AvatarFallback>{levelUpHelper.user?.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>

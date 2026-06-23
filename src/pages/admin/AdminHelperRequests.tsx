@@ -424,7 +424,7 @@ const AdminHelperRequests = () => {
                         className="w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left"
                       >
                         <Avatar className="w-12 h-12">
-                          <UserAvatarImage src={req.user?.avatar_url} />
+                          <UserAvatarImage seed={(((req.user) as any)?.id ?? ((req.user) as any)?.user_id ?? ((req.user) as any)?.host_id)} gender={((req.user) as any)?.gender} src={req.user?.avatar_url} />
                           <AvatarFallback>{req.user?.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -468,7 +468,7 @@ const AdminHelperRequests = () => {
                         className="w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left"
                       >
                         <Avatar className="w-12 h-12">
-                          <UserAvatarImage src={req.user?.avatar_url} />
+                          <UserAvatarImage seed={(((req.user) as any)?.id ?? ((req.user) as any)?.user_id ?? ((req.user) as any)?.host_id)} gender={((req.user) as any)?.gender} src={req.user?.avatar_url} />
                           <AvatarFallback>{req.user?.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -512,7 +512,7 @@ const AdminHelperRequests = () => {
               {/* User Info */}
               <div className="flex items-center gap-3 p-3 bg-slate-100 rounded-lg">
                 <Avatar className="w-12 h-12">
-                  <UserAvatarImage src={selectedRequest.user?.avatar_url} />
+                  <UserAvatarImage seed={(((selectedRequest.user) as any)?.id ?? ((selectedRequest.user) as any)?.user_id ?? ((selectedRequest.user) as any)?.host_id)} gender={((selectedRequest.user) as any)?.gender} src={selectedRequest.user?.avatar_url} />
                   <AvatarFallback>{selectedRequest.user?.display_name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>

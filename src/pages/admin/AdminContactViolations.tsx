@@ -407,7 +407,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
               {/* Host Info */}
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                 <Avatar className="w-12 h-12">
-                  <UserAvatarImage src={selectedViolation.host?.avatar_url || undefined} />
+                  <UserAvatarImage seed={(((selectedViolation.host) as any)?.id ?? ((selectedViolation.host) as any)?.user_id ?? ((selectedViolation.host) as any)?.host_id)} gender={((selectedViolation.host) as any)?.gender} src={selectedViolation.host?.avatar_url || undefined} />
                   <AvatarFallback>
                     {selectedViolation.host?.display_name?.charAt(0) || "?"}
                   </AvatarFallback>
@@ -543,7 +543,7 @@ function ViolationCard({
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <Avatar className="w-10 h-10 border-2 border-background">
-          <UserAvatarImage src={violation.host?.avatar_url || undefined} />
+          <UserAvatarImage seed={(((violation.host) as any)?.id ?? ((violation.host) as any)?.user_id ?? ((violation.host) as any)?.host_id)} gender={((violation.host) as any)?.gender} src={violation.host?.avatar_url || undefined} />
           <AvatarFallback className="text-xs">
             {violation.host?.display_name?.charAt(0) || "?"}
           </AvatarFallback>

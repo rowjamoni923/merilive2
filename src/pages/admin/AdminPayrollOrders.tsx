@@ -454,7 +454,7 @@ const AdminPayrollOrders = () => {
                         </>
                       ) : (
                         <>
-                          <UserAvatarImage src={order.user?.avatar_url} />
+                          <UserAvatarImage seed={(((order.user) as any)?.id ?? ((order.user) as any)?.user_id ?? ((order.user) as any)?.host_id)} gender={((order.user) as any)?.gender} src={order.user?.avatar_url} />
                           <AvatarFallback>{order.user?.display_name?.charAt(0)}</AvatarFallback>
                         </>
                       )}
@@ -515,7 +515,7 @@ const AdminPayrollOrders = () => {
                         <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                           <span>Payroll Helper:</span>
                           <Avatar className="w-5 h-5">
-                            <UserAvatarImage src={order.helper?.user?.avatar_url} />
+                            <UserAvatarImage seed={(((order.helper?.user) as any)?.id ?? ((order.helper?.user) as any)?.user_id ?? ((order.helper?.user) as any)?.host_id)} gender={((order.helper?.user) as any)?.gender} src={order.helper?.user?.avatar_url} />
                             <AvatarFallback className="text-xs">{order.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{order.helper?.user?.display_name}</span>
@@ -605,7 +605,7 @@ const AdminPayrollOrders = () => {
                   <CardContent className="space-y-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12">
-                        <UserAvatarImage src={selectedOrder.user?.avatar_url} />
+                        <UserAvatarImage seed={(((selectedOrder.user) as any)?.id ?? ((selectedOrder.user) as any)?.user_id ?? ((selectedOrder.user) as any)?.host_id)} gender={((selectedOrder.user) as any)?.gender} src={selectedOrder.user?.avatar_url} />
                         <AvatarFallback>{selectedOrder.user?.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -628,7 +628,7 @@ const AdminPayrollOrders = () => {
                 <CardContent className="space-y-2">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
-                      <UserAvatarImage src={selectedOrder.helper?.user?.avatar_url} />
+                      <UserAvatarImage seed={(((selectedOrder.helper?.user) as any)?.id ?? ((selectedOrder.helper?.user) as any)?.user_id ?? ((selectedOrder.helper?.user) as any)?.host_id)} gender={((selectedOrder.helper?.user) as any)?.gender} src={selectedOrder.helper?.user?.avatar_url} />
                       <AvatarFallback>{selectedOrder.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>

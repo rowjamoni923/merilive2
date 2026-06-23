@@ -454,7 +454,7 @@ const AdminHelperApplications = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
                           <Avatar className="w-12 h-12">
-                            <UserAvatarImage src={app.user?.avatar_url} />
+                            <UserAvatarImage seed={(((app.user) as any)?.id ?? ((app.user) as any)?.user_id ?? ((app.user) as any)?.host_id)} gender={((app.user) as any)?.gender} src={app.user?.avatar_url} />
                             <AvatarFallback>{app.user?.display_name?.[0]}</AvatarFallback>
                           </Avatar>
                           
@@ -636,7 +636,7 @@ const AdminHelperApplications = () => {
                   {/* User Info */}
                   <div className="flex items-center gap-3 p-3 bg-muted rounded-xl">
                     <Avatar className="w-12 h-12">
-                      <UserAvatarImage src={selectedApp.user?.avatar_url} />
+                      <UserAvatarImage seed={(((selectedApp.user) as any)?.id ?? ((selectedApp.user) as any)?.user_id ?? ((selectedApp.user) as any)?.host_id)} gender={((selectedApp.user) as any)?.gender} src={selectedApp.user?.avatar_url} />
                       <AvatarFallback>{selectedApp.user?.display_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>

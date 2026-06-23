@@ -340,7 +340,7 @@ const AdminHelperOrders = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <UserAvatarImage src={order.user?.avatar_url} />
+                        <UserAvatarImage seed={(((order.user) as any)?.id ?? ((order.user) as any)?.user_id ?? ((order.user) as any)?.host_id)} gender={((order.user) as any)?.gender} src={order.user?.avatar_url} />
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div>
@@ -353,7 +353,7 @@ const AdminHelperOrders = () => {
 
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <UserAvatarImage src={order.helper?.user?.avatar_url} />
+                        <UserAvatarImage seed={(((order.helper?.user) as any)?.id ?? ((order.helper?.user) as any)?.user_id ?? ((order.helper?.user) as any)?.host_id)} gender={((order.helper?.user) as any)?.gender} src={order.helper?.user?.avatar_url} />
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div className="text-right">

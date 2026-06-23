@@ -800,7 +800,7 @@ export default function AdminBalanceDeduction() {
                       <Card className={`p-3 ${alert.violationResult?.is_banned ? 'bg-red-50 dark:bg-red-950/20 border-red-200' : 'bg-orange-50 dark:bg-orange-950/20 border-orange-200'}`}>
                         <div className="flex items-start gap-3">
                           <Avatar className="w-10 h-10 border-2 border-red-300">
-                            <UserAvatarImage src={alert.userProfile?.avatar_url || undefined} />
+                            <UserAvatarImage seed={(((alert.userProfile) as any)?.id ?? ((alert.userProfile) as any)?.user_id ?? ((alert.userProfile) as any)?.host_id)} gender={((alert.userProfile) as any)?.gender} src={alert.userProfile?.avatar_url || undefined} />
                             <AvatarFallback className="bg-red-500 text-white">
                               <User className="w-5 h-5" />
                             </AvatarFallback>

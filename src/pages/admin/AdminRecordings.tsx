@@ -375,7 +375,7 @@ export default function AdminRecordings() {
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-purple-500/30">
-                            <UserAvatarImage src={recording.host?.avatar_url || ""} />
+                            <UserAvatarImage seed={(((recording.host) as any)?.id ?? ((recording.host) as any)?.user_id ?? ((recording.host) as any)?.host_id)} gender={((recording.host) as any)?.gender} src={recording.host?.avatar_url || ""} />
                             <AvatarFallback className="bg-purple-900 text-purple-300">
                               {recording.host?.display_name?.charAt(0) || "H"}
                             </AvatarFallback>

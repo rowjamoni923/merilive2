@@ -344,7 +344,7 @@ export default function AdminModeration() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-slate-200">
-                            <UserAvatarImage src={log.user?.avatar_url || undefined} />
+                            <UserAvatarImage seed={(((log.user) as any)?.id ?? ((log.user) as any)?.user_id ?? ((log.user) as any)?.host_id)} gender={((log.user) as any)?.gender} src={log.user?.avatar_url || undefined} />
                             <AvatarFallback className="bg-gradient-to-br from-red-400 to-orange-500 text-white">
                               {log.user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>

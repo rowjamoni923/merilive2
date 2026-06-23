@@ -245,7 +245,7 @@ export default function AdminGiftTransactions() {
                       </div>
                       
                       <Avatar className="w-12 h-12 ring-2 ring-fuchsia-500/50">
-                        <UserAvatarImage seed={((receiver) as any)?.id ?? ((receiver) as any)?.user_id ?? ((receiver) as any)?.host_id} src={receiver.avatar_url} />
+                        <UserAvatarImage gender={((receiver) as any)?.gender} seed={((receiver) as any)?.id ?? ((receiver) as any)?.user_id ?? ((receiver) as any)?.host_id} src={receiver.avatar_url} />
                         <AvatarFallback className="bg-fuchsia-500/20 text-fuchsia-300">
                           {receiver.display_name?.charAt(0)}
                         </AvatarFallback>
@@ -285,7 +285,7 @@ export default function AdminGiftTransactions() {
                     <div className="flex items-center gap-2">
                       {/* Sender */}
                       <Avatar className="w-8 h-8">
-                        <UserAvatarImage src={t.sender?.avatar_url} />
+                        <UserAvatarImage seed={(((t.sender) as any)?.id ?? ((t.sender) as any)?.user_id ?? ((t.sender) as any)?.host_id)} gender={((t.sender) as any)?.gender} src={t.sender?.avatar_url} />
                         <AvatarFallback className="text-xs bg-blue-500/20 text-blue-300">
                           {t.sender?.display_name?.charAt(0)}
                         </AvatarFallback>

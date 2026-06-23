@@ -166,7 +166,7 @@ const AdminHostConversion = () => {
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <Avatar className="w-12 h-12">
-                    <UserAvatarImage seed={req.user_id ?? req.id} src={req.profile?.avatar_url} />
+                    <UserAvatarImage gender={((req.profile) as any)?.gender} seed={req.user_id ?? req.id} src={req.profile?.avatar_url} />
                     <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

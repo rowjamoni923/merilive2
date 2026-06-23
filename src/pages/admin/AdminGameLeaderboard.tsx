@@ -486,7 +486,7 @@ export default function AdminGameLeaderboard() {
                         >
                           <div className="w-8 h-8 flex items-center justify-center">{getRankBadge(rank)}</div>
                           <Avatar className="w-10 h-10 border-2 border-slate-600">
-                            <UserAvatarImage seed={((entry) as any)?.id ?? ((entry) as any)?.user_id ?? ((entry) as any)?.host_id} src={entry.avatar_url || undefined} />
+                            <UserAvatarImage gender={((entry) as any)?.gender} seed={((entry) as any)?.id ?? ((entry) as any)?.user_id ?? ((entry) as any)?.host_id} src={entry.avatar_url || undefined} />
                             <AvatarFallback className="bg-purple-500/20 text-purple-300 text-sm">
                               {entry.name.charAt(0).toUpperCase()}
                             </AvatarFallback>

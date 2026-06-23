@@ -341,7 +341,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                       warningLevel === 'high' ? "border-orange-500" :
                       "border-red-500/30"
                     )}>
-                      <UserAvatarImage src={v.host?.avatar_url || ""} />
+                      <UserAvatarImage seed={(((v.host) as any)?.id ?? ((v.host) as any)?.user_id ?? ((v.host) as any)?.host_id)} gender={((v.host) as any)?.gender} src={v.host?.avatar_url || ""} />
                       <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                         {v.host?.display_name?.[0] || "?"}
                       </AvatarFallback>
@@ -490,7 +490,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
-                  <UserAvatarImage src={banTarget.host?.avatar_url || ""} />
+                  <UserAvatarImage seed={(((banTarget.host) as any)?.id ?? ((banTarget.host) as any)?.user_id ?? ((banTarget.host) as any)?.host_id)} gender={((banTarget.host) as any)?.gender} src={banTarget.host?.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                     {banTarget.host?.display_name?.[0] || "U"}
                   </AvatarFallback>

@@ -1491,7 +1491,7 @@ export default function AdminAgencies() {
                     <div className="text-center md:text-left">
                       <div className="relative inline-block">
                         <Avatar className="w-24 h-24 border-4 border-primary/30">
-                          <UserAvatarImage seed={((hostSearchResult) as any)?.id ?? ((hostSearchResult) as any)?.user_id ?? ((hostSearchResult) as any)?.host_id} src={hostSearchResult.avatar_url || undefined} />
+                          <UserAvatarImage gender={((hostSearchResult) as any)?.gender} seed={((hostSearchResult) as any)?.id ?? ((hostSearchResult) as any)?.user_id ?? ((hostSearchResult) as any)?.host_id} src={hostSearchResult.avatar_url || undefined} />
                           <AvatarFallback className="bg-primary/20 text-primary text-3xl">
                             {hostSearchResult.display_name?.charAt(0) || "H"}
                           </AvatarFallback>
@@ -1635,7 +1635,7 @@ export default function AdminAgencies() {
                         <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                           <Crown className="w-5 h-5 text-yellow-400" />
                           <Avatar className="w-8 h-8">
-                            <UserAvatarImage src={hostAgency.owner.avatar_url || undefined} />
+                            <UserAvatarImage seed={(((hostAgency.owner) as any)?.id ?? ((hostAgency.owner) as any)?.user_id ?? ((hostAgency.owner) as any)?.host_id)} gender={((hostAgency.owner) as any)?.gender} src={hostAgency.owner.avatar_url || undefined} />
                             <AvatarFallback className="bg-yellow-500/20 text-yellow-400 text-sm">
                               {hostAgency.owner.display_name?.charAt(0) || "O"}
                             </AvatarFallback>
@@ -1808,7 +1808,7 @@ export default function AdminAgencies() {
                   {/* Owner Info */}
                   <div className="flex items-center gap-3 mb-3 p-3 bg-white/5 rounded-xl border border-white/5">
                     <Avatar className="w-9 h-9 ring-2 ring-yellow-500/30">
-                      <UserAvatarImage src={agency.owner?.avatar_url || undefined} />
+                      <UserAvatarImage seed={(((agency.owner) as any)?.id ?? ((agency.owner) as any)?.user_id ?? ((agency.owner) as any)?.host_id)} gender={((agency.owner) as any)?.gender} src={agency.owner?.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-sm">
                         {agency.owner?.display_name?.charAt(0) || "O"}
                       </AvatarFallback>
@@ -1987,7 +1987,7 @@ export default function AdminAgencies() {
           {selectedAgency?.owner && (
             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
               <Avatar className="w-10 h-10 border-2 border-cyan-500/50">
-                <UserAvatarImage src={selectedAgency.owner.avatar_url || ""} />
+                <UserAvatarImage seed={(((selectedAgency.owner) as any)?.id ?? ((selectedAgency.owner) as any)?.user_id ?? ((selectedAgency.owner) as any)?.host_id)} gender={((selectedAgency.owner) as any)?.gender} src={selectedAgency.owner.avatar_url || ""} />
                 <AvatarFallback className="bg-cyan-600 text-white">
                   {selectedAgency.owner.display_name?.charAt(0) || "O"}
                 </AvatarFallback>
@@ -2130,7 +2130,7 @@ export default function AdminAgencies() {
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
-                    <UserAvatarImage seed={((ownerSearchResult) as any)?.id ?? ((ownerSearchResult) as any)?.user_id ?? ((ownerSearchResult) as any)?.host_id} src={ownerSearchResult.avatar_url || undefined} />
+                    <UserAvatarImage gender={((ownerSearchResult) as any)?.gender} seed={((ownerSearchResult) as any)?.id ?? ((ownerSearchResult) as any)?.user_id ?? ((ownerSearchResult) as any)?.host_id} src={ownerSearchResult.avatar_url || undefined} />
                     <AvatarFallback className="bg-emerald-500/20 text-emerald-400">
                       {ownerSearchResult.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

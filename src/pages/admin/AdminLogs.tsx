@@ -252,7 +252,7 @@ export default function AdminLogs() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-300">
                           <Avatar className="w-5 h-5">
-                            <UserAvatarImage src={log.admin?.avatar_url || ""} />
+                            <UserAvatarImage seed={(((log.admin) as any)?.id ?? ((log.admin) as any)?.user_id ?? ((log.admin) as any)?.host_id)} gender={((log.admin) as any)?.gender} src={log.admin?.avatar_url || ""} />
                             <AvatarFallback className="bg-pink-600 text-white text-xs">
                               {log.admin?.display_name?.charAt(0) || "A"}
                             </AvatarFallback>
