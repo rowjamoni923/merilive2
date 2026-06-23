@@ -1733,11 +1733,24 @@ const FaceVerification = () => {
       return null;
     }
     
-    const { data: { publicUrl } } = supabase.storage
+    // ★ Bucket is PRIVATE (workspace policy blocks public face-verification).
+    //   getPublicUrl() would produce a 400/broken-icon URL the user, admin and
+    //   downstream viewers cannot open. Return a long-lived signed URL so the
+    //   uploaded photo/video renders everywhere (user's own face screen,
+    //   admin review panel, host application card). 10-year expiry — same
+    //   lifetime as the verification record itself.
+    const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365 * 10; // 10 years
+    const { data: signed, error: signErr } = await supabase.storage
       .from('face-verification')
-      .getPublicUrl(fileName);
-    
-    return publicUrl;
+      .createSignedUrl(fileName, SIGNED_URL_TTL_SECONDS);
+    if (signErr || !signed?.signedUrl) {
+      console.error('createSignedUrl error', signErr);
+      recordClientError({ label: 'FaceVerification.signedUrl', message: signErr?.message || 'no signed url' });
+      // Fallback so the upload itself is not considered failed; admin panel
+      // resolves the path via useAdminSignedUrl regardless of stored URL.
+      return supabase.storage.from('face-verification').getPublicUrl(fileName).data.publicUrl;
+    }
+    return signed.signedUrl;
   };
 
   // Convert dataURL → Blob for storage upload
