@@ -7918,6 +7918,8 @@ export type Database = {
           animation_config_url: string | null
           animation_format: string | null
           animation_url: string | null
+          badge_text: string | null
+          bonus_percentage: number | null
           coins_amount: number
           created_at: string | null
           description: string | null
@@ -7931,12 +7933,16 @@ export type Database = {
           original_price: number
           starts_at: string
           title: string
+          total_claimed: number | null
+          total_max_claims: number | null
           updated_at: string
         }
         Insert: {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
+          badge_text?: string | null
+          bonus_percentage?: number | null
           coins_amount?: number
           created_at?: string | null
           description?: string | null
@@ -7950,12 +7956,16 @@ export type Database = {
           original_price?: number
           starts_at?: string
           title: string
+          total_claimed?: number | null
+          total_max_claims?: number | null
           updated_at?: string
         }
         Update: {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
+          badge_text?: string | null
+          bonus_percentage?: number | null
           coins_amount?: number
           created_at?: string | null
           description?: string | null
@@ -7969,6 +7979,8 @@ export type Database = {
           original_price?: number
           starts_at?: string
           title?: string
+          total_claimed?: number | null
+          total_max_claims?: number | null
           updated_at?: string
         }
         Relationships: []
