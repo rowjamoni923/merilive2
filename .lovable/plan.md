@@ -73,3 +73,10 @@
 - DB audit verified: `user_beans_exchange_tiers.tier_name` required; fixed safe default.
 - Frontend audit fixed: `AdminLeaderboardManagement` already uses controlled commit-on-blur for reward tiers; added same pattern to `PKCompetitionManager` reward tiers and `AdminRewardsManagement` daily-login/cashback tiers.
 - Exact logic bug fixed: `AdminInvitationSettings.toggleActive` was updating `invitation_settings` instead of `invitation_reward_tiers`.
+
+## 2026-06-23 — App-wide media/video-icon audit
+
+- User video confirms the main visible bug is Face Verification host Step 2: selected video rendered as a generic browser/video play icon instead of a real moving preview; Live Face Scan fallback also exposed a white camera box when the stream surface was not ready.
+- Professional live/social apps do not show broken generic media icons for user-generated media: BIGO emphasizes stream cover photos as the click-driving surface, so live cards must render cover/host media instead of placeholders (`bigo.tv/blog/bigo-live-cover-photo-guide`).
+- Realtime video standard: first-frame rendering should be optimized so users see media quickly instead of waiting on blank/icon states; Agora docs define first-frame render time as a key UX metric (`docs.agora.io/en/video-calling/best-practices/optimize-frame-rendering`). Translate to our LiveKit path: keep LiveKit for room media, but show real thumbnails/first frames in lists and message previews.
+- Immediate fixes applied: chat pending video preview now uses real local object URL video preview, chat video bubbles autoplay muted/inline instead of generic icon, face-verification uploaded/recorded intro video previews autoplay real frames, and private face-verification signing fallback now stores a resolvable storage reference instead of a broken public URL.
