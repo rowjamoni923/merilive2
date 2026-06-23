@@ -158,13 +158,75 @@ const BecomeSubAgent = () => {
     setLoading(false);
   };
 
+  // Countdown for OTP expiration UX
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+    const t = setInterval(() => setOtpTimer((v) => (v > 0 ? v - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [otpTimer]);
+
+  const sendOtp = async () => {
+    if (!currentUser || !agency) return;
+    setSendingOtp(true);
+    setOtpCode("");
+    setOtpVerified(false);
+    setOtpToken(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'send',
+          userId: currentUser.id,
+          purpose: 'sub_agency_verification',
+          context: agency?.agency_code || 'Sub-Agent Registration',
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to send code');
+      setOtpSent(true);
+      setOtpTimer(300);
+      toast({ title: 'Code sent', description: 'Check your in-app notifications for the 6-digit code.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to send code', variant: 'destructive' });
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (otpCode.length !== 6 || !currentUser) return;
+    setVerifyingOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'verify',
+          userId: currentUser.id,
+          code: otpCode,
+          purpose: 'sub_agency_verification',
+        },
+      });
+      if (error) throw error;
+      if (!data?.success || !data?.verified_token) {
+        throw new Error(data?.error || 'Wrong code. Please try again.');
+      }
+      setOtpVerified(true);
+      setOtpToken(data.verified_token);
+      toast({ title: 'Verified', description: 'You can now become a sub-agent.' });
+    } catch (err: any) {
+      toast({ title: 'Verification failed', description: err.message || 'Wrong code', variant: 'destructive' });
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const becomeSubAgent = async () => {
     if (!currentUser || !agency) return;
+    if (!otpVerified || !otpToken) {
+      toast({ title: 'Verify first', description: 'Please complete in-app OTP verification.', variant: 'destructive' });
+      return;
+    }
 
     setLoading(true);
     try {
-      // Pkg72: DB signature is (_agency_id, _user_id, _name, _commission_rate DEFAULT 5).
-      // Previous call passed _referrer_id which doesn't exist → sub-agent creation 100% failed.
       const subAgentName =
         currentUser?.display_name?.trim() ||
         currentUser?.username?.trim() ||
@@ -174,7 +236,8 @@ const BecomeSubAgent = () => {
         _agency_id: agency.id,
         _user_id: currentUser.id,
         _name: subAgentName,
-      });
+        _verified_token: otpToken,
+      } as any);
 
       if (error) throw error;
 
