@@ -750,7 +750,7 @@ const AdminSupportTickets = () => {
   };
 
   // Voice-to-text using Web Speech API (Bengali)
-  const toggleVoiceRecording = () => {
+  const toggleVoiceRecording = async () => {
     if (isRecording) {
       recognitionRef.current?.stop();
       setIsRecording(false);
@@ -760,6 +760,26 @@ const AdminSupportTickets = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast({ title: "Not Supported", description: "Speech recognition is not supported in this browser. Use Chrome.", variant: "destructive" });
+      return;
+    }
+
+    // Proactively request microphone permission so the browser shows its prompt
+    // instead of Web Speech API silently failing with "not-allowed".
+    try {
+      if (navigator?.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Immediately stop — Web Speech API will reopen the mic itself.
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    } catch (permErr: any) {
+      const name = String(permErr?.name || '');
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        toast({ title: "Microphone blocked", description: "Click the 🔒 icon in your browser's address bar and allow microphone access, then try again.", variant: "destructive" });
+      } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        toast({ title: "No microphone found", description: "Connect a microphone and try again.", variant: "destructive" });
+      } else {
+        toast({ title: "Microphone error", description: permErr?.message || String(permErr), variant: "destructive" });
+      }
       return;
     }
 
