@@ -51,6 +51,7 @@ export default function RatingProofHistory() {
   const [rows, setRows, hadCache] = usePersistedCache<ClaimHistoryRow[]>("ratingProofRows", []);
   const [loading, setLoading] = useState(!hadCache);
   const [userId, setUserId] = useState<string | null>(null);
+  const [signedScreenshots, setSignedScreenshots] = useState<Record<string, string>>({});
 
   const load = useCallback(async (uid: string, opts?: { force?: boolean }) => {
     // Only show spinner on cold cache OR explicit refresh button.
@@ -92,6 +93,33 @@ export default function RatingProofHistory() {
     () => { if (userId) void load(userId); },
     !!userId,
   );
+
+  useEffect(() => {
+    const extractPath = (value: string) => {
+      const raw = value.trim();
+      try {
+        const url = new URL(raw);
+        const match = url.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/rating-screenshots\/(.+)$/);
+        return match?.[1] ? decodeURIComponent(match[1]) : null;
+      } catch {
+        const clean = raw.replace(/^\/+/, '');
+        return clean.startsWith('rating-screenshots/') ? clean.slice('rating-screenshots/'.length) : clean;
+      }
+    };
+    const urls = Array.from(new Set((rows || []).map((r) => r.screenshot_url).filter(Boolean) as string[]));
+    const missing = urls.filter((url) => !signedScreenshots[url]);
+    if (!missing.length) return;
+    let cancelled = false;
+    Promise.all(missing.map(async (url) => {
+      const path = extractPath(url);
+      if (!path) return [url, url] as const;
+      const { data } = await supabase.storage.from('rating-screenshots').createSignedUrl(path, 60 * 60 * 24 * 7);
+      return [url, data?.signedUrl || url] as const;
+    })).then((entries) => {
+      if (!cancelled) setSignedScreenshots(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+    });
+    return () => { cancelled = true; };
+  }, [rows, signedScreenshots]);
 
 
   return (
@@ -160,16 +188,18 @@ export default function RatingProofHistory() {
                   <div className="flex-shrink-0">
                     {row.screenshot_url ? (
                       <a
-                        href={row.screenshot_url}
+                        href={signedScreenshots[row.screenshot_url] || row.screenshot_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
                       >
                         <img loading="lazy" decoding="async"
-                          src={row.screenshot_url}
+                          src={signedScreenshots[row.screenshot_url] || row.screenshot_url}
                           alt="Rating screenshot"
                           className="w-full h-full object-cover"
-                         
+                          onError={(event) => {
+                            event.currentTarget.style.display = 'none';
+                          }}
  />
                       </a>
                     ) : (
