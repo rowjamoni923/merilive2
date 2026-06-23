@@ -1,358 +1,100 @@
-# Admin Panel Professional Audit + Fix Plan
 
-## ✅ LiveKit Camera White Screen + Video Icon Removal — 2026-06-22
+# Reinstall-survive Auto-Login + Single-Device Session
 
-**User evidence:** Uploaded `VID-20260622-WA0021.mp4` is 70.185s, 480×864, 1,399 frames. Frame audit showed native camera surfaces/party seats opening, but white/grey WebView layers and large default video-placeholder icons still covered the real camera on live, private call, audio/video/game party surfaces.
+## Goal
+1. App uninstall/reinstall → Start screen shows "Welcome back, [name]" card for the previous account. Tap → instant login. Only factory reset clears this.
+2. Same account logging in on a new device → old device is force-logged-out instantly with a toast: "Signed in on another device".
+3. Single account per device history (latest one only).
 
-**Research standard:** Chamet/Bigo/Agora-style Android live apps keep one native SDK camera owner and render local/remote video in native surfaces while the web/UI overlay remains transparent; LiveKit Android requires initialized renderers bound to tracks, and web `<video>` elements must not be left as empty placeholders on native-rendered screens. References: LiveKit Android rendering/track model — https://docs.livekit.io/home/client/tracks/ ; LiveKit Android SDK — https://github.com/livekit/client-sdk-android ; Android WebView media settings/inline controls behavior — https://developer.android.com/reference/android/webkit/WebSettings
-
-**Completed fixes:**
-1. `LiveKitPlugin.ensureRendererAttached()` now forces WebView transparency every attach/re-attach, clears drawable background, uses hardware layer, and paints the parent black before/while the native SurfaceViewRenderer is mounted.
-2. Global native media CSS now also uses `lk-camera-live` on `html/body/#root`, room shells, native video placeholders, and video tags so React backgrounds cannot cover the native renderer.
-3. Go Live and Create Party no longer render empty web `<video>` elements on Android native preview; this removes the default large play/video placeholder icon source.
-4. Live, party, and private call auto-PiP/minimized floating video triggers were disabled, so pressing close/home will not produce a floating video icon.
-5. Live host camera control icon no longer uses `Video`/`VideoOff`; it uses `Eye`/`EyeOff`, leaving no video icon control in the targeted live surface.
-
-**APK note:** Native Kotlin changes require Android rebuild/install before device verification.
+## Industry pattern verified
+Chamet / Bigo / Olamet / Poppo all use Android `Settings.Secure.ANDROID_ID` (SSAID) for uninstall-survival, paired with a server-side `device_id → user_id` mapping and a Realtime force-logout broadcast on the old session. Identical translation for our LiveKit/Supabase stack.
 
 ---
 
-## ✅ Duplicate UI Root Cause Follow-up — 2026-06-22
+## Phase 1 — Device fingerprint (Capacitor, native)
 
-**User issue:** Duplicate/ghost UI was still visible after earlier blank-screen fixes.
+- Add `@capacitor/device` (already may exist) and use `Device.getId()`:
+  - Android → returns `ANDROID_ID` (survives uninstall, cleared on factory reset). ✅
+  - iOS → returns IDFV (best-effort survival via Keychain). Acceptable fallback.
+  - Web → returns random UUID (no survival; just session-scoped).
+- Wrap in `src/utils/deviceIdentity.ts`:
+  - `getStableDeviceId()` → returns the hardware ID, memoized.
+  - `getDevicePlatform()` → 'android' | 'ios' | 'web'.
 
-**Research standard:** Professional live apps keep one visual owner per screen; prefetch can run on pointer-down, but navigation should not be delayed behind a second retained route tree. React Suspense/Router transition guidance supports keeping revealed UI stable without painting separate fake overlays. References: https://react.dev/reference/react/Suspense ; https://reactrouter.com/v6/upgrading/future ; LiveKit recommends high-level room lifecycle ownership for media continuity: https://docs.livekit.io/home/client/connect/
+**APK rebuild required** (native plugin call).
 
-**Verified root cause:** We had removed the cloned `BlankScreenGuard`, but two duplicate-producing mechanisms remained: `TabKeepAliveHost` was default-on and kept a second fixed full-screen page tree mounted for bottom tabs, and `routePrefetch` intercepted clicks, prevented the normal route commit, then navigated after chunk warm-up. On fast taps/slow chunks this leaves stale real UI visible after the tap, which users perceive as duplicate UI.
+## Phase 2 — Backend tables + RPCs
 
-**Completed fixes:**
-1. `TabKeepAliveHost` is now hard-disabled by default, so only one route page tree owns the screen.
-2. `routePrefetch` now only warms chunks on pointer-down and no longer blocks/intercepts click navigation.
-3. App route comments updated to lock the single-owner route lifecycle rule.
-
----
-
-## ✅ Duplicate UI / Black-White Loading Removal — 2026-06-22
-
-**User issue:** New recording still showed duplicate/stale UI and one hard black frame. Frame audit of `Recording_2026-06-22_080314.mp4` confirmed the real app pages were visible most of the time, but frame 015 was ~70.3% black/dark and several route frames were pale because the route tree could temporarily become empty.
-
-**Research standard:** React Suspense shows `fallback` when a lazy child suspends, and React recommends transitions so already-revealed UI is not hidden by a fallback. React Router 6.30 supports `future={{ v7_startTransition: true }}` for transition-wrapped navigations. Professional Chamet/Bigo/Poppo-style apps avoid generic skeleton/loading pages by keeping the current real surface visible until the next surface/chunk/video is ready.
-
-**Verified root cause:** `BlankScreenGuard` cloned `#root` and rendered it as a fixed overlay, which looked like duplicate UI. Removing fake skeletons then left `Suspense fallback={null}` with no previous-surface protection, so the browser/native base layer showed as white or black. `RouteTransitionHost` and global page-enter animation were also still touching every route during navigation.
-
-**Completed fixes:**
-1. Disabled `BlankScreenGuard` snapshot rendering entirely — no cloned/duplicate UI can appear app-wide.
-2. Removed global `RouteTransitionHost` wiring and disabled page-enter opacity/transform animations so routes do not fade through blank layers.
-3. Enabled React Router transition mode on `<BrowserRouter>` so lazy route changes keep already-revealed UI instead of immediately hiding it behind fallback.
-4. Added app-wide anchor navigation warm-up: known lazy route chunks are imported first, then SPA navigation occurs, preventing route switch into an empty Suspense boundary.
-5. Changed boot/native splash/status/base color back to the real light app surface (`#f8fafc` / `hsl(var(--background))`) so no black loading layer is used for normal app pages.
-6. Promoted the recording-proven critical route trio (`Profile`, `AgencyDashboard`, `Level5HelperDashboard`) from lazy chunks to eager imports, so direct/cold navigation to those pages cannot show a blank Suspense frame.
-
-**Citations:** React Suspense fallback/transition guidance — https://react.dev/reference/react/Suspense ; React Router future flags / startTransition — https://reactrouter.com/v6/upgrading/future
-
----
-
-## ✅ White/Blank Route Surface Fix — 2026-06-22
-
-**User issue:** Uploaded recording still showed route loading as a pale/white empty screen. Frame audit confirmed repeated near-white frames during navigation: 0.98 white-pixel ratio on frames 002/004/006/011/015/017.
-
-**Research standard:** React Suspense swaps suspended UI to `fallback`; React recommends transitions/startTransition so already-visible UI is not hidden by a fallback. React Router documents React transitions as the professional path for keeping navigation responsive. Chamet/Bigo-class apps should retain the previous real screen or native shell, not show fake skeletons, spinners, or blank white pages.
-
-**Verified root cause:** The previous fake skeleton removal changed `PageSkeleton` into a plain light background, but `App.tsx` still used `<Suspense fallback={<RouteSuspenseFallback />}>`. During lazy route/data loading this fallback replaced the real screen with `PageSkeleton`, producing exactly the white loading screen in the video. `BlankScreenGuard` also used a plain `bg-background` overlay when it detected no route surface.
-
-**Completed fixes:**
-1. Removed the app-route `RouteSuspenseFallback` UI path entirely; route Suspense now uses `fallback={null}` so no alternate/fake screen is painted.
-2. Reworked `BlankScreenGuard` to retain a DOM snapshot of the last real screen and show that only if the next route has no meaningful surface yet.
-3. Excluded `PageSkeleton`/blank guard/snapshot DOM from blank-surface detection so blank placeholders no longer count as “real UI”.
-4. Made `PageSkeleton` and shared skeleton primitives render nothing, removing page-level fake/blank loading UI across the app.
-5. Changed the root/browser/native base surface to dark `#050208` and disabled Capacitor splash auto-hide; native splash is hidden only after a real surface exists.
-6. Kept admin chunk loader separate because admin routes are outside the user app flow.
-
-**Citation:** React Suspense fallback behavior — https://react.dev/reference/react/Suspense ; React transitions in React Router — https://reactrouter.com/explanation/react-transitions
-
----
-
-**Locked:** 2026-06-21
-**Approach:** Research-validated (Bigo/Chamet/Poppo/Olamet/MICO/Hollah patterns). Surgical fixes only — 154 admin pages-এর 90% already professional, শুধু 4 specific gaps fix হবে।
-
----
-
-## 🔒 Invariant: Admin Monitoring 100% Invisible to Users
-
-**Locked behavior (industry standard, Bigo/Chamet/Agora SDK pattern):**
-1. Admin join LiveKit with `hidden=true` flag → other participants এর কাছে `ParticipantConnected` event fire হবে না
-2. Admin identity prefix `admin-{role}-{uuid}` → server filters before any client-visible event
-3. Admin NEVER inserts row into `stream_viewers`, `party_room_participants`, `call_events` (participant tables)
-4. Admin NEVER triggers `viewer_joined` broadcast, entrance animation, chat join notice, gift permission grant
-5. Admin token = `canSubscribe=true, canPublish=false, canPublishData=false` → cannot send any signal that user side renders
-6. `viewer_count` calculations exclude admin identities (both LiveKit-side ParticipantConnected counter + Postgres `stream_viewers` row count are clean)
-
-**Current verified state:**
-- ✅ `livekit-token` edge fn (lines 91-101, 274-345): admin token → `hide=true` always, identity `admin-{role}-{uuid8}`
-- ✅ `AdminStreamViewer.tsx` (line 30): identity `admin-monitor-{ts}`, no stream_viewers write, no chat send, no gift, audio starts muted
-- ✅ LiveKit SFU honors `hidden=true` → SFU strips the participant from `ParticipantConnected/Disconnected` notifications to other participants
-
-**Gap to fix in Phase 1+2:** Same invariant must hold for party rooms (`party_room_*` tables) and private calls (`private_calls`, `call_events`).
-
----
-
-## 📋 Audit Result (evidence-based, file-line cited)
-
-| # | Capability | File | Status |
-|---|---|---|---|
-| 1 | Live stream admin viewer | `AdminStreams.tsx:624,726` + `AdminStreamViewer.tsx` | ✅ Built, invisible |
-| 2 | LiveKit Rooms dashboard | `AdminLiveKitRooms.tsx` | ✅ Read-only OK, ⚠️ no per-room watch button |
-| 3 | Auto recording infra | `livekit-auto-record/index.ts` + R2/Supabase storage fallback | ✅ Built, ❌ disabled |
-| 4 | Manual recording | `livekit-egress/`, `livekit-stream-egress/`, `livekit-track-egress/`, `livekit-hls-egress/` | ✅ |
-| 5 | Recording playback/download | `AdminRecordings.tsx` (512 lines) | ✅ |
-| 6 | Moderation (kick/mute/ban) | `AdminModeration.tsx`, `livekit-moderate/` | ✅ |
-| 7 | Face verification | `AdminFaceVerification.tsx` (1566 lines) | ✅ |
-| 8 | Webhook events | `livekit-webhook/`, `livekit-webhook-events-ops/` | ✅ |
-| 9 | Cost monitor | `AdminCostMonitor.tsx` | ✅ |
-| 10 | Party Room admin watch | `AdminPartyRooms.tsx:336` | ❌ Eye only opens detail dialog |
-| 11 | Private Call admin watch | `AdminTodayCalls.tsx` | ❌ No monitor UI at all |
-| 12 | Auto-record default | migration `20260525214856` line 31-32 | ❌ `auto_record_live=false` for all approved hosts |
-
----
-
-## 🎯 Fix Plan — 4 Phases
-
-### Phase 1 — Party Room Invisible Admin Monitor
-**Files:** `src/pages/admin/AdminPartyRooms.tsx`
-- Add "Watch Room" button next to existing Eye button
-- On click → open `AdminStreamViewer` modal with `roomName=party_{room_id}`
-- `AdminStreamViewer` already invisible — same component handles party scope
-- Test: open party room as user → admin watches → user side participant count, seat list, chat join notice **must show zero change**
-
-### Phase 2 — Private Call Invisible Admin Monitor
-**Files:** `src/pages/admin/AdminTodayCalls.tsx`, `src/components/admin/AdminCallMonitor.tsx` (new)
-- New `AdminCallMonitor` component (clone of `AdminStreamViewer` adapted for call scope):
-  - `roomName=call_{call_id}`
-  - Subscribe to both caller + callee video/audio tracks (2 video tiles side-by-side)
-  - Admin token always `hidden=true`, identity `admin-call-monitor-{ts}`
-- In `AdminTodayCalls.tsx`, only show "Monitor" button when `status='active'`
-- **E2EE guard:** if `private_calls.e2ee_enabled=true` → button disabled, show "End-to-end encrypted — metadata only" badge (security correctness, matches Signal/WhatsApp model)
-- Test: active call between 2 users → admin monitor opens → both users see no notification, call_events table no admin row
-
-### Phase 3 — Auto-record Default ON (industry standard)
-**Migration:**
-```sql
--- 1. Change column default
-ALTER TABLE public.profiles ALTER COLUMN auto_record_live SET DEFAULT true;
-
--- 2. Backfill all approved/face-verified hosts
-UPDATE public.profiles
-SET auto_record_live = true
-WHERE host_status = 'approved'
-  AND is_face_verified = true
-  AND auto_record_live = false;
+New table `device_account_bindings`:
 ```
-**Admin UI:**
-- `AdminFaceVerification.tsx` host detail panel → add toggle row (re-use existing `AutoRecordSettingsRow` component)
-- `AdminStreams.tsx` → bulk action: "Enable recording for all approved hosts"
-**Test:** new host approve → row default true → host goes live → `livekit-auto-record` trigger fires → `stream_recordings` row created → AdminRecordings shows playback
-
-### Phase 4 — AdminLiveKitRooms Per-Room Quick-Watch
-**Files:** `src/pages/admin/AdminLiveKitRooms.tsx`
-- Per-room "Watch" button in rooms list
-- Route by `scopeOfRoom()` (already exists):
-  - `live` → `AdminStreamViewer`
-  - `party` → `AdminStreamViewer` with party params
-  - `call` → `AdminCallMonitor` (from Phase 2)
-- Single entry point for "see any room in real time"
-
----
-
-## ✋ NOT touching (already professional)
-
-- LiveKit SFU infra (VPS-side, deferred per rule)
-- R2 + Supabase Storage dual-fallback (working, both kept per user instruction)
-- AdminRecordings playback / download / expiry
-- `livekit-moderate`, `livekit-auto-moderator`, `live-voice-moderate`, `live-face-warnings`
-- Face verification flow (1566 lines, separate scope)
-- Recording webhook → DB write pipeline
-- All other 144 admin pages (agencies, finance, gifts, vips, etc.)
-- App-side live/party/call user experience (zero user-facing changes)
-
----
-
-## ✅ Verification Gates (all must pass per phase)
-
-| Gate | How verified |
-|---|---|
-| G1: User sees zero admin signal | Open page in 2nd browser as user → admin monitors → screenshot user side → participant list, viewer_count, seat count, chat notice all unchanged |
-| G2: DB clean | `SELECT * FROM stream_viewers WHERE participant_identity LIKE 'admin-%'` → 0 rows. Same for party_room_participants, call_events |
-| G3: viewer_count unchanged | `live_streams.viewer_count` before/after admin watch → equal |
-| G4: Recording fires | New live → wait 5s → `stream_recordings` row + `egress_id` populated |
-| G5: Playback works | AdminRecordings → click play → MP4 streams |
-| G6: E2EE call respected | Call with e2ee_enabled=true → admin monitor button disabled |
-| G7: No regression | Existing AdminStreams live viewer still works post-Phase-4 |
-
----
-
-## Owner Test Recipe (smdollarex923@gmail.com)
-
-After all 4 phases:
-1. Login owner → Go Live → keep live
-2. Open 2nd browser/incognito → join as viewer → note participant count = 1
-3. Open admin panel → AdminStreams → Watch → admin sees host camera
-4. Switch to viewer browser → count still 1, no "admin joined" toast, chat empty
-5. End live → AdminRecordings → new recording listed with MP4 playback
-6. Repeat for party room (Phase 1) and private call (Phase 2)
-
----
-
-## ✅ Poster Photo/Video Upload Fix — 2026-06-21
-
-**User issue:** `/my-poster` upload failed with `new row violates row-level security policy`; profile details also needed every uploaded photo/video visible one after another.
-
-**Research standard:** Chamet/Bigo/Poppo-style profile media uses a public-viewable profile album/carousel with owner-only upload/delete. BIGO cover/profile media guidance emphasizes immediate visual profile media visibility; Chamet profile guidance emphasizes multiple profile photos as discovery/match signals.
-
-
-**Completed fixes:**
-1. `posters` Storage RLS fixed: authenticated owner-only upload/update/delete by first folder segment = `auth.uid()`; broad public object-listing policy removed so users cannot enumerate the bucket.
-2. `poster_images` Data API grants fixed: public can read; authenticated users can create/update/delete rows only where `user_id = auth.uid()`; service role retained.
-3. Upload supports both `image/*` and `video/*` up to **25MB** in UI; storage bucket already allows **50MB**, so app-side 25MB limit is enforced.
-4. `ProfileDetail` now respects `media_type='video'` plus video extensions (`mp4/webm/mov/m4v/ogg`) so signed URLs/public URLs with query strings still render as video.
-5. Profile details now shows uploaded media both in the hero slideshow and as a horizontal photo/video strip, so photos/videos appear one after another and are selectable.
-
-**Verified checks:**
-- Storage policies for `posters` now exist for owner upload/update/delete; public URL delivery remains through the public bucket without broad object-listing RLS.
-- `poster_images` table privileges verified: anon read-only; authenticated read/create/edit/delete; service role all.
-- Browser-session upload test could not run in sandbox because no preview auth session env was available, but the exact failing layer was confirmed from console logs as Storage RLS and fixed at DB policy level.
-
----
-
-## ✅ Referral + Agency Link Audit Plan — 2026-06-21
-
-**Research standard:** Google Play Install Referrer is the Android-supported deferred deep-link channel for referral content through Play Store install; Bigo-style invite rewards commonly unlock larger bonuses only after the referred user becomes qualified through verification/engagement/first purchase; Chamet-style agencies recruit and manage hosts through agency/sub-agent invite links.
-
-**Verified gaps in current app:**
-1. `Auth.tsx` still shows a manual referral-code input and incorrectly stores `?ref=` as both invitation and agency referral.
-2. `DeepLinkHandler.tsx` deferred link flow also stores invitation `ref` into agency referral storage.
-3. `SmartLink.tsx` web landing text still tells users to copy and manually enter a referral/agency code after install.
-4. `record_invitation()` marks invites as `verified` immediately on signup; user requirement is to count only after minimum **$2** diamond purchase.
-5. Google Play, helper top-up, standard payment approval, and `safe_credit_diamonds()` purchase paths need one shared qualification function so invite counting is consistent.
-
-**Locked fix:**
-- User invite link → stores inviter `app_uid` only; creates `user_invitations.status='pending'` at signup; becomes `verified` only after total completed paid purchase amount reaches **$2 USD**.
-- Agency link/code → stores agency code only; host signup auto-sends agency join request through `join_agency(..., _joined_via='agency_link')`; invitation links never count as agency.
-- Auth page manual referral/agency-code entry removed; Play Store/share pages state automatic link attribution.
-
----
-
-## ✅ Visitor-Side Live/Party/Private Call Media Audit — 2026-06-21
-
-**User scope:** Only audit/fix visitor-side face/video visibility, join/presence visibility, and minimized/background incoming-call acceptance for Live Streaming, Private Room/Call, and Party Room.
-
-**Research standard:** Chamet/Bigo/Poppo-style apps use SFU participant events for instant join/leave visibility and native Android video surfaces for reliable camera rendering; LiveKit equivalent is `RoomEvent.ParticipantConnected/TrackSubscribed` plus native `TextureViewRenderer` binding. Android call delivery must use high-priority FCM data payload + CallStyle/full-screen intent/Telecom-style accept path, matching WhatsApp/IMO behavior.
-
-**Verified current state:**
-1. Live/party/call all use LiveKit, not polling. Supabase tables remain durable presence (`stream_viewers`, `party_room_participants`, `private_calls`).
-2. Party native seats already bind per-seat `NativeVideoView` using `nativeParticipants` and `attachRemoteSurface`.
-3. Private call native activity already attaches local/remote renderers and FCM path posts high-priority call notification with accept/decline receivers.
-4. Gap found: Android live **viewer** native path connected subscribe-only, but `LiveStream.tsx` waited for web `remoteVideoTrack`; native branch only rendered a transparent placeholder. Result: visitor could be connected while host face surface was not deterministically mounted.
-
-**Completed surgical fixes:**
-1. `useLiveKitClient` now tracks native remote participants for live sessions, refreshes after connect/reconnect/join/leave, filters hidden/admin identities, and clears state on disconnect/leave.
-2. `LiveStream.tsx` now renders `NativeVideoView kind="remote"` for Android live viewers using the host participant SID, so host face is bound through native `TextureViewRenderer` even when no web remote track exists.
-3. `LiveKitPlugin.kt` now emits normalized `connection-state` events for Reconnecting/Reconnected and rebinds all native slots after reconnected, so live/party/call native surfaces recover after transient network/app-background transitions.
-4. `usePrivateCall` now runs a one-shot foreground-resume pending-call catch-up (not polling) so a minimized WebView cannot miss a pending call created while JS was suspended.
-5. `CallProvider` native call-action listener is stable across renders and drains buffered native Accept/Decline actions again on foreground resume, preventing lock-screen action loss during JS remount/resume timing.
-
-**APK note:** Native plugin change requires Android APK rebuild/sync before device verification.
-
----
-
-## ✅ Android/Web Media Bridge Full Audit Fix — 2026-06-21
-
-**User scope:** Scan Android + web code for Party Room, Private Call, Live Streaming, Audio Party, Video Party, Game Party, and Live+Private Call; fix Android-side missing pieces only.
-
-**Research standard:** Professional Chamet/Bigo/Agora-class apps keep viewer media on native Android renderers, use realtime SFU participant events for instant join/leave, run private calls through foreground/full-screen Android call surfaces, and use high-priority FCM/full-screen intent for minimized/killed incoming calls. Android foreground service start deadline is **5 seconds**; PiP basic support starts at **API 26**, auto-enter PiP at **API 31**; Supabase Realtime production planning requires Pro/no-cap for up to **10,000** concurrent realtime connections and **1,000 presence msg/sec**.
-
-**Verified gaps fixed:**
-1. Android `LiveKitPlugin` had JS-expected methods missing/no-op: `attachRemote`, `reconnectNow`, `getActiveSession`, `setSurviveActivityDestroy`, `updateLiveStats`, `refreshToken`, `sendData`, RPC, text-stream, and subscriber-quality methods. Added native PluginMethods and capability-list entries so live/party/call recovery and signaling no longer silently fall through the Proxy.
-2. `handleOnPause()` previously muted camera+mic for every native room, including private calls when `PrivateCallActivity` opened and party/call viewer/background paths. Added scope-aware guard: never pause private calls or subscriber/viewer sessions from MainActivity pause; only live/party host media can be paused by host-background policy.
-3. Native DataPacket receive/send was missing for Android native sessions; chat/gifts/reactions could fail in live/party/call when no JS Room existed. Added `sendData` plus `data-received` event dispatch from `RoomEvent.DataReceived`.
-4. Native RPC bridge now registers real LiveKit Android RPC handlers, emits `rpc-invocation` to JS, waits for `respondToRpc`, and returns the actual JS result/error to the caller.
-5. Native text-stream bridge now exposes `sendText`, register/unregister handlers, and dispatches `text-stream-chunk`/`text-stream-complete` from native data events for Android session parity.
-6. `NativeCallPlugin.pushChatMessage` was declared in TS but absent in Android, which could throw “method not implemented” during native private calls. Added safe Android PluginMethod returning `{ok:false}` until native chat UI exists so React fallback remains stable.
-7. `PrivateCallViewModel` never called peer-disconnect grace. Clean peer disconnect now clears remote video and starts the existing grace timer, preventing stuck native call timers/last-frame freeze.
-8. `active-speakers-changed` emitted plain strings while JS expected `{identity,audioLevel}` objects. Payload fixed so party/live native speaker rings and levels can work.
-9. Token rotation for long native sessions now updates stored native reconnect token via `refreshToken`, preventing stale-JWT reconnect failures after long live/party/private call sessions.
-
-**Verified checks:**
-- Focused media bridge regression: `src/test/mediaSurfacesAudit.test.ts` → **32/32 passed**.
-- Static method check confirms Android now includes `pushChatMessage`, `reconnectNow`, `sendData`, `registerRpcMethod`, scope-aware pause guard, and active-speaker `audioLevel` payload.
-
-**APK note:** Android native code changed; rebuild/sync APK is required (`npx cap sync android` + Android Studio/CI rebuild) before device verification.
-
----
-
-## ✅ Android Launch `https://localhost` / `ERR_CONNECTION_REFUSED` Fix — 2026-06-21
-
-**User screenshot:** App launch shows Android WebView error: `Webpage not available`, URL starts with `https://localhost`, error `net::ERR_CONNECTION_REFUSED`.
-
-**Research standard:** Capacitor Android serves bundled web assets through an internal local WebView server using the app origin (`https://localhost` when `androidScheme='https'`). Ionic/Capacitor issue reports for `ERR_CONNECTION_REFUSED localhost` point to Android builds still referencing a dev/local server or missing/unsynced packaged web assets after building from Android Studio.
-
-**Verified current repo signal:** `capacitor.config.ts` correctly has `webDir: 'dist'` and no `server.url`, but `android/app/src/main/assets/` had no `public/index.html`; only `gpupixel/` existed. Therefore the APK had no packaged React bundle for Capacitor to serve, causing WebView launch to fail at `https://localhost`.
-
-**Completed fix:** Added Gradle task `ensureCapacitorWebAssets` in `android/app/build.gradle`:
-1. If root `dist/index.html` exists, copy `dist/` into `android/app/src/main/assets/public` before `preBuild`.
-2. If neither `dist/index.html` nor packaged `assets/public/index.html` exists, fail the Android build with an explicit fix command instead of producing a broken APK.
-3. Updated `ANDROID_BUILD_GUIDE.md` with the exact cause and rebuild steps.
-
-**Required local command after pull:** `npm install && npm run build && npx cap sync android`, then rebuild/reinstall APK.
-
----
-
-## ✅ Android/WebView First-Section Loading Removal — 2026-06-21
-
-**User issue:** App and every section felt late because route/auth gates showed skeleton/loading boxes before real content.
-
-**Research standard:** Chamet/Bigo/Poppo-style apps paint cached/home surfaces immediately, then refresh room/feed/auth data in the background; LiveKit/Supabase startup work must not block first paint. References: Android startup vitals (`developer.android.com/topic/performance/vitals/launch-time`), Agora channel preload pattern (`docs.agora.io/.../preload-channels`), LiveKit room preconnect/prepare pattern (`docs.livekit.io`).
-
-**Completed surgical fixes:**
-1. Eager-loaded first-viewport routes: `Auth`, `Index`, `Discover`, and `Live`, so main app sections no longer wait on lazy-route skeleton chunks.
-2. Removed the 1.5s protected-route recovery skeleton; native launches render the section surface while Supabase session recovery completes in the background.
-3. Removed first-fetch skeleton grids from Home, Live list, and Party Discover; cached data or the real empty state appears instantly while fresh data refreshes.
-4. Auth background image now loads eagerly instead of lazy so the login screen paints immediately.
-
-**Kept safe:** Button-level loading during actual submit/OTP/login remains, because removing those would allow duplicate account/payment/auth actions.
-
-**Verified:** Playwright cold-open check on `/auth`, `/live`, `/discover` showed `startup_skeletons=0`; unauthenticated protected routes redirect to `/auth` without skeleton/error.
-
----
-
-## ✅ App-wide No Spinner / Instant Painted Surface Pass — 2026-06-22
-
-**User issue:** `/auth` and other sections could still show a static boot/loading shell for multiple seconds on slow route chunk/auth work, and auth submit/callback/reset pages still contained visible spinning loaders.
-
-**Research standard:** Chamet/Bigo/Poppo-style apps avoid blank full-screen waits by painting cached/native shell immediately, then resolving network/auth/media in background; LiveKit/Supabase work cannot be made physically zero-ms, but visible UX must be painted immediately with no spinner/blank state.
-
-**Completed fixes:**
-1. Main app route `<Suspense>` now uses `RouteSuspenseFallback` instead of `null`, so lazy pages always show static painted app chrome rather than blank/boot-only state.
-2. Route fallback surfaces now expose `data-page-root`, allowing boot-shell removal as soon as React paints a fallback surface.
-3. Boot readiness detection now treats fixed full-screen route surfaces as valid, preventing the HTML boot shell from staying over React during slow auth/route parsing.
-4. Global skeleton primitives no longer shimmer/pulse; global `animate-spin` is neutralized so spinning loaders do not visually spin.
-5. Auth callback, reset password, and `/auth` submit buttons were changed from spinner-only indicators to static disabled/action states.
-
-**Reality boundary:** Network/API/media operations still take real time, but the user-facing surface is immediate and non-spinning; buttons remain disabled during submits to prevent duplicate auth/account actions.
-
-**2026-06-22 refinement:** User rejected beige/block placeholder shells as still looking like a loading page. Updated boot shell, route fallback, BlankScreenGuard, and PageSkeleton to real-looking static app/auth surfaces with actual labels/buttons/icons. Generic Skeleton primitives and global pulse/bounce/spin animations are neutralized so no shimmer/spinner/loading-looking motion remains.
-
-**2026-06-22 professional instant pass:** Research confirmed Chamet/Bigo/TikTok-class perceived performance pattern = persistent app shell + last-known cached UI + stale-while-revalidate + prefetch-on-touch, never full-screen skeleton/spinner pages. References: Addy Osmani App Shell (`addyosmani.com/blog/application-shell/`), TanStack Query caching/SWR (`tanstack.com/query/latest/docs/framework/react/guides/caching`), Agora fast channel preload (`docs.agora.io/en/video-calling/best-practices/preload-channels`). Completed: global `LoadingSpinner`/`PremiumSpinner` now render no animated spinner, splash screen is static/no minimum wait, route fade-up animation disabled, idle route prefetch starts earlier with tighter waves, app prefetch listener installs before idle, beige theme tokens switched to neutral instant surfaces, hardcoded beige/skeleton page backgrounds removed from Agency Host Management / Helper dashboards / About / HomeFeedSkeleton.
----
-
-## ✅ Face Verification Camera Access Fix — 2026-06-23
-
-**User issue:** Android APK Face Verification camera access still failed after the JS-only stream fix; user suspected CameraX/native camera involvement and asked whether a new APK build is required.
-
-**Research standard:** Professional live/social apps keep KYC/selfie liveness camera inside the native Android camera stack when running in an APK. Android CameraX previews should use `PreviewView` for preview surfaces (Android Developers: https://developer.android.com/media/camera/camerax/preview). Android WebView camera capture requires explicit `WebChromeClient.onPermissionRequest` handling for `RESOURCE_VIDEO_CAPTURE` (Android Developers: https://developer.android.com/reference/android/webkit/PermissionRequest), so a Capacitor APK without that gate must not rely on WebView `getUserMedia` for critical verification. Capacitor Android native/plugin changes require sync/rebuild before device testing (Capacitor workflow: https://capacitorjs.com/docs/basics/workflow).
-
-**Verified current implementation gap:** `FaceVerification.startFaceCamera()` was forcing Android native app back through `getCameraStream(false)` / WebView `navigator.mediaDevices.getUserMedia`, while `MainActivity` explicitly has no WebView permission gate and comments say LiveKit/native owns camera instead. The old CameraX hook existed but was not started anywhere from the Face Verification page, so APK users could grant Android permission and still fail at the WebView media layer.
-
-**Completed fix:** Android native app now uses `NativeCameraPlugin` / CameraX for Face Verification: `nativeFaceCam.startPreview('720p')`, warm up `captureFrame()` until a real JPEG frame exists, set native camera active + camera ready, and feed the existing liveness pose loop from `nativeFaceCam.captureFrame()`. Web/browser and older-APK fallback stays on the existing `MediaStream` path.
-
-**APK note:** The JS routing fix can hot-load in the current Capacitor WebView if the installed APK already contains `NativeCameraPlugin` with `start/captureFrame/startVideoRecording`. However the 100% professional/release-safe fix depends on the Android CameraX plugin and native preview surface behavior, so **ship a new APK/AAB update after `npm run build && npx cap sync android` and Android rebuild**.
-
+device_id          text PK   -- hardware fingerprint (ANDROID_ID etc.)
+user_id            uuid NOT NULL → profiles.id ON DELETE CASCADE
+platform           text       -- 'android' | 'ios' | 'web'
+display_name       text       -- snapshot for Start screen card
+avatar_url         text       -- snapshot
+app_uid            text       -- snapshot
+last_login_at      timestamptz
+created_at, updated_at
+```
+Only one binding per `device_id` (latest login overwrites — matches "single account history" choice).
+
+GRANT to authenticated + service_role; no anon. RLS: a row is readable/upsertable only by the auth user whose `user_id` matches OR by service_role.
+
+RPCs (all SECURITY DEFINER):
+- `bind_device_to_user(_device_id, _platform)` — call right after every successful sign-in. Upserts the binding with current `auth.uid()`, snapshots profile fields, returns the binding row. Also writes/updates `user_active_sessions` with `(user_id, device_id)` and **broadcasts a Realtime force-logout to the previously-bound device** (see Phase 4).
+- `lookup_device_account(_device_id)` — public-callable (anon allowed), returns `{exists, display_name, avatar_url, app_uid}` ONLY (never any token). Used by Start screen to decide whether to render the "Welcome back" card.
+- `request_device_relogin(_device_id)` — when user taps the Welcome-back card. Issues a short-lived (5 min, single-use) `device_session_exchange_tokens` row tied to that device + the bound user. Uses the existing `device_session_exchange_tokens` table (already in schema) or extends it.
+
+## Phase 3 — Auto-login on Start screen
+
+Existing splash/start route logic change:
+1. On mount → `getStableDeviceId()` → `lookup_device_account(device_id)`.
+2. If `exists` and there is no active Supabase session → render the **"Welcome back, [name]" card** with avatar + "Continue as …" CTA + "Use another account" link.
+3. CTA → call `request_device_relogin` → exchange returned token for a Supabase session via an edge function (`device-session-exchange`) that uses service role to mint a fresh session for the bound user.
+4. On success → Realtime force-logout fires on any other device tied to that user (Phase 4) → navigate into the app.
+5. "Use another account" → clears the local hint and shows the normal signup/login flow (the device binding is NOT cleared until the new login completes — then it's overwritten).
+
+If there's already an active session, skip the Start card entirely.
+
+## Phase 4 — Single-device enforcement
+
+Reuse `user_active_sessions`. On every successful sign-in flow (`signInWithPassword`, OTP, exchange-token, social):
+1. `bind_device_to_user` runs and:
+   - Finds the previously-bound device for this `user_id` (if different).
+   - Inserts a row into a new `auth_force_logout_events(user_id, kicked_device_id, reason, created_at)` table.
+   - Sends Realtime broadcast on channel `user-session:{user_id}` event `force_logout` with `{new_device_id, reason: 'signed_in_elsewhere'}`.
+2. Old device's app subscribes to `user-session:{user_id}` on app start (after auth restored). On `force_logout` event where `new_device_id !== myDeviceId`:
+   - Show toast: "Signed in on another device".
+   - `supabase.auth.signOut()`.
+   - Clear the Welcome-back hint for the old device (so it doesn't re-offer the same account).
+   - Navigate to Start screen.
+
+A client-side fallback: every 60s (or on app foreground) `users_active_sessions` is checked; if our row was replaced, we self-logout. Belt-and-braces against missed Realtime events.
+
+## Phase 5 — Subscription wiring (one place, leak-safe)
+
+`src/hooks/useForceLogoutListener.ts` mounted once in the authenticated app shell:
+- Subscribes to the channel inside `useEffect`, removes via `supabase.removeChannel` on unmount (per project realtime rule).
+- Triggers the toast + signOut path above.
+
+## Phase 6 — QA matrix (owner test account)
+
+Reproducible via owner login `smdollarex923@gmail.com`:
+1. Login on Device A → record device_id → uninstall → reinstall → Start screen shows "Welcome back, smdollarex923" card → tap → in instantly. ✅
+2. While Device A is open, login same account on Device B → Device A within ~2s shows toast + lands on Start screen. ✅
+3. On Device A tap "Use another account" → Start flow shows signup; old binding only cleared once new account login completes. ✅
+4. Factory-reset simulated by clearing app data + uninstall → `ANDROID_ID` rotates → Start screen shows normal signup (no card). ✅
+
+## Files touched (estimate)
+
+- New: `supabase/migrations/<ts>_device_bindings.sql`, `supabase/functions/device-session-exchange/index.ts`, `src/utils/deviceIdentity.ts`, `src/hooks/useForceLogoutListener.ts`, `src/components/start/WelcomeBackCard.tsx`.
+- Edited: Start/splash route, auth context wrapper, every sign-in success path (signup, login, OTP, social) — single helper `bindCurrentSessionToDevice()` invoked from each.
+
+## Honest caveats
+
+- **APK rebuild MANDATORY** for the native device ID. Web preview will work but with a random per-tab UUID — only Android device test gives the real reinstall-survive behavior.
+- **iOS** survival is best-effort (IDFV + Keychain shim). Same logical flow, weaker guarantee — Apple-imposed.
+- **Factory reset** intentionally rotates the ID — that's the desired "fresh phone = fresh account" behavior you asked for.
+- **No tokens** ever flow through the public `lookup_device_account` RPC; only display name + avatar. Actual session minting requires the short-lived exchange token, only mintable by the device that already owns the binding.
+
+Approve কর — তারপর Phase 1→6 sequentially build করব।
