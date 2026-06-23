@@ -546,103 +546,16 @@ const AdminLeaderboardManagement = () => {
 
           {/* Reward Tiers */}
           <div className="space-y-2">
-            {rewards.map((reward, idx) => (
-              <Card key={reward.id} className="bg-white/5 border-white/10">
-                <CardContent className="p-3">
-                  {selectedCategory === "agency_performance" ? (
-                    /* Agency: Only Beans field */
-                    <div className="grid grid-cols-4 gap-2 items-center">
-                      <div className="col-span-1">
-                        <Label className="text-white/50 text-[10px]">Rank Range</Label>
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number" min={1} max={50}
-                            value={reward.rank_from}
-                            onChange={(e) => updateReward(reward.id, "rank_from", Number(e.target.value))}
-                            className="w-14 text-xs bg-white/5 border-white/10 text-white h-8"
-                          />
-                          <span className="text-white/40">-</span>
-                          <Input
-                            type="number" min={1} max={50}
-                            value={reward.rank_to}
-                            onChange={(e) => updateReward(reward.id, "rank_to", Number(e.target.value))}
-                            className="w-14 text-xs bg-white/5 border-white/10 text-white h-8"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-span-2">
-                        <Label className="text-green-400 text-[10px] font-semibold">Beans (Agency Reward)</Label>
-                        <Input
-                          type="number" min={0}
-                          value={reward.reward_beans}
-                          onChange={(e) => updateReward(reward.id, "reward_beans", Number(e.target.value))}
-                          className="text-xs bg-green-500/10 border-green-500/20 text-white h-8"
-                        />
-                      </div>
-                      <div className="col-span-1 flex items-end justify-end gap-1">
-                        <Button variant="destructive" size="sm" onClick={() => deleteReward(reward.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Host/Game: All reward types */
-                    <div className="grid grid-cols-6 gap-2 items-center">
-                      <div className="col-span-1">
-                        <Label className="text-white/50 text-[10px]">Rank Range</Label>
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number" min={1} max={50}
-                            value={reward.rank_from}
-                            onChange={(e) => updateReward(reward.id, "rank_from", Number(e.target.value))}
-                            className="w-14 text-xs bg-white/5 border-white/10 text-white h-8"
-                          />
-                          <span className="text-white/40">-</span>
-                          <Input
-                            type="number" min={1} max={50}
-                            value={reward.rank_to}
-                            onChange={(e) => updateReward(reward.id, "rank_to", Number(e.target.value))}
-                            className="w-14 text-xs bg-white/5 border-white/10 text-white h-8"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-white/50 text-[10px]">Beans</Label>
-                        <Input
-                          type="number" min={0}
-                          value={reward.reward_beans}
-                          onChange={(e) => updateReward(reward.id, "reward_beans", Number(e.target.value))}
-                          className="text-xs bg-white/5 border-white/10 text-white h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white/50 text-[10px]">Diamonds 💎</Label>
-                        <Input
-                          type="number" min={0}
-                          value={reward.reward_diamonds}
-                          onChange={(e) => updateReward(reward.id, "reward_diamonds", Number(e.target.value))}
-                          className="text-xs bg-white/5 border-white/10 text-white h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white/50 text-[10px]">Diamonds 💰</Label>
-                        <Input
-                          type="number" min={0}
-                          value={reward.reward_coins}
-                          onChange={(e) => updateReward(reward.id, "reward_coins", Number(e.target.value))}
-                          className="text-xs bg-white/5 border-white/10 text-white h-8"
-                        />
-                      </div>
-                      <div className="col-span-1 flex items-end justify-end gap-1">
-                        <Button variant="destructive" size="sm" onClick={() => deleteReward(reward.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+            {rewards.map((reward) => (
+              <RewardTierRow
+                key={reward.id}
+                reward={reward}
+                isAgency={selectedCategory === "agency_performance"}
+                onCommit={(field, value) => updateReward(reward.id, field, value)}
+                onDelete={() => deleteReward(reward.id)}
+              />
             ))}
+
 
             {rewards.length === 0 && (
               <div className="text-center py-8 text-white/30">
