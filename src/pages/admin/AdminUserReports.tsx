@@ -25,6 +25,7 @@ import { formatDistanceToNow } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   sexual_content: { label: "Sexual Content", color: "bg-pink-600" },
   harassment_bullying: { label: "Harassment", color: "bg-red-600" },
@@ -279,7 +280,7 @@ export default function AdminUserReports() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="w-8 h-8 border border-red-500/30">
-                            <AvatarImage src={report.reported_user?.avatar_url || ""} />
+                            <UserAvatarImage src={report.reported_user?.avatar_url || ""} />
                             <AvatarFallback className="bg-red-600 text-white text-xs">
                               {report.reported_user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>

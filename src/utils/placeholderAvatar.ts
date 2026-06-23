@@ -58,12 +58,17 @@ export interface DisplayAvatarOpts {
  * - Owner with no avatar → empty string (real blank state).
  * - Otherwise → deterministic real-photo placeholder (gender-matched).
  */
+import { normalizeProfileMediaUrl } from "./profileMediaUrl";
+
 export function getDisplayAvatar(
   profileId: string,
   avatarUrl?: string | null,
   opts: DisplayAvatarOpts = {},
 ): string {
-  if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
+  // Normalize first — fixes legacy private-bucket face-verification URLs so
+  // admin panel and viewer surfaces render real uploaded photos correctly.
+  const normalized = normalizeProfileMediaUrl(avatarUrl);
+  if (normalized && normalized.trim().length > 0) return normalized;
   if (opts.isOwner) return "";
-  return getPlaceholderAvatar(profileId, opts.gender);
+  return getPlaceholderAvatar(profileId || "anonymous", opts.gender);
 }

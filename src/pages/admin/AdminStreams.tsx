@@ -31,6 +31,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface LiveStream {
   id: string;
   title: string;
@@ -95,7 +96,7 @@ function BanCard({ ban, onUnban }: { ban: LiveBan; onUnban: () => void }) {
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 border-2 border-red-200">
-            <AvatarImage src={ban.profile?.avatar_url || ""} />
+            <UserAvatarImage src={ban.profile?.avatar_url || ""} />
             <AvatarFallback className="bg-red-100 text-red-500">{ban.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
@@ -650,7 +651,7 @@ export default function AdminStreams() {
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center gap-2 sm:gap-3 mb-3">
                         <Avatar className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-pink-200">
-                          <AvatarImage src={stream.host?.avatar_url || ""} />
+                          <UserAvatarImage src={stream.host?.avatar_url || ""} />
                           <AvatarFallback className="bg-pink-100 text-pink-500">{stream.host?.display_name?.charAt(0) || "H"}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">

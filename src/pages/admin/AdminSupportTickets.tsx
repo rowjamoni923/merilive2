@@ -29,6 +29,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -1271,7 +1272,7 @@ const AdminSupportTickets = () => {
                   className="flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-all duration-150 hover:bg-muted/30 border border-transparent hover:border-border/20 group"
                 >
                   <Avatar className="w-10 h-10 border border-purple-500/15 shrink-0">
-                    <AvatarImage src={ticket.profile?.avatar_url} />
+                    <UserAvatarImage src={ticket.profile?.avatar_url} />
                     <AvatarFallback className="bg-purple-500/10 text-purple-400 text-xs font-medium">
                       {ticket.profile?.display_name?.charAt(0) || 'U'}
                     </AvatarFallback>
@@ -1328,7 +1329,7 @@ const AdminSupportTickets = () => {
               {/* Compact Header Bar */}
               <div className="px-4 py-2.5 bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 border-b border-border/25 flex items-center gap-3">
                 <Avatar className="w-8 h-8 shrink-0 border border-purple-500/15">
-                  <AvatarImage src={selectedTicket.profile?.avatar_url} />
+                  <UserAvatarImage src={selectedTicket.profile?.avatar_url} />
                   <AvatarFallback className="text-xs bg-purple-500/10 text-purple-400">{selectedTicket.profile?.display_name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">

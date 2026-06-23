@@ -40,6 +40,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface SearchResult {
   type: 'user' | 'host' | 'agency' | 'helper';
   id: string;
@@ -799,7 +800,7 @@ export default function AdminBalanceDeduction() {
                       <Card className={`p-3 ${alert.violationResult?.is_banned ? 'bg-red-50 dark:bg-red-950/20 border-red-200' : 'bg-orange-50 dark:bg-orange-950/20 border-orange-200'}`}>
                         <div className="flex items-start gap-3">
                           <Avatar className="w-10 h-10 border-2 border-red-300">
-                            <AvatarImage src={alert.userProfile?.avatar_url || undefined} />
+                            <UserAvatarImage src={alert.userProfile?.avatar_url || undefined} />
                             <AvatarFallback className="bg-red-500 text-white">
                               <User className="w-5 h-5" />
                             </AvatarFallback>

@@ -18,6 +18,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface RatingClaim {
   id: string;
   user_id: string;
@@ -489,7 +490,7 @@ export default function AdminRatingRewards() {
                     {/* Recipient */}
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Avatar className="w-8 h-8 border border-slate-700 flex-shrink-0">
-                        <AvatarImage src={item.profile?.avatar_url || undefined} />
+                        <UserAvatarImage src={item.profile?.avatar_url || undefined} />
                         <AvatarFallback className="bg-slate-800 text-slate-400 text-[10px]">
                           <User className="w-3.5 h-3.5" />
                         </AvatarFallback>
@@ -595,7 +596,7 @@ export default function AdminRatingRewards() {
                   }}
                 >
                   <Avatar className="w-11 h-11 border-2 border-slate-700 flex-shrink-0">
-                    <AvatarImage src={claim.profile?.avatar_url || undefined} />
+                    <UserAvatarImage src={claim.profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-slate-800 text-slate-400 text-sm">
                       <User className="w-5 h-5" />
                     </AvatarFallback>

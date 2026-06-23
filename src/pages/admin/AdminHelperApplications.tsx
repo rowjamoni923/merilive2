@@ -34,6 +34,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface HelperApplication {
   id: string;
   user_id: string;
@@ -453,7 +454,7 @@ const AdminHelperApplications = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
                           <Avatar className="w-12 h-12">
-                            <AvatarImage src={app.user?.avatar_url} />
+                            <UserAvatarImage src={app.user?.avatar_url} />
                             <AvatarFallback>{app.user?.display_name?.[0]}</AvatarFallback>
                           </Avatar>
                           
@@ -635,7 +636,7 @@ const AdminHelperApplications = () => {
                   {/* User Info */}
                   <div className="flex items-center gap-3 p-3 bg-muted rounded-xl">
                     <Avatar className="w-12 h-12">
-                      <AvatarImage src={selectedApp.user?.avatar_url} />
+                      <UserAvatarImage src={selectedApp.user?.avatar_url} />
                       <AvatarFallback>{selectedApp.user?.display_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>

@@ -30,6 +30,7 @@ import { format, differenceInDays } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Recording {
   id: string;
   stream_id: string;
@@ -374,7 +375,7 @@ export default function AdminRecordings() {
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-purple-500/30">
-                            <AvatarImage src={recording.host?.avatar_url || ""} />
+                            <UserAvatarImage src={recording.host?.avatar_url || ""} />
                             <AvatarFallback className="bg-purple-900 text-purple-300">
                               {recording.host?.display_name?.charAt(0) || "H"}
                             </AvatarFallback>

@@ -32,6 +32,7 @@ import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRout
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { AuditIdSearch } from "@/components/admin/AuditIdSearch";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 
 
 interface AdminNotification {
@@ -2841,7 +2842,7 @@ export default function AdminLayout() {
             !isSidebarOpen && "justify-center"
           )} onClick={() => setShowProfileMenu(true)}>
             <Avatar className="w-9 h-9 border border-violet-400/20 ring-2 ring-violet-500/10 shadow-lg">
-              <AvatarImage src={currentUser?.profile?.avatar_url} />
+              <UserAvatarImage src={currentUser?.profile?.avatar_url} />
               <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-xs font-bold">
                 {currentUser?.profile?.display_name?.charAt(0) || "A"}
               </AvatarFallback>
@@ -3028,7 +3029,7 @@ export default function AdminLayout() {
               {/* Mobile Avatar */}
               <button onClick={() => setShowProfileMenu(true)} className="lg:hidden flex-shrink-0">
                 <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
-                  <AvatarImage src={currentUser?.profile?.avatar_url} />
+                  <UserAvatarImage src={currentUser?.profile?.avatar_url} />
                   <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold">
                     {currentUser?.profile?.display_name?.charAt(0) || "A"}
                   </AvatarFallback>

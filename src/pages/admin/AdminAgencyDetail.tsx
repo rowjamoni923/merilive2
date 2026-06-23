@@ -66,6 +66,7 @@ import { bn } from "date-fns/locale";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Agency {
   id: string;
   name: string;
@@ -707,7 +708,7 @@ export default function AdminAgencyDetail() {
             {agency.owner ? (
               <div className="text-center">
                 <Avatar className="w-20 h-20 mx-auto mb-3 border-4 border-yellow-500/30">
-                  <AvatarImage src={agency.owner.avatar_url || undefined} />
+                  <UserAvatarImage src={agency.owner.avatar_url || undefined} />
                   <AvatarFallback className="bg-yellow-500/20 text-yellow-400 text-2xl">
                     {agency.owner.display_name?.charAt(0) || "O"}
                   </AvatarFallback>
@@ -807,7 +808,7 @@ export default function AdminAgencyDetail() {
                           <div className="flex items-center gap-3">
                             <div className="relative">
                               <Avatar className="w-10 h-10">
-                                <AvatarImage src={h.host?.avatar_url || undefined} />
+                                <UserAvatarImage src={h.host?.avatar_url || undefined} />
                                 <AvatarFallback className="bg-primary/20 text-primary">
                                   {h.host?.display_name?.charAt(0) || "H"}
                                 </AvatarFallback>
@@ -909,7 +910,7 @@ export default function AdminAgencyDetail() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
-                              <AvatarImage src={tx.receiver?.avatar_url || undefined} />
+                              <UserAvatarImage src={tx.receiver?.avatar_url || undefined} />
                               <AvatarFallback className="bg-primary/20 text-primary text-sm">
                                 {tx.receiver?.display_name?.charAt(0) || "U"}
                               </AvatarFallback>
@@ -1082,7 +1083,7 @@ export default function AdminAgencyDetail() {
           {/* Current host info */}
           <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={selectedHost?.host?.avatar_url || undefined} />
+              <UserAvatarImage src={selectedHost?.host?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary/20 text-primary">
                 {selectedHost?.host?.display_name?.charAt(0) || "H"}
               </AvatarFallback>
@@ -1176,7 +1177,7 @@ export default function AdminAgencyDetail() {
               <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-green-500/30">
-                    <AvatarImage src={foundUser.avatar_url || undefined} />
+                    <UserAvatarImage src={foundUser.avatar_url || undefined} />
                     <AvatarFallback className="bg-green-500/20 text-green-400 text-lg">
                       {foundUser.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

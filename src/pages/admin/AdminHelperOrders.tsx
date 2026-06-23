@@ -42,6 +42,7 @@ import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface HelperOrder {
   id: string;
   helper_id: string;
@@ -339,7 +340,7 @@ const AdminHelperOrders = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={order.user?.avatar_url} />
+                        <UserAvatarImage src={order.user?.avatar_url} />
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div>
@@ -352,7 +353,7 @@ const AdminHelperOrders = () => {
 
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={order.helper?.user?.avatar_url} />
+                        <UserAvatarImage src={order.helper?.user?.avatar_url} />
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div className="text-right">

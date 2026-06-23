@@ -32,6 +32,7 @@ import { formatDistanceToNow } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface BlockedUser {
   id: string;
   display_name: string;
@@ -264,7 +265,7 @@ export default function AdminBlocked() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10 border-2 border-red-500/50">
-                              <AvatarImage src={user.avatar_url || ""} />
+                              <UserAvatarImage src={user.avatar_url || ""} />
                               <AvatarFallback className="bg-red-600 text-white">
                                 {user.display_name?.charAt(0) || "U"}
                               </AvatarFallback>

@@ -22,6 +22,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { loadAdminTopupHistory, formatTopupFieldLabel, type TopupHistoryEntry } from "@/utils/adminTopupHistory";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface UserProfile {
   id: string;
   display_name: string;
@@ -284,7 +285,7 @@ const AdminManualTopup = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
                   >
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar_url} />
+                      <UserAvatarImage src={user.avatar_url} />
                       <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
@@ -305,7 +306,7 @@ const AdminManualTopup = () => {
               <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 ring-2 ring-amber-300">
-                    <AvatarImage src={selectedUser.avatar_url} />
+                    <UserAvatarImage src={selectedUser.avatar_url} />
                     <AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -415,7 +416,7 @@ const AdminManualTopup = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
-                              <AvatarImage src={log.user?.avatar_url ?? undefined} />
+                              <UserAvatarImage src={log.user?.avatar_url ?? undefined} />
                               <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>

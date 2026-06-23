@@ -29,6 +29,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface PaymentDetails {
   transaction_id?: string;
   method_type?: string;
@@ -446,14 +447,14 @@ const AdminPayrollOrders = () => {
                     <Avatar className="w-12 h-12">
                       {order.order_type === 'agency_withdrawal' ? (
                         <>
-                          <AvatarImage src={order.agency?.logo_url} />
+                          <UserAvatarImage src={order.agency?.logo_url} />
                           <AvatarFallback className="bg-purple-100">
                             <Building2 className="w-6 h-6 text-purple-600" />
                           </AvatarFallback>
                         </>
                       ) : (
                         <>
-                          <AvatarImage src={order.user?.avatar_url} />
+                          <UserAvatarImage src={order.user?.avatar_url} />
                           <AvatarFallback>{order.user?.display_name?.charAt(0)}</AvatarFallback>
                         </>
                       )}
@@ -514,7 +515,7 @@ const AdminPayrollOrders = () => {
                         <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                           <span>Payroll Helper:</span>
                           <Avatar className="w-5 h-5">
-                            <AvatarImage src={order.helper?.user?.avatar_url} />
+                            <UserAvatarImage src={order.helper?.user?.avatar_url} />
                             <AvatarFallback className="text-xs">{order.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{order.helper?.user?.display_name}</span>
@@ -604,7 +605,7 @@ const AdminPayrollOrders = () => {
                   <CardContent className="space-y-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={selectedOrder.user?.avatar_url} />
+                        <UserAvatarImage src={selectedOrder.user?.avatar_url} />
                         <AvatarFallback>{selectedOrder.user?.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -627,7 +628,7 @@ const AdminPayrollOrders = () => {
                 <CardContent className="space-y-2">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
-                      <AvatarImage src={selectedOrder.helper?.user?.avatar_url} />
+                      <UserAvatarImage src={selectedOrder.helper?.user?.avatar_url} />
                       <AvatarFallback>{selectedOrder.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>

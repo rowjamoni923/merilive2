@@ -93,6 +93,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
   if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
@@ -1638,7 +1639,7 @@ export default function AdminUserManagement() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <Avatar className="w-10 h-10 border-2 border-slate-200">
-                                  <AvatarImage src={user.avatar_url || undefined} />
+                                  <UserAvatarImage src={user.avatar_url || undefined} />
                                   <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">
                                     {user.display_name?.charAt(0) || "U"}
                                   </AvatarFallback>
@@ -1889,7 +1890,7 @@ export default function AdminUserManagement() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-pink-500/50">
-                                <AvatarImage src={host.avatar_url || ""} />
+                                <UserAvatarImage src={host.avatar_url || ""} />
                                 <AvatarFallback className="bg-pink-100 text-pink-600">
                                   {host.display_name?.charAt(0) || "H"}
                                 </AvatarFallback>
@@ -2068,7 +2069,7 @@ export default function AdminUserManagement() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
-                                <AvatarImage src={u.avatar_url || ""} />
+                                <UserAvatarImage src={u.avatar_url || ""} />
                                 <AvatarFallback className="bg-emerald-100 text-emerald-600">
                                   {u.display_name?.charAt(0) || "U"}
                                 </AvatarFallback>
@@ -2205,7 +2206,7 @@ export default function AdminUserManagement() {
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="w-16 h-16 border-2 border-cyan-300">
-                          <AvatarImage src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
+                          <UserAvatarImage src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
                           <AvatarFallback className="bg-cyan-100 text-cyan-600">
                             {sub.full_name?.charAt(0) || sub.profile?.display_name?.charAt(0) || 'A'}
                           </AvatarFallback>
@@ -2364,7 +2365,7 @@ export default function AdminUserManagement() {
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="w-16 h-16 border-2 border-orange-300">
-                          <AvatarImage src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
+                          <UserAvatarImage src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
                           <AvatarFallback className="bg-orange-100 text-orange-600">
                             {sub.full_name?.charAt(0) || sub.profile?.display_name?.charAt(0) || 'R'}
                           </AvatarFallback>
@@ -2606,7 +2607,7 @@ export default function AdminUserManagement() {
                         {/* User Info Row */}
                         <div className="flex items-center gap-3">
                           <Avatar className="w-12 h-12 border-2 border-purple-300">
-                            <AvatarImage src={submission.profile?.avatar_url} />
+                            <UserAvatarImage src={submission.profile?.avatar_url} />
                             <AvatarFallback>
                               {submission.full_name?.charAt(0) || submission.profile?.display_name?.charAt(0) || 'U'}
                             </AvatarFallback>
@@ -2851,7 +2852,7 @@ export default function AdminUserManagement() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-slate-200">
-                                <AvatarImage src={log.user?.avatar_url || undefined} />
+                                <UserAvatarImage src={log.user?.avatar_url || undefined} />
                                 <AvatarFallback className="bg-gradient-to-br from-red-400 to-orange-500 text-white">
                                   {log.user?.display_name?.charAt(0) || "U"}
                                 </AvatarFallback>
@@ -3033,7 +3034,7 @@ export default function AdminUserManagement() {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="w-10 h-10 border-2 border-red-300">
-                                  <AvatarImage src={user.avatar_url || ""} />
+                                  <UserAvatarImage src={user.avatar_url || ""} />
                                   <AvatarFallback className="bg-red-100 text-red-600">
                                     {user.display_name?.charAt(0) || "U"}
                                   </AvatarFallback>
@@ -3306,7 +3307,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/50">
-                  <AvatarImage src={selectedUser.avatar_url || undefined} />
+                  <UserAvatarImage src={selectedUser.avatar_url || undefined} />
                   <AvatarFallback className="bg-purple-500/20 text-purple-400 text-xl">
                     {selectedUser.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3432,7 +3433,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-2 border-slate-600">
-                  <AvatarImage src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
+                  <UserAvatarImage src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-xl">
                     {selectedApplication.full_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3501,7 +3502,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/30">
-                  <AvatarImage src={selectedFaceSubmission.profile?.avatar_url} />
+                  <UserAvatarImage src={selectedFaceSubmission.profile?.avatar_url} />
                   <AvatarFallback>{selectedFaceSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -3612,7 +3613,7 @@ export default function AdminUserManagement() {
               {/* User Profile Section */}
               <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl border border-slate-700">
                 <Avatar className="w-20 h-20 border-3 border-red-500">
-                  <AvatarImage src={selectedBlockedUser.avatar_url || undefined} />
+                  <UserAvatarImage src={selectedBlockedUser.avatar_url || undefined} />
                   <AvatarFallback className="bg-red-500/20 text-red-400 text-2xl">
                     {selectedBlockedUser.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3777,7 +3778,7 @@ export default function AdminUserManagement() {
           {selectedBlockedUser && (
             <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={selectedBlockedUser.avatar_url} />
+                <UserAvatarImage src={selectedBlockedUser.avatar_url} />
                 <AvatarFallback className="bg-red-500/20 text-red-400">
                   {selectedBlockedUser.display_name?.charAt(0) || "U"}
                 </AvatarFallback>

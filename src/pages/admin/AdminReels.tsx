@@ -17,6 +17,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Reel {
   id: string;
   user_id: string;
@@ -464,7 +465,7 @@ const AdminReels = () => {
                     {/* User */}
                     <div className="flex items-center gap-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={reel.user?.avatar_url || ''} />
+                        <UserAvatarImage src={reel.user?.avatar_url || ''} />
                         <AvatarFallback>{reel.user?.display_name?.[0] || 'U'}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm truncate flex-1">{reel.user?.display_name || 'User'}</span>

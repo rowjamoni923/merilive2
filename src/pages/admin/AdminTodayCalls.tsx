@@ -13,6 +13,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface CallRecord {
   id: string;
   caller_id: string;
@@ -232,7 +233,7 @@ export default function AdminTodayCalls() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
-                        <AvatarImage src={call.caller_profile?.avatar_url || ""} />
+                        <UserAvatarImage src={call.caller_profile?.avatar_url || ""} />
                         <AvatarFallback className="bg-blue-900 text-blue-300 text-xs">
                           {call.caller_profile?.display_name?.[0] || "C"}
                         </AvatarFallback>
@@ -253,7 +254,7 @@ export default function AdminTodayCalls() {
 
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
-                        <AvatarImage src={call.host_profile?.avatar_url || ""} />
+                        <UserAvatarImage src={call.host_profile?.avatar_url || ""} />
                         <AvatarFallback className="bg-pink-900 text-pink-300 text-xs">
                           {call.host_profile?.display_name?.[0] || "H"}
                         </AvatarFallback>

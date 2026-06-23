@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Violation {
   id: string;
   host_id: string;
@@ -406,7 +407,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
               {/* Host Info */}
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src={selectedViolation.host?.avatar_url || undefined} />
+                  <UserAvatarImage src={selectedViolation.host?.avatar_url || undefined} />
                   <AvatarFallback>
                     {selectedViolation.host?.display_name?.charAt(0) || "?"}
                   </AvatarFallback>
@@ -542,7 +543,7 @@ function ViolationCard({
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <Avatar className="w-10 h-10 border-2 border-background">
-          <AvatarImage src={violation.host?.avatar_url || undefined} />
+          <UserAvatarImage src={violation.host?.avatar_url || undefined} />
           <AvatarFallback className="text-xs">
             {violation.host?.display_name?.charAt(0) || "?"}
           </AvatarFallback>
