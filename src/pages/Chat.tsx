@@ -966,6 +966,11 @@ const Chat = () => {
           receiverId: selectedConversation.other_user.id,
           giftId: gift.id,
           quantity: count,
+          // DM-context marker — the trigger `notify_on_gift_received` skips
+          // creating a duplicate `gift_received` notification when the gift
+          // was sent from a direct-message chat (it already shows inside the
+          // Messages section as a gift bubble).
+          idempotencyKey: `dm_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
         });
 
         if (!response.success) {
