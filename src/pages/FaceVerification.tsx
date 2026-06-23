@@ -941,12 +941,34 @@ const FaceVerification = () => {
         setFaceStream(null);
       }
 
-      // Use LiveKit (Android native) <video> preview as the permanent source of truth. The native
-      // CameraX bridge can capture frames, but it does not reliably paint inside
-      // the WebView layer on all Android builds, which caused the blank oval seen
-      // in live face scan. getCameraStream already handles permission internally —
-      // no separate probe, so Android WebView keeps the user-gesture chain intact.
+      // Android native app: use our CameraX bridge as the source of truth.
+      // MainActivity intentionally has no WebView getUserMedia permission gate,
+      // so relying on navigator.mediaDevices inside the APK can fail even after
+      // the Android runtime permission is granted. NativeCamera.start() owns the
+      // Android permission + preview surface, and captureFrame() feeds liveness.
       await nativeFaceCam.stopPreview().catch(() => null);
+      if (await nativeFaceCam.isAvailable()) {
+        await nativeFaceCam.startPreview('720p');
+        setNativeFaceCameraActive(true);
+        let nativeFrameReady = false;
+        for (let i = 0; i < 10; i++) {
+          const frame = await nativeFaceCam.captureFrame();
+          if (frame) {
+            const base64 = frame.includes(',') ? frame.split(',')[1] : frame;
+            capturedAnglesRef.current.center = capturedAnglesRef.current.center || base64;
+            nativeFrameReady = true;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+        if (!nativeFrameReady) {
+          throw new Error('Camera started, but no face frame was received. Please close other camera apps and try again.');
+        }
+        setCameraReady(true);
+        return;
+      }
+
+      // Browser / old APK fallback: keep the existing WebView MediaStream path.
       const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');
