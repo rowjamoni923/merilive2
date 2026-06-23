@@ -141,7 +141,7 @@ export default function AdminSuperAdminManagement() {
 
   const copyAccessLink = async (countryCode: string) => {
     const base = window.location.origin;
-    const link = `${base}/auth?next=${encodeURIComponent(`/super-admin/apply`)}&role=country_super_admin&country=${countryCode}`;
+    const link = `${base}/country-admin/dashboard?country=${countryCode}`;
     try {
       await navigator.clipboard.writeText(link);
       toast.success(`Access link for ${countryCode} copied. Send via official email.`);
