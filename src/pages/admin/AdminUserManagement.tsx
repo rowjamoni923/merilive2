@@ -1639,7 +1639,7 @@ export default function AdminUserManagement() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <Avatar className="w-10 h-10 border-2 border-slate-200">
-                                  <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url || undefined} />
+                                  <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || undefined} />
                                   <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">
                                     {user.display_name?.charAt(0) || "U"}
                                   </AvatarFallback>
@@ -1890,7 +1890,7 @@ export default function AdminUserManagement() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-pink-500/50">
-                                <UserAvatarImage seed={host.id ?? host.user_id ?? host.host_id} src={host.avatar_url || ""} />
+                                <UserAvatarImage seed={((host) as any)?.id ?? ((host) as any)?.user_id ?? ((host) as any)?.host_id} src={host.avatar_url || ""} />
                                 <AvatarFallback className="bg-pink-100 text-pink-600">
                                   {host.display_name?.charAt(0) || "H"}
                                 </AvatarFallback>
@@ -2069,7 +2069,7 @@ export default function AdminUserManagement() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
-                                <UserAvatarImage seed={u.id ?? u.user_id ?? u.host_id} src={u.avatar_url || ""} />
+                                <UserAvatarImage seed={((u) as any)?.id ?? ((u) as any)?.user_id ?? ((u) as any)?.host_id} src={u.avatar_url || ""} />
                                 <AvatarFallback className="bg-emerald-100 text-emerald-600">
                                   {u.display_name?.charAt(0) || "U"}
                                 </AvatarFallback>
@@ -2206,7 +2206,7 @@ export default function AdminUserManagement() {
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="w-16 h-16 border-2 border-cyan-300">
-                          <UserAvatarImage seed={sub.id ?? sub.user_id ?? sub.host_id} src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
+                          <UserAvatarImage seed={((sub) as any)?.id ?? ((sub) as any)?.user_id ?? ((sub) as any)?.host_id} src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
                           <AvatarFallback className="bg-cyan-100 text-cyan-600">
                             {sub.full_name?.charAt(0) || sub.profile?.display_name?.charAt(0) || 'A'}
                           </AvatarFallback>
@@ -2365,7 +2365,7 @@ export default function AdminUserManagement() {
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="w-16 h-16 border-2 border-orange-300">
-                          <UserAvatarImage seed={sub.id ?? sub.user_id ?? sub.host_id} src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
+                          <UserAvatarImage seed={((sub) as any)?.id ?? ((sub) as any)?.user_id ?? ((sub) as any)?.host_id} src={sub.profile_photo_url || sub.profile?.avatar_url || undefined} />
                           <AvatarFallback className="bg-orange-100 text-orange-600">
                             {sub.full_name?.charAt(0) || sub.profile?.display_name?.charAt(0) || 'R'}
                           </AvatarFallback>
@@ -3034,7 +3034,7 @@ export default function AdminUserManagement() {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="w-10 h-10 border-2 border-red-300">
-                                  <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url || ""} />
+                                  <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
                                   <AvatarFallback className="bg-red-100 text-red-600">
                                     {user.display_name?.charAt(0) || "U"}
                                   </AvatarFallback>
@@ -3307,7 +3307,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/50">
-                  <UserAvatarImage seed={selectedUser.id ?? selectedUser.user_id ?? selectedUser.host_id} src={selectedUser.avatar_url || undefined} />
+                  <UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url || undefined} />
                   <AvatarFallback className="bg-purple-500/20 text-purple-400 text-xl">
                     {selectedUser.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3433,7 +3433,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-2 border-slate-600">
-                  <UserAvatarImage seed={selectedApplication.id ?? selectedApplication.user_id ?? selectedApplication.host_id} src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
+                  <UserAvatarImage seed={((selectedApplication) as any)?.id ?? ((selectedApplication) as any)?.user_id ?? ((selectedApplication) as any)?.host_id} src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-xl">
                     {selectedApplication.full_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3613,7 +3613,7 @@ export default function AdminUserManagement() {
               {/* User Profile Section */}
               <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl border border-slate-700">
                 <Avatar className="w-20 h-20 border-3 border-red-500">
-                  <UserAvatarImage seed={selectedBlockedUser.id ?? selectedBlockedUser.user_id ?? selectedBlockedUser.host_id} src={selectedBlockedUser.avatar_url || undefined} />
+                  <UserAvatarImage seed={((selectedBlockedUser) as any)?.id ?? ((selectedBlockedUser) as any)?.user_id ?? ((selectedBlockedUser) as any)?.host_id} src={selectedBlockedUser.avatar_url || undefined} />
                   <AvatarFallback className="bg-red-500/20 text-red-400 text-2xl">
                     {selectedBlockedUser.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -3778,7 +3778,7 @@ export default function AdminUserManagement() {
           {selectedBlockedUser && (
             <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
               <Avatar className="w-10 h-10">
-                <UserAvatarImage seed={selectedBlockedUser.id ?? selectedBlockedUser.user_id ?? selectedBlockedUser.host_id} src={selectedBlockedUser.avatar_url} />
+                <UserAvatarImage seed={((selectedBlockedUser) as any)?.id ?? ((selectedBlockedUser) as any)?.user_id ?? ((selectedBlockedUser) as any)?.host_id} src={selectedBlockedUser.avatar_url} />
                 <AvatarFallback className="bg-red-500/20 text-red-400">
                   {selectedBlockedUser.display_name?.charAt(0) || "U"}
                 </AvatarFallback>

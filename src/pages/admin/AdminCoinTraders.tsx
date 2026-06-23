@@ -526,7 +526,7 @@ const AdminCoinTraders = () => {
               <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
                 {userSearchResults.map(user => (
                   <button key={user.id} onClick={() => { setSelectedUser(user); setUserSearchResults([]); setUserSearchQuery(user.display_name); }} className="w-full flex items-center gap-3 p-3 hover:bg-slate-50">
-                    <Avatar className="w-10 h-10"><UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url} /><AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <Avatar className="w-10 h-10"><UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} /><AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback></Avatar>
                     <div className="text-left"><p className="font-medium text-sm">{user.display_name}</p><p className="text-xs text-slate-500">ID: {user.app_uid}</p></div>
                   </button>
                 ))}
@@ -534,7 +534,7 @@ const AdminCoinTraders = () => {
             )}
             {selectedUser && (
               <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center gap-3">
-                <Avatar className="w-12 h-12"><UserAvatarImage seed={selectedUser.id ?? selectedUser.user_id ?? selectedUser.host_id} src={selectedUser.avatar_url} /><AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                <Avatar className="w-12 h-12"><UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} /><AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback></Avatar>
                 <div><p className="font-semibold">{selectedUser.display_name}</p><p className="text-sm text-slate-600">ID: {selectedUser.app_uid}</p></div>
                 <Check className="w-6 h-6 text-emerald-500 ml-auto" />
               </div>
