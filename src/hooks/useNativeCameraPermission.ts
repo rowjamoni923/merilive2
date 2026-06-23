@@ -322,9 +322,29 @@ export function useNativeCameraPermission() {
 
   const getCameraStream = useCallback(async (includeAudio: boolean = false): Promise<MediaStream | null> => {
     if (isNativeApp) {
+      // Face Verification needs a real WebView MediaStream to render the
+      // preview <video> and feed face-pose frames. The native LiveKit/CameraX
+      // owner is reserved for live/party/call; for face-verify we open the
+      // WebView camera directly (callers must release any other native owner
+      // before invoking this — FaceVerification already does so).
       const permission = await requestCameraPermission({ includeMicrophone: includeAudio });
       if (!permission.granted) throw new Error(permission.error || 'Camera permission denied.');
-      return null;
+      try {
+        const stream = await getUserMediaWithFallback(includeAudio, 'user');
+        globalPermissionGranted = true; writeCachedPerm(true);
+        if (includeAudio) globalMicrophoneGranted = stream.getAudioTracks().some(t => t.readyState === 'live');
+        setPermissionGranted(true);
+        return stream;
+      } catch (err: any) {
+        console.error('[Camera] Native WebView getUserMedia failed:', err?.name, err?.message);
+        if (err?.name === 'NotReadableError') {
+          throw new Error('Camera is busy. End any live, party, or call session and try again.');
+        }
+        if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
+          throw new Error(denialHint(true));
+        }
+        throw new Error(err?.message || 'Failed to open camera.');
+      }
     }
 
     if (streamRequestInFlight) {
