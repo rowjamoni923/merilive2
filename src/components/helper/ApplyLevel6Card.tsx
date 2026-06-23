@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, ChevronRight, Lock } from "lucide-react";
+import { Crown, ChevronRight, Lock, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ApplyLevel6CardProps {
@@ -10,9 +10,9 @@ interface ApplyLevel6CardProps {
 }
 
 /**
- * Compact card matching the dashboard's other tile style (agency/orders/methods/history/inbox).
- * Level 6 (Country Super Admin) has NO dashboard — this card is the single entry point that
- * sends helpers to the secret admin application link.
+ * Helper home tile that opens the Country Super Admin (Level 6) application.
+ * Uses the Helper dashboard's amber/orange brand language so it visually
+ * belongs to the same surface, not an off-brand purple block.
  */
 export default function ApplyLevel6Card({ currentLevel }: ApplyLevel6CardProps) {
   const navigate = useNavigate();
@@ -20,22 +20,24 @@ export default function ApplyLevel6Card({ currentLevel }: ApplyLevel6CardProps) 
   const alreadyL6 = currentLevel >= 6;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600">
+    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500">
       <div className="p-4 flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
-          <Crown className="w-6 h-6 text-amber-200" />
+        <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/30">
+          <Crown className="w-6 h-6 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-white font-bold text-sm truncate">Level 6 — Country Super Admin</h3>
-            <Badge className="bg-amber-300 text-amber-950 text-[9px] h-4 px-1.5 font-bold">L6</Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-white font-bold text-sm">Country Super Admin</h3>
+            <Badge className="bg-white text-orange-700 text-[10px] h-4 px-1.5 font-bold hover:bg-white">
+              LEVEL 6
+            </Badge>
           </div>
-          <p className="text-white/85 text-[11px] leading-snug mt-0.5">
+          <p className="text-white/90 text-[11px] leading-snug mt-0.5">
             {alreadyL6
-              ? "You are a Country Super Admin."
+              ? "You are an active Country Super Admin."
               : unlocked
-              ? "Sign contract, upload NID & deposit to manage your country's payroll."
-              : "Reach Level 5 first to unlock the Country Super Admin contract."}
+              ? "Apply to manage your country's payroll. Sign contract, earn up to 25% commission."
+              : "Reach Level 5 first to unlock the Country Super Admin application."}
           </p>
         </div>
         {!alreadyL6 && (
@@ -43,7 +45,7 @@ export default function ApplyLevel6Card({ currentLevel }: ApplyLevel6CardProps) 
             size="sm"
             disabled={!unlocked}
             onClick={() => navigate("/super-admin/apply")}
-            className="bg-white text-purple-700 hover:bg-white/90 disabled:bg-white/30 disabled:text-white/70 h-9 px-3 font-semibold text-xs shrink-0"
+            className="bg-white text-orange-700 hover:bg-white/90 disabled:bg-white/30 disabled:text-white/70 h-9 px-3 font-semibold text-xs shrink-0 shadow-sm"
           >
             {unlocked ? (
               <>
@@ -55,6 +57,11 @@ export default function ApplyLevel6Card({ currentLevel }: ApplyLevel6CardProps) 
               </>
             )}
           </Button>
+        )}
+        {alreadyL6 && (
+          <Badge className="bg-emerald-500 text-white text-[10px] h-6 px-2 font-bold flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3" /> ACTIVE
+          </Badge>
         )}
       </div>
     </Card>
