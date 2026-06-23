@@ -818,7 +818,7 @@ const AdminFaceVerification = () => {
                   <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10 border border-border">
-                        <UserAvatarImage seed={submission.profile?.id ?? submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
+                        <UserAvatarImage seed={submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
                         <AvatarFallback>{submission.full_name?.charAt(0) || submission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
 
@@ -1018,7 +1018,7 @@ const AdminFaceVerification = () => {
                 {/* User Info */}
                 <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-xl">
                   <Avatar className="w-16 h-16 border-2 border-purple-500/30">
-                    <UserAvatarImage seed={selectedSubmission.profile?.id ?? selectedSubmission.user_id ?? selectedSubmission.id} src={selectedSubmission.profile?.avatar_url} />
+                    <UserAvatarImage seed={selectedSubmission.user_id ?? selectedSubmission.id} src={selectedSubmission.profile?.avatar_url} />
                     <AvatarFallback>{selectedSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>

@@ -96,7 +96,7 @@ function BanCard({ ban, onUnban }: { ban: LiveBan; onUnban: () => void }) {
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 border-2 border-red-200">
-            <UserAvatarImage seed={ban.profile?.id ?? ban.user_id ?? ban.id} src={ban.profile?.avatar_url || ""} />
+            <UserAvatarImage seed={ban.user_id ?? ban.id} src={ban.profile?.avatar_url || ""} />
             <AvatarFallback className="bg-red-100 text-red-500">{ban.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

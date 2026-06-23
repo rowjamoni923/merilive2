@@ -490,7 +490,7 @@ export default function AdminRatingRewards() {
                     {/* Recipient */}
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Avatar className="w-8 h-8 border border-slate-700 flex-shrink-0">
-                        <UserAvatarImage seed={item.profile?.id ?? item.user_id ?? item.id} src={item.profile?.avatar_url || undefined} />
+                        <UserAvatarImage seed={item.user_id ?? item.id} src={item.profile?.avatar_url || undefined} />
                         <AvatarFallback className="bg-slate-800 text-slate-400 text-[10px]">
                           <User className="w-3.5 h-3.5" />
                         </AvatarFallback>
@@ -596,7 +596,7 @@ export default function AdminRatingRewards() {
                   }}
                 >
                   <Avatar className="w-11 h-11 border-2 border-slate-700 flex-shrink-0">
-                    <UserAvatarImage seed={claim.profile?.id ?? claim.user_id ?? claim.id} src={claim.profile?.avatar_url || undefined} />
+                    <UserAvatarImage seed={claim.user_id ?? claim.id} src={claim.profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-slate-800 text-slate-400 text-sm">
                       <User className="w-5 h-5" />
                     </AvatarFallback>

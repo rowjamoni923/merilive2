@@ -2607,7 +2607,7 @@ export default function AdminUserManagement() {
                         {/* User Info Row */}
                         <div className="flex items-center gap-3">
                           <Avatar className="w-12 h-12 border-2 border-purple-300">
-                            <UserAvatarImage seed={submission.profile?.id ?? submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
+                            <UserAvatarImage seed={submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
                             <AvatarFallback>
                               {submission.full_name?.charAt(0) || submission.profile?.display_name?.charAt(0) || 'U'}
                             </AvatarFallback>
@@ -3502,7 +3502,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/30">
-                  <UserAvatarImage seed={selectedFaceSubmission.profile?.id ?? selectedFaceSubmission.user_id ?? selectedFaceSubmission.id} src={selectedFaceSubmission.profile?.avatar_url} />
+                  <UserAvatarImage seed={selectedFaceSubmission.user_id ?? selectedFaceSubmission.id} src={selectedFaceSubmission.profile?.avatar_url} />
                   <AvatarFallback>{selectedFaceSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
