@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,6 +33,14 @@ const BecomeSubAgent = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSubAgent, setIsSubAgent] = useState(false);
   const [myReferralCode, setMyReferralCode] = useState("");
+  // In-app OTP gate for becoming a sub-agent
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   useEffect(() => {
     checkCurrentUser();
@@ -149,13 +158,75 @@ const BecomeSubAgent = () => {
     setLoading(false);
   };
 
+  // Countdown for OTP expiration UX
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+    const t = setInterval(() => setOtpTimer((v) => (v > 0 ? v - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [otpTimer]);
+
+  const sendOtp = async () => {
+    if (!currentUser || !agency) return;
+    setSendingOtp(true);
+    setOtpCode("");
+    setOtpVerified(false);
+    setOtpToken(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'send',
+          userId: currentUser.id,
+          purpose: 'sub_agency_verification',
+          context: agency?.agency_code || 'Sub-Agent Registration',
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to send code');
+      setOtpSent(true);
+      setOtpTimer(300);
+      toast({ title: 'Code sent', description: 'Check your in-app notifications for the 6-digit code.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to send code', variant: 'destructive' });
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (otpCode.length !== 6 || !currentUser) return;
+    setVerifyingOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'verify',
+          userId: currentUser.id,
+          code: otpCode,
+          purpose: 'sub_agency_verification',
+        },
+      });
+      if (error) throw error;
+      if (!data?.success || !data?.verified_token) {
+        throw new Error(data?.error || 'Wrong code. Please try again.');
+      }
+      setOtpVerified(true);
+      setOtpToken(data.verified_token);
+      toast({ title: 'Verified', description: 'You can now become a sub-agent.' });
+    } catch (err: any) {
+      toast({ title: 'Verification failed', description: err.message || 'Wrong code', variant: 'destructive' });
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const becomeSubAgent = async () => {
     if (!currentUser || !agency) return;
+    if (!otpVerified || !otpToken) {
+      toast({ title: 'Verify first', description: 'Please complete in-app OTP verification.', variant: 'destructive' });
+      return;
+    }
 
     setLoading(true);
     try {
-      // Pkg72: DB signature is (_agency_id, _user_id, _name, _commission_rate DEFAULT 5).
-      // Previous call passed _referrer_id which doesn't exist → sub-agent creation 100% failed.
       const subAgentName =
         currentUser?.display_name?.trim() ||
         currentUser?.username?.trim() ||
@@ -165,7 +236,8 @@ const BecomeSubAgent = () => {
         _agency_id: agency.id,
         _user_id: currentUser.id,
         _name: subAgentName,
-      });
+        _verified_token: otpToken,
+      } as any);
 
       if (error) throw error;
 
@@ -369,9 +441,59 @@ const BecomeSubAgent = () => {
                   </div>
                 </div>
                 
+                {/* In-app OTP gate */}
+                <div className="mt-4 bg-white rounded-xl border border-orange-200 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">In-app verification</p>
+                      <p className="text-[11px] text-slate-500">
+                        {otpVerified
+                          ? "Verified. You can proceed."
+                          : otpSent
+                            ? `Code sent to your in-app notifications${otpTimer > 0 ? ` · expires in ${Math.floor(otpTimer/60)}:${String(otpTimer%60).padStart(2,'0')}` : ' · expired'}`
+                            : "Send a 6-digit code to your in-app notifications"}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={sendOtp}
+                      disabled={sendingOtp || otpVerified || (otpSent && otpTimer > 240)}
+                    >
+                      {sendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : otpSent ? "Resend" : "Send code"}
+                    </Button>
+                  </div>
+
+                  {otpSent && !otpVerified && (
+                    <div className="flex flex-col items-center gap-2">
+                      <InputOTP maxLength={6} value={otpCode} onChange={(v) => setOtpCode(v)}>
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={verifyOtp}
+                        disabled={verifyingOtp || otpCode.length !== 6 || otpTimer <= 0}
+                        className="w-full"
+                      >
+                        {verifyingOtp ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
+                        Verify code
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   onClick={becomeSubAgent}
-                  disabled={loading}
+                  disabled={loading || !otpVerified}
                   className="w-full mt-4 bg-orange-500 hover:bg-orange-600"
                 >
                   {loading ? (
