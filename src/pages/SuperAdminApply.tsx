@@ -48,12 +48,9 @@ export default function SuperAdminApply() {
     nid_front_url: "",
     nid_back_url: "",
     business_doc_url: "",
-    deposit_amount_usd: 10000,
-    deposit_proof_url: "",
-    deposit_tx_ref: "",
-    requested_commission_percent: 25,
     notes: "",
   });
+
 
   useEffect(() => {
     (async () => {
