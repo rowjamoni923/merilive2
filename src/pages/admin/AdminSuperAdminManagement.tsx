@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, FileText, DollarSign, Users, History } from "lucide-react";
+import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy } from "lucide-react";
 
 type Application = {
   id: string;
@@ -76,8 +76,10 @@ export default function AdminSuperAdminManagement() {
     min_withdraw_usd: 5,
     max_withdraw_usd: 1000,
     daily_cap_usd: 5000,
+    deposit_amount_usd: 10000,
   });
   const [submitting, setSubmitting] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
@@ -133,11 +135,26 @@ export default function AdminSuperAdminManagement() {
       min_withdraw_usd: 5,
       max_withdraw_usd: 1000,
       daily_cap_usd: 5000,
+      deposit_amount_usd: Math.max(10000, Number(app.deposit_amount_usd) || 10000),
     });
+  };
+
+  const copyAccessLink = async (countryCode: string) => {
+    const base = window.location.origin;
+    const link = `${base}/auth?next=${encodeURIComponent(`/super-admin/apply`)}&role=country_super_admin&country=${countryCode}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success(`Access link for ${countryCode} copied. Send via official email.`);
+    } catch {
+      toast.error("Copy failed — please copy manually: " + link);
+    }
   };
 
   const approve = async () => {
     if (!reviewApp) return;
+    if (reviewForm.deposit_amount_usd < (settings?.min_deposit_usd || 10000)) {
+      return toast.error(`Confirmed deposit must be at least $${settings?.min_deposit_usd || 10000}`);
+    }
     setSubmitting(true);
     const methods = reviewForm.allowed_payment_methods
       .split(",").map(s => s.trim()).filter(Boolean);
@@ -149,13 +166,18 @@ export default function AdminSuperAdminManagement() {
       _min_withdraw_usd: reviewForm.min_withdraw_usd,
       _max_withdraw_usd: reviewForm.max_withdraw_usd,
       _daily_cap_usd: reviewForm.daily_cap_usd,
-    });
+      _deposit_amount_usd: reviewForm.deposit_amount_usd,
+    } as any);
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Super Admin approved");
+    toast.success(`Super Admin approved for ${reviewApp.country_code}. Copy access link from the Active tab.`);
+    const country = reviewApp.country_code;
     setReviewApp(null);
     load();
+    // Auto-copy the access link so the admin can paste it into the onboarding email straight away.
+    setTimeout(() => copyAccessLink(country), 300);
   };
+
 
   const reject = async (id: string) => {
     const notes = prompt("Rejection reason?") || "";
