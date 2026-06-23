@@ -91,6 +91,7 @@ interface AgencyWithdrawal {
   helper_processed_at?: string | null;
   assigned_helper_id?: string | null;
   claim_locked_until?: string | null;
+  blocked_helper_ids?: string[] | null;
   locked_at?: string | null;
   locked_by_helper_name?: string | null;
   agency?: { name: string; agency_code: string; logo_url?: string; owner_id: string };
