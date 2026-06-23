@@ -653,6 +653,120 @@ const AdminLeaderboardManagement = () => {
   );
 };
 
+// Controlled-input reward tier row — types freely, commits on blur/Enter.
+// Fixes "number won't enter" bug caused by per-keystroke DB write + refetch race.
+interface RewardTierRowProps {
+  reward: RewardConfig;
+  isAgency: boolean;
+  onCommit: (field: string, value: number) => void;
+  onDelete: () => void;
+}
+const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowProps) => {
+  const [draft, setDraft] = useState({
+    rank_from: String(reward.rank_from ?? 0),
+    rank_to: String(reward.rank_to ?? 0),
+    reward_beans: String(reward.reward_beans ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_coins: String(reward.reward_coins ?? 0),
+  });
+
+  // Sync when upstream row identity/values change (e.g. after refetch from another edit)
+  useEffect(() => {
+    setDraft({
+      rank_from: String(reward.rank_from ?? 0),
+      rank_to: String(reward.rank_to ?? 0),
+      reward_beans: String(reward.reward_beans ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_coins: String(reward.reward_coins ?? 0),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_coins]);
+
+  const commit = (field: keyof typeof draft) => {
+    const raw = draft[field];
+    const n = raw === "" ? 0 : Number(raw);
+    if (Number.isNaN(n)) return;
+    const current = Number((reward as any)[field] ?? 0);
+    if (n !== current) onCommit(field, n);
+  };
+
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>, field: keyof typeof draft) => {
+    if (e.key === "Enter") {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const numInput = (field: keyof typeof draft, extraClass = "") => (
+    <Input
+      type="number"
+      inputMode="numeric"
+      min={0}
+      value={draft[field]}
+      onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+      onBlur={() => commit(field)}
+      onKeyDown={(e) => handleKey(e, field)}
+      className={cn("text-xs bg-white/5 border-white/10 text-white h-8", extraClass)}
+    />
+  );
+
+  return (
+    <Card className="bg-white/5 border-white/10">
+      <CardContent className="p-3">
+        {isAgency ? (
+          <div className="grid grid-cols-4 gap-2 items-center">
+            <div className="col-span-1">
+              <Label className="text-white/50 text-[10px]">Rank Range</Label>
+              <div className="flex items-center gap-1">
+                {numInput("rank_from", "w-14")}
+                <span className="text-white/40">-</span>
+                {numInput("rank_to", "w-14")}
+              </div>
+            </div>
+            <div className="col-span-2">
+              <Label className="text-green-400 text-[10px] font-semibold">Beans (Agency Reward)</Label>
+              {numInput("reward_beans", "bg-green-500/10 border-green-500/20")}
+            </div>
+            <div className="col-span-1 flex items-end justify-end gap-1">
+              <Button variant="destructive" size="sm" onClick={onDelete}>
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-6 gap-2 items-center">
+            <div className="col-span-1">
+              <Label className="text-white/50 text-[10px]">Rank Range</Label>
+              <div className="flex items-center gap-1">
+                {numInput("rank_from", "w-14")}
+                <span className="text-white/40">-</span>
+                {numInput("rank_to", "w-14")}
+              </div>
+            </div>
+            <div>
+              <Label className="text-white/50 text-[10px]">Beans</Label>
+              {numInput("reward_beans")}
+            </div>
+            <div>
+              <Label className="text-white/50 text-[10px]">Diamonds 💎</Label>
+              {numInput("reward_diamonds")}
+            </div>
+            <div>
+              <Label className="text-white/50 text-[10px]">Diamonds 💰</Label>
+              {numInput("reward_coins")}
+            </div>
+            <div className="col-span-1 flex items-end justify-end gap-1">
+              <Button variant="destructive" size="sm" onClick={onDelete}>
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+
 // Recent distribution log
 const RecentDistributions = () => {
   const [history, setHistory] = useState<any[]>([]);
