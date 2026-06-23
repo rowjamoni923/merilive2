@@ -770,10 +770,11 @@ const Index = () => {
           <button
             aria-label="Leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/70 hover:-translate-y-0.5"
-            style={{ boxShadow: '0 4px 12px -3px rgba(217,119,6,0.25), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(146,64,14,0.08)' }}
+            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform duration-200 hover:-translate-y-0.5"
           >
-            <img src={championTrophy3d} alt="Leaderboard" className="w-5 h-5 object-contain drop-shadow-sm" loading="eager" />
+            <span className="leaderboard-3d-orbit" aria-hidden="true" />
+            <span className="leaderboard-3d-face" aria-hidden="true" />
+            <img src={championTrophy3d} alt="Leaderboard" className="leaderboard-3d-trophy" loading="eager" />
           </button>
         </div>
 
