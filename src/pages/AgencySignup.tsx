@@ -287,7 +287,7 @@ const AgencySignup = () => {
     (!formData.whatsapp.trim() || isValidWhatsApp(formData.whatsapp));
 
   const submitAgencyRegistration = async () => {
-    if (!appVerified) {
+    if (!appVerified || !appVerifiedToken) {
       toast({ title: "App OTP required", description: "Please verify the in-app OTP first", variant: "destructive" });
       return;
     }
