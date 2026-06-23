@@ -155,9 +155,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
     return () => clearInterval(interval);
   }, [appCodeTimer]);
 
-  const generateVerificationCode = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-  };
 
   // Search user by App UID
   const searchUserById = async () => {
