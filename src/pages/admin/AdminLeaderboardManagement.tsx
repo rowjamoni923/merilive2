@@ -72,8 +72,7 @@ const AdminLeaderboardManagement = () => {
   const [savingIcons, setSavingIcons] = useState(false);
 
   useEffect(() => {
-    fetchFrames();
-    fetchRewards();
+    fetchLeaderboardData();
   }, [selectedCategory, selectedPeriod]);
 
   useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => fetchIconSettings());
@@ -93,24 +92,36 @@ const AdminLeaderboardManagement = () => {
     }
   };
 
-  const fetchFrames = async () => {
-    const { data } = await supabase
-      .from("leaderboard_podium_frames")
-      .select("*")
-      .eq("category", selectedCategory)
-      .order("rank_position");
-    setFrames((data as PodiumFrame[]) || []);
+  const fetchLeaderboardData = async () => {
+    setLoading(true);
+    try {
+      const [framesRes, rewardsRes] = await Promise.all([
+        supabase
+          .from("leaderboard_podium_frames")
+          .select("*")
+          .eq("category", selectedCategory)
+          .order("rank_position"),
+        supabase
+          .from("leaderboard_reward_config")
+          .select("*")
+          .eq("category", selectedCategory)
+          .eq("period_type", selectedPeriod)
+          .order("rank_from"),
+      ]);
+
+      if (framesRes.error) throw framesRes.error;
+      if (rewardsRes.error) throw rewardsRes.error;
+      setFrames((framesRes.data as PodiumFrame[]) || []);
+      setRewards((rewardsRes.data as RewardConfig[]) || []);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load leaderboard setup");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchRewards = async () => {
-    const { data } = await supabase
-      .from("leaderboard_reward_config")
-      .select("*")
-      .eq("category", selectedCategory)
-      .eq("period_type", selectedPeriod)
-      .order("rank_from");
-    setRewards((data as RewardConfig[]) || []);
-  };
+  const fetchFrames = async () => fetchLeaderboardData();
+  const fetchRewards = async () => fetchLeaderboardData();
 
   // === ICON MANAGEMENT ===
   const handleIconUpload = async (settingKey: string, file: File) => {
@@ -306,9 +317,10 @@ const AdminLeaderboardManagement = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline" size="sm" 
-            onClick={() => { fetchFrames(); fetchRewards(); fetchIconSettings(); }}
+            onClick={() => { fetchLeaderboardData(); fetchIconSettings(); }}
+            disabled={loading}
           >
-            <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+            <RefreshCw className={cn("w-4 h-4 mr-1", loading && "animate-spin")} /> Refresh
           </Button>
         </div>
       </div>
