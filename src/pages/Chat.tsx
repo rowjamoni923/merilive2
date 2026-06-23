@@ -2785,18 +2785,10 @@ const Chat = () => {
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
-                        const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice):\s*/i, '').replace(/\]$/, '').trim();
-                        const urlNoQuery = cleanUrl.split('?')[0];
-                        const isStorageUrl = /^https?:\/\//i.test(cleanUrl) && cleanUrl.includes('supabase.co/storage');
-                        const isImage = msg.message_type === 'image'
-                          || /^\[Image:/i.test(content)
-                          || (isStorageUrl && /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/i.test(urlNoQuery));
-                        const isVideo = msg.message_type === 'video'
-                          || /^\[Video:/i.test(content)
-                          || (isStorageUrl && /\.(mp4|mov|avi|mkv|webm)$/i.test(urlNoQuery));
-                        const isAudio = msg.message_type === 'audio'
-                          || /^\[(Audio|Voice):/i.test(content)
-                          || (isStorageUrl && /\.(webm|mp3|wav|ogg|m4a|aac|flac)$/i.test(urlNoQuery));
+                        const cleanUrl = extractChatMediaPath(content);
+                        const isImage = isChatImageMessage(msg.message_type, content);
+                        const isVideo = isChatVideoMessage(msg.message_type, content);
+                        const isAudio = isChatAudioMessage(msg.message_type, content);
                         const isGift = msg.message_type === 'gift';
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
@@ -2868,14 +2860,12 @@ const Chat = () => {
                               <video 
                                 src={displayUrl}
                                 muted
-                                autoPlay
-                                loop
-                                controls={false}
+                                controls
                                 controlsList="nodownload noremoteplayback noplaybackrate"
                                 disablePictureInPicture
                                 disableRemotePlayback
                                 playsInline
-                                preload="auto"
+                                preload="metadata"
                                 className="max-w-[220px] max-h-[260px] rounded-xl object-cover bg-black"/>
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
