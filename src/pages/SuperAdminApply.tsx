@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, ScrollText, IdCard, PenLine } from "lucide-react";
+import { Loader2, ShieldCheck, ScrollText, IdCard, PenLine, ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SignaturePad, SignaturePadHandle } from "@/components/SignaturePad";
 import { AGREEMENT_VERSION, buildAgreementText } from "@/lib/superAdminAgreement";
@@ -48,12 +48,9 @@ export default function SuperAdminApply() {
     nid_front_url: "",
     nid_back_url: "",
     business_doc_url: "",
-    deposit_amount_usd: 10000,
-    deposit_proof_url: "",
-    deposit_tx_ref: "",
-    requested_commission_percent: 25,
     notes: "",
   });
+
 
   useEffect(() => {
     (async () => {
@@ -80,6 +77,8 @@ export default function SuperAdminApply() {
     toast.success("Uploaded");
   };
 
+  const MIN_DEPOSIT = settings?.min_deposit_usd || 10000;
+
   const submit = async () => {
     if (!userId) return;
     if (!form.full_name || !form.full_address || !form.official_email || !form.official_phone) {
@@ -87,9 +86,6 @@ export default function SuperAdminApply() {
     }
     if (!form.nid_number || !form.nid_front_url) {
       return toast.error("National ID number + front image are required");
-    }
-    if (form.deposit_amount_usd < (settings?.min_deposit_usd || 10000)) {
-      return toast.error(`Minimum deposit is $${settings?.min_deposit_usd || 10000}`);
     }
     if (!acceptTerms) return toast.error("You must accept the agreement");
     if (sigRef.current?.isEmpty()) return toast.error("Please sign the agreement");
@@ -109,8 +105,8 @@ export default function SuperAdminApply() {
         whatsapp: form.whatsapp,
         nid_country: form.nid_country,
         nid_number: form.nid_number,
-        deposit_amount_usd: form.deposit_amount_usd,
-        commission_percent: form.requested_commission_percent,
+        deposit_amount_usd: MIN_DEPOSIT,
+        commission_percent: 25,
         date_iso: now,
       }, signature_data_url);
 
@@ -136,10 +132,9 @@ export default function SuperAdminApply() {
         nid_front_url: form.nid_front_url,
         nid_back_url: form.nid_back_url || null,
         business_doc_url: form.business_doc_url || null,
-        deposit_amount_usd: form.deposit_amount_usd,
-        deposit_proof_url: form.deposit_proof_url || null,
-        deposit_tx_ref: form.deposit_tx_ref || null,
-        requested_commission_percent: form.requested_commission_percent,
+        // Helper does NOT set deposit — admin confirms the actual amount at approval time.
+        deposit_amount_usd: MIN_DEPOSIT,
+        requested_commission_percent: 25,
         notes: form.notes || null,
         signature_data_url,
         agreement_version: AGREEMENT_VERSION,
@@ -148,7 +143,9 @@ export default function SuperAdminApply() {
         status: "pending",
       });
       if (error) throw error;
-      toast.success("Agreement signed & submitted. Our team will officially contact you.");
+      toast.success(
+        `Application submitted. Our team will contact you at ${form.official_email} within 24–48 hours.`
+      );
       navigate("/");
     } catch (e: any) {
       toast.error(e.message || "Submission failed");
@@ -156,6 +153,7 @@ export default function SuperAdminApply() {
       setLoading(false);
     }
   };
+
 
   if (existing && existing.status !== "rejected" && existing.status !== "withdrawn") {
     return (
@@ -195,13 +193,21 @@ export default function SuperAdminApply() {
     whatsapp: form.whatsapp,
     nid_country: form.nid_country,
     nid_number: form.nid_number || "________________",
-    deposit_amount_usd: form.deposit_amount_usd,
-    commission_percent: form.requested_commission_percent,
+    deposit_amount_usd: MIN_DEPOSIT,
+    commission_percent: 25,
     date_iso: new Date().toISOString(),
   };
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
+      {/* Sticky back header */}
+      <div className="sticky top-0 z-10 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/95 backdrop-blur border-b flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="h-9">
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+        </Button>
+        <div className="text-sm font-semibold">Country Super Admin Application</div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -209,9 +215,21 @@ export default function SuperAdminApply() {
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Manage withdrawals for your country. Sits above Levels 1–5 helpers.
-            Minimum <b>${settings?.min_deposit_usd?.toLocaleString() || "10,000"}</b> deposit + signed agreement.
             Earn up to <b>25%</b> commission on every completed withdrawal.
           </p>
+          <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+            <div className="flex items-center gap-2 font-semibold text-primary">
+              <Mail className="w-3.5 h-3.5" /> How onboarding works
+            </div>
+            <p className="text-foreground/80 leading-relaxed">
+              <b>Step 1 — Submit this application.</b> Provide identity, contact and signed agreement.
+            </p>
+            <p className="text-foreground/80 leading-relaxed">
+              <b>Step 2 — Our admin team contacts you</b> at your official email within 24–48 hours
+              to coordinate the <b>${MIN_DEPOSIT.toLocaleString()} deposit</b>, verify documents, and complete onboarding.
+              Once approved, you'll receive a private access link giving you full Country Super Admin access for your country.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -290,31 +308,14 @@ export default function SuperAdminApply() {
             </div>
           </div>
 
-          <div className="border-t pt-4 grid grid-cols-2 gap-3">
-            <div>
-              <Label>Deposit amount (USD) *</Label>
-              <Input type="number" min={settings?.min_deposit_usd || 10000} value={form.deposit_amount_usd}
-                onChange={(e) => setForm({ ...form, deposit_amount_usd: Number(e.target.value) })} />
-            </div>
-            <div>
-              <Label>Deposit transaction reference</Label>
-              <Input value={form.deposit_tx_ref} onChange={(e) => setForm({ ...form, deposit_tx_ref: e.target.value })} />
-            </div>
-            <div className="col-span-2">
-              <Label>Deposit proof (screenshot)</Label>
-              <Input type="file" accept="image/*,application/pdf"
-                onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], "deposit_proof_url")} />
-              {form.deposit_proof_url && <span className="text-xs text-primary">Uploaded ✓</span>}
-            </div>
-            <div className="col-span-2">
-              <Label>Requested commission % (max 25)</Label>
-              <Input type="number" max={25} min={0} value={form.requested_commission_percent}
-                onChange={(e) => setForm({ ...form, requested_commission_percent: Math.min(25, Number(e.target.value)) })} />
-            </div>
-            <div className="col-span-2">
-              <Label>Notes</Label>
-              <Textarea value={form.notes} rows={2} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
+          <div className="border-t pt-4 space-y-2">
+            <Label>Notes for the admin team (optional)</Label>
+            <Textarea
+              value={form.notes}
+              rows={3}
+              placeholder="Anything else our team should know — preferred contact time, time zone, language, etc."
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
           </div>
 
           <div className="border-t pt-4 space-y-3">
@@ -340,10 +341,12 @@ export default function SuperAdminApply() {
             Sign & submit application
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            On submit, a signed PDF agreement is auto-generated and stored. Our team will officially contact you.
+            On submit, a signed PDF agreement is generated. Our admin team will contact you at your official
+            email to coordinate the ${MIN_DEPOSIT.toLocaleString()} deposit and complete onboarding.
           </p>
         </CardContent>
       </Card>
     </div>
   );
+
 }

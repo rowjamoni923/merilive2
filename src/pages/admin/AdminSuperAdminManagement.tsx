@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, FileText, DollarSign, Users, History } from "lucide-react";
+import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy } from "lucide-react";
 
 type Application = {
   id: string;
@@ -76,8 +76,10 @@ export default function AdminSuperAdminManagement() {
     min_withdraw_usd: 5,
     max_withdraw_usd: 1000,
     daily_cap_usd: 5000,
+    deposit_amount_usd: 10000,
   });
   const [submitting, setSubmitting] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
@@ -133,11 +135,26 @@ export default function AdminSuperAdminManagement() {
       min_withdraw_usd: 5,
       max_withdraw_usd: 1000,
       daily_cap_usd: 5000,
+      deposit_amount_usd: Math.max(10000, Number(app.deposit_amount_usd) || 10000),
     });
+  };
+
+  const copyAccessLink = async (countryCode: string) => {
+    const base = window.location.origin;
+    const link = `${base}/auth?next=${encodeURIComponent(`/super-admin/apply`)}&role=country_super_admin&country=${countryCode}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success(`Access link for ${countryCode} copied. Send via official email.`);
+    } catch {
+      toast.error("Copy failed — please copy manually: " + link);
+    }
   };
 
   const approve = async () => {
     if (!reviewApp) return;
+    if (reviewForm.deposit_amount_usd < (settings?.min_deposit_usd || 10000)) {
+      return toast.error(`Confirmed deposit must be at least $${settings?.min_deposit_usd || 10000}`);
+    }
     setSubmitting(true);
     const methods = reviewForm.allowed_payment_methods
       .split(",").map(s => s.trim()).filter(Boolean);
@@ -149,13 +166,18 @@ export default function AdminSuperAdminManagement() {
       _min_withdraw_usd: reviewForm.min_withdraw_usd,
       _max_withdraw_usd: reviewForm.max_withdraw_usd,
       _daily_cap_usd: reviewForm.daily_cap_usd,
-    });
+      _deposit_amount_usd: reviewForm.deposit_amount_usd,
+    } as any);
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Super Admin approved");
+    toast.success(`Super Admin approved for ${reviewApp.country_code}. Copy access link from the Active tab.`);
+    const country = reviewApp.country_code;
     setReviewApp(null);
     load();
+    // Auto-copy the access link so the admin can paste it into the onboarding email straight away.
+    setTimeout(() => copyAccessLink(country), 300);
   };
+
 
   const reject = async (id: string) => {
     const notes = prompt("Rejection reason?") || "";
@@ -289,10 +311,14 @@ export default function AdminSuperAdminManagement() {
                 <div>Methods: {Array.isArray(a.allowed_payment_methods) ? a.allowed_payment_methods.join(", ") : "—"}</div>
                 <div>Auto-pay: {a.auto_pay_enabled ? "ON" : "OFF (helper-routed)"}</div>
                 <div>Limits: ${a.min_withdraw_usd}–${a.max_withdraw_usd} · daily cap ${a.daily_cap_usd}</div>
-                <div className="flex gap-2 pt-3">
+                <div className="flex flex-wrap gap-2 pt-3">
+                  <Button size="sm" variant="default" onClick={() => copyAccessLink(a.country_code)}>
+                    <Link2 className="w-3.5 h-3.5 mr-1" /> Copy access link
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => suspend(a)}>Suspend</Button>
                   <Button size="sm" variant="destructive" onClick={() => revoke(a)}>Revoke</Button>
                 </div>
+
               </CardContent>
             </Card>
           ))}
@@ -395,10 +421,24 @@ export default function AdminSuperAdminManagement() {
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="bg-muted p-3 rounded text-xs">
-              Deposit verified: <b>${reviewApp?.deposit_amount_usd.toLocaleString()}</b> ·
-              Contract: {reviewApp?.signed_contract_url ? "✅" : "❌"} ·
-              Contact: {reviewApp?.official_email && reviewApp?.official_phone ? "✅" : "❌"}
+              Contract: {reviewApp?.signed_contract_url || (reviewApp as any)?.agreement_pdf_url ? "✅" : "❌"} ·
+              Signature: {(reviewApp as any)?.signature_data_url ? "✅" : "❌"} ·
+              Contact: {reviewApp?.official_email && reviewApp?.official_phone ? "✅" : "❌"} ·
+              NID: {(reviewApp as any)?.nid_front_url ? "✅" : "❌"}
             </div>
+            <div className="rounded border border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs space-y-1">
+              <div className="font-semibold text-amber-700 dark:text-amber-300">⚠ Confirm the actual USD deposit you received</div>
+              <p className="text-muted-foreground">The applicant does not enter a deposit amount — only you do, after verifying funds.</p>
+            </div>
+            <div>
+              <Label>Confirmed deposit (USD) *</Label>
+              <Input type="number" min={settings?.min_deposit_usd || 10000} value={reviewForm.deposit_amount_usd}
+                onChange={(e) => setReviewForm({ ...reviewForm, deposit_amount_usd: Number(e.target.value) })} />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Minimum ${settings?.min_deposit_usd?.toLocaleString() || "10,000"}. This locks the deposit on record.
+              </p>
+            </div>
+
             <div>
               <Label>Allowed payment methods (comma-separated)</Label>
               <Input value={reviewForm.allowed_payment_methods}
