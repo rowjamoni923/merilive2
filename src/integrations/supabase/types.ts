@@ -1722,6 +1722,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id: string | null
+          blocked_helper_ids: string[]
           claim_locked_until: string | null
           country_code: string | null
           currency: string | null
@@ -1752,6 +1753,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id?: string | null
+          blocked_helper_ids?: string[]
           claim_locked_until?: string | null
           country_code?: string | null
           currency?: string | null
@@ -1782,6 +1784,7 @@ export type Database = {
           agency_id?: string
           amount?: number
           assigned_helper_id?: string | null
+          blocked_helper_ids?: string[]
           claim_locked_until?: string | null
           country_code?: string | null
           currency?: string | null

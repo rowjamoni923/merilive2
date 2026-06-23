@@ -91,6 +91,7 @@ interface AgencyWithdrawal {
   helper_processed_at?: string | null;
   assigned_helper_id?: string | null;
   claim_locked_until?: string | null;
+  blocked_helper_ids?: string[] | null;
   locked_at?: string | null;
   locked_by_helper_name?: string | null;
   agency?: { name: string; agency_code: string; logo_url?: string; owner_id: string };
@@ -140,7 +141,7 @@ interface CurrencyRate {
   rate_to_usd: number;
 }
 
-const CLAIM_LOCK_SECONDS = 3600; // Updated to 1 hour (3600 seconds) to prevent double payments as requested
+const CLAIM_LOCK_SECONDS = 1800; // 30 minute lock — if helper doesn't pay, another helper can claim after this expires (original claimer is permanently blocked)
 
 const getClaimLockExpiryMs = (withdrawal?: { claim_locked_until?: string | null } | null) => {
   if (!withdrawal?.claim_locked_until) return null;
@@ -152,17 +153,30 @@ const hasActiveClaimLock = (
   withdrawal?: { status?: string | null; assigned_helper_id?: string | null; claim_locked_until?: string | null } | null,
   now = Date.now()
 ) => {
-  if (withdrawal?.status !== 'pending' || !withdrawal?.assigned_helper_id) return false;
+  if (withdrawal?.status !== 'pending') return false;
   const expiry = getClaimLockExpiryMs(withdrawal);
+  // Active lock if expiry is in the future — even if assigned_helper_id is null (cooldown after release)
   return expiry !== null && expiry > now;
 };
 
+const isHelperBlockedFromWithdrawal = (
+  withdrawal?: { blocked_helper_ids?: string[] | null } | null,
+  helperId?: string | null
+) => {
+  if (!helperId || !withdrawal?.blocked_helper_ids) return false;
+  return withdrawal.blocked_helper_ids.includes(helperId);
+};
+
 const isWithdrawalAvailableForClaim = (
-  withdrawal?: { status?: string | null; assigned_helper_id?: string | null; claim_locked_until?: string | null } | null,
-  now = Date.now()
+  withdrawal?: { status?: string | null; assigned_helper_id?: string | null; claim_locked_until?: string | null; blocked_helper_ids?: string[] | null } | null,
+  now = Date.now(),
+  helperId?: string | null
 ) => {
   if (withdrawal?.status !== 'pending') return false;
-  return !withdrawal?.assigned_helper_id || !hasActiveClaimLock(withdrawal, now);
+  if (isHelperBlockedFromWithdrawal(withdrawal, helperId)) return false;
+  // Unavailable while lock active and not owned by current helper
+  if (hasActiveClaimLock(withdrawal, now) && withdrawal?.assigned_helper_id !== helperId) return false;
+  return true;
 };
 
 const Level5HelperDashboard = () => {
