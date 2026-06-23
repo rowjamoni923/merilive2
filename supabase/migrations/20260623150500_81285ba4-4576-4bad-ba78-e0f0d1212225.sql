@@ -1,0 +1,2 @@
+ALTER TABLE public.leaderboard_reward_config ALTER COLUMN leaderboard_type SET DEFAULT 'general';
+UPDATE public.leaderboard_reward_config SET leaderboard_type = COALESCE(NULLIF(leaderboard_type,''), category, 'general') WHERE leaderboard_type IS NULL OR leaderboard_type = '';
