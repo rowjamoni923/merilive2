@@ -525,14 +525,11 @@ const LiveStream = () => {
       wasHostInCallRef.current = true;
       return;
     }
-    // Transition: in-call -> idle while still on LiveStream as the host.
     if (wasHostInCallRef.current) {
       wasHostInCallRef.current = false;
-      if (!showLiveEndSummary && !showStreamEndedModal) {
-        setShowHostReturnModal(true);
-      }
+      setShowHostReturnModal(true);
     }
-  }, [isHost, isInCall, showLiveEndSummary, showStreamEndedModal]);
+  }, [isHost, isInCall]);
   
   // ==================== UNIFIED ENTRY ANIMATION SYSTEM ====================
   // Same queue-based architecture as Gift System
