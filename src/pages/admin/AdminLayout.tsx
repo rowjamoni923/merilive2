@@ -746,7 +746,15 @@ const navGroups: NavGroup[] = [
         hubKey: "trader-hub",
         description: "Elite Level-5 helper roster with payroll settings and elevated trade limits.",
       },
+      {
+        label: "Country Super Admin (L6)",
+        icon: ShieldCheck,
+        path: "/admin/super-admin-management",
+        hubKey: "trader-hub",
+        description: "Per-country payroll managers — review L6 applications, confirm $10K deposit, approve & copy access link.",
+      },
     ],
+
   },
   {
     title: "🎮 Game System",
