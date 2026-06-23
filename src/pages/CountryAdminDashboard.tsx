@@ -100,7 +100,11 @@ export default function CountryAdminDashboard() {
     const filtered = (data || []).filter((r: any) =>
       countries.includes(r.helper?.country_code)
     );
-    setRows(filtered as HelperRow[]);
+    const normalized = filtered.map((r: any) => ({
+      ...r,
+      helper: Array.isArray(r.helper) ? r.helper[0] ?? null : r.helper,
+    }));
+    setRows(normalized as HelperRow[]);
   };
 
   const refresh = async () => {
