@@ -421,10 +421,24 @@ export default function AdminSuperAdminManagement() {
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="bg-muted p-3 rounded text-xs">
-              Deposit verified: <b>${reviewApp?.deposit_amount_usd.toLocaleString()}</b> ·
-              Contract: {reviewApp?.signed_contract_url ? "✅" : "❌"} ·
-              Contact: {reviewApp?.official_email && reviewApp?.official_phone ? "✅" : "❌"}
+              Contract: {reviewApp?.signed_contract_url || (reviewApp as any)?.agreement_pdf_url ? "✅" : "❌"} ·
+              Signature: {(reviewApp as any)?.signature_data_url ? "✅" : "❌"} ·
+              Contact: {reviewApp?.official_email && reviewApp?.official_phone ? "✅" : "❌"} ·
+              NID: {(reviewApp as any)?.nid_front_url ? "✅" : "❌"}
             </div>
+            <div className="rounded border border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs space-y-1">
+              <div className="font-semibold text-amber-700 dark:text-amber-300">⚠ Confirm the actual USD deposit you received</div>
+              <p className="text-muted-foreground">The applicant does not enter a deposit amount — only you do, after verifying funds.</p>
+            </div>
+            <div>
+              <Label>Confirmed deposit (USD) *</Label>
+              <Input type="number" min={settings?.min_deposit_usd || 10000} value={reviewForm.deposit_amount_usd}
+                onChange={(e) => setReviewForm({ ...reviewForm, deposit_amount_usd: Number(e.target.value) })} />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Minimum ${settings?.min_deposit_usd?.toLocaleString() || "10,000"}. This locks the deposit on record.
+              </p>
+            </div>
+
             <div>
               <Label>Allowed payment methods (comma-separated)</Label>
               <Input value={reviewForm.allowed_payment_methods}
