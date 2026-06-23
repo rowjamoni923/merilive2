@@ -55,7 +55,10 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'face_verification_submissions',
   'notifications',
   'admin_users',
-  'admin_section_permissions'
+  'admin_section_permissions',
+  // Phase 2 sync — newly published approval flows
+  'swift_pay_topups',
+  'account_deletion_requests'
 ]);
 
 // ============= HOOK =============
