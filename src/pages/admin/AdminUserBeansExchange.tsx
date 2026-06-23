@@ -65,8 +65,8 @@
        if (editingTier) {
          const { error } = await supabase
            .from('user_beans_exchange_tiers')
-           .update({
-             tier_name: formData.tier_name.trim() || null,
+            .update({
+              tier_name: formData.tier_name.trim() || "New Tier",
              min_beans: parseInt(formData.min_beans),
              max_beans: formData.max_beans ? parseInt(formData.max_beans) : null,
              exchange_rate: Number(formData.exchange_rate),
@@ -80,9 +80,9 @@
          toast({ title: "Tier updated successfully" });
        } else {
          const { error } = await supabase
-           .from('user_beans_exchange_tiers')
-            .insert({
-              tier_name: formData.tier_name.trim() || null,
+            .from('user_beans_exchange_tiers')
+             .insert({
+               tier_name: formData.tier_name.trim() || "New Tier",
               min_beans: parseInt(formData.min_beans),
               max_beans: formData.max_beans ? parseInt(formData.max_beans) : null,
               exchange_rate: Number(formData.exchange_rate),

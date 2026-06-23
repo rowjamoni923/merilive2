@@ -4179,10 +4179,10 @@ export type Database = {
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
-          reward_amount: number
+          reward_amount?: number
           reward_coins?: number
           reward_diamonds?: number
-          reward_type: string
+          reward_type?: string
         }
         Update: {
           bonus_label?: string | null
@@ -7918,6 +7918,8 @@ export type Database = {
           animation_config_url: string | null
           animation_format: string | null
           animation_url: string | null
+          badge_text: string | null
+          bonus_percentage: number | null
           coins_amount: number
           created_at: string | null
           description: string | null
@@ -7931,13 +7933,17 @@ export type Database = {
           original_price: number
           starts_at: string
           title: string
+          total_claimed: number | null
+          total_max_claims: number | null
           updated_at: string
         }
         Insert: {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
-          coins_amount: number
+          badge_text?: string | null
+          bonus_percentage?: number | null
+          coins_amount?: number
           created_at?: string | null
           description?: string | null
           discount_percent?: number | null
@@ -7946,16 +7952,20 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_claims?: number | null
-          offer_price: number
-          original_price: number
-          starts_at: string
+          offer_price?: number
+          original_price?: number
+          starts_at?: string
           title: string
+          total_claimed?: number | null
+          total_max_claims?: number | null
           updated_at?: string
         }
         Update: {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
+          badge_text?: string | null
+          bonus_percentage?: number | null
           coins_amount?: number
           created_at?: string | null
           description?: string | null
@@ -7969,6 +7979,8 @@ export type Database = {
           original_price?: number
           starts_at?: string
           title?: string
+          total_claimed?: number | null
+          total_max_claims?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -15048,7 +15060,7 @@ export type Database = {
           is_active?: boolean | null
           max_beans?: number | null
           min_beans: number
-          tier_name: string
+          tier_name?: string
           updated_at?: string
         }
         Update: {

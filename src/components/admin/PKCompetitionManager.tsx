@@ -130,6 +130,7 @@ const PKCompetitionManager = () => {
           competition_type: formData.competition_type,
           max_participants: formData.max_participants,
           status: new Date(formData.start_date) <= new Date() ? "active" : "upcoming",
+          is_active: true,
         })
         .select()
         .single();
@@ -147,21 +148,31 @@ const PKCompetitionManager = () => {
   };
 
   const generateRewardTiers = async (compId: string) => {
-    // Delete existing
-    await supabase.from("pk_competition_rewards").delete().eq("competition_id", compId);
-    const tiers = [
-      { from: 1, to: 1 }, { from: 2, to: 2 }, { from: 3, to: 3 },
-      { from: 4, to: 5 }, { from: 6, to: 10 },
-    ];
-    for (const t of tiers) {
-      await supabase.from("pk_competition_rewards").insert({
-        competition_id: compId,
-        rank_from: t.from, rank_to: t.to,
-        reward_diamonds: 0, reward_beans: 0, reward_coins: 0, is_active: true,
-      });
+    try {
+      const { error: deleteError } = await supabase.from("pk_competition_rewards").delete().eq("competition_id", compId);
+      if (deleteError) throw deleteError;
+
+      const tiers = [
+        { from: 1, to: 1 }, { from: 2, to: 2 }, { from: 3, to: 3 },
+        { from: 4, to: 5 }, { from: 6, to: 10 },
+      ];
+      const { error: insertError } = await supabase.from("pk_competition_rewards").insert(
+        tiers.map((t) => ({
+          competition_id: compId,
+          rank_from: t.from,
+          rank_to: t.to,
+          reward_diamonds: 0,
+          reward_beans: 0,
+          reward_coins: 0,
+          is_active: true,
+        }))
+      );
+      if (insertError) throw insertError;
+      toast.success("Reward tiers created - set values now");
+      fetchRewards(compId);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create reward tiers");
     }
-    toast.success("Reward tiers created - set values now");
-    fetchRewards(compId);
   };
 
   const updateReward = async (rewardId: string, field: string, value: number) => {
@@ -182,11 +193,15 @@ const PKCompetitionManager = () => {
     if (!selectedComp) return;
     const lastTier = rewards[rewards.length - 1];
     const newFrom = lastTier ? lastTier.rank_to + 1 : 1;
-    await supabase.from("pk_competition_rewards").insert({
+    const { error } = await supabase.from("pk_competition_rewards").insert({
       competition_id: selectedComp.id,
       rank_from: newFrom, rank_to: Math.min(newFrom + 4, 50),
       reward_diamonds: 0, reward_beans: 0, reward_coins: 0, is_active: true,
     });
+    if (error) {
+      toast.error(error.message || "Failed to add reward tier");
+      return;
+    }
     fetchRewards(selectedComp.id);
   };
 
@@ -345,43 +360,12 @@ const PKCompetitionManager = () => {
 
           <CardContent className="space-y-2">
             {rewards.map((reward) => (
-              <div key={reward.id} className="grid grid-cols-6 gap-2 items-center bg-white/5 rounded-lg p-2">
-                <div className="col-span-1">
-                  <Label className="text-white/50 text-[10px]">Rank</Label>
-                  <div className="flex items-center gap-1">
-                    <Input type="number" min={1} max={50} value={reward.rank_from}
-                      onChange={(e) => updateReward(reward.id, "rank_from", Number(e.target.value))}
-                      className="w-14 text-xs bg-white/5 border-white/10 text-white h-8" />
-                    <span className="text-white/40">-</span>
-                    <Input type="number" min={1} max={50} value={reward.rank_to}
-                      onChange={(e) => updateReward(reward.id, "rank_to", Number(e.target.value))}
-                      className="w-14 text-xs bg-white/5 border-white/10 text-white h-8" />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-white/50 text-[10px]">Beans</Label>
-                  <Input type="number" min={0} value={reward.reward_beans}
-                    onChange={(e) => updateReward(reward.id, "reward_beans", Number(e.target.value))}
-                    className="text-xs bg-white/5 border-white/10 text-white h-8" />
-                </div>
-                <div>
-                  <Label className="text-white/50 text-[10px]">Diamonds 💎</Label>
-                  <Input type="number" min={0} value={reward.reward_diamonds}
-                    onChange={(e) => updateReward(reward.id, "reward_diamonds", Number(e.target.value))}
-                    className="text-xs bg-white/5 border-white/10 text-white h-8" />
-                </div>
-                <div>
-                  <Label className="text-white/50 text-[10px]">Coins</Label>
-                  <Input type="number" min={0} value={reward.reward_coins}
-                    onChange={(e) => updateReward(reward.id, "reward_coins", Number(e.target.value))}
-                    className="text-xs bg-white/5 border-white/10 text-white h-8" />
-                </div>
-                <div className="col-span-1 flex items-end justify-end">
-                  <Button variant="destructive" size="sm" onClick={() => deleteReward(reward.id)}>
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+              <PKRewardTierRow
+                key={reward.id}
+                reward={reward}
+                onCommit={(field, value) => updateReward(reward.id, field, value)}
+                onDelete={() => deleteReward(reward.id)}
+              />
             ))}
 
             {rewards.length === 0 && (
@@ -466,6 +450,84 @@ const PKCompetitionManager = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+interface PKRewardTierRowProps {
+  reward: PKRewardTier;
+  onCommit: (field: string, value: number) => void;
+  onDelete: () => void;
+}
+
+const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) => {
+  const [draft, setDraft] = useState({
+    rank_from: String(reward.rank_from ?? 1),
+    rank_to: String(reward.rank_to ?? 1),
+    reward_beans: String(reward.reward_beans ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_coins: String(reward.reward_coins ?? 0),
+  });
+
+  useEffect(() => {
+    setDraft({
+      rank_from: String(reward.rank_from ?? 1),
+      rank_to: String(reward.rank_to ?? 1),
+      reward_beans: String(reward.reward_beans ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_coins: String(reward.reward_coins ?? 0),
+    });
+  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_coins]);
+
+  const commit = (field: keyof typeof draft, min = 0) => {
+    const raw = draft[field];
+    const next = raw === "" ? min : Math.max(min, Number(raw));
+    if (!Number.isFinite(next)) return;
+    const current = Number((reward as any)[field] ?? min);
+    if (next !== current) onCommit(field, next);
+  };
+
+  const numInput = (field: keyof typeof draft, className = "", min = 0, max?: number) => (
+    <Input
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      value={draft[field]}
+      onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+      onBlur={() => commit(field, min)}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className={`text-xs bg-white/5 border-white/10 text-white h-8 ${className}`}
+    />
+  );
+
+  return (
+    <div className="grid grid-cols-6 gap-2 items-center bg-white/5 rounded-lg p-2">
+      <div className="col-span-1">
+        <Label className="text-white/50 text-[10px]">Rank</Label>
+        <div className="flex items-center gap-1">
+          {numInput("rank_from", "w-14", 1, 50)}
+          <span className="text-white/40">-</span>
+          {numInput("rank_to", "w-14", 1, 50)}
+        </div>
+      </div>
+      <div>
+        <Label className="text-white/50 text-[10px]">Beans</Label>
+        {numInput("reward_beans")}
+      </div>
+      <div>
+        <Label className="text-white/50 text-[10px]">Diamonds 💎</Label>
+        {numInput("reward_diamonds")}
+      </div>
+      <div>
+        <Label className="text-white/50 text-[10px]">Coins</Label>
+        {numInput("reward_coins")}
+      </div>
+      <div className="col-span-1 flex items-end justify-end">
+        <Button variant="destructive" size="sm" onClick={onDelete}>
+          <Trash2 className="w-3 h-3" />
+        </Button>
+      </div>
     </div>
   );
 };

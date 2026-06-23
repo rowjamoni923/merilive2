@@ -154,14 +154,14 @@ const AdminInvitationSettings = () => {
         toast.success('Tier updated');
       } else {
         const insertData = {
-          tier_name: formData.tier_name || '',
-          min_invites: formData.min_invites || 1,
+          tier_name: formData.tier_name?.trim() || 'New Tier',
+          min_invites: formData.min_invites ?? 1,
           max_invites: formData.max_invites || null,
-          reward_beans: formData.reward_beans || 0,
-          reward_coins: formData.reward_coins || 0,
-          bonus_percentage: formData.bonus_percentage || 0,
+          reward_beans: formData.reward_beans ?? 0,
+          reward_coins: formData.reward_coins ?? 0,
+          bonus_percentage: formData.bonus_percentage ?? 0,
           badge_color: formData.badge_color || '#FFD700',
-          display_order: formData.display_order || 0,
+          display_order: formData.display_order ?? 0,
           is_active: formData.is_active ?? true
         };
         const { error } = await supabase
@@ -223,7 +223,7 @@ const AdminInvitationSettings = () => {
   const toggleActive = async (tier: InvitationTier) => {
     try {
       const { error } = await supabase
-        .from('invitation_settings')
+        .from('invitation_reward_tiers')
         .update({ is_active: !tier.is_active })
         .eq('id', tier.id);
       if (error) throw error;
@@ -278,7 +278,7 @@ const AdminInvitationSettings = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Min Invites</Label>
-                  <Input type="number" value={formData.min_invites || 1} onChange={(e) => setFormData({ ...formData, min_invites: parseInt(e.target.value) })} />
+                  <Input type="number" value={formData.min_invites ?? ''} onChange={(e) => setFormData({ ...formData, min_invites: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
                 </div>
                 <div>
                   <Label>Max Invites</Label>
@@ -289,17 +289,17 @@ const AdminInvitationSettings = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Beans Reward</Label>
-                  <Input type="number" value={formData.reward_beans || 0} onChange={(e) => setFormData({ ...formData, reward_beans: parseInt(e.target.value) })} />
+                  <Input type="number" value={formData.reward_beans ?? ''} onChange={(e) => setFormData({ ...formData, reward_beans: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
                 </div>
                 <div>
                   <Label>Diamonds Reward</Label>
-                  <Input type="number" value={formData.reward_coins || 0} onChange={(e) => setFormData({ ...formData, reward_coins: parseInt(e.target.value) })} />
+                  <Input type="number" value={formData.reward_coins ?? ''} onChange={(e) => setFormData({ ...formData, reward_coins: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
                 </div>
               </div>
 
               <div>
                 <Label>Bonus Percentage (%)</Label>
-                <Input type="number" value={formData.bonus_percentage || 0} onChange={(e) => setFormData({ ...formData, bonus_percentage: parseInt(e.target.value) })} />
+                <Input type="number" value={formData.bonus_percentage ?? ''} onChange={(e) => setFormData({ ...formData, bonus_percentage: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -309,7 +309,7 @@ const AdminInvitationSettings = () => {
                 </div>
                 <div>
                   <Label>Display Order</Label>
-                  <Input type="number" value={formData.display_order || 0} onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })} />
+                  <Input type="number" value={formData.display_order ?? ''} onChange={(e) => setFormData({ ...formData, display_order: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
                 </div>
               </div>
 

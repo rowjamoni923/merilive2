@@ -92,8 +92,12 @@ export default function AdminRatingRewards() {
     try {
       const { error } = await supabase
         .from('app_settings')
-        .update({ setting_value: enabled ? 'true' : 'false' })
-        .eq('setting_key', 'rating_popup_enabled');
+        .upsert({
+          setting_key: 'rating_popup_enabled',
+          setting_value: enabled ? 'true' : 'false',
+          description: 'Rating popup enabled state',
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'setting_key' });
       if (error) throw error;
       setRatingEnabled(enabled);
       toast.success(`Rating popup ${enabled ? 'enabled' : 'disabled'}`);

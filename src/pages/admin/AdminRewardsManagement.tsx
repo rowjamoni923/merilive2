@@ -89,23 +89,31 @@ const AdminRewardsManagement = () => {
 
   // ===== FIRST RECHARGE HANDLERS =====
   const saveFirstRecharge = async () => {
-    if (!firstRechargeConfig?.id) return;
-    const { error } = await supabase
-      .from("first_recharge_bonus")
-      .update({
-        bonus_multiplier: firstRechargeConfig.bonus_multiplier,
-        bonus_label: firstRechargeConfig.bonus_label,
-        description: firstRechargeConfig.description,
-        is_active: firstRechargeConfig.is_active,
-        banner_image_url: firstRechargeConfig.banner_image_url || null,
-        banner_title: firstRechargeConfig.banner_title || 'First Recharge Bonus!',
-        banner_subtitle: firstRechargeConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase',
-        banner_type: firstRechargeConfig.banner_type || 'image',
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", firstRechargeConfig.id);
-    if (error) toast.error("Failed to save");
-    else toast.success("First recharge config saved");
+    if (!firstRechargeConfig) return;
+
+    const payload = {
+      bonus_coins: firstRechargeConfig.bonus_coins ?? 0,
+      bonus_percentage: firstRechargeConfig.bonus_percentage ?? 0,
+      bonus_multiplier: firstRechargeConfig.bonus_multiplier,
+      bonus_label: firstRechargeConfig.bonus_label,
+      description: firstRechargeConfig.description,
+      is_active: firstRechargeConfig.is_active,
+      banner_image_url: firstRechargeConfig.banner_image_url || null,
+      banner_title: firstRechargeConfig.banner_title || 'First Recharge Bonus!',
+      banner_subtitle: firstRechargeConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase',
+      banner_type: firstRechargeConfig.banner_type || 'image',
+      updated_at: new Date().toISOString(),
+    };
+
+    const result = firstRechargeConfig.id
+      ? await supabase.from("first_recharge_bonus").update(payload).eq("id", firstRechargeConfig.id).select().single()
+      : await supabase.from("first_recharge_bonus").insert(payload).select().single();
+
+    if (result.error) toast.error("Failed to save");
+    else {
+      setFirstRechargeConfig(result.data || firstRechargeConfig);
+      toast.success("First recharge config saved");
+    }
   };
 
   // Banner image upload handler
@@ -180,7 +188,12 @@ const AdminRewardsManagement = () => {
     const { error } = await supabase.from("limited_time_offers").insert({
       title: newOffer.title,
       description: newOffer.description,
+      coins_amount: 0,
+      original_price: 0,
+      offer_price: 0,
       bonus_percentage: newOffer.bonus_percentage,
+      discount_percent: newOffer.bonus_percentage,
+      starts_at: new Date().toISOString(),
       ends_at: newOffer.ends_at,
       badge_text: newOffer.badge_text,
       is_active: newOffer.is_active,
@@ -249,46 +262,11 @@ const AdminRewardsManagement = () => {
             <CardContent>
               <div className="grid gap-4">
                 {loginRewards.map((reward) => (
-                  <div key={reward.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                    <Badge variant="outline" className="min-w-[60px] justify-center">
-                      Day {reward.day_number}
-                    </Badge>
-                    <div className="flex-1 grid grid-cols-3 gap-3">
-                      <div>
-                        <Label className="text-xs">Diamonds</Label>
-                        <Input
-                          type="number"
-                          value={reward.reward_coins}
-                          onChange={(e) => updateLoginReward(reward.id, "reward_coins", parseInt(e.target.value) || 0)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Diamonds</Label>
-                        <Input
-                          type="number"
-                          value={reward.reward_diamonds}
-                          onChange={(e) => updateLoginReward(reward.id, "reward_diamonds", parseInt(e.target.value) || 0)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Label</Label>
-                        <Input
-                          value={reward.bonus_label || ""}
-                          onChange={(e) => updateLoginReward(reward.id, "bonus_label", e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs">Active</Label>
-                      <Switch
-                        checked={reward.is_active}
-                        onCheckedChange={(val) => updateLoginReward(reward.id, "is_active", val)}
-                      />
-                    </div>
-                  </div>
+                  <DailyLoginRewardRow
+                    key={reward.id}
+                    reward={reward}
+                    onCommit={(field, value) => updateLoginReward(reward.id, field, value)}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -458,73 +436,12 @@ const AdminRewardsManagement = () => {
             <CardContent>
               <div className="grid gap-4">
                 {consumptionTiers.map((tier) => (
-                  <div key={tier.id} className="p-4 border rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Crown className="w-5 h-5 text-amber-500" />
-                        <Input
-                          value={tier.tier_name}
-                          onChange={(e) => updateTier(tier.id, { tier_name: e.target.value })}
-                          className="h-8 w-32 font-bold"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={tier.is_active}
-                          onCheckedChange={(val) => updateTier(tier.id, { is_active: val })}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => deleteTier(tier.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-3">
-                      <div>
-                        <Label className="text-xs">Min Spend</Label>
-                        <Input
-                          type="number"
-                          value={tier.min_spend}
-                          onChange={(e) => updateTier(tier.id, { min_spend: parseInt(e.target.value) || 0 })}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Max Spend</Label>
-                        <Input
-                          type="number"
-                          value={tier.max_spend || ""}
-                          placeholder="Unlimited"
-                          onChange={(e) => updateTier(tier.id, { max_spend: e.target.value ? parseInt(e.target.value) : null })}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Return %</Label>
-                        <Input
-                          type="number"
-                          step="0.5"
-                          value={tier.return_percentage}
-                          onChange={(e) => updateTier(tier.id, { return_percentage: parseFloat(e.target.value) || 0 })}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Max Return</Label>
-                        <Input
-                          type="number"
-                          value={tier.max_return_coins || ""}
-                          placeholder="Unlimited"
-                          onChange={(e) => updateTier(tier.id, { max_return_coins: e.target.value ? parseInt(e.target.value) : null })}
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <ConsumptionTierRow
+                    key={tier.id}
+                    tier={tier}
+                    onCommit={(updates) => updateTier(tier.id, updates)}
+                    onDelete={() => deleteTier(tier.id)}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -651,6 +568,203 @@ const AdminRewardsManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+};
+
+const blurOnEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+};
+
+const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (field: string, value: any) => void }) => {
+  const [draft, setDraft] = useState({
+    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
+    bonus_label: reward.bonus_label || "",
+  });
+
+  useEffect(() => {
+    setDraft({
+      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      bonus_label: reward.bonus_label || "",
+    });
+  }, [reward.id, reward.reward_coins, reward.reward_diamonds, reward.bonus_label]);
+
+  const commitNumber = (field: "reward_coins" | "reward_diamonds") => {
+    const next = draft[field] === "" ? 0 : Math.max(0, Number(draft[field]));
+    if (!Number.isFinite(next) || next === Number(reward[field] ?? 0)) return;
+    onCommit(field, next);
+  };
+
+  const commitLabel = () => {
+    if (draft.bonus_label !== (reward.bonus_label || "")) onCommit("bonus_label", draft.bonus_label);
+  };
+
+  return (
+    <div className="flex items-center gap-4 p-3 border rounded-lg">
+      <Badge variant="outline" className="min-w-[60px] justify-center">
+        Day {reward.day_number}
+      </Badge>
+      <div className="flex-1 grid grid-cols-3 gap-3">
+        <div>
+          <Label className="text-xs">Coins</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={draft.reward_coins}
+            onChange={(e) => setDraft((d) => ({ ...d, reward_coins: e.target.value }))}
+            onBlur={() => commitNumber("reward_coins")}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Diamonds</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={draft.reward_diamonds}
+            onChange={(e) => setDraft((d) => ({ ...d, reward_diamonds: e.target.value }))}
+            onBlur={() => commitNumber("reward_diamonds")}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Label</Label>
+          <Input
+            value={draft.bonus_label}
+            onChange={(e) => setDraft((d) => ({ ...d, bonus_label: e.target.value }))}
+            onBlur={commitLabel}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Label className="text-xs">Active</Label>
+        <Switch checked={reward.is_active} onCheckedChange={(val) => onCommit("is_active", val)} />
+      </div>
+    </div>
+  );
+};
+
+const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit: (updates: any) => void; onDelete: () => void }) => {
+  const [draft, setDraft] = useState({
+    tier_name: tier.tier_name || "",
+    min_spend: String(tier.min_spend ?? 0),
+    max_spend: tier.max_spend == null ? "" : String(tier.max_spend),
+    return_percentage: String(tier.return_percentage ?? 0),
+    max_return_coins: tier.max_return_coins == null ? "" : String(tier.max_return_coins),
+  });
+
+  useEffect(() => {
+    setDraft({
+      tier_name: tier.tier_name || "",
+      min_spend: String(tier.min_spend ?? 0),
+      max_spend: tier.max_spend == null ? "" : String(tier.max_spend),
+      return_percentage: String(tier.return_percentage ?? 0),
+      max_return_coins: tier.max_return_coins == null ? "" : String(tier.max_return_coins),
+    });
+  }, [tier.id, tier.tier_name, tier.min_spend, tier.max_spend, tier.return_percentage, tier.max_return_coins]);
+
+  const commitText = () => {
+    const next = draft.tier_name.trim() || "New Tier";
+    if (next !== tier.tier_name) onCommit({ tier_name: next });
+  };
+
+  const commitNumber = (field: "min_spend" | "return_percentage", decimal = false) => {
+    const next = draft[field] === "" ? 0 : Math.max(0, decimal ? Number(draft[field]) : Math.trunc(Number(draft[field])));
+    if (!Number.isFinite(next) || next === Number(tier[field] ?? 0)) return;
+    onCommit({ [field]: next });
+  };
+
+  const commitNullableNumber = (field: "max_spend" | "max_return_coins") => {
+    const next = draft[field] === "" ? null : Math.max(0, Math.trunc(Number(draft[field])));
+    if (next !== null && !Number.isFinite(next)) return;
+    if (next !== (tier[field] ?? null)) onCommit({ [field]: next });
+  };
+
+  return (
+    <div className="p-4 border rounded-lg space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Crown className="w-5 h-5 text-amber-500" />
+          <Input
+            value={draft.tier_name}
+            onChange={(e) => setDraft((d) => ({ ...d, tier_name: e.target.value }))}
+            onBlur={commitText}
+            onKeyDown={blurOnEnter}
+            className="h-8 w-32 font-bold"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch checked={tier.is_active} onCheckedChange={(val) => onCommit({ is_active: val })} />
+          <Button variant="ghost" size="icon" className="text-destructive" onClick={onDelete}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        <div>
+          <Label className="text-xs">Min Spend</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={draft.min_spend}
+            onChange={(e) => setDraft((d) => ({ ...d, min_spend: e.target.value }))}
+            onBlur={() => commitNumber("min_spend")}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Max Spend</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={draft.max_spend}
+            placeholder="Unlimited"
+            onChange={(e) => setDraft((d) => ({ ...d, max_spend: e.target.value }))}
+            onBlur={() => commitNullableNumber("max_spend")}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Return %</Label>
+          <Input
+            type="number"
+            inputMode="decimal"
+            step="0.5"
+            min={0}
+            value={draft.return_percentage}
+            onChange={(e) => setDraft((d) => ({ ...d, return_percentage: e.target.value }))}
+            onBlur={() => commitNumber("return_percentage", true)}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Max Return</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={draft.max_return_coins}
+            placeholder="Unlimited"
+            onChange={(e) => setDraft((d) => ({ ...d, max_return_coins: e.target.value }))}
+            onBlur={() => commitNullableNumber("max_return_coins")}
+            onKeyDown={blurOnEnter}
+            className="h-8"
+          />
+        </div>
+      </div>
     </div>
   );
 };
