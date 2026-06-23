@@ -77,6 +77,13 @@
 - **APK rebuild:** শুধু React/edge code touch করব → APK rebuild লাগবে না। যদি কোনো native admin notification handler দরকার হয়, আলাদা করে জানাব।
 - **Owner test account:** smdollarex923@gmail.com দিয়ে নিজেই end-to-end verify করব
 
+## Avatar admin research note — 2026-06-23
+
+- Bigo Live’s public safety/reporting guidance centers moderation on the reported user/content identity, so admin rows must show the same visitor-facing user profile/photo context when reviewing abuse or account actions. Source: https://www.bigo.tv/blog/report-on-bigo-live
+- Chamet moderation guidance describes content/user safety review as profile-linked moderation, matching the requirement that admin panels identify every user/host visually, not only by UID. Source: https://chametacademy.com/chamet-content-moderation-how-it-protects-your-digital-space/
+- Comparable live-streaming admin products advertise real-time user/stream/gift/admin modules across dozens of pages; consistent profile imagery across management modules is table-stakes for operator scanning. Source: https://teraa.live/admin.html
+- Implementation implication: admin avatars should use `avatar_url` when present and deterministic user-level seed fallback (`user_id` / row `id`) when not; nested joined profile objects do not always expose `id`, so React/TS must not read `profile.id` unless the local type includes it.
+
 ## Questions before I start
 
 1. **প্রথম priority কোনটা?** — P0 হিসেবে আমি face verification + host application + recharge/withdrawal ধরছি। আপনি কি অন্য কিছু আগে চান?
