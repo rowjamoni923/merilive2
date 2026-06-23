@@ -348,7 +348,7 @@ const Chat = () => {
     if (missing.length === 0) return;
     let cancelled = false;
     Promise.all(missing.map(async (path) => {
-      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60);
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 7);
       return [path, data?.signedUrl || path] as const;
     })).then((entries) => {
       if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
