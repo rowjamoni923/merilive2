@@ -130,6 +130,7 @@ const PKCompetitionManager = () => {
           competition_type: formData.competition_type,
           max_participants: formData.max_participants,
           status: new Date(formData.start_date) <= new Date() ? "active" : "upcoming",
+          is_active: true,
         })
         .select()
         .single();
