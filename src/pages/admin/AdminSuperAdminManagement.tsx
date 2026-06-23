@@ -311,10 +311,14 @@ export default function AdminSuperAdminManagement() {
                 <div>Methods: {Array.isArray(a.allowed_payment_methods) ? a.allowed_payment_methods.join(", ") : "—"}</div>
                 <div>Auto-pay: {a.auto_pay_enabled ? "ON" : "OFF (helper-routed)"}</div>
                 <div>Limits: ${a.min_withdraw_usd}–${a.max_withdraw_usd} · daily cap ${a.daily_cap_usd}</div>
-                <div className="flex gap-2 pt-3">
+                <div className="flex flex-wrap gap-2 pt-3">
+                  <Button size="sm" variant="default" onClick={() => copyAccessLink(a.country_code)}>
+                    <Link2 className="w-3.5 h-3.5 mr-1" /> Copy access link
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => suspend(a)}>Suspend</Button>
                   <Button size="sm" variant="destructive" onClick={() => revoke(a)}>Revoke</Button>
                 </div>
+
               </CardContent>
             </Card>
           ))}
