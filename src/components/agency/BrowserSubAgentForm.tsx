@@ -85,11 +85,11 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   const [foundUser, setFoundUser] = useState<UserProfile | null>(null);
   const [userNotFound, setUserNotFound] = useState(false);
 
-  // App verification
+  // App verification (server-side OTP via agency-app-otp edge function)
   const [appCode, setAppCode] = useState("");
-  const [generatedAppCode, setGeneratedAppCode] = useState("");
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppCode, setSendingAppCode] = useState(false);
+  const [verifyingAppCode, setVerifyingAppCode] = useState(false);
   const [appCodeSent, setAppCodeSent] = useState(false);
   const [appCodeTimer, setAppCodeTimer] = useState(0);
 
@@ -155,9 +155,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
     return () => clearInterval(interval);
   }, [appCodeTimer]);
 
-  const generateVerificationCode = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-  };
 
   // Search user by App UID
   const searchUserById = async () => {
@@ -213,7 +210,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
     }
   };
 
-  // Send app verification code
+  // Send app verification code via secure server-side OTP
   const sendAppVerificationCode = async () => {
     if (!foundUser) {
       setErrorMessage("Please find a user first");
@@ -222,26 +219,24 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
     setSendingAppCode(true);
     setErrorMessage("");
-    const code = generateVerificationCode();
-    setGeneratedAppCode(code);
+    setAppCode("");
+    setAppVerified(false);
 
     try {
-      const { error } = await supabase.functions.invoke('send-app-notification', {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
+          action: 'send',
           userId: foundUser.id,
-          templateKey: 'agency_verification_code',
-          variables: {
-            code: code,
-            agency_name: agency?.name || 'Sub-Agent Registration'
-          },
-          type: 'agency_verification'
+          purpose: 'sub_agency_verification',
+          context: agency?.agency_code || 'Sub-Agent Registration'
         }
       });
 
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to send verification code");
 
       setAppCodeSent(true);
-      setAppCodeTimer(60);
+      setAppCodeTimer(300);
     } catch (error: any) {
       console.error('App notification error:', error);
       setErrorMessage(error.message || "Failed to send verification code");
@@ -250,17 +245,36 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
     }
   };
 
-  const verifyAppCode = () => {
+  const verifyAppCode = async () => {
     if (appCodeTimer <= 0) {
       setErrorMessage("Code expired. Please resend the verification code.");
       return;
     }
-    
-    if (appCode === generatedAppCode) {
+    if (appCode.length !== 6) {
+      setErrorMessage("Please enter the 6-digit code.");
+      return;
+    }
+
+    setVerifyingAppCode(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'verify',
+          userId: foundUser?.id,
+          code: appCode,
+          purpose: 'sub_agency_verification'
+        }
+      });
+      if (error) throw error;
+      if (!data?.success || !data?.verified_token) {
+        throw new Error(data?.error || "Wrong code. Please enter the correct code.");
+      }
       setAppVerified(true);
       setErrorMessage("");
-    } else {
-      setErrorMessage("Wrong code. Please enter the correct code.");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Wrong code. Please enter the correct code.");
+    } finally {
+      setVerifyingAppCode(false);
     }
   };
 
@@ -601,25 +615,30 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                       </div>
                       
                       <InputOTP
-                        maxLength={4}
+                        maxLength={6}
                         value={appCode}
                         onChange={(value) => setAppCode(value)}
                       >
                         <InputOTPGroup className="gap-2 justify-center w-full">
-                          <InputOTPSlot index={0} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={1} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={2} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={3} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={0} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={1} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={2} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={3} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={4} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={5} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
                         </InputOTPGroup>
                       </InputOTP>
                       
                       <Button
                         onClick={verifyAppCode}
-                        disabled={appCode.length < 4}
+                        disabled={appCode.length < 6 || verifyingAppCode}
                         className="w-full bg-success-600 hover:bg-success-700"
                       >
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Verify Code
+                        {verifyingAppCode ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>
+                        ) : (
+                          <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Code</>
+                        )}
                       </Button>
                     </div>
                   )}

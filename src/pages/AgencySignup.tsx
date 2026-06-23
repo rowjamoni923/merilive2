@@ -69,6 +69,7 @@ const AgencySignup = () => {
   const [appOtp, setAppOtp] = useState("");
   const [appOtpSent, setAppOtpSent] = useState(false);
   const [appVerified, setAppVerified] = useState(false);
+  const [appVerifiedToken, setAppVerifiedToken] = useState<string>("");
   const [sendingAppOtp, setSendingAppOtp] = useState(false);
   const [appOtpTimer, setAppOtpTimer] = useState(0);
   const [verifyingAppOtp, setVerifyingAppOtp] = useState(false);
@@ -106,6 +107,7 @@ const AgencySignup = () => {
     setAppOtp("");
     setAppOtpSent(false);
     setAppVerified(false);
+    setAppVerifiedToken("");
     setAppOtpTimer(0);
   };
 
@@ -115,6 +117,7 @@ const AgencySignup = () => {
     setSendingAppOtp(true);
     setAppOtp("");
     setAppVerified(false);
+    setAppVerifiedToken("");
 
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
@@ -152,6 +155,7 @@ const AgencySignup = () => {
       if (!data?.success || !data?.verified_token) throw new Error(data?.error || "App OTP verification failed");
 
       setAppVerified(true);
+      setAppVerifiedToken(data.verified_token);
       toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "App OTP verification failed", variant: "destructive" });
@@ -283,7 +287,7 @@ const AgencySignup = () => {
     (!formData.whatsapp.trim() || isValidWhatsApp(formData.whatsapp));
 
   const submitAgencyRegistration = async () => {
-    if (!appVerified) {
+    if (!appVerified || !appVerifiedToken) {
       toast({ title: "App OTP required", description: "Please verify the in-app OTP first", variant: "destructive" });
       return;
     }
@@ -324,7 +328,8 @@ const AgencySignup = () => {
         _level: signupLevel,
         _commission_rate: signupCommission,
         _email: formData.email.trim() || null,
-        _whatsapp: formData.whatsapp.trim() || null
+        _whatsapp: formData.whatsapp.trim() || null,
+        _verified_token: appVerifiedToken
       });
 
       if (rpcError) {

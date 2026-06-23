@@ -19923,18 +19923,32 @@ export type Database = {
         }
         Returns: string
       }
-      create_agency_for_user: {
-        Args: {
-          _agency_code: string
-          _commission_rate?: number
-          _email?: string
-          _level?: string
-          _name: string
-          _owner_id: string
-          _whatsapp?: string
-        }
-        Returns: Json
-      }
+      create_agency_for_user:
+        | {
+            Args: {
+              _agency_code: string
+              _commission_rate?: number
+              _email?: string
+              _level?: string
+              _name: string
+              _owner_id: string
+              _whatsapp?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _agency_code: string
+              _commission_rate?: number
+              _email?: string
+              _level?: string
+              _name: string
+              _owner_id: string
+              _verified_token?: string
+              _whatsapp?: string
+            }
+            Returns: Json
+          }
       create_agency_with_owner: {
         Args: {
           p_agency_code: string
