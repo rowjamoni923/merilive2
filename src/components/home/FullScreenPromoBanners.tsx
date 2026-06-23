@@ -38,8 +38,10 @@ const PROMO_BANNERS: PromoBanner[] = [
 
 const SKIP_DELAY_MS = 3000;
 const AUTO_CLOSE_MS = 10000;
-// Pkg: Random delay between 40s and 2min (120s) as requested.
-const RATING_SHOW_DELAY_MIN_MS = 40000;
+// Spec: banner must appear AT MINIMUM 1 minute (60s) after the app opens,
+// and only to users who have not yet rated. Randomised up to 2 min to avoid
+// every device firing at the same moment.
+const RATING_SHOW_DELAY_MIN_MS = 60000;
 const RATING_SHOW_DELAY_MAX_MS = 120000;
 const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
