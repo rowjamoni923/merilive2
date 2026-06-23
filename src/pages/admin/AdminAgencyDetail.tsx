@@ -1177,7 +1177,7 @@ export default function AdminAgencyDetail() {
               <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-green-500/30">
-                    <UserAvatarImage seed={foundUser.id ?? foundUser.user_id ?? foundUser.host_id} src={foundUser.avatar_url || undefined} />
+                    <UserAvatarImage seed={((foundUser) as any)?.id ?? ((foundUser) as any)?.user_id ?? ((foundUser) as any)?.host_id} src={foundUser.avatar_url || undefined} />
                     <AvatarFallback className="bg-green-500/20 text-green-400 text-lg">
                       {foundUser.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

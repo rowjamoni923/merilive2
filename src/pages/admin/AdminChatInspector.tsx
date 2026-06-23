@@ -357,7 +357,7 @@ const AdminChatInspector = () => {
                   className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
                 >
                   <Avatar className="w-10 h-10 border-2 border-purple-500/30">
-                    <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url || ""} />
+                    <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300 text-sm">
                       {user.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -385,7 +385,7 @@ const AdminChatInspector = () => {
               <div className="p-4 bg-gradient-to-r from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-purple-500/40">
-                    <UserAvatarImage seed={selectedUser.id ?? selectedUser.user_id ?? selectedUser.host_id} src={selectedUser.avatar_url || ""} />
+                    <UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300">
                       {selectedUser.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -735,7 +735,7 @@ const AdminChatInspector = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
-                  <UserAvatarImage seed={banTargetUser.id ?? banTargetUser.user_id ?? banTargetUser.host_id} src={banTargetUser.avatar_url || ""} />
+                  <UserAvatarImage seed={((banTargetUser) as any)?.id ?? ((banTargetUser) as any)?.user_id ?? ((banTargetUser) as any)?.host_id} src={banTargetUser.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                     {banTargetUser.display_name?.[0] || "U"}
                   </AvatarFallback>
