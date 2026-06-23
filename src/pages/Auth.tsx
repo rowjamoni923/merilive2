@@ -978,16 +978,8 @@ const Auth = () => {
       const existingForDevice = await recoverAccountByDevice(deviceId);
       if (existingForDevice) {
         console.log('[Auth] SAFETY: Device already has account, recovering instead of creating new');
-        const guestEmail = existingForDevice.recoveryEmail;
-        const guestPassword = existingForDevice.recoveryPassword;
-        
-        // Try conversion first (for anonymous accounts)
-        try {
-          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-        } catch (e) { /* ignore */ }
-        
-        const { error } = await supabase.auth.signInWithPassword({ email: guestEmail, password: guestPassword });
-        if (!error) {
+        const recovered = await completeDeviceRecovery(deviceId, existingForDevice.exchangeToken);
+        if (recovered) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -999,8 +991,7 @@ const Auth = () => {
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
-            email: guestEmail,
-            password: guestPassword,
+            userId: existingForDevice.userId,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
