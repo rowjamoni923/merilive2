@@ -69,6 +69,7 @@ const AgencySignup = () => {
   const [appOtp, setAppOtp] = useState("");
   const [appOtpSent, setAppOtpSent] = useState(false);
   const [appVerified, setAppVerified] = useState(false);
+  const [appVerifiedToken, setAppVerifiedToken] = useState<string>("");
   const [sendingAppOtp, setSendingAppOtp] = useState(false);
   const [appOtpTimer, setAppOtpTimer] = useState(0);
   const [verifyingAppOtp, setVerifyingAppOtp] = useState(false);
