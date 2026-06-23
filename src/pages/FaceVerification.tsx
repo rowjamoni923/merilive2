@@ -947,9 +947,6 @@ const FaceVerification = () => {
       // in live face scan. getCameraStream already handles permission internally —
       // no separate probe, so Android WebView keeps the user-gesture chain intact.
       await nativeFaceCam.stopPreview().catch(() => null);
-      // Pkg-fix: small breathing room so Android Camera2 HAL fully releases
-      // before the WebView re-acquires it (avoids NotReadableError → blank).
-      await new Promise(r => setTimeout(r, 200));
       const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');
