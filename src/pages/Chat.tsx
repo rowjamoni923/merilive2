@@ -235,16 +235,17 @@ const summarizeMessageForReply = (
   }
 
   if (type === 'audio' || /^\[(Voice|Audio):/i.test(c) || /\.(webm|mp3|wav|ogg|m4a)(\?|$)/i.test(c)) {
-    return { label: '🎤 Voice message', thumb: null, kind: 'audio' };
+    return { label: 'Voice message', thumb: null, kind: 'audio' };
   }
 
   if (type === 'image' || /^\[Image:/i.test(c) || /\.(jpe?g|png|gif|webp)(\?|$)/i.test(c)) {
     const url = c.replace(/^\[Image:\s*/i, '').replace(/\]$/, '');
-    return { label: '📷 Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
+    return { label: 'Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
   }
 
   if (type === 'video' || /^\[Video:/i.test(c) || /\.(mp4|mov|avi|mkv)(\?|$)/i.test(c)) {
-    return { label: '🎬 Video', thumb: null, kind: 'video' };
+    const url = c.replace(/^\[Video:\s*/i, '').replace(/\]$/, '');
+    return { label: 'Video', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'video' };
   }
 
   const text = c.replace(/^\[[^\]]+\]\s*/, '').slice(0, 80) || 'Message';
@@ -271,6 +272,45 @@ const dedupeAndSortMessages = <T extends { id: string; created_at: string }>(ite
 
 const sameMessageOrder = <T extends { id: string; created_at: string }>(a: T[], b: T[]) =>
   a.length === b.length && a.every((item, index) => item.id === b[index]?.id && item.created_at === b[index]?.created_at);
+
+const extractChatMediaPath = (content?: string | null): string => {
+  const raw = (content || '').trim();
+  return raw
+    .replace(/^\[(Image|Video|Audio|Voice|File):\s*/i, '')
+    .replace(/\]$/i, '')
+    .trim();
+};
+
+const isPlainChatStorageKey = (value: string) => {
+  if (!value) return false;
+  if (/^https?:|^blob:|^data:/i.test(value)) return false;
+  if (/^\[/.test(value)) return false;
+  if (/[\[\]\s|\\<>"'`]/.test(value)) return false;
+  if (!value.includes('/')) return false;
+  return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
+};
+
+const isChatImageMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'image'
+    || /^\[Image:/i.test(content || '')
+    || /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/i.test(noQuery);
+};
+
+const isChatVideoMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'video'
+    || /^\[Video:/i.test(content || '')
+    || /\.(mp4|mov|avi|mkv|webm)$/i.test(noQuery);
+};
+
+const isChatAudioMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'audio'
+    || messageType === 'voice'
+    || /^\[(Audio|Voice):/i.test(content || '')
+    || /\.(webm|mp3|wav|ogg|m4a|aac|flac)$/i.test(noQuery);
+};
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -330,25 +370,15 @@ const Chat = () => {
   }, [groupMessages]);
 
   useEffect(() => {
-    const isPlainStorageKey = (value: string) => {
-      if (!value) return false;
-      if (/^https?:|^blob:|^data:/i.test(value)) return false;
-      // Exclude chat payload wrappers like "[Gift: ...]" and anything with
-      // whitespace, pipes, brackets, or other characters Storage rejects.
-      if (/^\[/.test(value)) return false;
-      if (/[[\]\s|\\<>"'`]/.test(value)) return false;
-      if (!value.includes('/')) return false;
-      return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
-    };
     const paths = [...messages, ...groupMessages]
-      .map((m) => m.content || '')
+      .map((m) => extractChatMediaPath(m.content || ''))
       .concat(pendingMedia?.url || '')
-      .filter(isPlainStorageKey);
+      .filter(isPlainChatStorageKey);
     const missing = [...new Set(paths)].filter((path) => !signedChatMediaUrls[path]);
     if (missing.length === 0) return;
     let cancelled = false;
     Promise.all(missing.map(async (path) => {
-      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 7);
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
       return [path, data?.signedUrl || path] as const;
     })).then((entries) => {
       if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
@@ -2265,8 +2295,13 @@ const Chat = () => {
   // voice, media, replies render as text fallback inside native list).
   const nativeChatThreadTitle = selectedConversation?.other_user?.display_name || undefined;
   const nativeChatThreadId = selectedConversation?.id || null;
+  const hasMediaMessages = messages.some((m) =>
+    isChatImageMessage(m.message_type, m.content)
+    || isChatVideoMessage(m.message_type, m.content)
+    || isChatAudioMessage(m.message_type, m.content)
+  );
   const nativeChatMessages = React.useMemo<NativeChatMessage[]>(() => {
-    if (!nativeChatThreadId) return [];
+    if (!nativeChatThreadId || hasMediaMessages) return [];
     const otherName = selectedConversation?.other_user?.display_name || "User";
     const otherAvatar = selectedConversation?.other_user?.avatar_url || null;
     return messages.map((m): NativeChatMessage => {
@@ -2274,8 +2309,8 @@ const Chat = () => {
       let text = m.content || "";
       if (m.message_type === "gift") text = `🎁 ${text || "Gift"}`;
       else if (m.message_type === "voice") text = "🎙️ Voice message";
-      else if (m.message_type === "image") text = "🖼️ Image";
-      else if (m.message_type === "video") text = "🎬 Video";
+      else if (m.message_type === "image") text = "Photo";
+      else if (m.message_type === "video") text = "Video";
       else if (m.message_type === "file") text = "📎 File";
       return {
         id: m.id,
@@ -2286,12 +2321,12 @@ const Chat = () => {
         avatarUrl: isMine ? null : otherAvatar,
       };
     });
-  }, [messages, nativeChatThreadId, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
+  }, [messages, nativeChatThreadId, hasMediaMessages, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
 
   const handleSendRef = useRef(handleSend);
   handleSendRef.current = handleSend;
   const { active: nativeChatActive, setMessages: setNativeChatMessages } = useNativeChatUI({
-    enabled: !!nativeChatThreadId,
+    enabled: !!nativeChatThreadId && !hasMediaMessages,
     currentUserId,
     title: nativeChatThreadTitle,
     onSend: (text) => { void handleSendRef.current(text); },
@@ -2756,18 +2791,10 @@ const Chat = () => {
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
-                        const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice):\s*/i, '').replace(/\]$/, '').trim();
-                        const urlNoQuery = cleanUrl.split('?')[0];
-                        const isStorageUrl = /^https?:\/\//i.test(cleanUrl) && cleanUrl.includes('supabase.co/storage');
-                        const isImage = msg.message_type === 'image'
-                          || /^\[Image:/i.test(content)
-                          || (isStorageUrl && /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/i.test(urlNoQuery));
-                        const isVideo = msg.message_type === 'video'
-                          || /^\[Video:/i.test(content)
-                          || (isStorageUrl && /\.(mp4|mov|avi|mkv|webm)$/i.test(urlNoQuery));
-                        const isAudio = msg.message_type === 'audio'
-                          || /^\[(Audio|Voice):/i.test(content)
-                          || (isStorageUrl && /\.(webm|mp3|wav|ogg|m4a|aac|flac)$/i.test(urlNoQuery));
+                        const cleanUrl = extractChatMediaPath(content);
+                        const isImage = isChatImageMessage(msg.message_type, content);
+                        const isVideo = isChatVideoMessage(msg.message_type, content);
+                        const isAudio = isChatAudioMessage(msg.message_type, content);
                         const isGift = msg.message_type === 'gift';
                         const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
@@ -2839,14 +2866,12 @@ const Chat = () => {
                               <video 
                                 src={displayUrl}
                                 muted
-                                autoPlay
-                                loop
-                                controls={false}
+                                controls
                                 controlsList="nodownload noremoteplayback noplaybackrate"
                                 disablePictureInPicture
                                 disableRemotePlayback
                                 playsInline
-                                preload="auto"
+                                preload="metadata"
                                 className="max-w-[220px] max-h-[260px] rounded-xl object-cover bg-black"/>
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
