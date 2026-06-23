@@ -20293,6 +20293,7 @@ export type Database = {
       }
       expire_noble_subscriptions: { Args: never; Returns: number }
       expire_stale_pk_invites: { Args: never; Returns: number }
+      expire_stale_swift_pay_topups: { Args: never; Returns: number }
       face_verification_is_auto_reviewed:
         | { Args: { _admin_notes: string; _status: string }; Returns: boolean }
         | {
