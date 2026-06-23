@@ -615,25 +615,30 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                       </div>
                       
                       <InputOTP
-                        maxLength={4}
+                        maxLength={6}
                         value={appCode}
                         onChange={(value) => setAppCode(value)}
                       >
                         <InputOTPGroup className="gap-2 justify-center w-full">
-                          <InputOTPSlot index={0} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={1} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={2} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={3} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={0} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={1} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={2} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={3} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={4} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          <InputOTPSlot index={5} className="w-11 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
                         </InputOTPGroup>
                       </InputOTP>
                       
                       <Button
                         onClick={verifyAppCode}
-                        disabled={appCode.length < 4}
+                        disabled={appCode.length < 6 || verifyingAppCode}
                         className="w-full bg-success-600 hover:bg-success-700"
                       >
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Verify Code
+                        {verifyingAppCode ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>
+                        ) : (
+                          <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Code</>
+                        )}
                       </Button>
                     </div>
                   )}
