@@ -328,7 +328,8 @@ const AgencySignup = () => {
         _level: signupLevel,
         _commission_rate: signupCommission,
         _email: formData.email.trim() || null,
-        _whatsapp: formData.whatsapp.trim() || null
+        _whatsapp: formData.whatsapp.trim() || null,
+        _verified_token: appVerifiedToken
       });
 
       if (rpcError) {
