@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Mic, Languages, Phone, ChevronRight, ChevronDown, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Mic, Languages, Phone, ChevronRight, ChevronDown, Plus, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
 const GroupSettingsPanel = lazy(() => import("@/components/chat/GroupSettingsPanel").then(m => ({ default: m.GroupSettingsPanel })));
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
@@ -300,7 +300,7 @@ const Chat = () => {
   const MESSAGES_PAGE_SIZE = 100;
   const [visibleMessageCount, setVisibleMessageCount] = useState<number>(MESSAGES_PAGE_SIZE);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
-  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' | 'document' } | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' | 'document'; previewUrl?: string } | null>(null);
 
   // Reply state
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
@@ -348,7 +348,7 @@ const Chat = () => {
     if (missing.length === 0) return;
     let cancelled = false;
     Promise.all(missing.map(async (path) => {
-      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60);
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 7);
       return [path, data?.signedUrl || path] as const;
     })).then((entries) => {
       if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
@@ -2837,14 +2837,17 @@ const Chat = () => {
                           return (
                             <div className="flex flex-col">
                               <video 
-                                src={displayUrl} 
-                                controls
+                                src={displayUrl}
+                                muted
+                                autoPlay
+                                loop
+                                controls={false}
                                 controlsList="nodownload noremoteplayback noplaybackrate"
                                 disablePictureInPicture
                                 disableRemotePlayback
                                 playsInline
-                                preload="metadata"
-                                className="max-w-[200px] max-h-[200px] rounded-xl bg-black"/>
+                                preload="auto"
+                                className="max-w-[220px] max-h-[260px] rounded-xl object-cover bg-black"/>
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -3020,9 +3023,10 @@ const Chat = () => {
                 isOpen={showMediaUploader}
                 onClose={() => setShowMediaUploader(false)}
                 userId={currentUserId}
-                onMediaSelect={(url, type) => {
+                onMediaSelect={(url, type, previewUrl) => {
                   // Save as pending media, don't send directly
-                  setPendingMedia({ url, type });
+                  if (previewUrl) setSignedChatMediaUrls(prev => ({ ...prev, [url]: previewUrl }));
+                  setPendingMedia({ url, type, previewUrl });
                   setShowMediaUploader(false);
                 }}
                 directGallery={true}
@@ -3338,11 +3342,23 @@ const Chat = () => {
                   >
                     {pendingMedia.type === 'image' ? (
                       <img loading="lazy" decoding="async"
-                        src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url}
+                        src={pendingMedia.previewUrl || signedChatMediaUrls[pendingMedia.url] || pendingMedia.url}
                         alt="Preview"
                         className="w-8 h-8 rounded-lg object-cover shrink-0" />
                     ) : pendingMedia.type === 'video' ? (
-                      <ImageIcon className="w-5 h-5 text-primary shrink-0" />
+                      <video
+                        src={pendingMedia.previewUrl || signedChatMediaUrls[pendingMedia.url] || pendingMedia.url}
+                        muted
+                        autoPlay
+                        loop
+                        playsInline
+                        controls={false}
+                        preload="auto"
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                        className="w-8 h-8 rounded-lg object-cover shrink-0 bg-black"
+                      />
                     ) : pendingMedia.type === 'audio' ? (
                       <Mic className="w-5 h-5 text-warning-600 shrink-0" />
                     ) : (

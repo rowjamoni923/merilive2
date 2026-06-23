@@ -1748,7 +1748,7 @@ const FaceVerification = () => {
       recordClientError({ label: 'FaceVerification.signedUrl', message: signErr?.message || 'no signed url' });
       // Fallback so the upload itself is not considered failed; admin panel
       // resolves the path via useAdminSignedUrl regardless of stored URL.
-      return supabase.storage.from('face-verification').getPublicUrl(fileName).data.publicUrl;
+      return `face-verification/${fileName}`;
     }
     return signed.signedUrl;
   };
@@ -2307,7 +2307,7 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : 'bg-white/80 shadow-2xl'}`}>
+      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${usingNativeFaceCamera ? 'bg-transparent shadow-none' : faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`}>
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
@@ -3402,7 +3402,20 @@ const FaceVerification = () => {
             {/* Video Upload/Record */}
             <div className="aspect-video w-full rounded-2xl overflow-hidden bg-white/80 border border-amber-200/60 mb-4 relative shadow-lg">
               {videoPreview ? (
-                <video src={videoPreview} controls className="w-full h-full object-cover"/>
+                <video
+                  src={videoPreview}
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  controls={false}
+                  preload="auto"
+                  disablePictureInPicture
+                  disableRemotePlayback
+                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                  className="w-full h-full object-cover bg-black"
+                  onLoadedData={(event) => event.currentTarget.play().catch(() => {})}
+                />
               ) : isRecording ? (
                 <>
                   <video
@@ -3426,7 +3439,7 @@ const FaceVerification = () => {
                 </>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center">
-                  <Film className="w-14 h-14 text-slate-400/40" />
+                  <Upload className="w-14 h-14 text-slate-400/40" />
                   <p className="text-slate-500 text-sm">Record or upload video</p>
                 </div>
               )}

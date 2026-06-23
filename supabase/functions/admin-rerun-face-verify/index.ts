@@ -82,6 +82,9 @@ async function rekognitionCall(
 }
 
 function parseStorageUrl(url: string): { bucket: string; path: string } | null {
+  const raw = (url || "").trim().replace(/^\/+/, "");
+  const rawMatch = raw.match(/^(face-verification|host-verification)\/(.+)$/);
+  if (rawMatch) return { bucket: rawMatch[1], path: rawMatch[2] };
   try {
     const u = new URL(url);
     const m = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/]+)\/(.+)$/);

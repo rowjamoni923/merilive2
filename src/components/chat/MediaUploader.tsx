@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface MediaUploaderProps {
   isOpen: boolean;
   onClose: () => void;
-  onMediaSelect: (url: string, type: 'image' | 'video' | 'audio' | 'document') => void;
+  onMediaSelect: (url: string, type: 'image' | 'video' | 'audio' | 'document', previewUrl?: string) => void;
   userId?: string | null;
   directGallery?: boolean;
 }
@@ -102,7 +102,10 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
       }
 
       const mediaType = getFriendlyType(file.type);
-      onMediaSelect(filePath, mediaType);
+      const previewUrl = mediaType === 'image' || mediaType === 'video' || mediaType === 'audio'
+        ? URL.createObjectURL(file)
+        : undefined;
+      onMediaSelect(filePath, mediaType, previewUrl);
       onClose();
       toast.success("File uploaded successfully!");
     } catch (error: any) {

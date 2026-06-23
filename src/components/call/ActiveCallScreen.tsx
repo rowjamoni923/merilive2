@@ -1306,7 +1306,20 @@ export function ActiveCallScreen({
  />
                   )}
                   <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-2" />
+                    {(isSwapped ? myAvatarUrl : remoteUserAvatar) ? (
+                      <img
+                        src={enhanceThumbnail(isSwapped ? myAvatarUrl : remoteUserAvatar, { width: 160, quality: 86 })}
+                        alt={isSwapped ? 'You' : remoteUserName}
+                        className="w-24 h-24 rounded-full object-cover border-2 border-primary-foreground/35 shadow-2xl shadow-foreground/50"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full border-2 border-primary-foreground/25 bg-primary-foreground/10 flex items-center justify-center text-3xl font-bold text-on-dark">
+                        {(isSwapped ? 'Y' : remoteUserName?.charAt(0) || 'U').toUpperCase()}
+                      </div>
+                    )}
+                    <div className="mt-4 px-3 py-1 rounded-full bg-foreground/35 border border-primary-foreground/15 text-on-dark/85 text-xs font-semibold backdrop-blur-md">
+                      Connecting…
+                    </div>
                   </div>
           </div>
         )}
