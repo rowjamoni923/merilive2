@@ -1,82 +1,86 @@
+# Zero-Gap Admin Approval Sync — Full Audit & Fix
 
-## কী হবে (৩টা অংশ)
+ভাই, এটা একটা বড় কাজ — পুরো app জুড়ে যেখানে যেখানে "user submits → admin reviews → approve/reject → user-side effect" flow আছে, প্রতিটাকে instant (realtime) bi-directional করতে হবে। আগে scope confirm করি, তারপর phase-by-phase implement।
 
-### ১. Helper home-এর "Level 6" card-এ UI fix
-**File:** `src/components/helper/ApplyLevel6Card.tsx`
+## In-scope approval flows (সব টেবিল চেক করে identify করা)
 
-- বেগুনি/পার্পল gradient সরিয়ে app-এর design language-এ আনব: **amber → orange → rose** gradient (Helper dashboard-এর Diamond Helper header-এর সাথে সামঞ্জস্যপূর্ণ)।
-- "L6" badge → solid gold/amber chip।
-- Text পরিষ্কার করব: title-এ truncate বন্ধ (এখন "Level 6 — Coun..." দেখাচ্ছে), description rewrite — "Apply for Country Super Admin role — manage your country's payroll, sign contract, earn 25% commission."
-- "Apply" button — high-contrast white-on-dark, disabled state পরিষ্কার।
+| # | Flow | App table | Admin page | Edge fn |
+|---|---|---|---|---|
+| 1 | Face Verification | `face_verification_submissions` | `AdminFaceVerification` | `auto-face-verify`, `admin-rerun-face-verify` |
+| 2 | Host Application | `host_applications` | `AdminHostApplications` | — |
+| 3 | Host Conversion (user→host) | `host_conversion_requests` | `AdminHostConversion` | — |
+| 4 | Helper Application | `helper_applications` | `AdminHelperApplications` | — |
+| 5 | Helper Upgrade Request | `helper_upgrade_requests` | `AdminHelperRequests` | — |
+| 6 | Helper Topup Request | `helper_topup_requests` | `AdminHelperRequests` | — |
+| 7 | Helper Withdrawal | `helper_withdrawal_requests` | (Finance) | — |
+| 8 | Agency Host Request | `agency_host_requests` | `AdminAgencies` | — |
+| 9 | Agency Withdrawal | `agency_withdrawals` | (Finance) | — |
+| 10 | Country Super Admin App | `country_super_admin_applications` | (CountryAdmin) | — |
+| 11 | Recharge Transactions (manual) | `recharge_transactions` | `AdminFinance` | `admin-verify-purchase` |
+| 12 | SwiftPay Topups | `swift_pay_topups` | `AdminFinance` | — |
+| 13 | Helper Orders (manual approval) | `helper_orders` | `AdminHelperOrders` | — |
+| 14 | Admin Device Approvals | `admin_allowed_devices` | `AdminDeviceApprovals` | — |
+| 15 | Admin Pending Actions (2-step) | `admin_pending_actions` | (multiple) | — |
+| 16 | Account Deletion Requests | `account_deletion_requests` | — | — |
+| 17 | Payroll Requests | `payroll_requests` | — | — |
+| 18 | Rating Reward Claims | `rating_reward_claims` | — | `verify-rating-screenshot` |
 
-### ২. Application form refactor (`/super-admin/apply`)
-**File:** `src/pages/SuperAdminApply.tsx`
+প্রত্যেকটার জন্য audit করব:
+- **A. App→Admin instant:** submit হওয়ার সাথে সাথে admin list-এ আসে (Realtime subscription, no manual refresh)
+- **B. Admin→App instant:** approve/reject এর সাথে সাথে user-side status, notification, UI update
+- **C. Media visibility:** screenshots/videos/face photos admin panel-এ signed URL দিয়ে দেখা যায়
+- **D. Notification:** push + in-app + email/SMS যেখানে applicable
+- **E. RLS + grants:** admin role select/update পারে, user নিজের row দেখে
+- **F. Idempotency:** double-approve/reject prevent
 
-বাদ যাবে:
-- **Deposit transaction reference** field (input)
-- **Deposit proof (screenshot)** upload
-- **Deposit amount (USD) input** (helper বসাবে না — admin verify করার সময় বসাবে)
-- **Requested commission %** field (admin সিদ্ধান্ত নেবে)
+## Execution plan (phased — প্রত্যেক phase user-testable)
 
-যোগ হবে:
-- **Back button** (top-left, `navigate(-1)`) — sticky header-এ।
-- Header-এ professional banner: "Step 1 of 2 — Submit Application. Step 2: Our team will contact you via your official email to coordinate the $10,000 deposit and onboarding."
-- Submit success toast আপডেট: "Application submitted. Our team will contact you at <email> within 24-48 hours."
-- Notes field রাখা হবে (helper অতিরিক্ত info দিতে পারবে)।
+### Phase 1 — Audit & report (no code change)
+- প্রত্যেক flow-এ Realtime publication enabled কিনা check (`ALTER PUBLICATION supabase_realtime`)
+- Admin page-এ `useEffect` Realtime subscription আছে কিনা scan
+- Edge function / RPC দিয়ে approve হলে user-side কোথায় listen করছে check
+- Media bucket private হলে signed URL helper আছে কিনা
+- **Output:** একটা table — কোন flow-এ কী gap, severity (P0/P1/P2)
 
-### ৩. Admin panel — dedicated section + auto-provisioning link
-**Already exists** at `/admin/super-admin-management` কিন্তু sidebar-এ register করা নাই, আর approval flow-এ "এই person-কে এই link দাও" feature নাই।
+### Phase 2 — Realtime publication + grants (DB only)
+- Missing tables কে `supabase_realtime` publication-এ add
+- Admin role-এ select/update grants confirm, RLS policies tighten
+- One migration, fully reversible
 
-কাজ:
-- **Sidebar registration:** `admin_sections` table-এ একটা নতুন section: `key='country_super_admin'`, `label='Country Super Admin (L6)'`, `route='/admin/super-admin-management'`, dedicated icon (Crown/Shield)। Route guard `routeSegment="user-management"` → `"country_super_admin"` এ আপডেট।
-- **Approve dialog এ deposit_amount_usd input যোগ:** admin verify করে actual deposit amount (USD) বসাবে; এটাই DB-তে যাবে।
-- **Auto-provision Active Admin link:** approval সফল হওয়ার সাথে সাথে dialog-এ একটা **"Copy Country Admin Link"** button পাবে: `https://<app>/country-admin/dashboard?country=<CODE>` — এই link copy করে email-এ পাঠানো যাবে। (route `/country-admin/dashboard` ইতিমধ্যেই `country_payroll_admins` row থাকলে full access দেয় — RLS by user_id/country_code, কোনো extra grant দরকার নাই)। যদি route নাই থাকে, একটা placeholder dashboard route reuse করব — এই plan-এ আমি check করে confirm করব implementation-এর সময়।
-- **Active tab-এ:** প্রতিটা admin-এর row-এ "Copy access link" button + "Send onboarding email" button (Resend edge function, যা already আছে - reuse) — subject: "🎉 You are now Country Super Admin for <country>"।
+### Phase 3 — App→Admin instant (admin panel side)
+- প্রত্যেক admin approval page-এ Postgres Changes subscription wire up (INSERT/UPDATE → live list refresh, badge count update)
+- AdminLayout-এ global pending-count badges (face verify N, host apps N, withdrawals N…)
 
-### ৪. Security & integrity
-- `approve_country_super_admin_application` RPC-এ একটা নতুন parameter `_deposit_amount_usd` add — admin-confirmed amount। (form-থেকে আসা amount আর trust করব না)। `min_deposit_usd` check আগের মতই।
-- কোনো RLS dropping নাই, কোনো grant change নাই — শুধু RPC signature extend।
+### Phase 4 — Admin→App instant (user side)
+- User-side hooks (e.g., `useFaceVerificationStatus`, `useHostApplicationStatus`) Realtime subscribe — approve/reject এর সাথে toast + UI transition
+- Push notification dispatch from approval edge functions / DB triggers যেখানে missing
 
-## কী touched হবে না
-- Existing `country_payroll_admins`, `country_super_admin_applications`, `country_super_admin_settings` schema unchanged।
-- Active Admin dashboard logic / commission calc / withdrawal flow unchanged।
-- Helper Levels 1-5 flow সম্পূর্ণ untouched।
+### Phase 5 — Media visibility (signed URLs everywhere)
+- Face verification ✅ আগে fix করা, এখন verify
+- Host application docs, helper KYC, agency proof, withdrawal proof, rating screenshots — সবগুলোতে signed URL with 10-year TTL fallback
+- Admin panel viewer component reusable করা: `<AdminMediaPreview bucket=... path=... />`
 
-## Files to create/edit
-1. `src/components/helper/ApplyLevel6Card.tsx` — UI fix
-2. `src/pages/SuperAdminApply.tsx` — remove deposit fields, add back button, professional header
-3. `src/pages/admin/AdminSuperAdminManagement.tsx` — deposit input in dialog, copy-link & send-email buttons
-4. Migration: `admin_sections` row insert + `approve_country_super_admin_application` RPC extend
-5. Possibly small edge function for onboarding email (or reuse existing transactional email path — confirm at implementation)
+### Phase 6 — Idempotency + audit log
+- প্রত্যেক approve/reject কে `admin_logs`-এ record
+- Double-approve guard: `status IN ('pending')` check on UPDATE
+- Race-condition: approval edge functions-এ row-level lock
 
-## একটা প্রশ্ন
-"Copy access link" এর target route কি **`/country-admin/dashboard`** নাকি **`/admin?country=XX`** (যেহেতু approved admin আলাদা admin panel-এ login করবে)? আমি code check করেছি — `country_payroll_admins` table থাকলেও আলাদা "country super admin dashboard" page এখনো নাই। দুটো option:
+### Phase 7 — End-to-end test (owner account)
+- Owner account দিয়ে প্রত্যেক flow submit → admin login → approve/reject → user-side change verify
+- Screenshot evidence, console clean
 
-(a) **নতুন dedicated page বানাব**: `src/pages/CountryAdminDashboard.tsx` — country-scoped withdrawal queue, commission, payment methods। (~১টা নতুন file, full feature)
-(b) **Existing helper dashboard reuse** — Level 6 হলে শুধু country-scope filter add করব। (faster, কম code)
+## Technical notes (for me — non-technical user ignore করতে পারে)
 
-কোনটা চান?
+- **Realtime:** `useEffect` inside admin page + `supabase.removeChannel` cleanup (per mem rule)
+- **No polling, no visibility-refresh** (per project Core memory)
+- **English-only UI strings** for all new toasts/messages
+- **APK rebuild:** শুধু React/edge code touch করব → APK rebuild লাগবে না। যদি কোনো native admin notification handler দরকার হয়, আলাদা করে জানাব।
+- **Owner test account:** smdollarex923@gmail.com দিয়ে নিজেই end-to-end verify করব
 
-## 2026-06-23 — Homepage Leaderboard 3D trophy fix
+## Questions before I start
 
-- User screenshot target: homepage top-right leaderboard button in `src/pages/Index.tsx`, not the shared `Header.tsx` button.
-- Professional mobile target size: W3C WCAG guidance says custom touch targets should be at least **44×44 CSS px**; current homepage button was **36×36 px**, so it looked tiny and under-premium. Source: W3C Understanding SC 2.5.5 Target Size Enhanced (`w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html`).
-- Live-streaming competitor pattern: BIGO highlights ranking/host support flows as important engagement surfaces, so ranking entry should read like a prominent reward/status object, not a flat small icon. Source: BIGO Live operating/ranking materials surfaced in web research.
-- Fix plan: enlarge homepage leaderboard to **52×52 px**, keep it perfectly circular, use the existing transparent 3D trophy asset at **38×38 px**, add layered gold coin-like bevel, inner depth shadow, glass highlight, rotating shine, premium glow, and reduced-motion fallback.
+1. **প্রথম priority কোনটা?** — P0 হিসেবে আমি face verification + host application + recharge/withdrawal ধরছি। আপনি কি অন্য কিছু আগে চান?
+2. **All 18 flows একসাথে চান, নাকি top 5-7 আগে?** (একসাথে করলে ৬-৮ phase, কয়েক ঘন্টার কাজ; top 5 হলে ১-২ phase-এ শেষ)
+3. **Push notification:** approve হলে FCM push পাঠাতে চান? (এখন কিছু flow-এ in-app only)
 
-## 2026-06-23 — Admin setup/config failure audit
-
-- User-reported class: admin setup forms fail when required DB columns are omitted, and numeric inputs do not type correctly when every keystroke writes to DB then refetches.
-- Professional pattern: admin CRUD/config tools should validate typed fields, keep local controlled draft state, and commit on explicit save or blur instead of refetching every keystroke; inline CRUD tools use smart forms and typed column handling. Sources: Makerkit/Supamode Data Explorer CRUD docs (`makerkit.dev/docs/supamode/features/data-explorer-crud`), React controlled form/draft guidance (`reactuse.com/blog/react-form-handling-hooks/`), UX StackExchange save-on-blur discussion (`ux.stackexchange.com/questions/87638/...`).
-- DB audit verified: `limited_time_offers` had required `coins_amount`, `original_price`, `offer_price`, `starts_at`; admin UI omitted them. Fixed with safe defaults and explicit insert values. UI also referenced `bonus_percentage`, `badge_text`, `total_claimed`, `total_max_claims`; fixed by adding columns.
-- DB audit verified: `daily_login_rewards_config` required `reward_type` and `reward_amount`; fixed safe defaults so config rows cannot fail from omitted legacy fields.
-- DB audit verified: `user_beans_exchange_tiers.tier_name` required; fixed safe default.
-- Frontend audit fixed: `AdminLeaderboardManagement` already uses controlled commit-on-blur for reward tiers; added same pattern to `PKCompetitionManager` reward tiers and `AdminRewardsManagement` daily-login/cashback tiers.
-- Exact logic bug fixed: `AdminInvitationSettings.toggleActive` was updating `invitation_settings` instead of `invitation_reward_tiers`.
-
-## 2026-06-23 — App-wide media/video-icon audit
-
-- User video confirms the main visible bug is Face Verification host Step 2: selected video rendered as a generic browser/video play icon instead of a real moving preview; Live Face Scan fallback also exposed a white camera box when the stream surface was not ready.
-- Professional live/social apps do not show broken generic media icons for user-generated media: BIGO emphasizes stream cover photos as the click-driving surface, so live cards must render cover/host media instead of placeholders (`bigo.tv/blog/bigo-live-cover-photo-guide`).
-- Realtime video standard: first-frame rendering should be optimized so users see media quickly instead of waiting on blank/icon states; Agora docs define first-frame render time as a key UX metric (`docs.agora.io/en/video-calling/best-practices/optimize-frame-rendering`). Translate to our LiveKit path: keep LiveKit for room media, but show real thumbnails/first frames in lists and message previews.
-- Immediate fixes applied: chat pending video preview now uses real local object URL video preview, chat media signed URLs last 7 days per session, chat video bubbles autoplay muted/inline instead of generic icon, face-verification uploaded/recorded intro video previews autoplay real frames, private face-verification signing fallback now stores a resolvable storage reference instead of a broken public URL, face-verification analyze/rerun edge functions now understand raw private storage references, Go Live now sends a one-shot real camera snapshot as `thumbnail_url` when available, live feed/card fallback now uses real host/avatar imagery instead of `/placeholder.svg`, private-call waiting state now shows a clear avatar instead of near-black/blank media, and Rating Proof History now signs screenshot URLs before display.
+Confirm করলে Phase 1 audit থেকে শুরু করছি, প্রতি phase শেষে আপনাকে দেখিয়ে next phase-এ যাব।
