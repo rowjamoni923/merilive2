@@ -285,7 +285,7 @@ const AdminManualTopup = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
                   >
                     <Avatar className="w-10 h-10">
-                      <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
+                      <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} />
                       <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
@@ -306,7 +306,7 @@ const AdminManualTopup = () => {
               <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 ring-2 ring-amber-300">
-                    <UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} />
+                    <UserAvatarImage gender={((selectedUser) as any)?.gender} seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} />
                     <AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -416,7 +416,7 @@ const AdminManualTopup = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
-                              <UserAvatarImage src={log.user?.avatar_url ?? undefined} />
+                              <UserAvatarImage seed={(((log.user) as any)?.id ?? ((log.user) as any)?.user_id ?? ((log.user) as any)?.host_id)} gender={((log.user) as any)?.gender} src={log.user?.avatar_url ?? undefined} />
                               <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>

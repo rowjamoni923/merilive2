@@ -372,7 +372,7 @@ export default function AdminPartyRooms() {
                     {/* Host Info */}
                     <div className="flex items-center gap-2 mb-4 p-2 bg-slate-50 rounded-lg">
                       <Avatar className="w-8 h-8">
-                        <UserAvatarImage src={room.host?.avatar_url || undefined} />
+                        <UserAvatarImage seed={(((room.host) as any)?.id ?? ((room.host) as any)?.user_id ?? ((room.host) as any)?.host_id)} gender={((room.host) as any)?.gender} src={room.host?.avatar_url || undefined} />
                         <AvatarFallback className="bg-primary/20 text-primary text-sm">
                           {room.host?.display_name?.charAt(0) || "H"}
                         </AvatarFallback>
@@ -525,7 +525,7 @@ export default function AdminPartyRooms() {
 
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                 <Avatar className="w-10 h-10">
-                  <UserAvatarImage src={selectedRoom.host?.avatar_url || undefined} />
+                  <UserAvatarImage seed={(((selectedRoom.host) as any)?.id ?? ((selectedRoom.host) as any)?.user_id ?? ((selectedRoom.host) as any)?.host_id)} gender={((selectedRoom.host) as any)?.gender} src={selectedRoom.host?.avatar_url || undefined} />
                   <AvatarFallback className="bg-primary/20 text-primary">
                     {selectedRoom.host?.display_name?.charAt(0) || "H"}
                   </AvatarFallback>

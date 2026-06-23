@@ -465,7 +465,7 @@ const AdminReels = () => {
                     {/* User */}
                     <div className="flex items-center gap-2">
                       <Avatar className="w-6 h-6">
-                        <UserAvatarImage src={reel.user?.avatar_url || ''} />
+                        <UserAvatarImage seed={(((reel.user) as any)?.id ?? ((reel.user) as any)?.user_id ?? ((reel.user) as any)?.host_id)} gender={((reel.user) as any)?.gender} src={reel.user?.avatar_url || ''} />
                         <AvatarFallback>{reel.user?.display_name?.[0] || 'U'}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm truncate flex-1">{reel.user?.display_name || 'User'}</span>

@@ -233,7 +233,7 @@ export default function AdminTodayCalls() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
-                        <UserAvatarImage src={call.caller_profile?.avatar_url || ""} />
+                        <UserAvatarImage seed={(((call.caller_profile) as any)?.id ?? ((call.caller_profile) as any)?.user_id ?? ((call.caller_profile) as any)?.host_id)} gender={((call.caller_profile) as any)?.gender} src={call.caller_profile?.avatar_url || ""} />
                         <AvatarFallback className="bg-blue-900 text-blue-300 text-xs">
                           {call.caller_profile?.display_name?.[0] || "C"}
                         </AvatarFallback>
@@ -254,7 +254,7 @@ export default function AdminTodayCalls() {
 
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
-                        <UserAvatarImage src={call.host_profile?.avatar_url || ""} />
+                        <UserAvatarImage seed={(((call.host_profile) as any)?.id ?? ((call.host_profile) as any)?.user_id ?? ((call.host_profile) as any)?.host_id)} gender={((call.host_profile) as any)?.gender} src={call.host_profile?.avatar_url || ""} />
                         <AvatarFallback className="bg-pink-900 text-pink-300 text-xs">
                           {call.host_profile?.display_name?.[0] || "H"}
                         </AvatarFallback>

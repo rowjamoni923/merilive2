@@ -129,7 +129,7 @@ export default function AdminOnlineUsers() {
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10 ring-2 ring-emerald-500/50">
-                      <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
+                      <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
                       <AvatarFallback className="bg-emerald-900 text-emerald-300 text-xs">
                         {user.display_name?.[0] || "H"}
                       </AvatarFallback>
@@ -171,7 +171,7 @@ export default function AdminOnlineUsers() {
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10">
-                      <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
+                      <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
                       <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
                         {user.display_name?.[0] || "U"}
                       </AvatarFallback>

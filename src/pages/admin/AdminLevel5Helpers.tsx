@@ -820,7 +820,7 @@ const AdminLevel5Helpers = () => {
                       )}
                     >
                       <Avatar className="w-12 h-12 border-2 border-orange-500">
-                        <UserAvatarImage src={app.user?.avatar_url} />
+                        <UserAvatarImage seed={(((app.user) as any)?.id ?? ((app.user) as any)?.user_id ?? ((app.user) as any)?.host_id)} gender={((app.user) as any)?.gender} src={app.user?.avatar_url} />
                         <AvatarFallback>
                           <Crown className="w-5 h-5" />
                         </AvatarFallback>
@@ -945,7 +945,7 @@ const AdminLevel5Helpers = () => {
                       className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
                     >
                       <Avatar className="w-12 h-12 border-2 border-cyan-500">
-                        <UserAvatarImage src={helper.user?.avatar_url} />
+                        <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url} />
                         <AvatarFallback>
                           <Gem className="w-5 h-5" />
                         </AvatarFallback>
@@ -1056,7 +1056,7 @@ const AdminLevel5Helpers = () => {
                         onClick={() => { setSelectedWithdrawal(request); setShowWithdrawalDialog(true); setDiamondReward(String(request.diamond_reward || 0)); }}
                       >
                         <Avatar className="w-12 h-12">
-                          <UserAvatarImage src={request.helper?.user?.avatar_url} />
+                          <UserAvatarImage seed={(((request.helper?.user) as any)?.id ?? ((request.helper?.user) as any)?.user_id ?? ((request.helper?.user) as any)?.host_id)} gender={((request.helper?.user) as any)?.gender} src={request.helper?.user?.avatar_url} />
                           <AvatarFallback>
                             <User className="w-5 h-5" />
                           </AvatarFallback>
@@ -1183,7 +1183,7 @@ const AdminLevel5Helpers = () => {
               {/* Helper Info */}
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
                 <Avatar className="w-10 h-10">
-                  <UserAvatarImage src={selectedWithdrawal.helper?.user?.avatar_url} />
+                  <UserAvatarImage seed={(((selectedWithdrawal.helper?.user) as any)?.id ?? ((selectedWithdrawal.helper?.user) as any)?.user_id ?? ((selectedWithdrawal.helper?.user) as any)?.host_id)} gender={((selectedWithdrawal.helper?.user) as any)?.gender} src={selectedWithdrawal.helper?.user?.avatar_url} />
                   <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                 </Avatar>
                 <div>

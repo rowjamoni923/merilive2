@@ -280,7 +280,7 @@ export default function AdminUserReports() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="w-8 h-8 border border-red-500/30">
-                            <UserAvatarImage src={report.reported_user?.avatar_url || ""} />
+                            <UserAvatarImage seed={(((report.reported_user) as any)?.id ?? ((report.reported_user) as any)?.user_id ?? ((report.reported_user) as any)?.host_id)} gender={((report.reported_user) as any)?.gender} src={report.reported_user?.avatar_url || ""} />
                             <AvatarFallback className="bg-red-600 text-white text-xs">
                               {report.reported_user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>

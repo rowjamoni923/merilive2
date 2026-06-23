@@ -393,7 +393,7 @@ const AdminCoinTraders = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-14 h-14 ring-2 ring-emerald-200">
-                          <UserAvatarImage src={helper.user?.avatar_url || ''} />
+                          <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url || ''} />
                           <AvatarFallback>{helper.user?.display_name?.charAt(0) || 'H'}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -526,7 +526,7 @@ const AdminCoinTraders = () => {
               <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
                 {userSearchResults.map(user => (
                   <button key={user.id} onClick={() => { setSelectedUser(user); setUserSearchResults([]); setUserSearchQuery(user.display_name); }} className="w-full flex items-center gap-3 p-3 hover:bg-slate-50">
-                    <Avatar className="w-10 h-10"><UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} /><AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <Avatar className="w-10 h-10"><UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url} /><AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback></Avatar>
                     <div className="text-left"><p className="font-medium text-sm">{user.display_name}</p><p className="text-xs text-slate-500">ID: {user.app_uid}</p></div>
                   </button>
                 ))}
@@ -534,7 +534,7 @@ const AdminCoinTraders = () => {
             )}
             {selectedUser && (
               <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center gap-3">
-                <Avatar className="w-12 h-12"><UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} /><AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                <Avatar className="w-12 h-12"><UserAvatarImage gender={((selectedUser) as any)?.gender} seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url} /><AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback></Avatar>
                 <div><p className="font-semibold">{selectedUser.display_name}</p><p className="text-sm text-slate-600">ID: {selectedUser.app_uid}</p></div>
                 <Check className="w-6 h-6 text-emerald-500 ml-auto" />
               </div>
@@ -573,7 +573,7 @@ const AdminCoinTraders = () => {
                       className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 border transition-colors"
                     >
                       <Avatar className="w-10 h-10">
-                        <UserAvatarImage src={helper.user?.avatar_url} />
+                        <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url} />
                         <AvatarFallback>{helper.user?.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="text-left flex-1">
@@ -590,7 +590,7 @@ const AdminCoinTraders = () => {
                 <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12 ring-2 ring-emerald-300">
-                      <UserAvatarImage src={selectedHelper.user?.avatar_url} />
+                      <UserAvatarImage seed={(((selectedHelper.user) as any)?.id ?? ((selectedHelper.user) as any)?.user_id ?? ((selectedHelper.user) as any)?.host_id)} gender={((selectedHelper.user) as any)?.gender} src={selectedHelper.user?.avatar_url} />
                       <AvatarFallback>{selectedHelper.user?.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">

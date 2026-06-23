@@ -731,7 +731,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-12 h-12">
-                          <UserAvatarImage src={app.user?.avatar_url} />
+                          <UserAvatarImage seed={(((app.user) as any)?.id ?? ((app.user) as any)?.user_id ?? ((app.user) as any)?.host_id)} gender={((app.user) as any)?.gender} src={app.user?.avatar_url} />
                           <AvatarFallback>{app.user?.display_name?.[0]}</AvatarFallback>
                         </Avatar>
                         
@@ -816,7 +816,7 @@ const AdminHelperManagement = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <UserAvatarImage src={helper.user?.avatar_url} />
+                          <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url} />
                           <AvatarFallback>{helper.user?.display_name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -891,7 +891,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <UserAvatarImage src={req.helper?.user?.avatar_url} />
+                          <UserAvatarImage seed={(((req.helper?.user) as any)?.id ?? ((req.helper?.user) as any)?.user_id ?? ((req.helper?.user) as any)?.host_id)} gender={((req.helper?.user) as any)?.gender} src={req.helper?.user?.avatar_url} />
                           <AvatarFallback>H</AvatarFallback>
                         </Avatar>
                         <div>
@@ -937,7 +937,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <UserAvatarImage src={req.helper?.user?.avatar_url} />
+                          <UserAvatarImage seed={(((req.helper?.user) as any)?.id ?? ((req.helper?.user) as any)?.user_id ?? ((req.helper?.user) as any)?.host_id)} gender={((req.helper?.user) as any)?.gender} src={req.helper?.user?.avatar_url} />
                           <AvatarFallback>H</AvatarFallback>
                         </Avatar>
                         <div>
@@ -987,7 +987,7 @@ const AdminHelperManagement = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-14 h-14">
-                        <UserAvatarImage src={helper.user?.avatar_url} />
+                        <UserAvatarImage seed={(((helper.user) as any)?.id ?? ((helper.user) as any)?.user_id ?? ((helper.user) as any)?.host_id)} gender={((helper.user) as any)?.gender} src={helper.user?.avatar_url} />
                         <AvatarFallback>{helper.user?.display_name?.[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -1167,7 +1167,7 @@ const AdminHelperManagement = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
-                  <UserAvatarImage src={selectedApp.user?.avatar_url} />
+                  <UserAvatarImage seed={(((selectedApp.user) as any)?.id ?? ((selectedApp.user) as any)?.user_id ?? ((selectedApp.user) as any)?.host_id)} gender={((selectedApp.user) as any)?.gender} src={selectedApp.user?.avatar_url} />
                   <AvatarFallback>{selectedApp.user?.display_name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div>

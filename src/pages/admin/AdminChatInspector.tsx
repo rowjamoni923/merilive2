@@ -357,7 +357,7 @@ const AdminChatInspector = () => {
                   className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
                 >
                   <Avatar className="w-10 h-10 border-2 border-purple-500/30">
-                    <UserAvatarImage seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
+                    <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300 text-sm">
                       {user.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -385,7 +385,7 @@ const AdminChatInspector = () => {
               <div className="p-4 bg-gradient-to-r from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-purple-500/40">
-                    <UserAvatarImage seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url || ""} />
+                    <UserAvatarImage gender={((selectedUser) as any)?.gender} seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300">
                       {selectedUser.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -431,7 +431,7 @@ const AdminChatInspector = () => {
                       )}
                     >
                       <Avatar className="w-10 h-10">
-                        <UserAvatarImage src={conv.other_user.avatar_url || ""} />
+                        <UserAvatarImage seed={(((conv.other_user) as any)?.id ?? ((conv.other_user) as any)?.user_id ?? ((conv.other_user) as any)?.host_id)} gender={((conv.other_user) as any)?.gender} src={conv.other_user.avatar_url || ""} />
                         <AvatarFallback className="bg-slate-700 text-white/60 text-sm">
                           {conv.other_user.display_name?.[0] || "?"}
                         </AvatarFallback>
@@ -477,7 +477,7 @@ const AdminChatInspector = () => {
             <div className="space-y-3">
               <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl flex items-center gap-3">
                 <Avatar className="w-8 h-8">
-                  <UserAvatarImage src={selectedUser?.avatar_url || ""} />
+                  <UserAvatarImage seed={(((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id)} gender={((selectedUser) as any)?.gender} src={selectedUser?.avatar_url || ""} />
                   <AvatarFallback className="bg-purple-900/50 text-purple-300 text-xs">
                     {selectedUser?.display_name?.[0]}
                   </AvatarFallback>
@@ -485,7 +485,7 @@ const AdminChatInspector = () => {
                 <span className="text-white/80 text-sm font-medium">{selectedUser?.display_name}</span>
                 <span className="text-white/30 text-xs">↔</span>
                 <Avatar className="w-8 h-8">
-                  <UserAvatarImage src={selectedConversation.other_user.avatar_url || ""} />
+                  <UserAvatarImage seed={(((selectedConversation.other_user) as any)?.id ?? ((selectedConversation.other_user) as any)?.user_id ?? ((selectedConversation.other_user) as any)?.host_id)} gender={((selectedConversation.other_user) as any)?.gender} src={selectedConversation.other_user.avatar_url || ""} />
                   <AvatarFallback className="bg-slate-700 text-white/60 text-xs">
                     {selectedConversation.other_user.display_name?.[0]}
                   </AvatarFallback>
@@ -735,7 +735,7 @@ const AdminChatInspector = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
-                  <UserAvatarImage seed={((banTargetUser) as any)?.id ?? ((banTargetUser) as any)?.user_id ?? ((banTargetUser) as any)?.host_id} src={banTargetUser.avatar_url || ""} />
+                  <UserAvatarImage gender={((banTargetUser) as any)?.gender} seed={((banTargetUser) as any)?.id ?? ((banTargetUser) as any)?.user_id ?? ((banTargetUser) as any)?.host_id} src={banTargetUser.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                     {banTargetUser.display_name?.[0] || "U"}
                   </AvatarFallback>

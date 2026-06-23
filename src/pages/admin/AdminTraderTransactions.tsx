@@ -221,7 +221,7 @@ const AdminTraderTransactions = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
-                              <UserAvatarImage src={txn.helper?.user?.avatar_url} />
+                              <UserAvatarImage seed={(((txn.helper?.user) as any)?.id ?? ((txn.helper?.user) as any)?.user_id ?? ((txn.helper?.user) as any)?.host_id)} gender={((txn.helper?.user) as any)?.gender} src={txn.helper?.user?.avatar_url} />
                               <AvatarFallback>{txn.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -246,7 +246,7 @@ const AdminTraderTransactions = () => {
                           {txn.user ? (
                             <div className="flex items-center gap-2">
                               <Avatar className="w-6 h-6">
-                                <UserAvatarImage src={txn.user.avatar_url} />
+                                <UserAvatarImage seed={(((txn.user) as any)?.id ?? ((txn.user) as any)?.user_id ?? ((txn.user) as any)?.host_id)} gender={((txn.user) as any)?.gender} src={txn.user.avatar_url} />
                                 <AvatarFallback>{txn.user.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <span className="text-sm">{txn.user.display_name}</span>

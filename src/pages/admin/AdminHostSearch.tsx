@@ -270,7 +270,7 @@ export default function AdminHostSearch() {
                 <div className="text-center md:text-left">
                   <div className="relative inline-block">
                     <Avatar className="w-24 h-24 border-4 border-primary/30">
-                      <UserAvatarImage seed={((host) as any)?.id ?? ((host) as any)?.user_id ?? ((host) as any)?.host_id} src={host.avatar_url || undefined} />
+                      <UserAvatarImage gender={((host) as any)?.gender} seed={((host) as any)?.id ?? ((host) as any)?.user_id ?? ((host) as any)?.host_id} src={host.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-3xl">
                         {host.display_name?.charAt(0) || "H"}
                       </AvatarFallback>
@@ -414,7 +414,7 @@ export default function AdminHostSearch() {
                     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                       <Crown className="w-5 h-5 text-yellow-400" />
                       <Avatar className="w-8 h-8">
-                        <UserAvatarImage src={agency.owner.avatar_url || undefined} />
+                        <UserAvatarImage seed={(((agency.owner) as any)?.id ?? ((agency.owner) as any)?.user_id ?? ((agency.owner) as any)?.host_id)} gender={((agency.owner) as any)?.gender} src={agency.owner.avatar_url || undefined} />
                         <AvatarFallback className="bg-yellow-500/20 text-yellow-400 text-sm">
                           {agency.owner.display_name?.charAt(0) || "O"}
                         </AvatarFallback>

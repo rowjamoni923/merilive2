@@ -708,7 +708,7 @@ export default function AdminAgencyDetail() {
             {agency.owner ? (
               <div className="text-center">
                 <Avatar className="w-20 h-20 mx-auto mb-3 border-4 border-yellow-500/30">
-                  <UserAvatarImage src={agency.owner.avatar_url || undefined} />
+                  <UserAvatarImage seed={(((agency.owner) as any)?.id ?? ((agency.owner) as any)?.user_id ?? ((agency.owner) as any)?.host_id)} gender={((agency.owner) as any)?.gender} src={agency.owner.avatar_url || undefined} />
                   <AvatarFallback className="bg-yellow-500/20 text-yellow-400 text-2xl">
                     {agency.owner.display_name?.charAt(0) || "O"}
                   </AvatarFallback>
@@ -808,7 +808,7 @@ export default function AdminAgencyDetail() {
                           <div className="flex items-center gap-3">
                             <div className="relative">
                               <Avatar className="w-10 h-10">
-                                <UserAvatarImage src={h.host?.avatar_url || undefined} />
+                                <UserAvatarImage seed={(((h.host) as any)?.id ?? ((h.host) as any)?.user_id ?? ((h.host) as any)?.host_id)} gender={((h.host) as any)?.gender} src={h.host?.avatar_url || undefined} />
                                 <AvatarFallback className="bg-primary/20 text-primary">
                                   {h.host?.display_name?.charAt(0) || "H"}
                                 </AvatarFallback>
@@ -910,7 +910,7 @@ export default function AdminAgencyDetail() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
-                              <UserAvatarImage src={tx.receiver?.avatar_url || undefined} />
+                              <UserAvatarImage seed={(((tx.receiver) as any)?.id ?? ((tx.receiver) as any)?.user_id ?? ((tx.receiver) as any)?.host_id)} gender={((tx.receiver) as any)?.gender} src={tx.receiver?.avatar_url || undefined} />
                               <AvatarFallback className="bg-primary/20 text-primary text-sm">
                                 {tx.receiver?.display_name?.charAt(0) || "U"}
                               </AvatarFallback>
@@ -1083,7 +1083,7 @@ export default function AdminAgencyDetail() {
           {/* Current host info */}
           <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
             <Avatar className="w-12 h-12">
-              <UserAvatarImage src={selectedHost?.host?.avatar_url || undefined} />
+              <UserAvatarImage seed={(((selectedHost?.host) as any)?.id ?? ((selectedHost?.host) as any)?.user_id ?? ((selectedHost?.host) as any)?.host_id)} gender={((selectedHost?.host) as any)?.gender} src={selectedHost?.host?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary/20 text-primary">
                 {selectedHost?.host?.display_name?.charAt(0) || "H"}
               </AvatarFallback>
@@ -1177,7 +1177,7 @@ export default function AdminAgencyDetail() {
               <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-green-500/30">
-                    <UserAvatarImage seed={((foundUser) as any)?.id ?? ((foundUser) as any)?.user_id ?? ((foundUser) as any)?.host_id} src={foundUser.avatar_url || undefined} />
+                    <UserAvatarImage gender={((foundUser) as any)?.gender} seed={((foundUser) as any)?.id ?? ((foundUser) as any)?.user_id ?? ((foundUser) as any)?.host_id} src={foundUser.avatar_url || undefined} />
                     <AvatarFallback className="bg-green-500/20 text-green-400 text-lg">
                       {foundUser.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

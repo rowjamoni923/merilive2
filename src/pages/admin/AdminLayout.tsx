@@ -2842,7 +2842,7 @@ export default function AdminLayout() {
             !isSidebarOpen && "justify-center"
           )} onClick={() => setShowProfileMenu(true)}>
             <Avatar className="w-9 h-9 border border-violet-400/20 ring-2 ring-violet-500/10 shadow-lg">
-              <UserAvatarImage src={currentUser?.profile?.avatar_url} />
+              <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
               <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-xs font-bold">
                 {currentUser?.profile?.display_name?.charAt(0) || "A"}
               </AvatarFallback>
@@ -3029,7 +3029,7 @@ export default function AdminLayout() {
               {/* Mobile Avatar */}
               <button onClick={() => setShowProfileMenu(true)} className="lg:hidden flex-shrink-0">
                 <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
-                  <UserAvatarImage src={currentUser?.profile?.avatar_url} />
+                  <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
                   <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold">
                     {currentUser?.profile?.display_name?.charAt(0) || "A"}
                   </AvatarFallback>
