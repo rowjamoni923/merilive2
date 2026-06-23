@@ -37,6 +37,7 @@ import { bn } from "date-fns/locale";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface AdminLog {
   id: string;
   admin_id: string;
@@ -251,7 +252,7 @@ export default function AdminLogs() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-300">
                           <Avatar className="w-5 h-5">
-                            <AvatarImage src={log.admin?.avatar_url || ""} />
+                            <UserAvatarImage src={log.admin?.avatar_url || ""} />
                             <AvatarFallback className="bg-pink-600 text-white text-xs">
                               {log.admin?.display_name?.charAt(0) || "A"}
                             </AvatarFallback>

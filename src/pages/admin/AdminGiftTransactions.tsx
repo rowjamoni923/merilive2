@@ -16,6 +16,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface GiftTransaction {
   id: string;
   sender_id: string;
@@ -244,7 +245,7 @@ export default function AdminGiftTransactions() {
                       </div>
                       
                       <Avatar className="w-12 h-12 ring-2 ring-fuchsia-500/50">
-                        <AvatarImage src={receiver.avatar_url} />
+                        <UserAvatarImage src={receiver.avatar_url} />
                         <AvatarFallback className="bg-fuchsia-500/20 text-fuchsia-300">
                           {receiver.display_name?.charAt(0)}
                         </AvatarFallback>
@@ -284,7 +285,7 @@ export default function AdminGiftTransactions() {
                     <div className="flex items-center gap-2">
                       {/* Sender */}
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={t.sender?.avatar_url} />
+                        <UserAvatarImage src={t.sender?.avatar_url} />
                         <AvatarFallback className="text-xs bg-blue-500/20 text-blue-300">
                           {t.sender?.display_name?.charAt(0)}
                         </AvatarFallback>

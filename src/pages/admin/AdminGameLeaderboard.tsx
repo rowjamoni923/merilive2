@@ -16,6 +16,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 type PeriodType = 'daily' | 'weekly' | 'monthly';
 type CategoryType = 'host_earnings' | 'game_winners' | 'agency_performance' | 'pk_reward';
 
@@ -485,7 +486,7 @@ export default function AdminGameLeaderboard() {
                         >
                           <div className="w-8 h-8 flex items-center justify-center">{getRankBadge(rank)}</div>
                           <Avatar className="w-10 h-10 border-2 border-slate-600">
-                            <AvatarImage src={entry.avatar_url || undefined} />
+                            <UserAvatarImage src={entry.avatar_url || undefined} />
                             <AvatarFallback className="bg-purple-500/20 text-purple-300 text-sm">
                               {entry.name.charAt(0).toUpperCase()}
                             </AvatarFallback>

@@ -29,6 +29,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Level5Helper {
   id: string;
   user_id: string;
@@ -819,7 +820,7 @@ const AdminLevel5Helpers = () => {
                       )}
                     >
                       <Avatar className="w-12 h-12 border-2 border-orange-500">
-                        <AvatarImage src={app.user?.avatar_url} />
+                        <UserAvatarImage src={app.user?.avatar_url} />
                         <AvatarFallback>
                           <Crown className="w-5 h-5" />
                         </AvatarFallback>
@@ -944,7 +945,7 @@ const AdminLevel5Helpers = () => {
                       className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
                     >
                       <Avatar className="w-12 h-12 border-2 border-cyan-500">
-                        <AvatarImage src={helper.user?.avatar_url} />
+                        <UserAvatarImage src={helper.user?.avatar_url} />
                         <AvatarFallback>
                           <Gem className="w-5 h-5" />
                         </AvatarFallback>
@@ -1055,7 +1056,7 @@ const AdminLevel5Helpers = () => {
                         onClick={() => { setSelectedWithdrawal(request); setShowWithdrawalDialog(true); setDiamondReward(String(request.diamond_reward || 0)); }}
                       >
                         <Avatar className="w-12 h-12">
-                          <AvatarImage src={request.helper?.user?.avatar_url} />
+                          <UserAvatarImage src={request.helper?.user?.avatar_url} />
                           <AvatarFallback>
                             <User className="w-5 h-5" />
                           </AvatarFallback>
@@ -1182,7 +1183,7 @@ const AdminLevel5Helpers = () => {
               {/* Helper Info */}
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={selectedWithdrawal.helper?.user?.avatar_url} />
+                  <UserAvatarImage src={selectedWithdrawal.helper?.user?.avatar_url} />
                   <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                 </Avatar>
                 <div>

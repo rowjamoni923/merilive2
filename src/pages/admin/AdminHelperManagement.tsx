@@ -38,6 +38,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 // Interfaces
 interface HelperApplication {
   id: string;
@@ -730,7 +731,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-12 h-12">
-                          <AvatarImage src={app.user?.avatar_url} />
+                          <UserAvatarImage src={app.user?.avatar_url} />
                           <AvatarFallback>{app.user?.display_name?.[0]}</AvatarFallback>
                         </Avatar>
                         
@@ -815,7 +816,7 @@ const AdminHelperManagement = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={helper.user?.avatar_url} />
+                          <UserAvatarImage src={helper.user?.avatar_url} />
                           <AvatarFallback>{helper.user?.display_name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -890,7 +891,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={req.helper?.user?.avatar_url} />
+                          <UserAvatarImage src={req.helper?.user?.avatar_url} />
                           <AvatarFallback>H</AvatarFallback>
                         </Avatar>
                         <div>
@@ -936,7 +937,7 @@ const AdminHelperManagement = () => {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={req.helper?.user?.avatar_url} />
+                          <UserAvatarImage src={req.helper?.user?.avatar_url} />
                           <AvatarFallback>H</AvatarFallback>
                         </Avatar>
                         <div>
@@ -986,7 +987,7 @@ const AdminHelperManagement = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-14 h-14">
-                        <AvatarImage src={helper.user?.avatar_url} />
+                        <UserAvatarImage src={helper.user?.avatar_url} />
                         <AvatarFallback>{helper.user?.display_name?.[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -1166,7 +1167,7 @@ const AdminHelperManagement = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={selectedApp.user?.avatar_url} />
+                  <UserAvatarImage src={selectedApp.user?.avatar_url} />
                   <AvatarFallback>{selectedApp.user?.display_name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div>

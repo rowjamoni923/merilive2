@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface RechargeRecord {
   id: string;
   user_id: string;
@@ -630,7 +631,7 @@ const AdminRechargeHistory = () => {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={r.user_avatar || ''} />
+                        <UserAvatarImage src={r.user_avatar || ''} />
                         <AvatarFallback className="bg-primary/20 text-primary text-xs">
                           {r.user_name?.charAt(0) || '?'}
                         </AvatarFallback>

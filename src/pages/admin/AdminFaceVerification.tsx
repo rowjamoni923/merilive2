@@ -29,6 +29,7 @@ import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { cn } from "@/lib/utils";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 
 /**
  * Premium Approve/Reject action bar.
@@ -817,7 +818,7 @@ const AdminFaceVerification = () => {
                   <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10 border border-border">
-                        <AvatarImage src={submission.profile?.avatar_url} />
+                        <UserAvatarImage src={submission.profile?.avatar_url} />
                         <AvatarFallback>{submission.full_name?.charAt(0) || submission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
 
@@ -1017,7 +1018,7 @@ const AdminFaceVerification = () => {
                 {/* User Info */}
                 <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-xl">
                   <Avatar className="w-16 h-16 border-2 border-purple-500/30">
-                    <AvatarImage src={selectedSubmission.profile?.avatar_url} />
+                    <UserAvatarImage src={selectedSubmission.profile?.avatar_url} />
                     <AvatarFallback>{selectedSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -1044,7 +1045,7 @@ const AdminFaceVerification = () => {
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                       {selectedSubmission.duplicate_face_avatar && (
                         <Avatar className="w-10 h-10 border-2 border-red-400">
-                          <AvatarImage src={selectedSubmission.duplicate_face_avatar} />
+                          <UserAvatarImage src={selectedSubmission.duplicate_face_avatar} />
                           <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                       )}

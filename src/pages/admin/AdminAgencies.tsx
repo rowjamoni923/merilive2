@@ -79,6 +79,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface AgencyCommissionSettings {
   agency_commission_rate: number; // % of host earnings agency gets
   sub_agent_commission_rate: number; // % of host earnings sub-agent gets
@@ -1490,7 +1491,7 @@ export default function AdminAgencies() {
                     <div className="text-center md:text-left">
                       <div className="relative inline-block">
                         <Avatar className="w-24 h-24 border-4 border-primary/30">
-                          <AvatarImage src={hostSearchResult.avatar_url || undefined} />
+                          <UserAvatarImage src={hostSearchResult.avatar_url || undefined} />
                           <AvatarFallback className="bg-primary/20 text-primary text-3xl">
                             {hostSearchResult.display_name?.charAt(0) || "H"}
                           </AvatarFallback>
@@ -1634,7 +1635,7 @@ export default function AdminAgencies() {
                         <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
                           <Crown className="w-5 h-5 text-yellow-400" />
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={hostAgency.owner.avatar_url || undefined} />
+                            <UserAvatarImage src={hostAgency.owner.avatar_url || undefined} />
                             <AvatarFallback className="bg-yellow-500/20 text-yellow-400 text-sm">
                               {hostAgency.owner.display_name?.charAt(0) || "O"}
                             </AvatarFallback>
@@ -1807,7 +1808,7 @@ export default function AdminAgencies() {
                   {/* Owner Info */}
                   <div className="flex items-center gap-3 mb-3 p-3 bg-white/5 rounded-xl border border-white/5">
                     <Avatar className="w-9 h-9 ring-2 ring-yellow-500/30">
-                      <AvatarImage src={agency.owner?.avatar_url || undefined} />
+                      <UserAvatarImage src={agency.owner?.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-sm">
                         {agency.owner?.display_name?.charAt(0) || "O"}
                       </AvatarFallback>
@@ -1986,7 +1987,7 @@ export default function AdminAgencies() {
           {selectedAgency?.owner && (
             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
               <Avatar className="w-10 h-10 border-2 border-cyan-500/50">
-                <AvatarImage src={selectedAgency.owner.avatar_url || ""} />
+                <UserAvatarImage src={selectedAgency.owner.avatar_url || ""} />
                 <AvatarFallback className="bg-cyan-600 text-white">
                   {selectedAgency.owner.display_name?.charAt(0) || "O"}
                 </AvatarFallback>
@@ -2129,7 +2130,7 @@ export default function AdminAgencies() {
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
-                    <AvatarImage src={ownerSearchResult.avatar_url || undefined} />
+                    <UserAvatarImage src={ownerSearchResult.avatar_url || undefined} />
                     <AvatarFallback className="bg-emerald-500/20 text-emerald-400">
                       {ownerSearchResult.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

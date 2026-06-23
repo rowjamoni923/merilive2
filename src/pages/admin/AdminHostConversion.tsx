@@ -15,6 +15,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface ConversionRequest {
   id: string;
   user_id: string;
@@ -165,7 +166,7 @@ const AdminHostConversion = () => {
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={req.profile?.avatar_url} />
+                    <UserAvatarImage src={req.profile?.avatar_url} />
                     <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

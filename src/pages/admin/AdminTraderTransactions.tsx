@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Transaction {
   id: string;
   helper_id: string;
@@ -220,7 +221,7 @@ const AdminTraderTransactions = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
-                              <AvatarImage src={txn.helper?.user?.avatar_url} />
+                              <UserAvatarImage src={txn.helper?.user?.avatar_url} />
                               <AvatarFallback>{txn.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -245,7 +246,7 @@ const AdminTraderTransactions = () => {
                           {txn.user ? (
                             <div className="flex items-center gap-2">
                               <Avatar className="w-6 h-6">
-                                <AvatarImage src={txn.user.avatar_url} />
+                                <UserAvatarImage src={txn.user.avatar_url} />
                                 <AvatarFallback>{txn.user.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <span className="text-sm">{txn.user.display_name}</span>

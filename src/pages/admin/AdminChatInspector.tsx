@@ -25,6 +25,7 @@ import AdminNumberSharing from "./AdminNumberSharing";
 import AdminContactViolations from "./AdminContactViolations";
 import AdminLiveBans from "./AdminLiveBans";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 
 const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector`;
 
@@ -356,7 +357,7 @@ const AdminChatInspector = () => {
                   className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
                 >
                   <Avatar className="w-10 h-10 border-2 border-purple-500/30">
-                    <AvatarImage src={user.avatar_url || ""} />
+                    <UserAvatarImage src={user.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300 text-sm">
                       {user.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -384,7 +385,7 @@ const AdminChatInspector = () => {
               <div className="p-4 bg-gradient-to-r from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-purple-500/40">
-                    <AvatarImage src={selectedUser.avatar_url || ""} />
+                    <UserAvatarImage src={selectedUser.avatar_url || ""} />
                     <AvatarFallback className="bg-purple-900/50 text-purple-300">
                       {selectedUser.display_name?.[0] || "U"}
                     </AvatarFallback>
@@ -430,7 +431,7 @@ const AdminChatInspector = () => {
                       )}
                     >
                       <Avatar className="w-10 h-10">
-                        <AvatarImage src={conv.other_user.avatar_url || ""} />
+                        <UserAvatarImage src={conv.other_user.avatar_url || ""} />
                         <AvatarFallback className="bg-slate-700 text-white/60 text-sm">
                           {conv.other_user.display_name?.[0] || "?"}
                         </AvatarFallback>
@@ -476,7 +477,7 @@ const AdminChatInspector = () => {
             <div className="space-y-3">
               <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl flex items-center gap-3">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={selectedUser?.avatar_url || ""} />
+                  <UserAvatarImage src={selectedUser?.avatar_url || ""} />
                   <AvatarFallback className="bg-purple-900/50 text-purple-300 text-xs">
                     {selectedUser?.display_name?.[0]}
                   </AvatarFallback>
@@ -484,7 +485,7 @@ const AdminChatInspector = () => {
                 <span className="text-white/80 text-sm font-medium">{selectedUser?.display_name}</span>
                 <span className="text-white/30 text-xs">↔</span>
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={selectedConversation.other_user.avatar_url || ""} />
+                  <UserAvatarImage src={selectedConversation.other_user.avatar_url || ""} />
                   <AvatarFallback className="bg-slate-700 text-white/60 text-xs">
                     {selectedConversation.other_user.display_name?.[0]}
                   </AvatarFallback>
@@ -734,7 +735,7 @@ const AdminChatInspector = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
-                  <AvatarImage src={banTargetUser.avatar_url || ""} />
+                  <UserAvatarImage src={banTargetUser.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                     {banTargetUser.display_name?.[0] || "U"}
                   </AvatarFallback>

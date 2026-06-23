@@ -41,6 +41,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { loadAdminTopupHistory, formatTopupFieldLabel, type TopupHistoryEntry } from "@/utils/adminTopupHistory";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 // Interfaces
 interface UserProfile {
   id: string;
@@ -785,7 +786,7 @@ const AdminTopupSystem = () => {
                         className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
                       >
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={user.avatar_url} />
+                          <UserAvatarImage src={user.avatar_url} />
                           <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-left">
@@ -805,7 +806,7 @@ const AdminTopupSystem = () => {
                   <div className="p-3 sm:p-4 bg-amber-50 rounded-xl border border-amber-200">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 ring-2 ring-amber-300">
-                        <AvatarImage src={selectedUser.avatar_url} />
+                        <UserAvatarImage src={selectedUser.avatar_url} />
                         <AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -879,7 +880,7 @@ const AdminTopupSystem = () => {
                       {recentTopups.map(log => (
                         <div key={log.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50">
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={log.user?.avatar_url ?? undefined} />
+                            <UserAvatarImage src={log.user?.avatar_url ?? undefined} />
                             <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
@@ -950,7 +951,7 @@ const AdminTopupSystem = () => {
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="relative">
                           <Avatar className="w-12 h-12 ring-2 ring-emerald-200">
-                            <AvatarImage src={helper.user?.avatar_url || ''} />
+                            <UserAvatarImage src={helper.user?.avatar_url || ''} />
                             <AvatarFallback>{helper.user?.display_name?.charAt(0) || 'T'}</AvatarFallback>
                           </Avatar>
                           {helper.user?.is_online && (
@@ -1091,7 +1092,7 @@ const AdminTopupSystem = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar className="w-8 h-8">
-                                <AvatarImage src={order.user?.avatar_url} />
+                                <UserAvatarImage src={order.user?.avatar_url} />
                                 <AvatarFallback>{order.user?.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div>
@@ -1186,7 +1187,7 @@ const AdminTopupSystem = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar className="w-8 h-8">
-                                <AvatarImage src={txn.helper?.user?.avatar_url} />
+                                <UserAvatarImage src={txn.helper?.user?.avatar_url} />
                                 <AvatarFallback>{txn.helper?.user?.display_name?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <p className="font-medium text-sm">{txn.helper?.user?.display_name}</p>
@@ -1429,7 +1430,7 @@ const AdminTopupSystem = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-slate-50"
                   >
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar_url} />
+                      <UserAvatarImage src={user.avatar_url} />
                       <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
@@ -1445,7 +1446,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 ring-2 ring-emerald-300">
-                    <AvatarImage src={selectedUserForHelper.avatar_url} />
+                    <UserAvatarImage src={selectedUserForHelper.avatar_url} />
                     <AvatarFallback>{selectedUserForHelper.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -1485,7 +1486,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={selectedHelper.user?.avatar_url} />
+                    <UserAvatarImage src={selectedHelper.user?.avatar_url} />
                     <AvatarFallback>{selectedHelper.user?.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -1544,7 +1545,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={levelUpHelper.user?.avatar_url} />
+                    <UserAvatarImage src={levelUpHelper.user?.avatar_url} />
                     <AvatarFallback>{levelUpHelper.user?.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>

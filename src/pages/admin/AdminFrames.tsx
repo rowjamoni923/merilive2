@@ -39,6 +39,7 @@ import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBla
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface Frame {
   id: string;
   name: string;
@@ -970,7 +971,7 @@ const AdminFrames = () => {
               <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-black rounded-xl">
                 <div className="relative" style={{ width: 112, height: 112 }}>
                   <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
-                    <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
+                    <UserAvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
                     <AvatarFallback>U</AvatarFallback>
                   </Avatar>
                   <div className="absolute pointer-events-none z-20" style={{ inset: -13 }}>
@@ -1047,7 +1048,7 @@ const AdminFrames = () => {
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
               <div className="relative" style={{ width: 256, height: 256 }}>
                 <Avatar className="absolute inset-0 w-full h-full border-4 border-white shadow-lg z-10">
-                  <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
+                  <UserAvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <div className="absolute pointer-events-none z-20" style={{ inset: -30 }}>

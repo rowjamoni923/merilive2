@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface FaceViolation {
   id: string;
   host_id: string;
@@ -189,7 +190,7 @@ const AdminFaceViolations = () => {
                   )}
 
                   <Avatar className="w-12 h-12 border-2 border-red-400/30">
-                    <AvatarImage src={v.host_avatar || undefined} />
+                    <UserAvatarImage src={v.host_avatar || undefined} />
                     <AvatarFallback>{v.host_name?.charAt(0) || 'H'}</AvatarFallback>
                   </Avatar>
 

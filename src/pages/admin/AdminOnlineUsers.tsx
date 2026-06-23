@@ -12,6 +12,7 @@ import AdminPagination from "@/components/admin/AdminPagination";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface OnlineUser {
   id: string;
   display_name: string | null;
@@ -128,7 +129,7 @@ export default function AdminOnlineUsers() {
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10 ring-2 ring-emerald-500/50">
-                      <AvatarImage src={user.avatar_url || ""} />
+                      <UserAvatarImage src={user.avatar_url || ""} />
                       <AvatarFallback className="bg-emerald-900 text-emerald-300 text-xs">
                         {user.display_name?.[0] || "H"}
                       </AvatarFallback>
@@ -170,7 +171,7 @@ export default function AdminOnlineUsers() {
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar_url || ""} />
+                      <UserAvatarImage src={user.avatar_url || ""} />
                       <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
                         {user.display_name?.[0] || "U"}
                       </AvatarFallback>

@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface ClaimRecord {
   id: string;
   user_id: string;
@@ -286,7 +287,7 @@ const AdminRewardClaimsHistory = () => {
 
                   {/* Avatar */}
                   <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarImage src={host.user_avatar} />
+                    <UserAvatarImage src={host.user_avatar} />
                     <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                   </Avatar>
 
@@ -330,7 +331,7 @@ const AdminRewardClaimsHistory = () => {
               <Card key={claim.id} className="overflow-hidden">
                 <CardContent className="p-3 flex items-center gap-3">
                   <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage src={claim.user_avatar} />
+                    <UserAvatarImage src={claim.user_avatar} />
                     <AvatarFallback><User className="h-3 w-3" /></AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

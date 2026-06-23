@@ -25,6 +25,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 // useNavigate removed - using onViewChat callback instead
 
 interface ViolationRecord {
@@ -340,7 +341,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                       warningLevel === 'high' ? "border-orange-500" :
                       "border-red-500/30"
                     )}>
-                      <AvatarImage src={v.host?.avatar_url || ""} />
+                      <UserAvatarImage src={v.host?.avatar_url || ""} />
                       <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                         {v.host?.display_name?.[0] || "?"}
                       </AvatarFallback>
@@ -489,7 +490,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
-                  <AvatarImage src={banTarget.host?.avatar_url || ""} />
+                  <UserAvatarImage src={banTarget.host?.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
                     {banTarget.host?.display_name?.[0] || "U"}
                   </AvatarFallback>

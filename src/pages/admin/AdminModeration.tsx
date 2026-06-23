@@ -45,6 +45,7 @@ import { saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 interface ModerationLog {
   id: string;
   user_id: string;
@@ -343,7 +344,7 @@ export default function AdminModeration() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-slate-200">
-                            <AvatarImage src={log.user?.avatar_url || undefined} />
+                            <UserAvatarImage src={log.user?.avatar_url || undefined} />
                             <AvatarFallback className="bg-gradient-to-br from-red-400 to-orange-500 text-white">
                               {log.user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>
