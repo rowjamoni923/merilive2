@@ -155,6 +155,7 @@ const AgencySignup = () => {
       if (!data?.success || !data?.verified_token) throw new Error(data?.error || "App OTP verification failed");
 
       setAppVerified(true);
+      setAppVerifiedToken(data.verified_token);
       toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "App OTP verification failed", variant: "destructive" });
