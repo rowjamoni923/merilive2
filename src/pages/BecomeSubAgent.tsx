@@ -33,6 +33,14 @@ const BecomeSubAgent = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSubAgent, setIsSubAgent] = useState(false);
   const [myReferralCode, setMyReferralCode] = useState("");
+  // In-app OTP gate for becoming a sub-agent
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   useEffect(() => {
     checkCurrentUser();
