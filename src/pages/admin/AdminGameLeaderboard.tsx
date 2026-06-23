@@ -90,6 +90,11 @@ export default function AdminGameLeaderboard() {
     finally { setLoading(false); }
   };
 
+  useEffect(() => {
+    fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, period]);
+
   const fetchRewards = async (): Promise<RewardConfig[]> => {
     const { data } = await supabase
       .from('leaderboard_reward_config')
@@ -308,22 +313,30 @@ export default function AdminGameLeaderboard() {
           continue;
         }
         const isAgency = category === 'agency_performance';
+        const rewardAmount = Math.max(reward.reward_coins || 0, reward.reward_diamonds || 0, reward.reward_beans || 0);
+        const rewardType = reward.reward_beans > 0 ? 'beans' : reward.reward_diamonds > 0 ? 'diamonds' : 'coins';
 
         await creditReward(entry, reward, isAgency);
 
         // Record history
-        await supabase.from('leaderboard_reward_history').insert({
+        const { error: historyError } = await supabase.from('leaderboard_reward_history').insert({
           user_id: isAgency ? null : entry.id,
           agency_id: isAgency ? entry.id : null,
+          leaderboard_type: category,
           category,
           period_type: period,
           period_label: periodLabel,
           rank_position: rank,
+          reward_type: rewardType,
+          reward_amount: rewardAmount,
+          period_start: start,
+          period_end: end,
           stat_value: Math.floor(entry.stat_value),
           reward_coins: reward.reward_coins,
           reward_diamonds: reward.reward_diamonds,
           reward_beans: reward.reward_beans,
         });
+        if (historyError) throw historyError;
 
         // Send notification to user/agency owner about leaderboard reward
         if (!isAgency) {
@@ -347,11 +360,16 @@ export default function AdminGameLeaderboard() {
   };
 
   const updateRewardConfig = async (rewardId: string, field: string, value: number) => {
-    await supabase
+    const { error } = await supabase
       .from('leaderboard_reward_config')
       .update({ [field]: value })
       .eq('id', rewardId);
+    if (error) {
+      toast.error(error.message || 'Failed to update config');
+      return;
+    }
     toast.success('Config updated');
+    fetchAll();
   };
 
   const getRankBadge = (rank: number) => {
@@ -516,46 +534,11 @@ export default function AdminGameLeaderboard() {
                 {rewards.length === 0 ? (
                   <p className="text-slate-500 text-center py-6">No reward config for this category/period</p>
                 ) : rewards.map(rw => (
-                  <div key={rw.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                    <div className="w-16 text-center">
-                      <span className="text-amber-400 font-bold text-sm">
-                        #{rw.rank_from}{rw.rank_to !== rw.rank_from ? `-${rw.rank_to}` : ''}
-                      </span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-4 gap-2">
-                      <div>
-                        <label className="text-[10px] text-slate-400">Coins</label>
-                        <Input type="number" value={rw.reward_coins}
-                          onChange={e => updateRewardConfig(rw.id, 'reward_coins', parseInt(e.target.value) || 0)}
-                          className="h-8 bg-slate-900 border-slate-700 text-white text-sm" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400">💎 Diamonds</label>
-                        <Input type="number" value={rw.reward_diamonds}
-                          onChange={e => updateRewardConfig(rw.id, 'reward_diamonds', parseInt(e.target.value) || 0)}
-                          className="h-8 bg-slate-900 border-slate-700 text-white text-sm" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400">Beans</label>
-                        <Input type="number" value={rw.reward_beans}
-                          onChange={e => updateRewardConfig(rw.id, 'reward_beans', parseInt(e.target.value) || 0)}
-                          className="h-8 bg-slate-900 border-slate-700 text-white text-sm" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-amber-400">🎯 Min Target</label>
-                        <Input type="number" value={rw.min_target || 0}
-                          onChange={e => updateRewardConfig(rw.id, 'min_target', parseInt(e.target.value) || 0)}
-                          className="h-8 bg-slate-900 border-amber-700/50 text-amber-300 text-sm" />
-                      </div>
-                    </div>
-                    {(rw.min_target || 0) > 0 && (
-                      <div className="mt-1 ml-16">
-                        <span className="text-[10px] text-amber-400/70">
-                          ⚠️ Minimum {rw.min_target.toLocaleString()} earnings required to receive reward
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <LeaderboardRewardConfigRow
+                    key={rw.id}
+                    reward={rw}
+                    onCommit={(field, value) => updateRewardConfig(rw.id, field, value)}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -565,3 +548,75 @@ export default function AdminGameLeaderboard() {
     </div>
   );
 }
+
+const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig; onCommit: (field: string, value: number) => void }) => {
+  const [draft, setDraft] = useState({
+    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_beans: String(reward.reward_beans ?? 0),
+    min_target: String(reward.min_target ?? 0),
+  });
+
+  useEffect(() => {
+    setDraft({
+      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_beans: String(reward.reward_beans ?? 0),
+      min_target: String(reward.min_target ?? 0),
+    });
+  }, [reward.id, reward.reward_coins, reward.reward_diamonds, reward.reward_beans, reward.min_target]);
+
+  const commit = (field: keyof typeof draft) => {
+    const next = draft[field] === '' ? 0 : Math.max(0, Math.trunc(Number(draft[field])));
+    if (!Number.isFinite(next)) return;
+    if (next !== Number((reward as any)[field] ?? 0)) onCommit(field, next);
+  };
+
+  const input = (field: keyof typeof draft, className: string) => (
+    <Input
+      type="number"
+      inputMode="numeric"
+      min={0}
+      value={draft[field]}
+      onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+      onBlur={() => commit(field)}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+      className={className}
+    />
+  );
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+      <div className="w-16 text-center">
+        <span className="text-amber-400 font-bold text-sm">
+          #{reward.rank_from}{reward.rank_to !== reward.rank_from ? `-${reward.rank_to}` : ''}
+        </span>
+      </div>
+      <div className="flex-1 grid grid-cols-4 gap-2">
+        <div>
+          <label className="text-[10px] text-slate-400">Coins</label>
+          {input('reward_coins', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+        </div>
+        <div>
+          <label className="text-[10px] text-slate-400">💎 Diamonds</label>
+          {input('reward_diamonds', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+        </div>
+        <div>
+          <label className="text-[10px] text-slate-400">Beans</label>
+          {input('reward_beans', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+        </div>
+        <div>
+          <label className="text-[10px] text-amber-400">🎯 Min Target</label>
+          {input('min_target', 'h-8 bg-slate-900 border-amber-700/50 text-amber-300 text-sm')}
+        </div>
+      </div>
+      {(reward.min_target || 0) > 0 && (
+        <div className="mt-1 ml-16">
+          <span className="text-[10px] text-amber-400/70">
+            Minimum {reward.min_target.toLocaleString()} earnings required to receive reward
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
