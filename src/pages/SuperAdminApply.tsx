@@ -77,6 +77,8 @@ export default function SuperAdminApply() {
     toast.success("Uploaded");
   };
 
+  const MIN_DEPOSIT = settings?.min_deposit_usd || 10000;
+
   const submit = async () => {
     if (!userId) return;
     if (!form.full_name || !form.full_address || !form.official_email || !form.official_phone) {
@@ -84,9 +86,6 @@ export default function SuperAdminApply() {
     }
     if (!form.nid_number || !form.nid_front_url) {
       return toast.error("National ID number + front image are required");
-    }
-    if (form.deposit_amount_usd < (settings?.min_deposit_usd || 10000)) {
-      return toast.error(`Minimum deposit is $${settings?.min_deposit_usd || 10000}`);
     }
     if (!acceptTerms) return toast.error("You must accept the agreement");
     if (sigRef.current?.isEmpty()) return toast.error("Please sign the agreement");
@@ -106,8 +105,8 @@ export default function SuperAdminApply() {
         whatsapp: form.whatsapp,
         nid_country: form.nid_country,
         nid_number: form.nid_number,
-        deposit_amount_usd: form.deposit_amount_usd,
-        commission_percent: form.requested_commission_percent,
+        deposit_amount_usd: MIN_DEPOSIT,
+        commission_percent: 25,
         date_iso: now,
       }, signature_data_url);
 
@@ -133,10 +132,9 @@ export default function SuperAdminApply() {
         nid_front_url: form.nid_front_url,
         nid_back_url: form.nid_back_url || null,
         business_doc_url: form.business_doc_url || null,
-        deposit_amount_usd: form.deposit_amount_usd,
-        deposit_proof_url: form.deposit_proof_url || null,
-        deposit_tx_ref: form.deposit_tx_ref || null,
-        requested_commission_percent: form.requested_commission_percent,
+        // Helper does NOT set deposit — admin confirms the actual amount at approval time.
+        deposit_amount_usd: MIN_DEPOSIT,
+        requested_commission_percent: 25,
         notes: form.notes || null,
         signature_data_url,
         agreement_version: AGREEMENT_VERSION,
@@ -145,7 +143,9 @@ export default function SuperAdminApply() {
         status: "pending",
       });
       if (error) throw error;
-      toast.success("Agreement signed & submitted. Our team will officially contact you.");
+      toast.success(
+        `Application submitted. Our team will contact you at ${form.official_email} within 24–48 hours.`
+      );
       navigate("/");
     } catch (e: any) {
       toast.error(e.message || "Submission failed");
@@ -153,6 +153,7 @@ export default function SuperAdminApply() {
       setLoading(false);
     }
   };
+
 
   if (existing && existing.status !== "rejected" && existing.status !== "withdrawn") {
     return (
