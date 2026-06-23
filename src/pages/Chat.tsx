@@ -272,6 +272,45 @@ const dedupeAndSortMessages = <T extends { id: string; created_at: string }>(ite
 const sameMessageOrder = <T extends { id: string; created_at: string }>(a: T[], b: T[]) =>
   a.length === b.length && a.every((item, index) => item.id === b[index]?.id && item.created_at === b[index]?.created_at);
 
+const extractChatMediaPath = (content?: string | null): string => {
+  const raw = (content || '').trim();
+  return raw
+    .replace(/^\[(Image|Video|Audio|Voice|File):\s*/i, '')
+    .replace(/\]$/i, '')
+    .trim();
+};
+
+const isPlainChatStorageKey = (value: string) => {
+  if (!value) return false;
+  if (/^https?:|^blob:|^data:/i.test(value)) return false;
+  if (/^\[/.test(value)) return false;
+  if (/[\[\]\s|\\<>"'`]/.test(value)) return false;
+  if (!value.includes('/')) return false;
+  return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
+};
+
+const isChatImageMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'image'
+    || /^\[Image:/i.test(content || '')
+    || /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/i.test(noQuery);
+};
+
+const isChatVideoMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'video'
+    || /^\[Video:/i.test(content || '')
+    || /\.(mp4|mov|avi|mkv|webm)$/i.test(noQuery);
+};
+
+const isChatAudioMessage = (messageType?: string | null, content?: string | null) => {
+  const noQuery = extractChatMediaPath(content).split('?')[0];
+  return messageType === 'audio'
+    || messageType === 'voice'
+    || /^\[(Audio|Voice):/i.test(content || '')
+    || /\.(webm|mp3|wav|ogg|m4a|aac|flac)$/i.test(noQuery);
+};
+
 const Chat = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
