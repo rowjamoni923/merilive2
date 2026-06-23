@@ -287,8 +287,11 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
             .from('payment-screenshots')
             .upload(frontName, idCardFront);
           if (frontErr) throw frontErr;
-          const { data: frontUrl } = supabase.storage.from('payment-screenshots').getPublicUrl(frontName);
-          idCardFrontUrl = frontUrl.publicUrl;
+          // payment-screenshots is private — use a long-lived signed URL so admin can preview it.
+          const { data: frontSigned } = await supabase.storage
+            .from('payment-screenshots')
+            .createSignedUrl(frontName, 60 * 60 * 24 * 365 * 10);
+          idCardFrontUrl = frontSigned?.signedUrl ?? frontName;
         }
         if (idCardBack) {
           const backName = `helper-id-cards/${user.id}/${Date.now()}-back-${idCardBack.name}`;
@@ -296,8 +299,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
             .from('payment-screenshots')
             .upload(backName, idCardBack);
           if (backErr) throw backErr;
-          const { data: backUrl } = supabase.storage.from('payment-screenshots').getPublicUrl(backName);
-          idCardBackUrl = backUrl.publicUrl;
+          const { data: backSigned } = await supabase.storage
+            .from('payment-screenshots')
+            .createSignedUrl(backName, 60 * 60 * 24 * 365 * 10);
+          idCardBackUrl = backSigned?.signedUrl ?? backName;
         }
       }
 
