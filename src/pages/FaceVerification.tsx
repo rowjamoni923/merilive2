@@ -976,7 +976,9 @@ const FaceVerification = () => {
       
       faceStreamRef.current = stream;
       setFaceStream(stream);
-      attachFacePreviewStream(stream);
+      // BUG-08 fix: do NOT attach here — the [faceStream] useEffect below
+      // already attaches. Calling twice causes a `play()` race that throws
+      // AbortError on Android WebView and leaves the preview black.
     } catch (error: any) {
       console.error('Face camera error:', error);
       recordClientError({ label: "FaceVerification.stream", message: error instanceof Error ? error.message : String(error) });
@@ -1026,9 +1028,16 @@ const FaceVerification = () => {
         if (response.error || !response.data) return null;
         const faces = Number(response.data.faceCount ?? (response.data.faceDetected ? 1 : 0));
         const confidence = Number(response.data.confidence ?? 0);
+        // BUG-04 fix: AWS Rekognition's yaw convention is opposite of our
+        // local MediaPipe pose (Rekognition: positive yaw = person's right;
+        // local: positive yaw = person's left). Flipping the sign so server
+        // fallback (used on low-end devices without WebGL) produces the same
+        // left/right semantics as the local path. Without this, devices that
+        // fail to load TF.js can NEVER pass the left/right steps.
+        const rawPose = response.data.pose || { yaw: 0, pitch: 0, roll: 0 };
         return {
           faceDetected: Boolean(response.data.faceDetected) && faces === 1 && confidence >= 70,
-          pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
+          pose: { yaw: -Number(rawPose.yaw || 0), pitch: Number(rawPose.pitch || 0), roll: Number(rawPose.roll || 0) },
           eyesOpen: response.data.eyesOpen !== false,
           source: 'server' as const,
         };
@@ -1122,11 +1131,21 @@ const FaceVerification = () => {
   };
 
   // Start face verification recording with REAL liveness checking
+  const verifyInProgressRef = useRef(false);
   const startFaceVerification = async () => {
+    // BUG-06 fix: hard-lock re-entry. The auto-start effect retries up to 3×
+    // with a 1.5s timer; if the first call is still negotiating (slow device
+    // or Rekognition warm-up) the retry would spawn a 2nd MediaRecorder +
+    // 2nd setInterval pose loop writing into the same chunks buffer.
+    if (verifyInProgressRef.current) {
+      console.log('[FaceVerify] start ignored — already in progress');
+      return;
+    }
     if (!cameraReady || (!usingNativeFaceCameraRef.current && !faceStream)) {
       toast({ title: "Camera not ready", description: "Please wait...", variant: "destructive" });
       return;
     }
+    verifyInProgressRef.current = true;
 
     setVerificationStarted(true);
     setVerificationRecording(true);
@@ -1261,6 +1280,7 @@ const FaceVerification = () => {
       toast({ title: "Recording failed", description: "Please try again", variant: "destructive" });
       setVerificationStarted(false);
       setVerificationRecording(false);
+      verifyInProgressRef.current = false; // BUG-06: release lock on error
     }
   };
 
@@ -1622,6 +1642,7 @@ const FaceVerification = () => {
 
   // Reset verification
   const resetVerification = () => {
+    verifyInProgressRef.current = false; // BUG-06: release lock on reset
     autoFaceStartRef.current = false;
     if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
       nativeFaceCam.stopRecording().catch(() => null);
@@ -1658,10 +1679,15 @@ const FaceVerification = () => {
       nativeFaceRecordingRef.current = false;
       setNativeFaceCameraActive(false);
     }
-    if (faceStream) {
-      faceStream.getTracks().forEach(track => track.stop());
-      setFaceStream(null);
+    // BUG-07 fix: stop tracks via the ref (state may be stale across renders)
+    // AND null the ref, otherwise the next startFaceCamera reuses a stopped
+    // MediaStream and the user sees a frozen / black preview.
+    const currentStream = faceStreamRef.current || faceStream;
+    if (currentStream) {
+      try { currentStream.getTracks().forEach((track) => track.stop()); } catch {}
     }
+    faceStreamRef.current = null;
+    setFaceStream(null);
     setCameraReady(false);
     resetVerification();
   };
