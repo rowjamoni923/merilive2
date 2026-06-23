@@ -56,3 +56,10 @@
 (b) **Existing helper dashboard reuse** — Level 6 হলে শুধু country-scope filter add করব। (faster, কম code)
 
 কোনটা চান?
+
+## 2026-06-23 — Homepage Leaderboard 3D trophy fix
+
+- User screenshot target: homepage top-right leaderboard button in `src/pages/Index.tsx`, not the shared `Header.tsx` button.
+- Professional mobile target size: W3C WCAG guidance says custom touch targets should be at least **44×44 CSS px**; current homepage button was **36×36 px**, so it looked tiny and under-premium. Source: W3C Understanding SC 2.5.5 Target Size Enhanced (`w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html`).
+- Live-streaming competitor pattern: BIGO highlights ranking/host support flows as important engagement surfaces, so ranking entry should read like a prominent reward/status object, not a flat small icon. Source: BIGO Live operating/ranking materials surfaced in web research.
+- Fix plan: enlarge homepage leaderboard to **52×52 px**, keep it perfectly circular, use the existing transparent 3D trophy asset at **38×38 px**, add layered gold coin-like bevel, inner depth shadow, glass highlight, rotating shine, premium glow, and reduced-motion fallback.
