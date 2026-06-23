@@ -2294,8 +2294,13 @@ const Chat = () => {
   // voice, media, replies render as text fallback inside native list).
   const nativeChatThreadTitle = selectedConversation?.other_user?.display_name || undefined;
   const nativeChatThreadId = selectedConversation?.id || null;
+  const hasMediaMessages = messages.some((m) =>
+    isChatImageMessage(m.message_type, m.content)
+    || isChatVideoMessage(m.message_type, m.content)
+    || isChatAudioMessage(m.message_type, m.content)
+  );
   const nativeChatMessages = React.useMemo<NativeChatMessage[]>(() => {
-    if (!nativeChatThreadId) return [];
+    if (!nativeChatThreadId || hasMediaMessages) return [];
     const otherName = selectedConversation?.other_user?.display_name || "User";
     const otherAvatar = selectedConversation?.other_user?.avatar_url || null;
     return messages.map((m): NativeChatMessage => {
@@ -2303,8 +2308,8 @@ const Chat = () => {
       let text = m.content || "";
       if (m.message_type === "gift") text = `🎁 ${text || "Gift"}`;
       else if (m.message_type === "voice") text = "🎙️ Voice message";
-      else if (m.message_type === "image") text = "🖼️ Image";
-      else if (m.message_type === "video") text = "🎬 Video";
+      else if (m.message_type === "image") text = "Photo";
+      else if (m.message_type === "video") text = "Video";
       else if (m.message_type === "file") text = "📎 File";
       return {
         id: m.id,
@@ -2315,12 +2320,12 @@ const Chat = () => {
         avatarUrl: isMine ? null : otherAvatar,
       };
     });
-  }, [messages, nativeChatThreadId, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
+  }, [messages, nativeChatThreadId, hasMediaMessages, selectedConversation?.other_user?.display_name, selectedConversation?.other_user?.avatar_url, currentUserId]);
 
   const handleSendRef = useRef(handleSend);
   handleSendRef.current = handleSend;
   const { active: nativeChatActive, setMessages: setNativeChatMessages } = useNativeChatUI({
-    enabled: !!nativeChatThreadId,
+    enabled: !!nativeChatThreadId && !hasMediaMessages,
     currentUserId,
     title: nativeChatThreadTitle,
     onSend: (text) => { void handleSendRef.current(text); },
