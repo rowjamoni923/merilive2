@@ -249,6 +249,34 @@ const GoLive = () => {
     setPreviewHasFrame(true);
   }, []);
 
+  const captureAndUploadLiveThumbnail = useCallback(async (hostId: string): Promise<string | null> => {
+    const videoEl = videoRef.current;
+    if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
+    try {
+      const canvas = document.createElement('canvas');
+      const maxSide = 720;
+      const scale = Math.min(1, maxSide / Math.max(videoEl.videoWidth, videoEl.videoHeight));
+      canvas.width = Math.max(1, Math.round(videoEl.videoWidth * scale));
+      canvas.height = Math.max(1, Math.round(videoEl.videoHeight * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.72));
+      if (!blob) return null;
+      const objectPath = `${hostId}/live-thumbnails/${Date.now()}.jpg`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(objectPath, blob, {
+        upsert: true,
+        contentType: 'image/jpeg',
+        cacheControl: '300',
+      });
+      if (uploadError) return null;
+      return supabase.storage.from('avatars').getPublicUrl(objectPath).data.publicUrl || null;
+    } catch (err) {
+      console.warn('[GoLive] live thumbnail capture skipped', err);
+      return null;
+    }
+  }, []);
+
   const attachWebPreviewStream = useCallback((mediaStream: MediaStream) => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
@@ -965,9 +993,10 @@ const GoLive = () => {
       // guarded and the trusted RPC closes stale host sessions safely.
       const streamTitle = title.trim() || `${userProfile?.display_name || 'User'}'s Live`;
 
+      const startThumbnailUrl = await captureAndUploadLiveThumbnail(user.id);
       const { data: startResult, error } = await supabase.rpc('start_live_stream', {
         p_title: streamTitle,
-        p_thumbnail_url: null,
+        p_thumbnail_url: startThumbnailUrl,
         p_display_name: userProfile?.display_name || 'User',
         p_category_id: null,
         p_live_privacy: 'public',
