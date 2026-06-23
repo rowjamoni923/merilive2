@@ -117,6 +117,7 @@ const AgencySignup = () => {
     setSendingAppOtp(true);
     setAppOtp("");
     setAppVerified(false);
+    setAppVerifiedToken("");
 
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
