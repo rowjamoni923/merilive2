@@ -191,6 +191,7 @@ const AdminPayoutsAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminPa
 const AdminUserManagement = lazy(lazyRetry(() => import("./pages/admin/AdminUserManagement")));
 const AdminSuperAdminManagement = lazy(lazyRetry(() => import("./pages/admin/AdminSuperAdminManagement")));
 const SuperAdminApply = lazy(lazyRetry(() => import("./pages/SuperAdminApply")));
+const CountryAdminDashboard = lazy(lazyRetry(() => import("./pages/CountryAdminDashboard")));
 const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraders")));
 const AdminTopupTraderApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminTopupTraderApprovals")));
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
@@ -1267,6 +1268,7 @@ const App = () => {
                 <Route path="/invitation" element={<ProtectedRoute session={session}><Invitation /></ProtectedRoute>} />
                 <Route path="/tasks" element={<ProtectedRoute session={session}><Tasks /></ProtectedRoute>} />
                 <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
+                <Route path="/country-admin/dashboard" element={<ProtectedRoute session={session}><CountryAdminDashboard /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
                 <Route path="/debug/referrer" element={<ProtectedRoute session={session}><DebugReferrer /></ProtectedRoute>} />
                 <Route path="/debug/referrer-test" element={<ProtectedRoute session={session}><DebugReferrerTest /></ProtectedRoute>} />

@@ -1724,6 +1724,10 @@ export type Database = {
           assigned_helper_id: string | null
           blocked_helper_ids: string[]
           claim_locked_until: string | null
+          country_admin_notes: string | null
+          country_admin_reviewed_at: string | null
+          country_admin_reviewed_by: string | null
+          country_admin_status: string
           country_code: string | null
           currency: string | null
           exchange_rate: number | null
@@ -1755,6 +1759,10 @@ export type Database = {
           assigned_helper_id?: string | null
           blocked_helper_ids?: string[]
           claim_locked_until?: string | null
+          country_admin_notes?: string | null
+          country_admin_reviewed_at?: string | null
+          country_admin_reviewed_by?: string | null
+          country_admin_status?: string
           country_code?: string | null
           currency?: string | null
           exchange_rate?: number | null
@@ -1786,6 +1794,10 @@ export type Database = {
           assigned_helper_id?: string | null
           blocked_helper_ids?: string[]
           claim_locked_until?: string | null
+          country_admin_notes?: string | null
+          country_admin_reviewed_at?: string | null
+          country_admin_reviewed_by?: string | null
+          country_admin_status?: string
           country_code?: string | null
           currency?: string | null
           exchange_rate?: number | null
@@ -6875,6 +6887,10 @@ export type Database = {
           amount: number
           approved_at: string | null
           beans_amount: number | null
+          country_admin_notes: string | null
+          country_admin_reviewed_at: string | null
+          country_admin_reviewed_by: string | null
+          country_admin_status: string
           created_at: string | null
           currency_code: string
           diamond_reward: number
@@ -6902,6 +6918,10 @@ export type Database = {
           amount: number
           approved_at?: string | null
           beans_amount?: number | null
+          country_admin_notes?: string | null
+          country_admin_reviewed_at?: string | null
+          country_admin_reviewed_by?: string | null
+          country_admin_status?: string
           created_at?: string | null
           currency_code?: string
           diamond_reward?: number
@@ -6929,6 +6949,10 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           beans_amount?: number | null
+          country_admin_notes?: string | null
+          country_admin_reviewed_at?: string | null
+          country_admin_reviewed_by?: string | null
+          country_admin_status?: string
           created_at?: string | null
           currency_code?: string
           diamond_reward?: number
@@ -19925,6 +19949,14 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
+      }
+      country_admin_review_agency_withdrawal: {
+        Args: { _decision: string; _notes?: string; _request_id: string }
+        Returns: Json
+      }
+      country_admin_review_helper_withdrawal: {
+        Args: { _decision: string; _notes?: string; _request_id: string }
+        Returns: Json
       }
       create_agency_for_user: {
         Args: {

@@ -1061,11 +1061,17 @@ const AdminLevel5Helpers = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold truncate text-slate-900 dark:text-white">{request.helper?.user?.display_name || 'Unknown Helper'}</p>
                             <Badge className={cn("text-white text-xs", statusConfig.color)}>
                               {statusConfig.label}
                             </Badge>
+                            {(request as any).country_admin_status === 'approved' && (
+                              <Badge className="bg-emerald-600 text-white text-xs">Country pre-approved</Badge>
+                            )}
+                            {(request as any).country_admin_status === 'rejected' && (
+                              <Badge className="bg-rose-600 text-white text-xs">Country rejected</Badge>
+                            )}
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {request.agency?.name || request.host?.display_name || 'Unknown'} • {request.currency_code}
