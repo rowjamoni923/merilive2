@@ -27,15 +27,20 @@ const loadLocalDetector = async () => {
         await tf.ready();
         const faceLandmarksDetection = await import("@tensorflow-models/face-landmarks-detection");
         const config = { runtime: "tfjs" as const, refineLandmarks: false, maxFaces: 1 };
-        return faceLandmarksDetection.createDetector(
+        const det = await faceLandmarksDetection.createDetector(
           faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
           config,
-        ) as Promise<LocalDetector>;
+        );
+        return det as unknown as LocalDetector;
       } catch (error) {
         console.warn("[LocalFacePose] detector load failed", error);
         return null;
       }
-    })();
+    })().then((d) => {
+      // BUG-09 fix: don't permanently cache a failed load — allow retry on next call.
+      if (!d) detectorPromise = null;
+      return d;
+    });
   }
   return detectorPromise;
 };

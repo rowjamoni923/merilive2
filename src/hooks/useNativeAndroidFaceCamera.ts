@@ -43,11 +43,24 @@ export function useNativeAndroidFaceCamera() {
     console.log('[useNativeAndroidFaceCamera] Native face camera stopped');
   }, [shared]);
 
-  // CRITICAL: release camera on navigation or unmount
+  // BUG-11 fix: release camera on BOTH unmount AND route change.
+  // Previously only route change fired cleanup, so modal-close / strict-mode
+  // double-mount / app background never released the camera → next attempt
+  // hit "camera in use" and silently failed permission.
   useEffect(() => {
     return () => {
       if (activeRef.current) {
-        console.log('[useNativeAndroidFaceCamera] Cleaning up native camera on unmount/navigation');
+        console.log('[useNativeAndroidFaceCamera] Cleanup on unmount');
+        NativeCamera.stop().catch(() => null);
+        activeRef.current = false;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (activeRef.current) {
+        console.log('[useNativeAndroidFaceCamera] Cleanup on route change');
         NativeCamera.stop().catch(() => null);
         activeRef.current = false;
       }
