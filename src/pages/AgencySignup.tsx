@@ -107,6 +107,7 @@ const AgencySignup = () => {
     setAppOtp("");
     setAppOtpSent(false);
     setAppVerified(false);
+    setAppVerifiedToken("");
     setAppOtpTimer(0);
   };
 
