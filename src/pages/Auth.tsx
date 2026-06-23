@@ -573,35 +573,9 @@ const Auth = () => {
       const existingForDevice = await recoverAccountByDevice(deviceId);
 
       if (existingForDevice) {
-        console.log('[Auth] Existing device account found, auto-login');
-        const guestEmail = existingForDevice.recoveryEmail;
-        const guestPassword = existingForDevice.recoveryPassword;
-
-        // Force-sync deterministic credentials first (covers anonymous-legacy
-        // accounts AND cases where the guest password drifted). The function
-        // is idempotent when credentials are already correct.
-        try {
-          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-        } catch (e) { /* ignore — we'll still try signin */ }
-
-        let { error: signInError } = await supabase.auth.signInWithPassword({
-          email: guestEmail,
-          password: guestPassword,
-        });
-
-        // If first attempt failed (rare race), try convert + signin once more
-        if (signInError) {
-          try {
-            await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-          } catch (e) { /* ignore */ }
-          const retry = await supabase.auth.signInWithPassword({
-            email: guestEmail,
-            password: guestPassword,
-          });
-          signInError = retry.error;
-        }
-
-        if (!signInError) {
+        console.log('[Auth] Existing device account found — exchanging device token for session');
+        const recovered = await completeDeviceRecovery(deviceId, existingForDevice.exchangeToken);
+        if (recovered) {
           await ensureProfileReady(
             existingForDevice.userId,
             {
@@ -611,15 +585,14 @@ const Auth = () => {
             },
             { requireHost: existingForDevice.gender === 'female' }
           );
+          localStorage.setItem("meri_device_id", deviceId);
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
-            email: guestEmail,
-            password: guestPassword,
+            userId: existingForDevice.userId,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
             gender: existingForDevice.gender as Gender,
           }));
-          localStorage.setItem("meri_device_id", deviceId);
           toast({
             title: "🎉 Welcome Back!",
             description: `Logged in as ${existingForDevice.displayName}`,
@@ -627,7 +600,7 @@ const Auth = () => {
           navigateAfterAuth();
           return;
         }
-        console.warn('[Auth] Device recovery sign-in failed, falling back to registration:', signInError.message);
+        console.warn('[Auth] Device recovery failed, falling back to registration');
       }
 
       // STEP 2: No existing account → proceed to registration form
