@@ -7633,6 +7633,7 @@ export type Database = {
       }
       leaderboard_reward_history: {
         Row: {
+          agency_id: string | null
           category: string | null
           claimed_at: string | null
           distributed_at: string | null
@@ -7651,9 +7652,10 @@ export type Database = {
           sent_at: string | null
           stat_value: number | null
           status: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          agency_id?: string | null
           category?: string | null
           claimed_at?: string | null
           distributed_at?: string | null
@@ -7672,9 +7674,10 @@ export type Database = {
           sent_at?: string | null
           stat_value?: number | null
           status?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          agency_id?: string | null
           category?: string | null
           claimed_at?: string | null
           distributed_at?: string | null
@@ -7693,9 +7696,24 @@ export type Database = {
           sent_at?: string | null
           stat_value?: number | null
           status?: string | null
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_reward_history_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaderboard_reward_history_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       level_animations: {
         Row: {
