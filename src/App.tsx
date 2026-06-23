@@ -1268,6 +1268,7 @@ const App = () => {
                 <Route path="/invitation" element={<ProtectedRoute session={session}><Invitation /></ProtectedRoute>} />
                 <Route path="/tasks" element={<ProtectedRoute session={session}><Tasks /></ProtectedRoute>} />
                 <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
+                <Route path="/country-admin/dashboard" element={<ProtectedRoute session={session}><CountryAdminDashboard /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
                 <Route path="/debug/referrer" element={<ProtectedRoute session={session}><DebugReferrer /></ProtectedRoute>} />
                 <Route path="/debug/referrer-test" element={<ProtectedRoute session={session}><DebugReferrerTest /></ProtectedRoute>} />
