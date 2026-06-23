@@ -265,7 +265,7 @@ export default function AdminBlocked() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10 border-2 border-red-500/50">
-                              <UserAvatarImage src={user.avatar_url || ""} />
+                              <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url || ""} />
                               <AvatarFallback className="bg-red-600 text-white">
                                 {user.display_name?.charAt(0) || "U"}
                               </AvatarFallback>

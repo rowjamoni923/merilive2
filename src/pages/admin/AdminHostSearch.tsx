@@ -270,7 +270,7 @@ export default function AdminHostSearch() {
                 <div className="text-center md:text-left">
                   <div className="relative inline-block">
                     <Avatar className="w-24 h-24 border-4 border-primary/30">
-                      <UserAvatarImage src={host.avatar_url || undefined} />
+                      <UserAvatarImage seed={host.id ?? host.user_id ?? host.host_id} src={host.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-3xl">
                         {host.display_name?.charAt(0) || "H"}
                       </AvatarFallback>

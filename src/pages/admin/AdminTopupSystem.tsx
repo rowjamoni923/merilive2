@@ -786,7 +786,7 @@ const AdminTopupSystem = () => {
                         className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors"
                       >
                         <Avatar className="w-10 h-10">
-                          <UserAvatarImage src={user.avatar_url} />
+                          <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url} />
                           <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-left">
@@ -806,7 +806,7 @@ const AdminTopupSystem = () => {
                   <div className="p-3 sm:p-4 bg-amber-50 rounded-xl border border-amber-200">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 ring-2 ring-amber-300">
-                        <UserAvatarImage src={selectedUser.avatar_url} />
+                        <UserAvatarImage seed={selectedUser.id ?? selectedUser.user_id ?? selectedUser.host_id} src={selectedUser.avatar_url} />
                         <AvatarFallback>{selectedUser.display_name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -1430,7 +1430,7 @@ const AdminTopupSystem = () => {
                     className="w-full flex items-center gap-3 p-3 hover:bg-slate-50"
                   >
                     <Avatar className="w-10 h-10">
-                      <UserAvatarImage src={user.avatar_url} />
+                      <UserAvatarImage seed={user.id ?? user.user_id ?? user.host_id} src={user.avatar_url} />
                       <AvatarFallback>{user.display_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
@@ -1446,7 +1446,7 @@ const AdminTopupSystem = () => {
               <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 ring-2 ring-emerald-300">
-                    <UserAvatarImage src={selectedUserForHelper.avatar_url} />
+                    <UserAvatarImage seed={selectedUserForHelper.id ?? selectedUserForHelper.user_id ?? selectedUserForHelper.host_id} src={selectedUserForHelper.avatar_url} />
                     <AvatarFallback>{selectedUserForHelper.display_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

@@ -245,7 +245,7 @@ export default function AdminGiftTransactions() {
                       </div>
                       
                       <Avatar className="w-12 h-12 ring-2 ring-fuchsia-500/50">
-                        <UserAvatarImage src={receiver.avatar_url} />
+                        <UserAvatarImage seed={receiver.id ?? receiver.user_id ?? receiver.host_id} src={receiver.avatar_url} />
                         <AvatarFallback className="bg-fuchsia-500/20 text-fuchsia-300">
                           {receiver.display_name?.charAt(0)}
                         </AvatarFallback>

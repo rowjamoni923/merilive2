@@ -1491,7 +1491,7 @@ export default function AdminAgencies() {
                     <div className="text-center md:text-left">
                       <div className="relative inline-block">
                         <Avatar className="w-24 h-24 border-4 border-primary/30">
-                          <UserAvatarImage src={hostSearchResult.avatar_url || undefined} />
+                          <UserAvatarImage seed={hostSearchResult.id ?? hostSearchResult.user_id ?? hostSearchResult.host_id} src={hostSearchResult.avatar_url || undefined} />
                           <AvatarFallback className="bg-primary/20 text-primary text-3xl">
                             {hostSearchResult.display_name?.charAt(0) || "H"}
                           </AvatarFallback>
@@ -2130,7 +2130,7 @@ export default function AdminAgencies() {
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
-                    <UserAvatarImage src={ownerSearchResult.avatar_url || undefined} />
+                    <UserAvatarImage seed={ownerSearchResult.id ?? ownerSearchResult.user_id ?? ownerSearchResult.host_id} src={ownerSearchResult.avatar_url || undefined} />
                     <AvatarFallback className="bg-emerald-500/20 text-emerald-400">
                       {ownerSearchResult.display_name?.charAt(0) || "U"}
                     </AvatarFallback>
