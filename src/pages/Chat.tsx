@@ -369,25 +369,15 @@ const Chat = () => {
   }, [groupMessages]);
 
   useEffect(() => {
-    const isPlainStorageKey = (value: string) => {
-      if (!value) return false;
-      if (/^https?:|^blob:|^data:/i.test(value)) return false;
-      // Exclude chat payload wrappers like "[Gift: ...]" and anything with
-      // whitespace, pipes, brackets, or other characters Storage rejects.
-      if (/^\[/.test(value)) return false;
-      if (/[[\]\s|\\<>"'`]/.test(value)) return false;
-      if (!value.includes('/')) return false;
-      return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
-    };
     const paths = [...messages, ...groupMessages]
-      .map((m) => m.content || '')
+      .map((m) => extractChatMediaPath(m.content || ''))
       .concat(pendingMedia?.url || '')
-      .filter(isPlainStorageKey);
+      .filter(isPlainChatStorageKey);
     const missing = [...new Set(paths)].filter((path) => !signedChatMediaUrls[path]);
     if (missing.length === 0) return;
     let cancelled = false;
     Promise.all(missing.map(async (path) => {
-      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 7);
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
       return [path, data?.signedUrl || path] as const;
     })).then((entries) => {
       if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
