@@ -85,11 +85,11 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   const [foundUser, setFoundUser] = useState<UserProfile | null>(null);
   const [userNotFound, setUserNotFound] = useState(false);
 
-  // App verification
+  // App verification (server-side OTP via agency-app-otp edge function)
   const [appCode, setAppCode] = useState("");
-  const [generatedAppCode, setGeneratedAppCode] = useState("");
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppCode, setSendingAppCode] = useState(false);
+  const [verifyingAppCode, setVerifyingAppCode] = useState(false);
   const [appCodeSent, setAppCodeSent] = useState(false);
   const [appCodeTimer, setAppCodeTimer] = useState(0);
 
