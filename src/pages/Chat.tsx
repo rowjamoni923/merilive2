@@ -235,16 +235,17 @@ const summarizeMessageForReply = (
   }
 
   if (type === 'audio' || /^\[(Voice|Audio):/i.test(c) || /\.(webm|mp3|wav|ogg|m4a)(\?|$)/i.test(c)) {
-    return { label: '🎤 Voice message', thumb: null, kind: 'audio' };
+    return { label: 'Voice message', thumb: null, kind: 'audio' };
   }
 
   if (type === 'image' || /^\[Image:/i.test(c) || /\.(jpe?g|png|gif|webp)(\?|$)/i.test(c)) {
     const url = c.replace(/^\[Image:\s*/i, '').replace(/\]$/, '');
-    return { label: '📷 Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
+    return { label: 'Photo', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'image' };
   }
 
   if (type === 'video' || /^\[Video:/i.test(c) || /\.(mp4|mov|avi|mkv)(\?|$)/i.test(c)) {
-    return { label: '🎬 Video', thumb: null, kind: 'video' };
+    const url = c.replace(/^\[Video:\s*/i, '').replace(/\]$/, '');
+    return { label: 'Video', thumb: /^https?:\/\//.test(url) ? url : null, kind: 'video' };
   }
 
   const text = c.replace(/^\[[^\]]+\]\s*/, '').slice(0, 80) || 'Message';
