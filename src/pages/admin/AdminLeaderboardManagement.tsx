@@ -226,13 +226,17 @@ const AdminLeaderboardManagement = () => {
     const newTo = Math.min(newFrom, 50);
 
     const { error } = await supabase.from("leaderboard_reward_config").insert({
+      leaderboard_type: selectedCategory,
       category: selectedCategory,
       period_type: selectedPeriod,
       rank_from: newFrom,
       rank_to: newTo,
+      rank_position: newFrom,
       reward_coins: 0,
       reward_diamonds: 0,
       reward_beans: 0,
+      reward_amount: 0,
+      reward_type: 'coins',
       is_active: true,
     });
 
