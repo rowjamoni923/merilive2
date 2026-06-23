@@ -104,7 +104,13 @@ async function fetchImageBytes(url: string, supabaseAdmin: ReturnType<typeof cre
   return new Uint8Array(await r.arrayBuffer());
 }
 
-const MIN_FACE_MATCH_PERCENTAGE = 76;
+// BUG-05 fix: align with face-verification-analyze canonical threshold (85%).
+// Previously 76% — a 9-point spread meant the same submission could auto-approve
+// via admin rerun but be rejected on first analyze pass. Profile↔selfie compare
+// must use ONE number across every pipeline; pose-loop cross-angle compare
+// (server_auto_finalize 72%) is a separate, intentionally lower threshold
+// because it compares the user's own front/left/right to each other.
+const MIN_FACE_MATCH_PERCENTAGE = 85;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

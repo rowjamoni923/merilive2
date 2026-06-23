@@ -680,29 +680,24 @@ const FaceVerification = () => {
     }
   };
 
+  // BUG-03 fix: the client-side duplicate ban was driven by a trivially
+  // spoofable 32×32 perceptual hash that produces a different hex string
+  // every time lighting/compression changes — so a real duplicate often
+  // slipped past, and a logged-in user could spoof a self-ban via injected
+  // JS by calling ban_duplicate_face_attempt with their own user id.
+  //
+  // We now SHOW the duplicate-account warning modal (UX) but DO NOT auto-ban
+  // or sign the user out from the client. The authoritative duplicate check
+  // lives in face-verification-analyze (AWS Rekognition SearchFacesByImage +
+  // external provider) and ban decisions are taken server-side.
   const enforceDuplicateFaceBan = async (matched: any) => {
     if (!userId || !matched?.user_id) return;
-
-    try {
-      await supabase.rpc('ban_duplicate_face_attempt', {
-        _user_id: userId,
-        _duplicate_user_id: matched.user_id,
-        _duplicate_uid: matched.app_uid || matched.user_id,
-      });
-    } catch (banErr) {
-      console.error('Duplicate face ban RPC failed:', banErr);
-      recordClientError({ label: "FaceVerification.enforceDuplicateFaceBan", message: banErr instanceof Error ? banErr.message : String(banErr) });
-    }
-
+    console.warn('[FaceVerify] Client duplicate-face advisory — server analyze pipeline will enforce ban if AWS confirms.');
     toast({
-      title: "Account Permanently Banned",
-      description: "Duplicate face detected. One face can only be used for one account.",
+      title: "Duplicate Face Detected",
+      description: "This face appears already registered. Your submission will be reviewed and the account banned if confirmed by our verification system.",
       variant: "destructive",
     });
-
-    localStorage.setItem('meri_manual_logout', 'true');
-    await supabase.auth.signOut({ scope: 'local' });
-    navigate('/auth');
   };
 
   // Check user and verification status
@@ -1049,8 +1044,19 @@ const FaceVerification = () => {
     })();
 
     try {
+      // BUG-12 fix: race local detector first. If MediaPipe returns a confident
+      // face we SKIP the server Rekognition call entirely — saves up to 90
+      // AWS DetectFaces calls per verification attempt (one per second × 90s).
+      // Server is only used as a fallback for devices without WebGL/TF.js.
+      const fastLocalPose = await withSoftTimeout(localPosePromise, 900);
+      if (fastLocalPose?.faceDetected) {
+        return fastLocalPose;
+      }
+
       const serverPose = await withSoftTimeout(serverPosePromise, 2200);
-      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 1400 : 3200);
+      // Local detector may have finished after the fast race — give it a small
+      // additional window in case the first attempt returned no face.
+      const localPose = fastLocalPose ?? await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 600 : 2200);
       if (localPose?.faceDetected) {
         return {
           ...localPose,
@@ -1600,11 +1606,16 @@ const FaceVerification = () => {
         const pitchVariance = Math.max(...pitches) - Math.min(...pitches);
         
         if (yawVariance < 5 && pitchVariance < 5) {
-          // Suspiciously static — likely a photo
+          // BUG-10 fix: a static photo/replay can defeat the pose loop without
+          // ever exceeding 5° head movement. Previously we set faceVerified=true
+          // and just flagged manual review, meaning the spoofed submission still
+          // counted as a "pass" client-side. Now we still route to manual review
+          // (server analyze will run liveness anyway) BUT we keep faceVerified
+          // false so the user must redo the scan if they want auto-approve.
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
           pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
           setFaceManualReviewRequired(true);
-          setFaceVerified(true);
+          setFaceVerified(false); // ★ was true — never let client-side spoof pass as verified
           buildAndStoreDebugReport('antispoof');
           toast({
             title: "Manual Review Required",
@@ -1927,7 +1938,15 @@ const FaceVerification = () => {
             challenge_randomized: true,
           },
           face_image_url: videoUrl,
-          selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
+          // BUG-14 fix: never store the `pending://no-image` literal — it crashes
+          // admin-rerun (`fetch('pending://no-image')` throws TypeError). If both
+          // angle upload AND video upload returned null, abort the submission so
+          // the user can retry on a working network instead of polluting the DB.
+          selfie_url: (() => {
+            const url = angleUrls.front_url || videoUrl;
+            if (!url) throw new Error('Upload failed: no face image could be saved. Please check your connection and try again.');
+            return url;
+          })(),
           front_url: angleUrls.front_url ?? null,
           left_url: angleUrls.left_url ?? null,
           right_url: angleUrls.right_url ?? null,
@@ -2174,7 +2193,12 @@ const FaceVerification = () => {
           video_url: introVideoUrl,
           host_photos: photoUrls,
           face_image_url: faceVideoUrl,
-          selfie_url: angleUrls.front_url || faceVideoUrl || 'pending://no-image',
+          // BUG-14 fix: see same fix in user-path insert above.
+          selfie_url: (() => {
+            const url = angleUrls.front_url || faceVideoUrl;
+            if (!url) throw new Error('Upload failed: no face image could be saved. Please check your connection and try again.');
+            return url;
+          })(),
           front_url: angleUrls.front_url ?? null,
           left_url: angleUrls.left_url ?? null,
           right_url: angleUrls.right_url ?? null,
