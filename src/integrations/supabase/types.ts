@@ -1004,6 +1004,8 @@ export type Database = {
           beans_balance: number | null
           blocked_at: string | null
           blocked_reason: string | null
+          closed_at: string | null
+          closed_reason: string | null
           commission_rate: number | null
           created_at: string | null
           diamond_balance: number
@@ -1011,6 +1013,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_blocked: boolean | null
+          is_official: boolean
           level: string | null
           logo_url: string | null
           name: string
@@ -1031,6 +1034,8 @@ export type Database = {
           beans_balance?: number | null
           blocked_at?: string | null
           blocked_reason?: string | null
+          closed_at?: string | null
+          closed_reason?: string | null
           commission_rate?: number | null
           created_at?: string | null
           diamond_balance?: number
@@ -1038,6 +1043,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_blocked?: boolean | null
+          is_official?: boolean
           level?: string | null
           logo_url?: string | null
           name: string
@@ -1058,6 +1064,8 @@ export type Database = {
           beans_balance?: number | null
           blocked_at?: string | null
           blocked_reason?: string | null
+          closed_at?: string | null
+          closed_reason?: string | null
           commission_rate?: number | null
           created_at?: string | null
           diamond_balance?: number
@@ -1065,6 +1073,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_blocked?: boolean | null
+          is_official?: boolean
           level?: string | null
           logo_url?: string | null
           name?: string
@@ -19203,6 +19212,23 @@ export type Database = {
           _target_minutes: number
         }
         Returns: Json
+      }
+      admin_search_closed_agencies: {
+        Args: { _search?: string }
+        Returns: {
+          activation_deadline: string
+          active_host_count: number
+          agency_code: string
+          closed_at: string
+          closed_reason: string
+          created_at: string
+          id: string
+          name: string
+          owner_app_uid: string
+          owner_avatar_url: string
+          owner_display_name: string
+          owner_id: string
+        }[]
       }
       admin_send_notification: {
         Args: {

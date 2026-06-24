@@ -74,6 +74,7 @@ import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
 import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
+import ClosedAgenciesTab from "@/components/admin/agency/ClosedAgenciesTab";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -422,7 +423,10 @@ export default function AdminAgencies() {
       if (filterType === "active") {
         query = query.eq("is_active", true).eq("is_blocked", false);
       } else if (filterType === "cancelled") {
-        query = query.eq("is_active", false);
+        query = query.eq("is_active", false).neq("activation_status", "closed");
+      } else {
+        // Hide auto-closed agencies from the default list (shown in dedicated "Closed" tab)
+        query = query.neq("activation_status", "closed");
       }
 
       if (searchQuery) {
@@ -893,11 +897,16 @@ export default function AdminAgencies() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-800 border border-slate-700 mb-4 p-1 w-full grid grid-cols-5 md:flex md:w-auto">
+        <TabsList className="bg-slate-800 border border-slate-700 mb-4 p-1 w-full grid grid-cols-3 md:grid-cols-6 md:flex md:w-auto">
           <TabsTrigger value="agencies" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Building2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             <span className="hidden md:inline">Agencies</span>
             <span className="md:hidden">List</span>
+          </TabsTrigger>
+          <TabsTrigger value="closed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-red-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
+            <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden md:inline">Closed</span>
+            <span className="md:hidden">Closed</span>
           </TabsTrigger>
           <TabsTrigger value="hostsearch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Search className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -918,6 +927,11 @@ export default function AdminAgencies() {
             <span className="md:hidden">Help</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="closed" className="space-y-4">
+          <ClosedAgenciesTab />
+        </TabsContent>
+
 
         {/* Agency Commission Settings Tab */}
         <TabsContent value="commission" className="space-y-6">
