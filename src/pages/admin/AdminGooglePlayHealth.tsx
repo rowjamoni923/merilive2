@@ -75,7 +75,7 @@ export default function AdminGooglePlayHealth() {
               <Row label="OAuth2 Access Token" ok={r.oauthToken?.ok} detail={r.oauthToken?.error || r.oauthToken?.tokenPrefix} />
               <Row label="Google Play API Reachable" ok={r.googlePlayApi?.ok} detail={`HTTP ${r.googlePlayApi?.status ?? "?"}`} />
               <Row label="Product Catalog Resolves" ok={r.products?.ok} detail={`${r.products?.items.filter(i => i.resolved).length}/${r.products?.total} resolved`} />
-              {r.packageName && <Row label="Package" ok={true} detail={r.packageName} />}
+              {meta?.packageName && <Row label="Package" ok={true} detail={meta.packageName} />}
             </CardContent>
           </Card>
 
