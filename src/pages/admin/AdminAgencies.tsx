@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Gem,
   Settings,
   Percent,
   Save,
@@ -77,6 +78,7 @@ import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
 import ClosedAgenciesTab from "@/components/admin/agency/ClosedAgenciesTab";
 import GrantCsaDialog from "@/components/admin/agency/GrantCsaDialog";
 import AdminCsaApprovals from "@/components/admin/agency/AdminCsaApprovals";
+import AdminCsaDiamondSettings from "@/components/admin/agency/AdminCsaDiamondSettings";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -934,11 +936,21 @@ export default function AdminAgencies() {
             <span className="hidden md:inline">CSA Approvals</span>
             <span className="md:hidden">CSA</span>
           </TabsTrigger>
+          <TabsTrigger value="csadiamond" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-600 data-[state=active]:text-black text-slate-400 font-medium text-xs md:text-sm">
+            <Gem className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden md:inline">CSA Diamond Wallet</span>
+            <span className="md:hidden">💎</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="csa" className="space-y-4">
           <AdminCsaApprovals />
         </TabsContent>
+
+        <TabsContent value="csadiamond" className="space-y-4">
+          <AdminCsaDiamondSettings />
+        </TabsContent>
+
 
         <TabsContent value="closed" className="space-y-4">
           <ClosedAgenciesTab />

@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles, Building2, Users, Mic2, HeartHandshake, Film, Radio } from "lucide-react";
 import { toast } from "sonner";
+import CsaDiamondWallet from "@/components/csa/CsaDiamondWallet";
 
 interface CsaContext {
   country_code: string;
@@ -228,7 +229,14 @@ export default function CountryAdminDashboard() {
             <TabsTrigger value="myqueue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white">
               My Submissions
             </TabsTrigger>
+            <TabsTrigger value="wallet" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white">
+              💎 Diamond Wallet
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="wallet" className="mt-4">
+            <CsaDiamondWallet />
+          </TabsContent>
 
           <TabsContent value="myqueue" className="mt-4">
             <MyApprovalQueue />
