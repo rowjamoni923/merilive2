@@ -2983,6 +2983,21 @@ const FaceVerification = () => {
 
   // Contact Support is required for Gender mismatch or Duplicate account.
   const isContactSupportRequired = cleanRejectionReason?.toLowerCase().includes('gender mismatch') || !!duplicateInfo;
+  const openVerificationSupport = () => {
+    try {
+      sessionStorage.setItem(
+        'verification_support_context',
+        [
+          '[Category: Face Verification]',
+          '',
+          'My face verification was rejected and I need support review.',
+          cleanRejectionReason ? `Reason shown: ${cleanRejectionReason}` : null,
+          duplicateInfo ? `Existing account shown: ${duplicateInfo.name || 'Unknown'} (ID: ${duplicateInfo.uid || 'Unknown'})` : null,
+        ].filter(Boolean).join('\n')
+      );
+    } catch { /* ignore */ }
+    navigate('/settings/customer-service?mode=live_chat&source=face_verification');
+  };
 
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
@@ -3054,7 +3069,7 @@ const FaceVerification = () => {
             {isContactSupportRequired && (
               <Button
                 className="w-full bg-slate-900 text-white rounded-2xl py-6 font-bold shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
-                onClick={() => navigate('/settings/customer-service?mode=live_chat')}
+                onClick={openVerificationSupport}
               >
                 💬 Contact Support Chat
               </Button>
