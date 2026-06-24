@@ -145,6 +145,7 @@ export default function SwiftPayDepositModal({
   userCustomPriceUsd = null,
   userCustomLabel = null,
   userCustomPurpose = "helper_application",
+  campaignId = null,
   onCredited,
   helperApplicationIntent = null,
 
