@@ -582,44 +582,57 @@ export async function checkIsHost(userId: string): Promise<boolean> {
 }
 
 /**
- * Full detection and processing pipeline
- * Only processes if sender is a host
+ * Full detection and processing pipeline.
+ *
+ * Rule (industry standard — Chamet / Bigo / Holla):
+ *   Detection fires ONLY when AT LEAST ONE party is a verified host.
+ *     - sender is host  → mask + 2,000 beans deduction (server RPC)
+ *     - recipient side includes a host (live/party broadcaster, or DM peer.is_host)
+ *       AND sender is not host → mask + popup warning, NO deduction
+ *     - user↔user / user↔agency / agency↔agency → no detection, freely allowed
+ *
+ * Callers MUST pass `recipientIncludesHost` so we can gate correctly when
+ * the sender themselves is not a host.
  */
 export async function detectAndProcessViolation(
   senderId: string,
   messageContent: string,
   sourceType: 'chat' | 'live_stream' | 'private_call' | 'private_message',
-  sourceId?: string
-): Promise<{ detected: boolean; violationNumber?: number; beansDeducted?: number; isBanned?: boolean }> {
-  console.log('[ContactDetection] Checking message from:', senderId, 'content length:', messageContent.length);
-  
-  // Detect contact info FIRST (for ALL users)
+  sourceId?: string,
+  recipientIncludesHost: boolean = false
+): Promise<{ detected: boolean; warningOnly?: boolean; violationNumber?: number; beansDeducted?: number; isBanned?: boolean }> {
+  console.log('[ContactDetection] Checking message from:', senderId, 'recipientIncludesHost:', recipientIncludesHost);
+
+  // Detect contact info FIRST (cheap regex pass)
   const detection = detectContactInfo(messageContent);
-  console.log('[ContactDetection] Detection result:', detection.hasViolation, detection.pattern, detection.detectedContent);
   if (!detection.hasViolation) {
     return { detected: false };
   }
 
-  // Get user profile for notification
-  let userProfile: { display_name: string | null; app_uid: string | null; is_host: boolean } | null = null;
+  // Resolve sender role
+  let senderIsHost = false;
   try {
     const { data } = await supabase
       .from('profiles')
-      .select('display_name, app_uid, is_host, phone_violation_count')
+      .select('is_host')
       .eq('id', senderId)
       .single();
-    userProfile = data;
+    senderIsHost = data?.is_host === true;
   } catch {}
 
-  // Check if sender is a host for penalty processing
-  const isHost = userProfile?.is_host === true;
-  if (!isHost) {
-    // Non-host (user / agency / L1–L5 helper): No penalty, no warning, freely allowed.
-    console.log('[ContactDetection] User is NOT a host — bypass entirely');
-    return { detected: false, violationNumber: 0, beansDeducted: 0, isBanned: false };
+  // Gate: at least one side must be a host
+  if (!senderIsHost && !recipientIncludesHost) {
+    console.log('[ContactDetection] Neither side is host — freely allowed');
+    return { detected: false };
   }
 
-  // Server RPC is the single source of truth for logs, counters, and bean deductions.
+  // Non-host sender → host recipient: mask + popup warning, no deduction
+  if (!senderIsHost && recipientIncludesHost) {
+    console.log('[ContactDetection] Non-host → host: warning only, no deduction');
+    return { detected: true, warningOnly: true };
+  }
+
+  // Host sender: server RPC handles 2,000-bean deduction, logs, ban escalation
   const result = await processHostViolation(
     senderId,
     detection.detectedContent,
@@ -630,6 +643,7 @@ export async function detectAndProcessViolation(
 
   return {
     detected: true,
+    warningOnly: false,
     violationNumber: result.violationNumber || 1,
     beansDeducted: result.beansDeducted || 0,
     isBanned: result.isBanned || false,
