@@ -21059,15 +21059,25 @@ export type Database = {
         Args: { _child_agency_id: string; _parent_agency_id: string }
         Returns: Json
       }
-      log_admin_action: {
-        Args: {
-          _action_type: string
-          _details?: Json
-          _target_id?: string
-          _target_type?: string
-        }
-        Returns: undefined
-      }
+      log_admin_action:
+        | {
+            Args: {
+              _action_type: string
+              _details?: Json
+              _target_id?: string
+              _target_type?: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _action_type: string
+              _details?: Json
+              _target_id: string
+              _target_type: string
+            }
+            Returns: undefined
+          }
       log_helper_payment_visibility: {
         Args: {
           _active_helper_count?: number
