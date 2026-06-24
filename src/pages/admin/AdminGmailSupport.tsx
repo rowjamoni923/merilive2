@@ -431,7 +431,7 @@ const AdminGmailSupport = () => {
 
         {/* Gmail Tab */}
         <TabsContent value="gmail" className="space-y-4 mt-4">
-          {/* Stats */}
+          {/* Stats — exact counts from Gmail labels API */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="bg-card/50 border-border/30 backdrop-blur-sm">
               <CardContent className="p-3 flex items-center gap-3">
@@ -439,8 +439,8 @@ const AdminGmailSupport = () => {
                   <Inbox className="h-4 w-4 text-purple-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.length}</div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Total</p>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.total}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Total Inbox</p>
                 </div>
               </CardContent>
             </Card>
@@ -450,7 +450,7 @@ const AdminGmailSupport = () => {
                   <Mail className="h-4 w-4 text-red-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-red-400 leading-none">{unreadCount}</div>
+                  <div className="text-lg font-bold text-red-400 leading-none">{inboxStats.unread}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Unread</p>
                 </div>
               </CardContent>
@@ -461,7 +461,7 @@ const AdminGmailSupport = () => {
                   <MailOpen className="h-4 w-4 text-green-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.filter(e => e.isRead).length}</div>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.read}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Read</p>
                 </div>
               </CardContent>
@@ -472,7 +472,7 @@ const AdminGmailSupport = () => {
                   <Star className="h-4 w-4 text-yellow-500" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.filter(e => e.labels.includes('STARRED')).length}</div>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.starred}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Starred</p>
                 </div>
               </CardContent>
