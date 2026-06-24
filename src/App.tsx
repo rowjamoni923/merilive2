@@ -161,6 +161,7 @@ const HostTransferHistory = lazy(lazyRetry(() => import("./pages/HostTransferHis
 const NotFound = lazy(lazyRetry(() => import("./pages/NotFound")));
 const ResetPassword = lazy(lazyRetry(() => import("./pages/ResetPassword")));
 const AuthCallback = lazy(lazyRetry(() => import("./pages/AuthCallback")));
+const CsaLogin = lazy(lazyRetry(() => import("./pages/CsaLogin")));
 const Shop = lazy(lazyRetry(() => import("./pages/Shop")));
 const Reels = lazy(lazyRetry(() => import("./pages/Reels")));
 const VIP = lazy(lazyRetry(() => import("./pages/VIP")));
@@ -1218,6 +1219,8 @@ const App = () => {
                 <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/csa-login" element={<CsaLogin />} />
+                <Route path="/country-admin" element={<CountryAdminDashboard />} />
                 <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session

@@ -1,391 +1,383 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  XCircle,
-  ShieldCheck,
-  DollarSign,
-  Users,
-  Clock,
-  Loader2,
-} from "lucide-react";
 
-type Assignment = {
-  id: string;
+interface CsaContext {
   country_code: string;
+  agency_id: string;
+  agency_name?: string;
+  email: string;
   commission_percent: number;
-  min_withdraw_usd: number;
-  max_withdraw_usd: number;
-  daily_cap_usd: number;
-  deposit_amount_usd: number;
-  status: string;
-};
+}
+interface Kpis {
+  country_code: string;
+  month_deposit_usd: number;
+  month_withdraw_usd: number;
+  pending_topups: number;
+  pending_withdrawals: number;
+  active_topup_methods: number;
+  active_withdrawal_methods: number;
+}
 
-type HelperRow = {
-  id: string;
-  helper_id: string;
-  usd_amount: number | null;
-  beans_amount: number | null;
-  status: string;
-  country_admin_status: string;
-  country_admin_notes: string | null;
-  country_admin_reviewed_at: string | null;
-  created_at: string;
-  payment_screenshot_url: string | null;
-  helper: { user_id: string; country_code: string | null } | null;
+const countryName = (code: string) => ({
+  BD: "Bangladesh", IN: "India", PK: "Pakistan", ID: "Indonesia",
+  MY: "Malaysia", PH: "Philippines", NP: "Nepal", LK: "Sri Lanka",
+  EG: "Egypt", SA: "Saudi Arabia", AE: "UAE", TR: "Turkey",
+  US: "United States", GB: "United Kingdom",
+} as Record<string, string>)[code] || code;
+
+const flag = (code: string) => {
+  if (!code || code.length !== 2) return "🌐";
+  return String.fromCodePoint(...[...code.toUpperCase()].map(c => 0x1f1a5 + c.charCodeAt(0)));
 };
 
 export default function CountryAdminDashboard() {
   const navigate = useNavigate();
+  const [ctx, setCtx] = useState<CsaContext | null>(null);
+  const [kpis, setKpis] = useState<Kpis | null>(null);
   const [loading, setLoading] = useState(true);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [rows, setRows] = useState<HelperRow[]>([]);
-  const [tab, setTab] = useState<"pending" | "reviewed" | "all">("pending");
-  const [target, setTarget] = useState<HelperRow | null>(null);
-  const [decision, setDecision] = useState<"approved" | "rejected" | null>(null);
-  const [notes, setNotes] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [topupMethods, setTopupMethods] = useState<any[]>([]);
+  const [wdMethods, setWdMethods] = useState<any[]>([]);
+  const [editTarget, setEditTarget] = useState<{ kind: "topup" | "wd"; row: any | null } | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) {
-        navigate("/auth");
-        return;
-      }
-      const { data: assigns } = await supabase
-        .from("country_payroll_admins")
-        .select("id,country_code,commission_percent,min_withdraw_usd,max_withdraw_usd,daily_cap_usd,deposit_amount_usd,status")
-        .eq("user_id", auth.user.id)
-        .eq("status", "active");
-
-      if (!assigns || assigns.length === 0) {
-        toast.error("You are not an active Country Super Admin");
-        navigate("/");
-        return;
-      }
-      setAssignments(assigns as Assignment[]);
-      await loadRows(assigns.map((a) => a.country_code));
-      setLoading(false);
-    })();
-  }, []);
-
-  const loadRows = async (countries: string[]) => {
-    const { data } = await supabase
-      .from("helper_withdrawal_requests")
-      .select(`
-        id, helper_id, usd_amount, beans_amount, status,
-        country_admin_status, country_admin_notes, country_admin_reviewed_at,
-        created_at, payment_screenshot_url,
-        helper:topup_helpers!helper_withdrawal_requests_helper_id_fkey(user_id, country_code)
-      `)
-      .in("status", ["pending", "screenshot_submitted", "approved", "rejected", "paid"])
-      .order("created_at", { ascending: false })
-      .limit(200);
-    const filtered = (data || []).filter((r: any) =>
-      countries.includes(r.helper?.country_code)
-    );
-    const normalized = filtered.map((r: any) => ({
-      ...r,
-      helper: Array.isArray(r.helper) ? r.helper[0] ?? null : r.helper,
-    }));
-    setRows(normalized as HelperRow[]);
-  };
-
-  const refresh = async () => {
-    await loadRows(assignments.map((a) => a.country_code));
-  };
-
-  const filtered = useMemo(() => {
-    if (tab === "pending")
-      return rows.filter(
-        (r) =>
-          r.country_admin_status === "pending" &&
-          ["pending", "screenshot_submitted"].includes(r.status)
-      );
-    if (tab === "reviewed")
-      return rows.filter((r) => r.country_admin_status !== "pending");
-    return rows;
-  }, [rows, tab]);
-
-  const stats = useMemo(() => {
-    const totalPending = rows.filter(
-      (r) =>
-        r.country_admin_status === "pending" &&
-        ["pending", "screenshot_submitted"].includes(r.status)
-    ).length;
-    const reviewedToday = rows.filter(
-      (r) =>
-        r.country_admin_reviewed_at &&
-        new Date(r.country_admin_reviewed_at).toDateString() ===
-          new Date().toDateString()
-    ).length;
-    const usdReviewed = rows
-      .filter((r) => r.country_admin_status === "approved")
-      .reduce((s, r) => s + (Number(r.usd_amount) || 0), 0);
-    return { totalPending, reviewedToday, usdReviewed };
-  }, [rows]);
-
-  const submit = async () => {
-    if (!target || !decision) return;
-    setSubmitting(true);
+  const load = useCallback(async () => {
+    setLoading(true);
     try {
-      const { error } = await supabase.rpc(
-        "country_admin_review_helper_withdrawal",
-        { _request_id: target.id, _decision: decision, _notes: notes || null }
-      );
-      if (error) throw error;
-      toast.success(
-        decision === "approved"
-          ? "Pre-approved. Sent to Owner Admin for final approval."
-          : "Marked as rejected. Owner Admin will be notified."
-      );
-      setTarget(null);
-      setDecision(null);
-      setNotes("");
-      await refresh();
-    } catch (e: any) {
-      toast.error(e?.message || "Failed");
+      const { data: c, error: ce } = await supabase.rpc("csa_get_my_context");
+      if (ce) throw ce;
+      if (!c) {
+        toast.error("You are not a Country Super Admin");
+        navigate("/csa-login", { replace: true });
+        return;
+      }
+      const context = c as unknown as CsaContext;
+      setCtx(context);
+
+      const [{ data: k }, { data: tu }, { data: wd }] = await Promise.all([
+        supabase.rpc("csa_country_kpis"),
+        supabase.from("topup_payment_methods").select("*").contains("country_codes", [context.country_code]).order("display_order"),
+        supabase.from("helper_country_payment_methods").select("*").eq("country_code", context.country_code).order("display_order"),
+      ]);
+      setKpis(k as unknown as Kpis);
+      setTopupMethods(tu || []);
+      setWdMethods(wd || []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load dashboard");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/csa-login", { replace: true });
+  };
+
+  const toggleTopup = async (row: any, field: "is_active" | "is_recommended") => {
+    try {
+      const { error } = await supabase.rpc("csa_upsert_topup_method", {
+        _id: row.id,
+        _name: row.name,
+        _method_type: row.method_type,
+        _payment_number: row.payment_number,
+        _account_name: row.account_name,
+        _payment_instructions: row.payment_instructions,
+        _icon_url: row.icon_url,
+        _logo_url: row.logo_url,
+        _is_active: field === "is_active" ? !row.is_active : row.is_active,
+        _is_recommended: field === "is_recommended" ? !row.is_recommended : row.is_recommended,
+        _display_order: row.display_order || 0,
+      });
+      if (error) throw error;
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
     }
   };
 
-  if (loading) {
+  const deleteTopup = async (id: string) => {
+    if (!confirm("Delete this payment method?")) return;
+    const { error } = await supabase.rpc("csa_delete_topup_method", { _id: id });
+    if (error) toast.error(error.message);
+    else { toast.success("Deleted"); load(); }
+  };
+
+  const deleteWd = async (id: string) => {
+    if (!confirm("Delete this withdrawal method?")) return;
+    const { error } = await supabase.rpc("csa_delete_withdrawal_method", { _id: id });
+    if (error) toast.error(error.message);
+    else { toast.success("Deleted"); load(); }
+  };
+
+  if (loading || !ctx) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <ShieldCheck className="w-5 h-5 text-amber-500" />
-          <div className="flex-1">
-            <h1 className="text-base font-semibold">Country Super Admin</h1>
-            <p className="text-xs text-muted-foreground">
-              {assignments.map((a) => a.country_code).join(", ")} ·
-              {" "}Pre-approval queue
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto p-4 space-y-4">
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="pt-4 text-sm text-amber-900 dark:text-amber-200">
-            ⚠️ Your decisions here are <strong>pre-approvals only</strong>. The
-            Owner Admin Panel must give the final approval before any funds are
-            released. Nothing pays out from this screen.
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-3 gap-3">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="w-3.5 h-3.5" /> Awaiting review
-              </div>
-              <div className="text-2xl font-bold mt-1">{stats.totalPending}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Users className="w-3.5 h-3.5" /> Reviewed today
-              </div>
-              <div className="text-2xl font-bold mt-1">{stats.reviewedToday}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <DollarSign className="w-3.5 h-3.5" /> USD pre-approved
-              </div>
-              <div className="text-2xl font-bold mt-1">
-                ${stats.usdReviewed.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Withdrawal requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-              <TabsList>
-                <TabsTrigger value="pending">Pending</TabsTrigger>
-                <TabsTrigger value="reviewed">Reviewed</TabsTrigger>
-                <TabsTrigger value="all">All</TabsTrigger>
-              </TabsList>
-              <TabsContent value={tab} className="space-y-2 mt-3">
-                {filtered.length === 0 && (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    Nothing here.
-                  </div>
-                )}
-                {filtered.map((r) => (
-                  <div
-                    key={r.id}
-                    className="border rounded-lg p-3 flex flex-col gap-2"
-                  >
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div>
-                        <div className="text-sm font-medium">
-                          ${Number(r.usd_amount || 0).toFixed(2)}{" "}
-                          <span className="text-xs text-muted-foreground">
-                            ({r.beans_amount || 0} beans)
-                          </span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(r.created_at).toLocaleString()} ·{" "}
-                          {r.helper?.country_code || "—"}
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          Status: {r.status}
-                        </Badge>
-                        <Badge
-                          className={
-                            r.country_admin_status === "approved"
-                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                              : r.country_admin_status === "rejected"
-                              ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
-                              : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                          }
-                        >
-                          Country: {r.country_admin_status}
-                        </Badge>
-                      </div>
-                    </div>
-                    {r.country_admin_notes && (
-                      <p className="text-xs text-muted-foreground italic">
-                        Note: {r.country_admin_notes}
-                      </p>
-                    )}
-                    {r.payment_screenshot_url && (
-                      <a
-                        href={r.payment_screenshot_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-primary underline w-fit"
-                      >
-                        View payment proof
-                      </a>
-                    )}
-                    {r.country_admin_status === "pending" &&
-                      ["pending", "screenshot_submitted"].includes(r.status) && (
-                        <div className="flex gap-2 pt-1">
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => {
-                              setTarget(r);
-                              setDecision("approved");
-                              setNotes("");
-                            }}
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-1" />
-                            Pre-approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="flex-1"
-                            onClick={() => {
-                              setTarget(r);
-                              setDecision("rejected");
-                              setNotes("");
-                            }}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
-                  </div>
-                ))}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </main>
-
-      <Dialog
-        open={!!target && !!decision}
-        onOpenChange={(o) => {
-          if (!o) {
-            setTarget(null);
-            setDecision(null);
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {decision === "approved" ? "Pre-approve" : "Reject"} withdrawal
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 text-sm">
-            <div className="p-3 rounded-md bg-muted">
-              ${Number(target?.usd_amount || 0).toFixed(2)} ·{" "}
-              {target?.helper?.country_code}
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-amber-950/30 text-white">
+      {/* Hero */}
+      <div className="relative overflow-hidden border-b border-amber-500/20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.15),transparent_60%)]" />
+        <div className="relative max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg ring-2 ring-amber-300/40">
+              <Crown className="w-7 h-7 text-black" />
             </div>
-            <Textarea
-              placeholder="Notes for the Owner Admin (optional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              This is a <strong>pre-approval</strong>. The Owner Admin Panel
-              must finalize before any payout happens.
-            </p>
+            <div>
+              <p className="text-xs text-amber-300/70 uppercase tracking-widest font-semibold">Country Super Admin</p>
+              <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                <span className="text-3xl">{flag(ctx.country_code)}</span>
+                <span className="bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+                  {countryName(ctx.country_code)}
+                </span>
+              </h1>
+              <p className="text-xs text-white/50 mt-0.5">{ctx.agency_name} · {ctx.email}</p>
+            </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setTarget(null);
-                setDecision(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={submit}
-              disabled={submitting}
-              variant={decision === "rejected" ? "destructive" : "default"}
-            >
-              {submitting && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Button variant="outline" size="sm" onClick={signOut}
+            className="bg-slate-900/60 border-amber-500/30 text-amber-200 hover:bg-amber-500/10">
+            <LogOut className="w-4 h-4 mr-1" /> Sign out
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* KPI cards */}
+        {kpis && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <KpiCard icon={<ArrowDownToLine className="w-5 h-5" />} label="Deposits (MTD)" value={`$${kpis.month_deposit_usd.toFixed(2)}`} accent="from-emerald-500 to-teal-600" />
+            <KpiCard icon={<ArrowUpFromLine className="w-5 h-5" />} label="Withdrawals (MTD)" value={`$${kpis.month_withdraw_usd.toFixed(2)}`} accent="from-rose-500 to-red-600" />
+            <KpiCard icon={<Wallet className="w-5 h-5" />} label="Pending Top-ups" value={kpis.pending_topups} accent="from-amber-500 to-yellow-600" />
+            <KpiCard icon={<Package className="w-5 h-5" />} label="Pending Withdrawals" value={kpis.pending_withdrawals} accent="from-violet-500 to-purple-600" />
+          </div>
+        )}
+
+        <Tabs defaultValue="topup">
+          <TabsList className="bg-slate-900/60 border border-amber-500/20 p-1">
+            <TabsTrigger value="topup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-600 data-[state=active]:text-black">
+              Top-up Methods ({topupMethods.length})
+            </TabsTrigger>
+            <TabsTrigger value="wd" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-red-600 data-[state=active]:text-white">
+              Withdrawal Methods ({wdMethods.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="topup" className="mt-4 space-y-3">
+            <div className="flex justify-end">
+              <Button onClick={() => setEditTarget({ kind: "topup", row: null })}
+                className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400">
+                <Plus className="w-4 h-4 mr-1" /> Add Top-up Method
+              </Button>
+            </div>
+            {topupMethods.length === 0 ? (
+              <Card className="bg-slate-900/60 border-amber-500/20 p-8 text-center text-white/50">
+                No top-up methods for {ctx.country_code} yet.
+              </Card>
+            ) : topupMethods.map((m) => (
+              <Card key={m.id} className="bg-slate-900/60 border-amber-500/20 p-4 flex items-center gap-3">
+                {m.is_recommended && <Sparkles className="w-5 h-5 text-amber-400" />}
+                {m.logo_url && <img src={m.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold flex items-center gap-2">
+                    {m.name}
+                    {m.is_recommended && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">RECOMMENDED</span>}
+                  </p>
+                  <p className="text-xs text-white/50 truncate">{m.method_type} · {m.payment_number}</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => toggleTopup(m, "is_recommended")}
+                  className={m.is_recommended ? "text-amber-300" : "text-white/40"}>
+                  {m.is_recommended ? <Star className="w-4 h-4 fill-current" /> : <StarOff className="w-4 h-4" />}
+                </Button>
+                <Switch checked={m.is_active} onCheckedChange={() => toggleTopup(m, "is_active")} />
+                <Button variant="ghost" size="icon" onClick={() => setEditTarget({ kind: "topup", row: m })}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => deleteTopup(m.id)} className="text-rose-400 hover:text-rose-300">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="wd" className="mt-4 space-y-3">
+            <div className="flex justify-end">
+              <Button onClick={() => setEditTarget({ kind: "wd", row: null })}
+                className="bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-400">
+                <Plus className="w-4 h-4 mr-1" /> Add Withdrawal Method
+              </Button>
+            </div>
+            {wdMethods.length === 0 ? (
+              <Card className="bg-slate-900/60 border-rose-500/20 p-8 text-center text-white/50">
+                No withdrawal methods for {ctx.country_code} yet.
+              </Card>
+            ) : wdMethods.map((m) => (
+              <Card key={m.id} className="bg-slate-900/60 border-rose-500/20 p-4 flex items-center gap-3">
+                {m.logo_url && <img src={m.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold">{m.method_name || m.payment_method_name}</p>
+                  <p className="text-xs text-white/50 truncate">{m.method_type} · {m.account_number}</p>
+                </div>
+                <Switch checked={m.is_active} disabled />
+                <Button variant="ghost" size="icon" onClick={() => setEditTarget({ kind: "wd", row: m })}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => deleteWd(m.id)} className="text-rose-400 hover:text-rose-300">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {editTarget && (
+        <MethodEditDialog
+          target={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); load(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function KpiCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: React.ReactNode; accent: string }) {
+  return (
+    <Card className="bg-slate-900/60 border-amber-500/20 p-4 relative overflow-hidden">
+      <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${accent} opacity-20 blur-xl`} />
+      <div className="relative">
+        <div className="text-amber-300 mb-1">{icon}</div>
+        <p className="text-xs text-white/50">{label}</p>
+        <p className="text-xl font-bold mt-0.5">{value}</p>
+      </div>
+    </Card>
+  );
+}
+
+function MethodEditDialog({ target, onClose, onSaved }: { target: { kind: "topup" | "wd"; row: any | null }; onClose: () => void; onSaved: () => void }) {
+  const isTopup = target.kind === "topup";
+  const r = target.row || {};
+  const [form, setForm] = useState({
+    name: r.name || r.method_name || r.payment_method_name || "",
+    method_type: r.method_type || "",
+    payment_number: r.payment_number || r.account_number || "",
+    account_name: r.account_name || "",
+    bank_name: r.bank_name || "",
+    instructions: r.payment_instructions || r.instructions || "",
+    logo_url: r.logo_url || r.icon_url || "",
+    is_active: r.is_active ?? true,
+    is_recommended: r.is_recommended ?? false,
+    display_order: r.display_order ?? 0,
+  });
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      if (isTopup) {
+        const { error } = await supabase.rpc("csa_upsert_topup_method", {
+          _id: r.id || null,
+          _name: form.name,
+          _method_type: form.method_type,
+          _payment_number: form.payment_number,
+          _account_name: form.account_name,
+          _payment_instructions: form.instructions,
+          _icon_url: form.logo_url,
+          _logo_url: form.logo_url,
+          _is_active: form.is_active,
+          _is_recommended: form.is_recommended,
+          _display_order: Number(form.display_order) || 0,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc("csa_upsert_withdrawal_method", {
+          _id: r.id || null,
+          _method_name: form.name,
+          _method_type: form.method_type,
+          _account_name: form.account_name,
+          _account_number: form.payment_number,
+          _bank_name: form.bank_name,
+          _instructions: form.instructions,
+          _logo_url: form.logo_url,
+          _is_active: form.is_active,
+          _display_order: Number(form.display_order) || 0,
+        });
+        if (error) throw error;
+      }
+      toast.success("Saved");
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="bg-slate-900 border-amber-500/30 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle>{r.id ? "Edit" : "Add"} {isTopup ? "Top-up" : "Withdrawal"} Method</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+          <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+          <Field label="Type (e.g. bkash, nagad, bank)" value={form.method_type} onChange={(v) => setForm({ ...form, method_type: v })} />
+          <Field label={isTopup ? "Payment Number" : "Account Number"} value={form.payment_number} onChange={(v) => setForm({ ...form, payment_number: v })} />
+          <Field label="Account Name" value={form.account_name} onChange={(v) => setForm({ ...form, account_name: v })} />
+          {!isTopup && <Field label="Bank Name" value={form.bank_name} onChange={(v) => setForm({ ...form, bank_name: v })} />}
+          <Field label="Logo URL" value={form.logo_url} onChange={(v) => setForm({ ...form, logo_url: v })} />
+          <div>
+            <Label className="text-white/80 text-xs">Instructions</Label>
+            <textarea
+              value={form.instructions}
+              onChange={(e) => setForm({ ...form, instructions: e.target.value })}
+              className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
+              rows={3}
+            />
+          </div>
+          <Field label="Display Order" type="number" value={String(form.display_order)} onChange={(v) => setForm({ ...form, display_order: Number(v) || 0 })} />
+          <div className="flex items-center justify-between">
+            <Label className="text-white/80 text-xs">Active</Label>
+            <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
+          </div>
+          {isTopup && (
+            <div className="flex items-center justify-between">
+              <Label className="text-white/80 text-xs">Recommended (⭐ shown first)</Label>
+              <Switch checked={form.is_recommended} onCheckedChange={(v) => setForm({ ...form, is_recommended: v })} />
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button onClick={save} disabled={busy} className="bg-amber-500 text-black hover:bg-amber-400">
+            {busy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <Label className="text-white/80 text-xs">{label}</Label>
+      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="bg-slate-800 border-slate-700" />
     </div>
   );
 }

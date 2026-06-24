@@ -75,6 +75,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
 import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
 import ClosedAgenciesTab from "@/components/admin/agency/ClosedAgenciesTab";
+import GrantCsaDialog from "@/components/admin/agency/GrantCsaDialog";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -222,6 +223,7 @@ export default function AdminAgencies() {
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showCsaDialog, setShowCsaDialog] = useState(false);
   const [showPayrollDialog, setShowPayrollDialog] = useState(false);
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -1795,6 +1797,18 @@ export default function AdminAgencies() {
                           Make Payroll Helper
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuItem
+                          className="text-amber-300 hover:text-amber-200 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAgency(agency);
+                            setShowCsaDialog(true);
+                          }}
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          {(agency as any).is_country_super_admin ? "Re-grant Country Super Admin" : "Grant Country Super Admin"}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-white/10" />
                         <DropdownMenuItem 
                           className={`cursor-pointer ${agency.is_active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}`}
                           onClick={(e) => {
@@ -1947,6 +1961,18 @@ export default function AdminAgencies() {
           <HelpersTabContent />
         </TabsContent>
       </Tabs>
+
+      {selectedAgency && (
+        <GrantCsaDialog
+          open={showCsaDialog}
+          onOpenChange={setShowCsaDialog}
+          agencyId={selectedAgency.id}
+          agencyName={selectedAgency.name}
+          ownerUserId={(selectedAgency as any).owner_id || (selectedAgency.owner as any)?.id || null}
+          defaultCountry={(selectedAgency.owner as any)?.country_code}
+          onGranted={() => { /* realtime will refresh */ }}
+        />
+      )}
 
       {/* Cancel/Activate Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
