@@ -101,11 +101,7 @@ serve(async (req) => {
       _user_id: user.id,
       _role: "admin",
     });
-    const { data: isOwner } = await admin.rpc("has_role", {
-      _user_id: user.id,
-      _role: "owner",
-    });
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin) {
       return new Response(
         JSON.stringify({ success: false, error: "Admin only" }),
         {
