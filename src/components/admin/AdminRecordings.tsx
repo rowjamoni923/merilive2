@@ -358,8 +358,9 @@ export default function AdminRecordings() {
                   </div>
                   <div>
                     <h3 className="text-white font-bold text-lg">{hostReport.hostName || "Unknown Host"}</h3>
-                    <p className="text-white/70 text-xs">
-                      {hostReport.hostUid ? `UID: ${hostReport.hostUid}` : ""} • Last 15 Days Report
+                    <p className="text-white/70 text-xs flex items-center gap-1 flex-wrap">
+                      {hostReport.hostUid && <><CopyableUid value={hostReport.hostUid} /><span>•</span></>}
+                      <span>Last 15 Days Report</span>
                     </p>
                   </div>
                 </div>
