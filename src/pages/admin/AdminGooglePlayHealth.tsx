@@ -48,10 +48,7 @@ export default function AdminGooglePlayHealth() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl space-y-4">
-      <Helmet>
-        <title>Google Play Health — Admin</title>
-        <meta name="description" content="Live diagnostic of Google Play purchase verification chain." />
-      </Helmet>
+      {useEffect(() => { document.title = "Google Play Health — Admin"; }, []) as any}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Google Play Billing Health</h1>
         <Button onClick={run} disabled={loading} size="sm">
