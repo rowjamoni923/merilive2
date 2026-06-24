@@ -14306,6 +14306,7 @@ export type Database = {
       }
       swift_pay_topups: {
         Row: {
+          campaign_id: string | null
           coins_amount: number
           created_at: string
           credited_at: string | null
@@ -14333,6 +14334,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          campaign_id?: string | null
           coins_amount: number
           created_at?: string
           credited_at?: string | null
@@ -14360,6 +14362,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          campaign_id?: string | null
           coins_amount?: number
           created_at?: string
           credited_at?: string | null
@@ -14387,6 +14390,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "swift_pay_topups_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "recharge_campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "swift_pay_topups_target_helper_id_fkey"
             columns: ["target_helper_id"]
@@ -21850,8 +21860,16 @@ export type Database = {
         Args: { _new_status: string; _order_id: string; _reason?: string }
         Returns: Json
       }
+      user_has_any_completed_recharge: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       users_have_block: { Args: { _a: string; _b: string }; Returns: boolean }
       validate_admin_access_token: { Args: { _token: string }; Returns: Json }
+      validate_campaign_for_user: {
+        Args: { p_at?: string; p_campaign_id: string; p_user_id: string }
+        Returns: Json
+      }
       validate_session_integrity: {
         Args: {
           p_device_fingerprint: string

@@ -135,6 +135,8 @@ Deno.serve(async (req) => {
           custom_price_usd?: number;
           /** "helper_application" (default, $100 floor) | "campaign" (no floor — campaign recharge mirrors My Diamond package flow) */
           purpose?: "helper_application" | "campaign";
+          /** When purpose=campaign, the campaign id being redeemed (server validates dedup). */
+          campaign_id?: string;
           /** Pkg433: stash helper-application context so the cron can auto-grant the Trader Wallet
            *  even if the user closes the app right after paying. Shape:
            *  { selected_level, contact_whatsapp, contact_telegram, reason, payroll_requested } */
@@ -233,21 +235,41 @@ Deno.serve(async (req) => {
         if (body.purpose === "campaign") {
           const { data: campaigns, error: cErr } = await admin
             .from("recharge_campaigns")
-            .select("diamonds_amount, bonus_diamonds, original_price_usd, offer_price_usd, is_active, schedule_start, schedule_end, priority")
+            .select("id, diamonds_amount, bonus_diamonds, original_price_usd, offer_price_usd, is_active, schedule_start, schedule_end, priority, is_first_recharge_only")
             .eq("is_active", true)
             .order("priority", { ascending: false });
           if (cErr) return json({ error: "campaign_lookup_failed" }, 500);
           const now = Date.now();
-          const match = (campaigns ?? []).find((c: any) => {
+          const matches = (campaigns ?? []).filter((c: any) => {
             const startsOk = !c.schedule_start || new Date(c.schedule_start).getTime() <= now;
             const endsOk = !c.schedule_end || new Date(c.schedule_end).getTime() >= now;
             const campaignCoins = Number(c.diamonds_amount ?? 0) + Number(c.bonus_diamonds ?? 0);
             const campaignUsd = Number(c.offer_price_usd ?? c.original_price_usd ?? 0);
             return startsOk && endsOk && campaignCoins === requestedCoins && Math.abs(campaignUsd - requestedUsd) <= 0.01;
           });
+          // If client passed an explicit campaign_id prefer that, otherwise take the highest-priority match.
+          const match = body.campaign_id
+            ? matches.find((c: any) => c.id === body.campaign_id) ?? null
+            : matches[0] ?? null;
           if (!match) return json({ error: "invalid_campaign_offer" }, 400);
+
+          // Bug #2: server-side dedup — first-recharge-only + already-redeemed checks
+          const { data: vRes, error: vErr } = await admin.rpc("validate_campaign_for_user", {
+            p_user_id: user.id,
+            p_campaign_id: (match as any).id,
+          });
+          if (vErr) {
+            console.error("[swift-pay-create-deposit] campaign validate error", vErr);
+            return json({ error: "campaign_validate_failed" }, 500);
+          }
+          const v = vRes as any;
+          if (!v?.ok) {
+            return json({ error: "campaign_not_eligible", reason: v?.reason ?? "unknown" }, 400);
+          }
+
           totalCoins = requestedCoins;
           priceUsd = roundUsd(Number((match as any).offer_price_usd ?? (match as any).original_price_usd));
+          campaignId = (match as any).id;
         } else {
           const minUsd = await resolveSwiftPayMinUsd(admin);
           const rate = await resolveBestDiamondsPerUsd(admin);
