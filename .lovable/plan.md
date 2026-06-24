@@ -95,6 +95,12 @@
 - Follow-up camera regression fix (2026-06-24): widened the native Face Verification transparency rule to include `#root` + page/scroll shells marked with `data-face-verification-*`, and removed the early hard-fail that rejected CameraX before analyzer frames were warm. This preserves the real native camera preview while the 3-API auto approve/reject pipeline continues to run after submission (`face-verification-analyze` → `service_auto_finalize_face_verification`). APK rebuild + physical Android test is still required before claiming 100% device verification.
 - Audit follow-up: `ProCameraEngine` / `useProCamera` were stubbed during the 2026-06-14 camera rebuild, so Face Verification no longer blocked Live/Party/Private Call camera conflicts. Restored a lightweight JS family arbiter (`streaming` vs `verification`) so Face Verification refuses to open while streaming-family owners are active, and streaming prejoin refuses to open while Face Verification owns CameraX. This is a React-side guard; native CameraOwnership remains a separate APK-level concern.
 
+## Admin microphone permission fix — 2026-06-24
+
+- Root cause found on main domain: `public/_headers` set `Permissions-Policy: camera=(), microphone=(), geolocation=()`, which explicitly blocks the browser from using microphone/camera on the current document. MDN documents that when the `microphone` directive blocks the feature, `getUserMedia()` rejects with `NotAllowedError`: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Permissions-Policy/microphone
+- Professional support-console behavior (Chamet/Bigo-style admin chat) requires operator voice input to work on the authenticated admin origin, so policy must allow same-origin media capture while keeping unrelated permissions locked. Updated to `camera=(self), microphone=(self), geolocation=()`.
+- MDN confirms `getUserMedia()` requires a secure context and prompts for media permission; `https://merilive.com` satisfies HTTPS, so after publish the user must reload and allow microphone in browser site settings if previously denied: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+
 ## Questions before I start
 
 1. **প্রথম priority কোনটা?** — P0 হিসেবে আমি face verification + host application + recharge/withdrawal ধরছি। আপনি কি অন্য কিছু আগে চান?
