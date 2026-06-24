@@ -189,19 +189,26 @@ export default function ClosedAgenciesTab() {
                   </p>
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={() => reactivate(a.id, a.name)}
-                  disabled={reactivatingId === a.id}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {reactivatingId === a.id ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                  )}
-                  Reactivate Agency
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => reactivate(a.id, a.name)}
+                    disabled={reactivatingId === a.id}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {reactivatingId === a.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-1" />}
+                    Reactivate
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => markPermanent(a.id, a.name)}
+                    disabled={permanentId === a.id}
+                    className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400"
+                  >
+                    {permanentId === a.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Shield className="w-4 h-4 mr-1" />}
+                    Make Permanent
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
