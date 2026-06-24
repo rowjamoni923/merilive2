@@ -184,6 +184,7 @@ const FaceVerification = () => {
   const [profile, setProfile] = useState<any>(null);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected'>('unverified');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [submitInProgress, setSubmitInProgress] = useState(false);
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
@@ -270,6 +271,8 @@ const FaceVerification = () => {
   const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
   const autoFaceStartRef = useRef(false);
+  const verifyInProgressRef = useRef(false);
+  const postSubmitLockedRef = useRef(false);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -478,6 +481,42 @@ const FaceVerification = () => {
     usingNativeFaceCameraRef.current = active;
     setUsingNativeFaceCamera(active);
   }, []);
+
+  const teardownFaceCameraPreview = useCallback(async () => {
+    autoFaceStartRef.current = false;
+    verifyInProgressRef.current = false;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (instructionTimerRef.current) {
+      clearTimeout(instructionTimerRef.current);
+      instructionTimerRef.current = null;
+    }
+    if (poseCheckIntervalRef.current) {
+      clearInterval(poseCheckIntervalRef.current);
+      poseCheckIntervalRef.current = null;
+    }
+    if (usingNativeFaceCameraRef.current) {
+      if (nativeFaceRecordingRef.current) {
+        await nativeFaceCam.stopRecording().catch(() => null);
+        nativeFaceRecordingRef.current = false;
+      }
+      await nativeFaceCam.stopPreview().catch(() => null);
+      setNativeFaceCameraActive(false);
+    }
+    try { if (faceVideoRef.current) faceVideoRef.current.srcObject = null; } catch {}
+    const currentStream = faceStreamRef.current || faceStream;
+    if (currentStream) {
+      try { currentStream.getTracks().forEach((track) => track.stop()); } catch {}
+    }
+    faceStreamRef.current = null;
+    setFaceStream(null);
+    setCameraReady(false);
+    setVerificationRecording(false);
+    setVerificationStarted(false);
+    setScanningStatus('idle');
+  }, [faceStream, nativeFaceCam, setNativeFaceCameraActive]);
 
   // Pkg428 — useLayoutEffect so the class is removed synchronously before
   // the next route paints (prevents kalo flash on exit).
@@ -1182,7 +1221,6 @@ const FaceVerification = () => {
   };
 
   // Start face verification recording with REAL liveness checking
-  const verifyInProgressRef = useRef(false);
   const startFaceVerification = async () => {
     // BUG-06 fix: hard-lock re-entry. The auto-start effect retries up to 3×
     // with a 1.5s timer; if the first call is still negotiating (slow device
@@ -1727,23 +1765,15 @@ const FaceVerification = () => {
 
   // Stop camera
   const stopFaceCamera = () => {
-    if (usingNativeFaceCameraRef.current) {
-      nativeFaceCam.stopPreview().catch(() => null);
-      nativeFaceRecordingRef.current = false;
-      setNativeFaceCameraActive(false);
-    }
-    // BUG-07 fix: stop tracks via the ref (state may be stale across renders)
-    // AND null the ref, otherwise the next startFaceCamera reuses a stopped
-    // MediaStream and the user sees a frozen / black preview.
-    const currentStream = faceStreamRef.current || faceStream;
-    if (currentStream) {
-      try { currentStream.getTracks().forEach((track) => track.stop()); } catch {}
-    }
-    faceStreamRef.current = null;
-    setFaceStream(null);
-    setCameraReady(false);
+    void teardownFaceCameraPreview();
     resetVerification();
   };
+
+  useEffect(() => {
+    if (verificationStatus === 'submitted' || verificationStatus === 'verified' || verificationStatus === 'rejected') {
+      void teardownFaceCameraPreview();
+    }
+  }, [verificationStatus, teardownFaceCameraPreview]);
 
   // Upload file to storage
   const storageExtensionFor = (file: File | Blob) => {
@@ -1854,6 +1884,7 @@ const FaceVerification = () => {
 
   // Complete user verification - ALL fields mandatory
   const completeUserVerification = async () => {
+    if (postSubmitLockedRef.current) return;
     if (!faceVerified || !faceVerificationVideo) {
       toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
       return;
@@ -1883,7 +1914,10 @@ const FaceVerification = () => {
       return;
     }
     
+    postSubmitLockedRef.current = true;
+    setSubmitInProgress(true);
     setLoading(true);
+    await teardownFaceCameraPreview();
     
     try {
       // Upload profile photo to PUBLIC avatars bucket so every viewer can render it.
@@ -1928,6 +1962,9 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (existingSubmission) {
+        setVerificationStatus('submitted');
+        setRejectionReason(null);
+        setSubmitInProgress(false);
         toast({
           title: "Already Submitted",
           description: "Your verification is already under review. Please wait for admin approval.",
@@ -2015,14 +2052,26 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
+      setVerificationStatus('submitted');
+      setRejectionReason(null);
+      if (submissionData?.id) {
+        void supabase.functions.invoke('face-verification-analyze', {
+          body: { submissionId: submissionData.id },
+        }).catch((err) => {
+          console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
+        });
+      }
+
       toast({
         title: "✅ Submission Successful!",
         description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
       });
-      navigate('/profile');
+      setSubmitInProgress(false);
       return;
       
     } catch (error: any) {
+      postSubmitLockedRef.current = false;
+      setSubmitInProgress(false);
       toast({
         title: "Error",
         description: error.message || "Failed to complete verification",
@@ -2101,6 +2150,7 @@ const FaceVerification = () => {
 
   // Host Step 3: Complete verification
   const completeHostVerification = async () => {
+    if (postSubmitLockedRef.current) return;
     const missingRequirements = getMissingHostRequirements();
     if (missingRequirements.length > 0) {
       toast({
@@ -2132,7 +2182,10 @@ const FaceVerification = () => {
       }
     }
     
+    postSubmitLockedRef.current = true;
+    setSubmitInProgress(true);
     setLoading(true);
+    await teardownFaceCameraPreview();
     
     try {
       // Generate face hash and check for existing account
@@ -2215,6 +2268,9 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (existingSubmission) {
+        setVerificationStatus('submitted');
+        setRejectionReason(null);
+        setSubmitInProgress(false);
         toast({
           title: "Already Submitted",
           description: "Your verification is already under review. Please wait for admin approval.",
@@ -2268,16 +2324,26 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
+      setVerificationStatus('submitted');
+      setRejectionReason(null);
+      if (submissionData?.id) {
+        void supabase.functions.invoke('face-verification-analyze', {
+          body: { submissionId: submissionData.id },
+        }).catch((err) => {
+          console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
+        });
+      }
+
       toast({
         title: "✅ Host Application Submitted!",
         description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
       });
-      navigate('/profile');
+      setSubmitInProgress(false);
       return;
-      
-      navigate('/profile');
-      
+
     } catch (error: any) {
+      postSubmitLockedRef.current = false;
+      setSubmitInProgress(false);
       toast({
         title: "Error",
         description: error.message || "Failed to complete verification",
@@ -2304,7 +2370,7 @@ const FaceVerification = () => {
     };
 
     return (
-    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'fixed inset-0 z-[2147483646] bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
+    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
       {/* Header */}
       {!usingNativeFaceCamera && <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -2350,9 +2416,9 @@ const FaceVerification = () => {
       
       {/* Video Container with Face Oval */}
       <div data-face-verification-camera className={usingNativeFaceCamera
-        ? 'fixed inset-0 z-0 w-screen h-screen overflow-hidden bg-transparent'
+        ? 'relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 bg-transparent shadow-none ring-1 ring-slate-900/10'
         : `relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`
-      }>
+      } style={usingNativeFaceCamera ? { boxShadow: '0 0 0 100vmax #FFFBF2' } : undefined}>
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
@@ -2824,7 +2890,7 @@ const FaceVerification = () => {
       )}
 
       {faceCameraActive && !verificationStarted && !faceVerified && (
-        <div className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 space-y-3' : 'space-y-3'}`}>
+        <div className={`${usingNativeFaceCamera ? 'relative z-20 space-y-3' : 'space-y-3'}`}>
           <div className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-2 text-slate-900 font-semibold text-sm">
               <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
@@ -2845,7 +2911,7 @@ const FaceVerification = () => {
       )}
       
       {verificationFailed && (
-        <div className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 space-y-2' : 'space-y-2'}`}>
+        <div className={`${usingNativeFaceCamera ? 'relative z-20 space-y-2' : 'space-y-2'}`}>
           {instructionsCompleted.filter(Boolean).length >= 2 && (
             <Button
               className="w-full h-14 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-2xl text-lg font-bold"
@@ -2878,7 +2944,7 @@ const FaceVerification = () => {
       
       {faceVerified && (
         <Button
-          className={`${usingNativeFaceCamera ? 'fixed left-4 right-4 bottom-6 z-20 w-auto' : 'w-full'} h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20`}
+          className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
           disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
@@ -2898,7 +2964,7 @@ const FaceVerification = () => {
 
 
 
-  if (loading) {
+  if (loading && !submitInProgress) {
     return (
       <PageSkeleton
         className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"
@@ -2998,6 +3064,7 @@ const FaceVerification = () => {
                 className="w-full border-slate-200 text-slate-600 rounded-2xl py-6 font-semibold bg-white active:scale-95 transition-transform"
                 onClick={async () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
+                  postSubmitLockedRef.current = false; setSubmitInProgress(false);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
                   setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
                   setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
@@ -3027,22 +3094,28 @@ const FaceVerification = () => {
 
 
   // Already submitted - pending review
-  if (verificationStatus === 'submitted') {
+  if (submitInProgress || verificationStatus === 'submitted') {
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        <div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden">
+        <div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
-        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
+        {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
-            <Loader2 className="w-14 h-14 text-white animate-spin" />
+            {submitInProgress ? <ShieldCheck className="w-14 h-14 text-white" /> : <CheckCircle2 className="w-14 h-14 text-white" />}
           </motion.div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Under Review</h2>
-          <p className="text-slate-600 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
-          <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
-            Back to Profile
-          </Button>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">{submitInProgress ? 'Submitting Verification' : 'Under Review'}</h2>
+          <p className="text-slate-600 text-center px-6">
+            {submitInProgress
+              ? 'Your live scan is being uploaded securely. The camera is off and AI review will start automatically.'
+              : 'Your face verification has been submitted and is pending AI/admin review. Please wait for approval.'}
+          </p>
+          {!submitInProgress && (
+            <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
+              Back to Profile
+            </Button>
+          )}
         </div>
         </div>
       </div>
@@ -3125,7 +3198,7 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
@@ -3292,7 +3365,7 @@ const FaceVerification = () => {
   // Host verification (3-step process)
   return (
     <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-      <div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
