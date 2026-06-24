@@ -145,6 +145,29 @@ Deno.serve(async (req) => {
       let creditErr: any = null;
       let creditRes: any = null;
 
+      // Bug #2: credit-time campaign re-validation. Industry anchor = payment-confirm time, not init time.
+      // If the campaign expired/became ineligible between init and credit, credit only the BASE coins
+      // (skip bonus_diamonds) so the user still receives their paid value without an unearned bonus.
+      let creditCoins = row.coins_amount;
+      let campaignReeval: any = null;
+      if ((row as any).campaign_id && targetType === "user_diamond") {
+        const { data: vRes } = await admin.rpc("validate_campaign_for_user", {
+          p_user_id: row.user_id,
+          p_campaign_id: (row as any).campaign_id,
+        });
+        const v = vRes as any;
+        // "already_redeemed" is OK here — it's THIS topup's own row written by the trigger on a prior retry.
+        if (v && v.ok === false && v.reason !== "campaign_already_redeemed") {
+          const baseCoins = Number(v.base_coins ?? row.coins_amount);
+          creditCoins = Math.max(0, baseCoins);
+          campaignReeval = { stripped_bonus: true, reason: v.reason, base_coins: creditCoins, original_coins: row.coins_amount };
+          console.warn("[swift-pay-poll-deposits] campaign no longer eligible at credit time", row.id, v.reason);
+          // Detach campaign_id so the post-credit trigger does not mark it redeemed.
+          await admin.from("swift_pay_topups").update({ campaign_id: null }).eq("id", row.id);
+        }
+      }
+
+
       if (targetType === "helper_wallet" && (row as any).target_helper_id) {
         const { data, error } = await admin.rpc("credit_helper_wallet_from_swift_pay", {
           p_helper_id: (row as any).target_helper_id,
