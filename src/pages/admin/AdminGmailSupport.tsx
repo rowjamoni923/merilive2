@@ -154,7 +154,7 @@ const AdminGmailSupport = () => {
           e.threadId === threadId ? { ...e, isRead: true } : e
         ));
         // Immediately refresh unread count
-        fetchUnreadCount();
+        fetchInboxStats();
       }
     } catch (error: any) {
       toast.error('Failed to load thread: ' + error.message);
@@ -236,7 +236,7 @@ const AdminGmailSupport = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchEmails(searchQuery, filter), fetchUnreadCount()]);
+    await Promise.all([fetchEmails(searchQuery, filter), fetchInboxStats()]);
     setRefreshing(false);
     toast.success('Emails refreshed');
   };
@@ -337,10 +337,10 @@ const AdminGmailSupport = () => {
   useAdminRealtime(['support_tickets'], () => fetchEmails(searchQuery, filter), 'admin-gmail-support-rt');
 
   useEffect(() => {
-    fetchUnreadCount();
+    fetchInboxStats();
     triggerAutoReplies();
     // No polling interval — Gmail data fetched on-demand via user actions
-  }, [fetchUnreadCount, triggerAutoReplies]);
+  }, [fetchInboxStats, triggerAutoReplies]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
