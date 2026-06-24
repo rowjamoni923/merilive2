@@ -42,10 +42,11 @@ export default function ApplyLevel6Card({ currentLevel }: ApplyLevel6CardProps) 
         </div>
         {!alreadyL6 && (
           <Button
+            variant="ghost"
             size="sm"
             disabled={!unlocked}
             onClick={() => navigate("/super-admin/apply")}
-            className="bg-white text-orange-700 hover:bg-white/90 disabled:bg-white/30 disabled:text-white/70 h-9 px-3 font-semibold text-xs shrink-0 shadow-sm"
+            className="!bg-white !text-orange-700 hover:!bg-orange-50 hover:!text-orange-800 disabled:!bg-white/30 disabled:!text-white h-9 px-3.5 font-bold text-xs shrink-0 rounded-lg shadow-[0_4px_12px_-2px_rgba(0,0,0,0.18)] border border-white/60"
           >
             {unlocked ? (
               <>
