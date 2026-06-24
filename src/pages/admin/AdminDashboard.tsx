@@ -549,6 +549,16 @@ export default function AdminDashboard() {
           delay={0.52}
           link="/admin/crypto-recovery"
         />
+        <StatCard
+          title="Google Play Health"
+          value="Check"
+          icon={CreditCard}
+          accentFrom="from-emerald-500"
+          accentTo="to-teal-400"
+          glowColor="#10b981"
+          delay={0.54}
+          link="/admin/google-play-health"
+        />
       </div>
 
       {/* ━━━ COMPANY FINANCE — Today ━━━ */}
