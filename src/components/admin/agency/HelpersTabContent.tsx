@@ -17,6 +17,7 @@ import {
   Users,
   Copy,
 } from "lucide-react";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface HelperData {
   id: string;

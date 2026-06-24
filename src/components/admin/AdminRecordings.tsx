@@ -13,6 +13,7 @@ import {
 import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
 import { resolveAdminStorageSignedUrl } from "@/utils/adminStorageImages";
 import { motion, AnimatePresence } from "framer-motion";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface Recording {
   id: string;
