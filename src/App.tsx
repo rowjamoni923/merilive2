@@ -186,6 +186,7 @@ const AdminLayout = lazy(lazyRetry(() => import("./pages/admin/AdminLayout")));
 const AdminDashboard = lazy(lazyRetry(() => import("./pages/admin/AdminDashboard")));
 const AdminSettings = lazy(lazyRetry(() => import("./pages/admin/AdminSettings")));
 const AdminAgencies = lazy(lazyRetry(() => import("./pages/admin/AdminAgencies")));
+const AdminUnifiedApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminUnifiedApprovals")));
 const AdminAgencyDetail = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyDetail")));
 const AdminProfitAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminProfitAnalytics")));
 const AdminPayoutsAnalytics = lazy(lazyRetry(() => import("./pages/admin/AdminPayoutsAnalytics")));
