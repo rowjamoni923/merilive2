@@ -29,6 +29,7 @@ export default function ClosedAgenciesTab() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+  const [permanentId, setPermanentId] = useState<string | null>(null);
 
   const reactivate = useCallback(async (id: string, name: string) => {
     if (!confirm(`Reactivate "${name}"? Owner gets a fresh 30-day window to activate 10 hosts.`)) return;
@@ -42,6 +43,24 @@ export default function ClosedAgenciesTab() {
       toast.error(e?.message || "Failed to reactivate");
     } finally {
       setReactivatingId(null);
+    }
+  }, []);
+
+  const markPermanent = useCallback(async (id: string, name: string) => {
+    const reason = prompt(`Mark "${name}" as PERMANENT?\n\nIt will never auto-close, regardless of host count.\n\nOptional reason:`);
+    if (reason === null) return;
+    setPermanentId(id);
+    try {
+      const { error } = await supabase.rpc("admin_set_agency_permanent", {
+        _agency_id: id, _is_permanent: true, _reason: reason || null,
+      } as any);
+      if (error) throw error;
+      toast.success(`${name} is now permanent`);
+      setItems((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast.error(e?.message || "Failed");
+    } finally {
+      setPermanentId(null);
     }
   }, []);
 
