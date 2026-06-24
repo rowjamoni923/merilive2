@@ -795,6 +795,27 @@ const AdminGmailSupport = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!confirmDeleteThread} onOpenChange={(open) => { if (!open) setConfirmDeleteThread(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{confirmDeleteThread?.subject}" will be moved to Gmail Trash and auto-purged after 30 days. This action removes the entire thread.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => confirmDeleteThread && handleDeleteThread(confirmDeleteThread.threadId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
