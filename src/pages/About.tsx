@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
 import {
@@ -543,11 +544,16 @@ const About = () => {
         <div className="max-w-4xl mx-auto text-center">
           <img loading="lazy" decoding="async" src={mascotLogo} alt="MeriLive" className="w-12 h-12 mx-auto mb-4 rounded-xl" />
           <p className="text-sm mb-3 font-semibold" style={{ color: CREAM }}>MeriLive — Live Streaming, Video Call & Entertainment</p>
-          <div className="flex flex-wrap gap-6 justify-center text-xs mb-6" style={{ color: MUTED }}>
-            <a href={`${PRODUCTION_DOMAIN}/policies`} className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Policies</a>
-            <a href={`${PRODUCTION_DOMAIN}/privacy-policy`} className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Privacy</a>
+          
+          <nav className="flex flex-wrap gap-x-6 gap-y-3 justify-center text-xs mb-6" style={{ color: MUTED }} aria-label="Footer">
+            <Link to="/policies" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Policies</Link>
+            <Link to="/privacy-policy" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Privacy</Link>
+            <Link to="/terms" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Terms</Link>
+            <Link to="/about" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>About</Link>
+            <Link to="/contact" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Contact</Link>
+            <Link to="/account-deletion" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Account Deletion</Link>
             <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Play Store</a>
-          </div>
+          </nav>
           <p className="text-xs" style={{ color: `${MUTED}99` }}>© {new Date().getFullYear()} MeriLive. All rights reserved.</p>
         </div>
       </footer>
