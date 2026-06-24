@@ -764,45 +764,6 @@ const AdminSupportTickets = () => {
       return;
     }
 
-    // Proactively request microphone permission so the browser shows its prompt
-    // instead of Web Speech API silently failing with "not-allowed".
-    try {
-      // Detect iframe (e.g. Lovable preview) without `allow="microphone"` —
-      // getUserMedia will reject with NotAllowedError due to Permissions Policy.
-      const inIframe = typeof window !== 'undefined' && window.self !== window.top;
-
-      if (!navigator?.mediaDevices?.getUserMedia) {
-        toast({ title: "Microphone not available", description: "This browser does not expose microphone access. Try Chrome on desktop.", variant: "destructive" });
-        return;
-      }
-
-      // Pre-check permission state where supported (Chromium).
-      try {
-        const status = await (navigator as any).permissions?.query?.({ name: 'microphone' as PermissionName });
-        if (status?.state === 'denied') {
-          toast({ title: "Microphone blocked", description: inIframe ? "The preview iframe blocks mic access. Open the admin panel in a new tab (top-right ↗) and allow microphone." : "Click the 🔒 icon in your browser's address bar and allow microphone, then try again.", variant: "destructive" });
-          return;
-        }
-      } catch { /* Safari has no permissions.query for mic */ }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Immediately stop — Web Speech API will reopen the mic itself.
-      stream.getTracks().forEach((t) => t.stop());
-    } catch (permErr: any) {
-      const name = String(permErr?.name || '');
-      const inIframe = typeof window !== 'undefined' && window.self !== window.top;
-      if (name === 'NotAllowedError' || name === 'SecurityError') {
-        toast({ title: "Microphone blocked", description: inIframe ? "The preview iframe blocks mic access. Open the admin panel in a new tab and allow microphone." : "Click the 🔒 icon in your browser's address bar and allow microphone access, then try again.", variant: "destructive" });
-      } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
-        toast({ title: "No microphone found", description: "Connect a microphone and try again.", variant: "destructive" });
-      } else if (name === 'NotReadableError') {
-        toast({ title: "Microphone in use", description: "Another app is using the microphone. Close it and try again.", variant: "destructive" });
-      } else {
-        toast({ title: "Microphone error", description: permErr?.message || String(permErr), variant: "destructive" });
-      }
-      return;
-    }
-
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'bn-BD';
@@ -821,12 +782,14 @@ const AdminSupportTickets = () => {
     };
 
     recognition.onerror = (event: any) => {
-      const err = String(event?.error || '');
-      console.warn('Speech recognition error:', err);
-      // Browser mic/permission errors are not RPC failures — show a friendly toast instead of admin error log
-      if (err === 'not-allowed' || err === 'service-not-allowed') {
-        toast({ title: "Microphone blocked", description: "Allow microphone access in your browser to use voice input.", variant: "destructive" });
-      } else if (err && err !== 'aborted' && err !== 'no-speech') {
+      const err = String(event?.error || "");
+      console.warn("Speech recognition error:", err);
+      const inIframe = typeof window !== "undefined" && window.self !== window.top;
+      if (err === "not-allowed") {
+        toast({ title: "Microphone blocked", description: inIframe ? "The preview iframe blocks mic access. Open the admin panel in a new tab and allow microphone." : "Click the 🔒 icon in your browser address bar and allow microphone access for merilive.com, then try again.", variant: "destructive" });
+      } else if (err === "service-not-allowed") {
+        toast({ title: "Speech Service Blocked", description: "Your browser speech service is unavailable. If you are using Brave or a specialized browser, ensure Speech Recognition is enabled in settings.", variant: "destructive" });
+      } else if (err && err !== "aborted" && err !== "no-speech") {
         toast({ title: "Voice input error", description: err, variant: "destructive" });
       }
       setIsRecording(false);
