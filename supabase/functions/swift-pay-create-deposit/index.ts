@@ -400,6 +400,7 @@ Deno.serve(async (req) => {
         status: "pending",
         target_type: target,
         target_helper_id: targetHelperId,
+        campaign_id: campaignId,
         helper_application_intent: intentPayload,
       })
       .select("id, pay_address, pay_amount, pay_currency, pay_network, expires_at, status")
