@@ -24,7 +24,11 @@ interface ClosedAgency {
   active_host_count: number | null;
 }
 
-export default function ClosedAgenciesTab() {
+interface ClosedAgenciesTabProps {
+  onChanged?: () => void;
+}
+
+export default function ClosedAgenciesTab({ onChanged }: ClosedAgenciesTabProps) {
   const [items, setItems] = useState<ClosedAgency[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -39,12 +43,13 @@ export default function ClosedAgenciesTab() {
       if (error) throw error;
       toast.success(`${name} reactivated`);
       setItems((prev) => prev.filter((x) => x.id !== id));
+      onChanged?.();
     } catch (e: any) {
       toast.error(e?.message || "Failed to reactivate");
     } finally {
       setReactivatingId(null);
     }
-  }, []);
+  }, [onChanged]);
 
   const markPermanent = useCallback(async (id: string, name: string) => {
     const reason = prompt(`Mark "${name}" as PERMANENT?\n\nIt will never auto-close, regardless of host count.\n\nOptional reason:`);
@@ -57,12 +62,13 @@ export default function ClosedAgenciesTab() {
       if (error) throw error;
       toast.success(`${name} is now permanent`);
       setItems((prev) => prev.filter((x) => x.id !== id));
+      onChanged?.();
     } catch (e: any) {
       toast.error(e?.message || "Failed");
     } finally {
       setPermanentId(null);
     }
-  }, []);
+  }, [onChanged]);
 
   const load = useCallback(async (q: string = "") => {
     setLoading(true);
