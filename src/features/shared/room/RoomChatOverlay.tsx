@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
@@ -201,36 +202,51 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   // Clean message text - remove the [GIFT:url] prefix
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
   
-  // Parse game win message - supports both old and new formats
-  // Old: [GAME_WIN:emoji:gameName:amount]
-  // New: [GAME_WIN:emoji:gameName:amount:userName:level]
-  const gameWinMatchNew = message.message.match(/^\[GAME_WIN:(.+?):(.+?):(.+?):(.+?):(\d+)\]$/);
-  const gameWinMatchOld = message.message.match(/^\[GAME_WIN:(.+?):(.+?):(.+?)\]$/);
-  const isGameWinMessage = !!gameWinMatchNew || !!gameWinMatchOld;
-  
-  const gameWinData = gameWinMatchNew ? {
+  // Parse game win message - supports v1/v2/v3 formats
+  // v1: [GAME_WIN:emoji:gameName:amount]
+  // v2: [GAME_WIN:emoji:gameName:amount:userName:level]
+  // v3: [GAME_WIN:emoji:gameName:amount:userName:level:userId:avatarUrl]
+  const gameWinMatchV3 = message.message.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+):([^:]+):(\d+):([0-9a-fA-F-]+):([^\]]*)\]$/);
+  const gameWinMatchNew = !gameWinMatchV3 ? message.message.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+):([^:]+):(\d+)\]$/) : null;
+  const gameWinMatchOld = (!gameWinMatchV3 && !gameWinMatchNew) ? message.message.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+)\]$/) : null;
+  const isGameWinMessage = !!gameWinMatchV3 || !!gameWinMatchNew || !!gameWinMatchOld;
+
+  const gameWinData = gameWinMatchV3 ? {
+    emoji: gameWinMatchV3[1],
+    gameName: gameWinMatchV3[2],
+    gameKey: gameWinMatchV3[2].toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
+    amount: gameWinMatchV3[3],
+    userName: gameWinMatchV3[4],
+    userLevel: parseInt(gameWinMatchV3[5]),
+    userId: gameWinMatchV3[6],
+    avatarUrl: gameWinMatchV3[7] || undefined,
+  } : gameWinMatchNew ? {
     emoji: gameWinMatchNew[1],
     gameName: gameWinMatchNew[2],
     gameKey: gameWinMatchNew[2].toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
     amount: gameWinMatchNew[3],
     userName: gameWinMatchNew[4],
-    userLevel: parseInt(gameWinMatchNew[5])
+    userLevel: parseInt(gameWinMatchNew[5]),
+    userId: undefined as string | undefined,
+    avatarUrl: undefined as string | undefined,
   } : gameWinMatchOld ? {
     emoji: gameWinMatchOld[1],
     gameName: gameWinMatchOld[2],
     gameKey: gameWinMatchOld[2].toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
     amount: gameWinMatchOld[3],
     userName: message.user,
-    userLevel: message.userLevel || 1
+    userLevel: message.userLevel || 1,
+    userId: undefined as string | undefined,
+    avatarUrl: undefined as string | undefined,
   } : null;
-  
+
   // Get game logo from Admin Panel (game_settings table)
   const gameLogoUrl = gameWinData ? getGameLogoUrl(gameWinData.gameKey) : null;
   const gameFallbackEmoji = gameWinData ? getGameEmoji(gameWinData.gameKey) : '🎮';
-  
-  // Clean message for game win - show user info
+
+  // Clean message for game win - show user info ("Won 5K in Roulette!")
   if (isGameWinMessage && gameWinData) {
-    cleanMessage = `🏆 ${gameWinData.userName} (Lv.${gameWinData.userLevel}) won ${gameWinData.amount} in ${gameWinData.gameName}!`;
+    cleanMessage = `won ${gameWinData.amount} 💎 in ${gameWinData.gameName}!`;
   }
   
   const isGiftMessage = message.message.includes('[GIFT:') || message.message.toLowerCase().includes('sent ');
