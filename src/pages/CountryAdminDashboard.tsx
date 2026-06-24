@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles } from "lucide-react";
+import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles, Building2, Users, Mic2, HeartHandshake, Film, Radio } from "lucide-react";
 import { toast } from "sonner";
 
 interface CsaContext {
