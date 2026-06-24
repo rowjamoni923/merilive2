@@ -54,11 +54,14 @@ const AdminGmailSupport = () => {
   const [sending, setSending] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inboxStats, setInboxStats] = useState({ total: 0, unread: 0, read: 0, starred: 0 });
   const [refreshing, setRefreshing] = useState(false);
   const [attachedImage, setAttachedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
+  const [confirmDeleteThread, setConfirmDeleteThread] = useState<{ threadId: string; subject: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
