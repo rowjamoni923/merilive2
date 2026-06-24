@@ -70,10 +70,6 @@ Deno.serve(async (req) => {
     .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
     .limit(100);
-    .in("status", ["pending", "paid", "expired"])
-    .gte("created_at", recoveryCutoffIso)
-    .order("created_at", { ascending: true })
-    .limit(100);
 
   if (topupId) query = query.eq("id", topupId);
   else if (userId) query = query.eq("user_id", userId);
