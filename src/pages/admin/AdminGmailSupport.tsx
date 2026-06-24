@@ -615,6 +615,20 @@ const AdminGmailSupport = () => {
             <Badge variant="outline" className="text-[10px] border-border/40 text-muted-foreground shrink-0">
               {selectedThread?.length || 0} messages
             </Badge>
+            {selectedEmail && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 shrink-0"
+                title="Delete conversation"
+                disabled={deletingThreadId === selectedEmail.threadId}
+                onClick={() => setConfirmDeleteThread({ threadId: selectedEmail.threadId, subject: selectedEmail.subject || '(No Subject)' })}
+              >
+                {deletingThreadId === selectedEmail.threadId
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Trash2 className="h-4 w-4" />}
+              </Button>
+            )}
           </div>
 
           {loadingThread ? (
