@@ -115,13 +115,37 @@ export const useTaskProgress = () => {
     updateProgress({ taskType: 'messages_sent', increment: 1 });
   }, [updateProgress]);
 
+  // Server derives from `followers` table — just trigger a recompute
+  const trackFollowerGained = useCallback(() => {
+    updateProgress({ taskType: 'followers' });
+  }, [updateProgress]);
+
+  // Server derives from `stream_viewers` table — call when user enters a live
+  const trackWatchLive = useCallback(() => {
+    updateProgress({ taskType: 'watch_live' });
+  }, [updateProgress]);
+
+  // Server derives from `gift_transactions` (sender_id) — call after a successful send
+  const trackGiftSent = useCallback(() => {
+    updateProgress({ taskType: 'send_gift' });
+  }, [updateProgress]);
+
+  // Idempotent share-tap log (server enforces 1/day)
+  const trackShareApp = useCallback(() => {
+    updateProgress({ taskType: 'share_app', increment: 1 });
+  }, [updateProgress]);
+
   return {
     updateProgress,
     trackFirstLive,
     trackLiveMinutes,
     trackPeakViewers,
     trackFirstGift,
-    trackMessageSent
+    trackMessageSent,
+    trackFollowerGained,
+    trackWatchLive,
+    trackGiftSent,
+    trackShareApp,
   };
 };
 
@@ -133,7 +157,7 @@ let taskProgressInstance: ReturnType<typeof useTaskProgress> | null = null;
  * Useful in edge functions, callbacks, etc.
  */
 export const trackTaskProgress = async (
-  taskType: 'first_live' | 'live_minutes' | 'viewers' | 'first_gift' | 'messages_sent',
+  taskType: TaskType,
   options?: { value?: number; increment?: number }
 ) => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -156,3 +180,4 @@ export const trackTaskProgress = async (
     console.error('[TaskProgress] Error:', error);
   }
 };
+
