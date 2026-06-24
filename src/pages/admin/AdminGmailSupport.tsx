@@ -13,11 +13,15 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Mail, Search, Loader2, Send, RefreshCw, Inbox, 
+import {
+  Mail, Search, Loader2, Send, RefreshCw, Inbox,
   MailOpen, Clock, Star, ChevronLeft, Reply, Eye, UserSearch,
-  Image, Paperclip, X, Languages
+  Image, Paperclip, X, Languages, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import DOMPurify from "dompurify";
