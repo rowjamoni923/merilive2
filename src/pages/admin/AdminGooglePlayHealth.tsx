@@ -18,7 +18,7 @@ type CheckResult = {
 export default function AdminGooglePlayHealth() {
   useEffect(() => { document.title = "Google Play Health — Admin"; }, []);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<{ success: boolean; result: CheckResult & { timestamp?: string; packageName?: string; error?: string } } | null>(null);
+  const [data, setData] = useState<{ success: boolean; result: { checks: CheckResult; timestamp?: string; packageName?: string; error?: string } } | null>(null);
 
   const run = async () => {
     setLoading(true);
