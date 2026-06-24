@@ -175,6 +175,7 @@ Deno.serve(async (req) => {
     let priceUsd = 0;
     let packageId: string | null = null;
     let targetHelperId: string | null = null;
+    let campaignId: string | null = null;
     let externalUserId = `merilive_${user.id}`;
 
     if (target === "helper_wallet") {
