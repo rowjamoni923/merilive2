@@ -417,49 +417,61 @@ async function sendReply(
   return { success: true };
 }
 
-// Generate beautiful auto-reply HTML
+// Generate beautiful auto-reply HTML — luxurious midnight + gold
 function generateAutoReplyHtml(senderName: string): string {
-  const logoUrl = 'https://merilive.lovable.app/images/merilive-logo.png';
-  
+  const logoUrl = 'https://merilive.top/merilive-logo.png';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f2f5;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#0a0a14;font-family:'Georgia','Times New Roman',serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(160deg,#0a0a14 0%,#14101f 50%,#1a1226 100%);padding:56px 16px;">
 <tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#15101e 0%,#0f0a18 100%);border-radius:28px;overflow:hidden;border:1px solid rgba(201,168,76,0.28);box-shadow:0 32px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(201,168,76,0.05) inset;">
 
-<!-- Logo Section -->
-<tr><td style="padding:40px 40px 20px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 50%,#c084fc 100%);">
-<img src="${logoUrl}" alt="MeriLive" width="100" height="100" style="border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.2);" />
-<h1 style="margin:16px 0 0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:1px;">MeriLive</h1>
-<p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.85);letter-spacing:3px;text-transform:uppercase;">Premium Entertainment</p>
+<!-- Gold hairline top -->
+<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+
+<!-- Header -->
+<tr><td style="padding:52px 40px 32px;text-align:center;background:radial-gradient(ellipse at top,rgba(201,168,76,0.14) 0%,transparent 70%);">
+<table role="presentation" align="center" cellpadding="0" cellspacing="0"><tr><td style="padding:6px;border-radius:26px;background:linear-gradient(135deg,#f0d78c 0%,#c9a84c 50%,#8a6d2e 100%);">
+<img src="${logoUrl}" alt="MeriLive" width="96" height="96" style="display:block;border-radius:22px;background:#0f0a18;" />
+</td></tr></table>
+<h1 style="margin:22px 0 6px;font-family:'Georgia',serif;font-size:34px;font-weight:400;letter-spacing:6px;color:#f0d78c;text-transform:uppercase;">MeriLive</h1>
+<p style="margin:0;font-size:11px;letter-spacing:6px;color:#c9a84c;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">— Premium Entertainment —</p>
+</td></tr>
+
+<!-- Ornament divider -->
+<tr><td style="padding:12px 40px 0;text-align:center;">
+<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
+<span style="display:inline-block;color:#c9a84c;font-size:11px;margin:0 12px;vertical-align:middle;">◆ ◆ ◆</span>
+<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
 </td></tr>
 
 <!-- Main Content -->
-<tr><td style="padding:30px 40px;">
-<h2 style="margin:0 0 20px;font-size:22px;color:#1f2937;font-weight:600;">Thank You for Reaching Out! 💜</h2>
-<p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7;">
-Dear <strong style="color:#7c3aed;">${senderName || 'Valued User'}</strong>,
+<tr><td style="padding:32px 44px 16px;">
+<h2 style="margin:0 0 20px;font-family:'Georgia',serif;font-size:24px;color:#f0d78c;font-weight:400;letter-spacing:1px;text-align:center;font-style:italic;">Thank You for Reaching Out</h2>
+<p style="margin:0 0 18px;font-size:16px;color:#e8e4d8;line-height:1.85;">
+Dear <strong style="color:#f0d78c;font-weight:600;letter-spacing:0.5px;">${senderName || 'Valued Guest'}</strong>,
 </p>
-<p style="margin:0 0 16px;font-size:15px;color:#4b5563;line-height:1.7;">
-We have successfully received your message and our dedicated support team is already on it! Your concern is very important to us, and we want to ensure you receive the best possible assistance.
+<p style="margin:0 0 18px;font-size:15px;color:#c8c0a8;line-height:1.85;letter-spacing:0.2px;">
+We have received your message with the utmost care. Our concierge team is already attending to your inquiry — every concern is treated with the discretion and dedication you deserve.
 </p>
 
 <!-- Timeline Card -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-<tr><td style="background:linear-gradient(135deg,#ede9fe,#f3e8ff);border-radius:16px;padding:24px;border:1px solid #ddd6fe;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+<tr><td style="background:linear-gradient(135deg,rgba(201,168,76,0.10),rgba(201,168,76,0.04));border-radius:18px;padding:26px;border:1px solid rgba(201,168,76,0.22);">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
-<td width="50" valign="top" style="padding-right:16px;">
-<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#7c3aed);text-align:center;line-height:44px;font-size:20px;">⏱️</div>
+<td width="56" valign="top" style="padding-right:18px;">
+<div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f0d78c,#c9a84c,#8a6d2e);text-align:center;line-height:48px;font-size:22px;color:#0f0a18;font-weight:700;">⌛</div>
 </td>
 <td>
-<p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#6d28d9;">Expected Response Time</p>
-<p style="margin:0;font-size:14px;color:#4b5563;line-height:1.6;">Our support team will review and respond to your inquiry within <strong style="color:#7c3aed;">24 to 48 hours</strong>. We appreciate your patience as we work to resolve your concern thoroughly.</p>
+<p style="margin:0 0 6px;font-family:'Georgia',serif;font-size:14px;font-weight:400;color:#f0d78c;letter-spacing:3px;text-transform:uppercase;">Response Timeline</p>
+<p style="margin:0;font-size:14px;color:#c8c0a8;line-height:1.7;">A personal reply will reach you within <strong style="color:#f0d78c;">24 to 48 hours</strong>. Thank you for your gracious patience.</p>
 </td>
 </tr>
 </table>
@@ -467,44 +479,40 @@ We have successfully received your message and our dedicated support team is alr
 </table>
 
 <!-- What to Expect -->
-<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1f2937;">What happens next:</p>
+<p style="margin:0 0 16px;font-family:'Georgia',serif;font-size:13px;font-weight:400;color:#c9a84c;letter-spacing:4px;text-transform:uppercase;text-align:center;">What Happens Next</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-<tr><td style="padding:8px 0 8px 0;font-size:14px;color:#374151;line-height:1.6;">
-<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);text-align:center;line-height:28px;font-size:12px;color:#fff;margin-right:12px;vertical-align:middle;font-weight:bold;">1</span>
-Our team will carefully review your message
+<tr><td style="padding:10px 0;font-size:14px;color:#e8e4d8;line-height:1.7;">
+<span style="display:inline-block;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f0d78c,#c9a84c);text-align:center;line-height:30px;font-size:12px;color:#0f0a18;margin-right:14px;vertical-align:middle;font-weight:700;font-family:Georgia,serif;">I</span>
+Your message is reviewed by our senior team
 </td></tr>
-<tr><td style="padding:8px 0 8px 0;font-size:14px;color:#374151;line-height:1.6;">
-<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);text-align:center;line-height:28px;font-size:12px;color:#fff;margin-right:12px;vertical-align:middle;font-weight:bold;">2</span>
-We will verify and investigate your concern
+<tr><td style="padding:10px 0;font-size:14px;color:#e8e4d8;line-height:1.7;">
+<span style="display:inline-block;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f0d78c,#c9a84c);text-align:center;line-height:30px;font-size:12px;color:#0f0a18;margin-right:14px;vertical-align:middle;font-weight:700;font-family:Georgia,serif;">II</span>
+Your concern is investigated with full discretion
 </td></tr>
-<tr><td style="padding:8px 0 8px 0;font-size:14px;color:#374151;line-height:1.6;">
-<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);text-align:center;line-height:28px;font-size:12px;color:#fff;margin-right:12px;vertical-align:middle;font-weight:bold;">3</span>
-A personalized response will be sent to you directly
+<tr><td style="padding:10px 0;font-size:14px;color:#e8e4d8;line-height:1.7;">
+<span style="display:inline-block;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f0d78c,#c9a84c);text-align:center;line-height:30px;font-size:12px;color:#0f0a18;margin-right:14px;vertical-align:middle;font-weight:700;font-family:Georgia,serif;">III</span>
+A personally crafted response is delivered to you
 </td></tr>
 </table>
 </td></tr>
 
-<!-- Divider -->
-<tr><td style="padding:0 40px;">
-<div style="height:1px;background:#e5e7eb;"></div>
+<!-- Footer -->
+<tr><td style="padding:32px 40px 40px;text-align:center;background:linear-gradient(180deg,transparent,rgba(201,168,76,0.05));border-top:1px solid rgba(201,168,76,0.18);">
+<p style="margin:0 0 10px;font-family:'Georgia',serif;font-size:13px;color:#a89878;letter-spacing:0.4px;font-style:italic;">With warmest regards,</p>
+<p style="margin:0 0 6px;font-family:'Georgia',serif;font-size:16px;letter-spacing:3px;color:#f0d78c;text-transform:uppercase;">The MeriLive Concierge</p>
+<p style="margin:14px 0 0;font-size:11px;color:#7a6c50;line-height:1.7;font-family:'Helvetica Neue',Arial,sans-serif;letter-spacing:0.3px;">
+An automated acknowledgment. A personal reply follows shortly.
+</p>
+<div style="margin:18px 0 0;">
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#f0d78c;margin:0 3px;opacity:0.7;"></span>
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
+</div>
+<p style="margin:20px 0 0;font-size:10px;color:#5a4f3a;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
 </td></tr>
 
-<!-- Footer -->
-<tr><td style="padding:30px 40px;text-align:center;">
-<p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.6;">
-With love from the <strong style="color:#7c3aed;">MeriLive Support Team</strong> 💜
-</p>
-<p style="margin:0 0 16px;font-size:12px;color:#9ca3af;">
-This is an automated acknowledgment. Please do not reply to this email.<br/>
-Our team will respond to your original message shortly.
-</p>
-<div style="margin-top:16px;">
-<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#a855f7;margin:0 3px;"></span>
-<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7c3aed;margin:0 3px;"></span>
-<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6d28d9;margin:0 3px;"></span>
-</div>
-<p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">© 2026 MeriLive. All rights reserved.</p>
-</td></tr>
+<!-- Gold hairline bottom -->
+<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
 
 </table>
 </td></tr>
