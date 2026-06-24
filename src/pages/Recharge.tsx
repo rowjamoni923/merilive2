@@ -966,8 +966,9 @@ const Recharge = () => {
 
       const { data, error } = await supabase
         .from('topup_payment_methods')
-        .select('id, name, method_type, icon_url, additional_info, payment_number, payment_instructions, is_active, display_order')
+        .select('id, name, method_type, icon_url, additional_info, payment_number, payment_instructions, is_active, display_order, is_recommended')
         .eq('is_active', true)
+        .order('is_recommended', { ascending: false })
         .order('display_order', { ascending: true });
 
       if (error) {
