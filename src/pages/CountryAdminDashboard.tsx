@@ -114,10 +114,10 @@ export default function CountryAdminDashboard() {
   };
 
   const deleteWd = async (id: string) => {
-    if (!confirm("Delete this withdrawal method?")) return;
+    if (!confirm("Submit delete for owner approval?")) return;
     const { error } = await supabase.rpc("csa_delete_withdrawal_method", { _id: id });
     if (error) toast.error(error.message);
-    else { toast.success("Deleted"); load(); }
+    else toast.success("Delete submitted for owner approval");
   };
 
   if (loading || !ctx) {
