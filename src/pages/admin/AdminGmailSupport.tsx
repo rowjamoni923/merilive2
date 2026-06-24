@@ -199,15 +199,42 @@ const AdminGmailSupport = () => {
       setShowReply(false);
       setAttachedImage(null);
       setImagePreview(null);
-      
+
+      // Mark thread as read locally (backend also marks it on send)
+      const threadId = selectedEmail.threadId;
+      setEmails(prev => prev.map(e => e.threadId === threadId ? { ...e, isRead: true } : e));
+
+      // Refresh stats so unread count drops immediately
+      fetchInboxStats();
+
       // Small delay to allow Gmail to index the sent message
       await new Promise(r => setTimeout(r, 1500));
-      const data = await callGmailApi('fetch_thread', { threadId: selectedEmail.threadId });
+      const data = await callGmailApi('fetch_thread', { threadId });
       setSelectedThread(Array.isArray(data) ? data : []);
     } catch (error: any) {
       toast.error('Failed to send reply: ' + error.message);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteThread = async (threadId: string) => {
+    setDeletingThreadId(threadId);
+    try {
+      await callGmailApi('trash_thread', { threadId });
+      // Optimistic remove from list + close dialog if open
+      setEmails(prev => prev.filter(e => e.threadId !== threadId));
+      if (selectedEmail?.threadId === threadId) {
+        setSelectedEmail(null);
+        setSelectedThread(null);
+      }
+      toast.success('🗑️ Conversation moved to Trash');
+      fetchInboxStats();
+    } catch (error: any) {
+      toast.error('Failed to delete: ' + error.message);
+    } finally {
+      setDeletingThreadId(null);
+      setConfirmDeleteThread(null);
     }
   };
 
