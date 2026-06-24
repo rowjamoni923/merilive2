@@ -843,7 +843,14 @@ const Tasks = () => {
                         size="sm"
                         variant="outline"
                         className="border-amber-300 text-amber-800 hover:bg-amber-50 active:bg-amber-100"
-                        onClick={() => {
+                        onClick={async () => {
+                          // Share App is handled inline (native share / clipboard)
+                          if (task.requirement_type === 'share_app') {
+                            await handleShareAppTask();
+                            // refresh progress so the bar/Claim button updates
+                            fetchTasks();
+                            return;
+                          }
                           const route = taskNavigationMap[task.requirement_type];
                           if (route) {
                             navigate(route);
@@ -852,6 +859,7 @@ const Tasks = () => {
                       >
                         Do It
                       </Button>
+
                     )}
                   </div>
                 </div>
