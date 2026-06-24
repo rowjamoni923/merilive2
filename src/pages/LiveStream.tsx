@@ -2697,7 +2697,7 @@ const LiveStream = () => {
       detectAndProcessViolation(currentUserId, messageText, 'live_stream', id, true)
         .then(res => {
           if (res.detected && !res.warningOnly && res.violationNumber) {
-            numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+            numberWarning.showGenericWarning();
           } else if (res.detected) {
             numberWarning.showGenericWarning();
           }
