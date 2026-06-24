@@ -468,7 +468,7 @@ function generateAutoReplyHtml(senderName: string): string {
 Dear <strong style="color:#f0d78c;font-weight:600;letter-spacing:0.5px;">${senderName || 'Valued Guest'}</strong>,
 </p>
 <p style="margin:0 0 18px;font-size:15px;color:#c8c0a8;line-height:1.85;letter-spacing:0.2px;">
-We have received your message with the utmost care. Our concierge team is already attending to your inquiry — every concern is treated with the discretion and dedication you deserve.
+Thank you for contacting the <strong style="color:#f0d78c;">MeriLive Support Team</strong>. We have received your message and a member of our support team is already reviewing your inquiry with the care and attention you deserve.
 </p>
 
 <!-- Timeline Card -->
@@ -481,7 +481,7 @@ We have received your message with the utmost care. Our concierge team is alread
 </td>
 <td>
 <p style="margin:0 0 6px;font-family:'Georgia',serif;font-size:14px;font-weight:400;color:#f0d78c;letter-spacing:3px;text-transform:uppercase;">Response Timeline</p>
-<p style="margin:0;font-size:14px;color:#c8c0a8;line-height:1.7;">A personal reply will reach you within <strong style="color:#f0d78c;">24 to 48 hours</strong>. Thank you for your gracious patience.</p>
+<p style="margin:0;font-size:14px;color:#c8c0a8;line-height:1.7;">A member of our <strong style="color:#f0d78c;">Support Team</strong> will personally reply within <strong style="color:#f0d78c;">24 to 72 hours</strong>. Thank you for your patience.</p>
 </td>
 </tr>
 </table>
