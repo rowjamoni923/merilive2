@@ -356,8 +356,16 @@ export default function AdminSuperAdminManagement() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="approvals" className="mt-4">
+          <AdminCsaApprovals />
+        </TabsContent>
+
+        <TabsContent value="diamond" className="mt-4">
+          <AdminCsaDiamondSettings />
+        </TabsContent>
+
         <TabsContent value="settings" className="space-y-4 mt-4">
-          {settings && (
+          {settings ? (
             <Card>
               <CardHeader><CardTitle className="text-base">Global program settings</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -393,7 +401,28 @@ export default function AdminSuperAdminManagement() {
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Global program settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  No program settings row found yet. Check the <b>Diamond Wallet</b> tab for CSA diamond/bonus/visibility configuration.
+                </p>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Diamond Wallet settings always available here too */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><Gem className="w-4 h-4 text-amber-400" /> CSA Diamond Wallet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminCsaDiamondSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
