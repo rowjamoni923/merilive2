@@ -59,6 +59,7 @@ export default function CountryAdminDashboard() {
   const navigate = useNavigate();
   const [ctx, setCtx] = useState<CsaContext | null>(null);
   const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [overview, setOverview] = useState<CountryOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [topupMethods, setTopupMethods] = useState<any[]>([]);
   const [wdMethods, setWdMethods] = useState<any[]>([]);
