@@ -16,23 +16,74 @@ interface GmailMessage {
   labels: string[];
 }
 
-// Normalize OAuth secrets copied from dashboards/playground
+// Normalize OAuth secrets copied from dashboards/playground.
+// Admins often paste a whole Google OAuth JSON blob, a "Client ID: ..." line,
+// or a quoted value. Extract the credential defensively so a harmless paste
+// format issue does not break the support inbox.
 function normalizeOAuthSecret(value: string | undefined): string {
   return (value ?? '')
     .trim()
-    .replace(/\r?\n/g, '')
     .replace(/^['\"]|['\"]$/g, '');
 }
 
-// Get fresh access token using refresh token
-async function getAccessToken(): Promise<string> {
-  const clientId = normalizeOAuthSecret(Deno.env.get('GMAIL_CLIENT_ID'));
-  const clientSecret = normalizeOAuthSecret(Deno.env.get('GMAIL_CLIENT_SECRET'));
-  const refreshToken = normalizeOAuthSecret(Deno.env.get('GMAIL_REFRESH_TOKEN'));
+function findDeepValue(input: unknown, keys: string[]): string | null {
+  if (!input || typeof input !== 'object') return null;
+  const record = input as Record<string, unknown>;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  for (const value of Object.values(record)) {
+    const nested = findDeepValue(value, keys);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function extractOAuthSecret(value: string | undefined, keys: string[]): string {
+  const raw = normalizeOAuthSecret(value);
+  if (!raw) return '';
+
+  try {
+    const parsed = JSON.parse(raw);
+    const fromJson = findDeepValue(parsed, keys);
+    if (fromJson) return normalizeOAuthSecret(fromJson).replace(/\r?\n/g, '');
+  } catch {
+    // Not JSON; continue with regex extraction.
+  }
+
+  for (const key of keys) {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = raw.match(new RegExp(`${escapedKey}\\s*[:=]\\s*["']?([^"'\\s,}]+)`, 'i'));
+    if (match?.[1]) return normalizeOAuthSecret(match[1]).replace(/\r?\n/g, '');
+  }
+
+  return raw.replace(/\r?\n/g, '');
+}
+
+function getGmailOAuthCredentials() {
+  const clientId = extractOAuthSecret(Deno.env.get('GMAIL_CLIENT_ID'), ['client_id', 'clientId', 'OAuth Client ID', 'Client ID']);
+  const clientSecret = extractOAuthSecret(Deno.env.get('GMAIL_CLIENT_SECRET'), ['client_secret', 'clientSecret', 'OAuth Client secret', 'Client secret', 'Client Secret']);
+  const refreshToken = extractOAuthSecret(Deno.env.get('GMAIL_REFRESH_TOKEN'), ['refresh_token', 'refreshToken']);
 
   if (!clientId || !clientSecret || !refreshToken) {
     throw new Error('Gmail OAuth credentials not configured');
   }
+
+  if (clientId.startsWith('GOCSPX-') || !clientId.endsWith('.apps.googleusercontent.com')) {
+    throw new Error('Gmail OAuth Client ID is invalid. Paste the OAuth Client ID that ends with .apps.googleusercontent.com.');
+  }
+
+  if (refreshToken.startsWith('ya29.')) {
+    throw new Error('GMAIL_REFRESH_TOKEN contains an access token. Paste the refresh_token value that starts with 1//.');
+  }
+
+  return { clientId, clientSecret, refreshToken };
+}
+
+// Get fresh access token using refresh token
+async function getAccessToken(): Promise<string> {
+  const { clientId, clientSecret, refreshToken } = getGmailOAuthCredentials();
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -51,6 +102,10 @@ async function getAccessToken(): Promise<string> {
 
     if (errText.includes('invalid_grant')) {
       throw new Error('Gmail OAuth refresh token expired or revoked. Reconnect Gmail OAuth credentials.');
+    }
+
+    if (errText.includes('invalid_client')) {
+      throw new Error('Gmail OAuth client is invalid or mismatched. Update Client ID, Client Secret, then generate a new Refresh Token from the same Google OAuth client.');
     }
 
     throw new Error(`Failed to refresh Gmail access token (${response.status})`);
