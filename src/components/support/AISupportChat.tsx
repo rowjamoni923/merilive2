@@ -498,6 +498,7 @@ const AISupportChat = ({
 
     try {
       let ticketId = options?.forcedTicketId || "";
+      let contextMessageInserted = false;
 
       if (!ticketId) {
         const { data: existing } = await supabase
@@ -547,6 +548,7 @@ const AISupportChat = ({
             sender_type: "user",
             content: initialUserContext,
           });
+          contextMessageInserted = true;
 
           // Forward any attachments (images/voice) sent during AI phase to the DB
           const allMsgsForAttachments = contextMessages || messagesRef.current || messages;
@@ -568,6 +570,16 @@ const AISupportChat = ({
       }
 
       setLiveChatTicketId(ticketId);
+
+      if (options?.initialContext && !contextMessageInserted && userId) {
+        await supabase.from("support_messages").insert({
+          ticket_id: ticketId,
+          sender_id: userId,
+          sender_type: "user",
+          content: options.initialContext,
+        });
+        contextMessageInserted = true;
+      }
 
       // Fetch ticket status
       const { data: ticketData } = await supabase
@@ -643,9 +655,18 @@ const AISupportChat = ({
       console.log("🔔 Opening support message from notification:", deepLinkMessageId);
     }
 
+    let verificationContext: string | null = null;
+    try { verificationContext = sessionStorage.getItem("verification_support_context"); } catch { /* ignore */ }
+
     activateLiveChat(undefined, {
       forcedTicketId: deepLinkTicketId || undefined,
       skipIntroMessage: true,
+      categoryOverride: verificationContext ? "Face Verification" : undefined,
+      initialContext: verificationContext || undefined,
+    }).finally(() => {
+      if (verificationContext) {
+        try { sessionStorage.removeItem("verification_support_context"); } catch { /* ignore */ }
+      }
     });
   }, [userId, deepLinkMode, deepLinkTicketId, deepLinkMessageId, activateLiveChat]);
 

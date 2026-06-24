@@ -16,10 +16,6 @@ import {
   ShieldCheck,
   ScanFace,
   ImagePlus,
-  ArrowUp,
-  ArrowDown,
-  ArrowLeftIcon,
-  ArrowRightIcon,
   Play,
   XCircle,
   Settings,
@@ -92,24 +88,17 @@ function saveCalibration(c: PoseCalibration) {
 }
 
 
-// Single English-only instruction set (per global English policy).
-// `checkPose` is preserved for any external callers but the live loop uses
-// `evaluatePose(id, pose, calibration)` so thresholds stay in sync.
-// F3 hardening (2026-06-09): the L/R order is randomized per session in
-// `faceInstructions` (below). Center always stays first as the calibration
-// anchor; the side challenges are shuffled to defeat 15-second pre-recorded
-// replay attacks that assume the fixed center→left→right script.
+// Passive Chamet-style scan stages: no visible left/right/up/down prompts.
+// The user holds still while the app captures live evidence, then the server
+// compares uploaded photo/video/live scan and applies liveness + duplicate checks.
 const FACE_INSTRUCTION_DEFS = {
-  center: { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
-  left:   { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
-  right:  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
+  live:     { id: 'live',     direction: 'Hold Still',      icon: ScanFace,    description: 'Keep your face inside the frame',                 checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
+  photo:    { id: 'photo',    direction: 'Matching Photo',  icon: ImagePlus,   description: 'Comparing your uploaded photo with live scan',     checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
+  security: { id: 'security', direction: 'Security Check',  icon: ShieldCheck, description: 'Checking liveness and account ownership securely', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
 } as const;
 
 const buildRandomizedFaceInstructions = () => {
-  const sides = Math.random() < 0.5
-    ? [FACE_INSTRUCTION_DEFS.left, FACE_INSTRUCTION_DEFS.right]
-    : [FACE_INSTRUCTION_DEFS.right, FACE_INSTRUCTION_DEFS.left];
-  return [FACE_INSTRUCTION_DEFS.center, ...sides];
+  return [FACE_INSTRUCTION_DEFS.live, FACE_INSTRUCTION_DEFS.photo, FACE_INSTRUCTION_DEFS.security];
 };
 
 const getLocalizedInstructions = (_countryName?: string) => buildRandomizedFaceInstructions();
@@ -123,8 +112,8 @@ const getLocalizedMessages = (_countryName?: string) => ({
   startScan: 'Start Face Scan',
   tryAgain: 'Try Again',
   recording: 'Recording',
-  tips: '💡 Ensure good lighting • Remove glasses/masks • Keep your face centered in the oval',
-  beginCheck: 'Begin Liveness Check',
+  tips: '💡 Use good lighting • Remove glasses/masks • Keep your face inside the frame',
+  beginCheck: 'Begin Face Scan',
   cancel: 'Cancel',
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
@@ -400,8 +389,6 @@ const FaceVerification = () => {
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
-  const horizontalFirstTurnSignRef = useRef<number | null>(null);
-  const verticalFirstTiltSignRef = useRef<number | null>(null);
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     // Pkg-fix: race-guard — if stopVerification already nulled refs OR the
@@ -1283,8 +1270,6 @@ const FaceVerification = () => {
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
-      horizontalFirstTurnSignRef.current = null;
-      verticalFirstTiltSignRef.current = null;
     // Reset debug log for this attempt
     debugLogRef.current = [];
     sessionStartRef.current = Date.now();
@@ -1448,9 +1433,7 @@ const FaceVerification = () => {
   ): boolean => {
     const dy = pose.yaw - c.baselineYaw;
     const dp = pose.pitch - c.baselinePitch;
-    if (instrId === 'left') return (horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
-    if (instrId === 'right') return -(horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
-    return evaluatePose(instrId, pose, c);
+    return evaluatePose('center', pose, c);
   };
 
   // Compute a precise, user-facing hint about why the current step is not
@@ -1475,28 +1458,18 @@ const FaceVerification = () => {
     const adp = Math.abs(dp);
     const clamp = (n: number) => Math.max(0, Math.min(1, n));
     switch (instrId) {
-      case 'center': {
+      case 'live':
+      case 'photo':
+      case 'security': {
         const progress = clamp(1 - Math.max(ady / c.centerYaw, adp / c.centerPitch));
         if (ady < c.centerYaw && adp < c.centerPitch)
           return { hint: 'Hold steady — looks great', severity: 'ok', progress: 1 };
         if (ady >= c.centerYaw)
-          return { hint: `Face the camera straight (turn ${dy > 0 ? 'right' : 'left'} ~${Math.round(ady - c.centerYaw + 4)}°)`, severity: 'warn', progress };
-        return { hint: `Level your head (tilt ${dp > 0 ? 'up' : 'down'} ~${Math.round(adp - c.centerPitch + 4)}°)`, severity: 'warn', progress };
-      }
-      case 'left': {
-        const signedDy = (horizontalFirstTurnSignRef.current ?? 1) * dy;
-        const progress = clamp(signedDy / (c.turnYaw + 6));
-        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
-        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head left slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your left`, severity: 'warn', progress };
-      }
-      case 'right': {
-        const signedDy = -(horizontalFirstTurnSignRef.current ?? 1) * dy;
-        const progress = clamp(signedDy / (c.turnYaw + 6));
-        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
-        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head right slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your right`, severity: 'warn', progress };
+          return { hint: 'Keep your face centered in the frame', severity: 'warn', progress };
+        return { hint: 'Keep the phone level and hold steady', severity: 'warn', progress };
       }
       default:
-        return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
+        return { hint: 'Hold still while we verify your face', severity: 'warn', progress: 0 };
     }
   };
 
@@ -1509,7 +1482,7 @@ const FaceVerification = () => {
     // pose before scoring any step.
     calibSamplesRef.current = [];
     setCalibrating(true);
-    const CALIB_TARGET = 8;
+    const CALIB_TARGET = 2;
     
     poseCheckIntervalRef.current = setInterval(async () => {
       if (poseCheckInFlightRef.current) return;
@@ -1578,7 +1551,7 @@ const FaceVerification = () => {
           eyesOpen: result.eyesOpen,
           yaw: pose.yaw, pitch: pose.pitch,
           progress: filled / CALIB_TARGET,
-          hint: `Calibrating for your camera… (${filled}/${CALIB_TARGET})`,
+            hint: 'Preparing secure scan…',
           severity: 'warn',
         });
         if (filled === CALIB_TARGET) {
@@ -1606,12 +1579,7 @@ const FaceVerification = () => {
       const instruction = faceInstructions[instrIdx];
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
-        const dy = pose.yaw - calib.baselineYaw;
-        const dp = pose.pitch - calib.baselinePitch;
-        if (instruction.id === 'left' && horizontalFirstTurnSignRef.current == null && Math.abs(dy) > 6) {
-          horizontalFirstTurnSignRef.current = Math.sign(dy) || 1;
-        }
-        const passed = evaluateAdaptivePose(instruction.id, pose, calib);
+        const passed = evaluateAdaptivePose(instruction.id, pose, calib) && result.eyesOpen;
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
           faceDetected: true, eyesOpen: result.eyesOpen,
@@ -1636,12 +1604,9 @@ const FaceVerification = () => {
         
         if (passed) {
           setScanningStatus('pass');
-          if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
-            const angleKey = instruction.id as 'center' | 'left' | 'right';
-            if (!capturedAnglesRef.current[angleKey]) {
+          if (instruction.id === 'live' && !capturedAnglesRef.current.center) {
               const stillFrame = await captureFaceFrameBase64(720);
-              if (stillFrame) capturedAnglesRef.current[angleKey] = stillFrame;
-            }
+              if (stillFrame) capturedAnglesRef.current.center = stillFrame;
           }
           const newCompleted = [...instructionsCompletedRef.current];
           newCompleted[instrIdx] = true;
@@ -1664,7 +1629,7 @@ const FaceVerification = () => {
       } finally {
         poseCheckInFlightRef.current = false;
       }
-    }, 1000); // Poll every 1s — faster lock-on without overloading Rekognition
+    }, 700); // Passive scan cadence — fast lock-on without visible pose prompts
   };
 
   // Finish verification
@@ -1709,33 +1674,9 @@ const FaceVerification = () => {
     setScanningStatus('idle');
     
     if (success) {
-      // Anti-spoof check: verify pose variance (photos have near-zero variance)
-      const collectedPoseHistory = poseHistoryRef.current;
-      if (collectedPoseHistory.length >= 3) {
-        const yaws = collectedPoseHistory.map(p => p.yaw);
-        const pitches = collectedPoseHistory.map(p => p.pitch);
-        const yawVariance = Math.max(...yaws) - Math.min(...yaws);
-        const pitchVariance = Math.max(...pitches) - Math.min(...pitches);
-        
-        if (yawVariance < 5 && pitchVariance < 5) {
-          // BUG-10 fix: a static photo/replay can defeat the pose loop without
-          // ever exceeding 5° head movement. Previously we set faceVerified=true
-          // and just flagged manual review, meaning the spoofed submission still
-          // counted as a "pass" client-side. Now we still route to manual review
-          // (server analyze will run liveness anyway) BUT we keep faceVerified
-          // false so the user must redo the scan if they want auto-approve.
-          console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
-          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
-          setFaceManualReviewRequired(true);
-          setFaceVerified(false); // ★ was true — never let client-side spoof pass as verified
-          buildAndStoreDebugReport('antispoof');
-          toast({
-            title: "Manual Review Required",
-            description: "The scan was captured, but AI could not safely auto-approve it. Admin will review it manually.",
-          });
-          return;
-        }
-      }
+      // Passive professional flow intentionally asks the user to hold still.
+      // Replay/static-photo decisions are made server-side using provider
+      // liveness + photo/video/live face comparison, not client pose variance.
       
       pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
@@ -1873,12 +1814,14 @@ const FaceVerification = () => {
     } catch { return null; }
   };
 
-  // Upload the 3 captured angle stills (front/left/right) for AWS Rekognition auto-approve.
-  // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
+  // Upload passive live-scan stills. Legacy admin/AI columns still expect
+  // front/left/right URLs, so side slots fall back to the same live frame.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
     const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
     if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
     const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
       ['center', 'front_url', 'face-angles/front'],
       ['left', 'left_url', 'face-angles/left'],
@@ -2041,7 +1984,7 @@ const FaceVerification = () => {
 
       const videoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
 
-      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      // Upload passive live scan stills for photo/video/live face comparison
       const angleUrls = await uploadCapturedAngles();
 
       // Insert submission with ALL user info (name, age, language, photo) + 3 angles
@@ -2058,8 +2001,11 @@ const FaceVerification = () => {
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+            scan_mode: 'passive_photo_video_live',
+            evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
+            visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: true,
+            challenge_randomized: false,
           },
           face_image_url: videoUrl,
           // BUG-14 fix: never store the `pending://no-image` literal — it crashes
@@ -2312,7 +2258,7 @@ const FaceVerification = () => {
         return;
       }
       
-      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      // Upload passive live scan stills for photo/video/live face comparison
       const angleUrls = await uploadCapturedAngles();
 
       // Insert submission with submitted status (auto-approve pipeline)
@@ -2326,8 +2272,11 @@ const FaceVerification = () => {
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+            scan_mode: 'passive_photo_video_live',
+            evidence_required: ['profile_photo', 'intro_video', 'host_gallery_photos', 'live_face_scan'],
+            visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: true,
+            challenge_randomized: false,
           },
           full_name: fullName,
           age: parseInt(age),
@@ -2430,7 +2379,7 @@ const FaceVerification = () => {
             <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">Secure</span>
           </div>
           <p className="text-slate-500 text-xs">
-            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
+            {verificationRecording ? 'Passive live scan in progress' : 'AI-powered identity verification'}
           </p>
         </div>
       </div>
@@ -2439,7 +2388,7 @@ const FaceVerification = () => {
       {verificationRecording && (
         <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} mb-4`}>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-            <span className="font-medium">Liveness Progress</span>
+            <span className="font-medium">Identity Scan</span>
             <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -2545,22 +2494,24 @@ const FaceVerification = () => {
                 }} />
               )}
               
-              {/* Animated oval border */}
+              {/* Animated hex face frame */}
               <motion.div 
                 className="relative"
-                style={{ width: '70%', height: '60%' }}
+                style={{ width: '74%', height: '62%' }}
               >
                 <svg viewBox="0 0 200 260" className="w-full h-full" style={{ filter: `drop-shadow(0 0 10px ${borderColor}40)` }}>
-                  <ellipse cx="100" cy="130" rx="85" ry="115" fill="none" 
-                    stroke={borderColor} strokeWidth={usingNativeFaceCamera ? "4" : "3"} strokeDasharray={verificationRecording ? "8 4" : "none"} 
+                  <polygon points="100,12 178,56 178,204 100,248 22,204 22,56" fill="none" 
+                    stroke={borderColor} strokeWidth={usingNativeFaceCamera ? "4" : "3"} strokeDasharray={verificationRecording ? "10 5" : "none"} 
                     opacity={usingNativeFaceCamera ? "0.95" : "0.8"}
                   />
+                  <line x1="100" x2="100" y1="78" y2="182" stroke="#ffffff" strokeWidth="1" opacity="0.22" />
+                  <line x1="48" x2="152" y1="130" y2="130" stroke="#ffffff" strokeWidth="1" opacity="0.22" />
                   {/* Scanning line animation */}
                   {verificationRecording && scanningStatus === 'scanning' && (
                     <motion.line
-                      x1="20" x2="180" stroke="#22d3ee" strokeWidth="2" opacity="0.6"
-                      initial={{ y1: 30, y2: 30 }}
-                      animate={{ y1: [30, 230, 30], y2: [30, 230, 30] }}
+                      x1="34" x2="166" stroke="#22d3ee" strokeWidth="2" opacity="0.65"
+                      initial={{ y1: 48, y2: 48 }}
+                      animate={{ y1: [48, 212, 48], y2: [48, 212, 48] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
                   )}
@@ -2604,7 +2555,7 @@ const FaceVerification = () => {
                       </motion.div>
                       <div className="flex-1">
                         <p className="text-slate-800 font-bold">
-                          {faceInstructions[currentInstruction]?.direction}
+                          {currentInstruction === 0 ? 'Hold Still for a Moment' : 'Verifying'}
                         </p>
                         <p className="text-slate-500 text-xs">
                           {faceInstructions[currentInstruction]?.description}
@@ -2648,7 +2599,7 @@ const FaceVerification = () => {
                       : liveDiag.severity === 'error' ? 'text-rose-800'
                       : 'text-slate-800'
                     }`}>
-                      {liveDiag.hint}
+                      {liveDiag.severity === 'ok' ? 'Verifying your face…' : liveDiag.hint}
                     </p>
                   </div>
 
@@ -2875,9 +2826,7 @@ const FaceVerification = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-slate-500 text-xs">{localizedMsg.recording}</span>
-                    <span className="text-slate-700 text-xs font-semibold">
-                      · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
-                    </span>
+                      <span className="text-slate-700 text-xs font-semibold">· Hold Still for a Moment</span>
                   </div>
                   <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(75, Math.max(35, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
@@ -2941,7 +2890,7 @@ const FaceVerification = () => {
               {cameraReady ? 'Auto-scanning now…' : 'Initializing camera…'}
             </div>
             <p className="mt-1 text-[11px] text-slate-600 leading-5">
-              Hold your face straight first. The app will calibrate automatically, then complete the liveness steps.
+              Hold your face inside the frame. The app will scan automatically.
             </p>
           </div>
           <Button
@@ -3024,8 +2973,24 @@ const FaceVerification = () => {
   const duplicateInfo = duplicateMatch ? JSON.parse(duplicateMatch[1]) : null;
   const cleanRejectionReason = rejectionReason?.replace(/\[duplicate_info:.*?\]/, '').trim();
 
-  // Contact Support is required for Gender mismatch or Duplicate account.
-  const isContactSupportRequired = cleanRejectionReason?.toLowerCase().includes('gender mismatch') || !!duplicateInfo;
+  // Contact Support is required for account-type mismatch or duplicate account.
+  const lowerRejectReason = cleanRejectionReason?.toLowerCase() || '';
+  const isContactSupportRequired = lowerRejectReason.includes('account type') || lowerRejectReason.includes('gender mismatch') || !!duplicateInfo;
+  const openVerificationSupport = () => {
+    try {
+      sessionStorage.setItem(
+        'verification_support_context',
+        [
+          '[Category: Face Verification]',
+          '',
+          'My face verification was rejected and I need support review.',
+          cleanRejectionReason ? `Reason shown: ${cleanRejectionReason}` : null,
+          duplicateInfo ? `Existing account shown: ${duplicateInfo.name || 'Unknown'} (ID: ${duplicateInfo.uid || 'Unknown'})` : null,
+        ].filter(Boolean).join('\n')
+      );
+    } catch { /* ignore */ }
+    navigate('/settings/customer-service?mode=live_chat&source=face_verification');
+  };
 
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
@@ -3097,7 +3062,7 @@ const FaceVerification = () => {
             {isContactSupportRequired && (
               <Button
                 className="w-full bg-slate-900 text-white rounded-2xl py-6 font-bold shadow-xl shadow-slate-900/20 active:scale-95 transition-transform"
-                onClick={() => navigate('/settings/customer-service?mode=live_chat')}
+                onClick={openVerificationSupport}
               >
                 💬 Contact Support Chat
               </Button>

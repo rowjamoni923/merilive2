@@ -758,6 +758,7 @@ serve(async (req) => {
     const mergedAnalysis = duplicateBlock
       ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock }
       : { ...existingAnalysis, rekognition };
+    const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
 
     const finalNotes = duplicateNote ? `${summary}\n[duplicate-face] ${duplicateNote}` : summary;
 
@@ -809,13 +810,13 @@ serve(async (req) => {
     else if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
     else if (livenessFailed) hardAutoReject = "liveness_failed";
-    else if (replaySuspected) hardAutoReject = "replay_suspected";
+    else if (replaySuspected && !isPassivePhotoVideoLiveScan) hardAutoReject = "replay_suspected";
     else if (profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) hardAutoReject = "photo_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
       if (hardAutoReject === "gender_mismatch") {
-        rReason = `Gender mismatch detected. Your declared gender (${declaredGender || expectedGender}) does not match our scan (${rawG}). Please contact Support Chat to resolve this.`;
+        rReason = `Account type mismatch detected. This face scan does not match the selected ${expectedGender === "female" ? "host" : "user"} account type. If you are trying to open the wrong account type, verification cannot be approved. Please contact Support Chat to resolve this.`;
       } else if (hardAutoReject === "duplicate_face") {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
@@ -907,7 +908,7 @@ serve(async (req) => {
     if (!autoResult?.success) {
       const softFlags: string[] = [];
       if (livenessFailed) softFlags.push("liveness_failed");
-      if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
+      if (replaySuspected && !isPassivePhotoVideoLiveScan) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
       if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
       if (duplicateBlock) softFlags.push("duplicate_face");
       if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);

@@ -19,7 +19,13 @@ const CustomerService = () => {
   const deepLinkMessageId = searchParams.get("message_id");
   const shouldOpenLiveChatFromNotification = deepLinkMode === "live_chat" || Boolean(deepLinkTicketId);
   const hasVerificationSupportBlocker = (() => {
-    try { return Boolean(sessionStorage.getItem("verification_blocker")); } catch { return false; }
+    try {
+      return Boolean(
+        sessionStorage.getItem("verification_blocker") ||
+        sessionStorage.getItem("verification_support_context") ||
+        searchParams.get("source") === "face_verification"
+      );
+    } catch { return false; }
   })();
 
   useEffect(() => {
