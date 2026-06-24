@@ -265,6 +265,7 @@ const FaceVerification = () => {
   const [verifyingFace, setVerifyingFace] = useState(false);
   const faceVideoRef = useRef<HTMLVideoElement>(null);
   const faceCanvasRef = useRef<HTMLCanvasElement>(null);
+  const faceCameraFrameRef = useRef<HTMLDivElement>(null);
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
   const usingNativeFaceCameraRef = useRef(false);
@@ -528,6 +529,37 @@ const FaceVerification = () => {
       document.body.classList.remove('native-face-camera-active');
     };
   }, [usingNativeFaceCamera]);
+
+  const syncNativeFaceAperture = useCallback(() => {
+    if (typeof document === 'undefined' || !usingNativeFaceCameraRef.current) return;
+    const el = faceCameraFrameRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 40 || rect.height < 40) return;
+    const root = document.documentElement;
+    root.style.setProperty('--face-aperture-x', `${Math.round(rect.left + rect.width * 0.5)}px`);
+    root.style.setProperty('--face-aperture-y', `${Math.round(rect.top + rect.height * 0.45)}px`);
+    root.style.setProperty('--face-aperture-rx', `${Math.round(rect.width * 0.34)}px`);
+    root.style.setProperty('--face-aperture-ry', `${Math.round(rect.height * 0.42)}px`);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!usingNativeFaceCamera) return;
+    const raf = requestAnimationFrame(syncNativeFaceAperture);
+    const onUpdate = () => syncNativeFaceAperture();
+    window.addEventListener('resize', onUpdate);
+    window.addEventListener('scroll', onUpdate, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onUpdate);
+      window.removeEventListener('scroll', onUpdate, true);
+      const root = document.documentElement;
+      root.style.removeProperty('--face-aperture-x');
+      root.style.removeProperty('--face-aperture-y');
+      root.style.removeProperty('--face-aperture-rx');
+      root.style.removeProperty('--face-aperture-ry');
+    };
+  }, [usingNativeFaceCamera, cameraReady, verificationStarted, currentInstruction, syncNativeFaceAperture]);
 
 
   const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
@@ -2377,9 +2409,9 @@ const FaceVerification = () => {
     };
 
     return (
-    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-white border-slate-200 shadow-[0_18px_44px_-22px_rgba(15,23,42,0.35)] rounded-3xl p-4 border' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
+    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} flex items-center gap-3 mb-5`}>
         <div className="relative">
           <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
             <ScanFace className="w-5 h-5 text-white" />
@@ -2405,7 +2437,7 @@ const FaceVerification = () => {
 
       {/* Progress Bar */}
       {verificationRecording && (
-        <div className="mb-4">
+        <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} mb-4`}>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span className="font-medium">Liveness Progress</span>
             <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
@@ -2422,7 +2454,7 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div data-face-verification-camera className={usingNativeFaceCamera
+      <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
         ? 'relative aspect-[3/4] w-full max-w-sm mx-auto rounded-[28px] overflow-hidden mb-5 bg-slate-950 shadow-2xl shadow-slate-950/25 ring-1 ring-slate-900/10'
         : `relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`
       }>
