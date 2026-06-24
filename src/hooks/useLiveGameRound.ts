@@ -341,7 +341,7 @@ export function useLiveGameRound({
       
       return () => clearTimeout(timer);
     }
-  }, [clientState.phase, clientState.result, clientState.roundNumber, myBets, gameId, bettingSeconds, onWin, onLoss]);
+  }, [clientState.phase, clientState.result, clientState.roundNumber, myBets, gameId, bettingSeconds, isSelfManagedGame]);
 
   // Sync client state to component state
   useEffect(() => {
