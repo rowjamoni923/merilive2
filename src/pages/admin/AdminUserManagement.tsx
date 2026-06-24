@@ -58,7 +58,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-import { CopyableUid } from "@/components/admin/CopyableUid";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -95,6 +94,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
   if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';

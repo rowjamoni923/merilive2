@@ -53,7 +53,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-import { CopyableUid } from "@/components/admin/CopyableUid";
   Dialog,
   DialogContent,
   DialogDescription,
@@ -81,6 +80,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface AgencyCommissionSettings {
   agency_commission_rate: number; // % of host earnings agency gets
   sub_agent_commission_rate: number; // % of host earnings sub-agent gets

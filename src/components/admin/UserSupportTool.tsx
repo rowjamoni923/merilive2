@@ -11,12 +11,12 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { ADMIN_REALTIME_EVENT, dispatchAdminTableUpdate, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
 import {
-import { CopyableUid } from "@/components/admin/CopyableUid";
   Search, Loader2, User, Crown, Ban, Unlock,
   MinusCircle, PlusCircle, ScanFace, KeyRound, Building2,
   CheckCircle, XCircle, Copy, ArrowLeftRight,
   AlertTriangle, RefreshCw
 } from "lucide-react";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface UserResult {
   id: string;

@@ -52,7 +52,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
-import { CopyableUid } from "@/components/admin/CopyableUid";
   Select,
   SelectContent,
   SelectItem,
@@ -68,6 +67,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface Agency {
   id: string;
   name: string;
