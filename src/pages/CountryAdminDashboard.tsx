@@ -388,3 +388,62 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
     </div>
   );
 }
+
+function MyApprovalQueue() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [tab, setTab] = useState<"pending" | "approved" | "rejected">("pending");
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("csa_pending_actions")
+      .select("*")
+      .eq("status", tab)
+      .order("requested_at", { ascending: false })
+      .limit(100);
+    setRows(data || []);
+    setLoading(false);
+  }, [tab]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="space-y-3">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black">Pending</TabsTrigger>
+          <TabsTrigger value="approved" className="data-[state=active]:bg-emerald-600">Approved</TabsTrigger>
+          <TabsTrigger value="rejected" className="data-[state=active]:bg-rose-600">Rejected</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {loading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-amber-400" /></div>
+      ) : rows.length === 0 ? (
+        <Card className="bg-slate-900/60 border-amber-500/20 p-6 text-center text-white/50">
+          No {tab} submissions.
+        </Card>
+      ) : rows.map((r) => (
+        <Card key={r.id} className="bg-slate-900/60 border-amber-500/20 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white">{r.description || r.action_type}</p>
+              <p className="text-[10px] text-white/40 mt-0.5">
+                {new Date(r.requested_at).toLocaleString()}
+                {r.reviewed_at && ` · Reviewed ${new Date(r.reviewed_at).toLocaleString()}`}
+              </p>
+              {r.reject_reason && (
+                <p className="text-xs text-rose-300 mt-1">Owner rejected: {r.reject_reason}</p>
+              )}
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded border ${
+              r.status === "pending" ? "bg-amber-500/20 text-amber-300 border-amber-500/40" :
+              r.status === "approved" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" :
+              "bg-rose-500/20 text-rose-300 border-rose-500/40"
+            }`}>{r.status}</span>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
