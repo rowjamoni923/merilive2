@@ -65,6 +65,14 @@ const QUICK_LINKS: QuickLink[] = [
     emoji: "🛡️",
   },
   {
+    label: "6-Level Policy Hub",
+    url: "https://merilive.com/policies/levels",
+    icon: <ShieldCheck className="w-4 h-4" />,
+    color: "from-yellow-500/20 to-amber-600/10 border-yellow-500/30",
+    description: "L1 Helper → L6 CSA — full operator policies with live wallet config",
+    emoji: "👑",
+  },
+  {
     label: "Payroll Helper Guide",
     url: "https://merilive.com/payroll-helper-guide",
     icon: <FileText className="w-4 h-4" />,
