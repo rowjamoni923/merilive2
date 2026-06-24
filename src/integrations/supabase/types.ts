@@ -21495,6 +21495,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      recover_swift_pay_topup: { Args: { p_topup_id: string }; Returns: Json }
       refund_call_on_failed_connect: {
         Args: { p_call_id: string }
         Returns: Json

@@ -60,12 +60,16 @@ Deno.serve(async (req) => {
   const pollBeforeIso = new Date(Date.now() - MIN_POLL_GAP_MS).toISOString();
 
   // Build the candidate list
+  // Include `expired` rows from the last 30 days so late on-chain confirmations
+  // (BTC/USDT-ERC20 can take many hours) still get credited automatically.
+  const recoveryCutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   let query = admin
     .from("swift_pay_topups")
     .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, created_at, last_polled_at")
-    .in("status", ["pending", "paid"])
+    .in("status", ["pending", "paid", "expired"])
+    .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
-    .limit(50);
+    .limit(100);
 
   if (topupId) query = query.eq("id", topupId);
   else if (userId) query = query.eq("user_id", userId);
@@ -127,12 +131,14 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Mark paid first (idempotency anchor)
+      // Mark paid first (idempotency anchor) — accept transition from any
+      // non-credited status (pending / paid / expired-but-actually-paid).
       await admin.from("swift_pay_topups").update({
         status: "paid",
         paid_at: nowIso,
         last_polled_at: nowIso,
-      }).eq("id", row.id).eq("status", "pending");
+        error_message: null,
+      }).eq("id", row.id).neq("status", "credited");
 
       // Route credit by target_type
       const targetType = (row as any).target_type ?? "user_diamond";
