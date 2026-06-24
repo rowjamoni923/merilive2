@@ -632,15 +632,24 @@ const LandingPage = () => {
 
             {/* Navigation Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Footer navigation">
- <a href="/privacy-policy" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
+ <Link to="/about" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
+                About
+              </Link>
+ <Link to="/policies" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
+                Policies
+              </Link>
+ <Link to="/privacy-policy" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
                 Privacy
-              </a>
- <a href="/terms" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
+              </Link>
+ <Link to="/terms" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
                 Terms
-              </a>
- <a href="/contact" className="text-slate-600 hover:text-slate-700 transition-colors duration-200">
+              </Link>
+ <Link to="/contact" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
                 Contact
-              </a>
+              </Link>
+ <Link to="/account-deletion" className="text-slate-600 hover:text-slate-900 transition-colors duration-200">
+                Account Deletion
+              </Link>
             </nav>
           </div>
 
