@@ -366,7 +366,11 @@ const AdminGmailSupport = () => {
   useEffect(() => {
     fetchInboxStats();
     triggerAutoReplies();
-    // No polling interval — Gmail data fetched on-demand via user actions
+    // Background poll for new emails every 45s — keeps unread badge fresh
+    const poll = setInterval(() => {
+      fetchInboxStats();
+    }, 45000);
+    return () => clearInterval(poll);
   }, [fetchInboxStats, triggerAutoReplies]);
 
   useEffect(() => {
