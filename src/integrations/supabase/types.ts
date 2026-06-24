@@ -997,6 +997,9 @@ export type Database = {
       }
       agencies: {
         Row: {
+          activation_deadline: string | null
+          activation_status: string
+          active_host_count: number
           agency_code: string
           beans_balance: number | null
           blocked_at: string | null
@@ -1021,6 +1024,9 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
+          activation_deadline?: string | null
+          activation_status?: string
+          active_host_count?: number
           agency_code: string
           beans_balance?: number | null
           blocked_at?: string | null
@@ -1045,6 +1051,9 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
+          activation_deadline?: string | null
+          activation_status?: string
+          active_host_count?: number
           agency_code?: string
           beans_balance?: number | null
           blocked_at?: string | null
@@ -19634,6 +19643,7 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_close_overdue_agencies: { Args: never; Returns: number }
       auto_close_room_from_livekit: {
         Args: { _room_name: string }
         Returns: {
@@ -21473,6 +21483,10 @@ export type Database = {
           p_severity: string
         }
         Returns: Json
+      }
+      recalc_agency_activation: {
+        Args: { p_agency_id: string }
+        Returns: undefined
       }
       recalculate_all_agency_levels: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }

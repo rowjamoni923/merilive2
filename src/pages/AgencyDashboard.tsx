@@ -71,6 +71,7 @@ import {
 const HelperApplicationForm = lazy(() => import("@/components/helper/HelperApplicationForm"));
 const SubAgentsPanel = lazy(() => import("@/components/agency/SubAgentsPanel"));
 const PayrollHelperWelcomeModal = lazy(() => import("@/components/agency/PayrollHelperWelcomeModal"));
+import AgencyActivationBanner from "@/components/agency/AgencyActivationBanner";
 import { formatNumber as formatNum } from "@/utils/formatNumber";
 
 // Helper for formatting numbers with English numerals
@@ -1478,6 +1479,9 @@ const AgencyDashboard = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-4 space-y-4">
+            {/* 30-day / 10-host activation status — hidden once requirement is met */}
+            {agency?.id && <AgencyActivationBanner agencyId={agency.id} />}
+
             {/* Weekly Income Chart */}
             <Card className="border-0 shadow-md bg-card">
               <CardHeader className="pb-2">
