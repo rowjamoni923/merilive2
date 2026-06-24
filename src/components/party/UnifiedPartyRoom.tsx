@@ -1278,11 +1278,12 @@ export function UnifiedPartyRoom({
     // Add to local state immediately (instant feedback)
     setPremiumMessages(prev => [...prev, optimisticMessage]);
     
-    // Run contact detection for hosts - non-blocking with error handling
-    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId)
+    // Party room chat is public to all seats including any host owner → gate always on.
+    // Host sender → 2,000 beans deduction. Non-host sender → popup warning only.
+    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId, true)
       .then(res => {
         console.log('[ContactDetection] PartyRoom result:', res);
-        if (res.detected && res.violationNumber) {
+        if (res.detected && !res.warningOnly && res.violationNumber) {
           numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
         } else if (res.detected) {
           numberWarning.showGenericWarning();
