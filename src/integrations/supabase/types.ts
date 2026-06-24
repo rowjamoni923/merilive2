@@ -1015,11 +1015,15 @@ export type Database = {
           is_blocked: boolean | null
           is_country_super_admin: boolean
           is_official: boolean
+          is_permanent: boolean
           level: string | null
           logo_url: string | null
           name: string
           owner_id: string | null
           parent_agency_id: string | null
+          permanent_marked_at: string | null
+          permanent_marked_by: string | null
+          permanent_reason: string | null
           registration_meta: Json | null
           total_agents: number | null
           total_hosts: number | null
@@ -1046,11 +1050,15 @@ export type Database = {
           is_blocked?: boolean | null
           is_country_super_admin?: boolean
           is_official?: boolean
+          is_permanent?: boolean
           level?: string | null
           logo_url?: string | null
           name: string
           owner_id?: string | null
           parent_agency_id?: string | null
+          permanent_marked_at?: string | null
+          permanent_marked_by?: string | null
+          permanent_reason?: string | null
           registration_meta?: Json | null
           total_agents?: number | null
           total_hosts?: number | null
@@ -1077,11 +1085,15 @@ export type Database = {
           is_blocked?: boolean | null
           is_country_super_admin?: boolean
           is_official?: boolean
+          is_permanent?: boolean
           level?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string | null
           parent_agency_id?: string | null
+          permanent_marked_at?: string | null
+          permanent_marked_by?: string | null
+          permanent_reason?: string | null
           registration_meta?: Json | null
           total_agents?: number | null
           total_hosts?: number | null
@@ -4145,10 +4157,12 @@ export type Database = {
           country_code: string
           created_at: string
           email: string
+          expires_at: string | null
           id: string
           is_active: boolean
           notes: string | null
           revoked_at: string | null
+          tenure_label: string | null
           updated_at: string
           user_id: string
         }
@@ -4160,10 +4174,12 @@ export type Database = {
           country_code: string
           created_at?: string
           email: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
           notes?: string | null
           revoked_at?: string | null
+          tenure_label?: string | null
           updated_at?: string
           user_id: string
         }
@@ -4175,10 +4191,12 @@ export type Database = {
           country_code?: string
           created_at?: string
           email?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
           notes?: string | null
           revoked_at?: string | null
+          tenure_label?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -18207,16 +18225,29 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_grant_country_super_admin: {
-        Args: {
-          _agency_id: string
-          _commission_percent?: number
-          _country_code: string
-          _email: string
-          _user_id: string
-        }
-        Returns: Json
-      }
+      admin_grant_country_super_admin:
+        | {
+            Args: {
+              _agency_id: string
+              _commission_percent?: number
+              _country_code: string
+              _email: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _agency_id: string
+              _commission_percent?: number
+              _country_code: string
+              _email: string
+              _expires_at?: string
+              _tenure_label?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
       admin_has_any_section_permission: {
         Args: { _require_edit?: boolean; _section_keys: string[] }
         Returns: boolean
@@ -18793,6 +18824,23 @@ export type Database = {
           requested_at: string
           status: string
           user_agent: string
+        }[]
+      }
+      admin_list_permanent_agencies: {
+        Args: never
+        Returns: {
+          active_host_count: number
+          agency_code: string
+          country_code: string
+          created_at: string
+          id: string
+          is_country_super_admin: boolean
+          name: string
+          owner_app_uid: string
+          owner_display_name: string
+          owner_id: string
+          permanent_marked_at: string
+          permanent_reason: string
         }[]
       }
       admin_list_recordings: {
@@ -19430,6 +19478,10 @@ export type Database = {
       admin_set_agency_active_status: {
         Args: { _active: boolean; _agency_id: string; _reason?: string }
         Returns: Json
+      }
+      admin_set_agency_permanent: {
+        Args: { _agency_id: string; _is_permanent: boolean; _reason?: string }
+        Returns: undefined
       }
       admin_set_host_status: {
         Args: { _make_host: boolean; _user_id: string }
@@ -20343,6 +20395,7 @@ export type Database = {
         Returns: undefined
       }
       csa_country_kpis: { Args: never; Returns: Json }
+      csa_country_overview: { Args: never; Returns: Json }
       csa_delete_topup_method: { Args: { _id: string }; Returns: string }
       csa_delete_withdrawal_method: { Args: { _id: string }; Returns: string }
       csa_get_my_context: { Args: never; Returns: Json }
