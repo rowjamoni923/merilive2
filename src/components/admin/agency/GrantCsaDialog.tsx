@@ -51,6 +51,8 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
   const [commission, setCommission] = useState("0");
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [granted, setGranted] = useState(false);
+  const loginUrl = `${window.location.origin}/csa-login`;
 
   const submit = async () => {
     if (!ownerUserId) {
