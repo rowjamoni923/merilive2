@@ -131,12 +131,14 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Mark paid first (idempotency anchor)
+      // Mark paid first (idempotency anchor) — accept transition from any
+      // non-credited status (pending / paid / expired-but-actually-paid).
       await admin.from("swift_pay_topups").update({
         status: "paid",
         paid_at: nowIso,
         last_polled_at: nowIso,
-      }).eq("id", row.id).eq("status", "pending");
+        error_message: null,
+      }).eq("id", row.id).neq("status", "credited");
 
       // Route credit by target_type
       const targetType = (row as any).target_type ?? "user_diamond";
