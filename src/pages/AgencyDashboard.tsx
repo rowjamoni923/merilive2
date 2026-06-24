@@ -345,8 +345,9 @@ const AgencyDashboard = () => {
         }
 
         // Closed agencies (auto-closed for failing 30-day activation) lose dashboard access.
-        // Official agencies are exempt and can never be closed.
-        if (!(agencyData as any).is_official && (agencyData as any).activation_status === 'closed') {
+        // Official and Country Super Admin agencies are exempt and can never be closed.
+        const _protected = (agencyData as any).is_official || (agencyData as any).is_country_super_admin;
+        if (!_protected && (agencyData as any).activation_status === 'closed') {
           navigate("/agency");
           return;
         }
