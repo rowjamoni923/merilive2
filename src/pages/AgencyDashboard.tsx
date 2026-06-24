@@ -344,6 +344,13 @@ const AgencyDashboard = () => {
           return;
         }
 
+        // Closed agencies (auto-closed for failing 30-day activation) lose dashboard access.
+        // Official agencies are exempt and can never be closed.
+        if (!(agencyData as any).is_official && (agencyData as any).activation_status === 'closed') {
+          navigate("/agency");
+          return;
+        }
+
         setAgency(agencyData);
         setCurrentUserId(user.id);
 
