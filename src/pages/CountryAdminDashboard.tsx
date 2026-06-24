@@ -100,17 +100,17 @@ export default function CountryAdminDashboard() {
         _display_order: row.display_order || 0,
       });
       if (error) throw error;
-      load();
+      toast.success("Submitted for owner approval", { description: "Change applies after owner approves." });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Update failed");
     }
   };
 
   const deleteTopup = async (id: string) => {
-    if (!confirm("Delete this payment method?")) return;
+    if (!confirm("Submit delete for owner approval?")) return;
     const { error } = await supabase.rpc("csa_delete_topup_method", { _id: id });
     if (error) toast.error(error.message);
-    else { toast.success("Deleted"); load(); }
+    else toast.success("Delete submitted for owner approval");
   };
 
   const deleteWd = async (id: string) => {
