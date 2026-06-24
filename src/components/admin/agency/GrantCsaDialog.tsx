@@ -49,10 +49,29 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(generatePassword());
   const [commission, setCommission] = useState("0");
+  const [tenure, setTenure] = useState<"permanent" | "6m" | "1y" | "2y" | "custom">("permanent");
+  const [customDate, setCustomDate] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [granted, setGranted] = useState(false);
   const loginUrl = `${window.location.origin}/csa-login`;
+
+  const computeExpiry = (): string | null => {
+    if (tenure === "permanent") return null;
+    if (tenure === "custom") return customDate ? new Date(customDate).toISOString() : null;
+    const d = new Date();
+    if (tenure === "6m") d.setMonth(d.getMonth() + 6);
+    if (tenure === "1y") d.setFullYear(d.getFullYear() + 1);
+    if (tenure === "2y") d.setFullYear(d.getFullYear() + 2);
+    return d.toISOString();
+  };
+  const tenureLabelText = (): string => {
+    if (tenure === "permanent") return "Permanent";
+    if (tenure === "6m") return "6 Months";
+    if (tenure === "1y") return "1 Year";
+    if (tenure === "2y") return "2 Years";
+    return "Custom";
+  };
 
   const submit = async () => {
     if (!ownerUserId) {
