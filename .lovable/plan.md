@@ -1,65 +1,42 @@
-
 # Phase G — Games: Smoothness Audit + Live Win Broadcast
 
-আমাদের 5টা game (Roulette, Teen Patti, Ferris Wheel, Lucky Number, Rocket Race) আছে। দুটো ভিন্ন কাজ একসাথে — performance polish + নতুন "Win Broadcast" feature যা live stream + party room-এর নিচের chat panel-এ welcome message-এর মতো দেখাবে।
+## Research findings (Chamet/Bigo/Poppo/17LIVE) — applied 2026-06-24
 
-কাজ শুরুর আগে research-first protocol অনুযায়ী Chamet/Bigo/Poppo কিভাবে game-win broadcast করে সেটা research করব, তারপর code।
+### Industry defaults (locked)
+- **Broadcast threshold:** ≥ 100 diamonds net gain (≈ $3 USD) — filters trivial wins
+- **Per-user cooldown:** 45 seconds (Redis/memory TTL key `win_broadcast:{userId}`)
+- **Queue depth:** 10 max in client banner queue
+- **Concurrent banners:** 2 max rendered simultaneously
+- **Animation duration by tier:** Normal 3s · Big 5s · Mega/Jackpot 8s
+- **Color cue:** Blue (P2) → Orange (P1) → **Gold + particle burst** (P0)
+- **Slide direction:** Bottom-up for chat row; Left-right for big banner
 
----
+### Tier model
+| Tier | Trigger | Scope | Visual |
+|---|---|---|---|
+| P2 Normal | < threshold | NO broadcast | — |
+| P1 Big Win | ≥ 100 💎 | Room only | Orange pill, 5s, avatar+frame+level+name+amount |
+| P0 Mega/Jackpot | ≥ 10,000 💎 or ×50+ multiplier | Room (later: global ticker) | Gold pill + glow + chime, 8s |
 
-## Step 1 — Competitor research (research-first mandatory)
-Spawn subagent: Chamet, Bigo, Poppo, Crush Live, HiiClub-এ live room-এ game win কিভাবে broadcast হয় — payload, throttling, anti-spam, animation duration, level/frame display rule। নথিভুক্ত হবে `.lovable/plan.md`-এ।
+### Transport (current Lovable stack)
+- DB insert into `stream_chat` / `party_room_messages` with encoded `[GAME_WIN:...]` payload
+- Supabase Realtime postgres_changes → client parses → RoomChatOverlay renders
+- Future: server-authoritative validation via Supabase RPC + LiveKit RoomService.SendData (anti-cheat)
 
-## Step 2 — Game smoothness audit (per game)
-প্রত্যেকটার জন্য:
-- Re-render count check (React DevTools profiler logic — useMemo/useCallback gap)
-- Animation frame budget (Framer Motion / RAF leaks)
-- Realtime subscription duplicate check (round-trip latency)
-- Audio preload (gift sound jitter pattern)
-- Network: round poll vs realtime gap
-- Mobile WebView jank source (heavy SVG/canvas, large gradients)
-
-Output: per-game finding list + targeted fix (no UI redesign — শুধু performance)।
-
-## Step 3 — Win Broadcast feature
-### Backend
-- নতুন realtime channel: `game-wins-global` (broadcast type, no DB write for per-spin noise)
-- Win threshold filter: শুধু `win_amount >= configurable_threshold` (default 1000 diamonds) broadcast — spam কমানোর জন্য
-- Per-user 5s cooldown (idempotency)
-- Payload: `{user_id, username, level, avatar_frame_url, game_name, win_amount, timestamp}`
-
-### Frontend
-- `useGameWinBroadcast` hook — single global subscription, queue manager (max 5 concurrent, FIFO)
-- নতুন component `GameWinChatBanner` — exact welcome-message styling সাথে match (একই height, slide animation, mute)
-- LiveStream.tsx + PartyRoom.tsx-এর chat panel-এ inject (existing welcome message component-এর পাশে, same render slot)
-- Level badge + avatar frame existing user-card system থেকে reuse
-- Auto-dismiss 4s; tap = open game
-
-### Where to broadcast from
-Each game-এর `finalizeRound` / `settleBet` server function-এ একটা `pg_notify` বা `realtime.send()` add — শুধুমাত্র threshold meet করলে।
-
-## Step 4 — Test (owner account)
-Preview-এ login → live stream join → roulette spin → win → অন্য tab-এ live stream-এ banner দেখা যাচ্ছে কিনা check (Playwright + screenshot)।
-
-## Step 5 — Honest deliverable summary
-কোনটা server-side (instant), কোনটা APK-rebuild লাগবে — list করব।
+### Sources
+- Chamet Lucky Spin ×3.4–×125 — buffget.com
+- Bigo 500-diamond Wishing Pool — news.bittopup.com
+- Bigo Dream Castle 15-25s anim — buffget.com
+- Bigo clone P0/P1/P2 queue — blog.flv.ink
+- LiveKit reliable/lossy data packets — docs.livekit.io
+- Supabase Realtime broadcast — supabase.com/docs
 
 ---
 
-## Technical notes
-- **APK rebuild?** Step 3 pure React + edge function = না। Step 2-এ যদি WebView-specific native tweak (hardware acceleration flag) লাগে = হ্যাঁ, আগেই বলব।
-- **Design sacred** — শুধু performance + new banner inject; existing game UI কোনো cosmetic change নয়।
-- **English-only UI strings** — banner text English ("WON 5,000 💎 in Roulette")।
-- **No fake loading** — banner শুধু real win event এলে show হবে।
+## Phase progress
 
----
-
-## What I will NOT do (unless you explicitly say so)
-- Game rule/payout change
-- New game add
-- VPS / LiveKit config touch
-- Existing chat panel layout redesign
-
----
-
-Approve করলে Step 1 (research) দিয়ে শুরু করব, তারপর তোমাকে findings + fix list দেখিয়ে Step 2-এ ঢুকব।
+### ✅ Step 1 — Research (done)
+### ✅ Step 3a — Avatar+frame in win row (delivered)
+### 🟡 Step 3b — Threshold + cooldown + tier (in progress now)
+### ⏳ Step 2 — Per-game smoothness audit (next)
+### ⏳ Step 4 — Owner-account end-to-end test
