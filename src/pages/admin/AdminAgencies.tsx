@@ -1797,6 +1797,18 @@ export default function AdminAgencies() {
                           Make Payroll Helper
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuItem
+                          className="text-amber-300 hover:text-amber-200 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAgency(agency);
+                            setShowCsaDialog(true);
+                          }}
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          {(agency as any).is_country_super_admin ? "Re-grant Country Super Admin" : "Grant Country Super Admin"}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-white/10" />
                         <DropdownMenuItem 
                           className={`cursor-pointer ${agency.is_active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}`}
                           onClick={(e) => {
