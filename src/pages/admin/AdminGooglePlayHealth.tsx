@@ -45,7 +45,8 @@ export default function AdminGooglePlayHealth() {
     </div>
   );
 
-  const r = data?.result;
+  const r = data?.result?.checks;
+  const meta = data?.result;
 
   return (
     <div className="container mx-auto p-4 max-w-4xl space-y-4">
