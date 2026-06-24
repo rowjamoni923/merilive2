@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy } from "lucide-react";
+import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy, Gem, Inbox } from "lucide-react";
+import AdminCsaDiamondSettings from "@/components/admin/agency/AdminCsaDiamondSettings";
+import AdminCsaApprovals from "@/components/admin/agency/AdminCsaApprovals";
 
 type Application = {
   id: string;
@@ -228,6 +230,8 @@ export default function AdminSuperAdminManagement() {
           <TabsTrigger value="pending"><FileText className="w-4 h-4 mr-1" />Pending ({pending.length})</TabsTrigger>
           <TabsTrigger value="active"><Users className="w-4 h-4 mr-1" />Active ({actives.filter(a=>a.status==='active').length})</TabsTrigger>
           <TabsTrigger value="commissions"><DollarSign className="w-4 h-4 mr-1" />Commissions</TabsTrigger>
+          <TabsTrigger value="approvals"><Inbox className="w-4 h-4 mr-1" />Approvals</TabsTrigger>
+          <TabsTrigger value="diamond"><Gem className="w-4 h-4 mr-1" />Diamond Wallet</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="audit"><History className="w-4 h-4 mr-1" />Audit</TabsTrigger>
         </TabsList>
@@ -352,8 +356,16 @@ export default function AdminSuperAdminManagement() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="approvals" className="mt-4">
+          <AdminCsaApprovals />
+        </TabsContent>
+
+        <TabsContent value="diamond" className="mt-4">
+          <AdminCsaDiamondSettings />
+        </TabsContent>
+
         <TabsContent value="settings" className="space-y-4 mt-4">
-          {settings && (
+          {settings ? (
             <Card>
               <CardHeader><CardTitle className="text-base">Global program settings</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -389,7 +401,28 @@ export default function AdminSuperAdminManagement() {
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Global program settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  No program settings row found yet. Check the <b>Diamond Wallet</b> tab for CSA diamond/bonus/visibility configuration.
+                </p>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Diamond Wallet settings always available here too */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><Gem className="w-4 h-4 text-amber-400" /> CSA Diamond Wallet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminCsaDiamondSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
