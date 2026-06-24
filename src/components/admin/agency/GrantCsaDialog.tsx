@@ -225,6 +225,28 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
               <Input type="number" step="0.1" min="0" max="100" value={commission}
                 onChange={(e) => setCommission(e.target.value)} className="bg-slate-800 border-slate-700" />
             </div>
+            <div>
+              <Label className="text-white/80 text-xs">Tenure / Validity</Label>
+              <Select value={tenure} onValueChange={(v) => setTenure(v as any)}>
+                <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectItem value="permanent">♾ Permanent (never expires)</SelectItem>
+                  <SelectItem value="6m">6 Months</SelectItem>
+                  <SelectItem value="1y">1 Year</SelectItem>
+                  <SelectItem value="2y">2 Years</SelectItem>
+                  <SelectItem value="custom">Custom date…</SelectItem>
+                </SelectContent>
+              </Select>
+              {tenure === "custom" && (
+                <Input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)}
+                  className="bg-slate-800 border-slate-700 mt-2" min={new Date().toISOString().slice(0,10)} />
+              )}
+              <p className="text-[10px] text-white/40 mt-1">
+                {tenure === "permanent"
+                  ? "CSA power will not auto-expire. Owner can revoke any time."
+                  : `Auto-revokes after tenure ends. Owner can extend/re-grant any time.`}
+              </p>
+            </div>
           </div>
         )}
 
