@@ -2379,7 +2379,7 @@ const FaceVerification = () => {
             <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">Secure</span>
           </div>
           <p className="text-slate-500 text-xs">
-            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
+            {verificationRecording ? 'Passive live scan in progress' : 'AI-powered identity verification'}
           </p>
         </div>
       </div>
@@ -2388,7 +2388,7 @@ const FaceVerification = () => {
       {verificationRecording && (
         <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} mb-4`}>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-            <span className="font-medium">Liveness Progress</span>
+            <span className="font-medium">Identity Scan</span>
             <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
           </div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -2494,22 +2494,24 @@ const FaceVerification = () => {
                 }} />
               )}
               
-              {/* Animated oval border */}
+              {/* Animated hex face frame */}
               <motion.div 
                 className="relative"
-                style={{ width: '70%', height: '60%' }}
+                style={{ width: '74%', height: '62%' }}
               >
                 <svg viewBox="0 0 200 260" className="w-full h-full" style={{ filter: `drop-shadow(0 0 10px ${borderColor}40)` }}>
-                  <ellipse cx="100" cy="130" rx="85" ry="115" fill="none" 
-                    stroke={borderColor} strokeWidth={usingNativeFaceCamera ? "4" : "3"} strokeDasharray={verificationRecording ? "8 4" : "none"} 
+                  <polygon points="100,12 178,56 178,204 100,248 22,204 22,56" fill="none" 
+                    stroke={borderColor} strokeWidth={usingNativeFaceCamera ? "4" : "3"} strokeDasharray={verificationRecording ? "10 5" : "none"} 
                     opacity={usingNativeFaceCamera ? "0.95" : "0.8"}
                   />
+                  <line x1="100" x2="100" y1="78" y2="182" stroke="#ffffff" strokeWidth="1" opacity="0.22" />
+                  <line x1="48" x2="152" y1="130" y2="130" stroke="#ffffff" strokeWidth="1" opacity="0.22" />
                   {/* Scanning line animation */}
                   {verificationRecording && scanningStatus === 'scanning' && (
                     <motion.line
-                      x1="20" x2="180" stroke="#22d3ee" strokeWidth="2" opacity="0.6"
-                      initial={{ y1: 30, y2: 30 }}
-                      animate={{ y1: [30, 230, 30], y2: [30, 230, 30] }}
+                      x1="34" x2="166" stroke="#22d3ee" strokeWidth="2" opacity="0.65"
+                      initial={{ y1: 48, y2: 48 }}
+                      animate={{ y1: [48, 212, 48], y2: [48, 212, 48] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
                   )}
@@ -2553,7 +2555,7 @@ const FaceVerification = () => {
                       </motion.div>
                       <div className="flex-1">
                         <p className="text-slate-800 font-bold">
-                          {faceInstructions[currentInstruction]?.direction}
+                          {currentInstruction === 0 ? 'Hold Still for a Moment' : 'Verifying'}
                         </p>
                         <p className="text-slate-500 text-xs">
                           {faceInstructions[currentInstruction]?.description}
@@ -2597,7 +2599,7 @@ const FaceVerification = () => {
                       : liveDiag.severity === 'error' ? 'text-rose-800'
                       : 'text-slate-800'
                     }`}>
-                      {liveDiag.hint}
+                      {liveDiag.severity === 'ok' ? 'Verifying your face…' : liveDiag.hint}
                     </p>
                   </div>
 
@@ -2824,9 +2826,7 @@ const FaceVerification = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-slate-500 text-xs">{localizedMsg.recording}</span>
-                    <span className="text-slate-700 text-xs font-semibold">
-                      · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
-                    </span>
+                      <span className="text-slate-700 text-xs font-semibold">· Hold Still for a Moment</span>
                   </div>
                   <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(75, Math.max(35, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
@@ -2890,7 +2890,7 @@ const FaceVerification = () => {
               {cameraReady ? 'Auto-scanning now…' : 'Initializing camera…'}
             </div>
             <p className="mt-1 text-[11px] text-slate-600 leading-5">
-              Hold your face straight first. The app will calibrate automatically, then complete the liveness steps.
+              Hold your face inside the frame. The app will scan automatically.
             </p>
           </div>
           <Button
