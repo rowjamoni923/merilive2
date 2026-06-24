@@ -971,6 +971,21 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     background-color: transparent !important;
   }
 
+  body.native-face-camera-active .face-native-page-mask {
+    -webkit-mask-image: radial-gradient(
+      ellipse var(--face-aperture-rx, 112px) var(--face-aperture-ry, 190px)
+      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 42vh),
+      transparent 0 98%,
+      #000 100%
+    );
+    mask-image: radial-gradient(
+      ellipse var(--face-aperture-rx, 112px) var(--face-aperture-ry, 190px)
+      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 42vh),
+      transparent 0 98%,
+      #000 100%
+    );
+  }
+
   /* Pkg414 — When native Android LiveKit is publishing, the camera is
      rendered into a TextureView mounted BEHIND the WebView. Any opaque
      background on the room shell (bg-muted, bg-background, room-viewport,
