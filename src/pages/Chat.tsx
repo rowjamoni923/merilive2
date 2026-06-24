@@ -2139,23 +2139,25 @@ const Chat = () => {
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
     
-    // 🔍 BLOCKING: Run contact detection BEFORE sending — HOSTS ONLY.
-    // Agencies, users, and L1–L5 helpers can share numbers freely (no mask, no beans, no warning).
+    // 🔍 BLOCKING: Run contact detection when AT LEAST ONE side is a verified host.
+    // user↔user / user↔agency / agency↔agency: freely allowed, no detection.
+    // host→anyone OR anyone→host: mask peer-visible content + show warning.
+    // Host sender → 2,000 beans deducted by server RPC. Non-host sender → warning only.
     let contentToSend = originalContent;
-    if (myProfile?.is_host === true) {
+    const senderIsHost = myProfile?.is_host === true;
+    const recipientIsHost = selectedConversation?.other_user?.is_host === true;
+    if (senderIsHost || recipientIsHost) {
       const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
       const detection = detectContactInfo(originalContent);
       if (detection.hasViolation) {
-        // Mask the content - recipient will see *** instead of contact info
         contentToSend = maskContactContent(originalContent, detection);
-        console.log('[ContactDetection] BLOCKED content (host), masked:', contentToSend);
-        
-        // Process violation (warning + bean deduction) in background
+        console.log('[ContactDetection] BLOCKED content, masked:', contentToSend);
+
         const sourceId = selectedConversation?.id || selectedGroup?.id;
-        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
+        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId, recipientIsHost)
           .then(res => {
             console.log('[ContactDetection] Chat result:', res);
-            if (res.detected && res.violationNumber) {
+            if (res.detected && !res.warningOnly && res.violationNumber) {
               numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
             } else if (res.detected) {
               numberWarning.showGenericWarning();
@@ -3407,35 +3409,41 @@ const Chat = () => {
                     if (!pendingMedia) return;
                     if (!currentUserId) return;
                     try {
-                      // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
-                      if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
+                      // 🔍 Image OCR — only when at least one side is a verified host
+                      const imgRecipientIsHost = selectedConversation?.other_user?.is_host === true;
+                      const imgSenderIsHost = myProfile?.is_host === true;
+                      if (pendingMedia.type === 'image' && currentUserId && (imgSenderIsHost || imgRecipientIsHost)) {
                         const { checkImageFilename } = await import('@/utils/imageContactDetection');
                         const filename = pendingMedia.url.split('/').pop() || '';
                         if (checkImageFilename(filename)) {
                           // Block the image entirely
                           toast.error("⚠️ Contact sharing detected! Image blocked.");
                           numberWarning.showGenericWarning();
+                          if (imgSenderIsHost) {
+                            const sourceId = selectedConversation?.id || selectedGroup?.id;
+                            scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
+                              .then(res => {
+                                if (res.detected && res.violationNumber) {
+                                  numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                                }
+                              }).catch(() => {});
+                          }
+                          setPendingMedia(null);
+                          return;
+                        }
+
+                        // Background OCR scan — only host sender accrues deductions
+                        if (imgSenderIsHost) {
                           const sourceId = selectedConversation?.id || selectedGroup?.id;
                           scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                             .then(res => {
                               if (res.detected && res.violationNumber) {
                                 numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                              } else if (res.detected) {
+                                numberWarning.showGenericWarning();
                               }
                             }).catch(() => {});
-                          setPendingMedia(null);
-                          return;
                         }
-                        
-                        // Background OCR scan
-                        const sourceId = selectedConversation?.id || selectedGroup?.id;
-                        scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
-                          .then(res => {
-                            if (res.detected && res.violationNumber) {
-                              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
-                            } else if (res.detected) {
-                              numberWarning.showGenericWarning();
-                            }
-                          }).catch(() => {});
                       }
 
                       if (selectedConversation) {

@@ -1249,12 +1249,24 @@ export function UnifiedPartyRoom({
     const sendingUserId = currentUserId;
     const trimmedMessage = message.trim();
     const tempId = `temp-${Date.now()}-${Math.random()}`;
+
+    // 🔍 Mask contact info BEFORE persist/broadcast so peers see masked text.
+    let outboundMessage = trimmedMessage;
+    try {
+      const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+      const detection = detectContactInfo(trimmedMessage);
+      if (detection.hasViolation) {
+        outboundMessage = maskContactContent(trimmedMessage, detection);
+      }
+    } catch (e) {
+      console.warn('[ContactDetection] PartyRoom mask error:', e);
+    }
     
     // Mark this message content as pending (to skip when real-time confirms)
-    const msgKey = `${sendingUserId}-${trimmedMessage}`;
+    const msgKey = `${sendingUserId}-${outboundMessage}`;
     pendingMessagesRef.current.add(msgKey);
     
-    // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
+    // OPTIMISTIC UPDATE: Instantly show masked message in UI before DB save
     const senderName = currentUserProfile?.display_name || (isHost ? hostInfo?.displayName : null) || 'You';
     const ownBubble = await getEquippedBubble(sendingUserId);
     if (roomIdRef.current !== sendingRoomId) {
@@ -1266,7 +1278,7 @@ export function UnifiedPartyRoom({
       userId: sendingUserId,
       user: senderName,
       initial: senderName.charAt(0).toUpperCase(),
-      message: trimmedMessage,
+      message: outboundMessage,
       userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
       userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
       isHost: isHost,
@@ -1278,11 +1290,12 @@ export function UnifiedPartyRoom({
     // Add to local state immediately (instant feedback)
     setPremiumMessages(prev => [...prev, optimisticMessage]);
     
-    // Run contact detection for hosts - non-blocking with error handling
-    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId)
+    // Party room chat is public to all seats including any host owner → gate always on.
+    // Host sender → 2,000 beans deduction. Non-host sender → popup warning only.
+    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId, true)
       .then(res => {
         console.log('[ContactDetection] PartyRoom result:', res);
-        if (res.detected && res.violationNumber) {
+        if (res.detected && !res.warningOnly && res.violationNumber) {
           numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
         } else if (res.detected) {
           numberWarning.showGenericWarning();
@@ -1293,11 +1306,11 @@ export function UnifiedPartyRoom({
     // 🔥 AWS Comprehend toxic content moderation (background)
     checkToxic(trimmedMessage, { contextType: 'party_room', roomId: sendingRoomId }).catch(() => {});
     
-    // Save to party_room_messages table - background operation
+    // Save to party_room_messages table - background operation (persist MASKED text)
     const { data, error } = await supabase.from('party_room_messages').insert({
       room_id: sendingRoomId,
       user_id: sendingUserId,
-      content: trimmedMessage,
+      content: outboundMessage,
       message_type: 'chat'
     }).select('id').single();
     if (roomIdRef.current !== sendingRoomId) {
@@ -1329,7 +1342,7 @@ export function UnifiedPartyRoom({
         avatarUrl: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
         userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
         isHost,
-        message: trimmedMessage,
+        message: outboundMessage,
         messageType: 'chat',
       });
 
