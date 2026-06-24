@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
       }
 
       credited++;
-      results.push({ id: row.id, credited: true, coins: row.coins_amount, target: targetType, result: creditRes, auto_grant: autoGrantResult });
+      results.push({ id: row.id, credited: true, coins: creditCoins, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });
