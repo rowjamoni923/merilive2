@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles, Building2, Users, Mic2, HeartHandshake, Film, Radio } from "lucide-react";
 import { toast } from "sonner";
+import CsaDiamondWallet from "@/components/csa/CsaDiamondWallet";
 
 interface CsaContext {
   country_code: string;
