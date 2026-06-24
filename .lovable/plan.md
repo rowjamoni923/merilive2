@@ -1,42 +1,70 @@
-# Phase G — Games: Smoothness Audit + Live Win Broadcast
 
-## Research findings (Chamet/Bigo/Poppo/17LIVE) — applied 2026-06-24
+## Country Super Admin (CSA) System
 
-### Industry defaults (locked)
-- **Broadcast threshold:** ≥ 100 diamonds net gain (≈ $3 USD) — filters trivial wins
-- **Per-user cooldown:** 45 seconds (Redis/memory TTL key `win_broadcast:{userId}`)
-- **Queue depth:** 10 max in client banner queue
-- **Concurrent banners:** 2 max rendered simultaneously
-- **Animation duration by tier:** Normal 3s · Big 5s · Mega/Jackpot 8s
-- **Color cue:** Blue (P2) → Orange (P1) → **Gold + particle burst** (P0)
-- **Slide direction:** Bottom-up for chat row; Left-right for big banner
-
-### Tier model
-| Tier | Trigger | Scope | Visual |
-|---|---|---|---|
-| P2 Normal | < threshold | NO broadcast | — |
-| P1 Big Win | ≥ 100 💎 | Room only | Orange pill, 5s, avatar+frame+level+name+amount |
-| P0 Mega/Jackpot | ≥ 10,000 💎 or ×50+ multiplier | Room (later: global ticker) | Gold pill + glow + chime, 8s |
-
-### Transport (current Lovable stack)
-- DB insert into `stream_chat` / `party_room_messages` with encoded `[GAME_WIN:...]` payload
-- Supabase Realtime postgres_changes → client parses → RoomChatOverlay renders
-- Future: server-authoritative validation via Supabase RPC + LiveKit RoomService.SendData (anti-cheat)
-
-### Sources
-- Chamet Lucky Spin ×3.4–×125 — buffget.com
-- Bigo 500-diamond Wishing Pool — news.bittopup.com
-- Bigo Dream Castle 15-25s anim — buffget.com
-- Bigo clone P0/P1/P2 queue — blog.flv.ink
-- LiveKit reliable/lossy data packets — docs.livekit.io
-- Supabase Realtime broadcast — supabase.com/docs
+A new role — **Country Super Admin** — granted by main admin to an existing agency owner. Each CSA is locked to **one country only** and gets a separate luxurious dashboard (part of admin panel) to manage that country's deposit/withdrawal payment methods and view local volume.
 
 ---
 
-## Phase progress
+### 1. Agency protection
+- New `agencies.is_country_super_admin boolean` flag.
+- Treated like `is_official` in `auto_close_overdue_agencies()` and `recalc_agency_activation()` — **never auto-closed, never blocked**, regardless of host count.
+- Cleared if CSA power is revoked.
 
-### ✅ Step 1 — Research (done)
-### ✅ Step 3a — Avatar+frame in win row (delivered)
-### 🟡 Step 3b — Threshold + cooldown + tier (in progress now)
-### ⏳ Step 2 — Per-game smoothness audit (next)
-### ⏳ Step 4 — Owner-account end-to-end test
+### 2. Granting CSA power (main admin panel)
+- New button **"Grant Country Super Admin"** on each agency row in `AdminAgencies` → opens popup with:
+  - **Country dropdown** (BD / IN / PK / …) — single select, locked after grant.
+  - **Official email** (will be CSA login email).
+  - **Password** (auto-generated suggestion + manual override; min 10 chars).
+  - **Optional commission %** (defaults from `country_super_admin_settings`).
+- On submit → calls `admin_grant_country_super_admin` RPC which:
+  1. Creates/updates an auth user with the given email+password (via edge function using service role).
+  2. Inserts `user_roles (user_id, role='country_super_admin')`.
+  3. Inserts/updates `country_super_admins` row with `country_code`, `agency_id`, `owner_user_id`, `assigned_by`, `commission_percent`, `is_active=true`.
+  4. Sets `agencies.is_country_super_admin = true` and force-reopens it.
+  5. Sends owner an in-app notification with login URL + credentials reminder.
+- **Revoke** button: deactivates row + clears flag + revokes role (agency keeps its hosts; just loses CSA protection going forward).
+
+### 3. CSA Login & Routing
+- CSA logs in via the normal `/auth` page with the email/password we set.
+- Add new route `/country-admin` (gated by `has_role(uid, 'country_super_admin')`).
+- New menu chip "Country Admin Panel" appears in their profile when role is present.
+- Main admins can also impersonate-view by clicking the agency's CSA badge in admin panel.
+
+### 4. CSA Dashboard (`/country-admin`) — country-scoped, luxurious design
+Layout: dark gradient hero with country flag + name + "Country Super Admin" crest, glass cards, gold accents.
+
+Tabs:
+- **Overview** — KPI cards: Total deposit (this month), Total withdrawal (this month), Net flow, # active local payment methods, # pending top-ups, # pending withdrawals.
+- **Top-Up Methods** — list of `topup_payment_methods` filtered by `country_codes @> [my country]`. CSA can:
+  - Toggle active/inactive
+  - Mark **Recommended** (new column `is_recommended boolean`) — shown with a star badge in user top-up flow.
+  - Reorder, edit instructions/number/account name.
+  - Add new method (country auto-stamped to their country).
+- **Withdrawal Methods** — same but for `helper_country_payment_methods` filtered to their country.
+- **Transactions** — paginated list of recharge_transactions + agency_withdrawals filtered to their country (read-only, search by UID/tx ref).
+
+### 5. Country lock (hard)
+Every CSA RPC takes the CSA's `country_code` from `country_super_admins` row (not from client input). Every `INSERT`/`UPDATE`/`DELETE` on `topup_payment_methods` and `helper_country_payment_methods` from CSA path forces `country_codes = ARRAY[csa.country_code]`. RLS policy `csa_country_scoped_payment_methods` blocks any row whose `country_codes` doesn't intersect with the CSA's country. A Pakistan CSA literally cannot see or touch BD/IN rows.
+
+### 6. Top-up flow "Recommended" badge
+In the existing user-facing top-up screen, sort `topup_payment_methods` so `is_recommended = true` shows first with a "⭐ Recommended" badge (gold). No other logic change — admin/CSA setup drives everything.
+
+---
+
+### Technical notes
+- **Migration**: add columns (`agencies.is_country_super_admin`, `topup_payment_methods.is_recommended`), create `country_super_admins` table (if not exists) with `user_id, agency_id, country_code, commission_percent, is_active, assigned_by, assigned_at, revoked_at`, add `country_super_admin` value to `app_role` enum, GRANT + RLS, update `auto_close_overdue_agencies()` + `recalc_agency_activation()` to skip CSA agencies, add RPCs: `admin_grant_country_super_admin`, `admin_revoke_country_super_admin`, `csa_get_my_context`, `csa_upsert_topup_method`, `csa_toggle_topup_method`, `csa_upsert_withdrawal_method`, `csa_country_kpis`.
+- **Edge function**: `admin-create-csa-user` (service role) — creates auth user with given email+password, returns user_id; called by `admin_grant_country_super_admin`.
+- **Frontend new files**: `src/pages/CountryAdminDashboard.tsx`, `src/components/admin/agency/GrantCsaDialog.tsx`, `src/components/country-admin/*` (KPIs, MethodsTable, TransactionsTable).
+- **Frontend edits**: `AdminAgencies.tsx` (Grant CSA button + dialog), `AppRoutes` (new `/country-admin`), top-up payment-method picker (sort + recommended badge), `AgencyDashboard` gating already handles `is_official` — extend the official check to also accept `is_country_super_admin`.
+- **Memory rule** to log after build: "CSA agencies are exempt from auto-close; CSA scope is single-country, hard-enforced server-side."
+
+---
+
+### One question before I build
+
+CSA login model — কোনটা চাও?
+
+1. **Same email-OTP flow as normal users** (CSA এর email-এ OTP যাবে যেমন normal user-দের যায়; password field বাদ)। সহজ, কোন password manage করতে হবে না।
+2. **Custom email+password** (popup-এ যে password set করব সেটাই দিয়েই login করবে; আমাদের separate password page বানাতে হবে কারণ app-এর main auth flow OTP-based)। বেশি control, কিন্তু extra UI।
+
+আমি **option 1 (email-OTP)** recommend করছি — কারণ app-এর existing auth flow এটাই, কোন parallel password system maintain করতে হবে না, এবং admin-set password বললে CSA পরে নিজেই change করতে পারে না (security weak)। তোমার মতামত?
