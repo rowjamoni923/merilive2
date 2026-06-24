@@ -88,11 +88,19 @@ export function useLiveGameRound({
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
   const processedRoundsRef = useRef<Set<number>>(new Set());
 
+  // Step 2 perf: stabilize callbacks via refs so the phase-transition effect
+  // doesn't re-create timers whenever the parent re-renders with new lambdas.
+  const onWinRef = useRef(onWin);
+  const onLossRef = useRef(onLoss);
+  useEffect(() => { onWinRef.current = onWin; }, [onWin]);
+  useEffect(() => { onLossRef.current = onLoss; }, [onLoss]);
+
   // Games that handle their own result processing (coins update)
   // These games have their own card dealing/wheel spinning logic and timer
   // IMPORTANT: Define this BEFORE startGameLoop which depends on it
   const selfManagedGames = ['teen_patti', 'teen-patti', 'ferris_wheel', 'ferris-wheel', 'roulette', 'lucky_number', 'rocket_race'];
   const isSelfManagedGame = selfManagedGames.includes(gameId);
+
 
   // Generate game result based on game type
   const generateResult = useCallback(() => {
