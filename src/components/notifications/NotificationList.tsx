@@ -415,9 +415,105 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
           </AnimatePresence>
         </div>
       </ScrollArea>
+
+      {/* Agency OTP detail dialog — opens when user taps an agency_verification notification */}
+      <OtpDetailDialog
+        notification={otpNotification}
+        onClose={() => setOtpNotification(null)}
+      />
     </div>
   );
 };
+
+interface OtpDetailDialogProps {
+  notification: Notification | null;
+  onClose: () => void;
+}
+
+const OtpDetailDialog = ({ notification, onClose }: OtpDetailDialogProps) => {
+  const code = notification ? extractOtpCode(notification) : null;
+
+  const handleCopy = async () => {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("OTP copied to clipboard");
+    } catch {
+      // Fallback for older browsers / restricted contexts
+      const ta = document.createElement("textarea");
+      ta.value = code;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        toast.success("OTP copied to clipboard");
+      } catch {
+        toast.error("Could not copy — please copy manually");
+      }
+      document.body.removeChild(ta);
+    }
+  };
+
+  return (
+    <Dialog open={!!notification} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-white" />
+            </div>
+            {notification?.title || "Agency verification code"}
+          </DialogTitle>
+          <DialogDescription className="text-sm whitespace-pre-wrap pt-1">
+            {notification?.message}
+          </DialogDescription>
+        </DialogHeader>
+
+        {code ? (
+          <div className="my-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="w-full rounded-xl border border-border bg-muted/40 hover:bg-muted/60 transition-colors p-4 flex items-center justify-between gap-3"
+            >
+              <div className="flex flex-col items-start">
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Verification code
+                </span>
+                <span className="font-mono text-2xl font-bold tracking-[0.3em] text-foreground">
+                  {code}
+                </span>
+              </div>
+              <Copy className="w-5 h-5 text-primary" />
+            </button>
+            <p className="text-[11px] text-muted-foreground mt-2 text-center">
+              Tap the code to copy
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-2">
+            No code found in this message.
+          </p>
+        )}
+
+        <DialogFooter className="flex-row gap-2">
+          <Button variant="outline" className="flex-1" onClick={onClose}>
+            Close
+          </Button>
+          {code && (
+            <Button className="flex-1" onClick={handleCopy}>
+              <Copy className="w-4 h-4 mr-2" />
+              Copy code
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 interface NotificationItemProps {
   notification: Notification;
