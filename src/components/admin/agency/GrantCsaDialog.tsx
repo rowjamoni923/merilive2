@@ -111,93 +111,111 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
   };
 
   const copyCreds = async () => {
-    await navigator.clipboard.writeText(`Email: ${email}\nPassword: ${password}\nLogin: ${window.location.origin}/csa-login`);
+    await navigator.clipboard.writeText(`Email: ${email}\nPassword: ${password}\nLogin: ${loginUrl}`);
     toast.success("Credentials copied");
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) closeAll(); else onOpenChange(v); }}>
       <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border-amber-500/30 text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-300">
             <Crown className="w-5 h-5" />
-            Grant Country Super Admin
+            {granted ? "CSA Granted — Share Login" : "Grant Country Super Admin"}
           </DialogTitle>
           <p className="text-xs text-white/60 mt-1">
-            {agencyName} will gain a country-scoped admin dashboard and permanent agency protection.
+            {granted
+              ? `Send the secret login link below privately to ${agencyName}'s owner. They will use the email + password to sign in.`
+              : `${agencyName} will gain a country-scoped admin dashboard and permanent agency protection.`}
           </p>
         </DialogHeader>
 
-        <div className="space-y-3 py-2">
-          <div>
-            <Label className="text-white/80 text-xs">Country (locked after grant)</Label>
-            <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white max-h-72">
-                {COUNTRIES.map(c => (
-                  <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label className="text-white/80 text-xs">Login Email</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="csa.bd@example.com"
-              className="bg-slate-800 border-slate-700"
-            />
-          </div>
-
-          <div>
-            <Label className="text-white/80 text-xs">Login Password</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  type={showPw ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-800 border-slate-700 pr-9 font-mono text-sm"
-                />
-                <button type="button" onClick={() => setShowPw(s => !s)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white">
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+        {granted ? (
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 space-y-2">
+              <div>
+                <p className="text-[10px] text-amber-300/70 uppercase tracking-wider">Secret Login URL</p>
+                <p className="font-mono text-sm break-all text-amber-200">{loginUrl}</p>
               </div>
-              <Button type="button" variant="outline" size="icon"
-                onClick={() => setPassword(generatePassword())}
-                className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button type="button" variant="outline" size="icon" onClick={copyCreds}
-                className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-                <Copy className="w-4 h-4" />
-              </Button>
+              <div>
+                <p className="text-[10px] text-amber-300/70 uppercase tracking-wider">Email</p>
+                <p className="font-mono text-sm break-all">{email}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-amber-300/70 uppercase tracking-wider">Password</p>
+                <p className="font-mono text-sm break-all">{password}</p>
+              </div>
             </div>
-            <p className="text-[10px] text-white/40 mt-1">Share these credentials privately with the owner.</p>
+            <Button onClick={copyAll} className="w-full bg-amber-500 text-black hover:bg-amber-400">
+              <Copy className="w-4 h-4 mr-2" /> Copy all (URL + Email + Password)
+            </Button>
+            <p className="text-[10px] text-white/40 text-center">
+              ⚠ This password will not be shown again. Save it now.
+            </p>
           </div>
-
-          <div>
-            <Label className="text-white/80 text-xs">Commission % (optional)</Label>
-            <Input
-              type="number" step="0.1" min="0" max="100"
-              value={commission}
-              onChange={(e) => setCommission(e.target.value)}
-              className="bg-slate-800 border-slate-700"
-            />
+        ) : (
+          <div className="space-y-3 py-2">
+            <div>
+              <Label className="text-white/80 text-xs">Country (locked after grant)</Label>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white max-h-72">
+                  {COUNTRIES.map(c => (
+                    <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-white/80 text-xs">Login Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="csa.bd@example.com" className="bg-slate-800 border-slate-700" />
+            </div>
+            <div>
+              <Label className="text-white/80 text-xs">Login Password</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input type={showPw ? "text" : "password"} value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-slate-800 border-slate-700 pr-9 font-mono text-sm" />
+                  <button type="button" onClick={() => setShowPw(s => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white">
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="icon"
+                  onClick={() => setPassword(generatePassword())}
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Button type="button" variant="outline" size="icon" onClick={copyCreds}
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-[10px] text-white/40 mt-1">Share these credentials privately with the owner.</p>
+            </div>
+            <div>
+              <Label className="text-white/80 text-xs">Commission % (optional)</Label>
+              <Input type="number" step="0.1" min="0" max="100" value={commission}
+                onChange={(e) => setCommission(e.target.value)} className="bg-slate-800 border-slate-700" />
+            </div>
           </div>
-        </div>
+        )}
 
         <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
-          <Button onClick={submit} disabled={busy}
-            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500">
-            {busy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Crown className="w-4 h-4 mr-2" />}
-            Grant CSA Power
-          </Button>
+          {granted ? (
+            <Button onClick={closeAll} className="w-full bg-emerald-600 hover:bg-emerald-500">Done</Button>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={closeAll} disabled={busy}>Cancel</Button>
+              <Button onClick={submit} disabled={busy}
+                className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500">
+                {busy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Crown className="w-4 h-4 mr-2" />}
+                Grant CSA Power
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
