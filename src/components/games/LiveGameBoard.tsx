@@ -258,54 +258,73 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     }
   };
 
+  // Step 2 perf: stabilize callbacks via refs so the 5 live-game children
+  // don't re-render every time userCoins/balance ticks or roomId rebinds.
+  const profileRef = useRef(currentUserProfile);
+  const userIdRef = useRef(currentUserId);
+  const roomIdRef = useRef(roomId);
+  const contextRef = useRef(context);
+  const userCoinsRef = useRef(userCoins);
+  const phaseRef = useRef(phase);
+  useEffect(() => { profileRef.current = currentUserProfile; }, [currentUserProfile]);
+  useEffect(() => { userIdRef.current = currentUserId; }, [currentUserId]);
+  useEffect(() => { roomIdRef.current = roomId; }, [roomId]);
+  useEffect(() => { contextRef.current = context; }, [context]);
+  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
   // Game win notification handler - includes user name and level
-  const handleGameWin = async (winAmount: number, gameName: string, gameEmoji: string) => {
-    if (roomId && currentUserId && winAmount > 0) {
+  const handleGameWin = useCallback(async (winAmount: number, gameName: string, gameEmoji: string) => {
+    const rId = roomIdRef.current;
+    const uId = userIdRef.current;
+    if (rId && uId && winAmount > 0) {
       await sendGameWinNotification({
-        roomId,
-        userId: currentUserId,
+        roomId: rId,
+        userId: uId,
         gameName,
         winAmount,
         gameEmoji,
-        userName: currentUserProfile?.username,
-        userLevel: currentUserProfile?.level,
-        context,
+        userName: profileRef.current?.username,
+        userLevel: profileRef.current?.level,
+        context: contextRef.current,
       });
     }
-  };
+  }, []);
 
-  const handlePlaceBet = async (betType?: string, betValue?: string) => {
-    if (phase !== 'betting') {
+  const handleUpdateCoins = useCallback((newBalance: number) => {
+    setUserCoins(newBalance);
+  }, []);
+
+  const handlePlaceBet = useCallback(async (betType?: string, betValue?: string) => {
+    if (phaseRef.current !== 'betting') {
       toast.error('Betting is closed');
       return null;
     }
 
-    // No bet limit - users can bet any amount they have
-    if (betAmount > userCoins) {
+    const currentBalance = userCoinsRef.current;
+    if (betAmount > currentBalance) {
       toast.error('Insufficient diamonds');
       return null;
     }
 
     // Immediately deduct from local state for instant feedback
-    const previousCoins = userCoins;
-    setUserCoins(prev => prev - betAmount);
+    const previousCoins = currentBalance;
+    setUserCoins((prev) => prev - betAmount);
 
-    // Place bet without any await delay - fire and forget pattern for instant response
     const result = await placeBet(betAmount, betType, betValue);
-    
+
     if (result.success) {
-      // Instant update - bet amount is already shown on selected items
       if (result.new_balance !== undefined) {
         setUserCoins(result.new_balance);
       }
       return result;
     } else {
-      // Restore coins if bet failed
       setUserCoins(previousCoins);
       toast.error(result.error || 'Failed to place bet');
       return result;
     }
-  };
+  }, [betAmount, placeBet]);
+
 
   const currentGame = games.find(g => g.game_id === activeGame);
   const presetBets = currentGame?.preset_bets || DEFAULT_PRESET_BETS;
