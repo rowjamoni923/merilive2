@@ -18,7 +18,7 @@ type CheckResult = {
 export default function AdminGooglePlayHealth() {
   useEffect(() => { document.title = "Google Play Health — Admin"; }, []);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<{ success: boolean; result: CheckResult & { timestamp?: string; packageName?: string; error?: string } } | null>(null);
+  const [data, setData] = useState<{ success: boolean; result: { checks: CheckResult; timestamp?: string; packageName?: string; error?: string } } | null>(null);
 
   const run = async () => {
     setLoading(true);
@@ -45,7 +45,8 @@ export default function AdminGooglePlayHealth() {
     </div>
   );
 
-  const r = data?.result;
+  const r = data?.result?.checks;
+  const meta = data?.result;
 
   return (
     <div className="container mx-auto p-4 max-w-4xl space-y-4">
@@ -74,7 +75,7 @@ export default function AdminGooglePlayHealth() {
               <Row label="OAuth2 Access Token" ok={r.oauthToken?.ok} detail={r.oauthToken?.error || r.oauthToken?.tokenPrefix} />
               <Row label="Google Play API Reachable" ok={r.googlePlayApi?.ok} detail={`HTTP ${r.googlePlayApi?.status ?? "?"}`} />
               <Row label="Product Catalog Resolves" ok={r.products?.ok} detail={`${r.products?.items.filter(i => i.resolved).length}/${r.products?.total} resolved`} />
-              {r.packageName && <Row label="Package" ok={true} detail={r.packageName} />}
+              {meta?.packageName && <Row label="Package" ok={true} detail={meta.packageName} />}
             </CardContent>
           </Card>
 
