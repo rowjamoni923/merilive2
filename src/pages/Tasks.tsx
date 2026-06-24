@@ -326,6 +326,31 @@ const Tasks = () => {
 
       // Fetch user progress if logged in
       if (user) {
+        // Server-authoritative sync: ask the RPC to recompute progress for every
+        // requirement_type currently shown (from real activity rows). Fires in
+        // parallel; failures of any one type are non-fatal.
+        const types = Array.from(
+          new Set(
+            filteredTasks
+              .map((t: any) => t.requirement_type)
+              .filter((rt: string) =>
+                [
+                  'first_live','live_minutes','viewers','first_gift','messages_sent',
+                  'followers','watch_live','send_gift','share_app',
+                ].includes(rt)
+              )
+          )
+        );
+        await Promise.allSettled(
+          types.map((rt) =>
+            supabase.rpc('update_task_progress', {
+              _task_type: rt,
+              _value: null,
+              _increment: null,
+            })
+          )
+        );
+
         const today = getTaskDate();
         const { data: progressData, error: progressError } = await supabase
           .from('user_task_progress')
@@ -346,6 +371,7 @@ const Tasks = () => {
           setProgress(progressMap);
         }
       }
+
     } catch (error) {
       console.error('Error fetching tasks:', error);
       recordClientError({ label: "Tasks.progressMap", message: error instanceof Error ? error.message : String(error) });
