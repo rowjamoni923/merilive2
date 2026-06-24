@@ -1031,6 +1031,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               diamond_balance: payload.diamond_balance ?? prev.diamond_balance,
               beans_balance: payload.wallet_balance ?? prev.beans_balance,
             } : prev);
+            // Activation/cancellation/reactivation by admin must instantly reflect
+            // the Agency Dashboard menu item in the owner's profile menu.
+            // Refetch the full profile so is_agency_owner / agency_id stay in sync.
+            debouncedRefetch();
           }
 
           if (table === 'topup_helpers' && payload?.user_id === activeProfileId) {
