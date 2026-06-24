@@ -376,7 +376,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         isGameWinMessage && "text-shadow-glow-amber",
         isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
       )}>
-        {message.user}:
+        {isGameWinMessage && gameWinData ? gameWinData.userName : `${message.user}:`}
       </span>
 
       {/* Trader Badge */}
