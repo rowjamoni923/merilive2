@@ -349,6 +349,13 @@ export interface DetectionResult {
  * Mask detected contact info in text with asterisks
  * Replaces digits, social media names, emails, URLs with ***
  */
+/**
+ * Industry-standard partial reveal (Chamet / Bigo / Holla pattern):
+ *   - Phone-like digit runs (4+ digits): keep first 5 visible, rest → ***
+ *   - Short digit runs (≤5): leave as-is (cannot be a phone)
+ *   - Social platform names, URLs, emails: fully masked with ***
+ * Works across all numeral scripts (after NFKC + zero-width strip).
+ */
 export function maskContactContent(text: string, detection: DetectionResult): string {
   if (!detection.hasViolation) return text;
 
@@ -356,25 +363,28 @@ export function maskContactContent(text: string, detection: DetectionResult): st
   // bypasses are flattened before we mask. Peers never see the trick form.
   let masked = normalizeForDetection(text);
 
-  // Mask all digits (any script, after normalization)
-  masked = masked.replace(/[0-9০-৯०-९٠-٩۰-۹]+/g, '***');
+  // Partial-reveal digit runs (multi-script). Keep up to first 5 digits, mask rest.
+  masked = masked.replace(/[0-9০-৯०-९٠-٩۰-۹]{4,}/g, (run) => {
+    if (run.length <= 5) return run;
+    return run.slice(0, 5) + '***';
+  });
 
-  // Mask social media platform names (case insensitive)
+  // Mask social media platform names (case insensitive) — full mask
   for (const { keyword } of SOCIAL_MEDIA_NAME_ONLY) {
     const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     masked = masked.replace(new RegExp(escaped, 'gi'), '***');
   }
 
-  // Mask URLs
+  // Mask URLs — full mask
   for (const pattern of URL_PATTERNS) {
     const freshPattern = new RegExp(pattern.source, pattern.flags);
     masked = masked.replace(freshPattern, '***');
   }
 
-  // Mask emails
+  // Mask emails — full mask
   masked = masked.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '***');
 
-  // Mask number words
+  // Mask number words (one/two/তিন/etc) — full mask
   for (const word of Object.keys(numberWords)) {
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     masked = masked.replace(new RegExp(escaped, 'gi'), '***');
