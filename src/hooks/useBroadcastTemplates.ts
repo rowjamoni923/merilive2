@@ -45,6 +45,8 @@ export function useBroadcastTemplates(categoryPrefix: string) {
         .from("notification_templates")
         .update({
           ...updates,
+          title: updates.title_template,
+          body: updates.message_template,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -64,7 +66,11 @@ export function useBroadcastTemplates(categoryPrefix: string) {
     try {
       const { error } = await supabase
         .from("notification_templates")
-        .insert(template);
+        .insert({
+          ...template,
+          title: template.title_template,
+          body: template.message_template,
+        });
 
       if (error) throw error;
       toast.success("✅ Template added!");
