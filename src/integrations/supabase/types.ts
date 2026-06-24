@@ -20707,6 +20707,12 @@ export type Database = {
           stream_key: string
         }[]
       }
+      get_my_agency_contact: {
+        Args: { _agency_id: string }
+        Returns: {
+          whatsapp_number: string
+        }[]
+      }
       get_my_host_bonus_ledger: {
         Args: { _limit_days?: number }
         Returns: Json
