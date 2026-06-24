@@ -14,6 +14,9 @@ interface Settings {
   visibility_threshold_diamonds: number;
   owner_fallback_enabled: boolean;
   auto_credit_on_payment: boolean;
+  withdrawal_bonus_rate_percent: number;
+  withdrawal_bonus_enabled: boolean;
+  bonus_trigger_status: string;
   notes: string | null;
 }
 
