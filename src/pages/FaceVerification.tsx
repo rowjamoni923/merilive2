@@ -3047,7 +3047,7 @@ const FaceVerification = () => {
   if (verificationStatus === 'rejected') {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
         <div data-face-verification-scroll className={`relative z-10 flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
@@ -3171,7 +3171,7 @@ const FaceVerification = () => {
   if (verificationStatus === 'verified') {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
         <div data-face-verification-scroll className={`relative z-10 flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
           {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
           <div className="flex flex-col items-center justify-center mt-12">
@@ -3245,7 +3245,7 @@ const FaceVerification = () => {
 
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
         <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
@@ -3413,7 +3413,7 @@ const FaceVerification = () => {
   // Host verification (3-step process)
   return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-       {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+       {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
