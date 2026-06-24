@@ -2158,7 +2158,7 @@ const Chat = () => {
           .then(res => {
             console.log('[ContactDetection] Chat result:', res);
             if (res.detected && !res.warningOnly && res.violationNumber) {
-              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+              numberWarning.showGenericWarning();
             } else if (res.detected) {
               numberWarning.showGenericWarning();
             }
@@ -3424,7 +3424,7 @@ const Chat = () => {
                             scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                               .then(res => {
                                 if (res.detected && res.violationNumber) {
-                                  numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                                  numberWarning.showGenericWarning();
                                 }
                               }).catch(() => {});
                           }
@@ -3438,7 +3438,7 @@ const Chat = () => {
                           scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                             .then(res => {
                               if (res.detected && res.violationNumber) {
-                                numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                                numberWarning.showGenericWarning();
                               } else if (res.detected) {
                                 numberWarning.showGenericWarning();
                               }

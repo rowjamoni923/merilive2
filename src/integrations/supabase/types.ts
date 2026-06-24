@@ -1267,6 +1267,9 @@ export type Database = {
           call_earnings: number | null
           commission_processed_at: string | null
           commission_rate: number | null
+          contact_violation_beans_deducted: number
+          contact_violation_count: number
+          contact_violations_detail: Json
           created_at: string
           gift_earnings: number | null
           host_id: string | null
@@ -1287,6 +1290,9 @@ export type Database = {
           call_earnings?: number | null
           commission_processed_at?: string | null
           commission_rate?: number | null
+          contact_violation_beans_deducted?: number
+          contact_violation_count?: number
+          contact_violations_detail?: Json
           created_at?: string
           gift_earnings?: number | null
           host_id?: string | null
@@ -1307,6 +1313,9 @@ export type Database = {
           call_earnings?: number | null
           commission_processed_at?: string | null
           commission_rate?: number | null
+          contact_violation_beans_deducted?: number
+          contact_violation_count?: number
+          contact_violations_detail?: Json
           created_at?: string
           gift_earnings?: number | null
           host_id?: string | null
@@ -20707,6 +20716,10 @@ export type Database = {
         }[]
       }
       get_host_live_bonus_state: { Args: { _host_id: string }; Returns: Json }
+      get_host_violation_week_start: {
+        Args: { p_host_id: string }
+        Returns: string
+      }
       get_leaderboard: {
         Args: { _period: string }
         Returns: {
