@@ -1114,7 +1114,7 @@ const VIP = () => {
           <VipNobleSection
             userId={currentUserId}
             userDiamonds={userDiamonds}
-            onAfterPurchase={() => { /* refetch handled inside */ }}
+            onAfterPurchase={fetchData}
           />
         </TabsContent>
 
