@@ -422,7 +422,10 @@ export default function AdminAgencies() {
       if (filterType === "active") {
         query = query.eq("is_active", true).eq("is_blocked", false);
       } else if (filterType === "cancelled") {
-        query = query.eq("is_active", false);
+        query = query.eq("is_active", false).neq("activation_status", "closed");
+      } else {
+        // Hide auto-closed agencies from the default list (shown in dedicated "Closed" tab)
+        query = query.neq("activation_status", "closed");
       }
 
       if (searchQuery) {
