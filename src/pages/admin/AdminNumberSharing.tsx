@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 // useNavigate removed - using onViewChat callback instead
 
 interface ViolationRecord {
@@ -364,7 +365,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                         {v.host?.display_name || "Unknown"}
                       </span>
                       <span className="text-white/40 text-xs">
-                        UID: {v.host?.app_uid || "—"}
+                        <CopyableUid value={v.host?.app_uid || "—"} />
                       </span>
                       {v.host?.is_blocked && (
                         <Badge className="bg-red-600/20 text-red-300 text-[9px]">🚫 Blocked</Badge>
@@ -497,7 +498,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                 </Avatar>
                 <div>
                   <p className="text-white font-medium text-sm">{banTarget.host?.display_name}</p>
-                  <p className="text-white/40 text-xs">UID: {banTarget.host?.app_uid}</p>
+                  <p className="text-white/40 text-xs"><CopyableUid value={banTarget.host?.app_uid} /></p>
                 </div>
               </div>
 

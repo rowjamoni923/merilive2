@@ -29,6 +29,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface RechargeRecord {
   id: string;
   user_id: string;
@@ -714,7 +715,7 @@ const AdminRechargeHistory = () => {
                 <div>
                   <p className="text-muted-foreground">User</p>
                   <p className="font-medium">{selectedRecord.user_name}</p>
-                  {selectedRecord.user_uid && <p className="text-xs text-muted-foreground">UID: {selectedRecord.user_uid}</p>}
+                  {selectedRecord.user_uid && <p className="text-xs text-muted-foreground"><CopyableUid value={selectedRecord.user_uid} /></p>}
                 </div>
                 <div>
                   <p className="text-muted-foreground">Source</p>
@@ -749,7 +750,7 @@ const AdminRechargeHistory = () => {
                   <div>
                     <p className="text-muted-foreground">Sender</p>
                     <p className="font-medium">{selectedRecord.sender_name}</p>
-                    {selectedRecord.sender_uid && <p className="text-xs text-muted-foreground">UID: {selectedRecord.sender_uid}</p>}
+                    {selectedRecord.sender_uid && <p className="text-xs text-muted-foreground"><CopyableUid value={selectedRecord.sender_uid} /></p>}
                   </div>
                 )}
                 {selectedRecord.google_order_id && (

@@ -13,6 +13,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface OnlineUser {
   id: string;
   display_name: string | null;
@@ -138,7 +139,7 @@ export default function AdminOnlineUsers() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>
-                    <p className="text-[10px] text-slate-400">UID: {user.app_uid || "N/A"} • Lv.{user.user_level || 0}</p>
+                    <p className="text-[10px] text-slate-400"><CopyableUid value={user.app_uid || "N/A"} /> • Lv.{user.user_level || 0}</p>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">Host</Badge>
                 </motion.div>
@@ -180,7 +181,7 @@ export default function AdminOnlineUsers() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>
-                    <p className="text-[10px] text-slate-400">UID: {user.app_uid || "N/A"} • Lv.{user.user_level || 0}</p>
+                    <p className="text-[10px] text-slate-400"><CopyableUid value={user.app_uid || "N/A"} /> • Lv.{user.user_level || 0}</p>
                   </div>
                 </motion.div>
               ))}

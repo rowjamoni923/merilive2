@@ -53,6 +53,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+import { CopyableUid } from "@/components/admin/CopyableUid";
   Dialog,
   DialogContent,
   DialogDescription,
@@ -2137,7 +2138,7 @@ export default function AdminAgencies() {
                   </Avatar>
                   <div className="flex-1">
                     <p className="text-white font-medium">{ownerSearchResult.display_name || "Unknown"}</p>
-                    <p className="text-white/50 text-sm">UID: {ownerSearchResult.username || ownerSearchResult.id?.slice(0, 8)}</p>
+                    <p className="text-white/50 text-sm"><CopyableUid value={ownerSearchResult.username || ownerSearchResult.id?.slice(0, 8)} /></p>
                   </div>
                   <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
                     <CheckCircle className="w-3 h-3 mr-1" />

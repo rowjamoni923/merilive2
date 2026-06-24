@@ -14,6 +14,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface ClaimRecord {
   id: string;
   user_id: string;
@@ -294,7 +295,7 @@ const AdminRewardClaimsHistory = () => {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{host.user_name}</p>
-                    <p className="text-xs text-muted-foreground">UID: {host.user_uid}</p>
+                    <p className="text-xs text-muted-foreground"><CopyableUid value={host.user_uid} /></p>
                   </div>
 
                   {/* Stats */}
@@ -336,7 +337,7 @@ const AdminRewardClaimsHistory = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{claim.user_name}</p>
-                    <p className="text-[10px] text-muted-foreground">UID: {claim.user_uid}</p>
+                    <p className="text-[10px] text-muted-foreground"><CopyableUid value={claim.user_uid} /></p>
                   </div>
                   <Badge variant="outline" className="text-[10px] shrink-0">{claim.task_title}</Badge>
                   <div className="text-right shrink-0">

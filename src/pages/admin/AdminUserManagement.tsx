@@ -58,6 +58,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+import { CopyableUid } from "@/components/admin/CopyableUid";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -2639,7 +2640,7 @@ export default function AdminUserManagement() {
                                 );
                               })()}
                             </div>
-                            <p className="text-xs text-slate-500">UID: {submission.profile?.app_uid}</p>
+                            <p className="text-xs text-slate-500"><CopyableUid value={submission.profile?.app_uid} /></p>
                             {submission.agency_info && (
                               <div className="flex items-center gap-1.5 mt-1">
                                 <Badge className="bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs">
@@ -3440,7 +3441,7 @@ export default function AdminUserManagement() {
                 </Avatar>
                 <div className="flex-1">
                   <p className="font-bold text-lg text-white">{selectedApplication.full_name}</p>
-                  <p className="text-slate-400">UID: {selectedApplication.profiles?.app_uid}</p>
+                  <p className="text-slate-400"><CopyableUid value={selectedApplication.profiles?.app_uid} /></p>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge className="bg-purple-500/20 text-purple-300">{selectedApplication.age} yrs</Badge>
                     <Badge className="bg-blue-500/20 text-blue-300">{selectedApplication.language}</Badge>
@@ -3507,7 +3508,7 @@ export default function AdminUserManagement() {
                 </Avatar>
                 <div>
                   <h3 className="font-bold text-lg text-white">{selectedFaceSubmission.profile?.display_name}</h3>
-                  <p className="text-sm text-slate-400">UID: {selectedFaceSubmission.profile?.app_uid}</p>
+                  <p className="text-sm text-slate-400"><CopyableUid value={selectedFaceSubmission.profile?.app_uid} /></p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={selectedFaceSubmission.verification_type === 'host' ? "bg-pink-500/20 text-pink-300" : "bg-blue-500/20 text-blue-300"}>
                       {selectedFaceSubmission.verification_type === 'host' ? 'Host' : 'User'}

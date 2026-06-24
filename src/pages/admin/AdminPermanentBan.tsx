@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 type Severity = "medium" | "high" | "urgent";
 
 interface SeverityBan {
@@ -305,7 +306,7 @@ export default function AdminPermanentBan() {
                     <div className="flex-1">
                       <div className="font-semibold">{searchedUser.display_name}</div>
                       <div className="text-xs text-muted-foreground">
-                        UID: {searchedUser.app_uid} • Role: {searchedUser.role}
+                        <CopyableUid value={searchedUser.app_uid} /> • Role: {searchedUser.role}
                       </div>
                       {sev === "urgent" && (
                         <div className="flex flex-wrap gap-1 mt-2">
