@@ -88,11 +88,19 @@ export function useLiveGameRound({
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
   const processedRoundsRef = useRef<Set<number>>(new Set());
 
+  // Step 2 perf: stabilize callbacks via refs so the phase-transition effect
+  // doesn't re-create timers whenever the parent re-renders with new lambdas.
+  const onWinRef = useRef(onWin);
+  const onLossRef = useRef(onLoss);
+  useEffect(() => { onWinRef.current = onWin; }, [onWin]);
+  useEffect(() => { onLossRef.current = onLoss; }, [onLoss]);
+
   // Games that handle their own result processing (coins update)
   // These games have their own card dealing/wheel spinning logic and timer
   // IMPORTANT: Define this BEFORE startGameLoop which depends on it
   const selfManagedGames = ['teen_patti', 'teen-patti', 'ferris_wheel', 'ferris-wheel', 'roulette', 'lucky_number', 'rocket_race'];
   const isSelfManagedGame = selfManagedGames.includes(gameId);
+
 
   // Generate game result based on game type
   const generateResult = useCallback(() => {
@@ -298,12 +306,13 @@ export function useLiveGameRound({
           
           if (totalWin > 0) {
             setLastWinAmount(totalWin);
-            onWin?.(totalWin);
+            onWinRef.current?.(totalWin);
             toast.success(`🎉 You won ${totalWin.toLocaleString()} coins!`);
           } else if (totalLoss > 0 && myBets.length > 0) {
             setLastLossAmount(totalLoss);
-            onLoss?.(totalLoss);
+            onLossRef.current?.(totalLoss);
           }
+
         }
         
         setClientState(p => ({ ...p, phase: 'result' }));
@@ -332,21 +341,27 @@ export function useLiveGameRound({
       
       return () => clearTimeout(timer);
     }
-  }, [clientState.phase, clientState.result, clientState.roundNumber, myBets, gameId, bettingSeconds, onWin, onLoss]);
+  }, [clientState.phase, clientState.result, clientState.roundNumber, myBets, gameId, bettingSeconds, isSelfManagedGame]);
 
-  // Sync client state to component state
+  // Sync client state to component state. Step 2 perf: depend on primitive
+  // fields only so the virtual round object isn't rebuilt on every 250ms tick
+  // — it now changes only when phase/round/result/bets actually change.
+  const bettingEndAtMs = clientState.bettingEndAt;
+  const resultJson = clientState.result ? JSON.stringify(clientState.result) : null;
   useEffect(() => {
     setPhase(clientState.phase === 'result' ? 'result' : clientState.phase);
+  }, [clientState.phase]);
+  useEffect(() => {
     setTimeLeft(clientState.timeLeft);
-    
-    // Create virtual round for UI
+  }, [clientState.timeLeft]);
+  useEffect(() => {
     setCurrentRound({
       id: `client-${gameId}-${clientState.roundNumber}`,
       game_id: gameId,
       room_id: roomId,
       round_number: clientState.roundNumber,
       status: clientState.phase === 'result' ? 'completed' : clientState.phase,
-      betting_end_at: new Date(clientState.bettingEndAt).toISOString(),
+      betting_end_at: new Date(bettingEndAtMs).toISOString(),
       game_start_at: null,
       game_end_at: null,
       result: clientState.result,
@@ -354,9 +369,11 @@ export function useLiveGameRound({
       total_bet_amount: bets.reduce((sum, b) => sum + b.bet_amount, 0),
       total_players: new Set(bets.map(b => b.user_id)).size,
       winning_value: clientState.result?.winner || null,
-      created_at: new Date().toISOString()
+      created_at: new Date(bettingEndAtMs).toISOString()
     });
-  }, [clientState, gameId, roomId, bets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameId, roomId, clientState.roundNumber, clientState.phase, bettingEndAtMs, resultJson, bets.length]);
+
 
   // Place a bet - ULTRA-FAST with optimistic updates (sub-100ms response)
   const placeBet = useCallback(async (
