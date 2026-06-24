@@ -27,18 +27,39 @@ import {
   ArrowRight,
   Megaphone,
   AlertCircle,
-  Wallet
+  Wallet,
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount } from "@/hooks/useGlobalUnreadCount";
 import { buildSupportReplyLink } from "@/utils/supportNotificationLink";
 import { formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
+
+// Extract OTP code from notification (data.code preferred, else first 4-8 digit run in message)
+const extractOtpCode = (notification: Notification): string | null => {
+  const data = notification.data as any;
+  if (data?.code) return String(data.code);
+  if (data?.otp) return String(data.otp);
+  const msg = notification.message || "";
+  const m = msg.match(/\b(\d{4,8})\b/);
+  return m ? m[1] : null;
+};
+
 
 interface NotificationListProps {
   onClose?: () => void;
