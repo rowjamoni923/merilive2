@@ -419,16 +419,94 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
 
             {/* Task info + progress */}
             <div className="flex-1 min-w-0">
+              {/* ━━━ Bigo-style Star Ladder (1★ → N★ → Treasure Chest) ━━━ */}
+              <div className="flex items-center gap-1 mb-2">
+                {tasks.map((t, idx) => {
+                  const p = progress[t.id];
+                  const isClaimed = !!p?.is_claimed;
+                  const isActive = currentTask?.id === t.id;
+                  const isFuture = !isClaimed && !isActive;
+                  return (
+                    <div key={t.id} className="flex items-center flex-1 min-w-0">
+                      <motion.div
+                        initial={false}
+                        animate={isActive ? { scale: [1, 1.12, 1] } : {}}
+                        transition={{ duration: 1.6, repeat: isActive ? Infinity : 0 }}
+                        className="relative w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: isClaimed
+                            ? 'linear-gradient(145deg, #22c55e, #10b981)'
+                            : isActive
+                              ? 'linear-gradient(145deg, #f59e0b, #f97316)'
+                              : 'rgba(255,255,255,0.08)',
+                          boxShadow: isClaimed
+                            ? '0 0 8px rgba(34,197,94,0.55)'
+                            : isActive
+                              ? '0 0 10px rgba(245,158,11,0.6), 0 0 18px rgba(249,115,22,0.35)'
+                              : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {isClaimed ? (
+                          <Check className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />
+                        ) : isFuture ? (
+                          <Lock className="w-2 h-2 text-white/30" strokeWidth={2.5} />
+                        ) : (
+                          <Star className="w-2.5 h-2.5 text-white fill-white" />
+                        )}
+                      </motion.div>
+                      {idx < tasks.length - 1 && (
+                        <div
+                          className="flex-1 h-[2px] mx-[2px] rounded-full"
+                          style={{
+                            background: isClaimed
+                              ? 'linear-gradient(90deg, #22c55e, #10b981)'
+                              : 'rgba(255,255,255,0.06)',
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                {/* Treasure chest tail */}
+                <div className="flex items-center flex-shrink-0 ml-1">
+                  <motion.div
+                    animate={
+                      completedCount === tasks.length
+                        ? { scale: [1, 1.15, 1], rotate: [0, -8, 8, 0] }
+                        : {}
+                    }
+                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.4 }}
+                    className="w-[20px] h-[20px] rounded-md flex items-center justify-center"
+                    style={{
+                      background:
+                        completedCount === tasks.length
+                          ? 'linear-gradient(145deg, #fbbf24, #f59e0b)'
+                          : 'linear-gradient(145deg, rgba(251,191,36,0.18), rgba(245,158,11,0.10))',
+                      boxShadow:
+                        completedCount === tasks.length
+                          ? '0 0 12px rgba(251,191,36,0.65), 0 0 22px rgba(245,158,11,0.35)'
+                          : 'inset 0 0 0 1px rgba(251,191,36,0.25)',
+                    }}
+                  >
+                    <Gift
+                      className="w-3 h-3"
+                      style={{ color: completedCount === tasks.length ? '#fff' : '#fbbf24' }}
+                    />
+                  </motion.div>
+                </div>
+              </div>
+
               {/* Title row */}
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <Zap className="w-3 h-3 text-amber-400 flex-shrink-0" />
                   <p className="text-white text-[12px] font-bold truncate leading-tight">{currentTask.title}</p>
                 </div>
-                <span className="text-[9px] text-white/25 flex-shrink-0 ml-2 font-medium tabular-nums bg-white/5 px-1.5 py-0.5 rounded-md">
-                  {completedCount + 1}/{tasks.length}
+                <span className="text-[9px] text-white/30 flex-shrink-0 ml-2 font-medium tabular-nums bg-white/5 px-1.5 py-0.5 rounded-md">
+                  ★ {completedCount + 1}/{tasks.length}
                 </span>
               </div>
+
 
               {/* Premium progress bar */}
               <div className="flex items-center gap-2 mb-1.5">
