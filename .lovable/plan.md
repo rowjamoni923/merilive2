@@ -101,6 +101,12 @@
 - Professional support-console behavior (Chamet/Bigo-style admin chat) requires operator voice input to work on the authenticated admin origin, so policy must allow same-origin media capture while keeping unrelated permissions locked. Updated to `camera=(self), microphone=(self), geolocation=()`.
 - MDN confirms `getUserMedia()` requires a secure context and prompts for media permission; `https://merilive.com` satisfies HTTPS, so after publish the user must reload and allow microphone in browser site settings if previously denied: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 
+## Gmail Support OAuth refresh fix — 2026-06-24
+
+- Root cause from live edge logs: Google token endpoint returned `invalid_client` / `The OAuth client was not found`, so the refresh token flow was failing before any Gmail API call. Google OAuth docs require the refresh request to use the same valid OAuth client credentials that issued the refresh token: https://developers.google.com/identity/protocols/oauth2/web-server
+- Gmail API error-handling guidance says API clients must inspect response body details, not only HTTP status; the function already logs Google’s token error safely without printing secrets. Source: https://developers.google.com/workspace/gmail/api/guides/handle-errors
+- Fix action: refreshed all three Gmail OAuth runtime secrets together (`GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`) and redeployed `gmail-support` so the edge runtime picks up the new credential set. If Google still returns 401 after this, the remaining cause is a mismatched/revoked refresh token and a new OAuth Playground token must be generated from the same Client ID/Secret.
+
 ## Questions before I start
 
 1. **প্রথম priority কোনটা?** — P0 হিসেবে আমি face verification + host application + recharge/withdrawal ধরছি। আপনি কি অন্য কিছু আগে চান?
