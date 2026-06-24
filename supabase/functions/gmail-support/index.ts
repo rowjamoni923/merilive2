@@ -741,10 +741,10 @@ Deno.serve(async (req) => {
 
     const { action, ...params } = await req.json();
 
-    // Cron bypass: scheduled pg_cron job calls auto_reply with a shared secret.
-    const cronSecret = Deno.env.get('GMAIL_AUTOREPLY_CRON_SECRET');
-    const providedCronSecret = req.headers.get('x-cron-secret');
-    const isCronCall = action === 'auto_reply' && cronSecret && providedCronSecret === cronSecret;
+    // Cron bypass: pg_cron job calls auto_reply with the service-role bearer.
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const authHeader = req.headers.get('authorization') || '';
+    const isCronCall = action === 'auto_reply' && authHeader === `Bearer ${serviceRoleKey}`;
 
     if (!isCronCall) {
       // Read-only actions only require an active admin session.
