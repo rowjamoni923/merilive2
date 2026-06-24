@@ -121,6 +121,10 @@ export default function AdminCsaDiamondSettings() {
             <p className="text-[10px] text-amber-300/70 mt-1">
               Preview: ${Number(s.min_purchase_usd).toLocaleString()} → {previewDiamonds.toLocaleString()} 💎
             </p>
+            <p className="text-[10px] text-emerald-300/70 mt-0.5">
+              Rate: <b>${(100000 / Math.max(1, Number(s.diamonds_per_usd))).toFixed(2)}</b> per 1 Lakh 💎
+              {" · "}<b>${(Number(s.visibility_threshold_diamonds) / Math.max(1, Number(s.diamonds_per_usd))).toFixed(2)}</b> to reach visibility threshold
+            </p>
           </div>
           <div className="md:col-span-2">
             <Label className="text-white/70 text-xs flex items-center gap-1">
