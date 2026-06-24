@@ -230,6 +230,8 @@ export default function AdminSuperAdminManagement() {
           <TabsTrigger value="pending"><FileText className="w-4 h-4 mr-1" />Pending ({pending.length})</TabsTrigger>
           <TabsTrigger value="active"><Users className="w-4 h-4 mr-1" />Active ({actives.filter(a=>a.status==='active').length})</TabsTrigger>
           <TabsTrigger value="commissions"><DollarSign className="w-4 h-4 mr-1" />Commissions</TabsTrigger>
+          <TabsTrigger value="approvals"><Inbox className="w-4 h-4 mr-1" />Approvals</TabsTrigger>
+          <TabsTrigger value="diamond"><Gem className="w-4 h-4 mr-1" />Diamond Wallet</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="audit"><History className="w-4 h-4 mr-1" />Audit</TabsTrigger>
         </TabsList>
