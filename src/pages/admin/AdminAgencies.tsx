@@ -78,6 +78,7 @@ import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
 import ClosedAgenciesTab from "@/components/admin/agency/ClosedAgenciesTab";
 import GrantCsaDialog from "@/components/admin/agency/GrantCsaDialog";
 import AdminCsaApprovals from "@/components/admin/agency/AdminCsaApprovals";
+import AdminCsaDiamondSettings from "@/components/admin/agency/AdminCsaDiamondSettings";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
