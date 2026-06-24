@@ -169,6 +169,20 @@ export default function ClosedAgenciesTab() {
                     {a.closed_reason || "Failed to activate 10 hosts within 30 days."}
                   </p>
                 </div>
+
+                <Button
+                  size="sm"
+                  onClick={() => reactivate(a.id, a.name)}
+                  disabled={reactivatingId === a.id}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {reactivatingId === a.id ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                  )}
+                  Reactivate Agency
+                </Button>
               </CardContent>
             </Card>
           ))}
