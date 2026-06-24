@@ -598,6 +598,58 @@ const FaceVerification = () => {
       setRejectionReason(null);
     }
   }, []);
+
+  // Pkg-instant: when an admin completes/rejects this user's face verification
+  // from the admin panel, react instantly via Supabase Realtime so the user
+  // doesn't have to refresh. Listens on both profiles (is_face_verified flip)
+  // and face_verification_submissions (status change) for the active user.
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`face-verify-instant-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+        (payload: any) => {
+          const next = payload?.new;
+          if (next?.is_face_verified === true) {
+            setProfile((prev: any) => ({ ...(prev || {}), ...next }));
+            setVerificationStatus('verified');
+            setRejectionReason(null);
+            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            setTimeout(() => navigate('/profile', { replace: true }), 900);
+          } else if (next && next.is_face_verified === false && next.face_verification_status === 'pending_face') {
+            // Admin removed verification → keep user on this page to re-submit.
+            setProfile((prev: any) => ({ ...(prev || {}), ...next }));
+            setVerificationStatus('unverified');
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'face_verification_submissions', filter: `user_id=eq.${userId}` },
+        (payload: any) => {
+          const next = payload?.new;
+          const status = String(next?.status || '').toLowerCase();
+          if (status === 'approved') {
+            setVerificationStatus('verified');
+            setRejectionReason(null);
+            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            setTimeout(() => navigate('/profile', { replace: true }), 900);
+          } else if (status === 'rejected') {
+            setVerificationStatus('rejected');
+            setRejectionReason(next?.rejection_reason || null);
+            toast({ title: 'Face verification rejected', description: next?.rejection_reason || 'Please re-submit.', variant: 'destructive' });
+          } else if (status === 'pending' || status === 'submitted' || status === 'under_review') {
+            setVerificationStatus('submitted');
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   
   // Existing account detection states
   const [existingAccount, setExistingAccount] = useState<{
