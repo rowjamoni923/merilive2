@@ -75,6 +75,100 @@ interface CommissionRecord {
 
 type DateFilter = 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'all';
 
+// Friendly labels for the masked-content "pattern" stored on each violation row.
+const PATTERN_LABELS: Record<string, string> = {
+  phone_number: 'Phone number share',
+  digit_sharing: 'Digit sequence share',
+  external_link: 'External link share',
+  contact_intent: 'Contact-sharing intent',
+  whatsapp: 'WhatsApp share',
+  imo: 'IMO share',
+  facebook: 'Facebook share',
+  messenger: 'Messenger share',
+  instagram: 'Instagram share',
+  tiktok: 'TikTok share',
+  telegram: 'Telegram share',
+  snapchat: 'Snapchat share',
+  twitter: 'Twitter / X share',
+  viber: 'Viber share',
+  signal: 'Signal share',
+  wechat: 'WeChat share',
+  line: 'Line share',
+  email: 'Email share',
+};
+const SOURCE_LABELS: Record<string, string> = {
+  chat: 'Party room chat',
+  live_stream: 'Live stream chat',
+  private_call: 'Private call',
+  private_message: 'Direct message',
+};
+
+const DeductionsBlock = ({
+  count,
+  beans,
+  details,
+}: {
+  count: number;
+  beans: number;
+  details: ViolationDetail[];
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-t border-warning-500/30 pt-3">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between gap-2 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-warning-600" />
+          <div>
+            <p className="text-xs font-semibold text-warning-700">
+              Number-sharing deductions this week
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {count} violation{count === 1 ? '' : 's'} · −{beans.toLocaleString()} Beans
+            </p>
+          </div>
+        </div>
+        <ChevronRight
+          className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-90' : ''}`}
+        />
+      </button>
+      {open && details.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {details.map((d) => (
+            <li
+              key={d.id}
+              className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md bg-warning-500/10 border border-warning-500/20"
+            >
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-warning-700 truncate">
+                  {PATTERN_LABELS[d.pattern] || 'Contact share'}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {SOURCE_LABELS[d.source] || d.source} ·{' '}
+                  {new Date(d.at).toLocaleString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-warning-700 shrink-0">
+                −{Number(d.beans || 0).toLocaleString()}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+
+
 const AgencyTransferHistory = () => {
   const navigate = useNavigate();
   const [transfersCache, setTransfers, hadTransfersCache] = usePersistedCache<Transfer[]>('agencyTransferHist:transfers', null);
