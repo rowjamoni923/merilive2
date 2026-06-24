@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Gem,
   Settings,
   Percent,
   Save,
