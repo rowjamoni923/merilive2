@@ -14,11 +14,23 @@ import { getTaskDate } from "@/utils/taskDateUtils";
  * - messages_sent: Number of messages sent today
  */
 
+type TaskType =
+  | 'first_live'
+  | 'live_minutes'
+  | 'viewers'
+  | 'first_gift'
+  | 'messages_sent'
+  | 'followers'
+  | 'watch_live'
+  | 'send_gift'
+  | 'share_app';
+
 interface TaskProgressUpdate {
-  taskType: 'first_live' | 'live_minutes' | 'viewers' | 'first_gift' | 'messages_sent';
+  taskType: TaskType;
   value?: number;
   increment?: number;
 }
+
 
 export const useTaskProgress = () => {
   const userIdRef = useRef<string | null>(null);
