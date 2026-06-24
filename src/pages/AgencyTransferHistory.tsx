@@ -24,6 +24,14 @@ import { toast } from "sonner";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 
+interface ViolationDetail {
+  id: string;
+  pattern: string;
+  source: string;
+  beans: number;
+  at: string;
+}
+
 interface Transfer {
   id: string;
   host_id: string;
@@ -39,6 +47,9 @@ interface Transfer {
   call_earnings: number | null;
   host_name: string | null;
   notes: string | null;
+  contact_violation_count?: number | null;
+  contact_violation_beans_deducted?: number | null;
+  contact_violations_detail?: ViolationDetail[] | null;
   host_profile?: {
     display_name: string | null;
     avatar_url: string | null;
