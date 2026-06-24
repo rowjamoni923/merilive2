@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
       if (targetType === "helper_wallet" && (row as any).target_helper_id) {
         const { data, error } = await admin.rpc("credit_helper_wallet_from_swift_pay", {
           p_helper_id: (row as any).target_helper_id,
-          p_diamonds: row.coins_amount,
+          p_diamonds: creditCoins,
           p_topup_id: row.id,
         });
         creditErr = error;
@@ -179,12 +179,12 @@ Deno.serve(async (req) => {
       } else {
         const { data, error } = await admin.rpc("safe_credit_diamonds", {
           p_user_id: row.user_id,
-          p_amount: row.coins_amount,
+          p_amount: creditCoins,
           p_gateway: "swift_pay",
           p_order_id: row.id,
           p_transaction_id: row.payment_id ?? row.id,
           p_amount_usd: expectedUsd,
-          p_metadata: { source: "swift_pay_gateway", external_user_id: row.external_user_id },
+          p_metadata: { source: "swift_pay_gateway", external_user_id: row.external_user_id, campaign_reeval: campaignReeval },
         });
         creditErr = error;
         creditRes = data;
