@@ -27,6 +27,21 @@ interface Kpis {
   active_topup_methods: number;
   active_withdrawal_methods: number;
 }
+interface CountryOverview {
+  country_code: string;
+  agencies_total: number;
+  agencies_active: number;
+  hosts_total: number;
+  users_total: number;
+  helpers_total: number;
+  helpers_l1: number;
+  helpers_l2: number;
+  helpers_l3: number;
+  helpers_l4: number;
+  helpers_l5: number;
+  reels_total: number;
+  lives_live_now: number;
+}
 
 const countryName = (code: string) => ({
   BD: "Bangladesh", IN: "India", PK: "Pakistan", ID: "Indonesia",
