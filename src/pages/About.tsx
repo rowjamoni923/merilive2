@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAY_STORE_URL, APK_DOWNLOAD_URL, PRODUCTION_DOMAIN } from "@/utils/shareLinks";
-import mascotLogo from "@/assets/mascot-logo-small.webp";
+import mascotLogo from "@/assets/app-logo.png";
 import heroBanner from "@/assets/about-hero-3d.jpg";
 import earningsBanner from "@/assets/about-earnings-3d.jpg";
 import agencyBanner from "@/assets/about-agency-3d.jpg";
