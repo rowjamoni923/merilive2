@@ -78,12 +78,14 @@ export default function CountryAdminDashboard() {
       const context = c as unknown as CsaContext;
       setCtx(context);
 
-      const [{ data: k }, { data: tu }, { data: wd }] = await Promise.all([
+      const [{ data: k }, { data: ov }, { data: tu }, { data: wd }] = await Promise.all([
         supabase.rpc("csa_country_kpis"),
+        supabase.rpc("csa_country_overview" as any),
         supabase.from("topup_payment_methods").select("*").contains("country_codes", [context.country_code]).order("display_order"),
         supabase.from("helper_country_payment_methods").select("*").eq("country_code", context.country_code).order("display_order"),
       ]);
       setKpis(k as unknown as Kpis);
+      setOverview(ov as unknown as CountryOverview);
       setTopupMethods(tu || []);
       setWdMethods(wd || []);
     } catch (e) {
