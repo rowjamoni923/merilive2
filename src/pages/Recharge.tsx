@@ -3366,12 +3366,21 @@ const Recharge = () => {
                 const isCardProcessing = (playStoreProcessing || stripeProcessing) && selectedPackageId === pkg.id;
 
                 return (
-                  <div key={pkg.id} className="relative group">
+                  <div key={pkg.id} className={cn("relative group", isPopular && "pt-2")}>
+                    {/* Most Popular ribbon — rendered OUTSIDE the overflow-hidden card so it never gets clipped */}
+                    {isPopular && (
+                      <div
+                        className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg whitespace-nowrap pointer-events-none border border-white/60"
+                        style={{ boxShadow: '0 6px 14px -4px rgba(249,115,22,0.55)' }}
+                      >
+                        🔥 Most Popular
+                      </div>
+                    )}
                     {/* Premium Luxurious Card */}
                     <div className={cn(
                       "relative p-4 rounded-2xl border-2 transition-colors overflow-hidden",
                       "bg-white",
-                      isPopular ? "border-orange-300 shadow-[0_8px_28px_-6px_rgba(249,115,22,0.35)]" : "border-gray-100 hover:border-purple-300 hover:shadow-xl shadow-[0_4px_20px_-5px_rgba(139,92,246,0.12)]"
+                      isPopular ? "border-orange-300 shadow-[0_8px_28px_-6px_rgba(249,115,22,0.35)] pt-5" : "border-gray-100 hover:border-purple-300 hover:shadow-xl shadow-[0_4px_20px_-5px_rgba(139,92,246,0.12)]"
                     )}>
                       {/* Subtle top accent line */}
                       <div className={cn(
@@ -3381,15 +3390,7 @@ const Recharge = () => {
                           : "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400"
                       )} />
 
-                      {/* Most Popular ribbon */}
-                      {isPopular && (
-                        <div
-                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg whitespace-nowrap"
-                          style={{ boxShadow: '0 6px 14px -4px rgba(249,115,22,0.55)' }}
-                        >
-                          🔥 Most Popular
-                        </div>
-                      )}
+
                       
                       {/* Diamond Icon */}
                       <div className="flex justify-center mb-2.5 pt-1">
