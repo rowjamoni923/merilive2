@@ -544,7 +544,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto text-center">
           <img loading="lazy" decoding="async" src={mascotLogo} alt="MeriLive" className="w-12 h-12 mx-auto mb-4 rounded-xl" />
           <p className="text-sm mb-3 font-semibold" style={{ color: CREAM }}>MeriLive — Live Streaming, Video Call & Entertainment</p>
-          <div className="flex flex-wrap gap-6 justify-center text-xs mb-6" style={{ color: MUTED }}>
+          
           <nav className="flex flex-wrap gap-x-6 gap-y-3 justify-center text-xs mb-6" style={{ color: MUTED }} aria-label="Footer">
             <Link to="/policies" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Policies</Link>
             <Link to="/privacy-policy" className="hover:opacity-80 transition" style={{ color: GOLD_SOFT }}>Privacy</Link>
