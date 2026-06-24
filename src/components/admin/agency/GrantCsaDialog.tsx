@@ -89,13 +89,25 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
       if (error) throw error;
 
       toast.success(`${agencyName} is now Country Super Admin for ${country}`);
+      setGranted(true);
       onGranted?.();
-      onOpenChange(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to grant CSA");
     } finally {
       setBusy(false);
     }
+  };
+
+  const copyAll = async () => {
+    await navigator.clipboard.writeText(`Login URL: ${loginUrl}\nEmail: ${email}\nPassword: ${password}`);
+    toast.success("Login info copied");
+  };
+
+  const closeAll = () => {
+    setGranted(false);
+    setEmail("");
+    setPassword(generatePassword());
+    onOpenChange(false);
   };
 
   const copyCreds = async () => {
