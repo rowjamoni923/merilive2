@@ -223,6 +223,7 @@ export default function AdminAgencies() {
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showCsaDialog, setShowCsaDialog] = useState(false);
   const [showPayrollDialog, setShowPayrollDialog] = useState(false);
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
