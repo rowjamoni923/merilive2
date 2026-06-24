@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy } from "lucide-react";
+import { Loader2, ShieldCheck, FileText, DollarSign, Users, History, Link2, Copy, Gem, Inbox } from "lucide-react";
+import AdminCsaDiamondSettings from "@/components/admin/agency/AdminCsaDiamondSettings";
+import AdminCsaApprovals from "@/components/admin/agency/AdminCsaApprovals";
 
 type Application = {
   id: string;
