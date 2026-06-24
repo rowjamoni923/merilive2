@@ -262,63 +262,53 @@ function generateReplyHtml(bodyText: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0a0a14;font-family:'Georgia','Times New Roman',serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(160deg,#0a0a14 0%,#14101f 50%,#1a1226 100%);padding:48px 16px;">
+<body style="margin:0;padding:0;background-color:#f4efe6;font-family:Georgia,'Times New Roman',serif;color:#1a1410;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4efe6" style="background-color:#f4efe6;padding:48px 16px;">
 <tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#15101e 0%,#0f0a18 100%);border-radius:24px;overflow:hidden;border:1px solid rgba(201,168,76,0.28);box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(201,168,76,0.05) inset;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e6dcc4;">
 
 <!-- Gold hairline top -->
-<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+<tr><td bgcolor="#b8862a" style="height:3px;background-color:#b8862a;font-size:0;line-height:0;">&nbsp;</td></tr>
 
 <!-- Header -->
-<tr><td style="padding:44px 40px 28px;text-align:center;background:radial-gradient(ellipse at top,rgba(201,168,76,0.12) 0%,transparent 70%);">
-<table role="presentation" align="center" cellpadding="0" cellspacing="0"><tr><td style="padding:6px;border-radius:22px;background:linear-gradient(135deg,#f0d78c 0%,#c9a84c 50%,#8a6d2e 100%);">
-<img src="${logoUrl}" alt="MeriLive" width="72" height="72" style="display:block;border-radius:18px;background:#0f0a18;" />
+<tr><td bgcolor="#0f0a18" style="padding:40px 40px 28px;text-align:center;background-color:#0f0a18;">
+<table role="presentation" align="center" cellpadding="0" cellspacing="0"><tr><td bgcolor="#c9a84c" style="padding:5px;border-radius:18px;background-color:#c9a84c;">
+<img src="${logoUrl}" alt="MeriLive" width="68" height="68" style="display:block;border-radius:14px;background-color:#0f0a18;" />
 </td></tr></table>
-<p style="margin:18px 0 4px;font-family:'Georgia','Times New Roman',serif;font-size:22px;font-weight:400;letter-spacing:4px;color:#f0d78c;text-transform:uppercase;">MeriLive</p>
-<p style="margin:0;font-size:11px;letter-spacing:6px;color:#c9a84c;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">— Support Concierge —</p>
-</td></tr>
-
-<!-- Divider ornament -->
-<tr><td style="padding:8px 40px 0;text-align:center;">
-<span style="display:inline-block;width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
-<span style="display:inline-block;color:#c9a84c;font-size:10px;margin:0 10px;vertical-align:middle;">◆</span>
-<span style="display:inline-block;width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
+<p style="margin:18px 0 4px;font-family:Georgia,serif;font-size:22px;font-weight:400;letter-spacing:4px;color:#f0d78c;text-transform:uppercase;">MeriLive</p>
+<p style="margin:0;font-size:11px;letter-spacing:5px;color:#c9a84c;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">— Support Concierge —</p>
 </td></tr>
 
 <!-- Body -->
-<tr><td style="padding:28px 44px 36px;">
-<p style="margin:0;font-family:'Georgia','Times New Roman',serif;font-size:16px;color:#e8e4d8;line-height:1.85;letter-spacing:0.2px;">${formattedBody}</p>
+<tr><td bgcolor="#ffffff" style="padding:36px 44px 28px;background-color:#ffffff;">
+<p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:16px;color:#1a1410;line-height:1.85;">${formattedBody}</p>
+</td></tr>
+
+<!-- Divider -->
+<tr><td bgcolor="#ffffff" style="padding:0 44px;background-color:#ffffff;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#e6dcc4" style="height:1px;background-color:#e6dcc4;font-size:0;line-height:0;">&nbsp;</td></tr></table>
 </td></tr>
 
 <!-- Footer -->
-<tr><td style="padding:24px 40px 36px;text-align:center;background:linear-gradient(180deg,transparent,rgba(201,168,76,0.04));border-top:1px solid rgba(201,168,76,0.18);">
-<p style="margin:0 0 12px;font-family:'Georgia',serif;font-size:13px;color:#a89878;letter-spacing:0.4px;font-style:italic;">
-With warmest regards,
-</p>
-<p style="margin:0;font-family:'Georgia',serif;font-size:15px;letter-spacing:2px;color:#f0d78c;text-transform:uppercase;">
-The MeriLive Concierge
-</p>
-<div style="margin:18px 0 0;">
-<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
-<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#f0d78c;margin:0 3px;opacity:0.7;"></span>
-<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
-</div>
-<div style="margin:22px 0 6px;">
-<a href="https://play.google.com/store/apps/details?id=com.merilive.app" target="_blank" style="text-decoration:none;display:inline-block;background:linear-gradient(135deg,#1a1208 0%,#2a1f0e 100%);border:1px solid rgba(201,168,76,0.45);border-radius:10px;padding:10px 18px;box-shadow:0 4px 14px rgba(201,168,76,0.18);">
+<tr><td bgcolor="#ffffff" style="padding:28px 40px 36px;text-align:center;background-color:#ffffff;">
+<p style="margin:0 0 8px;font-family:Georgia,serif;font-size:14px;color:#6b5d44;font-style:italic;">With warmest regards,</p>
+<p style="margin:0;font-family:Georgia,serif;font-size:16px;letter-spacing:2px;color:#1a1410;text-transform:uppercase;font-weight:600;">The MeriLive Support Team</p>
+
+<div style="margin:24px 0 6px;">
+<a href="https://play.google.com/store/apps/details?id=com.merilive.app" target="_blank" style="text-decoration:none;display:inline-block;background-color:#0f0a18;border:1px solid #c9a84c;border-radius:10px;padding:12px 22px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="display:inline-table;"><tr>
-<td style="vertical-align:middle;padding-right:10px;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/200px-Google_Play_Store_badge_EN.svg.png" alt="" width="22" height="24" style="display:block;border:0;" /></td>
+<td style="vertical-align:middle;padding-right:10px;color:#f0d78c;font-size:22px;font-family:Arial,sans-serif;line-height:1;">&#9656;</td>
 <td style="vertical-align:middle;text-align:left;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.1;">
-<div style="font-size:9px;color:#a89878;letter-spacing:2px;text-transform:uppercase;">Get it on</div>
-<div style="font-size:14px;color:#f0d78c;letter-spacing:1px;font-weight:600;font-family:'Georgia',serif;">Google Play</div>
+<div style="font-size:9px;color:#c9a84c;letter-spacing:2px;text-transform:uppercase;">Get it on</div>
+<div style="font-size:14px;color:#f0d78c;letter-spacing:1px;font-weight:600;font-family:Georgia,serif;">Google Play</div>
 </td></tr></table>
 </a>
 </div>
-<p style="margin:14px 0 0;font-size:10px;color:#5a4f3a;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
+<p style="margin:18px 0 0;font-size:11px;color:#8a7c63;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
 </td></tr>
 
 <!-- Gold hairline bottom -->
-<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+<tr><td bgcolor="#b8862a" style="height:3px;background-color:#b8862a;font-size:0;line-height:0;">&nbsp;</td></tr>
 
 </table>
 </td></tr>
