@@ -104,10 +104,16 @@ const AdminGmailSupport = () => {
     }
   }, [filter]);
 
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchInboxStats = useCallback(async () => {
     try {
-      const data = await callGmailApi('unread_count');
-      setUnreadCount(data.count || 0);
+      const data = await callGmailApi('inbox_stats');
+      setInboxStats({
+        total: data.total || 0,
+        unread: data.unread || 0,
+        read: data.read || 0,
+        starred: data.starred || 0,
+      });
+      setUnreadCount(data.unread || 0);
     } catch {
       // Silently fail
     }
