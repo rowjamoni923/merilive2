@@ -60,10 +60,36 @@ export default function AdminCsaDiamondSettings() {
         _notes: s.notes || null,
       });
       if (error) throw error;
+      // Bonus fields — direct table update (admin RLS allows)
+      const { error: e2 } = await supabase
+        .from("csa_diamond_settings" as any)
+        .update({
+          withdrawal_bonus_rate_percent: Number(s.withdrawal_bonus_rate_percent),
+          withdrawal_bonus_enabled: s.withdrawal_bonus_enabled,
+          bonus_trigger_status: s.bonus_trigger_status,
+        } as any)
+        .eq("id", 1);
+      if (e2) throw e2;
       toast.success("Settings saved — applies to all countries instantly");
       load();
     } catch (e: any) {
       toast.error(e?.message || "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runBackfill = async () => {
+    if (!confirm("Backfill bonuses for ALL approved withdrawals (already-credited ones are skipped). Continue?")) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("admin_backfill_csa_bonuses" as any, { _country: null });
+      if (error) throw error;
+      const r = data as any;
+      toast.success(`Scanned ${r?.scanned || 0} withdrawals · Credited ${r?.credited || 0} new bonuses`);
+      load();
+    } catch (e: any) {
+      toast.error(e?.message || "Backfill failed");
     } finally {
       setBusy(false);
     }
