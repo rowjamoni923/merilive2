@@ -5,9 +5,11 @@
 
 - **Research note:** BIGO describes agencies as operators that recruit/manage broadcasters, so owner/admin agency panels must retain agency records even when an agency becomes inactive/closed for operational review. Source: https://www.bigo.tv/blog/bigo-live-agency
 - **Research note:** Professional live agency tooling emphasizes roster/bonus/retention visibility across the whole managed roster, not hiding inactive business records. Source: https://streampace.io/agencies
+- **Research note:** BIGO agency/portal systems separate agency operators from normal users and rely on portal-level permissions, so owner/admin-console sessions must be authorized by the admin session layer, not only end-user auth. Source: https://bigoads.com/help/detail?currentLan=EN&id=74&moduleId=11
 - **Verified DB numbers:** current database has **4 closed agencies**, **1 pending agency**, and **2 active official agencies**. The closed rows have `activation_status='closed'`, `is_active=false`, `is_blocked=true`.
 - **Gap found:** the admin page's **Closed / Cancelled / Inactive** filter was only loading `is_active=false` agencies that were **not** `activation_status='closed'`, so all real closed agencies were hidden from that filter even though the badge counted them.
 - **Fix direction:** keep the dedicated **Closed** tab, but make the inactive filter include closed agencies too, label their status as **Closed**, and make reactivation call the proper `admin_reactivate_agency` RPC so the 30-day / 10-active-host window resets correctly.
+- **2026-06-24 permission gap:** screenshot shows `permission denied for function admin_search_closed_agencies`; DB confirmed the function granted only authenticated/service_role while the Owner Admin Console calls through the admin-session header path. Fix: grant anon execution but keep the RPC locked internally to `current_admin_id_from_header()` or real authenticated admin role, so public callers still receive `Admin only`.
 
 A new role — **Country Super Admin** — granted by main admin to an existing agency owner. Each CSA is locked to **one country only** and gets a separate luxurious dashboard (part of admin panel) to manage that country's deposit/withdrawal payment methods and view local volume.
 
