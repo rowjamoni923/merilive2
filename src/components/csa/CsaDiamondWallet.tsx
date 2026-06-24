@@ -53,6 +53,22 @@ export default function CsaDiamondWallet() {
 
   useEffect(() => { load(); }, []);
 
+  // Auto-popup when balance drops below visibility threshold (re-fires once per 6h)
+  useEffect(() => {
+    if (!summary) return;
+    if (summary.balance < summary.settings.visibility_threshold_diamonds) {
+      const last = Number(localStorage.getItem(LOW_BAL_DISMISS_KEY) || 0);
+      if (Date.now() - last > 6 * 60 * 60 * 1000) {
+        setLowBalOpen(true);
+      }
+    }
+  }, [summary]);
+
+  const dismissLowBal = () => {
+    localStorage.setItem(LOW_BAL_DISMISS_KEY, String(Date.now()));
+    setLowBalOpen(false);
+  };
+
   if (loading || !summary) {
     return <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-emerald-400" /></div>;
   }
