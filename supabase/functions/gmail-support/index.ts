@@ -723,7 +723,7 @@ Deno.serve(async (req) => {
 
     // Read-only actions only require an active admin session.
     // Mutating / outbound actions additionally require moderation-hub edit permission.
-    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read']);
+    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read', 'mark_thread_read', 'trash_thread']);
     const adminAuth = await requireAdminSession(req, adminClient, {
       sectionKey: mutatingActions.has(action) ? 'moderation-hub' : undefined,
       requireEdit: mutatingActions.has(action),
@@ -768,6 +768,8 @@ Deno.serve(async (req) => {
           params.imageName,
           params.imageMimeType,
         );
+        // Auto mark the thread as read after a successful reply
+        try { await markThreadRead(accessToken, params.threadId); } catch (_) {}
         break;
       }
 
@@ -778,8 +780,27 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case 'mark_thread_read': {
+        if (!params.threadId) throw new Error('threadId required');
+        await markThreadRead(accessToken, params.threadId);
+        result = { success: true };
+        break;
+      }
+
+      case 'trash_thread': {
+        if (!params.threadId) throw new Error('threadId required');
+        await trashThread(accessToken, params.threadId);
+        result = { success: true };
+        break;
+      }
+
       case 'unread_count': {
         result = { count: await getUnreadCount(accessToken) };
+        break;
+      }
+
+      case 'inbox_stats': {
+        result = await getInboxStats(accessToken);
         break;
       }
 
