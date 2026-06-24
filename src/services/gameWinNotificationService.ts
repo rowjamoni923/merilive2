@@ -2,9 +2,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 
 /**
- * Sends a game win notification to the party room chat
- * This notification appears in the chat area for all room participants to see
- * Includes user name, level, and formatted win amount
+ * Industry-standard (Chamet/Bigo/Poppo) win-broadcast guards.
+ *
+ *  - BIG_WIN_THRESHOLD: minimum net diamonds before a win is announced in chat.
+ *    Filters out trivial wins so the chat panel doesn't get spammed by every
+ *    1–50 diamond payout. Default 100 ≈ $3 USD (matches Chamet/Bigo Wishing
+ *    Pool floor).
+ *  - PER_USER_COOLDOWN_MS: same user can't fire another broadcast within
+ *    45s (Bigo P0/P1/P2 anti-spam standard). Memory-only — process-local;
+ *    server-side dedup is also in place via DB primary keys on chat rows.
+ *  - MEGA_WIN_THRESHOLD: jackpot tier (later: global ticker + chime).
+ */
+export const BIG_WIN_THRESHOLD = 100;
+export const MEGA_WIN_THRESHOLD = 10_000;
+const PER_USER_COOLDOWN_MS = 45_000;
+
+// Per-user last-broadcast timestamp (in-memory, resets on page reload — fine
+// because chat-row dedup also happens via DB row idempotency).
+const lastBroadcastAt = new Map<string, number>();
+
+/**
+ * Sends a game win notification to the room chat (party or live stream).
+ * Honors industry-standard threshold + per-user cooldown so trivial wins
+ * don't spam the chat panel.
  */
 export const sendGameWinNotification = async ({
   roomId,
@@ -32,6 +52,20 @@ export const sendGameWinNotification = async ({
 }) => {
   if (!roomId || !userId || winAmount <= 0) return;
   if (context === 'none') return;
+
+  // ── Industry guard #1: threshold ──
+  if (winAmount < BIG_WIN_THRESHOLD) {
+    return; // silent skip — small wins shown only in player's own win popup
+  }
+
+  // ── Industry guard #2: per-user cooldown ──
+  const now = Date.now();
+  const last = lastBroadcastAt.get(userId) ?? 0;
+  if (now - last < PER_USER_COOLDOWN_MS) {
+    return; // same user spamming spins — drop the noise
+  }
+  lastBroadcastAt.set(userId, now);
+
 
   try {
     const formatAmount = (amount: number): string => {
