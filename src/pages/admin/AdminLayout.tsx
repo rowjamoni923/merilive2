@@ -354,6 +354,13 @@ const navGroups: NavGroup[] = [
         description: "Master list of every agency — beans/diamond balance, hosts count, level, block/unblock actions.",
       },
       {
+        label: "Owner Approvals Hub",
+        icon: ShieldCheck,
+        path: "/admin/approvals",
+        hubKey: "agency-hub",
+        description: "Unified inbox for every financial / admin action queued by Sub-Admins, Support Admins, and Country Super Admins. Approve or reject in one place.",
+      },
+      {
         label: "Agency Policy",
         icon: FileText,
         path: "/admin/agency-policy",
