@@ -4156,6 +4156,7 @@ export type Database = {
           commission_percent: number
           country_code: string
           created_at: string
+          diamond_balance: number
           email: string
           expires_at: string | null
           id: string
@@ -4163,6 +4164,8 @@ export type Database = {
           notes: string | null
           revoked_at: string | null
           tenure_label: string | null
+          total_purchased_diamonds: number
+          total_spent_diamonds: number
           updated_at: string
           user_id: string
         }
@@ -4173,6 +4176,7 @@ export type Database = {
           commission_percent?: number
           country_code: string
           created_at?: string
+          diamond_balance?: number
           email: string
           expires_at?: string | null
           id?: string
@@ -4180,6 +4184,8 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           tenure_label?: string | null
+          total_purchased_diamonds?: number
+          total_spent_diamonds?: number
           updated_at?: string
           user_id: string
         }
@@ -4190,6 +4196,7 @@ export type Database = {
           commission_percent?: number
           country_code?: string
           created_at?: string
+          diamond_balance?: number
           email?: string
           expires_at?: string | null
           id?: string
@@ -4197,6 +4204,8 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           tenure_label?: string | null
+          total_purchased_diamonds?: number
+          total_spent_diamonds?: number
           updated_at?: string
           user_id?: string
         }
@@ -4216,6 +4225,158 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      csa_diamond_ledger: {
+        Row: {
+          balance_after: number | null
+          change_amount: number
+          country_code: string
+          created_at: string
+          csa_user_id: string | null
+          id: string
+          notes: string | null
+          reason: string
+          related_helper_id: string | null
+          related_helper_order_id: string | null
+          related_purchase_id: string | null
+          related_user_id: string | null
+        }
+        Insert: {
+          balance_after?: number | null
+          change_amount: number
+          country_code: string
+          created_at?: string
+          csa_user_id?: string | null
+          id?: string
+          notes?: string | null
+          reason: string
+          related_helper_id?: string | null
+          related_helper_order_id?: string | null
+          related_purchase_id?: string | null
+          related_user_id?: string | null
+        }
+        Update: {
+          balance_after?: number | null
+          change_amount?: number
+          country_code?: string
+          created_at?: string
+          csa_user_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string
+          related_helper_id?: string | null
+          related_helper_order_id?: string | null
+          related_purchase_id?: string | null
+          related_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csa_diamond_ledger_related_purchase_id_fkey"
+            columns: ["related_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "csa_diamond_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csa_diamond_purchases: {
+        Row: {
+          agency_id: string | null
+          amount_usd: number
+          country_code: string
+          created_at: string
+          credited_at: string | null
+          credited_by: string | null
+          csa_user_id: string
+          diamonds_per_usd_snapshot: number
+          diamonds_to_credit: number
+          gateway: string | null
+          gateway_payload: Json | null
+          gateway_ref: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id?: string | null
+          amount_usd: number
+          country_code: string
+          created_at?: string
+          credited_at?: string | null
+          credited_by?: string | null
+          csa_user_id: string
+          diamonds_per_usd_snapshot: number
+          diamonds_to_credit: number
+          gateway?: string | null
+          gateway_payload?: Json | null
+          gateway_ref?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string | null
+          amount_usd?: number
+          country_code?: string
+          created_at?: string
+          credited_at?: string | null
+          credited_by?: string | null
+          csa_user_id?: string
+          diamonds_per_usd_snapshot?: number
+          diamonds_to_credit?: number
+          gateway?: string | null
+          gateway_payload?: Json | null
+          gateway_ref?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      csa_diamond_settings: {
+        Row: {
+          auto_credit_on_payment: boolean
+          created_at: string
+          diamonds_per_usd: number
+          id: number
+          min_purchase_usd: number
+          notes: string | null
+          owner_fallback_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+          visibility_threshold_diamonds: number
+        }
+        Insert: {
+          auto_credit_on_payment?: boolean
+          created_at?: string
+          diamonds_per_usd?: number
+          id?: number
+          min_purchase_usd?: number
+          notes?: string | null
+          owner_fallback_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          visibility_threshold_diamonds?: number
+        }
+        Update: {
+          auto_credit_on_payment?: boolean
+          created_at?: string
+          diamonds_per_usd?: number
+          id?: number
+          min_purchase_usd?: number
+          notes?: string | null
+          owner_fallback_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          visibility_threshold_diamonds?: number
+        }
+        Relationships: []
       }
       csa_pending_actions: {
         Row: {
@@ -6393,11 +6554,13 @@ export type Database = {
         Row: {
           account_name: string | null
           account_number: string | null
+          added_by_csa: boolean
           additional_info: Json | null
           bank_name: string | null
           country_code: string
           country_name: string
           created_at: string | null
+          csa_user_id: string | null
           display_order: number | null
           helper_id: string | null
           icon_url: string | null
@@ -6413,11 +6576,13 @@ export type Database = {
         Insert: {
           account_name?: string | null
           account_number?: string | null
+          added_by_csa?: boolean
           additional_info?: Json | null
           bank_name?: string | null
           country_code: string
           country_name: string
           created_at?: string | null
+          csa_user_id?: string | null
           display_order?: number | null
           helper_id?: string | null
           icon_url?: string | null
@@ -6433,11 +6598,13 @@ export type Database = {
         Update: {
           account_name?: string | null
           account_number?: string | null
+          added_by_csa?: boolean
           additional_info?: Json | null
           bank_name?: string | null
           country_code?: string
           country_name?: string
           created_at?: string | null
+          csa_user_id?: string | null
           display_order?: number | null
           helper_id?: string | null
           icon_url?: string | null
@@ -18157,6 +18324,14 @@ export type Database = {
         Args: { _log_id: string; _notes?: string }
         Returns: Json
       }
+      admin_credit_csa_diamonds: {
+        Args: {
+          _gateway_payload?: Json
+          _gateway_ref?: string
+          _purchase_id: string
+        }
+        Returns: Json
+      }
       admin_delete_agency_policy: {
         Args: { _admin_id: string; _id: string }
         Returns: undefined
@@ -18203,6 +18378,27 @@ export type Database = {
           total_win_amount: number
           total_wins: number
         }[]
+      }
+      admin_get_csa_diamond_settings: {
+        Args: never
+        Returns: {
+          auto_credit_on_payment: boolean
+          created_at: string
+          diamonds_per_usd: number
+          id: number
+          min_purchase_usd: number
+          notes: string | null
+          owner_fallback_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+          visibility_threshold_diamonds: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "csa_diamond_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_get_my_admin_user: {
         Args: never
@@ -19712,6 +19908,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_upsert_csa_diamond_settings: {
+        Args: {
+          _auto_credit_on_payment: boolean
+          _diamonds_per_usd: number
+          _min_purchase_usd: number
+          _notes?: string
+          _owner_fallback_enabled: boolean
+          _visibility_threshold_diamonds: number
+        }
+        Returns: undefined
+      }
       admin_upsert_party_background:
         | {
             Args: {
@@ -20396,9 +20603,28 @@ export type Database = {
       }
       csa_country_kpis: { Args: never; Returns: Json }
       csa_country_overview: { Args: never; Returns: Json }
+      csa_create_diamond_purchase: {
+        Args: { _amount_usd: number; _gateway?: string }
+        Returns: Json
+      }
+      csa_debit_for_helper_topup: {
+        Args: {
+          _country_code: string
+          _diamonds: number
+          _helper_id: string
+          _helper_order_id?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       csa_delete_topup_method: { Args: { _id: string }; Returns: string }
       csa_delete_withdrawal_method: { Args: { _id: string }; Returns: string }
+      csa_get_country_payment_visibility: {
+        Args: { _country_code: string }
+        Returns: string
+      }
       csa_get_my_context: { Args: never; Returns: Json }
+      csa_my_diamond_summary: { Args: never; Returns: Json }
       csa_review_agency_withdrawal: {
         Args: { _decision: string; _id: string; _notes: string }
         Returns: string
