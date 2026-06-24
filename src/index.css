@@ -945,12 +945,27 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   html.native-face-camera-active,
   body.native-face-camera-active,
+  html.native-face-camera-active #root,
+  body.native-face-camera-active #root,
   html.native-media-active,
   body.native-media-active,
   html.lk-camera-live,
   body.lk-camera-live,
   html.lk-camera-live #root,
   body.lk-camera-live #root {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Native Face Verification CameraX preview is mounted behind the Capacitor
+     WebView, same as LiveKit native media. Keep every route/page shell
+     transparent while that mode is active; otherwise an opaque fixed wrapper
+     can cover the real camera and users see a white/cream screen instead of
+     their face. */
+  body.native-face-camera-active [data-face-verification-shell],
+  body.native-face-camera-active [data-face-verification-scroll],
+  body.native-face-camera-active main,
+  body.native-face-camera-active video {
     background: transparent !important;
     background-color: transparent !important;
   }

@@ -1,11 +1,6 @@
-/**
- * useProCamera — STUB (Step 1 rebuild, 2026-06-14).
- *
- * Always returns `ready: true` with no error. The new simple LiveKit
- * plugin (Step 2) needs no per-feature acquisition because there is
- * only one camera path.
- */
+import { useEffect, useState } from 'react';
 import type { CameraConflictError, ProCameraOwner } from './ProCameraEngine';
+import { ProCameraEngine } from './ProCameraEngine';
 
 export interface UseProCameraResult {
   ready: boolean;
@@ -13,11 +8,28 @@ export interface UseProCameraResult {
   release: () => void;
 }
 
-export function useProCamera(_owner: ProCameraOwner, _enabled: boolean = true): UseProCameraResult {
+export function useProCamera(owner: ProCameraOwner, enabled: boolean = true): UseProCameraResult {
+  const [error, setError] = useState<CameraConflictError | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setError(null);
+      return;
+    }
+
+    try {
+      ProCameraEngine.acquire(owner);
+      setError(null);
+      return () => ProCameraEngine.release(owner);
+    } catch (err) {
+      setError(err instanceof Error && err.name === 'CameraConflictError' ? err as CameraConflictError : null);
+    }
+  }, [owner, enabled]);
+
   return {
-    ready: true,
-    error: null,
-    release: () => undefined,
+    ready: enabled ? !error : true,
+    error,
+    release: () => ProCameraEngine.release(owner),
   };
 }
 
