@@ -12,6 +12,9 @@ interface Summary {
   balance: number;
   total_purchased: number;
   total_spent: number;
+  total_bonus: number;
+  bonus_this_month: number;
+  bonus_usd_this_month: number;
   country_code: string;
   visibility_now: "csa" | "official";
   settings: {
@@ -20,6 +23,8 @@ interface Summary {
     visibility_threshold_diamonds: number;
     owner_fallback_enabled: boolean;
     auto_credit_on_payment: boolean;
+    withdrawal_bonus_rate_percent: number;
+    withdrawal_bonus_enabled: boolean;
   };
 }
 
