@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, RefreshCw, Ban, Loader2, Building2, User } from "lucide-react";
+import { Search, RefreshCw, Ban, Loader2, Building2, User, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CopyableUid } from "@/components/admin/CopyableUid";
@@ -28,6 +28,22 @@ export default function ClosedAgenciesTab() {
   const [items, setItems] = useState<ClosedAgency[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+
+  const reactivate = useCallback(async (id: string, name: string) => {
+    if (!confirm(`Reactivate "${name}"? Owner gets a fresh 30-day window to activate 10 hosts.`)) return;
+    setReactivatingId(id);
+    try {
+      const { error } = await supabase.rpc("admin_reactivate_agency", { _agency_id: id });
+      if (error) throw error;
+      toast.success(`${name} reactivated`);
+      setItems((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to reactivate");
+    } finally {
+      setReactivatingId(null);
+    }
+  }, []);
 
   const load = useCallback(async (q: string = "") => {
     setLoading(true);
@@ -153,6 +169,20 @@ export default function ClosedAgenciesTab() {
                     {a.closed_reason || "Failed to activate 10 hosts within 30 days."}
                   </p>
                 </div>
+
+                <Button
+                  size="sm"
+                  onClick={() => reactivate(a.id, a.name)}
+                  disabled={reactivatingId === a.id}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {reactivatingId === a.id ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                  )}
+                  Reactivate Agency
+                </Button>
               </CardContent>
             </Card>
           ))}

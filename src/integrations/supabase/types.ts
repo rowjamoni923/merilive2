@@ -19106,6 +19106,10 @@ export type Database = {
         Args: { _agency_id: string }
         Returns: Json
       }
+      admin_reactivate_agency: {
+        Args: { _agency_id: string }
+        Returns: undefined
+      }
       admin_realtime_publication_status: {
         Args: never
         Returns: {
