@@ -32,6 +32,8 @@ interface Props {
   userCustomLabel?: string | null;
   /** "helper_application" (default, server enforces $100 crypto floor) | "campaign" (no floor — mirrors My Diamond package flow) */
   userCustomPurpose?: "helper_application" | "campaign";
+  /** When purpose=campaign, the explicit campaign id to redeem (server validates dedup). */
+  campaignId?: string | null;
   /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number, topupId?: string) => void;
   /** Pkg433: when set, the deposit row stores this intent so the swift-pay-poll-deposits
@@ -143,6 +145,7 @@ export default function SwiftPayDepositModal({
   userCustomPriceUsd = null,
   userCustomLabel = null,
   userCustomPurpose = "helper_application",
+  campaignId = null,
   onCredited,
   helperApplicationIntent = null,
 
@@ -228,6 +231,9 @@ export default function SwiftPayDepositModal({
           requestBody.custom_coins = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
           requestBody.purpose = userCustomPurpose;
+          if (userCustomPurpose === "campaign" && campaignId) {
+            requestBody.campaign_id = campaignId;
+          }
           if (helperApplicationIntent) {
             requestBody.helper_application_intent = helperApplicationIntent;
           }

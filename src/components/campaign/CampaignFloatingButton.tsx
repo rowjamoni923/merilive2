@@ -1538,6 +1538,7 @@ function CampaignFloatingButton() {
           userCustomPriceUsd={campaign.offer_price_usd || campaign.original_price_usd}
           userCustomLabel={campaign.campaign_name}
           userCustomPurpose="campaign"
+          campaignId={campaign.id}
 
           onCredited={() => {
             localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
