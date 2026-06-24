@@ -27,6 +27,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import DOMPurify from "dompurify";
 import UserSupportTool from "@/components/admin/UserSupportTool";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
+import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";
 
 interface GmailMessage {
   id: string;
@@ -789,6 +790,13 @@ const AdminGmailSupport = () => {
                     <Paperclip className="h-3 w-3 mr-1" />
                     Attach
                   </Button>
+                  <PolicyLinkPicker
+                    size="sm"
+                    label="Policy"
+                    onInsert={(snippet) =>
+                      setReplyBody((prev) => (prev ? `${prev}\n\n${snippet}` : snippet))
+                    }
+                  />
                 </div>
               </div>
             )}

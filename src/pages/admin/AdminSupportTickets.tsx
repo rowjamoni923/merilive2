@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
+import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";
 import SupportReportDialog from "@/components/admin/SupportReportDialog";
 import { ShieldAlert } from "lucide-react";
 
@@ -1785,6 +1786,14 @@ const AdminSupportTickets = () => {
                       }}
                     />
                   </div>
+                  <PolicyLinkPicker
+                    size="sm"
+                    label=""
+                    className="h-12 w-12 rounded-xl p-0 justify-center"
+                    onInsert={(snippet) =>
+                      setReplyMessage((prev) => (prev ? `${prev}\n\n${snippet}` : snippet))
+                    }
+                  />
                   <Button
                     onClick={handleSendReply}
                     disabled={sending || !replyMessage.trim() || isTranslating}

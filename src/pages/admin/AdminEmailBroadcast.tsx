@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";
 import { useBroadcastTemplates, type BroadcastTemplate } from "@/hooks/useBroadcastTemplates";
 
 type TargetAudience = 'all' | 'active' | 'hosts' | 'custom';
@@ -178,7 +179,15 @@ const AdminEmailBroadcast = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1.5 block">HTML Content</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium">HTML Content</label>
+              <PolicyLinkPicker
+                format="html"
+                onInsert={(snippet) =>
+                  setHtmlContent((prev) => (prev ? `${prev}\n\n<p>${snippet}</p>` : `<p>${snippet}</p>`))
+                }
+              />
+            </div>
             <Textarea value={htmlContent} onChange={(e) => setHtmlContent(e.target.value)} placeholder="Paste HTML email content here..." rows={16} className="font-mono text-xs" />
           </div>
 

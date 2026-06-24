@@ -11437,6 +11437,54 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_documents: {
+        Row: {
+          accent_hex: string | null
+          banner_path: string | null
+          body_md: string
+          created_at: string
+          id: string
+          is_published: boolean
+          level_code: string
+          level_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          accent_hex?: string | null
+          banner_path?: string | null
+          body_md: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          level_code: string
+          level_order: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          accent_hex?: string | null
+          banner_path?: string | null
+          body_md?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          level_code?: string
+          level_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       popup_event_banners: {
         Row: {
           animation_config_url: string | null
@@ -20027,6 +20075,19 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      admin_upsert_policy_document: {
+        Args: {
+          _accent_hex: string
+          _banner_path: string
+          _body_md: string
+          _is_published?: boolean
+          _level_code: string
+          _level_order: number
+          _subtitle: string
+          _title: string
+        }
+        Returns: string
+      }
       admin_upsert_topup_helper: { Args: { _user_id: string }; Returns: Json }
       admin_user_stats: { Args: never; Returns: Json }
       admin_visual_assets_stats: { Args: never; Returns: Json }
