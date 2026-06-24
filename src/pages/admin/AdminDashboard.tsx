@@ -538,6 +538,16 @@ export default function AdminDashboard() {
           delay={0.5}
           link="/admin/recharge-history"
         />
+        <StatCard
+          title="Crypto Recovery"
+          value="Open"
+          icon={AlertTriangle}
+          accentFrom="from-orange-500"
+          accentTo="to-rose-400"
+          glowColor="#fb923c"
+          delay={0.52}
+          link="/admin/crypto-recovery"
+        />
       </div>
 
       {/* ━━━ COMPANY FINANCE — Today ━━━ */}
