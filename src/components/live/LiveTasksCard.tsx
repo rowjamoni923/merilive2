@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Radio, Clock, Users, Gift, MessageCircle, Check, Sparkles, ChevronRight, Zap } from "lucide-react";
+import { Star, Radio, Clock, Users, Gift, MessageCircle, Check, Sparkles, ChevronRight, Zap, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTaskDate, getMsUntilNextReset, getMsUntilNextHour } from "@/utils/taskDateUtils";
 import { toast } from "sonner";
 import BeansIcon from "@/components/common/BeansIcon";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
+
 
 interface LiveTask {
   id: string;
