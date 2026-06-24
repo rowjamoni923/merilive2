@@ -19936,11 +19936,14 @@ export type Database = {
       admin_upsert_csa_diamond_settings: {
         Args: {
           _auto_credit_on_payment: boolean
+          _bonus_trigger_status?: string
           _diamonds_per_usd: number
           _min_purchase_usd: number
           _notes?: string
           _owner_fallback_enabled: boolean
           _visibility_threshold_diamonds: number
+          _withdrawal_bonus_enabled?: boolean
+          _withdrawal_bonus_rate_percent?: number
         }
         Returns: undefined
       }

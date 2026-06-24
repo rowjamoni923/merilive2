@@ -58,18 +58,11 @@ export default function AdminCsaDiamondSettings() {
         _owner_fallback_enabled: s.owner_fallback_enabled,
         _auto_credit_on_payment: s.auto_credit_on_payment,
         _notes: s.notes || null,
+        _withdrawal_bonus_rate_percent: Number(s.withdrawal_bonus_rate_percent),
+        _withdrawal_bonus_enabled: s.withdrawal_bonus_enabled,
+        _bonus_trigger_status: s.bonus_trigger_status,
       });
       if (error) throw error;
-      // Bonus fields — direct table update (admin RLS allows)
-      const { error: e2 } = await supabase
-        .from("csa_diamond_settings" as any)
-        .update({
-          withdrawal_bonus_rate_percent: Number(s.withdrawal_bonus_rate_percent),
-          withdrawal_bonus_enabled: s.withdrawal_bonus_enabled,
-          bonus_trigger_status: s.bonus_trigger_status,
-        } as any)
-        .eq("id", 1);
-      if (e2) throw e2;
       toast.success("Settings saved — applies to all countries instantly");
       load();
     } catch (e: any) {
