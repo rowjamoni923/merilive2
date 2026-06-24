@@ -1013,6 +1013,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_blocked: boolean | null
+          is_country_super_admin: boolean
           is_official: boolean
           level: string | null
           logo_url: string | null
@@ -1043,6 +1044,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_blocked?: boolean | null
+          is_country_super_admin?: boolean
           is_official?: boolean
           level?: string | null
           logo_url?: string | null
@@ -1073,6 +1075,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_blocked?: boolean | null
+          is_country_super_admin?: boolean
           is_official?: boolean
           level?: string | null
           logo_url?: string | null
@@ -4132,6 +4135,69 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      country_super_admins: {
+        Row: {
+          agency_id: string
+          assigned_at: string
+          assigned_by: string | null
+          commission_percent: number
+          country_code: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          assigned_at?: string
+          assigned_by?: string | null
+          commission_percent?: number
+          country_code: string
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_id?: string
+          assigned_at?: string
+          assigned_by?: string | null
+          commission_percent?: number
+          country_code?: string
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_super_admins_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "country_super_admins_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       currency_rates: {
         Row: {
@@ -14695,6 +14761,7 @@ export type Database = {
           icon_url: string | null
           id: string
           is_active: boolean | null
+          is_recommended: boolean
           logo_url: string | null
           method_type: string
           name: string
@@ -14712,6 +14779,7 @@ export type Database = {
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_recommended?: boolean
           logo_url?: string | null
           method_type: string
           name: string
@@ -14729,6 +14797,7 @@ export type Database = {
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_recommended?: boolean
           logo_url?: string | null
           method_type?: string
           name?: string
@@ -18069,6 +18138,16 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_grant_country_super_admin: {
+        Args: {
+          _agency_id: string
+          _commission_percent?: number
+          _country_code: string
+          _email: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       admin_has_any_section_permission: {
         Args: { _require_edit?: boolean; _section_keys: string[] }
         Returns: boolean
@@ -19198,6 +19277,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_revoke_country_super_admin: {
+        Args: { _agency_id: string }
+        Returns: undefined
+      }
       admin_revoke_device: {
         Args: { _device_id: string; _owner_admin_id: string; _reason?: string }
         Returns: Json
@@ -20185,6 +20268,44 @@ export type Database = {
           _source_type: string
         }
         Returns: undefined
+      }
+      csa_country_kpis: { Args: never; Returns: Json }
+      csa_delete_topup_method: { Args: { _id: string }; Returns: undefined }
+      csa_delete_withdrawal_method: {
+        Args: { _id: string }
+        Returns: undefined
+      }
+      csa_get_my_context: { Args: never; Returns: Json }
+      csa_upsert_topup_method: {
+        Args: {
+          _account_name: string
+          _display_order: number
+          _icon_url: string
+          _id: string
+          _is_active: boolean
+          _is_recommended: boolean
+          _logo_url: string
+          _method_type: string
+          _name: string
+          _payment_instructions: string
+          _payment_number: string
+        }
+        Returns: string
+      }
+      csa_upsert_withdrawal_method: {
+        Args: {
+          _account_name: string
+          _account_number: string
+          _bank_name: string
+          _display_order: number
+          _id: string
+          _instructions: string
+          _is_active: boolean
+          _logo_url: string
+          _method_name: string
+          _method_type: string
+        }
+        Returns: string
       }
       current_admin_has_section_access: {
         Args: { _require_edit?: boolean; _section_key: string }
@@ -21985,7 +22106,7 @@ export type Database = {
         | "rejected"
         | "revoked"
       admin_role: "owner" | "sub_admin"
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "country_super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -22121,7 +22242,7 @@ export const Constants = {
         "revoked",
       ],
       admin_role: ["owner", "sub_admin"],
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "country_super_admin"],
     },
   },
 } as const
