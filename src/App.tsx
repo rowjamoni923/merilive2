@@ -1219,6 +1219,8 @@ const App = () => {
                 <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/csa-login" element={<CsaLogin />} />
+                <Route path="/country-admin" element={<CountryAdminDashboard />} />
                 <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                 <Route path="/" element={
                   session
