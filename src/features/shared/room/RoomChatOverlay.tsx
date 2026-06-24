@@ -317,8 +317,25 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         ],
       )}
     >
-      {/* Pro-app style: NO inline avatar in chat row (Bigo/Chamet/Olamet pattern).
-          Identity is conveyed by Level badge + colored username instead. */}
+      {/* Pro-app style: NO inline avatar in normal chat row (Bigo/Chamet/Olamet pattern).
+          Identity is conveyed by Level badge + colored username.
+          EXCEPTION: Game-win messages render the winner's avatar + equipped frame,
+          matching the entry/welcome banner style the user explicitly requested. */}
+      {isGameWinMessage && gameWinData && (
+        <div className="shrink-0">
+          <AvatarWithFrame
+            userId={gameWinData.userId}
+            src={gameWinData.avatarUrl || getDisplayAvatar(gameWinData.userName)}
+            name={gameWinData.userName}
+            level={ensureValidLevel(gameWinData.userLevel)}
+            size="xs"
+            showFrame={true}
+            showAnimation={ensureValidLevel(gameWinData.userLevel) >= 10}
+          />
+        </div>
+      )}
+
+
 
 
       {/* HOST Badge */}
