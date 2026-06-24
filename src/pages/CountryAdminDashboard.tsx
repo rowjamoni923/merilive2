@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles } from "lucide-react";
+import { Loader2, Crown, LogOut, Plus, Star, StarOff, Trash2, Edit, ArrowDownToLine, ArrowUpFromLine, Wallet, Package, Sparkles, Building2, Users, Mic2, HeartHandshake, Film, Radio } from "lucide-react";
 import { toast } from "sonner";
 
 interface CsaContext {
@@ -27,6 +27,21 @@ interface Kpis {
   active_topup_methods: number;
   active_withdrawal_methods: number;
 }
+interface CountryOverview {
+  country_code: string;
+  agencies_total: number;
+  agencies_active: number;
+  hosts_total: number;
+  users_total: number;
+  helpers_total: number;
+  helpers_l1: number;
+  helpers_l2: number;
+  helpers_l3: number;
+  helpers_l4: number;
+  helpers_l5: number;
+  reels_total: number;
+  lives_live_now: number;
+}
 
 const countryName = (code: string) => ({
   BD: "Bangladesh", IN: "India", PK: "Pakistan", ID: "Indonesia",
@@ -44,6 +59,7 @@ export default function CountryAdminDashboard() {
   const navigate = useNavigate();
   const [ctx, setCtx] = useState<CsaContext | null>(null);
   const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [overview, setOverview] = useState<CountryOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [topupMethods, setTopupMethods] = useState<any[]>([]);
   const [wdMethods, setWdMethods] = useState<any[]>([]);
@@ -62,12 +78,14 @@ export default function CountryAdminDashboard() {
       const context = c as unknown as CsaContext;
       setCtx(context);
 
-      const [{ data: k }, { data: tu }, { data: wd }] = await Promise.all([
+      const [{ data: k }, { data: ov }, { data: tu }, { data: wd }] = await Promise.all([
         supabase.rpc("csa_country_kpis"),
+        supabase.rpc("csa_country_overview" as any),
         supabase.from("topup_payment_methods").select("*").contains("country_codes", [context.country_code]).order("display_order"),
         supabase.from("helper_country_payment_methods").select("*").eq("country_code", context.country_code).order("display_order"),
       ]);
       setKpis(k as unknown as Kpis);
+      setOverview(ov as unknown as CountryOverview);
       setTopupMethods(tu || []);
       setWdMethods(wd || []);
     } catch (e) {
@@ -164,6 +182,38 @@ export default function CountryAdminDashboard() {
             <KpiCard icon={<ArrowUpFromLine className="w-5 h-5" />} label="Withdrawals (MTD)" value={`$${kpis.month_withdraw_usd.toFixed(2)}`} accent="from-rose-500 to-red-600" />
             <KpiCard icon={<Wallet className="w-5 h-5" />} label="Pending Top-ups" value={kpis.pending_topups} accent="from-amber-500 to-yellow-600" />
             <KpiCard icon={<Package className="w-5 h-5" />} label="Pending Withdrawals" value={kpis.pending_withdrawals} accent="from-violet-500 to-purple-600" />
+          </div>
+        )}
+
+        {/* Country overview */}
+        {overview && (
+          <div>
+            <p className="text-xs uppercase tracking-widest text-amber-300/70 font-semibold mb-2">My Country at a glance</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <KpiCard icon={<Building2 className="w-5 h-5" />} label="Agencies" value={`${overview.agencies_active} / ${overview.agencies_total}`} accent="from-cyan-500 to-blue-600" />
+              <KpiCard icon={<Mic2 className="w-5 h-5" />} label="Hosts" value={overview.hosts_total} accent="from-pink-500 to-rose-600" />
+              <KpiCard icon={<Users className="w-5 h-5" />} label="Total Users" value={overview.users_total} accent="from-indigo-500 to-violet-600" />
+              <KpiCard icon={<HeartHandshake className="w-5 h-5" />} label="Helpers" value={overview.helpers_total} accent="from-amber-500 to-yellow-600" />
+              <KpiCard icon={<Radio className="w-5 h-5" />} label="Live Now" value={overview.lives_live_now} accent="from-red-500 to-orange-600" />
+              <KpiCard icon={<Film className="w-5 h-5" />} label="Reels" value={overview.reels_total} accent="from-fuchsia-500 to-purple-600" />
+            </div>
+            <Card className="bg-slate-900/60 border-amber-500/20 p-4 mt-3">
+              <p className="text-xs text-white/50 mb-2">Helpers by Level</p>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { n: 1, v: overview.helpers_l1 },
+                  { n: 2, v: overview.helpers_l2 },
+                  { n: 3, v: overview.helpers_l3 },
+                  { n: 4, v: overview.helpers_l4 },
+                  { n: 5, v: overview.helpers_l5 },
+                ].map(({ n, v }) => (
+                  <div key={n} className="rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/15 p-3 text-center">
+                    <p className="text-[10px] text-amber-300/70 uppercase tracking-wider">Level {n}</p>
+                    <p className="text-2xl font-bold mt-0.5 bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">{v}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
         )}
 

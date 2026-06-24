@@ -49,10 +49,29 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(generatePassword());
   const [commission, setCommission] = useState("0");
+  const [tenure, setTenure] = useState<"permanent" | "6m" | "1y" | "2y" | "custom">("permanent");
+  const [customDate, setCustomDate] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [granted, setGranted] = useState(false);
   const loginUrl = `${window.location.origin}/csa-login`;
+
+  const computeExpiry = (): string | null => {
+    if (tenure === "permanent") return null;
+    if (tenure === "custom") return customDate ? new Date(customDate).toISOString() : null;
+    const d = new Date();
+    if (tenure === "6m") d.setMonth(d.getMonth() + 6);
+    if (tenure === "1y") d.setFullYear(d.getFullYear() + 1);
+    if (tenure === "2y") d.setFullYear(d.getFullYear() + 2);
+    return d.toISOString();
+  };
+  const tenureLabelText = (): string => {
+    if (tenure === "permanent") return "Permanent";
+    if (tenure === "6m") return "6 Months";
+    if (tenure === "1y") return "1 Year";
+    if (tenure === "2y") return "2 Years";
+    return "Custom";
+  };
 
   const submit = async () => {
     if (!ownerUserId) {
@@ -79,16 +98,22 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
       const csaUserId = created.user_id as string;
 
       // 2. Grant CSA via RPC
+      const expiresAt = computeExpiry();
+      if (tenure === "custom" && !expiresAt) {
+        throw new Error("Pick a custom expiry date");
+      }
       const { error } = await supabase.rpc("admin_grant_country_super_admin", {
         _agency_id: agencyId,
         _user_id: csaUserId,
         _email: email.trim().toLowerCase(),
         _country_code: country,
         _commission_percent: Number(commission) || 0,
-      });
+        _expires_at: expiresAt,
+        _tenure_label: tenureLabelText(),
+      } as any);
       if (error) throw error;
 
-      toast.success(`${agencyName} is now Country Super Admin for ${country}`);
+      toast.success(`${agencyName} is CSA for ${country} · ${tenureLabelText()}`);
       setGranted(true);
       onGranted?.();
     } catch (e) {
@@ -199,6 +224,28 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
               <Label className="text-white/80 text-xs">Commission % (optional)</Label>
               <Input type="number" step="0.1" min="0" max="100" value={commission}
                 onChange={(e) => setCommission(e.target.value)} className="bg-slate-800 border-slate-700" />
+            </div>
+            <div>
+              <Label className="text-white/80 text-xs">Tenure / Validity</Label>
+              <Select value={tenure} onValueChange={(v) => setTenure(v as any)}>
+                <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectItem value="permanent">♾ Permanent (never expires)</SelectItem>
+                  <SelectItem value="6m">6 Months</SelectItem>
+                  <SelectItem value="1y">1 Year</SelectItem>
+                  <SelectItem value="2y">2 Years</SelectItem>
+                  <SelectItem value="custom">Custom date…</SelectItem>
+                </SelectContent>
+              </Select>
+              {tenure === "custom" && (
+                <Input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)}
+                  className="bg-slate-800 border-slate-700 mt-2" min={new Date().toISOString().slice(0,10)} />
+              )}
+              <p className="text-[10px] text-white/40 mt-1">
+                {tenure === "permanent"
+                  ? "CSA power will not auto-expire. Owner can revoke any time."
+                  : `Auto-revokes after tenure ends. Owner can extend/re-grant any time.`}
+              </p>
             </div>
           </div>
         )}

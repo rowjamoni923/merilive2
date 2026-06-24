@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, RefreshCw, Ban, Loader2, Building2, User, RotateCcw } from "lucide-react";
+import { Search, RefreshCw, Ban, Loader2, Building2, User, RotateCcw, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CopyableUid } from "@/components/admin/CopyableUid";
@@ -29,6 +29,7 @@ export default function ClosedAgenciesTab() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+  const [permanentId, setPermanentId] = useState<string | null>(null);
 
   const reactivate = useCallback(async (id: string, name: string) => {
     if (!confirm(`Reactivate "${name}"? Owner gets a fresh 30-day window to activate 10 hosts.`)) return;
@@ -42,6 +43,24 @@ export default function ClosedAgenciesTab() {
       toast.error(e?.message || "Failed to reactivate");
     } finally {
       setReactivatingId(null);
+    }
+  }, []);
+
+  const markPermanent = useCallback(async (id: string, name: string) => {
+    const reason = prompt(`Mark "${name}" as PERMANENT?\n\nIt will never auto-close, regardless of host count.\n\nOptional reason:`);
+    if (reason === null) return;
+    setPermanentId(id);
+    try {
+      const { error } = await supabase.rpc("admin_set_agency_permanent", {
+        _agency_id: id, _is_permanent: true, _reason: reason || null,
+      } as any);
+      if (error) throw error;
+      toast.success(`${name} is now permanent`);
+      setItems((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast.error(e?.message || "Failed");
+    } finally {
+      setPermanentId(null);
     }
   }, []);
 
@@ -170,19 +189,26 @@ export default function ClosedAgenciesTab() {
                   </p>
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={() => reactivate(a.id, a.name)}
-                  disabled={reactivatingId === a.id}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {reactivatingId === a.id ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                  )}
-                  Reactivate Agency
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => reactivate(a.id, a.name)}
+                    disabled={reactivatingId === a.id}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {reactivatingId === a.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-1" />}
+                    Reactivate
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => markPermanent(a.id, a.name)}
+                    disabled={permanentId === a.id}
+                    className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400"
+                  >
+                    {permanentId === a.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Shield className="w-4 h-4 mr-1" />}
+                    Make Permanent
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
