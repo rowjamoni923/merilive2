@@ -254,45 +254,61 @@ async function fetchThread(accessToken: string, threadId: string): Promise<Gmail
   });
 }
 
-// Generate branded reply HTML template
+// Generate branded reply HTML template — luxurious midnight + gold
 function generateReplyHtml(bodyText: string): string {
-  const logoUrl = 'https://merilive.lovable.app/images/merilive-logo.png';
+  const logoUrl = 'https://merilive.top/merilive-logo.png';
   const formattedBody = bodyText.replace(/\n/g, '<br/>');
-  
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f2f5;padding:30px 15px;">
+<body style="margin:0;padding:0;background:#0a0a14;font-family:'Georgia','Times New Roman',serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(160deg,#0a0a14 0%,#14101f 50%,#1a1226 100%);padding:48px 16px;">
 <tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#15101e 0%,#0f0a18 100%);border-radius:24px;overflow:hidden;border:1px solid rgba(201,168,76,0.28);box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(201,168,76,0.05) inset;">
 
-<!-- Logo Header -->
-<tr><td style="padding:28px 32px 16px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);">
-<img src="${logoUrl}" alt="MeriLive" width="56" height="56" style="border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.2);" />
-<p style="margin:10px 0 0;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">MeriLive Support</p>
+<!-- Gold hairline top -->
+<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+
+<!-- Header -->
+<tr><td style="padding:44px 40px 28px;text-align:center;background:radial-gradient(ellipse at top,rgba(201,168,76,0.12) 0%,transparent 70%);">
+<table role="presentation" align="center" cellpadding="0" cellspacing="0"><tr><td style="padding:6px;border-radius:22px;background:linear-gradient(135deg,#f0d78c 0%,#c9a84c 50%,#8a6d2e 100%);">
+<img src="${logoUrl}" alt="MeriLive" width="72" height="72" style="display:block;border-radius:18px;background:#0f0a18;" />
+</td></tr></table>
+<p style="margin:18px 0 4px;font-family:'Georgia','Times New Roman',serif;font-size:22px;font-weight:400;letter-spacing:4px;color:#f0d78c;text-transform:uppercase;">MeriLive</p>
+<p style="margin:0;font-size:11px;letter-spacing:6px;color:#c9a84c;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">— Support Concierge —</p>
 </td></tr>
 
-<!-- Message Body -->
-<tr><td style="padding:24px 32px;">
-<p style="margin:0;font-size:15px;color:#1f2937;line-height:1.7;">${formattedBody}</p>
+<!-- Divider ornament -->
+<tr><td style="padding:8px 40px 0;text-align:center;">
+<span style="display:inline-block;width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
+<span style="display:inline-block;color:#c9a84c;font-size:10px;margin:0 10px;vertical-align:middle;">◆</span>
+<span style="display:inline-block;width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);vertical-align:middle;"></span>
 </td></tr>
 
-<!-- Divider -->
-<tr><td style="padding:0 32px;"><div style="height:1px;background:#e5e7eb;"></div></td></tr>
+<!-- Body -->
+<tr><td style="padding:28px 44px 36px;">
+<p style="margin:0;font-family:'Georgia','Times New Roman',serif;font-size:16px;color:#e8e4d8;line-height:1.85;letter-spacing:0.2px;">${formattedBody}</p>
+</td></tr>
 
 <!-- Footer -->
-<tr><td style="padding:20px 32px;text-align:center;">
-<p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">
-With love from <strong style="color:#7c3aed;">MeriLive Support Team</strong> 💜
+<tr><td style="padding:24px 40px 36px;text-align:center;background:linear-gradient(180deg,transparent,rgba(201,168,76,0.04));border-top:1px solid rgba(201,168,76,0.18);">
+<p style="margin:0 0 12px;font-family:'Georgia',serif;font-size:13px;color:#a89878;letter-spacing:0.4px;font-style:italic;">
+With warmest regards,
 </p>
-<div style="margin-top:10px;">
-<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#a855f7;margin:0 2px;"></span>
-<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7c3aed;margin:0 2px;"></span>
-<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#6d28d9;margin:0 2px;"></span>
+<p style="margin:0;font-family:'Georgia',serif;font-size:15px;letter-spacing:2px;color:#f0d78c;text-transform:uppercase;">
+The MeriLive Concierge
+</p>
+<div style="margin:18px 0 0;">
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#f0d78c;margin:0 3px;opacity:0.7;"></span>
+<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
 </div>
-<p style="margin:8px 0 0;font-size:10px;color:#d1d5db;">© 2026 MeriLive. All rights reserved.</p>
+<p style="margin:18px 0 0;font-size:10px;color:#5a4f3a;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
 </td></tr>
+
+<!-- Gold hairline bottom -->
+<tr><td style="height:2px;background:linear-gradient(90deg,transparent 0%,#c9a84c 20%,#f0d78c 50%,#c9a84c 80%,transparent 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
 
 </table>
 </td></tr>
