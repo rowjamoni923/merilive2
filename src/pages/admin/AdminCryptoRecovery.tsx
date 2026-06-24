@@ -246,7 +246,7 @@ const AdminCryptoRecovery = () => {
                         </Badge>
                       </div>
                       <div className="text-xs text-white/60 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span>User: <CopyableUid uid={row.user_id} /></span>
+                        <span>User: <CopyableUid value={row.user_id} label="" /></span>
                         <span>Created: {format(new Date(row.created_at), "yyyy-MM-dd HH:mm")}</span>
                         {row.last_polled_at && <span>Last poll: {format(new Date(row.last_polled_at), "HH:mm")}</span>}
                         {row.credited_at && <span className="text-emerald-300">Credited: {format(new Date(row.credited_at), "yyyy-MM-dd HH:mm")}</span>}
