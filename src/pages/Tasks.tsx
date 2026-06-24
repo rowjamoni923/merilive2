@@ -65,8 +65,58 @@ const taskNavigationMap: Record<string, string> = {
   viewers: '/go-live',
   first_gift: '/go-live',
   messages_sent: '/chat',
+  // NEW — Do It routes for the previously broken types
+  followers: '/discover',     // grow follower count from discover/profile pages
+  watch_live: '/',            // homepage live tiles
+  send_gift: '/',             // homepage → tap any live → send gift
+  // share_app handled specially (native share / Play Store link), no navigation
   play_store_rating: 'play_store',
 };
+
+/**
+ * Trigger native share / clipboard fallback for the Share App task and
+ * report the tap to the server (idempotent — 1 credit per day).
+ */
+const handleShareAppTask = async () => {
+  const shareUrl = PLAY_STORE_URL;
+  const shareText = "Join me on MeriLive — live streams, parties & rewards!";
+  let shared = false;
+
+  try {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      await (navigator as any).share({
+        title: 'MeriLive',
+        text: shareText,
+        url: shareUrl,
+      });
+      shared = true;
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast.success('Link copied — share it with a friend!');
+      shared = true;
+    } else {
+      window.open(shareUrl, '_blank');
+      shared = true;
+    }
+  } catch (err: any) {
+    // User cancelled share sheet → don't credit
+    if (err?.name === 'AbortError') return;
+    console.warn('[Tasks] share error:', err);
+  }
+
+  if (shared) {
+    try {
+      await supabase.rpc('update_task_progress', {
+        _task_type: 'share_app',
+        _value: null,
+        _increment: 1,
+      });
+    } catch (e) {
+      console.warn('[Tasks] share progress update failed:', e);
+    }
+  }
+};
+
 
 const Tasks = () => {
   const navigate = useNavigate();
