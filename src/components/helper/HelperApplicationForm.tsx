@@ -55,8 +55,9 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const [reason, setReason] = useState("");
   const [payrollRequested, setPayrollRequested] = useState(false);
   
-  // Diamond-per-USD rate (best coin-package rate); used to credit diamonds for paid helper apps
-  const [diamondsPerUsd, setDiamondsPerUsd] = useState<number>(0);
+  // Per-level diamonds-per-USD rate (admin-configured in `helper_diamond_packages`).
+  // Key = level_number (1..5). Level 6 (Country Super Admin) intentionally absent → no diamond credit.
+  const [levelDiamondRates, setLevelDiamondRates] = useState<Record<number, number>>({});
 
   // Crypto payment modal
   const [swiftPayOpen, setSwiftPayOpen] = useState(false);
@@ -99,17 +100,25 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   };
 
   const loadDiamondRate = async () => {
-    // Best rate from active coin packages: max((coins+bonus)/price)
+    // Per-level admin-configured diamond pricing.
+    // helper_diamond_packages rows are ordered 1..5 by display_order; each row holds
+    // (diamond_amount, price_usd) — e.g. L1: 80,000 diamonds @ $18 → 4,444/USD.
     const { data } = await supabase
-      .from('coin_packages')
-      .select('coins_amount, bonus_coins, price_usd')
-      .eq('is_active', true);
-    if (data && data.length) {
-      const best = Math.max(
-        ...data.map(p => ((p.coins_amount ?? 0) + (p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
-      );
-      setDiamondsPerUsd(Math.floor(best));
-    }
+      .from('helper_diamond_packages')
+      .select('diamond_amount, price_usd, description, display_order')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+    if (!data?.length) return;
+    const rates: Record<number, number> = {};
+    data.forEach((p, idx) => {
+      // Prefer "Level N" parsed from description; fall back to display_order / index.
+      const m = (p.description || "").match(/level\s*(\d+)/i);
+      const level = m ? Number(m[1]) : (p.display_order ?? idx + 1);
+      const price = Math.max(Number(p.price_usd) || 0, 0.0001);
+      const amt = Number(p.diamond_amount) || 0;
+      if (level >= 1 && amt > 0) rates[level] = amt / price;
+    });
+    setLevelDiamondRates(rates);
   };
 
   const getLevelIcon = (level: number) => {
@@ -162,11 +171,17 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
   const isPaidLevel = upgradeCost > 0;
   const isFreeLevel = !isPaidLevel;
+  // Country Super Admin tier (level 6) — appointment, NOT a diamond purchase.
+  // No diamonds are credited; flow goes through a separate contract / verification path.
+  const isCountrySuperAdmin = selectedLevel >= 6;
   // Pkg66: Charge EXACTLY the admin-configured per-level upgrade_cost_usd.
-  // No hardcoded floor — 100% admin-driven so editing trader_level_tiers
-  // in /admin/pricing-hub instantly reflects in the form + crypto invoice.
   const effectiveCost = isPaidLevel ? upgradeCost : 0;
-  const diamondsForUpgrade = Math.floor(effectiveCost * diamondsPerUsd);
+  // Per-level rate from helper_diamond_packages (admin panel). Falls back to 0 → form
+  // will surface "rate not loaded" guard instead of silently using wrong number.
+  const perUsdForLevel = levelDiamondRates[selectedLevel] ?? 0;
+  const diamondsForUpgrade = isCountrySuperAdmin
+    ? 0
+    : Math.floor(effectiveCost * perUsdForLevel);
 
   // Pkg76: Admin-misconfiguration guard.
   // Any PAID tier (level_number > 1) loaded from `trader_level_tiers` with
@@ -224,8 +239,8 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     if (selectedLevelMisconfigured) {
       return `Level ${selectedLevel} upgrade cost is not configured by admin. Please choose another level or contact admin.`;
     }
-    if (isPaidLevel && diamondsPerUsd <= 0) {
-      return "Diamond rate not loaded yet — try again in a moment";
+    if (isPaidLevel && !isCountrySuperAdmin && perUsdForLevel <= 0) {
+      return "Diamond rate for this level is not configured yet — try again in a moment or contact admin";
     }
     if (isPaidLevel && effectiveCost <= 0) {
       return `Level ${selectedLevel} upgrade cost is not configured by admin yet`;
@@ -766,13 +781,21 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 <span className="font-bold text-emerald-600">${effectiveCost}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[11px] text-slate-600">Diamonds you receive</span>
+                <span className="text-[11px] text-slate-600">
+                  {isCountrySuperAdmin ? "Tier" : "Diamonds you receive"}
+                </span>
                 <span className="font-bold text-amber-600">
-                  {diamondsForUpgrade > 0 ? diamondsForUpgrade.toLocaleString() : "…"}
+                  {isCountrySuperAdmin
+                    ? "Country Super Admin"
+                    : diamondsForUpgrade > 0
+                      ? diamondsForUpgrade.toLocaleString()
+                      : "…"}
                 </span>
               </div>
               <p className="text-[10px] text-slate-500 pt-1">
-                Pay in crypto (USDT/BTC/ETH/BNB). Diamonds credit to your balance automatically once the blockchain confirms — no admin wait.
+                {isCountrySuperAdmin
+                  ? "Country Super Admin is an appointment, not a diamond purchase. No diamonds are credited — your $10,000 contract deposit unlocks country-wide payroll authority after verification."
+                  : "Pay in crypto (USDT/BTC/ETH/BNB). Diamonds credit to your balance automatically once the blockchain confirms — no admin wait."}
               </p>
             </div>
             {paidConfirmed && (
