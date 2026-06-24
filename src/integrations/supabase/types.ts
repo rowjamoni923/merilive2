@@ -2214,6 +2214,30 @@ export type Database = {
         }
         Relationships: []
       }
+      app_share_events: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          share_date: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          share_date?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          share_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_update_broadcast_log: {
         Row: {
           broadcast_at: string
