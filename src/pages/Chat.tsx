@@ -3409,35 +3409,41 @@ const Chat = () => {
                     if (!pendingMedia) return;
                     if (!currentUserId) return;
                     try {
-                      // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
-                      if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
+                      // 🔍 Image OCR — only when at least one side is a verified host
+                      const imgRecipientIsHost = selectedConversation?.other_user?.is_host === true;
+                      const imgSenderIsHost = myProfile?.is_host === true;
+                      if (pendingMedia.type === 'image' && currentUserId && (imgSenderIsHost || imgRecipientIsHost)) {
                         const { checkImageFilename } = await import('@/utils/imageContactDetection');
                         const filename = pendingMedia.url.split('/').pop() || '';
                         if (checkImageFilename(filename)) {
                           // Block the image entirely
                           toast.error("⚠️ Contact sharing detected! Image blocked.");
                           numberWarning.showGenericWarning();
+                          if (imgSenderIsHost) {
+                            const sourceId = selectedConversation?.id || selectedGroup?.id;
+                            scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
+                              .then(res => {
+                                if (res.detected && res.violationNumber) {
+                                  numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                                }
+                              }).catch(() => {});
+                          }
+                          setPendingMedia(null);
+                          return;
+                        }
+
+                        // Background OCR scan — only host sender accrues deductions
+                        if (imgSenderIsHost) {
                           const sourceId = selectedConversation?.id || selectedGroup?.id;
                           scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                             .then(res => {
                               if (res.detected && res.violationNumber) {
                                 numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                              } else if (res.detected) {
+                                numberWarning.showGenericWarning();
                               }
                             }).catch(() => {});
-                          setPendingMedia(null);
-                          return;
                         }
-                        
-                        // Background OCR scan
-                        const sourceId = selectedConversation?.id || selectedGroup?.id;
-                        scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
-                          .then(res => {
-                            if (res.detected && res.violationNumber) {
-                              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
-                            } else if (res.detected) {
-                              numberWarning.showGenericWarning();
-                            }
-                          }).catch(() => {});
                       }
 
                       if (selectedConversation) {
