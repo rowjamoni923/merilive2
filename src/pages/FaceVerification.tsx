@@ -184,6 +184,7 @@ const FaceVerification = () => {
   const [profile, setProfile] = useState<any>(null);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected'>('unverified');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [submitInProgress, setSubmitInProgress] = useState(false);
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
@@ -1914,6 +1915,7 @@ const FaceVerification = () => {
     }
     
     postSubmitLockedRef.current = true;
+    setSubmitInProgress(true);
     setLoading(true);
     await teardownFaceCameraPreview();
     
@@ -1962,6 +1964,7 @@ const FaceVerification = () => {
       if (existingSubmission) {
         setVerificationStatus('submitted');
         setRejectionReason(null);
+        setSubmitInProgress(false);
         toast({
           title: "Already Submitted",
           description: "Your verification is already under review. Please wait for admin approval.",
@@ -2063,10 +2066,12 @@ const FaceVerification = () => {
         title: "✅ Submission Successful!",
         description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
       });
+      setSubmitInProgress(false);
       return;
       
     } catch (error: any) {
       postSubmitLockedRef.current = false;
+      setSubmitInProgress(false);
       toast({
         title: "Error",
         description: error.message || "Failed to complete verification",
@@ -2178,6 +2183,7 @@ const FaceVerification = () => {
     }
     
     postSubmitLockedRef.current = true;
+    setSubmitInProgress(true);
     setLoading(true);
     await teardownFaceCameraPreview();
     
@@ -2264,6 +2270,7 @@ const FaceVerification = () => {
       if (existingSubmission) {
         setVerificationStatus('submitted');
         setRejectionReason(null);
+        setSubmitInProgress(false);
         toast({
           title: "Already Submitted",
           description: "Your verification is already under review. Please wait for admin approval.",
@@ -2331,10 +2338,12 @@ const FaceVerification = () => {
         title: "✅ Host Application Submitted!",
         description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
       });
+      setSubmitInProgress(false);
       return;
 
     } catch (error: any) {
       postSubmitLockedRef.current = false;
+      setSubmitInProgress(false);
       toast({
         title: "Error",
         description: error.message || "Failed to complete verification",
@@ -2955,7 +2964,7 @@ const FaceVerification = () => {
 
 
 
-  if (loading) {
+  if (loading && !submitInProgress) {
     return (
       <PageSkeleton
         className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"
@@ -3084,22 +3093,28 @@ const FaceVerification = () => {
 
 
   // Already submitted - pending review
-  if (verificationStatus === 'submitted') {
+  if (submitInProgress || verificationStatus === 'submitted') {
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        <div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden">
+        <div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
-        {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
+        {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
-            <Loader2 className="w-14 h-14 text-white animate-spin" />
+            {submitInProgress ? <ShieldCheck className="w-14 h-14 text-white" /> : <CheckCircle2 className="w-14 h-14 text-white" />}
           </motion.div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Under Review</h2>
-          <p className="text-slate-600 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
-          <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
-            Back to Profile
-          </Button>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">{submitInProgress ? 'Submitting Verification' : 'Under Review'}</h2>
+          <p className="text-slate-600 text-center px-6">
+            {submitInProgress
+              ? 'Your live scan is being uploaded securely. The camera is off and AI review will start automatically.'
+              : 'Your face verification has been submitted and is pending AI/admin review. Please wait for approval.'}
+          </p>
+          {!submitInProgress && (
+            <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
+              Back to Profile
+            </Button>
+          )}
         </div>
         </div>
       </div>
