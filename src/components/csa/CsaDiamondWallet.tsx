@@ -188,6 +188,37 @@ export default function CsaDiamondWallet() {
       {buyOpen && (
         <BuyDialog summary={s} onClose={() => setBuyOpen(false)} onCreated={() => { setBuyOpen(false); load(); }} />
       )}
+
+      {/* Low-balance alert popup (English) */}
+      <Dialog open={lowBalOpen} onOpenChange={(v) => !v && dismissLowBal()}>
+        <DialogContent className="bg-gradient-to-br from-rose-950 via-slate-900 to-amber-950/50 border-amber-500/40 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-300">
+              <AlertTriangle className="w-5 h-5" /> Low Diamond Balance
+            </DialogTitle>
+            <DialogDescription className="text-white/70 pt-2">
+              Your diamond balance has dropped below the visibility threshold.
+              Your country's helper payment methods are <b>no longer visible</b> to end users —
+              the owner's official methods are showing instead.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg bg-slate-900/70 border border-amber-500/30 p-3 text-xs space-y-1.5">
+            <div className="flex justify-between"><span className="text-white/60">Current balance:</span><span className="font-mono font-bold text-rose-300">{s.balance.toLocaleString()} 💎</span></div>
+            <div className="flex justify-between"><span className="text-white/60">Threshold:</span><span className="font-mono font-bold text-emerald-300">{s.settings.visibility_threshold_diamonds.toLocaleString()} 💎</span></div>
+            <div className="flex justify-between"><span className="text-white/60">Top up needed:</span><span className="font-mono font-bold text-amber-300">{Math.max(0, s.settings.visibility_threshold_diamonds - s.balance).toLocaleString()} 💎</span></div>
+          </div>
+          <p className="text-[11px] text-white/50 leading-relaxed">
+            Please recharge now so your payment methods become live again across all levels (L1–L5) of helper manual top-ups in your country.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={dismissLowBal}>Remind me later</Button>
+            <Button onClick={() => { dismissLowBal(); setBuyOpen(true); }}
+              className="bg-gradient-to-r from-amber-500 to-rose-500 text-white font-semibold">
+              <ArrowDownToLine className="w-4 h-4 mr-2" /> Recharge Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
