@@ -1818,6 +1818,40 @@ export default function AdminAgencies() {
                           <Crown className="w-4 h-4 mr-2" />
                           {(agency as any).is_country_super_admin ? "Re-grant Country Super Admin" : "Grant Country Super Admin"}
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className={(agency as any).is_permanent ? "text-rose-400 hover:text-rose-300 cursor-pointer" : "text-yellow-300 hover:text-yellow-200 cursor-pointer"}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const isPerm = !!(agency as any).is_permanent;
+                            if (isPerm) {
+                              if (!confirm(`Remove permanent protection from "${agency.name}"?\n\nIt will become subject to the 30-day / 10-host rule again.`)) return;
+                              try {
+                                const { error } = await (await import("@/integrations/supabase/adminClient")).adminSupabase
+                                  .rpc("admin_set_agency_permanent", { _agency_id: agency.id, _is_permanent: false, _reason: null } as any);
+                                if (error) throw error;
+                                toast.success("Permanent protection removed");
+                                loadAgencies();
+                              } catch (err: any) {
+                                toast.error(err?.message || "Failed");
+                              }
+                            } else {
+                              const reason = prompt(`Mark "${agency.name}" as PERMANENT?\n\nIt will never auto-close, regardless of host activation.\n\nOptional reason:`);
+                              if (reason === null) return;
+                              try {
+                                const { error } = await (await import("@/integrations/supabase/adminClient")).adminSupabase
+                                  .rpc("admin_set_agency_permanent", { _agency_id: agency.id, _is_permanent: true, _reason: reason || null } as any);
+                                if (error) throw error;
+                                toast.success(`${agency.name} is now permanent`);
+                                loadAgencies();
+                              } catch (err: any) {
+                                toast.error(err?.message || "Failed");
+                              }
+                            }
+                          }}
+                        >
+                          <Shield className="w-4 h-4 mr-2" />
+                          {(agency as any).is_permanent ? "Remove Permanent Status" : "Mark as Permanent"}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-white/10" />
                         <DropdownMenuItem 
                           className={`cursor-pointer ${agency.is_active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}`}
