@@ -1822,12 +1822,14 @@ const FaceVerification = () => {
     } catch { return null; }
   };
 
-  // Upload the 3 captured angle stills (front/left/right) for AWS Rekognition auto-approve.
-  // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
+  // Upload passive live-scan stills. Legacy admin/AI columns still expect
+  // front/left/right URLs, so side slots fall back to the same live frame.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
     const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
     if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
     const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
       ['center', 'front_url', 'face-angles/front'],
       ['left', 'left_url', 'face-angles/left'],
@@ -1990,7 +1992,7 @@ const FaceVerification = () => {
 
       const videoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
 
-      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      // Upload passive live scan stills for photo/video/live face comparison
       const angleUrls = await uploadCapturedAngles();
 
       // Insert submission with ALL user info (name, age, language, photo) + 3 angles
@@ -2007,8 +2009,11 @@ const FaceVerification = () => {
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+            scan_mode: 'passive_photo_video_live',
+            evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
+            visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: true,
+            challenge_randomized: false,
           },
           face_image_url: videoUrl,
           // BUG-14 fix: never store the `pending://no-image` literal — it crashes
@@ -2261,7 +2266,7 @@ const FaceVerification = () => {
         return;
       }
       
-      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      // Upload passive live scan stills for photo/video/live face comparison
       const angleUrls = await uploadCapturedAngles();
 
       // Insert submission with submitted status (auto-approve pipeline)
@@ -2275,8 +2280,11 @@ const FaceVerification = () => {
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+            scan_mode: 'passive_photo_video_live',
+            evidence_required: ['profile_photo', 'intro_video', 'host_gallery_photos', 'live_face_scan'],
+            visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: true,
+            challenge_randomized: false,
           },
           full_name: fullName,
           age: parseInt(age),
