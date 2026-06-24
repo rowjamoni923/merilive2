@@ -319,7 +319,7 @@ function MethodEditDialog({ target, onClose, onSaved }: { target: { kind: "topup
         });
         if (error) throw error;
       }
-      toast.success("Saved");
+      toast.success("Submitted for owner approval", { description: "Change applies after owner approves." });
       onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
