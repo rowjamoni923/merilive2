@@ -16,10 +16,6 @@ import {
   ShieldCheck,
   ScanFace,
   ImagePlus,
-  ArrowUp,
-  ArrowDown,
-  ArrowLeftIcon,
-  ArrowRightIcon,
   Play,
   XCircle,
   Settings,
@@ -393,8 +389,6 @@ const FaceVerification = () => {
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
-  const horizontalFirstTurnSignRef = useRef<number | null>(null);
-  const verticalFirstTiltSignRef = useRef<number | null>(null);
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     // Pkg-fix: race-guard — if stopVerification already nulled refs OR the
@@ -1276,8 +1270,6 @@ const FaceVerification = () => {
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
-      horizontalFirstTurnSignRef.current = null;
-      verticalFirstTiltSignRef.current = null;
     // Reset debug log for this attempt
     debugLogRef.current = [];
     sessionStartRef.current = Date.now();
