@@ -306,12 +306,13 @@ export function useLiveGameRound({
           
           if (totalWin > 0) {
             setLastWinAmount(totalWin);
-            onWin?.(totalWin);
+            onWinRef.current?.(totalWin);
             toast.success(`🎉 You won ${totalWin.toLocaleString()} coins!`);
           } else if (totalLoss > 0 && myBets.length > 0) {
             setLastLossAmount(totalLoss);
-            onLoss?.(totalLoss);
+            onLossRef.current?.(totalLoss);
           }
+
         }
         
         setClientState(p => ({ ...p, phase: 'result' }));
