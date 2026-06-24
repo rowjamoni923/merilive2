@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Download, Star, Users, Radio, Gift, Phone, Music, Shield, ChevronDown, Play, Sparkles, Globe, Wallet, Zap, ArrowRight, Heart, Clock, Trophy, MessageCircle, X, Building2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
