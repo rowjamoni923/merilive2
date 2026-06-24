@@ -143,8 +143,22 @@ const AgencyDetailsPage = () => {
                 .maybeSingle()
             : { data: null };
 
+          // Fetch WhatsApp number via security-definer RPC (only active host / owner / sub-agent gets it back)
+          let whatsappNumber: string | null = null;
+          try {
+            const { data: contactRows } = await supabase.rpc("get_my_agency_contact", {
+              _agency_id: activeRequest.agency_id,
+            });
+            const first = Array.isArray(contactRows) ? contactRows[0] : contactRows;
+            const wa = (first as any)?.whatsapp_number;
+            if (wa && String(wa).trim()) whatsappNumber = String(wa).trim();
+          } catch (waErr) {
+            console.warn("[AgencyDetails] whatsapp fetch failed:", waErr);
+          }
+
           setHostAgency({
             ...normalizedAgency,
+            whatsapp_number: whatsappNumber,
             owner: ownerData ? {
               ...ownerData,
               avatar_url: ownerData.avatar_url || null,
@@ -155,6 +169,7 @@ const AgencyDetailsPage = () => {
           navigate("/agency");
           return;
         }
+
       } catch (error) {
         console.error('[AgencyDetails] Error:', error);
         recordClientError({ label: "AgencyDetails.user", message: error instanceof Error ? error.message : String(error) });
