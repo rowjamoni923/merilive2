@@ -401,7 +401,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       myBets,
       onPlaceBet: handlePlaceBet,
       onProcessResult: processResult,
-      onUpdateCoins: (newBalance: number) => setUserCoins(newBalance),
+      onUpdateCoins: handleUpdateCoins,
       onGameWin: (winAmount: number) => handleGameWin(winAmount, currentGame.game_name, currentGame.game_emoji || "🎰")
     };
 
@@ -411,23 +411,24 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     let inner: React.ReactNode = null;
     switch (activeGame) {
       case 'roulette':
-        inner = <LiveRouletteGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveRouletteGame {...gameProps} onTimerUpdate={handleTimerUpdate} />;
         break;
       case 'ferris-wheel':
       case 'ferris_wheel':
-        inner = <LiveFerrisWheelGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveFerrisWheelGame {...gameProps} onTimerUpdate={handleTimerUpdate} />;
         break;
       case 'teen-patti':
       case 'teen_patti':
-        inner = <LiveTeenPattiGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveTeenPattiGame {...gameProps} onTimerUpdate={handleTimerUpdate} />;
         break;
       case 'lucky_number':
-        inner = <LiveLuckyNumberGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveLuckyNumberGame {...gameProps} onTimerUpdate={handleTimerUpdate} />;
         break;
       case 'rocket_race':
-        inner = <LiveRocketRaceGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveRocketRaceGame {...gameProps} onTimerUpdate={handleTimerUpdate} />;
         break;
     }
+
     if (inner) {
       return (
         <GameErrorBoundary
