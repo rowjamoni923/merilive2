@@ -270,6 +270,7 @@ const FaceVerification = () => {
   const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
   const autoFaceStartRef = useRef(false);
+  const verifyInProgressRef = useRef(false);
   const postSubmitLockedRef = useRef(false);
   
   // Video verification flow states
@@ -1219,7 +1220,6 @@ const FaceVerification = () => {
   };
 
   // Start face verification recording with REAL liveness checking
-  const verifyInProgressRef = useRef(false);
   const startFaceVerification = async () => {
     // BUG-06 fix: hard-lock re-entry. The auto-start effect retries up to 3×
     // with a 1.5s timer; if the first call is still negotiating (slow device
@@ -2332,9 +2332,7 @@ const FaceVerification = () => {
         description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
       });
       return;
-      
-      navigate('/profile');
-      
+
     } catch (error: any) {
       postSubmitLockedRef.current = false;
       toast({

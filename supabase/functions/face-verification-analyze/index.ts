@@ -433,14 +433,15 @@ serve(async (req) => {
     let profileMismatch = false;
     if (!frontError) {
       try {
+        const submittedProfilePhotoUrl = (row.profile_photo_url as string | null) || null;
         const { data: profileRow } = await supabaseAdmin
           .from("profiles")
           .select("avatar_url")
           .eq("id", userId)
           .maybeSingle();
-        const avatarUrl = (profileRow?.avatar_url as string | null) || null;
+        const avatarUrl = submittedProfilePhotoUrl || (profileRow?.avatar_url as string | null) || null;
         if (!avatarUrl) {
-          profileMatchSkipReason = "no_profile_avatar";
+          profileMatchSkipReason = "no_profile_photo";
         } else {
           let avatarBytes: Uint8Array | null = null;
           try {
