@@ -343,19 +343,25 @@ export function useLiveGameRound({
     }
   }, [clientState.phase, clientState.result, clientState.roundNumber, myBets, gameId, bettingSeconds, isSelfManagedGame]);
 
-  // Sync client state to component state
+  // Sync client state to component state. Step 2 perf: depend on primitive
+  // fields only so the virtual round object isn't rebuilt on every 250ms tick
+  // — it now changes only when phase/round/result/bets actually change.
+  const bettingEndAtMs = clientState.bettingEndAt;
+  const resultJson = clientState.result ? JSON.stringify(clientState.result) : null;
   useEffect(() => {
     setPhase(clientState.phase === 'result' ? 'result' : clientState.phase);
+  }, [clientState.phase]);
+  useEffect(() => {
     setTimeLeft(clientState.timeLeft);
-    
-    // Create virtual round for UI
+  }, [clientState.timeLeft]);
+  useEffect(() => {
     setCurrentRound({
       id: `client-${gameId}-${clientState.roundNumber}`,
       game_id: gameId,
       room_id: roomId,
       round_number: clientState.roundNumber,
       status: clientState.phase === 'result' ? 'completed' : clientState.phase,
-      betting_end_at: new Date(clientState.bettingEndAt).toISOString(),
+      betting_end_at: new Date(bettingEndAtMs).toISOString(),
       game_start_at: null,
       game_end_at: null,
       result: clientState.result,
@@ -363,9 +369,11 @@ export function useLiveGameRound({
       total_bet_amount: bets.reduce((sum, b) => sum + b.bet_amount, 0),
       total_players: new Set(bets.map(b => b.user_id)).size,
       winning_value: clientState.result?.winner || null,
-      created_at: new Date().toISOString()
+      created_at: new Date(bettingEndAtMs).toISOString()
     });
-  }, [clientState, gameId, roomId, bets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameId, roomId, clientState.roundNumber, clientState.phase, bettingEndAtMs, resultJson, bets.length]);
+
 
   // Place a bet - ULTRA-FAST with optimistic updates (sub-100ms response)
   const placeBet = useCallback(async (
