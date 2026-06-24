@@ -60,12 +60,16 @@ Deno.serve(async (req) => {
   const pollBeforeIso = new Date(Date.now() - MIN_POLL_GAP_MS).toISOString();
 
   // Build the candidate list
+  // Include `expired` rows from the last 30 days so late on-chain confirmations
+  // (BTC/USDT-ERC20 can take many hours) still get credited automatically.
+  const recoveryCutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   let query = admin
     .from("swift_pay_topups")
     .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, created_at, last_polled_at")
-    .in("status", ["pending", "paid"])
+    .in("status", ["pending", "paid", "expired"])
+    .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
-    .limit(50);
+    .limit(100);
 
   if (topupId) query = query.eq("id", topupId);
   else if (userId) query = query.eq("user_id", userId);
