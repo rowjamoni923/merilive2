@@ -741,18 +741,25 @@ Deno.serve(async (req) => {
 
     const { action, ...params } = await req.json();
 
-    // Read-only actions only require an active admin session.
-    // Mutating / outbound actions additionally require moderation-hub edit permission.
-    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read', 'mark_thread_read', 'trash_thread']);
-    const adminAuth = await requireAdminSession(req, adminClient, {
-      sectionKey: mutatingActions.has(action) ? 'moderation-hub' : undefined,
-      requireEdit: mutatingActions.has(action),
-    });
-    if (!adminAuth.ok) {
-      return new Response(
-        JSON.stringify({ error: adminAuth.error || 'Unauthorized' }),
-        { status: adminAuth.status || 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Cron bypass: scheduled pg_cron job calls auto_reply with a shared secret.
+    const cronSecret = Deno.env.get('GMAIL_AUTOREPLY_CRON_SECRET');
+    const providedCronSecret = req.headers.get('x-cron-secret');
+    const isCronCall = action === 'auto_reply' && cronSecret && providedCronSecret === cronSecret;
+
+    if (!isCronCall) {
+      // Read-only actions only require an active admin session.
+      // Mutating / outbound actions additionally require moderation-hub edit permission.
+      const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read', 'mark_thread_read', 'trash_thread']);
+      const adminAuth = await requireAdminSession(req, adminClient, {
+        sectionKey: mutatingActions.has(action) ? 'moderation-hub' : undefined,
+        requireEdit: mutatingActions.has(action),
+      });
+      if (!adminAuth.ok) {
+        return new Response(
+          JSON.stringify({ error: adminAuth.error || 'Unauthorized' }),
+          { status: adminAuth.status || 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const accessToken = await getAccessToken();
