@@ -23,12 +23,15 @@ interface Summary {
   };
 }
 
+const LOW_BAL_DISMISS_KEY = "csa_low_bal_dismissed_at";
+
 export default function CsaDiamondWallet() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [ledger, setLedger] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyOpen, setBuyOpen] = useState(false);
+  const [lowBalOpen, setLowBalOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
