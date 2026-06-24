@@ -168,14 +168,21 @@ export default function CountryAdminDashboard() {
         )}
 
         <Tabs defaultValue="topup">
-          <TabsList className="bg-slate-900/60 border border-amber-500/20 p-1">
+          <TabsList className="bg-slate-900/60 border border-amber-500/20 p-1 flex-wrap h-auto">
             <TabsTrigger value="topup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-600 data-[state=active]:text-black">
               Top-up Methods ({topupMethods.length})
             </TabsTrigger>
             <TabsTrigger value="wd" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-red-600 data-[state=active]:text-white">
               Withdrawal Methods ({wdMethods.length})
             </TabsTrigger>
+            <TabsTrigger value="myqueue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              My Submissions
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="myqueue" className="mt-4">
+            <MyApprovalQueue />
+          </TabsContent>
 
           <TabsContent value="topup" className="mt-4 space-y-3">
             <div className="flex justify-end">
