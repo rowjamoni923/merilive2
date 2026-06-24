@@ -92,14 +92,17 @@ class LiveKitTokenCache {
     if (this.inFlight) return this.inFlight;
     this.inFlight = (async () => {
       try {
-        // Must be logged in — anon users have no auth.uid, edge fn will 401
+        // Authed users get a 6h token; guests get a 90s preview token.
+        // Edge function handles both — never block on session presence.
         const { data: sess } = await supabase.auth.getSession();
-        if (!sess.session?.access_token) return null;
+        const authed = !!sess.session?.access_token;
 
         const { data, error } = await supabase.functions.invoke(
           "livekit-viewer-wildcard-token",
-          { body: {} }
+          { body: { guest: !authed } }
         );
+        if (error || !data?.token) return null;
+
         if (error || !data?.token) return null;
 
         const value: CachedViewerToken = {

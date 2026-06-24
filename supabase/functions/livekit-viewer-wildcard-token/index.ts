@@ -24,13 +24,20 @@ const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-const TTL_SECONDS = 6 * 60 * 60; // 6 hours
+const TTL_SECONDS = 6 * 60 * 60; // 6 hours (authed users)
+const GUEST_TTL_SECONDS = 90; // 90 seconds preview for unauthenticated visitors (Chamet/Bigo standard)
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+
+function randomId(len = 12) {
+  const bytes = new Uint8Array(len);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -42,27 +49,37 @@ Deno.serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization") ?? "";
-    if (!authHeader.startsWith("Bearer ")) {
-      return json(401, { error: "unauthorized" });
+    let identity: string;
+    let ttl: number;
+    let isGuest = false;
+
+    if (authHeader.startsWith("Bearer ")) {
+      // Authenticated path — long-lived wildcard token
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const jwt = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(jwt);
+      if (claimsErr || !claimsData?.claims?.sub) {
+        // Fall through to guest mode instead of hard 401 — preview is public.
+        isGuest = true;
+        identity = `guest-${randomId(8)}`;
+        ttl = GUEST_TTL_SECONDS;
+      } else {
+        const userId = String(claimsData.claims.sub);
+        identity = `wv-${userId}`;
+        ttl = TTL_SECONDS;
+      }
+    } else {
+      // Unauthenticated visitor — short-lived guest preview token
+      isGuest = true;
+      identity = `guest-${randomId(8)}`;
+      ttl = GUEST_TTL_SECONDS;
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const jwt = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(jwt);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return json(401, { error: "unauthorized" });
-    }
-
-    const userId = String(claimsData.claims.sub);
-    // Stable wildcard identity — prefix avoids collision with per-room identities.
-    const identity = `wv-${userId}`;
 
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity,
-      ttl: TTL_SECONDS,
+      ttl,
     });
     at.addGrant({
       roomJoin: true,
@@ -70,21 +87,23 @@ Deno.serve(async (req) => {
       canPublish: false,
       canPublishData: false,
       canSubscribe: true,
-      hidden: false,
+      hidden: isGuest, // guests are invisible in viewer list (don't inflate counts / no chat presence)
     });
 
     const token = await at.toJwt();
-    const expiresAt = Math.floor(Date.now() / 1000) + TTL_SECONDS;
+    const expiresAt = Math.floor(Date.now() / 1000) + ttl;
 
     return json(200, {
       token,
       url: LIVEKIT_URL,
       identity,
-      ttl: TTL_SECONDS,
+      ttl,
       expiresAt,
+      guest: isGuest,
     });
   } catch (e) {
     console.error("[livekit-viewer-wildcard-token] error:", e);
     return json(500, { error: "internal_error" });
   }
 });
+
