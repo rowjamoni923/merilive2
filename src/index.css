@@ -958,13 +958,14 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   /* Native Face Verification CameraX preview is mounted behind the Capacitor
-     WebView, same as LiveKit native media. Keep every route/page shell
-     transparent while that mode is active; otherwise an opaque fixed wrapper
-     can cover the real camera and users see a white/cream screen instead of
-     their face. */
+     WebView. Keep the route shells transparent, then FaceVerification paints a
+     fixed professional mask with one transparent gold face aperture; this keeps
+     CameraX visible only inside the scan circle instead of full-screen. */
   body.native-face-camera-active [data-face-verification-shell],
   body.native-face-camera-active [data-face-verification-scroll],
   body.native-face-camera-active main,
+  body.native-face-camera-active [data-face-verification-camera],
+  body.native-face-camera-active [data-face-verification-aperture],
   body.native-face-camera-active video {
     background: transparent !important;
     background-color: transparent !important;

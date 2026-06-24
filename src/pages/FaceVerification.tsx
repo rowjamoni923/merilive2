@@ -2359,7 +2359,14 @@ const FaceVerification = () => {
     const faceCameraActive = faceCameraStarting || !!faceStream || usingNativeFaceCamera;
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
-    const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
+    const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : '#d4af37';
+    const nativeApertureStyle: React.CSSProperties | undefined = usingNativeFaceCamera
+      ? {
+          WebkitMaskImage: 'radial-gradient(ellipse 34% 42% at 50% 45%, transparent 0 98%, #000 100%)',
+          maskImage: 'radial-gradient(ellipse 34% 42% at 50% 45%, transparent 0 98%, #000 100%)',
+          background: 'rgba(7, 10, 18, 0.84)',
+        }
+      : undefined;
     const completeFromPartialScan = () => {
       const completed = instructionsCompletedRef.current.filter(Boolean).length;
       if (completed < 2 || (!usingNativeFaceCameraRef.current && !faceChunksRef.current.length)) {
@@ -2370,12 +2377,12 @@ const FaceVerification = () => {
     };
 
     return (
-    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
+    <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-white border-slate-200 shadow-[0_18px_44px_-22px_rgba(15,23,42,0.35)] rounded-3xl p-4 border' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
       {/* Header */}
-      {!usingNativeFaceCamera && <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-5">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
-            <ScanFace className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
+            <ScanFace className="w-5 h-5 text-white" />
           </div>
           {verificationRecording && (
             <motion.div
@@ -2394,10 +2401,10 @@ const FaceVerification = () => {
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
           </p>
         </div>
-      </div>}
+      </div>
 
       {/* Progress Bar */}
-      {verificationRecording && !usingNativeFaceCamera && (
+      {verificationRecording && (
         <div className="mb-4">
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span className="font-medium">Liveness Progress</span>
@@ -2416,9 +2423,12 @@ const FaceVerification = () => {
       
       {/* Video Container with Face Oval */}
       <div data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 bg-transparent shadow-none ring-1 ring-slate-900/10'
+        ? 'relative aspect-[3/4] w-full max-w-sm mx-auto rounded-[28px] overflow-hidden mb-5 bg-slate-950 shadow-2xl shadow-slate-950/25 ring-1 ring-slate-900/10'
         : `relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`
-      } style={usingNativeFaceCamera ? { boxShadow: '0 0 0 100vmax #FFFBF2' } : undefined}>
+      }>
+        {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
+          <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
+        )}
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
@@ -2495,11 +2505,13 @@ const FaceVerification = () => {
             )}
             
             {/* Face oval guide with dynamic border color */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
               {/* Dark overlay outside oval */}
-              <div className="absolute inset-0" style={{
-                background: 'radial-gradient(ellipse 55% 45% at 50% 45%, transparent 100%, rgba(0,0,0,0.7) 100%)',
-              }} />
+              {!usingNativeFaceCamera && (
+                <div className="absolute inset-0" style={{
+                  background: 'radial-gradient(ellipse 55% 45% at 50% 45%, transparent 100%, rgba(0,0,0,0.7) 100%)',
+                }} />
+              )}
               
               {/* Animated oval border */}
               <motion.div 
@@ -2508,8 +2520,8 @@ const FaceVerification = () => {
               >
                 <svg viewBox="0 0 200 260" className="w-full h-full" style={{ filter: `drop-shadow(0 0 10px ${borderColor}40)` }}>
                   <ellipse cx="100" cy="130" rx="85" ry="115" fill="none" 
-                    stroke={borderColor} strokeWidth="3" strokeDasharray={verificationRecording ? "8 4" : "none"} 
-                    opacity="0.8"
+                    stroke={borderColor} strokeWidth={usingNativeFaceCamera ? "4" : "3"} strokeDasharray={verificationRecording ? "8 4" : "none"} 
+                    opacity={usingNativeFaceCamera ? "0.95" : "0.8"}
                   />
                   {/* Scanning line animation */}
                   {verificationRecording && scanningStatus === 'scanning' && (
@@ -2538,7 +2550,7 @@ const FaceVerification = () => {
                   initial={{ opacity: 0, y: -20, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                  className="absolute top-3 left-3 right-3"
+                  className="absolute top-3 left-3 right-3 z-[3]"
                 >
                   <div className="bg-white/80 backdrop-blur-xl rounded-2xl px-4 py-3 border border-amber-200/60">
                     <div className="flex items-center gap-3">
@@ -2581,7 +2593,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-24 pointer-events-auto max-h-[22%] overflow-y-auto"
+                className="absolute left-3 right-3 bottom-24 z-[3] pointer-events-auto max-h-[22%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
@@ -2793,7 +2805,7 @@ const FaceVerification = () => {
 
             {/* Bottom: Timer + Step indicators */}
             {verificationRecording && (
-              <div className="absolute bottom-3 left-3 right-3">
+              <div className="absolute bottom-3 left-3 right-3 z-[3]">
                 {/* Step dots — show pending/active/done with icon for active */}
                 <div className="flex justify-center gap-2 mb-2">
                   {faceInstructions.map((instr, idx) => {
@@ -3003,7 +3015,8 @@ const FaceVerification = () => {
   if (verificationStatus === 'rejected') {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        <div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        <div data-face-verification-scroll className={`relative z-10 flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12 pb-12">
@@ -3126,7 +3139,8 @@ const FaceVerification = () => {
   if (verificationStatus === 'verified') {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-        <div data-face-verification-scroll className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        <div data-face-verification-scroll className={`relative z-10 flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
           {!usingNativeFaceCamera && renderHeader("Face Verification", "Identity check required")}
           <div className="flex flex-col items-center justify-center mt-12">
             <motion.div
@@ -3198,7 +3212,9 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+        {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
@@ -3364,8 +3380,9 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-    <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
-      <div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+       {usingNativeFaceCamera && <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+       <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
