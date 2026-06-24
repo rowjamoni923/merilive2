@@ -2692,10 +2692,11 @@ const LiveStream = () => {
       contentToSend = maskContactContent(messageText, detection);
       console.log('[ContactDetection] LiveStream BLOCKED, masked:', contentToSend);
 
-      // Process violation (warning + bean deduction)
-      detectAndProcessViolation(currentUserId, messageText, 'live_stream', id)
+      // Live room broadcaster is always a host → recipientIncludesHost = true.
+      // Host sender → 2,000 beans deduction. Non-host sender → popup warning only.
+      detectAndProcessViolation(currentUserId, messageText, 'live_stream', id, true)
         .then(res => {
-          if (res.detected && res.violationNumber) {
+          if (res.detected && !res.warningOnly && res.violationNumber) {
             numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
           } else if (res.detected) {
             numberWarning.showGenericWarning();
