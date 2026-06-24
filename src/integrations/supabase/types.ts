@@ -4164,6 +4164,7 @@ export type Database = {
           notes: string | null
           revoked_at: string | null
           tenure_label: string | null
+          total_bonus_diamonds: number
           total_purchased_diamonds: number
           total_spent_diamonds: number
           updated_at: string
@@ -4184,6 +4185,7 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           tenure_label?: string | null
+          total_bonus_diamonds?: number
           total_purchased_diamonds?: number
           total_spent_diamonds?: number
           updated_at?: string
@@ -4204,6 +4206,7 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           tenure_label?: string | null
+          total_bonus_diamonds?: number
           total_purchased_diamonds?: number
           total_spent_diamonds?: number
           updated_at?: string
@@ -4229,6 +4232,8 @@ export type Database = {
       csa_diamond_ledger: {
         Row: {
           balance_after: number | null
+          bonus_rate_applied: number | null
+          bonus_source_usd: number | null
           change_amount: number
           country_code: string
           created_at: string
@@ -4240,9 +4245,12 @@ export type Database = {
           related_helper_order_id: string | null
           related_purchase_id: string | null
           related_user_id: string | null
+          related_withdrawal_id: string | null
         }
         Insert: {
           balance_after?: number | null
+          bonus_rate_applied?: number | null
+          bonus_source_usd?: number | null
           change_amount: number
           country_code: string
           created_at?: string
@@ -4254,9 +4262,12 @@ export type Database = {
           related_helper_order_id?: string | null
           related_purchase_id?: string | null
           related_user_id?: string | null
+          related_withdrawal_id?: string | null
         }
         Update: {
           balance_after?: number | null
+          bonus_rate_applied?: number | null
+          bonus_source_usd?: number | null
           change_amount?: number
           country_code?: string
           created_at?: string
@@ -4268,6 +4279,7 @@ export type Database = {
           related_helper_order_id?: string | null
           related_purchase_id?: string | null
           related_user_id?: string | null
+          related_withdrawal_id?: string | null
         }
         Relationships: [
           {
@@ -4342,6 +4354,7 @@ export type Database = {
       csa_diamond_settings: {
         Row: {
           auto_credit_on_payment: boolean
+          bonus_trigger_status: string
           created_at: string
           diamonds_per_usd: number
           id: number
@@ -4351,9 +4364,12 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           visibility_threshold_diamonds: number
+          withdrawal_bonus_enabled: boolean
+          withdrawal_bonus_rate_percent: number
         }
         Insert: {
           auto_credit_on_payment?: boolean
+          bonus_trigger_status?: string
           created_at?: string
           diamonds_per_usd?: number
           id?: number
@@ -4363,9 +4379,12 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           visibility_threshold_diamonds?: number
+          withdrawal_bonus_enabled?: boolean
+          withdrawal_bonus_rate_percent?: number
         }
         Update: {
           auto_credit_on_payment?: boolean
+          bonus_trigger_status?: string
           created_at?: string
           diamonds_per_usd?: number
           id?: number
@@ -4375,6 +4394,8 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           visibility_threshold_diamonds?: number
+          withdrawal_bonus_enabled?: boolean
+          withdrawal_bonus_rate_percent?: number
         }
         Relationships: []
       }
@@ -18258,6 +18279,7 @@ export type Database = {
         Args: { _email: string; _link_challenge?: string; _password: string }
         Returns: Json
       }
+      admin_backfill_csa_bonuses: { Args: { _country?: string }; Returns: Json }
       admin_block_agency: {
         Args: { _agency_id: string; _block: boolean; _reason?: string }
         Returns: Json
@@ -18383,6 +18405,7 @@ export type Database = {
         Args: never
         Returns: {
           auto_credit_on_payment: boolean
+          bonus_trigger_status: string
           created_at: string
           diamonds_per_usd: number
           id: number
@@ -18392,6 +18415,8 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           visibility_threshold_diamonds: number
+          withdrawal_bonus_enabled: boolean
+          withdrawal_bonus_rate_percent: number
         }
         SetofOptions: {
           from: "*"
@@ -20129,6 +20154,10 @@ export type Database = {
         Returns: Json
       }
       auto_process_live_game: { Args: never; Returns: undefined }
+      award_csa_withdrawal_bonus: {
+        Args: { _withdrawal_id: string }
+        Returns: Json
+      }
       ban_duplicate_face_attempt: {
         Args: { _face_hash: string; _matched_user_id: string; _user_id: string }
         Returns: undefined

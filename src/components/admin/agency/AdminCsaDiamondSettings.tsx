@@ -14,6 +14,9 @@ interface Settings {
   visibility_threshold_diamonds: number;
   owner_fallback_enabled: boolean;
   auto_credit_on_payment: boolean;
+  withdrawal_bonus_rate_percent: number;
+  withdrawal_bonus_enabled: boolean;
+  bonus_trigger_status: string;
   notes: string | null;
 }
 
@@ -57,10 +60,36 @@ export default function AdminCsaDiamondSettings() {
         _notes: s.notes || null,
       });
       if (error) throw error;
+      // Bonus fields — direct table update (admin RLS allows)
+      const { error: e2 } = await supabase
+        .from("csa_diamond_settings" as any)
+        .update({
+          withdrawal_bonus_rate_percent: Number(s.withdrawal_bonus_rate_percent),
+          withdrawal_bonus_enabled: s.withdrawal_bonus_enabled,
+          bonus_trigger_status: s.bonus_trigger_status,
+        } as any)
+        .eq("id", 1);
+      if (e2) throw e2;
       toast.success("Settings saved — applies to all countries instantly");
       load();
     } catch (e: any) {
       toast.error(e?.message || "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runBackfill = async () => {
+    if (!confirm("Backfill bonuses for ALL approved withdrawals (already-credited ones are skipped). Continue?")) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("admin_backfill_csa_bonuses" as any, { _country: null });
+      if (error) throw error;
+      const r = data as any;
+      toast.success(`Scanned ${r?.scanned || 0} withdrawals · Credited ${r?.credited || 0} new bonuses`);
+      load();
+    } catch (e: any) {
+      toast.error(e?.message || "Backfill failed");
     } finally {
       setBusy(false);
     }
@@ -154,6 +183,44 @@ export default function AdminCsaDiamondSettings() {
             <Switch checked={s.auto_credit_on_payment}
               onCheckedChange={(v) => setS({ ...s, auto_credit_on_payment: v })} />
           </div>
+        </div>
+
+        {/* Withdrawal Bonus Configuration */}
+        <div className="mt-5 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 to-slate-900/60 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                <Coins className="w-4 h-4" /> Withdrawal Bonus (auto-reward to CSA)
+              </p>
+              <p className="text-[11px] text-white/50 mt-0.5">
+                When agency withdrawal completes in CSA's country, bonus diamonds are auto-credited.
+              </p>
+            </div>
+            <Switch checked={s.withdrawal_bonus_enabled}
+              onCheckedChange={(v) => setS({ ...s, withdrawal_bonus_enabled: v })} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-white/70 text-xs">Bonus Rate (%)</Label>
+              <Input type="number" min="0" max="100" step="0.5" value={s.withdrawal_bonus_rate_percent}
+                onChange={(e) => setS({ ...s, withdrawal_bonus_rate_percent: Number(e.target.value) })}
+                className="bg-slate-800 border-slate-700 mt-1" />
+              <p className="text-[10px] text-emerald-300/70 mt-1">
+                Preview: $1,000 withdrawal → {Math.floor(1000 * (Number(s.withdrawal_bonus_rate_percent) / 100) * Number(s.diamonds_per_usd)).toLocaleString()} 💎 bonus
+              </p>
+            </div>
+            <div>
+              <Label className="text-white/70 text-xs">Trigger on Status</Label>
+              <Input value={s.bonus_trigger_status}
+                onChange={(e) => setS({ ...s, bonus_trigger_status: e.target.value })}
+                className="bg-slate-800 border-slate-700 mt-1" placeholder="approved" />
+              <p className="text-[10px] text-white/40 mt-1">Withdrawal status that triggers bonus (default: approved)</p>
+            </div>
+          </div>
+          <Button onClick={runBackfill} disabled={busy} variant="outline" size="sm"
+            className="mt-3 w-full bg-emerald-500/10 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20">
+            Backfill missed bonuses (idempotent — safe to run anytime)
+          </Button>
         </div>
 
         <Button onClick={save} disabled={busy}

@@ -12,6 +12,9 @@ interface Summary {
   balance: number;
   total_purchased: number;
   total_spent: number;
+  total_bonus: number;
+  bonus_this_month: number;
+  bonus_usd_this_month: number;
   country_code: string;
   visibility_now: "csa" | "official";
   settings: {
@@ -20,6 +23,8 @@ interface Summary {
     visibility_threshold_diamonds: number;
     owner_fallback_enabled: boolean;
     auto_credit_on_payment: boolean;
+    withdrawal_bonus_rate_percent: number;
+    withdrawal_bonus_enabled: boolean;
   };
 }
 
@@ -120,6 +125,40 @@ export default function CsaDiamondWallet() {
             className="mt-4 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 font-semibold">
             <ArrowDownToLine className="w-4 h-4 mr-2" /> Buy Diamonds (Crypto auto-credit)
           </Button>
+        </div>
+      </Card>
+
+      {/* Withdrawal Bonus Stats — the "extra facility" */}
+      <Card className="bg-gradient-to-br from-violet-950/60 via-slate-900 to-fuchsia-950/40 border-violet-500/30 p-4 relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-violet-300" />
+              <p className="text-sm font-bold text-violet-200">Withdrawal Bonus Rewards</p>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/40">
+              {s.settings.withdrawal_bonus_rate_percent}% auto-credit
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-slate-900/60 rounded-lg p-2">
+              <p className="text-[9px] text-violet-300/70 uppercase">Lifetime Bonus</p>
+              <p className="text-base font-bold text-violet-200">{s.total_bonus.toLocaleString()} 💎</p>
+            </div>
+            <div className="bg-slate-900/60 rounded-lg p-2">
+              <p className="text-[9px] text-fuchsia-300/70 uppercase">This Month</p>
+              <p className="text-base font-bold text-fuchsia-200">{s.bonus_this_month.toLocaleString()} 💎</p>
+            </div>
+            <div className="bg-slate-900/60 rounded-lg p-2">
+              <p className="text-[9px] text-pink-300/70 uppercase">From USD</p>
+              <p className="text-base font-bold text-pink-200">${Number(s.bonus_usd_this_month).toLocaleString()}</p>
+            </div>
+          </div>
+          <p className="text-[10px] text-white/50 mt-2 leading-snug">
+            Every approved agency withdrawal in <b>{s.country_code}</b> auto-credits {s.settings.withdrawal_bonus_rate_percent}% bonus diamonds to your wallet.
+            Use them to sell to helpers — pure profit.
+          </p>
         </div>
       </Card>
 
