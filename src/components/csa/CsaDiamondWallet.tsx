@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Gem, Loader2, ArrowDownToLine, ArrowUpFromLine, TrendingUp, AlertCircle, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Gem, Loader2, ArrowDownToLine, ArrowUpFromLine, TrendingUp, AlertCircle, Sparkles, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface Summary {
