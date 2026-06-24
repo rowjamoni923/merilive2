@@ -1830,7 +1830,7 @@ export default function AdminAgencies() {
                                   .rpc("admin_set_agency_permanent", { _agency_id: agency.id, _is_permanent: false, _reason: null } as any);
                                 if (error) throw error;
                                 toast.success("Permanent protection removed");
-                                loadAgencies();
+                                fetchAgencies();
                               } catch (err: any) {
                                 toast.error(err?.message || "Failed");
                               }
@@ -1842,7 +1842,7 @@ export default function AdminAgencies() {
                                   .rpc("admin_set_agency_permanent", { _agency_id: agency.id, _is_permanent: true, _reason: reason || null } as any);
                                 if (error) throw error;
                                 toast.success(`${agency.name} is now permanent`);
-                                loadAgencies();
+                                fetchAgencies();
                               } catch (err: any) {
                                 toast.error(err?.message || "Failed");
                               }
