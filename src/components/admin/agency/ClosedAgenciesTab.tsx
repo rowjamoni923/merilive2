@@ -28,6 +28,22 @@ export default function ClosedAgenciesTab() {
   const [items, setItems] = useState<ClosedAgency[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+
+  const reactivate = useCallback(async (id: string, name: string) => {
+    if (!confirm(`Reactivate "${name}"? Owner gets a fresh 30-day window to activate 10 hosts.`)) return;
+    setReactivatingId(id);
+    try {
+      const { error } = await supabase.rpc("admin_reactivate_agency", { _agency_id: id });
+      if (error) throw error;
+      toast.success(`${name} reactivated`);
+      setItems((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to reactivate");
+    } finally {
+      setReactivatingId(null);
+    }
+  }, []);
 
   const load = useCallback(async (q: string = "") => {
     setLoading(true);
