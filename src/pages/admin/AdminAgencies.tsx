@@ -150,6 +150,11 @@ interface Agency {
   id: string;
   name: string;
   agency_code: string;
+  activation_status?: string | null;
+  activation_deadline?: string | null;
+  closed_at?: string | null;
+  closed_reason?: string | null;
+  active_host_count?: number | null;
   level: string | null;
   total_hosts: number | null;
   total_agents: number | null;
@@ -221,6 +226,7 @@ export default function AdminAgencies() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [inactiveCount, setInactiveCount] = useState(0);
+  const [closedCount, setClosedCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalAgencies, setTotalAgencies] = useState(0);
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
@@ -428,7 +434,10 @@ export default function AdminAgencies() {
       if (filterType === "active") {
         query = query.eq("is_active", true).eq("is_blocked", false);
       } else if (filterType === "cancelled") {
-        query = query.eq("is_active", false).neq("activation_status", "closed");
+        // Include both manual cancellations and auto-closed agencies.
+        // Closed agencies are also visible in the dedicated Closed tab, but owner admins
+        // expect the Cancelled/Inactive filter to show every inactive agency.
+        query = query.eq("is_active", false);
       } else {
         // Hide auto-closed agencies from the default list (shown in dedicated "Closed" tab)
         query = query.neq("activation_status", "closed");
@@ -496,6 +505,12 @@ export default function AdminAgencies() {
         .select("id", { count: "exact", head: true })
         .eq("is_active", false);
       setInactiveCount(inactiveC || 0);
+
+      const { count: closedC } = await supabase
+        .from("agencies")
+        .select("id", { count: "exact", head: true })
+        .eq("activation_status", "closed");
+      setClosedCount(closedC || 0);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorFetchingAgencies", message: formatAdminError(error)});
       toast.error("Failed to load agencies");
@@ -510,6 +525,18 @@ export default function AdminAgencies() {
     setActionLoading(true);
     try {
       const isCancelling = selectedAgency.is_active;
+      const isClosedAgency = selectedAgency.activation_status === "closed";
+
+      if (!isCancelling && isClosedAgency) {
+        const { error } = await supabase.rpc("admin_reactivate_agency", { _agency_id: selectedAgency.id });
+        if (error) throw error;
+
+        toast.success("Agency reactivated successfully");
+        setShowCancelDialog(false);
+        setCancelReason("");
+        fetchAgencies();
+        return;
+      }
 
       const { data, error } = await supabase.rpc('admin_set_agency_active_status', {
         _agency_id: selectedAgency.id,
@@ -912,6 +939,7 @@ export default function AdminAgencies() {
             <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             <span className="hidden md:inline">Closed</span>
             <span className="md:hidden">Closed</span>
+            {closedCount > 0 && <span className="ml-1 rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] text-rose-200">{closedCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="hostsearch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Search className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -953,7 +981,7 @@ export default function AdminAgencies() {
 
 
         <TabsContent value="closed" className="space-y-4">
-          <ClosedAgenciesTab />
+          <ClosedAgenciesTab onChanged={fetchAgencies} />
         </TabsContent>
 
 
@@ -1721,7 +1749,7 @@ export default function AdminAgencies() {
                 <SelectItem value="all">All Agencies</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="cancelled">
-                  Cancelled / Inactive {inactiveCount > 0 && `(${inactiveCount})`}
+                  Closed / Cancelled / Inactive {inactiveCount > 0 && `(${inactiveCount})`}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -1740,7 +1768,7 @@ export default function AdminAgencies() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-red-300">
-              {inactiveCount} Cancelled/Inactive agencies found
+              {inactiveCount} Closed/Cancelled/Inactive agencies found
             </p>
             <p className="text-xs text-red-400/70">Click to view</p>
           </div>
@@ -1973,8 +2001,8 @@ export default function AdminAgencies() {
                     <Badge className={`${getLevelColor(agency.level)} text-white border-0 capitalize shadow-md`}>
                       {agency.level || "Bronze"} Level
                     </Badge>
-                    <Badge className={agency.is_active ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"}>
-                      {agency.is_active ? "Active" : "Cancelled"}
+                      <Badge className={agency.is_active ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"}>
+                       {agency.is_active ? "Active" : agency.activation_status === "closed" ? "Closed" : "Cancelled"}
                     </Badge>
                   </div>
                 </CardContent>
@@ -2035,10 +2063,10 @@ export default function AdminAgencies() {
         <DialogContent className="bg-slate-800 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white">
-              {selectedAgency?.is_active ? "Cancel Agency" : "Activate Agency"}
+              {selectedAgency?.is_active ? "Cancel Agency" : selectedAgency?.activation_status === "closed" ? "Reactivate Agency" : "Activate Agency"}
             </DialogTitle>
             <DialogDescription className="text-white/60">
-              Are you sure you want to {selectedAgency?.is_active ? "cancel" : "activate"} "{selectedAgency?.name}"?
+              Are you sure you want to {selectedAgency?.is_active ? "cancel" : selectedAgency?.activation_status === "closed" ? "reactivate" : "activate"} "{selectedAgency?.name}"?
             </DialogDescription>
           </DialogHeader>
           {selectedAgency?.is_active && (
@@ -2062,7 +2090,7 @@ export default function AdminAgencies() {
               disabled={actionLoading}
               className={selectedAgency?.is_active ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
             >
-              {actionLoading ? "Processing..." : selectedAgency?.is_active ? "Cancel Agency" : "Activate Agency"}
+              {actionLoading ? "Processing..." : selectedAgency?.is_active ? "Cancel Agency" : selectedAgency?.activation_status === "closed" ? "Reactivate Agency" : "Activate Agency"}
             </Button>
           </DialogFooter>
         </DialogContent>
