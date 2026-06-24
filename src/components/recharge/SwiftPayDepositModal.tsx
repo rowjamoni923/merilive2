@@ -231,6 +231,9 @@ export default function SwiftPayDepositModal({
           requestBody.custom_coins = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
           requestBody.purpose = userCustomPurpose;
+          if (userCustomPurpose === "campaign" && campaignId) {
+            requestBody.campaign_id = campaignId;
+          }
           if (helperApplicationIntent) {
             requestBody.helper_application_intent = helperApplicationIntent;
           }
