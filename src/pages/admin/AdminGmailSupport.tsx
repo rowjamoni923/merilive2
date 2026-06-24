@@ -13,11 +13,15 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Mail, Search, Loader2, Send, RefreshCw, Inbox, 
+import {
+  Mail, Search, Loader2, Send, RefreshCw, Inbox,
   MailOpen, Clock, Star, ChevronLeft, Reply, Eye, UserSearch,
-  Image, Paperclip, X, Languages
+  Image, Paperclip, X, Languages, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import DOMPurify from "dompurify";
@@ -50,11 +54,14 @@ const AdminGmailSupport = () => {
   const [sending, setSending] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inboxStats, setInboxStats] = useState({ total: 0, unread: 0, read: 0, starred: 0 });
   const [refreshing, setRefreshing] = useState(false);
   const [attachedImage, setAttachedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
+  const [confirmDeleteThread, setConfirmDeleteThread] = useState<{ threadId: string; subject: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -97,10 +104,16 @@ const AdminGmailSupport = () => {
     }
   }, [filter]);
 
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchInboxStats = useCallback(async () => {
     try {
-      const data = await callGmailApi('unread_count');
-      setUnreadCount(data.count || 0);
+      const data = await callGmailApi('inbox_stats');
+      setInboxStats({
+        total: data.total || 0,
+        unread: data.unread || 0,
+        read: data.read || 0,
+        starred: data.starred || 0,
+      });
+      setUnreadCount(data.unread || 0);
     } catch {
       // Silently fail
     }
@@ -141,7 +154,7 @@ const AdminGmailSupport = () => {
           e.threadId === threadId ? { ...e, isRead: true } : e
         ));
         // Immediately refresh unread count
-        fetchUnreadCount();
+        fetchInboxStats();
       }
     } catch (error: any) {
       toast.error('Failed to load thread: ' + error.message);
@@ -186,15 +199,42 @@ const AdminGmailSupport = () => {
       setShowReply(false);
       setAttachedImage(null);
       setImagePreview(null);
-      
+
+      // Mark thread as read locally (backend also marks it on send)
+      const threadId = selectedEmail.threadId;
+      setEmails(prev => prev.map(e => e.threadId === threadId ? { ...e, isRead: true } : e));
+
+      // Refresh stats so unread count drops immediately
+      fetchInboxStats();
+
       // Small delay to allow Gmail to index the sent message
       await new Promise(r => setTimeout(r, 1500));
-      const data = await callGmailApi('fetch_thread', { threadId: selectedEmail.threadId });
+      const data = await callGmailApi('fetch_thread', { threadId });
       setSelectedThread(Array.isArray(data) ? data : []);
     } catch (error: any) {
       toast.error('Failed to send reply: ' + error.message);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteThread = async (threadId: string) => {
+    setDeletingThreadId(threadId);
+    try {
+      await callGmailApi('trash_thread', { threadId });
+      // Optimistic remove from list + close dialog if open
+      setEmails(prev => prev.filter(e => e.threadId !== threadId));
+      if (selectedEmail?.threadId === threadId) {
+        setSelectedEmail(null);
+        setSelectedThread(null);
+      }
+      toast.success('🗑️ Conversation moved to Trash');
+      fetchInboxStats();
+    } catch (error: any) {
+      toast.error('Failed to delete: ' + error.message);
+    } finally {
+      setDeletingThreadId(null);
+      setConfirmDeleteThread(null);
     }
   };
 
@@ -223,7 +263,7 @@ const AdminGmailSupport = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchEmails(searchQuery, filter), fetchUnreadCount()]);
+    await Promise.all([fetchEmails(searchQuery, filter), fetchInboxStats()]);
     setRefreshing(false);
     toast.success('Emails refreshed');
   };
@@ -324,10 +364,14 @@ const AdminGmailSupport = () => {
   useAdminRealtime(['support_tickets'], () => fetchEmails(searchQuery, filter), 'admin-gmail-support-rt');
 
   useEffect(() => {
-    fetchUnreadCount();
+    fetchInboxStats();
     triggerAutoReplies();
-    // No polling interval — Gmail data fetched on-demand via user actions
-  }, [fetchUnreadCount, triggerAutoReplies]);
+    // Background poll for new emails every 45s — keeps unread badge fresh
+    const poll = setInterval(() => {
+      fetchInboxStats();
+    }, 45000);
+    return () => clearInterval(poll);
+  }, [fetchInboxStats, triggerAutoReplies]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -387,7 +431,7 @@ const AdminGmailSupport = () => {
 
         {/* Gmail Tab */}
         <TabsContent value="gmail" className="space-y-4 mt-4">
-          {/* Stats */}
+          {/* Stats — exact counts from Gmail labels API */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="bg-card/50 border-border/30 backdrop-blur-sm">
               <CardContent className="p-3 flex items-center gap-3">
@@ -395,8 +439,8 @@ const AdminGmailSupport = () => {
                   <Inbox className="h-4 w-4 text-purple-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.length}</div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Total</p>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.total}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Total Inbox</p>
                 </div>
               </CardContent>
             </Card>
@@ -406,7 +450,7 @@ const AdminGmailSupport = () => {
                   <Mail className="h-4 w-4 text-red-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-red-400 leading-none">{unreadCount}</div>
+                  <div className="text-lg font-bold text-red-400 leading-none">{inboxStats.unread}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Unread</p>
                 </div>
               </CardContent>
@@ -417,7 +461,7 @@ const AdminGmailSupport = () => {
                   <MailOpen className="h-4 w-4 text-green-400" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.filter(e => e.isRead).length}</div>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.read}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Read</p>
                 </div>
               </CardContent>
@@ -428,7 +472,7 @@ const AdminGmailSupport = () => {
                   <Star className="h-4 w-4 text-yellow-500" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground leading-none">{emails.filter(e => e.labels.includes('STARRED')).length}</div>
+                  <div className="text-lg font-bold text-foreground leading-none">{inboxStats.starred}</div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Starred</p>
                 </div>
               </CardContent>
@@ -481,17 +525,19 @@ const AdminGmailSupport = () => {
                     {emails.map((email) => (
                       <div
                         key={email.id}
-                        onClick={() => openThread(email)}
                         className={cn(
-                          "px-4 py-3 cursor-pointer transition-all duration-150 hover:bg-muted/30",
+                          "group relative px-4 py-3 transition-all duration-150 hover:bg-muted/30",
                           !email.isRead && 'bg-primary/[0.03] border-l-2 border-l-purple-500'
                         )}
                       >
-                        <div className="flex items-start gap-3">
+                        <div
+                          onClick={() => openThread(email)}
+                          className="flex items-start gap-3 cursor-pointer pr-10"
+                        >
                           <div className={cn(
                             "w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 border",
-                            !email.isRead 
-                              ? 'bg-gradient-to-br from-purple-500/20 to-violet-600/20 border-purple-500/20 text-purple-400' 
+                            !email.isRead
+                              ? 'bg-gradient-to-br from-purple-500/20 to-violet-600/20 border-purple-500/20 text-purple-400'
                               : 'bg-muted/40 border-border/20 text-muted-foreground'
                           )}>
                             {getInitials(extractName(email.from))}
@@ -517,6 +563,21 @@ const AdminGmailSupport = () => {
                             {email.labels.includes('STARRED') && <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />}
                           </div>
                         </div>
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteThread({ threadId: email.threadId, subject: email.subject || '(No Subject)' });
+                          }}
+                          disabled={deletingThreadId === email.threadId}
+                          title="Delete conversation"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-red-400 hover:bg-red-500/10 transition opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        >
+                          {deletingThreadId === email.threadId
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -554,6 +615,20 @@ const AdminGmailSupport = () => {
             <Badge variant="outline" className="text-[10px] border-border/40 text-muted-foreground shrink-0">
               {selectedThread?.length || 0} messages
             </Badge>
+            {selectedEmail && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 shrink-0"
+                title="Delete conversation"
+                disabled={deletingThreadId === selectedEmail.threadId}
+                onClick={() => setConfirmDeleteThread({ threadId: selectedEmail.threadId, subject: selectedEmail.subject || '(No Subject)' })}
+              >
+                {deletingThreadId === selectedEmail.threadId
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Trash2 className="h-4 w-4" />}
+              </Button>
+            )}
           </div>
 
           {loadingThread ? (
@@ -720,6 +795,27 @@ const AdminGmailSupport = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!confirmDeleteThread} onOpenChange={(open) => { if (!open) setConfirmDeleteThread(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{confirmDeleteThread?.subject}" will be moved to Gmail Trash and auto-purged after 30 days. This action removes the entire thread.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => confirmDeleteThread && handleDeleteThread(confirmDeleteThread.threadId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

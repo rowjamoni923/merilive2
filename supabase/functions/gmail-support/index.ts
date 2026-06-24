@@ -652,16 +652,58 @@ async function markAsRead(accessToken: string, messageId: string): Promise<void>
   );
 }
 
-// Get unread count
+// Get unread count (uses Gmail labels.get — exact, not estimate)
 async function getUnreadCount(accessToken: string): Promise<number> {
   const res = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1&q=is:unread in:inbox&labelIds=INBOX`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
   );
-
   if (!res.ok) return 0;
   const data = await res.json();
-  return data.resultSizeEstimate || 0;
+  return data.messagesUnread || 0;
+}
+
+// Get full inbox stats from Gmail labels API (totals are exact, not just visible page)
+async function getInboxStats(accessToken: string): Promise<{ total: number; unread: number; read: number; starred: number }> {
+  const [inboxRes, starredRes] = await Promise.all([
+    fetch(`https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX`, { headers: { Authorization: `Bearer ${accessToken}` } }),
+    fetch(`https://gmail.googleapis.com/gmail/v1/users/me/labels/STARRED`, { headers: { Authorization: `Bearer ${accessToken}` } }),
+  ]);
+  const inbox = inboxRes.ok ? await inboxRes.json() : {};
+  const starred = starredRes.ok ? await starredRes.json() : {};
+  const total = inbox.messagesTotal || 0;
+  const unread = inbox.messagesUnread || 0;
+  return {
+    total,
+    unread,
+    read: Math.max(0, total - unread),
+    starred: starred.messagesTotal || 0,
+  };
+}
+
+// Move a thread to Trash (Gmail auto-purges after 30 days)
+async function trashThread(accessToken: string, threadId: string): Promise<void> {
+  const res = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/trash`,
+    { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('Gmail trash error:', err);
+    throw new Error('Failed to delete thread');
+  }
+}
+
+// Mark an entire thread as read
+async function markThreadRead(accessToken: string, threadId: string): Promise<void> {
+  await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ removeLabelIds: ['UNREAD'] }),
+    }
+  );
 }
 
 Deno.serve(async (req) => {
@@ -681,7 +723,7 @@ Deno.serve(async (req) => {
 
     // Read-only actions only require an active admin session.
     // Mutating / outbound actions additionally require moderation-hub edit permission.
-    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read']);
+    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read', 'mark_thread_read', 'trash_thread']);
     const adminAuth = await requireAdminSession(req, adminClient, {
       sectionKey: mutatingActions.has(action) ? 'moderation-hub' : undefined,
       requireEdit: mutatingActions.has(action),
@@ -726,6 +768,8 @@ Deno.serve(async (req) => {
           params.imageName,
           params.imageMimeType,
         );
+        // Auto mark the thread as read after a successful reply
+        try { await markThreadRead(accessToken, params.threadId); } catch (_) {}
         break;
       }
 
@@ -736,8 +780,27 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case 'mark_thread_read': {
+        if (!params.threadId) throw new Error('threadId required');
+        await markThreadRead(accessToken, params.threadId);
+        result = { success: true };
+        break;
+      }
+
+      case 'trash_thread': {
+        if (!params.threadId) throw new Error('threadId required');
+        await trashThread(accessToken, params.threadId);
+        result = { success: true };
+        break;
+      }
+
       case 'unread_count': {
         result = { count: await getUnreadCount(accessToken) };
+        break;
+      }
+
+      case 'inbox_stats': {
+        result = await getInboxStats(accessToken);
         break;
       }
 
