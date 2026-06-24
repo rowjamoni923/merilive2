@@ -302,11 +302,19 @@ const getNotificationLink = (notification: Notification): string | null => {
 export const NotificationList = ({ onClose, compact = false }: NotificationListProps) => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
   const navigate = useNavigate();
+  const [otpNotification, setOtpNotification] = useState<Notification | null>(null);
 
   const handleNotificationClick = (notification: Notification) => {
     // Mark as read
     markAsRead(notification.id);
-    
+
+    // Agency verification OTP → open in-app dialog with copy button
+    // (user requested: tap notification → land inside the message → copy OTP)
+    if (notification.type === 'agency_verification') {
+      setOtpNotification(notification);
+      return;
+    }
+
     // Navigate to the relevant page
     const link = getNotificationLink(notification);
     if (link) {
@@ -314,6 +322,7 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
       navigate(link);
     }
   };
+
 
   if (loading) {
     return (
