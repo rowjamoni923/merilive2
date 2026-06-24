@@ -10,7 +10,9 @@ import {
   Coins,
   Percent,
   Filter,
-  ChevronDown
+  ChevronDown,
+  ShieldAlert,
+  ChevronRight,
 } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
