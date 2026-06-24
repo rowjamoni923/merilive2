@@ -391,8 +391,13 @@ const AgencyTransferHistory = () => {
               ) : (
                 filteredTransfers.map((transfer) => {
                   const hostEarnings = Number(transfer.amount) || 0;
+                  const vCount = Number(transfer.contact_violation_count) || 0;
+                  const vBeans = Number(transfer.contact_violation_beans_deducted) || 0;
+                  const vDetails: ViolationDetail[] = Array.isArray(transfer.contact_violations_detail)
+                    ? transfer.contact_violations_detail
+                    : [];
                   return (
-                    <div key={transfer.id} className="p-4 bg-gradient-to-r from-brand-500/10 to-info-500/10 border border-brand-500/20 rounded-xl">
+                    <div key={transfer.id} className="p-4 bg-gradient-to-r from-brand-500/10 to-info-500/10 border border-brand-500/20 rounded-xl space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 ring-2 ring-brand-500/30">
@@ -424,6 +429,11 @@ const AgencyTransferHistory = () => {
                           </Badge>
                         </div>
                       </div>
+
+                      {/* Deductions section — visible only to the agency, never to the host */}
+                      {vCount > 0 && (
+                        <DeductionsBlock count={vCount} beans={vBeans} details={vDetails} />
+                      )}
                     </div>
                   );
                 })
