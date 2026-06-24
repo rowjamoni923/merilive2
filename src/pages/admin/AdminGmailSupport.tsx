@@ -797,7 +797,6 @@ const AdminGmailSupport = () => {
                       setReplyBody((prev) => (prev ? `${prev}\n\n${snippet}` : snippet))
                     }
                   />
-                  </Button>
                 </div>
               </div>
             )}
