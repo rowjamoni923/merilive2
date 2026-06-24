@@ -896,11 +896,16 @@ export default function AdminAgencies() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-800 border border-slate-700 mb-4 p-1 w-full grid grid-cols-5 md:flex md:w-auto">
+        <TabsList className="bg-slate-800 border border-slate-700 mb-4 p-1 w-full grid grid-cols-3 md:grid-cols-6 md:flex md:w-auto">
           <TabsTrigger value="agencies" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Building2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             <span className="hidden md:inline">Agencies</span>
             <span className="md:hidden">List</span>
+          </TabsTrigger>
+          <TabsTrigger value="closed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-red-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
+            <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden md:inline">Closed</span>
+            <span className="md:hidden">Closed</span>
           </TabsTrigger>
           <TabsTrigger value="hostsearch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Search className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -921,6 +926,11 @@ export default function AdminAgencies() {
             <span className="md:hidden">Help</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="closed" className="space-y-4">
+          <ClosedAgenciesTab />
+        </TabsContent>
+
 
         {/* Agency Commission Settings Tab */}
         <TabsContent value="commission" className="space-y-6">
