@@ -100,24 +100,24 @@ export default function CountryAdminDashboard() {
         _display_order: row.display_order || 0,
       });
       if (error) throw error;
-      load();
+      toast.success("Submitted for owner approval", { description: "Change applies after owner approves." });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Update failed");
     }
   };
 
   const deleteTopup = async (id: string) => {
-    if (!confirm("Delete this payment method?")) return;
+    if (!confirm("Submit delete for owner approval?")) return;
     const { error } = await supabase.rpc("csa_delete_topup_method", { _id: id });
     if (error) toast.error(error.message);
-    else { toast.success("Deleted"); load(); }
+    else toast.success("Delete submitted for owner approval");
   };
 
   const deleteWd = async (id: string) => {
-    if (!confirm("Delete this withdrawal method?")) return;
+    if (!confirm("Submit delete for owner approval?")) return;
     const { error } = await supabase.rpc("csa_delete_withdrawal_method", { _id: id });
     if (error) toast.error(error.message);
-    else { toast.success("Deleted"); load(); }
+    else toast.success("Delete submitted for owner approval");
   };
 
   if (loading || !ctx) {
@@ -168,14 +168,21 @@ export default function CountryAdminDashboard() {
         )}
 
         <Tabs defaultValue="topup">
-          <TabsList className="bg-slate-900/60 border border-amber-500/20 p-1">
+          <TabsList className="bg-slate-900/60 border border-amber-500/20 p-1 flex-wrap h-auto">
             <TabsTrigger value="topup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-600 data-[state=active]:text-black">
               Top-up Methods ({topupMethods.length})
             </TabsTrigger>
             <TabsTrigger value="wd" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-red-600 data-[state=active]:text-white">
               Withdrawal Methods ({wdMethods.length})
             </TabsTrigger>
+            <TabsTrigger value="myqueue" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              My Submissions
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="myqueue" className="mt-4">
+            <MyApprovalQueue />
+          </TabsContent>
 
           <TabsContent value="topup" className="mt-4 space-y-3">
             <div className="flex justify-end">
@@ -319,7 +326,7 @@ function MethodEditDialog({ target, onClose, onSaved }: { target: { kind: "topup
         });
         if (error) throw error;
       }
-      toast.success("Saved");
+      toast.success("Submitted for owner approval", { description: "Change applies after owner approves." });
       onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
@@ -378,6 +385,65 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
     <div>
       <Label className="text-white/80 text-xs">{label}</Label>
       <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="bg-slate-800 border-slate-700" />
+    </div>
+  );
+}
+
+function MyApprovalQueue() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [tab, setTab] = useState<"pending" | "approved" | "rejected">("pending");
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("csa_pending_actions")
+      .select("*")
+      .eq("status", tab)
+      .order("requested_at", { ascending: false })
+      .limit(100);
+    setRows(data || []);
+    setLoading(false);
+  }, [tab]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="space-y-3">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black">Pending</TabsTrigger>
+          <TabsTrigger value="approved" className="data-[state=active]:bg-emerald-600">Approved</TabsTrigger>
+          <TabsTrigger value="rejected" className="data-[state=active]:bg-rose-600">Rejected</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {loading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-amber-400" /></div>
+      ) : rows.length === 0 ? (
+        <Card className="bg-slate-900/60 border-amber-500/20 p-6 text-center text-white/50">
+          No {tab} submissions.
+        </Card>
+      ) : rows.map((r) => (
+        <Card key={r.id} className="bg-slate-900/60 border-amber-500/20 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white">{r.description || r.action_type}</p>
+              <p className="text-[10px] text-white/40 mt-0.5">
+                {new Date(r.requested_at).toLocaleString()}
+                {r.reviewed_at && ` · Reviewed ${new Date(r.reviewed_at).toLocaleString()}`}
+              </p>
+              {r.reject_reason && (
+                <p className="text-xs text-rose-300 mt-1">Owner rejected: {r.reject_reason}</p>
+              )}
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded border ${
+              r.status === "pending" ? "bg-amber-500/20 text-amber-300 border-amber-500/40" :
+              r.status === "approved" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" :
+              "bg-rose-500/20 text-rose-300 border-rose-500/40"
+            }`}>{r.status}</span>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }

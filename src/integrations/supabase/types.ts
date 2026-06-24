@@ -4199,6 +4199,63 @@ export type Database = {
           },
         ]
       }
+      csa_pending_actions: {
+        Row: {
+          action_type: string
+          country_code: string
+          created_at: string
+          csa_user_id: string
+          description: string | null
+          execution_result: Json | null
+          id: string
+          payload: Json
+          reject_reason: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_id: string | null
+          target_table: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          country_code: string
+          created_at?: string
+          csa_user_id: string
+          description?: string | null
+          execution_result?: Json | null
+          id?: string
+          payload?: Json
+          reject_reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id?: string | null
+          target_table?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          country_code?: string
+          created_at?: string
+          csa_user_id?: string
+          description?: string | null
+          execution_result?: Json | null
+          id?: string
+          payload?: Json
+          reject_reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id?: string | null
+          target_table?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       currency_rates: {
         Row: {
           country_code: string | null
@@ -17765,6 +17822,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      _csa_enqueue: {
+        Args: {
+          _action_type: string
+          _description: string
+          _payload: Json
+          _target_id?: string
+          _target_table?: string
+        }
+        Returns: string
+      }
+      _csa_require_country: { Args: never; Returns: string }
       _current_admin_display: { Args: never; Returns: string }
       _current_admin_role: { Args: never; Returns: string }
       _do_reverse_auto_action: {
@@ -17983,6 +18051,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_approve_csa_action: { Args: { _action_id: string }; Returns: Json }
       admin_approve_device: {
         Args: { _device_id: string; _owner_admin_id: string }
         Returns: Json
@@ -19199,6 +19268,10 @@ export type Database = {
         Args: { _action: string; _transaction_id: string }
         Returns: Json
       }
+      admin_reject_csa_action: {
+        Args: { _action_id: string; _reason: string }
+        Returns: undefined
+      }
       admin_reject_payment_transaction: {
         Args: { _reason: string; _transaction_id: string }
         Returns: Json
@@ -20270,12 +20343,21 @@ export type Database = {
         Returns: undefined
       }
       csa_country_kpis: { Args: never; Returns: Json }
-      csa_delete_topup_method: { Args: { _id: string }; Returns: undefined }
-      csa_delete_withdrawal_method: {
-        Args: { _id: string }
-        Returns: undefined
-      }
+      csa_delete_topup_method: { Args: { _id: string }; Returns: string }
+      csa_delete_withdrawal_method: { Args: { _id: string }; Returns: string }
       csa_get_my_context: { Args: never; Returns: Json }
+      csa_review_agency_withdrawal: {
+        Args: { _decision: string; _id: string; _notes: string }
+        Returns: string
+      }
+      csa_review_helper_topup: {
+        Args: { _decision: string; _id: string; _notes: string }
+        Returns: string
+      }
+      csa_review_helper_withdrawal: {
+        Args: { _decision: string; _id: string; _notes: string }
+        Returns: string
+      }
       csa_upsert_topup_method: {
         Args: {
           _account_name: string
