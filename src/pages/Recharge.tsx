@@ -553,7 +553,15 @@ const Recharge = () => {
       }
 
       // FETCH 2: helper_country_payment_methods using actual schema (include helper_id, account info, logo)
-      const { data: countryMethodsData, error: countryMethodsError } = await supabase
+      // CSA visibility rule: if CSA in this country has ≥ threshold diamonds, show ONLY CSA-added methods.
+      // Otherwise show ONLY official (non-CSA) methods. Single source of truth via RPC.
+      let csaVisibility: "csa" | "official" = "official";
+      try {
+        const { data: vis } = await supabase.rpc("csa_get_country_payment_visibility" as any, { _country_code: userCountryCode });
+        if (vis === "csa") csaVisibility = "csa";
+      } catch (_) { /* default to official */ }
+
+      let countryMethodsQuery = supabase
         .from('helper_country_payment_methods')
         .select(`
           id,
@@ -570,10 +578,13 @@ const Recharge = () => {
           account_number,
           logo_url,
           method_type,
-          additional_info
+          additional_info,
+          added_by_csa
         `)
         .eq('country_code', userCountryCode)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .eq('added_by_csa', csaVisibility === "csa");
+      const { data: countryMethodsData, error: countryMethodsError } = await countryMethodsQuery;
 
       if (countryMethodsError) {
         console.error('[Recharge] Error fetching country payment methods:', countryMethodsError);
