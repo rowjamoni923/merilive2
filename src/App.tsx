@@ -152,6 +152,8 @@ const PublicPrivacyPolicy = lazy(lazyRetry(() => import("./pages/PublicPrivacyPo
 const PublicTerms = lazy(lazyRetry(() => import("./pages/PublicTerms")));
 const PublicAccountDeletion = lazy(lazyRetry(() => import("./pages/PublicAccountDeletion")));
 const PolicyDetail = lazy(lazyRetry(() => import("./pages/PolicyDetail")));
+const LevelsHub = lazy(lazyRetry(() => import("./pages/policies/LevelsHub")));
+const LevelPolicyDetail = lazy(lazyRetry(() => import("./pages/policies/LevelDetail")));
 const GoogleLibraryOrderRules = lazy(lazyRetry(() => import("./pages/GoogleLibraryOrderRules")));
 const About = lazy(lazyRetry(() => import("./pages/About")));
 const PublicContact = lazy(lazyRetry(() => import("./pages/PublicContact")));
@@ -1192,6 +1194,8 @@ const App = () => {
                       <Route path="/share" element={publicPage(<ShareReceive />)} />
                       <Route path="/link" element={publicPage(<SmartLink />)} />
                       <Route path="/policies" element={publicPage(<PublicPolicies />)} />
+                      <Route path="/policies/levels" element={publicPage(<LevelsHub />)} />
+                      <Route path="/policies/levels/:levelCode" element={publicPage(<LevelPolicyDetail />)} />
                       <Route path="/policies/:policyId" element={publicPage(<PolicyDetail />)} />
                       <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
                       <Route path="/privacy-policy" element={publicPage(<PublicPrivacyPolicy />)} />
