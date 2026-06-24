@@ -1962,6 +1962,18 @@ export default function AdminAgencies() {
         </TabsContent>
       </Tabs>
 
+      {selectedAgency && (
+        <GrantCsaDialog
+          open={showCsaDialog}
+          onOpenChange={setShowCsaDialog}
+          agencyId={selectedAgency.id}
+          agencyName={selectedAgency.name}
+          ownerUserId={(selectedAgency as any).owner_id || (selectedAgency.owner as any)?.id || null}
+          defaultCountry={(selectedAgency.owner as any)?.country_code}
+          onGranted={() => { /* realtime will refresh */ }}
+        />
+      )}
+
       {/* Cancel/Activate Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent className="bg-slate-800 border-white/10">
