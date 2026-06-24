@@ -525,17 +525,19 @@ const AdminGmailSupport = () => {
                     {emails.map((email) => (
                       <div
                         key={email.id}
-                        onClick={() => openThread(email)}
                         className={cn(
-                          "px-4 py-3 cursor-pointer transition-all duration-150 hover:bg-muted/30",
+                          "group relative px-4 py-3 transition-all duration-150 hover:bg-muted/30",
                           !email.isRead && 'bg-primary/[0.03] border-l-2 border-l-purple-500'
                         )}
                       >
-                        <div className="flex items-start gap-3">
+                        <div
+                          onClick={() => openThread(email)}
+                          className="flex items-start gap-3 cursor-pointer pr-10"
+                        >
                           <div className={cn(
                             "w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 border",
-                            !email.isRead 
-                              ? 'bg-gradient-to-br from-purple-500/20 to-violet-600/20 border-purple-500/20 text-purple-400' 
+                            !email.isRead
+                              ? 'bg-gradient-to-br from-purple-500/20 to-violet-600/20 border-purple-500/20 text-purple-400'
                               : 'bg-muted/40 border-border/20 text-muted-foreground'
                           )}>
                             {getInitials(extractName(email.from))}
@@ -561,6 +563,21 @@ const AdminGmailSupport = () => {
                             {email.labels.includes('STARRED') && <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />}
                           </div>
                         </div>
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteThread({ threadId: email.threadId, subject: email.subject || '(No Subject)' });
+                          }}
+                          disabled={deletingThreadId === email.threadId}
+                          title="Delete conversation"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-red-400 hover:bg-red-500/10 transition opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        >
+                          {deletingThreadId === email.threadId
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
                       </div>
                     ))}
                   </div>
