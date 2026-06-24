@@ -98,16 +98,22 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
       const csaUserId = created.user_id as string;
 
       // 2. Grant CSA via RPC
+      const expiresAt = computeExpiry();
+      if (tenure === "custom" && !expiresAt) {
+        throw new Error("Pick a custom expiry date");
+      }
       const { error } = await supabase.rpc("admin_grant_country_super_admin", {
         _agency_id: agencyId,
         _user_id: csaUserId,
         _email: email.trim().toLowerCase(),
         _country_code: country,
         _commission_percent: Number(commission) || 0,
-      });
+        _expires_at: expiresAt,
+        _tenure_label: tenureLabelText(),
+      } as any);
       if (error) throw error;
 
-      toast.success(`${agencyName} is now Country Super Admin for ${country}`);
+      toast.success(`${agencyName} is CSA for ${country} · ${tenureLabelText()}`);
       setGranted(true);
       onGranted?.();
     } catch (e) {
