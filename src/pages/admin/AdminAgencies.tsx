@@ -934,11 +934,21 @@ export default function AdminAgencies() {
             <span className="hidden md:inline">CSA Approvals</span>
             <span className="md:hidden">CSA</span>
           </TabsTrigger>
+          <TabsTrigger value="csadiamond" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-600 data-[state=active]:text-black text-slate-400 font-medium text-xs md:text-sm">
+            <Gem className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden md:inline">CSA Diamond Wallet</span>
+            <span className="md:hidden">💎</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="csa" className="space-y-4">
           <AdminCsaApprovals />
         </TabsContent>
+
+        <TabsContent value="csadiamond" className="space-y-4">
+          <AdminCsaDiamondSettings />
+        </TabsContent>
+
 
         <TabsContent value="closed" className="space-y-4">
           <ClosedAgenciesTab />
