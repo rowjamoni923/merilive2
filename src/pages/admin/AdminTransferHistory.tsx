@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface TransferRecord {
   id: string;
   agency_id: string;
@@ -438,7 +439,7 @@ const AdminTransferHistory = () => {
                               {transfer.host_name || transfer.host?.display_name || 'Unknown'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              UID: {transfer.host_uid || transfer.host?.app_uid || '-'}
+                              <CopyableUid value={transfer.host_uid || transfer.host?.app_uid || '-'} />
                             </div>
                           </div>
                         </TableCell>

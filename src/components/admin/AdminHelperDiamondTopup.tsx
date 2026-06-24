@@ -13,6 +13,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface HelperResult {
   id: string;
@@ -254,7 +255,7 @@ const AdminHelperDiamondTopup = () => {
                   <div className="flex-1">
                     <p className="font-medium text-white">{helper.user?.display_name}</p>
                     <p className="text-xs text-slate-400">
-                      UID: {helper.user?.app_uid} • Level {helper.trader_level}
+                      <CopyableUid value={helper.user?.app_uid} /> • Level {helper.trader_level}
                       {helper.payroll_enabled && ' • Payroll ✓'}
                     </p>
                   </div>
@@ -283,7 +284,7 @@ const AdminHelperDiamondTopup = () => {
                 <div className="flex-1">
                   <p className="font-bold text-white text-lg">{selectedHelper.user?.display_name}</p>
                   <p className="text-sm text-slate-400">
-                    UID: {selectedHelper.user?.app_uid} • Level {selectedHelper.trader_level}
+                    <CopyableUid value={selectedHelper.user?.app_uid} /> • Level {selectedHelper.trader_level}
                     {selectedHelper.payroll_enabled && ' • Payroll ✓'}
                   </p>
                 </div>

@@ -26,6 +26,7 @@ import AdminContactViolations from "./AdminContactViolations";
 import AdminLiveBans from "./AdminLiveBans";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector`;
 
@@ -371,7 +372,7 @@ const AdminChatInspector = () => {
                       {user.is_host && <Badge className="bg-pink-600/30 text-pink-300 text-[10px] px-1.5">Host</Badge>}
                       {user.is_blocked && <Badge className="bg-red-600/30 text-red-300 text-[10px] px-1.5">Blocked</Badge>}
                     </div>
-                    <p className="text-white/50 text-xs">UID: {user.app_uid || "—"}</p>
+                    <p className="text-white/50 text-xs"><CopyableUid value={user.app_uid || "—"} /></p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/30" />
                 </div>
@@ -395,7 +396,7 @@ const AdminChatInspector = () => {
                       <h3 className="text-white font-bold">{selectedUser.display_name}</h3>
                       {selectedUser.country_flag && <span>{selectedUser.country_flag}</span>}
                     </div>
-                    <p className="text-white/50 text-sm">UID: {selectedUser.app_uid}</p>
+                    <p className="text-white/50 text-sm"><CopyableUid value={selectedUser.app_uid} /></p>
                     <div className="flex gap-1.5 mt-1">
                       {selectedUser.is_host && <Badge className="bg-pink-600/30 text-pink-300 text-[10px]">🎤 Host</Badge>}
                       {selectedUser.is_blocked && <Badge className="bg-red-600/30 text-red-300 text-[10px]">🚫 Blocked</Badge>}
@@ -629,7 +630,7 @@ const AdminChatInspector = () => {
                           {alert.user?.display_name || "Unknown"}
                         </span>
                         <span className="text-white/40 text-xs">
-                          UID: {alert.user?.app_uid || "—"}
+                          <CopyableUid value={alert.user?.app_uid || "—"} />
                         </span>
                         {alert.user?.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
                         {alert.violation_number && (
@@ -742,7 +743,7 @@ const AdminChatInspector = () => {
                 </Avatar>
                 <div>
                   <p className="text-white font-medium text-sm">{banTargetUser.display_name}</p>
-                  <p className="text-white/40 text-xs">UID: {banTargetUser.app_uid}</p>
+                  <p className="text-white/40 text-xs"><CopyableUid value={banTargetUser.app_uid} /></p>
                 </div>
                 {banTargetUser.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
               </div>

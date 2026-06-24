@@ -239,8 +239,7 @@ export default function HelpersTabContent() {
                     {helper.user?.display_name || "Unknown"}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-white/50">
-                    <span>{helper.user?.app_uid ? `UID: ${helper.user.app_uid}` : "No UID"}</span>
-                    {helper.user?.app_uid && <CopyButton value={helper.user.app_uid} label="UID" />}
+                    <CopyableUid value={helper.user?.app_uid} fallback="No UID" />
                   </div>
                   {helper.agency_code && (
                     <div className="flex items-center gap-1 text-[10px] text-amber-400/70">

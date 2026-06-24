@@ -14,6 +14,7 @@ import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface CallRecord {
   id: string;
   caller_id: string;
@@ -243,7 +244,7 @@ export default function AdminTodayCalls() {
                           {call.caller_profile?.display_name || "Unknown Caller"}
                         </p>
                         <p className="text-[10px] text-slate-400">
-                          UID: {call.caller_profile?.app_uid || "N/A"}
+                          <CopyableUid value={call.caller_profile?.app_uid || "N/A"} />
                         </p>
                       </div>
                     </div>
@@ -264,7 +265,7 @@ export default function AdminTodayCalls() {
                           {call.host_profile?.display_name || "Unknown Host"}
                         </p>
                         <p className="text-[10px] text-slate-400">
-                          UID: {call.host_profile?.app_uid || "N/A"}
+                          <CopyableUid value={call.host_profile?.app_uid || "N/A"} />
                         </p>
                       </div>
                     </div>

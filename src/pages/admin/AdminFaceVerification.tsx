@@ -30,6 +30,7 @@ import { getAdminSessionToken } from "@/utils/adminSession";
 import { formatAdminError } from "@/utils/formatAdminError";
 import { cn } from "@/lib/utils";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 /**
  * Premium Approve/Reject action bar.
@@ -843,7 +844,7 @@ const AdminFaceVerification = () => {
                           })()}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          UID: {submission.profile?.app_uid} • {formatDate(submission.created_at)}
+                          <CopyableUid value={submission.profile?.app_uid} /> • {formatDate(submission.created_at)}
                         </p>
                       </div>
 
@@ -1023,7 +1024,7 @@ const AdminFaceVerification = () => {
                   </Avatar>
                   <div>
                     <h3 className="font-bold text-lg">{selectedSubmission.profile?.display_name}</h3>
-                    <p className="text-sm text-muted-foreground">UID: {selectedSubmission.profile?.app_uid}</p>
+                    <p className="text-sm text-muted-foreground"><CopyableUid value={selectedSubmission.profile?.app_uid} /></p>
                     <div className="flex items-center gap-2 mt-1">
                       {selectedSubmission.profile?.is_face_verified && (
                         <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
@@ -1051,7 +1052,7 @@ const AdminFaceVerification = () => {
                       )}
                       <div>
                         <p className="font-semibold text-red-200">{selectedSubmission.duplicate_face_name || 'Unknown'}</p>
-                        {selectedSubmission.duplicate_face_uid && <p className="text-xs text-red-300">UID: {selectedSubmission.duplicate_face_uid}</p>}
+                        {selectedSubmission.duplicate_face_uid && <p className="text-xs text-red-300"><CopyableUid value={selectedSubmission.duplicate_face_uid} /></p>}
                       </div>
                     </div>
                   </div>

@@ -32,6 +32,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface LiveStream {
   id: string;
   title: string;
@@ -101,7 +102,7 @@ function BanCard({ ban, onUnban }: { ban: LiveBan; onUnban: () => void }) {
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-slate-800 font-medium truncate text-sm">{ban.profile?.display_name || "Unknown"}</p>
-            <p className="text-slate-400 text-[10px]">UID: {ban.profile?.app_uid || ban.user_id.slice(0, 8)}</p>
+            <p className="text-slate-400 text-[10px]"><CopyableUid value={ban.profile?.app_uid || ban.user_id.slice(0, 8)} /></p>
           </div>
           <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">
             <Ban className="w-3 h-3 mr-1" /> Banned

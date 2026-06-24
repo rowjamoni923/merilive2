@@ -20,6 +20,7 @@ import {
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface RoleFrame {
   id: string;
   role_type: string;
@@ -770,7 +771,7 @@ const AdminRoleFrames = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-white font-medium">{user.display_name || 'Unknown'}</p>
-                      <p className="text-slate-500 text-xs">UID: {user.app_uid}</p>
+                      <p className="text-slate-500 text-xs"><CopyableUid value={user.app_uid} /></p>
                     </div>
                     {selectedUser?.id === user.id && (
                       <CheckCircle className="w-5 h-5 text-purple-400" />

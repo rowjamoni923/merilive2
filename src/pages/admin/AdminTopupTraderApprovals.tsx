@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useTopupTraderTierMin } from "@/hooks/useTopupTraderTierMin";
 import { SmartImage } from "@/components/ui/smart-image";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface TraderRow {
   helper_id: string;
@@ -204,7 +205,7 @@ export default function AdminTopupTraderApprovals() {
                           <SmartImage src={r.avatar_url || "/placeholder.svg"} className="w-8 h-8 rounded-full object-cover ring-1 ring-border" alt="" />
                           <div className="min-w-0">
                             <div className="font-semibold text-sm truncate">{r.display_name || "Helper"}</div>
-                            <div className="text-[10px] text-muted-foreground">UID: {r.app_uid || "—"}</div>
+                            <div className="text-[10px] text-muted-foreground"><CopyableUid value={r.app_uid || "—"} /></div>
                           </div>
                         </div>
                       </TableCell>
@@ -268,7 +269,7 @@ export default function AdminTopupTraderApprovals() {
                     <TableCell className="text-xs whitespace-nowrap">{fmtDate(r.created_at)}</TableCell>
                     <TableCell>
                       <div className="font-medium text-sm">{r.display_name || "Helper"}</div>
-                      <div className="text-[10px] text-muted-foreground">UID: {r.app_uid || "—"}</div>
+                      <div className="text-[10px] text-muted-foreground"><CopyableUid value={r.app_uid || "—"} /></div>
                     </TableCell>
                     <TableCell>
                       {r.action === "approve" ? (

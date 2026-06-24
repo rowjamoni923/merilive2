@@ -16,6 +16,7 @@ import {
   CheckCircle, XCircle, Copy, ArrowLeftRight,
   AlertTriangle, RefreshCw
 } from "lucide-react";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface UserResult {
   id: string;
@@ -449,7 +450,7 @@ export default function UserSupportTool() {
                               {user.is_blocked && <Ban className="h-3 w-3 text-destructive shrink-0" />}
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>UID: {user.app_uid}</span>
+                              <span><CopyableUid value={user.app_uid} /></span>
                               {user.country_flag && <span>{user.country_flag}</span>}
                             </div>
                           </div>
@@ -719,7 +720,7 @@ export default function UserSupportTool() {
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
             </DialogTitle>
             <DialogDescription>
-              {selectedUser?.display_name} (UID: {selectedUser?.app_uid})
+              {selectedUser?.display_name} (<CopyableUid value={selectedUser?.app_uid} />)
             </DialogDescription>
           </DialogHeader>
           {!selectedUser?.is_blocked && (
@@ -752,7 +753,7 @@ export default function UserSupportTool() {
               Reset Password
             </DialogTitle>
             <DialogDescription>
-              {selectedUser?.display_name} (UID: {selectedUser?.app_uid})
+              {selectedUser?.display_name} (<CopyableUid value={selectedUser?.app_uid} />)
             </DialogDescription>
           </DialogHeader>
           {tempPassword ? (

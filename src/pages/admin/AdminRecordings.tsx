@@ -386,7 +386,7 @@ export default function AdminRecordings() {
                             </p>
                             <p className="text-slate-400 text-xs flex items-center gap-1">
                               <User className="w-3 h-3" />
-                              UID: {recording.host_uid || recording.host?.app_uid || "-"}
+                              <CopyableUid value={recording.host_uid || recording.host?.app_uid || ""} />
                             </p>
                           </div>
                         </div>

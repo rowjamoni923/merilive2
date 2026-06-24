@@ -67,6 +67,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface Agency {
   id: string;
   name: string;
@@ -1184,7 +1185,7 @@ export default function AdminAgencyDetail() {
                   </Avatar>
                   <div className="flex-1">
                     <p className="text-white font-medium text-lg">{foundUser.display_name || "Unknown"}</p>
-                    <p className="text-white/50 text-sm">UID: {foundUser.app_uid} {foundUser.country_flag}</p>
+                    <p className="text-white/50 text-sm"><CopyableUid value={foundUser.app_uid} /> {foundUser.country_flag}</p>
                     {foundUser.agency_id && (
                       <Badge className="bg-yellow-500/20 text-yellow-400 mt-1">
                         Already in an Agency

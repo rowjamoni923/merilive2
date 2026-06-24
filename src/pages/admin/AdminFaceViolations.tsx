@@ -14,6 +14,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 interface FaceViolation {
   id: string;
   host_id: string;
@@ -198,7 +199,7 @@ const AdminFaceViolations = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm">{v.host_name}</span>
                       {v.host_uid && (
-                        <Badge variant="outline" className="text-xs">UID: {v.host_uid}</Badge>
+                        <Badge variant="outline" className="text-xs"><CopyableUid value={v.host_uid} /></Badge>
                       )}
                       <Badge
                         variant={v.auto_closed ? "destructive" : "secondary"}

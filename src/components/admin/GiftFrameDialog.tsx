@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface UserSearchResult {
   id: string;
@@ -198,7 +199,7 @@ const GiftFrameDialog = ({
                           {u.display_name || "Unknown"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          UID: {u.app_uid || "—"} {u.is_host && "• Host"}
+                          <CopyableUid value={u.app_uid || "—"} /> {u.is_host && "• Host"}
                         </p>
                       </div>
                     </button>
@@ -223,7 +224,7 @@ const GiftFrameDialog = ({
                   {selectedUser.display_name || "Unknown"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  UID: {selectedUser.app_uid || "—"}
+                  <CopyableUid value={selectedUser.app_uid || "—"} />
                 </p>
               </div>
               <Button
