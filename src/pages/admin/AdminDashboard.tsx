@@ -25,7 +25,8 @@ import {
   CreditCard, 
   RefreshCw, 
   Sparkles, 
-  BarChart3} from "lucide-react";
+  BarChart3,
+  AlertTriangle} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -537,6 +538,16 @@ export default function AdminDashboard() {
           glowColor="#14b8a6"
           delay={0.5}
           link="/admin/recharge-history"
+        />
+        <StatCard
+          title="Crypto Recovery"
+          value="Open"
+          icon={AlertTriangle}
+          accentFrom="from-orange-500"
+          accentTo="to-rose-400"
+          glowColor="#fb923c"
+          delay={0.52}
+          link="/admin/crypto-recovery"
         />
       </div>
 
