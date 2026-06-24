@@ -304,7 +304,17 @@ The MeriLive Concierge
 <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#f0d78c;margin:0 3px;opacity:0.7;"></span>
 <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#c9a84c;margin:0 3px;opacity:0.4;"></span>
 </div>
-<p style="margin:18px 0 0;font-size:10px;color:#5a4f3a;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
+<div style="margin:22px 0 6px;">
+<a href="https://play.google.com/store/apps/details?id=com.merilive.app" target="_blank" style="text-decoration:none;display:inline-block;background:linear-gradient(135deg,#1a1208 0%,#2a1f0e 100%);border:1px solid rgba(201,168,76,0.45);border-radius:10px;padding:10px 18px;box-shadow:0 4px 14px rgba(201,168,76,0.18);">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="display:inline-table;"><tr>
+<td style="vertical-align:middle;padding-right:10px;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/200px-Google_Play_Store_badge_EN.svg.png" alt="" width="22" height="24" style="display:block;border:0;" /></td>
+<td style="vertical-align:middle;text-align:left;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.1;">
+<div style="font-size:9px;color:#a89878;letter-spacing:2px;text-transform:uppercase;">Get it on</div>
+<div style="font-size:14px;color:#f0d78c;letter-spacing:1px;font-weight:600;font-family:'Georgia',serif;">Google Play</div>
+</td></tr></table>
+</a>
+</div>
+<p style="margin:14px 0 0;font-size:10px;color:#5a4f3a;letter-spacing:2px;text-transform:uppercase;font-family:'Helvetica Neue',Arial,sans-serif;">© 2026 MeriLive · All Rights Reserved</p>
 </td></tr>
 
 <!-- Gold hairline bottom -->
