@@ -114,8 +114,19 @@ export default function MatchCall() {
   }, [isInCall]);
 
   const cancelQueue = async () => {
-    try { await supabase.functions.invoke("random-call-cancel", { body: queueId ? { queue_id: queueId } : {} }); } catch (_) {}
+    try {
+      const body: any = {};
+      if (queueId) body.queue_id = queueId;
+      if (broadcastIdRef.current) body.broadcast_id = broadcastIdRef.current;
+      await supabase.functions.invoke("random-call-cancel", { body });
+    } catch (_) {}
+    if (broadcastChannelRef.current) {
+      try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {}
+      broadcastChannelRef.current = null;
+    }
+    broadcastIdRef.current = null;
     if (timerRef.current) window.clearInterval(timerRef.current);
+    if (instantMode) { navigate(-1); return; }
     setPhase("prep");
     setQueueId(null);
     setElapsed(0);
