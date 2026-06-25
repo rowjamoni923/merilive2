@@ -31,6 +31,12 @@ export default function MatchCall() {
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
+  // Authoritative active-session state (no longer derived from sessionStorage during settle).
+  const [activeSession, setActiveSession] = useState<{
+    session_id: string; host_id: string; started_at: number; ended_by?: string;
+  } | null>(null);
+  const activeSessionRef = useRef<typeof activeSession>(null);
+  useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
@@ -70,31 +76,32 @@ export default function MatchCall() {
     };
   }, [phase]);
 
-  // Settle session after user exits the call overlay
+  // Settle session after user exits the call overlay (server recomputes duration authoritatively)
   useEffect(() => {
     if (isInCall) { wasInCallRef.current = true; return; }
     if (!wasInCallRef.current) return;
     wasInCallRef.current = false;
-    let raw: string | null = null;
-    try {
-      raw = window.sessionStorage.getItem("random_call:active");
-      window.sessionStorage.removeItem("random_call:active");
-    } catch (_) {}
+
+    const info = activeSessionRef.current;
+    try { window.sessionStorage.removeItem("random_call:active"); } catch (_) {}
+    setActiveSession(null);
+
     const shouldAutoRestart = autoRestartRef.current;
     autoRestartRef.current = false;
-    if (raw) {
-      try {
-        const info = JSON.parse(raw) as { session_id: string; started_at: number; ended_by?: string };
-        const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
-        supabase.functions.invoke("random-call-settle", {
-          body: { session_id: info.session_id, duration_seconds: duration, ended_by: info.ended_by ?? "caller" },
-        }).catch(() => {});
-        // Open the post-call rating sheet only for non-trivial calls.
-        if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
-      } catch (_) {}
+
+    if (info) {
+      const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
+      supabase.functions.invoke("random-call-settle", {
+        body: {
+          session_id: info.session_id,
+          duration_seconds: duration,
+          ended_by: info.ended_by ?? "caller",
+        },
+      }).catch(() => {});
+      // Open the post-call rating sheet only for non-trivial calls.
+      if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
     }
     if (shouldAutoRestart && lastFiltersRef.current) {
-      // Re-enqueue with the same filters (Chamet-style Next)
       const f = lastFiltersRef.current;
       setTimeout(() => { void startSearch(f); }, 250);
     } else {
@@ -113,26 +120,28 @@ export default function MatchCall() {
   // Chamet-style "Next": end current call, server applies free-window rule
   // (zero charge if duration < random_window_seconds), then auto re-enqueue.
   const handleNext = async () => {
-    try {
-      const raw = window.sessionStorage.getItem("random_call:active");
-      if (raw) {
-        const info = JSON.parse(raw) as any;
-        info.ended_by = "caller_skip";
-        window.sessionStorage.setItem("random_call:active", JSON.stringify(info));
-      }
-    } catch (_) {}
+    // Mark ended_by in component state (authoritative) and mirror to sessionStorage for legacy readers.
+    const current = activeSessionRef.current;
+    if (current) {
+      const next = { ...current, ended_by: "caller_skip" };
+      setActiveSession(next);
+      activeSessionRef.current = next;
+      try { window.sessionStorage.setItem("random_call:active", JSON.stringify(next)); } catch (_) {}
+    }
     autoRestartRef.current = true;
     try { await endCall(); } catch (_) {}
   };
 
-  // Triggered by overlay when 60s convert attempt resolves.
-  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed") => {
+  // Triggered by overlay when the random-window mark is reached.
+  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed" | "ended") => {
     if (reason === "converted") {
-      // Random session already marked settled by the RPC; the existing call
-      // stays open as a private call. Nothing else to do here.
+      // Random session already marked settled by the RPC; LiveKit room stays
+      // open and continues as a private call. Clear local random state.
+      setActiveSession(null);
+      activeSessionRef.current = null;
       return;
     }
-    // No balance OR convert failed → end the call immediately for both sides.
+    // No balance OR convert disabled/failed → end the call immediately.
     try { await endCall(); } catch (_) {}
   };
 
@@ -192,9 +201,11 @@ export default function MatchCall() {
         if (timerRef.current) window.clearInterval(timerRef.current);
         setPhase("matched");
         const startedAt = Date.now();
+        const next = { session_id: sessionId, host_id: hostId, started_at: startedAt };
+        setActiveSession(next);
+        activeSessionRef.current = next;
         try {
-          window.sessionStorage.setItem("random_call:active",
-            JSON.stringify({ session_id: sessionId, host_id: hostId, started_at: startedAt }));
+          window.sessionStorage.setItem("random_call:active", JSON.stringify(next));
         } catch (_) {}
         const callId = await startCall(hostId);
         if (!callId) {
@@ -244,11 +255,15 @@ export default function MatchCall() {
     const estWait = hostsCount > 0
       ? Math.max(8, Math.min(60, Math.round(45 / Math.max(1, hostsCount))))
       : 45;
+    // Match the server-side hold so users see the same gate the server applies.
+    const maxRate = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
+    const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
+    const holdAmount = Math.max(0, maxRate * preauthMin);
     return (
       <>
         <PreMatchPrep
           diamondBalance={profile?.coins ?? 0}
-          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          hostRatePerMin={holdAmount > 0 ? holdAmount : (settings?.default_host_rate_coins_per_min ?? 0)}
           freeTrialSeconds={settings?.random_window_seconds ?? 60}
           minBillableSeconds={settings?.random_window_seconds ?? 60}
           availableHostsCount={hostsCount}
@@ -276,6 +291,10 @@ export default function MatchCall() {
         <MatchCallOverlay
           randomWindowSeconds={settings?.random_window_seconds ?? 60}
           hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          autoConvert={settings?.auto_convert_to_private !== false}
+          startedAt={activeSession?.started_at}
+          sessionId={activeSession?.session_id ?? null}
+          hostId={activeSession?.host_id ?? null}
           onAutoEnd={handleAutoEnd}
           onNext={handleNext}
         />

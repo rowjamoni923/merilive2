@@ -20,26 +20,15 @@ export default function FloatingRandomMatchPill({
     let cancelled = false;
     (async () => {
       try {
-        // Pull two random online host avatars for the pill (visual only)
-        const { data } = await supabase
-          .from("random_call_queue" as any)
-          .select("user_id")
-          .eq("role", "host")
-          .eq("status", "waiting")
-          .limit(8);
-        const ids = (data as any[] | null)?.map((r) => r.user_id) ?? [];
-        if (ids.length > 0) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("avatar_url")
-            .in("id", ids.slice(0, 6));
-          if (!cancelled) {
-            const urls = (prof ?? [])
-              .map((p: any) => p?.avatar_url)
-              .filter(Boolean)
-              .slice(0, 2);
-            setAvatars(urls as string[]);
-          }
+        // Use SECURITY DEFINER RPC — RLS on random_call_queue blocks direct
+        // cross-user reads. The RPC returns only avatar_url (no user_id).
+        const { data } = await supabase.rpc("get_random_pool_sample" as any, { _limit: 6 });
+        if (!cancelled) {
+          const urls = ((data as any[] | null) ?? [])
+            .map((r) => r?.avatar_url)
+            .filter(Boolean)
+            .slice(0, 2);
+          setAvatars(urls as string[]);
         }
       } catch (_) { /* silent */ }
     })();

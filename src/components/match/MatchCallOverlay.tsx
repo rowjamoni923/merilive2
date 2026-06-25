@@ -21,13 +21,25 @@ import { useCall } from "@/components/call/CallProvider";
 export interface MatchCallOverlayProps {
   randomWindowSeconds: number;
   hostRatePerMin: number;
-  onAutoEnd: (reason: "converted" | "no_balance" | "convert_failed") => void;
+  /** When false, the call simply ends at the random window instead of converting. */
+  autoConvert?: boolean;
+  /** Authoritative session start (ms). Falls back to sessionStorage only if absent. */
+  startedAt?: number;
+  /** Session id from the matched response — authoritative source, no storage round-trip. */
+  sessionId?: string | null;
+  /** Host id — used to fetch the mini-bar avatar pair. */
+  hostId?: string | null;
+  onAutoEnd: (reason: "converted" | "no_balance" | "convert_failed" | "ended") => void;
   onNext: () => void;
 }
 
 export default function MatchCallOverlay({
   randomWindowSeconds,
   hostRatePerMin,
+  autoConvert = true,
+  startedAt,
+  sessionId,
+  hostId,
   onAutoEnd,
   onNext,
 }: MatchCallOverlayProps) {
@@ -38,51 +50,68 @@ export default function MatchCallOverlay({
   const [avatars, setAvatars] = useState<{ me?: string; host?: string }>({});
   const convertingRef = useRef(false);
 
-  // Timer
+  // Timer — prefer prop, fall back to sessionStorage, then to now.
   useEffect(() => {
-    let started = Date.now();
-    try {
-      const raw = window.sessionStorage.getItem("random_call:active");
-      if (raw) started = (JSON.parse(raw) as any).started_at ?? Date.now();
-    } catch (_) { /* */ }
+    let started = startedAt ?? Date.now();
+    if (!startedAt) {
+      try {
+        const raw = window.sessionStorage.getItem("random_call:active");
+        if (raw) started = (JSON.parse(raw) as any).started_at ?? Date.now();
+      } catch (_) { /* */ }
+    }
     const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - started) / 1000)));
     tick();
     const t = window.setInterval(tick, 500);
     return () => window.clearInterval(t);
-  }, []);
+  }, [startedAt]);
 
   // Pull both avatars for the mini-bar
   useEffect(() => {
     (async () => {
       try {
-        const raw = window.sessionStorage.getItem("random_call:active");
-        const info = raw ? (JSON.parse(raw) as any) : null;
         const { data: u } = await supabase.auth.getUser();
-        const ids = [u?.user?.id, info?.host_id].filter(Boolean) as string[];
+        let resolvedHost = hostId ?? null;
+        if (!resolvedHost) {
+          try {
+            const raw = window.sessionStorage.getItem("random_call:active");
+            resolvedHost = raw ? (JSON.parse(raw) as any).host_id ?? null : null;
+          } catch (_) { /* */ }
+        }
+        const ids = [u?.user?.id, resolvedHost].filter(Boolean) as string[];
         if (ids.length === 0) return;
         const { data: profs } = await supabase
           .from("profiles").select("id, avatar_url").in("id", ids);
         const myId = u?.user?.id;
         const me = profs?.find((p: any) => p.id === myId)?.avatar_url;
-        const host = profs?.find((p: any) => p.id === info?.host_id)?.avatar_url;
+        const host = profs?.find((p: any) => p.id === resolvedHost)?.avatar_url;
         setAvatars({ me, host });
       } catch (_) { /* */ }
     })();
-  }, []);
+  }, [hostId]);
 
-  // Auto-convert at the random-window mark
+  // Auto-convert at the random-window mark (respects admin auto_convert_to_private)
   useEffect(() => {
     if (converted || convertingRef.current) return;
     if (elapsed < randomWindowSeconds) return;
     convertingRef.current = true;
+    if (!autoConvert) {
+      // Admin disabled auto-convert — end the call cleanly at the free window.
+      onAutoEnd("ended");
+      return;
+    }
     (async () => {
       try {
-        const raw = window.sessionStorage.getItem("random_call:active");
-        const info = raw ? (JSON.parse(raw) as any) : null;
-        if (!info?.session_id) { onAutoEnd("convert_failed"); return; }
+        let sid = sessionId ?? null;
+        if (!sid) {
+          try {
+            const raw = window.sessionStorage.getItem("random_call:active");
+            sid = raw ? (JSON.parse(raw) as any).session_id ?? null : null;
+          } catch (_) { /* */ }
+        }
+        if (!sid) { onAutoEnd("convert_failed"); return; }
         const { data, error } = await supabase.rpc(
           "convert_random_to_private" as any,
-          { p_session_id: info.session_id },
+          { p_session_id: sid },
         );
         if (error) throw error;
         const r = data as any;
@@ -107,7 +136,7 @@ export default function MatchCallOverlay({
         onAutoEnd("convert_failed");
       }
     })();
-  }, [elapsed, randomWindowSeconds, converted, onAutoEnd]);
+  }, [elapsed, randomWindowSeconds, converted, onAutoEnd, autoConvert, sessionId]);
 
   const freeRemaining = Math.max(0, randomWindowSeconds - elapsed);
   const inFree = !converted && elapsed < randomWindowSeconds;

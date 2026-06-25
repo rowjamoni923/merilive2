@@ -22448,6 +22448,12 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_random_pool_sample: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+        }[]
+      }
       get_random_skip_multiplier: {
         Args: { p_user_id: string }
         Returns: number

@@ -76,7 +76,7 @@ export default function AdminRandomCallOps() {
         .select("host_id, calls_completed_7d, avg_duration_sec_7d, avg_rating_7d, rating_count_7d, acceptance_pct, quality_score, report_count_24h, is_queue_suppressed")
         .order("quality_score", { ascending: false }).limit(20),
       (supabase as any).from("random_call_skip_counters")
-        .select("*").order("skips_count", { ascending: false }).limit(20),
+        .select("*").order("skip_count", { ascending: false }).limit(20),
       (supabase as any).from("random_call_sessions")
         .select("id, status, billable_seconds, coins_charged, beans_awarded")
         .gte("started_at", startToday.toISOString()).limit(5000),
@@ -173,8 +173,14 @@ export default function AdminRandomCallOps() {
 
   const forceEndSession = async (sessionId: string) => {
     if (!confirm("Force-end this call? Caller will be charged for billable seconds only.")) return;
+    // Compute duration from the live session row so the RPC has a real number
+    // (server clamps it again to its own elapsed value — this is just the floor).
+    const sess = sessions.find((s) => s.id === sessionId);
+    const startedAtMs = sess?.started_at ? new Date(sess.started_at).getTime() : Date.now();
+    const duration = Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000));
     const { error } = await (supabase as any).rpc("settle_random_call", {
       p_session_id: sessionId,
+      p_duration_seconds: duration,
       p_ended_by: "admin",
     });
     if (error) return toast.error("Failed: " + error.message);
@@ -436,7 +442,7 @@ export default function AdminRandomCallOps() {
                   {skipAbusers.map((r) => (
                     <TableRow key={r.user_id || r.id}>
                       <TableCell className="text-xs">{pName(r.user_id)}</TableCell>
-                      <TableCell>{r.skips_count ?? r.daily_count ?? 0}</TableCell>
+                      <TableCell>{r.skip_count ?? r.daily_count ?? 0}</TableCell>
                       <TableCell className="text-xs">{fmtTime(r.cooldown_until)}</TableCell>
                       <TableCell className="text-xs">{fmtTime(r.updated_at || r.last_skip_at)}</TableCell>
                     </TableRow>
