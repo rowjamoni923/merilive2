@@ -60,6 +60,7 @@ export function useCall() {
     // Silent fallback during HMR/edge cases - no console spam
     return {
       startCall: async () => null as string | null,
+      endCall: async () => {},
       isInCall: false,
     };
   }
