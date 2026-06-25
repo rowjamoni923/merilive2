@@ -1407,7 +1407,7 @@ const AdminSupportTickets = () => {
                   </div>
                 </div>
                 {/* Compact action buttons */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap w-full sm:w-auto overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1 sm:pb-0">
                   <Button size="sm" variant="outline" className="h-7 text-[10px] px-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={() => setReportOpen(true)}>
                     <ShieldAlert className="w-3 h-3 mr-0.5" /> Report
                   </Button>
