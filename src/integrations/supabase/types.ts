@@ -12755,6 +12755,63 @@ export type Database = {
         }
         Relationships: []
       }
+      random_call_broadcasts: {
+        Row: {
+          caller_device_id: string | null
+          caller_id: string
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          default_host_rate: number
+          expires_at: string
+          free_trial_seconds: number
+          hold_amount: number
+          host_split_pct: number
+          id: string
+          livekit_room: string
+          min_billable_seconds: number
+          session_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          caller_device_id?: string | null
+          caller_id: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          default_host_rate?: number
+          expires_at?: string
+          free_trial_seconds?: number
+          hold_amount?: number
+          host_split_pct?: number
+          id?: string
+          livekit_room: string
+          min_billable_seconds?: number
+          session_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          caller_device_id?: string | null
+          caller_id?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          default_host_rate?: number
+          expires_at?: string
+          free_trial_seconds?: number
+          hold_amount?: number
+          host_split_pct?: number
+          id?: string
+          livekit_room?: string
+          min_billable_seconds?: number
+          session_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       random_call_queue: {
         Row: {
           caller_gender: string | null
@@ -21342,6 +21399,10 @@ export type Database = {
       claim_match: { Args: { p_caller_queue_id: string }; Returns: string }
       claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
+      claim_random_broadcast: {
+        Args: { p_broadcast_id: string; p_host_id: string }
+        Returns: Json
+      }
       claim_task_reward:
         | { Args: { _task_id: string }; Returns: Json }
         | {
@@ -22351,6 +22412,12 @@ export type Database = {
         }[]
       }
       get_official_coin_usd_rate: { Args: never; Returns: number }
+      get_online_global_hosts: {
+        Args: { p_caller_id: string; p_limit?: number }
+        Returns: {
+          host_id: string
+        }[]
+      }
       get_popular_gift_assets: {
         Args: { _limit?: number }
         Returns: {
