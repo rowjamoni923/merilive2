@@ -248,10 +248,18 @@ export default function PreMatchPrep({
             })}
           </AnimatePresence>
 
-          <div className="relative text-center pointer-events-none">
-            <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
-            <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
-          </div>
+          <button
+            type="button"
+            onClick={handleStart}
+            disabled={insufficient}
+            aria-label="Tap to Match"
+            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-60"
+          >
+            <div className="text-center">
+              <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+              <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+            </div>
+          </button>
         </div>
 
         {/* VIP discount card (right-side floating) */}
@@ -318,62 +326,6 @@ export default function PreMatchPrep({
             Recharge — need {hostRatePerMin.toLocaleString()} diamonds for 1 minute
           </button>
         )}
-      </div>
-
-      {/* Quick stats + filters */}
-      <div className="relative z-10 px-4 pb-[calc(max(env(safe-area-inset-bottom),16px)+24px)] space-y-3">
-        <div className="grid grid-cols-3 gap-2">
-          <StatChip icon={<Users className="w-3 h-3" />} label="Online" value={String(availableHostsCount)} />
-          <StatChip icon={<Clock className="w-3 h-3" />} label="Wait" value={`~${estimatedWaitSeconds}s`} />
-          <StatChip icon={<ShieldCheck className="w-3 h-3 text-emerald-300" />} label="Min bill" value={`${minBillableSeconds}s`} />
-        </div>
-
-        <Card className="bg-black/40 backdrop-blur-md border-white/10 text-white p-3.5 space-y-3">
-          <div className="text-[10px] uppercase tracking-wider text-white/50 font-bold">Preferences</div>
-
-          {genderFilterEnabled && (
-            <ChipRow icon={<Users className="w-3.5 h-3.5" />} title="Host">
-              {(["any", "female", "male"] as const).map((g) => (
-                <Chip key={g} active={gender === g} onClick={() => setGender(g)}>
-                  {g === "any" ? "Any" : g[0].toUpperCase() + g.slice(1)}
-                </Chip>
-              ))}
-            </ChipRow>
-          )}
-
-          {countryFilterEnabled && (
-            <ChipRow icon={<Globe2 className="w-3.5 h-3.5" />} title="Country" locked={filtersLocked}>
-              {["any", "BD", "IN", "PK", "US", "ID"].map((c) => (
-                <Chip key={c} active={(c === "any" ? null : c) === country}
-                  disabled={filtersLocked}
-                  onClick={() => !filtersLocked && setCountry(c === "any" ? null : c)}>
-                  {c === "any" ? "Any" : c}
-                </Chip>
-              ))}
-            </ChipRow>
-          )}
-
-          <ChipRow icon={<Languages className="w-3.5 h-3.5" />} title="Language" locked={filtersLocked}>
-            {["en", "bn", "hi", "id"].map((l) => {
-              const active = langs.includes(l);
-              return (
-                <Chip key={l} active={active} disabled={filtersLocked}
-                  onClick={() => {
-                    if (filtersLocked) return;
-                    setLangs((prev) => active ? prev.filter((x) => x !== l) : [...prev, l]);
-                  }}>
-                  {l.toUpperCase()}
-                </Chip>
-              );
-            })}
-          </ChipRow>
-
-          {filtersLocked && (
-            <div className="flex items-center gap-1.5 text-[11px] text-amber-200/90">
-              <Lock className="w-3 h-3" /> VIP unlocks Country & Language filters.
-            </div>
-          )}
-        </Card>
       </div>
     </div>
   );

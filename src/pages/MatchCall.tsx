@@ -335,7 +335,7 @@ export default function MatchCall() {
           countryRequiresVip={!!settings?.country_filter_requires_vip}
           genderFilterEnabled={!!settings?.enable_gender_filter}
           countryFilterEnabled={!!settings?.enable_country_filter}
-          onStart={(filters) => startSearch(filters)}
+          onStart={(filters) => startSearch(filters, { broadcast: true })}
         />
         <PostCallRatingSheet
           open={!!ratingSession}
