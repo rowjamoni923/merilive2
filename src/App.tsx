@@ -116,6 +116,7 @@ const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
 const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
 const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
+const MatchCall = lazy(lazyRetry(() => import("./pages/MatchCall")));
 const FollowingList = lazy(lazyRetry(() => import("./pages/FollowingList")));
 const SearchUsers = lazy(lazyRetry(() => import("./pages/SearchUsers")));
 const RechargeHistory = lazy(lazyRetry(() => import("./pages/RechargeHistory")));
@@ -243,6 +244,7 @@ const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDe
 const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceApprovals")));
 // AdminCommissions deprecated → AdminPricingHub (Pkg30)
 const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
+const AdminRandomCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminRandomCallSettings")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
@@ -1320,6 +1322,8 @@ const App = () => {
                 <Route path="/host-transfer-history" element={<ProtectedRoute session={session}><HostTransferHistory /></ProtectedRoute>} />
                 <Route path="/call-history" element={<ProtectedRoute session={session}><CallHistory /></ProtectedRoute>} />
                 <Route path="/call" element={<Navigate to="/call-history" replace />} />
+                <Route path="/match-call" element={<ProtectedRoute session={session}><MatchCall /></ProtectedRoute>} />
+                <Route path="/match-call/session/:sessionId" element={<ProtectedRoute session={session}><MatchCall /></ProtectedRoute>} />
                 <Route path="/following" element={<ProtectedRoute session={session}><FollowingList /></ProtectedRoute>} />
                 <Route path="/following-list" element={<ProtectedRoute session={session}><FollowingList /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute session={session}><SearchUsers /></ProtectedRoute>} />
@@ -1415,6 +1419,7 @@ const App = () => {
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
                   {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
                   <Route path="pricing-hub" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminPricingHub /></AdminRouteGuard>} />
+                  <Route path="random-call" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminRandomCallSettings /></AdminRouteGuard>} />
                   {/* Deprecated → unified Pricing Hub */}
                   <Route path="commissions" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="withdrawals" element={<AdminRouteGuard routeSegment="withdrawals"><AdminWithdrawals /></AdminRouteGuard>} />

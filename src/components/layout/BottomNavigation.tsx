@@ -1,6 +1,6 @@
 import { useState, useTransition, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle } from "lucide-react";
+import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -236,6 +236,24 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                    <p className="text-white/80 text-xs">{t("party.roomType")}</p>
                 </div>
                 <Users className="w-4 h-4 text-white/70 flex-shrink-0" />
+              </motion.button>
+
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, type: "spring" }}
+                onClick={() => handleActionClick('/match-call')}
+                className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 active:scale-[0.98] transition-transform border border-white/20 will-change-transform"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <Video className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-white font-bold text-sm">Match Call</p>
+                  <p className="text-white/80 text-xs">Random 1-on-1 video</p>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
               </motion.button>
             </div>
           </motion.div>
