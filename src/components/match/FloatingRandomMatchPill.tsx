@@ -40,29 +40,33 @@ export default function FloatingRandomMatchPill({
       onClick={() => navigate("/match-call")}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.96 }}
       aria-label="Open Random Match"
-      className={`fixed left-0 top-[28%] z-40 flex items-center gap-2 pl-2 pr-3.5 h-12
-        rounded-r-full bg-gradient-to-r from-fuchsia-500/95 via-purple-500/95 to-pink-500/95
-        text-white shadow-[0_8px_28px_-6px_rgba(168,85,247,0.6)] backdrop-blur-md
-        border border-white/15 ${className}`}
+      className={`fixed left-0 top-[28%] z-40 flex items-center gap-2.5 pl-1.5 pr-4 h-14
+        rounded-r-full bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500
+        text-white shadow-[0_12px_32px_-8px_rgba(168,85,247,0.55),0_4px_12px_-4px_rgba(236,72,153,0.4)]
+        backdrop-blur-md border border-white/20 overflow-hidden ${className}`}
     >
-      {/* Halo */}
-      <span className="absolute -inset-0.5 -z-10 rounded-r-full bg-gradient-to-r from-fuchsia-400/40 via-purple-400/40 to-pink-400/40 blur-md animate-pulse" />
+      {/* Inner sheen */}
+      <span aria-hidden className="pointer-events-none absolute inset-0 rounded-r-full bg-gradient-to-b from-white/25 via-transparent to-transparent" />
+      {/* Soft pulsing halo — kept inside so it never bleeds off the viewport edge */}
+      <span aria-hidden className="pointer-events-none absolute -right-1 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-pink-400/40 blur-xl animate-pulse" />
+
       {/* Avatar stack */}
-      <span className="relative flex -space-x-2">
+      <span className="relative flex -space-x-2.5 shrink-0">
         {avatars[0] ? (
-          <img src={avatars[0]} alt="" className="w-9 h-9 rounded-full border-2 border-white/80 object-cover" />
+          <img src={avatars[0]} alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover shadow" />
         ) : (
-          <span className="w-9 h-9 rounded-full border-2 border-white/80 bg-gradient-to-br from-fuchsia-300 to-pink-300 grid place-items-center text-[10px] font-bold">F</span>
+          <span className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-fuchsia-300 to-pink-300 grid place-items-center text-[11px] font-extrabold shadow">F</span>
         )}
-        <span className="w-7 h-7 rounded-full bg-rose-500 border-2 border-white/80 grid place-items-center shrink-0">
+        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 border-2 border-white grid place-items-center shadow">
           <PhoneCall className="w-3.5 h-3.5 text-white" />
         </span>
       </span>
-      <span className="flex flex-col items-start leading-tight pr-0.5">
-        <span className="text-[12px] font-bold tracking-tight">Random Chat</span>
-        <span className="text-[10px] uppercase tracking-wider opacity-90">Free</span>
+
+      <span className="relative flex flex-col items-start leading-tight">
+        <span className="text-[13px] font-extrabold tracking-tight drop-shadow-sm">Random Chat</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/90">Free</span>
       </span>
     </motion.button>
   );
