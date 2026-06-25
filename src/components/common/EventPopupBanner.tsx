@@ -67,16 +67,14 @@ const EventPopupBanner = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    sessionStorage.setItem('popup_banner_shown', 'true');
-
     try {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('popup_event_banners')
-        .select('id, title, image_url, skip_delay_seconds, auto_dismiss_seconds')
+        .select('id, title, image_url, skip_delay_seconds, auto_dismiss_seconds, end_date')
         .eq('is_active', true)
         .or(`start_date.is.null,start_date.lte.${now}`)
-        .filter('end_date', 'gte', now)
+        .or(`end_date.is.null,end_date.gte.${now}`)
         .order('display_order')
         .limit(1)
         .maybeSingle();
@@ -88,13 +86,15 @@ const EventPopupBanner = () => {
         setBanner(data);
         setImageReady(false);
         await preloadBannerMedia(popupCdn(data.image_url));
+        // Only mark as shown once we actually display the banner — otherwise
+        // an early empty/failed fetch would block it for the whole session.
+        sessionStorage.setItem('popup_banner_shown', 'true');
         setImageReady(true);
         setElapsed(0);
         setVisible(true);
       }
     } catch (err) {
       console.error('[EventPopupBanner] Error:', err);
-      sessionStorage.removeItem('popup_banner_shown');
     }
   }, []);
 
