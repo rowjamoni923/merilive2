@@ -2627,11 +2627,11 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="w-full h-full object-cover scale-x-[-1]"
+                className="w-full h-full object-contain scale-x-[-1]"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'], minHeight: '100%', transform: 'scaleX(-1) translateZ(0)', backfaceVisibility: 'hidden' }}
+                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'], transform: 'scaleX(-1) translateZ(0)', backfaceVisibility: 'hidden' }}
               />
             )}
             
