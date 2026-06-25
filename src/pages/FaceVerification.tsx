@@ -605,7 +605,7 @@ const FaceVerification = () => {
 
     const { data: latestSubmission } = await supabase
       .from('face_verification_submissions')
-      .select('id, status, rejection_reason, admin_notes')
+      .select('id, status, rejection_reason, admin_notes, ai_analysis')
       .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -614,15 +614,24 @@ const FaceVerification = () => {
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
+      setRetryRequired(null);
+    } else if (latestSubmission?.status === 'needs_retry') {
+      const rr = (latestSubmission as any)?.ai_analysis?.retry_required || null;
+      setRetryRequired(rr);
+      setVerificationStatus('needs_retry');
+      setRejectionReason(null);
     } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted' || latestSubmission?.status === 'under_review') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
+      setRetryRequired(null);
     } else if (latestSubmission?.status === 'rejected') {
       setVerificationStatus('rejected');
       setRejectionReason((latestSubmission as any).rejection_reason || null);
+      setRetryRequired(null);
     } else {
       setVerificationStatus('unverified');
       setRejectionReason(null);
+      setRetryRequired(null);
     }
   }, []);
 
