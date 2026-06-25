@@ -182,7 +182,7 @@ export default function PreMatchPrep({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 h-8 px-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
             <Gem className="w-3.5 h-3.5 text-cyan-300" />
-            <span className="text-xs font-bold">{diamondBalance.toLocaleString()}</span>
+            <span className="text-xs font-bold tabular-nums">{effectiveBalance.toLocaleString()}</span>
           </div>
           <button aria-label="History"
             className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center">
