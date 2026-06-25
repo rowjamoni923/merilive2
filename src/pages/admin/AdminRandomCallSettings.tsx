@@ -177,18 +177,26 @@ export default function AdminRandomCallSettings() {
 
         <TabsContent value="billing">
           <Card>
-            <CardHeader><CardTitle className="text-base">Pricing & Revenue Split</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">Random window & Pricing</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Minimum billable seconds (40s rule)" hint="Calls shorter than this earn nothing. Industry standard: 40.">
-                <Input type="number" min={10} max={120} value={s.min_billable_seconds} onChange={(e) => update("min_billable_seconds", NUM(e.target.value))} />
+              <Field label="Random free window (seconds)" hint="How long the random call stays free before auto-converting to private. Industry standard: 60.">
+                <Input type="number" min={30} max={180} value={s.random_window_seconds} onChange={(e) => update("random_window_seconds", NUM(e.target.value))} />
               </Field>
-              <Field label="Free trial seconds" hint="Free window at call start (not charged). Chamet uses 90.">
-                <Input type="number" min={0} max={300} value={s.free_trial_seconds} onChange={(e) => update("free_trial_seconds", NUM(e.target.value))} />
+              <Field label="Min balance for convert (seconds-worth)" hint="At the 60s mark, caller must have at least this many seconds of coins at the host's rate, otherwise the call ends. 60 = need one full minute prepaid.">
+                <Input type="number" min={30} max={300} value={s.convert_min_balance_seconds} onChange={(e) => update("convert_min_balance_seconds", NUM(e.target.value))} />
               </Field>
-              <Field label="Host revenue split (0–1)" hint="0.60 = host gets 60% of charged coins as beans.">
+              <div className="flex items-center justify-between md:col-span-2 p-3 border rounded">
+                <div>
+                  <div className="text-sm font-medium">Auto-convert to Private Call at 60s</div>
+                  <div className="text-xs text-muted-foreground">When OFF, random calls simply end at the window. When ON (recommended), they switch into a paid private call.</div>
+                </div>
+                <Switch checked={s.auto_convert_to_private} onCheckedChange={(v) => update("auto_convert_to_private", v)} />
+              </div>
+              <Field label="Host revenue split (0–1)" hint="0.60 = host gets 60% of charged coins as beans (applies to the spawned private call).">
                 <Input type="number" step="0.01" min={0.2} max={0.8} value={s.host_split_pct} onChange={(e) => update("host_split_pct", Number(e.target.value))} />
               </Field>
-              <Field label="Default host rate (coins/min)" hint="Applied to new hosts who haven't set a price.">
+              <Field label="Default host rate (coins/min)" hint="Fallback per-minute rate when host has none set on their profile.">
+
                 <Input type="number" value={s.default_host_rate_coins_per_min} onChange={(e) => update("default_host_rate_coins_per_min", NUM(e.target.value))} />
               </Field>
               <Field label="Host rate FLOOR (coins/min)" hint="Lowest price a host can set.">
