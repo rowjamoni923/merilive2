@@ -133,7 +133,13 @@ export default function AdminPermanentBan() {
     if (activeSeverity === "high") setDurationValue("24");
     else if (activeSeverity === "medium") setDurationValue("7");
     else setDurationValue("0");
+    // Urgent forces all three; for medium/high default OFF (admin opts in)
+    const urgent = activeSeverity === "urgent";
+    setBanDevice(urgent);
+    setBanIp(urgent);
+    setBanFace(urgent);
   }, [activeSeverity]);
+
 
   const handleSearchUser = async () => {
     if (!searchUid.trim()) return;
