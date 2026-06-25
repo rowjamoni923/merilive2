@@ -255,6 +255,34 @@ const AdminSupportTickets = () => {
     }
   }, [selectedTicket]);
 
+  // Fallback polling: while a ticket dialog is open, refetch messages every 3s
+  // to catch any user messages missed by realtime broadcasts (network glitches,
+  // anon subscription edge cases, etc.). Cheap query — single ticket scope.
+  useEffect(() => {
+    if (!selectedTicket?.id) return;
+    const ticketId = selectedTicket.id;
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('support_messages')
+          .select('id, created_at')
+          .eq('ticket_id', ticketId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (error || !data || data.length === 0) return;
+        const latestId = data[0].id;
+        const known = messagesRef.current || [];
+        const hasLatest = known.some((m: any) => m.id === latestId);
+        if (!hasLatest) {
+          loadMessages(ticketId);
+        }
+      } catch (e) {
+        // silent — best effort
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [selectedTicket?.id]);
+
   useEffect(() => {
     ticketsRef.current = tickets;
   }, [tickets]);
