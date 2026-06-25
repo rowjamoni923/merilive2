@@ -42,8 +42,7 @@ interface Props {
  */
 export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
-  availableHostsCount, estimatedWaitSeconds, isVip,
-  countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
+  availableHostsCount, estimatedWaitSeconds, isVip, onStart,
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry,
 }: Props) {
   const navigate = useNavigate();
