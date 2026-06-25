@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
-  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
+  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History, X, Bitcoin, Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
