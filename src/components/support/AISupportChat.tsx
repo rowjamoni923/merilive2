@@ -290,6 +290,58 @@ const AISupportChat = ({
     !!liveChatTicketId,
   );
 
+  // Resilience layer: pull latest admin replies when the user returns to the
+  // app (focus / visibility) or every 4s as a fallback. Ensures the live chat
+  // behaves like a normal message thread even if a realtime push is missed.
+  useEffect(() => {
+    if (phase !== 'live_chat' || !liveChatTicketId) return;
+    let cancelled = false;
+
+    const pullLatest = async () => {
+      try {
+        const { data } = await supabase
+          .from('support_messages')
+          .select('id, sender_type, content, translated_content, created_at, attachment_url, attachment_type')
+          .eq('ticket_id', liveChatTicketId)
+          .order('created_at', { ascending: true });
+        if (cancelled || !data) return;
+        const existingIds = new Set(messages.map(m => m.id));
+        const newAdminMsgs = (data as any[])
+          .filter(m => m.sender_type === 'admin' && !existingIds.has(m.id));
+        if (newAdminMsgs.length === 0) return;
+        const mapped = await Promise.all(newAdminMsgs.map(async (m) => ({
+          id: m.id,
+          role: 'admin' as const,
+          content: m.translated_content || m.content,
+          timestamp: new Date(m.created_at),
+          attachmentUrl: await getSupportAttachmentDisplayUrl(m.attachment_url),
+          attachmentType: m.attachment_type,
+        })));
+        setMessages(prev => [...prev, ...mapped]);
+        setWaitingForAdmin(false);
+        supabase.from('support_messages')
+          .update({ is_read: true })
+          .in('id', newAdminMsgs.map(m => m.id))
+          .then(() => {});
+      } catch { /* silent */ }
+    };
+
+    const interval = setInterval(pullLatest, 4000);
+    const onFocus = () => pullLatest();
+    const onVisible = () => { if (document.visibilityState === 'visible') pullLatest(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [phase, liveChatTicketId, messages]);
+
+
+
 
   // Upload file to support-attachments bucket
   const uploadFile = async (file: File, type: "image" | "voice"): Promise<{ path: string; previewUrl: string } | null> => {

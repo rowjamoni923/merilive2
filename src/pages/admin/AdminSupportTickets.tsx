@@ -255,31 +255,60 @@ const AdminSupportTickets = () => {
     }
   }, [selectedTicket]);
 
-  // Fallback polling: while a ticket dialog is open, refetch messages every 3s
-  // to catch any user messages missed by realtime broadcasts (network glitches,
-  // anon subscription edge cases, etc.). Cheap query — single ticket scope.
+  // Live message sync for the open ticket dialog. Three layers so user replies
+  // ALWAYS reach the admin like a normal chat thread:
+  //   1) admin-table-update event (admin_broadcast topic bump — fastest, ~500ms)
+  //   2) 2s lightweight polling fallback (catches missed broadcasts)
+  //   3) refresh on window focus / tab visibility (instant when admin returns)
   useEffect(() => {
     if (!selectedTicket?.id) return;
     const ticketId = selectedTicket.id;
+    let cancelled = false;
+
+    const refresh = () => {
+      if (!cancelled) loadMessages(ticketId);
+    };
+
+    // 1) instant push via admin_broadcast topic bump
+    const onAdminEvent = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail) return;
+      if (detail.table === 'support_messages' || detail.table === 'support_tickets') {
+        refresh();
+      }
+    };
+    window.addEventListener('admin-table-update', onAdminEvent);
+
+    // 2) 2s polling fallback — cheap single-ticket scope
     const interval = setInterval(async () => {
       try {
         const { data, error } = await supabase
           .from('support_messages')
-          .select('id, created_at')
+          .select('id')
           .eq('ticket_id', ticketId)
           .order('created_at', { ascending: false })
           .limit(1);
-        if (error || !data || data.length === 0) return;
+        if (error || !data?.length) return;
         const latestId = data[0].id;
-        const hasLatest = messages.some((m: any) => m.id === latestId);
-        if (!hasLatest) {
-          loadMessages(ticketId);
-        }
-      } catch (e) {
-        // silent — best effort
-      }
-    }, 3000);
-    return () => clearInterval(interval);
+        if (!messages.some((m: any) => m.id === latestId)) refresh();
+      } catch { /* silent */ }
+    }, 2000);
+
+    // 3) focus / visibility refresh
+    const onFocus = () => refresh();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener('admin-table-update', onAdminEvent);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [selectedTicket?.id, messages]);
 
   useEffect(() => {
