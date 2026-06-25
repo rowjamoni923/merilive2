@@ -136,7 +136,7 @@ const AdminEmailBroadcast = () => {
                   <p className="text-xs text-muted-foreground mt-1 truncate">{t.description || t.template_key}</p>
                 </button>
                 {/* Edit/Delete overlay */}
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={(e) => { e.stopPropagation(); openEditDialog(t); }}
                     className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
@@ -242,7 +242,8 @@ const AdminEmailBroadcast = () => {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Edit3 className="w-5 h-5 text-purple-400" />
@@ -274,7 +275,7 @@ const AdminEmailBroadcast = () => {
 
       {/* Add Template Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Plus className="w-5 h-5 text-green-400" />

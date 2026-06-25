@@ -1230,26 +1230,29 @@ const AdminSupportTickets = () => {
         </Card>
       </div>
 
-      {/* Sector Tabs */}
+      {/* Sector Tabs — horizontal scroll on mobile so all 5 stay reachable */}
       <Tabs value={sectorFilter} onValueChange={setSectorFilter} className="w-full">
-        <TabsList className="w-full grid grid-cols-5 bg-slate-800/50">
-          <TabsTrigger value="all" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm">
-            📋 All ({sectorCounts.all})
-          </TabsTrigger>
-          <TabsTrigger value="user" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm">
-            <User className="w-3.5 h-3.5 mr-1" /> User ({sectorCounts.user})
-          </TabsTrigger>
-          <TabsTrigger value="host" className="data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs md:text-sm">
-            🎙️ Host ({sectorCounts.host})
-          </TabsTrigger>
-          <TabsTrigger value="agency" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white text-xs md:text-sm">
-            <Building2 className="w-3.5 h-3.5 mr-1" /> Agency ({sectorCounts.agency})
-          </TabsTrigger>
-          <TabsTrigger value="helper" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm">
-            🤝 Helper ({sectorCounts.helper})
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 px-1 overflow-x-auto scrollbar-hide">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 bg-slate-800/50 gap-1 p-1">
+            <TabsTrigger value="all" className="shrink-0 whitespace-nowrap data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              📋 All ({sectorCounts.all})
+            </TabsTrigger>
+            <TabsTrigger value="user" className="shrink-0 whitespace-nowrap data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              <User className="w-3.5 h-3.5 mr-1" /> User ({sectorCounts.user})
+            </TabsTrigger>
+            <TabsTrigger value="host" className="shrink-0 whitespace-nowrap data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              🎙️ Host ({sectorCounts.host})
+            </TabsTrigger>
+            <TabsTrigger value="agency" className="shrink-0 whitespace-nowrap data-[state=active]:bg-amber-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              <Building2 className="w-3.5 h-3.5 mr-1" /> Agency ({sectorCounts.agency})
+            </TabsTrigger>
+            <TabsTrigger value="helper" className="shrink-0 whitespace-nowrap data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              🤝 Helper ({sectorCounts.helper})
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
+
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
@@ -1363,11 +1366,12 @@ const AdminSupportTickets = () => {
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={handleTicketDialogOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[95vh] md:max-h-[92vh] p-0 overflow-hidden w-[96vw] md:w-full border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-lg">
           {selectedTicket && (
-            <div className="flex flex-col h-[82vh] md:h-[87vh]">
+            <div className="flex flex-col h-[100dvh] sm:h-[82vh] md:h-[87vh]">
+
               {/* Compact Header Bar */}
-              <div className="px-4 py-2.5 bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 border-b border-border/25 flex items-center gap-3">
+              <div className="px-3 sm:px-4 py-2.5 bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 border-b border-border/25 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                 <Avatar className="w-8 h-8 shrink-0 border border-purple-500/15">
                   <UserAvatarImage gender={((selectedTicket.profile) as any)?.gender} seed={selectedTicket.user_id ?? selectedTicket.id} src={selectedTicket.profile?.avatar_url} />
                   <AvatarFallback className="text-xs bg-purple-500/10 text-purple-400">{selectedTicket.profile?.display_name?.charAt(0)}</AvatarFallback>
@@ -1403,7 +1407,7 @@ const AdminSupportTickets = () => {
                   </div>
                 </div>
                 {/* Compact action buttons */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap w-full sm:w-auto overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1 sm:pb-0">
                   <Button size="sm" variant="outline" className="h-7 text-[10px] px-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={() => setReportOpen(true)}>
                     <ShieldAlert className="w-3 h-3 mr-0.5" /> Report
                   </Button>
@@ -1442,7 +1446,7 @@ const AdminSupportTickets = () => {
 
               {/* Compensation Panel */}
               {showCompensation && (
-                <div className="px-6 py-4 bg-gradient-to-r from-amber-500/10 to-green-500/10 border-b border-amber-500/20">
+                <div className="px-3 sm:px-6 py-4 bg-gradient-to-r from-amber-500/10 to-green-500/10 border-b border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Gift className="w-4 h-4 text-amber-400" />
                     <p className="text-sm font-semibold text-foreground">Send Compensation</p>
@@ -1541,13 +1545,13 @@ const AdminSupportTickets = () => {
 
               {/* Purchase Recovery Panel */}
               {showPurchaseRecovery && selectedTicket && (
-                <div className="px-6 py-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-500/20">
+                <div className="px-3 sm:px-6 py-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <CreditCard className="w-4 h-4 text-green-400" />
                     <p className="text-sm font-semibold text-foreground">Purchase Recovery</p>
                     <span className="text-[10px] text-muted-foreground ml-auto">Credit diamonds for failed Google Play purchase</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">Diamond Package</label>
                       <Select value={recoveryCoins} onValueChange={setRecoveryCoins}>
@@ -1775,7 +1779,7 @@ const AdminSupportTickets = () => {
               </div>
 
               {/* Reply Input - Enhanced for PC */}
-              <div className="px-4 py-3 border-t border-border/25 bg-muted/5 backdrop-blur-sm">
+              <div className="px-3 sm:px-4 py-3 border-t border-border/25 bg-muted/5 backdrop-blur-sm safe-area-bottom">
                 <div className="flex items-center gap-2 mb-2">
                   <Languages className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground">Reply in:</span>
