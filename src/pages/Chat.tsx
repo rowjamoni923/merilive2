@@ -21,6 +21,13 @@ import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
 import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
+type CreateGroupResult = {
+  success: boolean;
+  group_id?: string;
+  group_code?: string;
+  error?: string;
+};
+
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import type { GiftData } from "@/features/shared/gifting";
@@ -2384,19 +2391,26 @@ const Chat = () => {
         }
       }
 
-      // Create group
-      const { data: newGroup, error } = await supabase
-        .from('groups')
-        .insert({
-          name: newGroupName.trim(),
-          group_type: newGroupType,
-          owner_id: currentUserId,
-          created_by: currentUserId,
-        })
-        .select()
-        .single();
+      // Create group + owner membership atomically.
+      // If the membership insert fails, the group insert is rolled back too.
+      const { data: createResult, error } = await supabase.rpc('create_chat_group' as any, {
+        p_name: newGroupName.trim(),
+        p_group_type: newGroupType,
+      });
 
       if (error) throw error;
+      const result = createResult as CreateGroupResult | null;
+      if (!result?.success || !result.group_id) {
+        throw new Error(result?.error || 'create_group_failed');
+      }
+
+      const { data: newGroup, error: groupFetchError } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('id', result.group_id)
+        .single();
+
+      if (groupFetchError) throw groupFetchError;
 
       // Upload group photo if selected
       if (newGroupPhoto) {
@@ -2416,17 +2430,6 @@ const Chat = () => {
           console.warn('group avatar upload failed', upErr);
         }
       }
-
-      // Add creator as member with owner role
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: newGroup.id,
-          user_id: currentUserId,
-          role: 'owner'
-        });
-
-      if (memberError) throw memberError;
 
       toast.success("Group created successfully!");
       setShowCreateGroup(false);
