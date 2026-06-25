@@ -21,13 +21,25 @@ import { useCall } from "@/components/call/CallProvider";
 export interface MatchCallOverlayProps {
   randomWindowSeconds: number;
   hostRatePerMin: number;
-  onAutoEnd: (reason: "converted" | "no_balance" | "convert_failed") => void;
+  /** When false, the call simply ends at the random window instead of converting. */
+  autoConvert?: boolean;
+  /** Authoritative session start (ms). Falls back to sessionStorage only if absent. */
+  startedAt?: number;
+  /** Session id from the matched response — authoritative source, no storage round-trip. */
+  sessionId?: string | null;
+  /** Host id — used to fetch the mini-bar avatar pair. */
+  hostId?: string | null;
+  onAutoEnd: (reason: "converted" | "no_balance" | "convert_failed" | "ended") => void;
   onNext: () => void;
 }
 
 export default function MatchCallOverlay({
   randomWindowSeconds,
   hostRatePerMin,
+  autoConvert = true,
+  startedAt,
+  sessionId,
+  hostId,
   onAutoEnd,
   onNext,
 }: MatchCallOverlayProps) {
@@ -38,18 +50,20 @@ export default function MatchCallOverlay({
   const [avatars, setAvatars] = useState<{ me?: string; host?: string }>({});
   const convertingRef = useRef(false);
 
-  // Timer
+  // Timer — prefer prop, fall back to sessionStorage, then to now.
   useEffect(() => {
-    let started = Date.now();
-    try {
-      const raw = window.sessionStorage.getItem("random_call:active");
-      if (raw) started = (JSON.parse(raw) as any).started_at ?? Date.now();
-    } catch (_) { /* */ }
+    let started = startedAt ?? Date.now();
+    if (!startedAt) {
+      try {
+        const raw = window.sessionStorage.getItem("random_call:active");
+        if (raw) started = (JSON.parse(raw) as any).started_at ?? Date.now();
+      } catch (_) { /* */ }
+    }
     const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - started) / 1000)));
     tick();
     const t = window.setInterval(tick, 500);
     return () => window.clearInterval(t);
-  }, []);
+  }, [startedAt]);
 
   // Pull both avatars for the mini-bar
   useEffect(() => {
