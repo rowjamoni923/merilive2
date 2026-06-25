@@ -1230,26 +1230,29 @@ const AdminSupportTickets = () => {
         </Card>
       </div>
 
-      {/* Sector Tabs */}
+      {/* Sector Tabs — horizontal scroll on mobile so all 5 stay reachable */}
       <Tabs value={sectorFilter} onValueChange={setSectorFilter} className="w-full">
-        <TabsList className="w-full grid grid-cols-5 bg-slate-800/50">
-          <TabsTrigger value="all" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm">
-            📋 All ({sectorCounts.all})
-          </TabsTrigger>
-          <TabsTrigger value="user" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm">
-            <User className="w-3.5 h-3.5 mr-1" /> User ({sectorCounts.user})
-          </TabsTrigger>
-          <TabsTrigger value="host" className="data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs md:text-sm">
-            🎙️ Host ({sectorCounts.host})
-          </TabsTrigger>
-          <TabsTrigger value="agency" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white text-xs md:text-sm">
-            <Building2 className="w-3.5 h-3.5 mr-1" /> Agency ({sectorCounts.agency})
-          </TabsTrigger>
-          <TabsTrigger value="helper" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm">
-            🤝 Helper ({sectorCounts.helper})
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 px-1 overflow-x-auto scrollbar-hide">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 bg-slate-800/50 gap-1 p-1">
+            <TabsTrigger value="all" className="shrink-0 whitespace-nowrap data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              📋 All ({sectorCounts.all})
+            </TabsTrigger>
+            <TabsTrigger value="user" className="shrink-0 whitespace-nowrap data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              <User className="w-3.5 h-3.5 mr-1" /> User ({sectorCounts.user})
+            </TabsTrigger>
+            <TabsTrigger value="host" className="shrink-0 whitespace-nowrap data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              🎙️ Host ({sectorCounts.host})
+            </TabsTrigger>
+            <TabsTrigger value="agency" className="shrink-0 whitespace-nowrap data-[state=active]:bg-amber-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              <Building2 className="w-3.5 h-3.5 mr-1" /> Agency ({sectorCounts.agency})
+            </TabsTrigger>
+            <TabsTrigger value="helper" className="shrink-0 whitespace-nowrap data-[state=active]:bg-green-600 data-[state=active]:text-white text-xs md:text-sm px-3">
+              🤝 Helper ({sectorCounts.helper})
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
+
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
