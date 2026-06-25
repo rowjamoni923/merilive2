@@ -1,4 +1,23 @@
 
+## Current Goal — Face Verification Language Picker Stability
+
+Fix the Face Verification language selector so tapping Language never makes the mobile KYC page jump, flip, or resize.
+
+## Research + verified signal
+
+- User replay verifies the dropdown content was repeatedly repositioning between `data-side="bottom"` and `data-side="top"`, with transforms jumping between about `translate(21px, 495px)` and `translate(21px, 108px)` while the user tapped Language.
+- Root cause verified in `src/pages/FaceVerification.tsx`: the Language field used Radix `SelectContent`, which portals to body and uses floating popper positioning; on this fixed full-screen mobile layout the popper kept recalculating available height and flipping sides.
+- Professional mobile KYC/social-app standard is to avoid anchored floating popovers for mobile pickers when they can clip or flip; stable choices are native picker controls or bottom sheets. Sources: NN/g bottom sheet guidance https://www.nngroup.com/articles/bottom-sheets/ and MDN dynamic viewport units https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_values_and_units/Viewport_units
+- Radix/body scroll-lock and portal positioning can cause layout shift on fixed mobile shells; disabling modal scroll-lock alone is not sufficient if popper side-flipping continues. Source: Radix UI issue history around scroll lock/layout shift https://github.com/radix-ui/primitives/issues/1586
+
+## What changed
+
+- Replaced the Face Verification Language Radix floating select with a styled native `<select>` in both user and host Step 1 forms.
+- Removed the popper/portal path from this screen, so there is no `data-radix-popper-content-wrapper`, no top/bottom side flip, and no body scroll-lock compensation when the language picker opens.
+- Kept the same visible 48px rounded input style and language options, with OS-native mobile picker behavior for stability.
+
+---
+
 ## Current Goal — Full-screen Event Popup Banner
 
 Fix the event popup so it behaves like the requested mobile interstitial: the uploaded banner artwork itself fills the full phone screen, the banner has no click/navigation action, no CTA button, no card/frame/backdrop layout, and the close button appears only after the configured delay (default 3 seconds).
