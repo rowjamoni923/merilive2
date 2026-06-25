@@ -1007,9 +1007,7 @@ serve(async (req) => {
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
-      if (hardAutoReject === "gender_mismatch") {
-        rReason = `Account type mismatch detected. This face scan does not match the selected ${expectedGender === "female" ? "host" : "user"} account type. If you are trying to open the wrong account type, verification cannot be approved. Please contact Support Chat to resolve this.`;
-      } else if (hardAutoReject === "duplicate_face") {
+      if (hardAutoReject === "duplicate_face") {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
