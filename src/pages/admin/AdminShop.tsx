@@ -461,7 +461,7 @@ const AdminShop = () => {
       } else {
         const { error } = await supabase
           .from("shop_items")
-          .insert(dataToSave);
+          .insert(dataToSave as any);
         if (error) throw error;
         toast.success("Item created!");
       }
