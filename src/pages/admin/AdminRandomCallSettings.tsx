@@ -161,12 +161,14 @@ export default function AdminRandomCallSettings() {
       </Card>
 
       <Tabs defaultValue="billing" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="matching">Matching</TabsTrigger>
+          <TabsTrigger value="scoring">Scoring</TabsTrigger>
           <TabsTrigger value="abuse">Anti-abuse</TabsTrigger>
           <TabsTrigger value="vip">VIP & Misc</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="billing">
           <Card>
