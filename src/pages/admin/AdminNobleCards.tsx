@@ -316,7 +316,7 @@ const AdminNobleCards = () => {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Edit Noble Card' : 'Add New Noble Card'}</DialogTitle>
           </DialogHeader>
@@ -377,7 +377,7 @@ const AdminNobleCards = () => {
       </Dialog>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Animation Preview</DialogTitle></DialogHeader>
           {previewUrl && (
             <div className="aspect-[3/1] bg-black rounded-lg overflow-hidden">

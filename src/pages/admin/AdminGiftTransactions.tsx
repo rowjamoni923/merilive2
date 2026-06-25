@@ -168,7 +168,7 @@ export default function AdminGiftTransactions() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-white">
               {todayTotal >= 1000000 ? `${(todayTotal / 1000000).toFixed(1)}M` : todayTotal.toLocaleString()}
@@ -203,7 +203,7 @@ export default function AdminGiftTransactions() {
             />
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full bg-white/5">
+            <TabsList className="w-full bg-white/5 overflow-x-auto whitespace-nowrap">
               <TabsTrigger value="receivers" className="flex-1 text-xs data-[state=active]:bg-fuchsia-600 data-[state=active]:text-white">
                 🏆 Top Receivers ({uniqueReceivers})
               </TabsTrigger>

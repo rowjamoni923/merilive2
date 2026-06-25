@@ -861,7 +861,7 @@ export default function AdminCommissions() {
 
                   return (
                     <div className="bg-white/5 p-4 rounded-lg">
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center">
                         {/* Input Beans */}
                         <div className="p-3 bg-amber-500/10 rounded-lg">
                           <Coins className="w-5 h-5 text-amber-400 mx-auto mb-1" />

@@ -972,7 +972,7 @@ const AdminNoticeBroadcast = () => {
 
       {/* Preview Dialog */}
       <Dialog open={previewDialog} onOpenChange={setPreviewDialog}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Notice Preview</DialogTitle>
             <DialogDescription>
@@ -1021,7 +1021,7 @@ const AdminNoticeBroadcast = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[95vw] max-w-lg rounded-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Notice?</AlertDialogTitle>
             <AlertDialogDescription>
