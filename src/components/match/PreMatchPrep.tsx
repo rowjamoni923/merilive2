@@ -42,6 +42,8 @@ export default function PreMatchPrep({
   countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
 }: Props) {
   const navigate = useNavigate();
+  const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
+  const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [camOn, setCamOn] = useState(true);
@@ -53,6 +55,7 @@ export default function PreMatchPrep({
   const [langs, setLangs] = useState<string[]>([]);
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
+  const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
 
   const startStream = async () => {
     try {
