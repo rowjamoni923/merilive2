@@ -997,6 +997,20 @@ const navGroups: NavGroup[] = [
         description: "Per-minute call rates, host % and grace seconds now live in the unified Pricing & Commission Hub.",
       },
       {
+        label: "Random Call Settings",
+        icon: Phone,
+        path: "/admin/random-call",
+        hubKey: "settings-hub",
+        description: "Random (match) call pricing, 40-second minimum billable rule, 60s free window, auto-convert to private, and reject-streak ban.",
+      },
+      {
+        label: "Random Call Ops",
+        icon: Phone,
+        path: "/admin/random-call-ops",
+        hubKey: "settings-hub",
+        description: "Live monitor for random-call queue, active sessions, skip counters, and manual settlement.",
+      },
+      {
         label: "Today's Calls",
         icon: Phone,
         path: "/admin/today-calls",
