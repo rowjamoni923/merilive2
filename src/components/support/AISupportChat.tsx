@@ -290,59 +290,6 @@ const AISupportChat = ({
     !!liveChatTicketId,
   );
 
-  // Resilience layer: pull latest admin replies when the user returns to the
-  // app (focus / visibility) or every 4s as a fallback. Ensures the live chat
-  // behaves like a normal message thread even if a realtime push is missed.
-  useEffect(() => {
-    if (phase !== 'live_chat' || !liveChatTicketId) return;
-    let cancelled = false;
-
-    const pullLatest = async () => {
-      try {
-        const { data } = await supabase
-          .from('support_messages')
-          .select('id, sender_type, content, translated_content, created_at, attachment_url, attachment_type')
-          .eq('ticket_id', liveChatTicketId)
-          .order('created_at', { ascending: true });
-        if (cancelled || !data) return;
-        const existingIds = new Set(messages.map(m => m.id));
-        const newAdminMsgs = (data as any[])
-          .filter(m => m.sender_type === 'admin' && !existingIds.has(m.id));
-        if (newAdminMsgs.length === 0) return;
-        const mapped = await Promise.all(newAdminMsgs.map(async (m) => ({
-          id: m.id,
-          role: 'admin' as const,
-          content: m.translated_content || m.content,
-          timestamp: new Date(m.created_at),
-          attachmentUrl: await getSupportAttachmentDisplayUrl(m.attachment_url),
-          attachmentType: m.attachment_type,
-        })));
-        setMessages(prev => [...prev, ...mapped]);
-        setWaitingForAdmin(false);
-        supabase.from('support_messages')
-          .update({ is_read: true })
-          .in('id', newAdminMsgs.map(m => m.id))
-          .then(() => {});
-      } catch { /* silent */ }
-    };
-
-    const interval = setInterval(pullLatest, 4000);
-    const onFocus = () => pullLatest();
-    const onVisible = () => { if (document.visibilityState === 'visible') pullLatest(); };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisible);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [phase, liveChatTicketId, messages]);
-
-
-
-
   // Upload file to support-attachments bucket
   const uploadFile = async (file: File, type: "image" | "voice"): Promise<{ path: string; previewUrl: string } | null> => {
     if (!userId) return null;
@@ -355,6 +302,32 @@ const AISupportChat = ({
     }
     const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
     return { path, previewUrl: signed?.signedUrl || path };
+  };
+
+  const insertUserSupportMessage = async (params: {
+    ticketId: string;
+    content: string;
+    attachmentUrl?: string | null;
+    attachmentType?: "image" | "voice" | null;
+    voiceTranscript?: string | null;
+    translatedContent?: string | null;
+    originalLanguage?: string | null;
+  }) => {
+    if (!userId) throw new Error("Authentication required");
+
+    const { error } = await supabase.from("support_messages").insert({
+      ticket_id: params.ticketId,
+      sender_id: userId,
+      sender_type: "user",
+      content: params.content,
+      attachment_url: params.attachmentUrl || null,
+      attachment_type: params.attachmentType || null,
+      voice_transcript: params.voiceTranscript || null,
+      translated_content: params.translatedContent || null,
+      original_language: params.originalLanguage || null,
+    } as any);
+
+    if (error) throw error;
   };
 
   // Handle image selection
@@ -388,14 +361,12 @@ const AISupportChat = ({
 
       // If in live chat, send to DB
       if (phase === "live_chat" && liveChatTicketId) {
-        await supabase.from("support_messages").insert({
-          ticket_id: liveChatTicketId,
-          sender_id: userId,
-          sender_type: "user",
+        await insertUserSupportMessage({
+          ticketId: liveChatTicketId,
           content: "📷 Sent an image",
-          attachment_url: uploaded.path,
-          attachment_type: "image",
-        } as any);
+          attachmentUrl: uploaded.path,
+          attachmentType: "image",
+        });
       }
     } catch (error) {
       toast({ title: "Upload Failed", description: "Could not upload image", variant: "destructive" });
@@ -503,17 +474,15 @@ const AISupportChat = ({
 
       // Save to DB if in live chat
       if (phase === "live_chat" && liveChatTicketId) {
-        await supabase.from("support_messages").insert({
-          ticket_id: liveChatTicketId,
-          sender_id: userId,
-          sender_type: "user",
+        await insertUserSupportMessage({
+          ticketId: liveChatTicketId,
           content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
-          attachment_url: uploaded.path,
-          attachment_type: "voice",
-          voice_transcript: transcript,
-          translated_content: translatedTranscript || null,
-          original_language: "auto",
-        } as any);
+          attachmentUrl: uploaded.path,
+          attachmentType: "voice",
+          voiceTranscript: transcript,
+          translatedContent: translatedTranscript || null,
+          originalLanguage: "auto",
+        });
       }
     } catch (error) {
       toast({ title: "Voice Upload Failed", description: "Could not process voice message", variant: "destructive" });
@@ -594,10 +563,8 @@ const AISupportChat = ({
             ? `[Category: ${categoryLabel}]\n\n${userContextMessages[userContextMessages.length - 1]}`
             : `[Category: ${categoryLabel}]\n\nUser opened live chat.`;
 
-          await supabase.from("support_messages").insert({
-            ticket_id: ticketId,
-            sender_id: userId,
-            sender_type: "user",
+          await insertUserSupportMessage({
+            ticketId,
             content: initialUserContext,
           });
           contextMessageInserted = true;
@@ -608,15 +575,13 @@ const AISupportChat = ({
             m => m.role === "user" && m.attachmentUrl && m.attachmentType
           );
           for (const attachMsg of attachmentMessages) {
-            await supabase.from("support_messages").insert({
-              ticket_id: ticketId,
-              sender_id: userId,
-              sender_type: "user",
+            await insertUserSupportMessage({
+              ticketId,
               content: attachMsg.content,
-              attachment_url: attachMsg.attachmentPath || extractSupportAttachmentPath(attachMsg.attachmentUrl),
-              attachment_type: attachMsg.attachmentType,
-              voice_transcript: attachMsg.voiceTranscript || null,
-            } as any);
+              attachmentUrl: attachMsg.attachmentPath || extractSupportAttachmentPath(attachMsg.attachmentUrl),
+              attachmentType: attachMsg.attachmentType,
+              voiceTranscript: attachMsg.voiceTranscript || null,
+            });
           }
         }
       }
@@ -624,10 +589,8 @@ const AISupportChat = ({
       setLiveChatTicketId(ticketId);
 
       if (options?.initialContext && !contextMessageInserted && userId) {
-        await supabase.from("support_messages").insert({
-          ticket_id: ticketId,
-          sender_id: userId,
-          sender_type: "user",
+        await insertUserSupportMessage({
+          ticketId,
           content: options.initialContext,
         });
         contextMessageInserted = true;
@@ -752,20 +715,19 @@ const AISupportChat = ({
       // Retry up to 2 times on transient failure; surface error to user if all fail
       let lastError: any = null;
       for (let attempt = 0; attempt < 3; attempt++) {
-        const { error } = await supabase.from("support_messages").insert({
-          ticket_id: liveChatTicketId,
-          sender_id: userId,
-          sender_type: "user",
-          content: trimmed,
-          translated_content: translatedContent || null,
-          original_language: "auto",
-        } as any);
-        if (!error) {
+        try {
+          await insertUserSupportMessage({
+            ticketId: liveChatTicketId,
+            content: trimmed,
+            translatedContent: translatedContent || null,
+            originalLanguage: "auto",
+          });
           lastError = null;
           break;
+        } catch (error) {
+          lastError = error;
+          console.error(`Send attempt ${attempt + 1} failed:`, error);
         }
-        lastError = error;
-        console.error(`Send attempt ${attempt + 1} failed:`, error);
         await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
       }
 
