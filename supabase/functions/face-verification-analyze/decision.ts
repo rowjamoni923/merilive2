@@ -137,16 +137,8 @@ export function decideFaceVerificationOutcome(input: DecisionInput): Decision {
   if (input.profileMismatch) {
     return { kind: "manual_review", reason: "profile_mismatch_manual_review" };
   }
-  // Lower-confidence gender (between conflict-clear and 90%) → manual.
-  if (
-    input.expectedGender &&
-    input.detectedGender !== "unknown" &&
-    input.detectedGender !== input.expectedGender &&
-    input.genderConf >= 70 &&
-    input.genderConf < HARD_GENDER_CONF
-  ) {
-    return { kind: "manual_review", reason: "gender_mismatch_manual_review" };
-  }
+  // Gender mismatch is intentionally NOT checked here (owner policy 2026-06-26).
+
 
   // 5) Everything green.
   return { kind: "auto_approve" };
