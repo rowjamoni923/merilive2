@@ -20604,6 +20604,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_chat_group: {
+        Args: { p_group_type?: string; p_name: string }
+        Returns: Json
+      }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
       create_helper_order: {
         Args: {
