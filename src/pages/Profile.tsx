@@ -2217,7 +2217,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               </div>
             </div>
           )}
-          {(profile?.is_verified || isFaceVerified) && (
+          {(isFaceVerified || (!isOwnProfile && profile?.is_verified)) && (
             <div className="absolute -bottom-1 -right-1 z-40">
  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 border-2 border-white flex items-center justify-center shadow-lg shadow-emerald-500/40" title="Face verification verified">
  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
