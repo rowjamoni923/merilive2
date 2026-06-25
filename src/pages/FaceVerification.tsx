@@ -3214,15 +3214,15 @@ const FaceVerification = () => {
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
   const renderHeader = (title: string, subtitle?: string) => (
-    <div className="relative mb-6">
+    <div className="relative mb-6" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-500/10 to-transparent blur-3xl -z-10" />
-      <div className="flex items-center gap-3 mb-2">
-        <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl bg-amber-50/70 hover:bg-amber-50 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
+      <div className="flex items-center gap-3 mb-2 min-w-0">
+        <Button size="icon" variant="ghost" className="shrink-0 w-10 h-10 rounded-xl bg-amber-50/70 hover:bg-amber-50 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-slate-800" />
         </Button>
-        <div>
-          <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">{title}</h1>
-          {subtitle && <p className="text-slate-600 text-sm">{subtitle}</p>}
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg sm:text-xl font-black tracking-tight bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent truncate">{title}</h1>
+          {subtitle && <p className="text-slate-600 text-xs sm:text-sm truncate">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -3600,9 +3600,9 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden safe-top`}>
         {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
-        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + var(--content-bottom-padding, 1rem))` }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
