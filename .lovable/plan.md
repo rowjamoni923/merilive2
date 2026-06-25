@@ -1,4 +1,22 @@
 
+## Current Goal — Full-screen Event Popup Banner
+
+Fix the event popup so it behaves like the requested mobile interstitial: the uploaded banner artwork itself fills the full phone screen, the banner has no click/navigation action, no CTA button, no card/frame/backdrop layout, and the close button appears only after the configured delay (default 3 seconds).
+
+## Research + verified signal
+
+- User-provided screenshot verifies the current implementation is still a centered framed card with CTA and extra chrome, not a full-screen artwork interstitial.
+- Current code verified in `src/components/common/EventPopupBanner.tsx`: popup uses `px-4 py-6`, `max-w-[340px]`, 9:16 card frame, blurred backdrop, countdown chip, CTA button, and banner click navigation when `link_url` exists.
+- Professional mobile interstitial requirement for this app: one full-viewport creative, no accidental tap-through/navigation, delayed close affordance only. For this exact owner request, design chrome must not shrink the creative.
+
+## What changed
+
+- Removed the framed 9:16 card, blurred backdrop, countdown chip, CTA button, and banner click handler.
+- Media now renders directly at `fixed inset-0` with `100vw × 100dvh` and `object-cover`, so a mobile-sized creative fills the complete phone viewport.
+- Close button is the only actionable control and appears only after `skip_delay_seconds` (fallback 3 seconds); tapping the banner/background does nothing.
+
+---
+
 ## Goal
 
 Fix Face Verification professionalism regressions and lock the final policy: auto-approve/auto-reject must be deterministic, and user-visible auto-reject is allowed only for a previous-account duplicate face or a confident account-gender mismatch.
