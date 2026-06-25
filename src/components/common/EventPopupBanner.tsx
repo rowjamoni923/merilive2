@@ -27,7 +27,6 @@ const EventPopupBanner = () => {
   const [imageReady, setImageReady] = useState(false);
 
   const skipDelay = banner?.skip_delay_seconds ?? 3;
-  const autoDismiss = banner?.auto_dismiss_seconds ?? 10;
   const canSkip = elapsed >= skipDelay;
 
   // Preload banner media into the browser cache, resolves on load OR error
@@ -115,21 +114,14 @@ const EventPopupBanner = () => {
     return () => subscription.unsubscribe();
   }, [fetchAndShowBanner]);
 
-  // Auto-dismiss countdown timer — only starts AFTER the image is on screen.
+  // Close control timer — only starts AFTER the image is on screen.
   useEffect(() => {
     if (!visible || !imageReady) return;
     const interval = setInterval(() => {
-      setElapsed(prev => {
-        const next = prev + 1;
-        if (next >= autoDismiss) {
-          clearInterval(interval);
-          handleDismiss();
-        }
-        return next;
-      });
+      setElapsed(prev => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [visible, imageReady, autoDismiss]);
+  }, [visible, imageReady]);
 
   const handleDismiss = useCallback(() => {
     setVisible(false);

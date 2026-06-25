@@ -13,7 +13,7 @@ Fix the event popup so it behaves like the requested mobile interstitial: the up
 
 - Removed the framed 9:16 card, blurred backdrop, countdown chip, CTA button, and banner click handler.
 - Media now renders directly at `fixed inset-0` with `100vw × 100dvh` and `object-cover`, so a mobile-sized creative fills the complete phone viewport.
-- Close button is the only actionable control and appears only after `skip_delay_seconds` (fallback 3 seconds); tapping the banner/background does nothing.
+- Close button is the only actionable control and appears only after `skip_delay_seconds` (fallback 3 seconds); tapping the banner/background does nothing, and the banner no longer auto-dismisses before the user closes it.
 
 ---
 
