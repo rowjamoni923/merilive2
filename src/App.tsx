@@ -245,6 +245,7 @@ const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDev
 // AdminCommissions deprecated → AdminPricingHub (Pkg30)
 const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
 const AdminRandomCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminRandomCallSettings")));
+const AdminRandomCallOps = lazy(lazyRetry(() => import("./pages/admin/AdminRandomCallOps")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
@@ -1420,6 +1421,7 @@ const App = () => {
                   {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
                   <Route path="pricing-hub" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminPricingHub /></AdminRouteGuard>} />
                   <Route path="random-call" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminRandomCallSettings /></AdminRouteGuard>} />
+                  <Route path="random-call-ops" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminRandomCallOps /></AdminRouteGuard>} />
                   {/* Deprecated → unified Pricing Hub */}
                   <Route path="commissions" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="withdrawals" element={<AdminRouteGuard routeSegment="withdrawals"><AdminWithdrawals /></AdminRouteGuard>} />
