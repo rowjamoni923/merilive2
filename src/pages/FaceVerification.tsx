@@ -3490,9 +3490,9 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
-            <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+            <h2 className="font-bold text-slate-900 mb-4 sm:mb-5 flex items-center gap-3 text-base sm:text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30 shrink-0">
                 <User className="w-5 h-5 text-white" />
               </div>
               Basic Information
@@ -3501,8 +3501,10 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-28 h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition overflow-hidden shadow-md"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                 onClick={() => photoInputRef.current?.click()}
+                role="button"
+                aria-label="Upload profile photo"
               >
                 {photoPreview ? (
                   <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
@@ -3517,7 +3519,7 @@ const FaceVerification = () => {
                 className="hidden" 
                 onChange={handlePhotoSelect}
               />
-              <p className="text-xs text-slate-600 mt-2">Upload profile photo</p>
+              <p className="text-xs sm:text-sm text-slate-600 mt-2">Upload profile photo</p>
             </div>
             
             <div className="space-y-4">
@@ -3527,7 +3529,8 @@ const FaceVerification = () => {
                   placeholder="Enter your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+                  autoComplete="name"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
@@ -3535,17 +3538,18 @@ const FaceVerification = () => {
                 <Label className="text-slate-700 text-sm font-semibold">Age</Label>
                 <Input
                   type="number"
+                  inputMode="numeric"
                   placeholder="18+"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
                 <Label className="text-slate-700 text-sm font-semibold">Language</Label>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3560,13 +3564,16 @@ const FaceVerification = () => {
             </div>
           </div>
           
-          <Button
-            className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
-            onClick={saveHostStep1}
-            disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
-          >
-            Next
-          </Button>
+          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <Button
+              className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white min-h-cta h-14 rounded-2xl text-base sm:text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl active:scale-[0.98] disabled:opacity-40"
+              onClick={saveHostStep1}
+              disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
+            >
+              Next
+            </Button>
+          </div>
+
         </motion.div>
       )}
       
