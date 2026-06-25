@@ -852,7 +852,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .in("status", ["submitted", "pending"]);
+        .in("status", ["submitted", "pending", "under_review"]);
 
       return new Response(
         JSON.stringify({
@@ -944,7 +944,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .in("status", ["submitted", "pending"]);
+        .in("status", ["submitted", "pending", "under_review"]);
     }
 
     return new Response(
