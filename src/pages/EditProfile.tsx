@@ -1277,7 +1277,7 @@ const EditProfile = () => {
               />
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              <b>Tip:</b> Use 8+ characters with letters, numbers and a symbol (e.g. <code className="bg-white px-1 rounded">M3ri!Live#2026</code>). Common or breached passwords (like <code className="bg-white px-1 rounded">Sazzad017</code>) will be rejected.
+              <b>Tip:</b> Use at least 8 characters and mix uppercase, lowercase, numbers and a symbol. Avoid your name, phone number, birthday, or common words — commonly used or previously breached passwords will be rejected.
             </p>
             <Button 
               onClick={handlePasswordChange}
