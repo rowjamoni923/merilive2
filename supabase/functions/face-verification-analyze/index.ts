@@ -789,7 +789,7 @@ serve(async (req) => {
               other_matches: others.length,
               indexed_at: top.indexed_at,
             };
-            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Requires manual admin review.`;
+            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
           }
         }
         // Index this submission's front face so future submissions can match it.
@@ -935,6 +935,15 @@ serve(async (req) => {
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "rejected",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
 
       return new Response(
         JSON.stringify({
