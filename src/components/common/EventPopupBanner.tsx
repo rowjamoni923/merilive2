@@ -86,6 +86,9 @@ const EventPopupBanner = () => {
         setBanner(data);
         setImageReady(false);
         await preloadBannerMedia(popupCdn(data.image_url));
+        // Mark this interstitial as the top-priority modal so other popups
+        // (DailyLoginPopup / FullScreenPromoBanners / RatingRewardPopup) wait.
+        try { sessionStorage.setItem('event_popup_active', '1'); } catch { /* ignore */ }
         // Only mark as shown once we actually display the banner — otherwise
         // an early empty/failed fetch would block it for the whole session.
         sessionStorage.setItem('popup_banner_shown', 'true');
