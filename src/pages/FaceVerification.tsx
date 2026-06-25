@@ -3215,6 +3215,53 @@ const FaceVerification = () => {
 
 
   // Already submitted - pending review
+  // ★ Permanent eligibility lockout — render BEFORE every other branch so
+  // the camera path is unreachable for users who hit the 10-strike contact
+  // violation rule or whose face/device/IP is on the global ban list.
+  if (eligibilityBlock) {
+    const isContactBan = eligibilityBlock.reason === 'contact_violation_threshold';
+    const isIdentityReuse = eligibilityBlock.reason === 'banned_identity_reuse';
+    const headline = isContactBan
+      ? 'Account Permanently Restricted'
+      : isIdentityReuse
+        ? 'This Identity Is Blocked'
+        : 'Verification Unavailable';
+    const subline = isContactBan
+      ? `Your account has been flagged for repeatedly sharing contact information (${eligibilityBlock.violation_count ?? 'multiple'} strikes, limit ${eligibilityBlock.threshold ?? 10}). Face verification is no longer available for this account.`
+      : isIdentityReuse
+        ? 'This face, device, or network has been previously banned for policy violations. Re-opening a new account with the same identity is not permitted.'
+        : 'You are not eligible to submit a face verification at this time. Please contact support if you believe this is a mistake.';
+    return (
+      <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-rose-50 via-orange-50 to-rose-50 overflow-hidden">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+          {renderHeader('Face Verification', 'Identity check unavailable')}
+          <div className="flex flex-col items-center justify-center mt-16 px-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring' }}
+              className="w-28 h-28 rounded-full bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center mb-6 shadow-2xl shadow-rose-500/30"
+            >
+              <ShieldCheck className="w-14 h-14 text-white" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3 text-center">{headline}</h2>
+            <p className="text-slate-600 text-center max-w-md leading-relaxed mb-6">{subline}</p>
+            <div className="bg-white/80 backdrop-blur border border-rose-100 rounded-2xl p-4 max-w-md w-full text-sm text-slate-600 mb-6">
+              <p className="font-semibold text-slate-800 mb-1">Reason code</p>
+              <code className="text-xs text-rose-700">{eligibilityBlock.reason}</code>
+            </div>
+            <Button
+              className="bg-gradient-to-r from-slate-700 to-slate-900 text-white rounded-xl px-8 h-12 shadow-lg"
+              onClick={() => navigate('/profile')}
+            >
+              Back to Profile
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (submitInProgress || verificationStatus === 'submitted') {
     return (
       <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden">
