@@ -865,14 +865,11 @@ serve(async (req) => {
 
     // ────────────────────────────────────────────────────────────────────
     // POLICY (Updated F3 2026-06-26):
-    //   Hard auto-reject cases (no admin review needed):
-    //     • gender_mismatch
-    //     • duplicate_face (face already on another account)
-    //     • banned_face (matched account is on banned_face_hashes / is_blocked)
-    //     • liveness_failed (provider explicitly flagged photo-of-photo / video replay)
-    //   Photo/profile/gallery mismatch and weak passive yaw are NOT instant client-visible
-    //   rejects in the new passive flow; they remain pending for admin review so users
-    //   don't bounce back to a red Required state seconds after submitting.
+    //   Passive photo/video/live scan must never bounce a just-submitted user
+    //   back to Required because one provider signal is ambiguous. Professional
+    //   identity apps keep the row Pending for admin review unless the identity
+    //   is already on the platform ban list. That protects conversion while
+    //   still blocking banned-account reuse.
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
@@ -897,8 +894,8 @@ serve(async (req) => {
     const noFaceInAvatar = profileMatchSkipReason === "no_face_in_avatar";
 
     if (isBannedFace) hardAutoReject = "banned_face";
-    else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
+    else if (isDuplicate && !isPassivePhotoVideoLiveScan) hardAutoReject = "duplicate_face";
+    else if ((genderDeclarationMismatch || strictGenderMismatch) && !isPassivePhotoVideoLiveScan) hardAutoReject = "gender_mismatch";
     else if (livenessFailed && !isPassivePhotoVideoLiveScan) hardAutoReject = "liveness_failed";
     else if (replaySuspected && !isPassivePhotoVideoLiveScan) hardAutoReject = "replay_suspected";
     else if ((profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) && !isPassivePhotoVideoLiveScan) hardAutoReject = "photo_mismatch";
