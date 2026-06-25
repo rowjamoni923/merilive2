@@ -136,7 +136,7 @@ const AdminEmailBroadcast = () => {
                   <p className="text-xs text-muted-foreground mt-1 truncate">{t.description || t.template_key}</p>
                 </button>
                 {/* Edit/Delete overlay */}
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={(e) => { e.stopPropagation(); openEditDialog(t); }}
                     className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors"
