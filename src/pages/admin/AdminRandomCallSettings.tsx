@@ -14,6 +14,9 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 interface RandomCallSettings {
   id: number;
   is_enabled: boolean;
+  random_window_seconds: number;
+  auto_convert_to_private: boolean;
+  convert_min_balance_seconds: number;
   min_billable_seconds: number;
   free_trial_seconds: number;
   host_split_pct: number;
@@ -49,6 +52,7 @@ interface RandomCallSettings {
   same_pair_block_minutes: number;
   queue_resort_interval_seconds: number;
 }
+
 
 
 const NUM = (s: string) => (s === "" ? 0 : Number(s));
