@@ -31,7 +31,9 @@ export default function MatchCall() {
   const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [ratingSession, setRatingSession] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
 
   useEffect(() => {
     (async () => {
