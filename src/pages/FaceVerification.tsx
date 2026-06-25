@@ -3429,14 +3429,14 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden safe-top`}>
        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
-       <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+       <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + var(--content-bottom-padding, 1rem))` }}>
 
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps — professional KYC-style indicator */}
-      <div className={`mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
+      <div className={`mb-6 sm:mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between">
           {[
             { n: 1, label: 'Basic Info' },
@@ -3446,10 +3446,10 @@ const FaceVerification = () => {
             const done = currentStep > s.n;
             const active = currentStep === s.n;
             return (
-              <div key={s.n} className="flex items-center flex-1">
-                <div className="flex flex-col items-center gap-1.5">
+              <div key={s.n} className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <motion.div
-                    className={`relative w-11 h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+                    className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
                       done
                         ? 'bg-emerald-600 text-white ring-2 ring-emerald-200'
                         : active
@@ -3461,12 +3461,12 @@ const FaceVerification = () => {
                   >
                     {done ? <CheckCircle2 className="w-5 h-5" /> : s.n}
                   </motion.div>
-                  <span className={`text-[10px] font-medium tracking-tight whitespace-nowrap ${
+                  <span className={`text-[10px] sm:text-xs font-medium tracking-tight text-center leading-tight max-w-[72px] truncate ${
                     active ? 'text-slate-900' : done ? 'text-emerald-700' : 'text-slate-400'
                   }`}>{s.label}</span>
                 </div>
                 {idx < 2 && (
-                  <div className="flex-1 h-[2px] mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
+                  <div className="flex-1 h-[2px] mx-1.5 sm:mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
                     <motion.div
                       className="h-full bg-emerald-500"
                       initial={false}
@@ -3481,6 +3481,7 @@ const FaceVerification = () => {
         </div>
       </div>
 
+
       
       {/* Step Content */}
       {currentStep === 1 && (
@@ -3489,9 +3490,9 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
-            <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+            <h2 className="font-bold text-slate-900 mb-4 sm:mb-5 flex items-center gap-3 text-base sm:text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30 shrink-0">
                 <User className="w-5 h-5 text-white" />
               </div>
               Basic Information
@@ -3500,8 +3501,10 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-28 h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition overflow-hidden shadow-md"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                 onClick={() => photoInputRef.current?.click()}
+                role="button"
+                aria-label="Upload profile photo"
               >
                 {photoPreview ? (
                   <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
@@ -3516,7 +3519,7 @@ const FaceVerification = () => {
                 className="hidden" 
                 onChange={handlePhotoSelect}
               />
-              <p className="text-xs text-slate-600 mt-2">Upload profile photo</p>
+              <p className="text-xs sm:text-sm text-slate-600 mt-2">Upload profile photo</p>
             </div>
             
             <div className="space-y-4">
@@ -3526,7 +3529,8 @@ const FaceVerification = () => {
                   placeholder="Enter your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+                  autoComplete="name"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
@@ -3534,17 +3538,18 @@ const FaceVerification = () => {
                 <Label className="text-slate-700 text-sm font-semibold">Age</Label>
                 <Input
                   type="number"
+                  inputMode="numeric"
                   placeholder="18+"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
                 <Label className="text-slate-700 text-sm font-semibold">Language</Label>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3559,13 +3564,16 @@ const FaceVerification = () => {
             </div>
           </div>
           
-          <Button
-            className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
-            onClick={saveHostStep1}
-            disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
-          >
-            Next
-          </Button>
+          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <Button
+              className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white min-h-cta h-14 rounded-2xl text-base sm:text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl active:scale-[0.98] disabled:opacity-40"
+              onClick={saveHostStep1}
+              disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
+            >
+              Next
+            </Button>
+          </div>
+
         </motion.div>
       )}
       
@@ -3575,10 +3583,10 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                <Film className="w-5 h-5 text-slate-800" />
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3 text-base sm:text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shrink-0">
+                <Film className="w-5 h-5 text-white" />
               </div>
               Video Upload
             </h2>
@@ -3683,25 +3691,27 @@ const FaceVerification = () => {
           </div>
           
           {/* Host Photos */}
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <ImagePlus className="w-5 h-5 text-slate-800" />
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3 text-base sm:text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
+                <ImagePlus className="w-5 h-5 text-white" />
               </div>
               Photos Upload (up to 3)
             </h2>
             
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="aspect-square rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
+                  className="aspect-square rounded-xl sm:rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
+                  role="button"
+                  aria-label={`Add photo ${index + 1}`}
                 >
                   {hostPhotosPreviews[index] ? (
                     <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   ) : (
-                    <ImagePlus className="w-8 h-8 text-slate-500" />
+                    <ImagePlus className="w-7 h-7 sm:w-8 sm:h-8 text-slate-500" />
                   )}
                 </div>
               ))}
@@ -3716,22 +3726,25 @@ const FaceVerification = () => {
             />
           </div>
           
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 h-14 rounded-2xl font-semibold"
-              onClick={() => setCurrentStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
-              onClick={saveHostStep2}
-              disabled={loading || !videoFile || hostPhotos.length !== 3}
-            >
-              Next
-            </Button>
+          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <div className="flex gap-2 sm:gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 min-h-cta h-14 rounded-2xl font-semibold"
+                onClick={() => setCurrentStep(1)}
+              >
+                Back
+              </Button>
+              <Button
+                className="flex-[1.4] bg-gradient-to-r from-purple-500 to-pink-500 min-h-cta h-14 rounded-2xl text-base sm:text-lg font-bold"
+                onClick={saveHostStep2}
+                disabled={loading || !videoFile || hostPhotos.length !== 3}
+              >
+                Next
+              </Button>
+            </div>
           </div>
+
         </motion.div>
       )}
       
@@ -3744,65 +3757,67 @@ const FaceVerification = () => {
           {renderFaceVerificationSection()}
           
           {!faceVerified && (
-            <Button
-              variant="outline"
-              className="w-full h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
-              onClick={() => {
-                stopFaceCamera();
-                setCurrentStep(2);
-              }}
-            >
-              Go Back
-            </Button>
+            <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+              <Button
+                variant="outline"
+                className="w-full min-h-touch h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
+                onClick={() => {
+                  stopFaceCamera();
+                  setCurrentStep(2);
+                }}
+              >
+                Go Back
+              </Button>
+            </div>
           )}
         </motion.div>
       )}
       
-      {/* Existing Account Modal */}
+      {/* Existing Account Modal — bottom sheet on phones, centered on larger screens */}
       {showExistingAccountModal && existingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm safe-x">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-sm bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-6 border border-purple-500/30 shadow-2xl"
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="w-full sm:max-w-sm bg-gradient-to-br from-rose-50 to-orange-50 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-6 border border-purple-500/30 shadow-2xl"
           >
             <div className="text-center">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300 sm:hidden" />
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-500/50">
                 {existingAccount.avatarUrl ? (
                   <img loading="lazy" decoding="async" src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-purple-600 flex items-center justify-center">
-                    <User className="w-10 h-10 text-slate-800" />
+                    <User className="w-10 h-10 text-white" />
                   </div>
                 )}
               </div>
               
-              <h3 className="text-xl font-bold text-slate-800 mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-2">
                 Account Already Exists
               </h3>
               
-              <p className="text-slate-600 text-sm mb-4">
+              <p className="text-slate-600 text-sm mb-4 break-anywhere">
                 This face is already registered with an account:
               </p>
               
               <div className="p-3 rounded-xl bg-amber-50/70 mb-4">
-                <p className="font-semibold text-slate-800">{existingAccount.displayName}</p>
+                <p className="font-semibold text-slate-800 break-anywhere">{existingAccount.displayName}</p>
                 {existingAccount.isDeleted && (
-                  <Badge className="mt-2 bg-amber-500/20 text-amber-300 border-amber-500/30">
+                  <Badge className="mt-2 bg-amber-500/20 text-amber-700 border-amber-500/30">
                     Deletion Scheduled
                   </Badge>
                 )}
               </div>
               
-              <p className="text-slate-500 text-xs mb-6">
+              <p className="text-slate-500 text-xs mb-5 sm:mb-6">
                 One face can only be used for one host account. Please login to your existing account.
               </p>
               
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-12 rounded-xl font-bold"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 min-h-cta h-12 rounded-xl font-bold"
                   onClick={async () => {
-                    // Sign out and go to login
                     localStorage.setItem('meri_manual_logout', 'true');
                     await supabase.auth.signOut({ scope: 'local' });
                     navigate('/auth');
@@ -3813,7 +3828,7 @@ const FaceVerification = () => {
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-500 hover:text-white hover:bg-amber-50/70"
+                  className="w-full min-h-touch text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);
