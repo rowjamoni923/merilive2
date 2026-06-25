@@ -1088,6 +1088,7 @@ serve(async (req) => {
       }
       const retryRequired = {
         kind: "identity_mismatch" as const,
+        verification_type: vtForEvidence,
         failed_evidence: failedEvidence,
         steps: Array.from(new Set(failedEvidence.map((f) => f.step))),
         headline: "Your photo, video, and live face scan don't look like the same person.",
