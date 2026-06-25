@@ -280,7 +280,7 @@ const AdminSupportTickets = () => {
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [selectedTicket?.id]);
+  }, [selectedTicket?.id, messages]);
 
   useEffect(() => {
     ticketsRef.current = tickets;
