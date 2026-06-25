@@ -31,15 +31,31 @@ type CreateGroupResult = {
 const getCreateGroupErrorMessage = (error?: string) => {
   const normalized = (error || '').toLowerCase();
   if (!normalized) return "Failed to create group";
-  if (normalized.includes('auth_required')) return "Please sign in again to create a group";
+  if (normalized.includes('auth_required') || normalized.includes('not_authenticated')) return "Please sign in again to create a group";
   if (normalized.includes('invalid_group_name')) return "Group name must be 1 to 80 characters";
   if (normalized.includes('invalid_group_type')) return "Please choose a valid group type";
   if (normalized.includes('user_blocked')) return "Your account cannot create groups right now";
-  if (normalized.includes('family_limit_reached')) return "You can only be in 1 family group";
+  if (normalized.includes('family_limit_reached') || normalized.includes('family_group_exclusive')) return "You can only be in 1 family group";
   if (normalized.includes('basic_limit_reached')) return "You can join max 20 general groups";
   if (normalized.includes('profile_not_ready')) return "Your profile is still being prepared. Please try again";
   if (normalized.includes('duplicate_group_or_member') || normalized.includes('duplicate_group_member')) return "This group could not be completed. Please try again";
   return "Failed to create group";
+};
+
+const normalizeCreateGroupResult = (value: unknown): CreateGroupResult => {
+  if (typeof value === 'string') {
+    return { success: true, group_id: value };
+  }
+  if (value && typeof value === 'object') {
+    const result = value as Partial<CreateGroupResult>;
+    return {
+      success: result.success === true,
+      group_id: result.group_id,
+      group_code: result.group_code,
+      error: result.error,
+    };
+  }
+  return { success: false, error: 'create_group_failed' };
 };
 
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
@@ -2436,7 +2452,7 @@ const Chat = () => {
       });
 
       if (error) throw error;
-      const result = createResult as CreateGroupResult | null;
+      const result = normalizeCreateGroupResult(createResult);
       if (!result?.success || !result.group_id) {
         throw new Error(result?.error || 'create_group_failed');
       }
