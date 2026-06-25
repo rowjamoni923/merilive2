@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     const body = await req.json().catch(() => ({}));
+    const mode: string = body.mode === "broadcast" ? "broadcast" : "queue";
     const preferredCountry: string | null = body.preferred_country ?? null;
     const preferredLangs: string[] = Array.isArray(body.preferred_langs) ? body.preferred_langs : [];
     const preferredHostGender: string | null =
