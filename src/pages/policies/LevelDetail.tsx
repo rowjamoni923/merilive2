@@ -276,7 +276,8 @@ function inlineFormat(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  return esc
+  const formatted = esc
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-muted/40 text-[12px]">$1</code>');
+  return DOMPurify.sanitize(formatted, { ALLOWED_TAGS: ['strong', 'code'], ALLOWED_ATTR: ['class'] });
 }
