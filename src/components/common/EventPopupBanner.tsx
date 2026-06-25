@@ -125,7 +125,9 @@ const EventPopupBanner = () => {
 
   const handleDismiss = useCallback(() => {
     setVisible(false);
-    // Dispatch custom event so RatingRewardPopup knows to show next
+    try { sessionStorage.removeItem('event_popup_active'); } catch { /* ignore */ }
+    // Dispatch custom event so RatingRewardPopup / DailyLoginPopup / FullScreenPromoBanners
+    // know the top-priority interstitial has cleared and they can now appear.
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
