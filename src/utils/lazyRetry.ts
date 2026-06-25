@@ -211,9 +211,19 @@ export function lazyRetry<T>(
     }
 
     console.error('[LazyRetry] Chunk failed after inline retries:', lastError);
+    // Last resort — the in-memory importFn has the dead chunk URL baked in,
+    // so no further retry can succeed in this session. Force a clean reload
+    // from origin so the browser picks up the fresh asset manifest.
+    if (isChunkLoadError(lastError)) {
+      hardReloadForChunkRecovery();
+      // Return a never-resolving promise so React doesn't render an error
+      // flash before the navigation kicks in.
+      await new Promise(() => {});
+    }
     throw lastError;
   };
 }
+
 
 export function lazyRetryOptional<T>(
   importFn: () => Promise<{ default: T }>,
