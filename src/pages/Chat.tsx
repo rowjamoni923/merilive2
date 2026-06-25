@@ -1190,9 +1190,11 @@ const Chat = () => {
     const convId = selectedConversation?.id || selectedGroup?.id || null;
     const isNewConversation = lastScrollConvIdRef.current !== convId;
     const currentLen = (selectedGroup ? groupMessages.length : messages.length);
-    // Distance from bottom in px BEFORE the new render-induced layout shift
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const wasNearBottom = wasNearBottomRef.current && distanceFromBottom < 240;
+    // Trust the scroll-tracked ref — by the time useLayoutEffect runs, the
+    // new message is already in the DOM so a fresh distance reading would
+    // be misleadingly large for tall messages (gifts, images). The scroll
+    // handler updates wasNearBottomRef based on the user's last real scroll.
+    const wasNearBottom = wasNearBottomRef.current;
 
     if (isNewConversation) {
       // Conversation switch — reset tracking and reset the windowed slice.
@@ -1251,17 +1253,54 @@ const Chat = () => {
   useEffect(() => {
     const container = chatScrollRef.current;
     if (!container || typeof ResizeObserver === 'undefined') return;
+    // Track the scrollHeight observed just BEFORE each reflow. When a gift /
+    // image / lottie inside the latest message finishes loading, the content
+    // grows *below* the viewport — scrollTop stays the same but scrollHeight
+    // jumps. That makes the post-reflow distance from bottom suddenly large,
+    // so a naive `dist < 80` check fails and the latest message appears to
+    // "scroll up". Comparing against the PREVIOUS distance lets us pin
+    // whenever the user was sitting at the bottom right before the reflow,
+    // matching WhatsApp/Messenger/imo behavior.
+    let prevScrollHeight = container.scrollHeight;
+    let prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
     const ro = new ResizeObserver(() => {
-      // Double-check current scroll distance — wasNearBottomRef may be
-      // stale while the user is actively scrolling up, and an
-      // unconditional pin would snap them back (UI jitter).
-      const dist = container.scrollHeight - container.scrollTop - container.clientHeight;
-      if (dist < 80 && wasNearBottomRef.current) {
+      const newScrollHeight = container.scrollHeight;
+      const grew = newScrollHeight > prevScrollHeight;
+      const wasAtBottom = prevDist < 120 || wasNearBottomRef.current;
+      const stillAtBottom = (newScrollHeight - container.scrollTop - container.clientHeight) < 120;
+      if (grew && wasAtBottom && !stillAtBottom) {
+        // Content expanded below viewport while we were pinned to bottom —
+        // re-pin so the latest message stays in view.
+        hardPinChatToLatest();
+      } else if (stillAtBottom && wasNearBottomRef.current) {
         hardPinChatToLatest();
       }
+      prevScrollHeight = container.scrollHeight;
+      prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
     });
     ro.observe(container);
-    return () => ro.disconnect();
+    // Also observe direct children so gift/image height changes are caught.
+    const childObserver = new ResizeObserver(() => {
+      const newScrollHeight = container.scrollHeight;
+      const wasAtBottom = prevDist < 120 || wasNearBottomRef.current;
+      if (newScrollHeight > prevScrollHeight && wasAtBottom) {
+        hardPinChatToLatest();
+      }
+      prevScrollHeight = newScrollHeight;
+      prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
+    });
+    Array.from(container.children).forEach((el) => childObserver.observe(el as Element));
+    const mutationObs = new MutationObserver(() => {
+      Array.from(container.children).forEach((el) => {
+        try { childObserver.observe(el as Element); } catch {}
+      });
+    });
+    mutationObs.observe(container, { childList: true, subtree: false });
+    return () => {
+      ro.disconnect();
+      childObserver.disconnect();
+      mutationObs.disconnect();
+    };
   }, [selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
