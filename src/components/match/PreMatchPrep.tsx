@@ -46,10 +46,14 @@ export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip,
   countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
+  phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry,
 }: Props) {
   const navigate = useNavigate();
   const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
   const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
+  const isSearching = phase === "searching";
+  const isMatched = phase === "matched";
+  const isError = phase === "error";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [camOn, setCamOn] = useState(true);
