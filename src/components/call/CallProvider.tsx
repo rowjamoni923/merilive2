@@ -740,7 +740,7 @@ export function CallProvider({ children }: CallProviderProps) {
   );
 
   return (
-    <CallContext.Provider value={{ startCall, isInCall }}>
+    <CallContext.Provider value={{ startCall, endCall: handleEndCall, isInCall }}>
       {children}
 
       {/* Phase-3 C1: keep the global notifications realtime channel mounted
