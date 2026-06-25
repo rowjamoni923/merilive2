@@ -174,6 +174,10 @@ const FaceVerification = () => {
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected'>('unverified');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [submitInProgress, setSubmitInProgress] = useState(false);
+  // Permanent block (banned face/device/IP, or 10-strike contact-violation lockout).
+  // Checked once on mount via check_face_verification_eligibility RPC.
+  const [eligibilityBlock, setEligibilityBlock] = useState<{ reason: string; violation_count?: number; threshold?: number } | null>(null);
+  const [eligibilityChecked, setEligibilityChecked] = useState(false);
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
