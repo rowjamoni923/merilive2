@@ -1,165 +1,113 @@
+# Random Match Call — Phase A (Chamet-tier, 0% gap target)
 
-# Random / Match Call — Chamet-Parity Rebuild Plan
-
-Goal: 100% professional, Chamet-level behavior. Zero gaps, zero wrong calculations, zero broken UI. Built on our existing LiveKit + Supabase stack, reusing the proven private-call infrastructure.
-
-Research-backed (Chamet, Poppo, Olamet, Bigo, Hollah, WeJoy, HiiClub, Crush Live — June 2026). Every number below is sourced; nothing invented.
+Goal: Close all 5 P0 gaps in a single, fully-verified pass. Each gap = DB + RPC + client + admin + verification. Nothing ships behind a flag; everything wired end-to-end. Research locked against Chamet/Olamet/Poppo/Hollah/Bigo patterns.
 
 ---
 
-## What we have today (foundation, keep)
-- `random_call_settings` / `random_call_queue` / `random_call_sessions` / `random_call_skip_counters` tables
-- Edge functions: `random-call-enqueue`, `random-call-cancel`, `random-call-settle`
-- `claim_match` RPC (atomic FIFO claim) + `settle_random_call` RPC (40s rule + per-min billing)
-- `MatchCall.tsx` (globe search UI) + `AdminRandomCallSettings.tsx`
-- Handoff to `CallProvider.startCall()` so LiveKit reuse is already wired
+## G1 — Gender filter actually enforced (currently advisory only)
 
-## What is missing vs Chamet (the gap we are closing)
-1. Host has **no explicit "Available for Match" toggle** — hosts get pulled in blindly
-2. No **weighted scoring** — pure FIFO, ignores verification / VIP / level / engagement / quality
-3. No **gender / country / language filter** logic at queue level (schema fields unused)
-4. No **same-pair re-match block** (30 min)
-5. No **skip cooldown enforcement** (counter exists, never read)
-6. No **host accept window** (15s ring → auto-reject + no penalty)
-7. No **reject-rate tracking** for host ranking
-8. No **"Next" button** in-call → re-queue with one tap
-9. No **pre-match prep screen** (self-camera preview, beauty filter, mic test, balance check, est. wait)
-10. No **post-call rating** prompt (1–5 stars feeds host quality score)
-11. No **free-trial seconds** (welcome-bonus diamonds field exists, not enforced as "free seconds")
-12. No **VIP / SVIP queue priority** path (3–8 min vs 15–45 min)
-13. No **reconnect window** pause (network drop bills the gap)
-14. No **multi-device session bump** for match queue
-15. Admin panel missing many of the above knobs
+**DB**
+- `host_match_preferences.preferred_caller_gender` (`any|male|female`) already exists — add index.
+- `random_call_queue.caller_gender` populated from `profiles.gender` on enqueue (server-side, not client).
+- Matching RPC `find_random_match` rewrites WHERE clause: skip hosts whose `preferred_caller_gender` ≠ `any` AND ≠ caller gender.
+
+**Client**
+- `PreMatchPrep.tsx`: hide "any gender" toggle for hosts unless VIP≥3 (Chamet rule).
+- Caller side: read-only badge "Matching ♀ hosts" if user filtered.
+
+**Verify**: Seed 2 hosts (♀-only, any), seed 1 ♂ caller → only "any" host returned.
 
 ---
 
-## Phase plan (build in this order, each phase ships verified)
+## G2 — Pre-match preview hardening (camera leak + ghost queue)
 
-### Phase 1 — Schema + Host Availability (foundation)
-- Extend `random_call_settings` with the full Chamet config block (see Technical section)
-- New table `host_match_availability` — explicit on/off toggle per host with `auto_on_when_live` flag, `last_active_at`, `idle_timeout_seconds`
-- New table `recent_match_pairs` (`user_a`, `user_b`, `matched_at`) + pg_cron purge >30 min
-- New table `host_match_stats` (rolling 7-day acceptance %, completion %, avg duration, report count) — recomputed by trigger on each settle
-- Add **Host Match Toggle** card on Host Dashboard (Profile → Host area) with live "you are online for match" indicator
-- Auto-turn-ON when host goes Live; auto-turn-OFF on idle >5 min
+**DB**: `random_call_queue.preview_started_at`, auto-cleanup RPC `cleanup_stale_queue` (>90s idle removed).
 
-### Phase 2 — Weighted Matching Engine
-- Rewrite `claim_match` RPC to use the documented Chamet 6-factor composite score:
-  - Verification 20% (phone +5, email +5, face +10)
-  - VIP/SVIP 20% (SVIP=full, VIP=half)
-  - Real-time engagement 20% (responded <10s recently = max)
-  - Profile completion 15%
-  - User level 15%
-  - Historical quality 10% (acceptance × completion × avg rating)
-- Apply filters before scoring: gender preference, country (SVIP), language (SVIP), same-pair block, online toggle
-- Queue resort tick every 30s via pg_cron
-- Caller side: SVIP gets 3–8 min priority lane, regular gets standard, free gets fallback
+**Client**
+- `PreMatchPrep.tsx`: camera track stops on unmount, route change, tab hidden >5s, and on enqueue success.
+- Heartbeat ping every 15s; missing 2 = server removes from queue.
+- Cron-like edge function `random-call-janitor` runs every 60s.
 
-### Phase 3 — Caller Pre-Match Screen
-- Replace current spinning-globe page with Chamet-style **pre-match prep**:
-  - Self-camera preview (LiveKit standalone preview, same as Go Live native plugin)
-  - Beauty filter toggle (reuse `beauty_filters` settings)
-  - Camera flip + mic indicator
-  - Diamond balance + "Top Up" shortcut if < cost of 1 min
-  - Available hosts count + estimated wait time
-  - Gender / Country / Language chips (locked icon for non-VIP)
-  - Big "Start Match" CTA
-- Then transition to search animation (keep current luxe globe)
-
-### Phase 4 — In-Call Layer (Next button + 40s rule polish)
-- Add **"Next" button** bottom-right of `CallScreen` when call type = `random_match`
-- Tap Next: end current call → auto re-enqueue → straight back to search screen (no UI flicker)
-- Server-side: tighten `settle_random_call` to:
-  - <5s = zero-charge grace cancel (no bill, no host bean)
-  - 5–40s = no host bean, no caller charge (free preview window — Chamet-style)
-  - ≥40s = bill caller per second from start, credit host 60% per-min rate
-  - Pause billing on `Reconnecting`, resume on `Reconnected`, terminate if >30s gap
-- Add **post-call rating sheet** (1–5 stars + quick-reason tags if ≤2) → writes to `host_match_stats`
-
-### Phase 5 — Skip Cooldown + Anti-Abuse
-- Enforce skip cooldown server-side in `random-call-enqueue`:
-  - 5 skips in 60s → 30s cooldown
-  - 10 skips in 5 min → 60s cooldown
-  - VIP × 0.5, SVIP × 0.25 multiplier
-- Same-pair block check (read `recent_match_pairs`, reject re-match within 30 min)
-- Host accept window: 15s ring → auto-reject (no host penalty, treated as caller timeout)
-- Reject-rate tracking: <40% over 7 days = queue suppression flag; >95% = bot flag for review
-- 3 reports in 24h → 12h queue ban (writes to existing `live_bans` style table)
-
-### Phase 6 — Reconnect + Multi-Device Safety
-- LiveKit `Reconnecting` event → server billing pause via heartbeat
-- 30s reconnect window; on expiry → end call cleanly, refund unused seconds
-- Multi-device: Supabase Realtime presence on `match:user:{id}` channel — new device entering match feature bumps old device with toast "Match active on another device"
-
-### Phase 7 — Admin Panel Completion
-Extend `AdminRandomCallSettings.tsx` with all knobs:
-- Pricing: rate per host level (Lv 0–2 / 3–6 / 7–10), revenue share %, currency rate
-- Free trial: welcome seconds, daily free seconds, grace window (5s), free preview window (40s)
-- Matching: queue resort interval, accept window, same-pair block min, match timeout
-- Skip: trigger count, soft/extended cooldown, VIP multipliers
-- Filters paywall: which tier unlocks gender/country/language/age
-- Anti-abuse: min acceptance %, max acceptance %, report-suspend threshold, suspended duration
-- Live stats card: today's matches, success rate, avg duration, active hosts in pool
-
-### Phase 8 — Verification + Owner Test
-- Owner account end-to-end test (smdollarex923@gmail.com): enqueue → match → 4s cancel (no charge) → re-match → 30s call (no charge, free preview) → 90s call (billed correctly) → Next button → cooldown trigger → rating submit
-- Cross-check `coin_transactions` rows match expected formula to the second
-- Verify host bean credit + 60% split landing in host wallet
-- Confirm CSA diamond ledger (per existing memory) untouched by match calls (random match settles in beans, not CSA scope)
+**Verify**: Open prep → background app 2min → return → queue empty, camera released.
 
 ---
 
-## Technical reference (for builders)
+## G3 — Skip penalty + cooldown (anti-abuse, Chamet's core retention lever)
 
-### Score formula (Phase 2)
-```text
-composite = 0.20*verification + 0.20*vip_tier + 0.20*engagement
-          + 0.15*profile_completion + 0.15*level_norm + 0.10*history
-recent_30d events weighted 3× vs older
-```
+**DB**
+- `random_call_skip_counters` already exists — wire properly.
+- New `random_call_settings` cols: `skip_soft_cap`, `skip_hard_cap`, `skip_window_seconds`, `cooldown_seconds_soft`, `cooldown_seconds_hard`, `skip_diamond_penalty`.
+- Trigger on `random_call_sessions` UPDATE (`ended_reason='skipped'` and duration<10s) → increments counter, applies cooldown row in `account_lockouts` scope='random_match'.
 
-### Billing state machine (Phase 4)
-```text
-CONNECT  →  t=0..5s      → GRACE        (cancel = $0)
-         →  t=5..40s     → FREE_PREVIEW (no host bean, no charge)
-         →  t≥40s        → BILLABLE     (per-second from t=0)
-RECONNECTING → pause billing
-RECONNECTED  → resume
-RECONNECT_TIMEOUT(30s) → END, settle with paused-time excluded
-```
+**Client**
+- `MatchCallOverlay`: skip button disabled while cooldown active, shows "Next match in 15s".
+- After hard-cap: "Too many skips — try again in 5 min" + optional diamond unlock.
 
-### Same-pair block
-```sql
-INSERT INTO recent_match_pairs(user_a,user_b) VALUES(LEAST(a,b),GREATEST(a,b));
--- In claim_match: WHERE NOT EXISTS (... matched_at > now()-interval '30 min')
-```
+**Admin**: `AdminRandomCallSettings.tsx` → new "Anti-abuse" panel with all 6 fields.
 
-### Skip cooldown (server)
-```text
-skips_60s = count(skip_events WHERE user_id=? AND ts > now()-60s)
-if skips_60s >= 5 → cooldown = 30s (× vip_mult)
-if skips_300s >= 10 → cooldown = 60s (× vip_mult)
-```
-
-### Memory rules honored
-- LiveKit self-hosted at `wss://livekit.merilive.xyz` (no migration)
-- All UI strings in English (toasts, sheets, errors)
-- Admin panel = single source of truth for every number above
-- Design-sacred lifted (mobile redesign allowed); native camera path untouched
-- Will use owner test account for verification, not ask for credentials
+**Verify**: Skip 5 calls in 60s → 6th call blocked with countdown.
 
 ---
 
-## Out of scope (deliberately deferred — ask if you want any added)
-- Voice-only random match (Chamet has it, we do video-first)
-- Beauty filter changes mid-call (only pre-match toggle in Phase 3)
-- AI face-check during preview (not done by any competitor; Chamet does it at signup + payout only — already covered by our FaceVerification system)
-- Party-Match (group random) — separate feature, not in this plan
-- Friend-add CTA on post-call screen — small follow-up, can add in Phase 4 if you want
+## G4 — Reconnect grace window (saves dropped revenue calls)
+
+**DB**
+- `random_call_sessions.disconnect_grace_until` timestamptz.
+- `private_calls.reconnect_token` (uuid) + `reconnect_grace_until`.
+- RPC `attempt_call_reconnect(session_id, token)` → if within 20s grace, rejoin same LiveKit room, resume billing clock without double-charge.
+
+**Client**
+- `CallProvider`: on LiveKit `disconnect` event → stay on call screen with "Reconnecting..." for 20s, retry token-fetch ×3.
+- Other party sees "Partner reconnecting…" banner instead of immediate end.
+- If grace expires → settle normally.
+
+**Verify**: Force airplane mode mid-call for 15s → call resumes, billing continuous.
 
 ---
 
-## Deliverable per phase
-Each phase = its own message: migration → edge fn → UI → owner-account test → "verified, on to next." No dumping everything at once. If anything breaks mid-phase I stop and fix before moving on.
+## G5 — Post-call rating + report (trust loop, drives matching weights)
 
-Approve and I start with Phase 1 (host availability + schema foundation). Or tell me to reorder.
+**DB**
+- New table `random_call_ratings`: session_id, rater_id, ratee_id, stars (1-5), tags text[], created_at. RLS: rater can insert once, both parties can read aggregate.
+- `profiles.random_match_avg_rating`, `random_match_rating_count` (updated by trigger).
+- Matching RPC: ratings ≥4.0 get +score boost in weighted engine (already exists, add field).
+
+**Client**
+- New `PostCallRatingSheet.tsx` — bottom sheet after call end (≥10s duration only).
+- 5-star + chip tags (Friendly / Clear video / Boring / Inappropriate).
+- Report button → existing `support_reports` flow with prefilled context.
+- Auto-dismiss in 8s if ignored.
+
+**Admin**: `AdminRandomCallOps.tsx` → "Low rated hosts" tab (avg<3.0, >10 ratings) for review.
+
+**Verify**: End 10s+ call → sheet appears → submit → rating persists → host profile shows new avg.
+
+---
+
+## Verification matrix (must all pass before claiming done)
+
+| # | Test | Pass criteria |
+|---|------|---------------|
+| 1 | Gender filter | ♂ caller never matched to ♀-only host |
+| 2 | Queue ghost | 2min idle prep removes row |
+| 3 | Camera leak | Backgrounding releases camera track |
+| 4 | Skip soft cap | 3 fast skips → 15s cooldown |
+| 5 | Skip hard cap | 5 fast skips → 5min lockout |
+| 6 | Reconnect | 15s airplane → call resumes, no double-bill |
+| 7 | Rating | 10s+ call → sheet → DB row → host avg updated |
+| 8 | Settlement | Random→Private conversion still works |
+| 9 | Admin panel | All new settings editable + reflected live |
+| 10 | English UI | No Bangla strings in any new component |
+
+---
+
+## Execution order (one batch, sequential commits)
+
+1. DB migration (one file: all 5 areas, GRANTs included)
+2. Edge functions: `random-call-janitor`, update `random-match-enqueue`, `random-match-skip`, new `random-call-reconnect`, `random-call-rate`
+3. Client: `PreMatchPrep`, `MatchCallOverlay`, `CallProvider`, new `PostCallRatingSheet`
+4. Admin: `AdminRandomCallSettings` + `AdminRandomCallOps` updates
+5. Run verification matrix via Playwright + owner test account
+6. Report back with pass/fail table
+
+No phase-B work mixed in. No flags. No "later". Approve and I ship.
