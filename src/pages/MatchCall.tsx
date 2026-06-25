@@ -76,31 +76,32 @@ export default function MatchCall() {
     };
   }, [phase]);
 
-  // Settle session after user exits the call overlay
+  // Settle session after user exits the call overlay (server recomputes duration authoritatively)
   useEffect(() => {
     if (isInCall) { wasInCallRef.current = true; return; }
     if (!wasInCallRef.current) return;
     wasInCallRef.current = false;
-    let raw: string | null = null;
-    try {
-      raw = window.sessionStorage.getItem("random_call:active");
-      window.sessionStorage.removeItem("random_call:active");
-    } catch (_) {}
+
+    const info = activeSessionRef.current;
+    try { window.sessionStorage.removeItem("random_call:active"); } catch (_) {}
+    setActiveSession(null);
+
     const shouldAutoRestart = autoRestartRef.current;
     autoRestartRef.current = false;
-    if (raw) {
-      try {
-        const info = JSON.parse(raw) as { session_id: string; started_at: number; ended_by?: string };
-        const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
-        supabase.functions.invoke("random-call-settle", {
-          body: { session_id: info.session_id, duration_seconds: duration, ended_by: info.ended_by ?? "caller" },
-        }).catch(() => {});
-        // Open the post-call rating sheet only for non-trivial calls.
-        if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
-      } catch (_) {}
+
+    if (info) {
+      const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
+      supabase.functions.invoke("random-call-settle", {
+        body: {
+          session_id: info.session_id,
+          duration_seconds: duration,
+          ended_by: info.ended_by ?? "caller",
+        },
+      }).catch(() => {});
+      // Open the post-call rating sheet only for non-trivial calls.
+      if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
     }
     if (shouldAutoRestart && lastFiltersRef.current) {
-      // Re-enqueue with the same filters (Chamet-style Next)
       const f = lastFiltersRef.current;
       setTimeout(() => { void startSearch(f); }, 250);
     } else {
@@ -119,14 +120,14 @@ export default function MatchCall() {
   // Chamet-style "Next": end current call, server applies free-window rule
   // (zero charge if duration < random_window_seconds), then auto re-enqueue.
   const handleNext = async () => {
-    try {
-      const raw = window.sessionStorage.getItem("random_call:active");
-      if (raw) {
-        const info = JSON.parse(raw) as any;
-        info.ended_by = "caller_skip";
-        window.sessionStorage.setItem("random_call:active", JSON.stringify(info));
-      }
-    } catch (_) {}
+    // Mark ended_by in component state (authoritative) and mirror to sessionStorage for legacy readers.
+    const current = activeSessionRef.current;
+    if (current) {
+      const next = { ...current, ended_by: "caller_skip" };
+      setActiveSession(next);
+      activeSessionRef.current = next;
+      try { window.sessionStorage.setItem("random_call:active", JSON.stringify(next)); } catch (_) {}
+    }
     autoRestartRef.current = true;
     try { await endCall(); } catch (_) {}
   };
