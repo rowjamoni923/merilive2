@@ -471,11 +471,11 @@ serve(async (req) => {
     if (details.length === 0) frontError = "no_face_front";
     else if (details.length > 1) frontError = "multiple_faces_front";
     let leftError: string | null = null;
-    if (leftDetails.length === 0) leftError = "no_face_left";
-    else if (leftDetails.length > 1) leftError = "multiple_faces_left";
+    if (leftBytes && leftDetails.length === 0) leftError = "no_face_left";
+    else if (leftBytes && leftDetails.length > 1) leftError = "multiple_faces_left";
     let rightError: string | null = null;
-    if (rightDetails.length === 0) rightError = "no_face_right";
-    else if (rightDetails.length > 1) rightError = "multiple_faces_right";
+    if (rightBytes && rightDetails.length === 0) rightError = "no_face_right";
+    else if (rightBytes && rightDetails.length > 1) rightError = "multiple_faces_right";
 
     if (frontError) finalGender = "unknown";
 
@@ -703,9 +703,11 @@ serve(async (req) => {
     const yawR = Number(rightPose?.Yaw ?? 0);
     const yawDeltaL = Math.abs(yawL - yawF);
     const yawDeltaR = Math.abs(yawR - yawF);
-    // Pro-app replay detection: only flag when ALL three angles have near-IDENTICAL
-    // yaw (<3°) — that's a static photo. Real users often turn only slightly.
-    const replaySuspected = !frontError && !leftError && !rightError &&
+    // Pro-app replay detection: only flag when ALL THREE REAL angle images exist
+    // and have near-identical yaw (<3°). Passive scans may intentionally submit
+    // only the front live frame; missing side frames must not be treated as fake
+    // side captures or as replay evidence.
+    const replaySuspected = !frontError && !leftError && !rightError && leftBytes !== null && rightBytes !== null &&
       yawDeltaL < 3 && yawDeltaR < 3;
     rekognition.yaw_delta_left = yawDeltaL;
     rekognition.yaw_delta_right = yawDeltaR;
@@ -754,7 +756,10 @@ serve(async (req) => {
         const frontB64 = uint8ToBase64(frontBytes);
         const search = await providerSearchFace(faceProvider, {
           image_base64: frontB64,
-          threshold: 92,
+          // Duplicate search is intentionally lower than auto-approval match
+          // confidence so the second account is caught even with lighting,
+          // compression, or camera changes.
+          threshold: 88,
           max_matches: 5,
         });
         duplicateSearchCompleted = search !== null;
@@ -851,12 +856,79 @@ serve(async (req) => {
       .eq("id", submissionId)
       .maybeSingle();
     const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+    const evidenceUrls = ((existingAnalysis.evidence_urls && typeof existingAnalysis.evidence_urls === "object")
+      ? existingAnalysis.evidence_urls
+      : {}) as Record<string, unknown>;
+    const vtForEvidence = String(row.verification_type || "").trim().toLowerCase();
+    const profileEvidenceUrl = (row.profile_photo_url as string | null) || (evidenceUrls.profile_photo_url as string | undefined) || null;
+    const faceVideoFrameUrl = (evidenceUrls.face_video_frame_url as string | undefined) || null;
+    const introVideoFrameUrl = vtForEvidence === "host" ? ((evidenceUrls.intro_video_frame_url as string | undefined) || null) : null;
+    const requiredEvidence: Array<{ label: string; url: string | null }> = [
+      { label: "profile_photo", url: profileEvidenceUrl },
+      { label: "face_video", url: faceVideoFrameUrl },
+      ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoFrameUrl }] : []),
+    ];
+
+    const compareEvidenceToLive = async (label: string, url: string | null) => {
+      if (!url) return { label, url, score: null as number | null, face_count: 0, error: "missing_url" };
+      if (frontError) return { label, url, score: null as number | null, face_count: 0, error: "live_front_invalid" };
+      try {
+        const bytes = await fetchImageBytes(url, supabaseAdmin);
+        const detOut = await detectFaces(bytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+        const count = ((detOut.FaceDetails as unknown[] | undefined) ?? []).length;
+        if (count !== 1) {
+          return { label, url, score: null as number | null, face_count: count, error: count === 0 ? "no_face" : "multiple_faces" };
+        }
+        const score = await compareFaces(bytes, frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+        return { label, url, score, face_count: count, error: null as string | null };
+      } catch (e) {
+        return { label, url, score: null as number | null, face_count: 0, error: e instanceof Error ? e.message : "compare_failed" };
+      }
+    };
+
+    const evidenceChecks = await Promise.all(requiredEvidence.map((item) => compareEvidenceToLive(item.label, item.url)));
+    const evidenceScores = Object.fromEntries(evidenceChecks.map((c) => [c.label, c.score]));
+    const evidenceErrors = Object.fromEntries(evidenceChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
+    const requiredUrlsPresent = requiredEvidence.every((item) => !!item.url);
+    const hostGalleryComplete = vtForEvidence !== "host" || (
+      hostPhotos.length === 3 && hostPhotoScores.length === 3 && hostPhotoScores.every((s) => typeof s.score === "number")
+    );
+    const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
+    // Three-way identity gate: profile photo + recorded video frame + live scan
+    // must all confidently resolve to the same person. Anything below the
+    // auto-pass threshold is treated as not-same-person and rejected; missing or
+    // unreadable evidence stays manual-review instead of approval.
+    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < 85) ||
+      (hostGalleryComplete && hostPhotosMismatch));
+    const evidenceSamePerson = evidenceComplete &&
+      evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= 85) &&
+      (!hostGalleryComplete || !hostPhotosMismatch);
+
+    rekognition.evidence_complete = evidenceComplete;
+    rekognition.evidence_same_person = evidenceSamePerson;
+    rekognition.identity_mismatch = evidenceIdentityMismatch;
+    rekognition.photo_live_score = evidenceScores.profile_photo ?? profileMatchScore;
+    rekognition.face_video_live_score = evidenceScores.face_video ?? null;
+    rekognition.intro_video_live_score = evidenceScores.intro_video ?? null;
+    rekognition.evidence_errors = evidenceErrors;
+    rekognition.evidence_urls_present = {
+      profile_photo: !!profileEvidenceUrl,
+      face_video_frame: !!faceVideoFrameUrl,
+      intro_video_frame: vtForEvidence === "host" ? !!introVideoFrameUrl : undefined,
+      live_face_scan: !!frontUrl,
+      host_gallery_complete: hostGalleryComplete,
+    };
+
+    const evidenceSummary = `, evidence photo/live=${typeof evidenceScores.profile_photo === "number" ? (evidenceScores.profile_photo as number).toFixed(1) + "%" : "n/a"}` +
+      ` faceVideo/live=${typeof evidenceScores.face_video === "number" ? (evidenceScores.face_video as number).toFixed(1) + "%" : "n/a"}` +
+      (vtForEvidence === "host" ? ` introVideo/live=${typeof evidenceScores.intro_video === "number" ? (evidenceScores.intro_video as number).toFixed(1) + "%" : "n/a"}` : "") +
+      `${evidenceIdentityMismatch ? " IDENTITY-MISMATCH" : evidenceSamePerson ? " SAME-PERSON" : " NEEDS-REVIEW"}`;
     const mergedAnalysis = duplicateBlock
       ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock }
       : { ...existingAnalysis, rekognition };
     const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
 
-    const finalNotes = duplicateNote ? `${summary}\n[duplicate-face] ${duplicateNote}` : summary;
+    const finalNotes = duplicateNote ? `${summary}${evidenceSummary}\n[duplicate-face] ${duplicateNote}` : `${summary}${evidenceSummary}`;
 
     await supabaseAdmin
       .from("face_verification_submissions")
@@ -902,7 +974,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | "identity_mismatch" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -911,6 +983,7 @@ serve(async (req) => {
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || hardGenderMismatch) hardAutoReject = "gender_mismatch";
+    else if (evidenceIdentityMismatch) hardAutoReject = "identity_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -922,6 +995,8 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "identity_mismatch") {
+        rReason = "Verification rejected because the profile photo, verification video, and live face scan are not the same person. Please submit only your own real photo/video/live scan.";
       }
 
       await supabaseAdmin
@@ -930,7 +1005,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : hardAutoReject === "identity_mismatch" ? `photo_live=${String(rekognition.photo_live_score)} face_video_live=${String(rekognition.face_video_live_score)} intro_video_live=${String(rekognition.intro_video_live_score)} host_min=${hostPhotosMinScore}` : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -974,7 +1049,11 @@ serve(async (req) => {
     const livenessProviderAvailable = !!faceProviderEarly;
     const livenessActuallyRan = livenessStatus !== null;
     const passiveManualReviewReason = isPassivePhotoVideoLiveScan
-      ? strictGenderMismatch
+      ? !evidenceComplete
+        ? "photo_video_live_evidence_missing"
+        : !evidenceSamePerson
+          ? "photo_video_live_identity_review"
+          : strictGenderMismatch
         ? "gender_mismatch_manual_review"
         : livenessFailed
             ? "liveness_failed_manual_review"
@@ -1031,6 +1110,8 @@ serve(async (req) => {
       if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);
       if (noFaceInAvatar) softFlags.push("no_face_in_avatar");
       if (hostNoFaceInGallery) softFlags.push("no_face_in_gallery");
+      if (!evidenceComplete) softFlags.push(`evidence_missing(${JSON.stringify(evidenceErrors)})`);
+      if (!evidenceSamePerson && evidenceComplete) softFlags.push(`evidence_review(photo=${String(rekognition.photo_live_score)} faceVideo=${String(rekognition.face_video_live_score)} intro=${String(rekognition.intro_video_live_score)})`);
 
       const reviewReason = autoReason === "invalid_face_count"
         ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`
@@ -1054,7 +1135,11 @@ serve(async (req) => {
                             ? "Needs admin review: duplicate-face search did not complete. Auto-approve was blocked so one face cannot pass on multiple accounts."
                             : autoReason === "face_index_failed"
                               ? "Needs admin review: face indexing failed after duplicate search. Auto-approve was blocked so future duplicate detection remains safe."
-                          : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                              : autoReason === "photo_video_live_evidence_missing"
+                                ? "Needs admin review: required photo/video/live evidence was missing or unreadable, so auto-approve was blocked."
+                                : autoReason === "photo_video_live_identity_review"
+                                  ? "Needs admin review: photo, video, and live scan are not confidently confirmed as the same person."
+                                  : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
 
 
       const flagsLine = softFlags.length ? `\n[soft-flags] ${softFlags.join(", ")}` : "";
@@ -1062,7 +1147,7 @@ serve(async (req) => {
         .from("face_verification_submissions")
         .update({
           // status stays pending/submitted — admin Pending tab will show it.
-          admin_notes: `${summary}\n[manual-review] ${reviewReason}${flagsLine}`,
+          admin_notes: `${summary}${evidenceSummary}\n[manual-review] ${reviewReason}${flagsLine}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
