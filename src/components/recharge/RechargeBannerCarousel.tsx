@@ -185,7 +185,6 @@ export default function RechargeBannerCarousel({
             eager={i === index}
             resize="contain"
             cdnWidth={720}
-            cdnHeight={240}
           />
         </button>
       ))}
