@@ -12733,6 +12733,7 @@ export type Database = {
           is_vip: boolean
           matched_with: string | null
           preferred_country: string | null
+          preferred_host_gender: string | null
           preferred_langs: string[] | null
           role: string
           score: number
@@ -12751,6 +12752,7 @@ export type Database = {
           is_vip?: boolean
           matched_with?: string | null
           preferred_country?: string | null
+          preferred_host_gender?: string | null
           preferred_langs?: string[] | null
           role: string
           score?: number
@@ -12769,6 +12771,7 @@ export type Database = {
           is_vip?: boolean
           matched_with?: string | null
           preferred_country?: string | null
+          preferred_host_gender?: string | null
           preferred_langs?: string[] | null
           role?: string
           score?: number
