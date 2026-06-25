@@ -86,11 +86,13 @@ Deno.serve(async (req) => {
         gender: profile?.gender ?? null,
         preferred_langs: preferredLangs,
         preferred_country: preferredCountry,
+        preferred_host_gender: preferredHostGender,
         is_vip: !!profile?.is_vip,
         score: Math.round(score),
         hold_amount: holdAmount,
         expires_at: expiresAt,
       })
+
       .select("*")
       .single();
 
