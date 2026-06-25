@@ -33,6 +33,7 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 // so the 162-entry admin route map never loads for normal users.
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
+import AdminRouteGuard, { SubAdminDashboardGuard } from "./components/admin/AdminRouteGuard";
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
 import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
@@ -182,8 +183,6 @@ const AdminBlueprint = lazy(lazyRetry(() => import("./pages/admin/AdminBlueprint
 const AdminAllowedLinks = lazy(lazyRetry(() => import("./pages/admin/AdminAllowedLinks")));
 const AdminChatInspector = lazy(lazyRetry(() => import("./pages/admin/AdminChatInspector")));
 const AdminNumberSharing = lazy(lazyRetry(() => import("./pages/admin/AdminNumberSharing")));
-const AdminRouteGuard = lazy(lazyRetry(() => import("./components/admin/AdminRouteGuard")));
-const SubAdminDashboardGuard = lazy(lazyRetry(() => import("./components/admin/AdminRouteGuard").then(m => ({ default: m.SubAdminDashboardGuard }))));
 const AdminLayout = lazy(lazyRetry(() => import("./pages/admin/AdminLayout")));
 const AdminDashboard = lazy(lazyRetry(() => import("./pages/admin/AdminDashboard")));
 const AdminSettings = lazy(lazyRetry(() => import("./pages/admin/AdminSettings")));
@@ -1362,7 +1361,7 @@ const App = () => {
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
                   <Route path="approvals" element={<AdminRouteGuard routeSegment="agencies"><AdminUnifiedApprovals /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
-                  <Route path="super-admin-management" element={<AdminRouteGuard routeSegment="user-management"><AdminSuperAdminManagement /></AdminRouteGuard>} />
+                  <Route path="super-admin-management" element={<AdminRouteGuard routeSegment="super-admin-management"><AdminSuperAdminManagement /></AdminRouteGuard>} />
                   <Route path="coin-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
                   <Route path="coin-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
                   <Route path="coin-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
