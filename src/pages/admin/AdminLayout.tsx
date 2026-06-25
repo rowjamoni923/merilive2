@@ -2191,7 +2191,8 @@ export default function AdminLayout() {
         fetchPendingCounts();
         const rowId = payload?.row_id || payload?.id;
         if (rowId) {
-          supabase
+          adminSupabase
+
             .from('admin_notifications')
             .select('title, message, type, data')
             .eq('id', rowId)
