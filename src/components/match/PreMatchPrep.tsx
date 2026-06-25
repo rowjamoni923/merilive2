@@ -2,10 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
-  Users, Globe2, Languages, Crown, Lock, Phone, ShieldCheck, Gem, Clock, ChevronLeft, History,
+  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserBalance } from "@/hooks/useUserBalance";
@@ -37,15 +36,13 @@ interface Props {
 }
 
 /**
- * Tap-to-Match Radar prep screen (Chamet/Olamet-tier).
- * Layout: live self-cam blurred as ambient background → concentric pulsing
- * radar rings around a central "Tap to Match" target → side VIP discount card
- * → Start button with diamond cost chip → filter sheet under it.
+ * Single Random Call surface.
+ * Prep, searching, matched and error states all stay on this same camera/radar UI;
+ * only the center copy and bottom CTA change so users never see a second design.
  */
 export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
-  availableHostsCount, estimatedWaitSeconds, isVip,
-  countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
+  availableHostsCount, estimatedWaitSeconds, isVip, onStart,
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry,
 }: Props) {
   const navigate = useNavigate();
@@ -60,9 +57,6 @@ export default function PreMatchPrep({
   const [micOn, setMicOn] = useState(true);
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const [beauty, setBeauty] = useState(false);
-  const [gender, setGender] = useState<"male" | "female" | "any">("any");
-  const [country, setCountry] = useState<string | null>(null);
-  const [langs, setLangs] = useState<string[]>([]);
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
   const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
@@ -147,14 +141,12 @@ export default function PreMatchPrep({
   }, []);
 
   const insufficient = effectiveBalance < hostRatePerMin;
-  const filtersLocked = countryRequiresVip && !isVip;
-
   const handleStart = () => {
     stopStream();
     onStart({
-      preferred_host_gender: genderFilterEnabled ? gender : "any",
-      preferred_country: countryFilterEnabled && !filtersLocked ? country : null,
-      preferred_langs: !filtersLocked ? langs : [],
+      preferred_host_gender: "any",
+      preferred_country: null,
+      preferred_langs: [],
     }, beauty);
   };
 
@@ -330,8 +322,7 @@ export default function PreMatchPrep({
           {permError}
         </div>
       )}
-
-      {/* Bottom CTA — adapts to phase */}
+      {/* Bottom CTA — same surface, state-only action change */}
       <div className="relative z-10 px-6 mb-4">
         {isSearching ? (
           <motion.div whileTap={{ scale: 0.97 }}>
@@ -395,7 +386,6 @@ export default function PreMatchPrep({
           </div>
         )}
       </div>
-
     </div>
   );
 }
@@ -408,43 +398,6 @@ function CtrlBtn({ children, active, onClick, label }: {
       className={`h-10 w-10 rounded-full grid place-items-center transition border
         ${active ? "bg-white text-slate-900 border-white"
           : "bg-black/40 text-white border-white/15 backdrop-blur-md hover:bg-white/15"}`}>
-      {children}
-    </button>
-  );
-}
-
-function StatChip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-black/40 backdrop-blur-md border border-white/10 px-2.5 py-2">
-      <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider opacity-70">{icon}<span>{label}</span></div>
-      <div className="text-sm font-bold mt-0.5">{value}</div>
-    </div>
-  );
-}
-
-function ChipRow({ icon, title, locked, children }: {
-  icon: React.ReactNode; title: string; locked?: boolean; children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div className="flex items-center gap-1.5 text-[11px] text-white/60 mb-1.5">
-        {icon}<span>{title}</span>
-        {locked && <Lock className="w-3 h-3 ml-auto text-amber-300" />}
-      </div>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
-    </div>
-  );
-}
-
-function Chip({ active, disabled, onClick, children }: {
-  active: boolean; disabled?: boolean; onClick: () => void; children: React.ReactNode;
-}) {
-  return (
-    <button onClick={onClick} disabled={disabled}
-      className={`px-3 h-7 rounded-full text-xs font-semibold border transition
-        ${active ? "bg-white text-slate-900 border-white"
-          : "bg-white/5 text-white/80 border-white/15 hover:bg-white/10"}
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
       {children}
     </button>
   );

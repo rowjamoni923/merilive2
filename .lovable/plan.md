@@ -2,6 +2,13 @@
 
 Goal: Close all 5 P0 gaps in a single, fully-verified pass. Each gap = DB + RPC + client + admin + verification. Nothing ships behind a flag; everything wired end-to-end. Research locked against Chamet/Olamet/Poppo/Hollah/Bigo patterns.
 
+## UI unification update — 2026-06-25
+
+- Research check: Chamet describes starting video chat through one matching feature / match button, and private matching as a single algorithmic flow rather than a separate failed/error surface (https://www.ichamet.com/help/faq/how-to-start-video-chat-session, https://www.ichamet.com/help/faq/how-does-private-matching-work).
+- Research check: BIGO-style video interaction guides describe calls woven into one live/video flow, not a second unrelated purple failure layout (https://www.bigo.tv/blog/bigo-live-video-call).
+- Implementation rule: `MatchCall` must render `PreMatchPrep` as the only non-call UI for prep, searching, matched, and error states. State may change labels/CTA only; no second full-screen random-call design.
+- Verified UI numbers retained on the unified surface: random free window 60s by admin setting fallback, minimum billable/random window 60s, top-up hold based on admin max rate × preauth minutes.
+
 ---
 
 ## G1 — Gender filter actually enforced (currently advisory only)
