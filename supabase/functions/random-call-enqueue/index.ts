@@ -179,6 +179,7 @@ Deno.serve(async (req) => {
         host_split_pct: settings.host_split_pct,
         hold_amount: holdAmount,
         status: "ringing",
+        caller_device_id: deviceId,
       })
       .select("*")
       .single();
