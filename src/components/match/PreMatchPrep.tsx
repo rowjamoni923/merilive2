@@ -28,6 +28,12 @@ interface Props {
   genderFilterEnabled: boolean;
   countryFilterEnabled: boolean;
   onStart: (filters: MatchFilters, beauty: boolean) => void;
+  /** Optional unified-phase props — keeps a single UI across prep/searching/matched/error. */
+  phase?: "prep" | "searching" | "matched" | "error";
+  elapsedSeconds?: number;
+  errorMsg?: string;
+  onCancel?: () => void;
+  onRetry?: () => void;
 }
 
 /**
