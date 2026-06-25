@@ -230,6 +230,7 @@ const FaceVerification = () => {
   // User verification photo step
   const [userPhotoFile, setUserPhotoFile] = useState<File | null>(null);
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
+  const [userInfoStepComplete, setUserInfoStepComplete] = useState(false);
   const [userPhotoStep, setUserPhotoStep] = useState(true);
   const userPhotoInputRef = useRef<HTMLInputElement>(null);
   
@@ -3372,7 +3373,7 @@ const FaceVerification = () => {
     };
 
     // User step tracking: 1 = Info, 2 = Photo, 3 = Face
-    const userCurrentStep = userPhotoStep ? (fullName.trim() && age && parseInt(age) >= 18 && language ? 2 : 1) : 3;
+    const userCurrentStep = !userInfoStepComplete ? 1 : userPhotoStep ? 2 : 3;
 
     const saveUserStep1 = () => {
       if (!fullName.trim()) {
@@ -3387,15 +3388,18 @@ const FaceVerification = () => {
         toast({ title: "❌ Language Required", description: "Please select your preferred language", variant: "destructive" });
         return;
       }
-      // Move to photo step - userPhotoStep=true means we're on photo step now
+      // Move only after an explicit tap. Do not auto-advance while the user is
+      // still interacting with SelectContent; otherwise the language menu
+      // unmounts immediately and looks like a jump/bounce on mobile WebView.
+      setUserInfoStepComplete(true);
       setUserPhotoStep(true);
     };
 
     // Determine which user step to show
     // We repurpose: currentStep=1 for info, userPhotoStep=true & info done for photo, userPhotoStep=false for face
-    const userInfoDone = fullName.trim() && age && parseInt(age) >= 18 && language;
-    const showUserInfoStep = !userInfoDone || (userPhotoStep && !userPhotoFile);
-    const showUserPhotoStep = userInfoDone && userPhotoStep;
+    const userInfoValid = Boolean(fullName.trim() && age && parseInt(age, 10) >= 18 && language);
+    const showUserInfoStep = !userInfoStepComplete;
+    const showUserPhotoStep = userInfoStepComplete && userPhotoStep;
     const showUserFaceStep = !userPhotoStep;
 
     return (
@@ -3407,8 +3411,8 @@ const FaceVerification = () => {
         {/* Progress Steps - 3 steps */}
         <div className={`flex items-center justify-center gap-3 mb-6 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
           {[1, 2, 3].map((step) => {
-            const isActive = (!userInfoDone && step === 1) || (userInfoDone && userPhotoStep && step === 2) || (!userPhotoStep && step === 3);
-            const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
+            const isActive = (!userInfoStepComplete && step === 1) || (userInfoStepComplete && userPhotoStep && step === 2) || (!userPhotoStep && step === 3);
+            const isDone = (step === 1 && userInfoStepComplete) || (step === 2 && !userPhotoStep && userPhotoFile);
             return (
               <React.Fragment key={step}>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-amber-50/70 text-slate-700'}`}>
@@ -3421,7 +3425,7 @@ const FaceVerification = () => {
         </div>
 
         {/* Step 1: Basic Info */}
-        {!userInfoDone && (
+        {showUserInfoStep && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
               <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
@@ -3474,7 +3478,7 @@ const FaceVerification = () => {
             <Button
               className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               onClick={saveUserStep1}
-              disabled={!fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language}
+              disabled={!userInfoValid}
             >
               Next
             </Button>
@@ -3482,7 +3486,7 @@ const FaceVerification = () => {
         )}
 
         {/* Step 2: Profile Photo */}
-        {userInfoDone && userPhotoStep && (
+        {showUserPhotoStep && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4">
               <div className="flex items-center gap-3">
@@ -3530,14 +3534,14 @@ const FaceVerification = () => {
               </p>
             </div>
 
-            <Button variant="ghost" className="w-full text-slate-500" onClick={() => { setFullName(""); setAge(""); setLanguage(""); }}>
+            <Button variant="ghost" className="w-full text-slate-500" onClick={() => { setUserInfoStepComplete(false); setUserPhotoStep(true); }}>
               ← Back to Info
             </Button>
           </motion.div>
         )}
 
         {/* Step 3: Face Verification */}
-        {!userPhotoStep && (
+        {showUserFaceStep && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 mb-2">
               <div className="flex items-center gap-3">
