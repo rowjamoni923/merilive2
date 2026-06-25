@@ -278,9 +278,10 @@ serve(async (req) => {
     }
 
     const st = String(row.status || "").trim().toLowerCase();
-    // DB normalizes newly inserted "submitted" rows to "pending" before the
-    // edge function can read them. Both mean "ready for AI analysis" here.
-    if (st !== "submitted" && st !== "pending") {
+    // DB insert trigger normalizes new rows to 'under_review' instantly
+    // (see migration 20260625075339). 'submitted' and 'pending' are kept
+    // for legacy/admin-rerun paths. All three are "ready for AI analysis".
+    if (st !== "submitted" && st !== "pending" && st !== "under_review") {
       return new Response(JSON.stringify({ error: "Submission not analyzable", status: row.status }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
