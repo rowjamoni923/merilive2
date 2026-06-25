@@ -73,7 +73,7 @@ const EventPopupBanner = () => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('popup_event_banners')
-        .select('id, title, image_url, skip_delay_seconds')
+        .select('id, title, image_url, skip_delay_seconds, auto_dismiss_seconds')
         .eq('is_active', true)
         .or(`start_date.is.null,start_date.lte.${now}`)
         .filter('end_date', 'gte', now)
