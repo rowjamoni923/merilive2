@@ -603,6 +603,49 @@ const FaceVerification = () => {
     }
   }, []);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Permanent eligibility lockout (10-strike contact-violation rule +
+  // banned face / device / IP reuse). Runs once we know who the user is.
+  // If eligibility=false, the page renders a permanent block surface and
+  // never mounts the camera — even on re-entry / back-nav.
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('check_face_verification_eligibility' as any);
+        if (cancelled) return;
+        if (error) {
+          // Fail-open: don't block legit users on RPC outage, but log it.
+          console.warn('[face-verification] eligibility RPC error', error);
+          setEligibilityChecked(true);
+          return;
+        }
+        const payload = (data ?? {}) as { eligible?: boolean; reason?: string; violation_count?: number; threshold?: number };
+        if (payload.eligible === false) {
+          setEligibilityBlock({
+            reason: String(payload.reason || 'restricted'),
+            violation_count: payload.violation_count,
+            threshold: payload.threshold,
+          });
+          // Make sure we're not holding the camera open if the lockout
+          // resolves mid-session.
+          postSubmitLockedRef.current = true;
+          if (typeof document !== 'undefined') {
+            document.documentElement.classList.remove('native-face-camera-active');
+            document.body.classList.remove('native-face-camera-active');
+          }
+        }
+        setEligibilityChecked(true);
+      } catch (e) {
+        console.warn('[face-verification] eligibility check failed', e);
+        setEligibilityChecked(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
   // Pkg-instant: when an admin completes/rejects this user's face verification
   // from the admin panel, react instantly via Supabase Realtime so the user
   // doesn't have to refresh. Listens on both profiles (is_face_verified flip)
