@@ -1,6 +1,26 @@
 
 ## Goal
 
+Fix OTP email delivery 500 on `/auth` without changing the Auth UI design.
+
+## Research + verified signal
+
+- Lovable custom/app emails require a verified sender domain and deployed sender logic; project domain `notify.send.merilive.com` is verified. Source: https://docs.lovable.dev/features/custom-emails
+- Supabase Edge Functions need required secrets available at runtime and should be redeployed after send-code changes. Source: https://supabase.com/docs/guides/functions/examples/send-emails
+- Professional OTP UX should not block the verification screen on email-provider latency; the UI already advances instantly, while backend delivery must return a real success/failure.
+- Root cause verified in logs: `send-transactional-email` returned `PGRST202` because `public.enqueue_email(queue_name, payload)` does not exist.
+- Fix verified: `/send-email-otp` returned HTTP 200 at 2026-06-25 15:53:46 UTC; `email_send_log` latest row for `otp-code` is `sent`.
+
+## What changed
+
+- `send-transactional-email` now sends directly through the verified Lovable sender domain using `LOVABLE_API_KEY` instead of the missing queue RPC.
+- Kept the existing OTP template and email audit logging intact.
+- Deployed `send-transactional-email` and validated the real OTP endpoint.
+
+---
+
+## Previous Goal
+
 Make `src/pages/FaceVerification.tsx` 100% professional and tamper-proof end-to-end:
 
 1. Steps 1 / 2 / 3 (hosts) and Info / Photo / Face (users) get real, premium, KYC-grade customization.
