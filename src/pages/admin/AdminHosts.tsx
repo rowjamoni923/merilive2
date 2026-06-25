@@ -549,7 +549,7 @@ export default function AdminHosts() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
           <AdminPagination
             page={page}
             totalPages={Math.max(1, Math.ceil(totalCount / pageSize))}
