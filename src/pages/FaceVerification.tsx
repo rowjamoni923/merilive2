@@ -1913,6 +1913,13 @@ const FaceVerification = () => {
 
   const lockUnderReviewAndReturn = (description: string) => {
     postSubmitLockedRef.current = true;
+    try {
+      sessionStorage.setItem('meri_face_verification_recent_submission', JSON.stringify({
+        userId,
+        status: 'under_review',
+        timestamp: Date.now(),
+      }));
+    } catch {}
     setVerificationStatus('submitted');
     setRejectionReason(null);
     setLoading(false);
