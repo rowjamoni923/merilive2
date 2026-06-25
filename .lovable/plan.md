@@ -1,48 +1,91 @@
-## Random Call — Diagnostic & Fix Plan
 
-### What I verified
+## Goal
 
-**✅ Already correct**
-- Caller side (`MatchCall.tsx`) uses `mode: "broadcast"` → `random-call-enqueue` fans out to *every* online verified host via `get_online_global_hosts` (up to 800).
-- Server emits Realtime `random_incoming_call` event on each host's `user-${hid}` channel.
-- First-host-wins is atomic via `claim_random_broadcast` RPC; losers get `random_broadcast_taken`.
-- `convert_random_to_private` RPC exists and is solid:
-  - Runs at `random_window_seconds` (60s default).
-  - Reads host rate from `host_match_preferences` (admin single source of truth) with safe fallbacks.
-  - Creates a fresh row in `private_calls` and links it back via `linked_private_call_id`.
-  - First 60s on `random_call_sessions` are recorded as `coins_charged = 0` (the random-rate billing for that window is settled by `random-call-settle`, separate from private billing) — so minute 1 stays on the random meter, minute 2+ on the private meter. ✔ matches the rule you described.
-- `MatchCallOverlay` already calls `convert_random_to_private` at the 60s mark and toasts the new private rate.
+Make `src/pages/FaceVerification.tsx` 100% professional and tamper-proof end-to-end:
 
-**🛑 Critical bug — random call never actually reaches hosts**
+1. Steps 1 / 2 / 3 (hosts) and Info / Photo / Face (users) get real, premium, KYC-grade customization.
+2. The instant Submit is tapped → camera is killed, status flips to `under_review` in the same tick, and a clean "Under Review" screen takes over. The camera surface can never reappear on this page again until admin acts.
+3. After submit, re-entering the page (Profile button, deep link, back-nav) shows only the locked "Under Review" surface — no Start button, no camera mount path.
+4. AI detector finalises automatically:
+   - User submitting as host → `rejected: role_mismatch`
+   - Host submitting as user → `rejected: role_mismatch`
+   - Same face on a second profile → `rejected: duplicate_face`
+5. Repeat phone-number sharers (10 share strikes → account ban) cannot open a new ID. Their face hash + device + IP are blocklisted and new face-verification submissions are auto-rejected at the edge function before any AI cost.
 
-There is **no client subscriber** anywhere in `src/` that listens for `random_incoming_call` on `user-${hostId}`. The backend fans out perfectly, but every host's app ignores the broadcast → no ring screen, no accept button, the call sits until ring-timeout and dies. This is why random call appears broken end-to-end.
+## What I'll change
 
-(Private call works because it uses a different delivery path: FCM data push + `private_calls` postgres_changes. Random call has no equivalent listener.)
+### A. Post-submit hard lock (`src/pages/FaceVerification.tsx`)
 
-### Fix
+- Hoist the `submitInProgress || verificationStatus === 'submitted' | 'verified' | 'rejected'` short-circuit to the very top of the component render — above every other return, above any hook that mounts a `<video>` / native camera surface.
+- In both submit handlers (user path ~L1944, host path ~L2215):
+  1. `setSubmitInProgress(true)` + `setVerificationStatus('submitted')` synchronously, before any `await`.
+  2. `document.body.classList.remove('native-face-camera-active')` + call `NativeCall`/`nativeFaceCam.stop()` immediately.
+  3. THEN run uploads + RPC insert.
+- Add `postSubmitLockedRef` check at the top of `startFaceCamera`, `startVerification`, every "Next" / "Start scan" button handler — so even a racing click can't relaunch the camera.
+- On unmount, do NOT clear `postSubmitLockedRef` if a row exists in `face_verification_submissions` with status in (`pending`,`submitted`,`under_review`,`verified`).
 
-1. **New hook `useRandomCallIncoming`** (mounts once for any logged-in user; verified-host gate inside).
-   - Subscribes to `supabase.channel('user-' + uid)` for event `random_incoming_call`.
-   - Subscribes to `broadcast-${broadcastId}` for `random_broadcast_taken` while a ring is active to dismiss losers instantly.
-   - 20s ring timeout (reads `ring_timeout_seconds` from `random_call_settings`, matches server `expires_at`).
-   - On Accept → `supabase.functions.invoke('random-call-host-respond', { body: { broadcast_id, action: 'accept' } })`. If `ok:true` (winner) → navigate to `/match/active?session=<id>&room=<room>`. If `ok:false` (already taken) → silent dismiss.
-   - On Reject / Ignore-timeout → broadcast path is silent (per existing server logic — no reject-streak penalty for broadcast).
+### B. Cold-load gating
 
-2. **Mount it globally** in `App.tsx` alongside the existing private-call provider so every host gets the ring regardless of which page they're on.
+- Initial fetch already sets `verificationStatus='submitted'` when a pending row exists (L590). Extend it to also set `postSubmitLockedRef.current = true` so the page is read-only on every re-entry until admin/AI moves the row to `rejected` or `unverified`.
+- Wire a tiny `useEffect` realtime subscription on `face_verification_submissions` filtered by `user_id` — on any status change, re-evaluate the lock (already partially there, just consolidate).
 
-3. **Reuse `IncomingCallScreen` UI** if possible, or render a Chamet-style full-screen ringer (caller avatar + name + Accept/Reject) that auto-dismisses on `random_broadcast_taken`.
+### C. Steps customization (presentation only — no logic change)
 
-4. **Active-call route**: confirm `/match/active` (or equivalent) consumes `?session=…&room=…`, joins the LiveKit room, and renders `MatchCallOverlay` with `sessionId` + `hostId` so the 60s auto-convert pipeline kicks in for both caller and host.
+For **hosts** (3 steps already labeled Basic Info / Photos & Video / Live Face Scan) and **users** (Info / Photo / Face) I'll bring them to KYC-grade:
 
-### Out of scope (already verified working)
-- Billing math, host-split %, conversion RPC, claim-atomicity, fan-out reach, reject-streak ban (24h), admin rate settings.
+- Pull the 3-step indicator into a shared `<FaceVerificationStepper steps={...} current={...} />` component (`src/components/face/FaceVerificationStepper.tsx`). Pro look: numbered pill → checked emerald → muted, segmented connector with animated fill, step label + sub-label, sticky to top with backdrop blur.
+- Replace each step card header with a uniform `<StepCard icon title subtitle requirements={[]} />` (`src/components/face/StepCard.tsx`) that lists the exact requirements (e.g. "Real-time selfie • 18+ • Government-style face crop") so the user knows what's being checked.
+- Step 2 photo grid: drag-reorder removed, but each tile now shows a quality badge (sharp / blurry / dark) from the existing `assessCameraFrameQuality` helper before allowing "Next".
+- Step 3 (live scan): full-bleed camera frame with a glass overlay carrying the current instruction, a thin progress ring around the face oval, and an explicit "Verifying with AI…" state after capture so the user sees motion until submit-screen takes over.
+- All new visuals use semantic tokens (`--background`, `--card`, `--primary`, etc.) — no hardcoded `bg-white`/`text-black`.
 
-### Files touched
-- `src/hooks/useRandomCallIncoming.ts` (new)
-- `src/components/match/IncomingRandomCallScreen.tsx` (new, or reuse existing private incoming UI)
-- `src/App.tsx` (mount the hook)
-- Quick audit of the active-match route to make sure it accepts session/room from query/state.
+### D. AI detector guarantees (`supabase/functions/face-verification-analyze/index.ts`)
 
-No DB migration, no edge function change — server side is already correct.
+Already runs on `under_review`. Confirm + extend:
 
-Approve and I'll implement.
+- `role_mismatch` rejection:
+  - If the submission's `intended_role = 'host'` and Rekognition gender ≠ `Female` (or admin-configured host gender) → reject with `rejection_reason='role_mismatch_host_gender'`.
+  - If `intended_role = 'user'` and the same `user_id` already has an approved `host_applications` row or `profiles.is_host = true` → reject with `role_mismatch_existing_host` (prevents host downgrading via fake user submission to dodge bans).
+- `duplicate_face` (already wired) — keep current AWS Rekognition `SearchFacesByImage` against `rekognition_shards`, but ALSO compare the resulting `external_image_id` against `face_records.user_id`; if it maps to a different `user_id` whose profile is banned/deleted/contact-violation-locked → reject with `duplicate_face_banned_owner` (this is the "old banned ID trying to come back" guard).
+
+### E. Contact-violation lifetime ban (10-strike rule)
+
+DB:
+- Add view/function `is_user_contact_banned(uid uuid) returns boolean` reading `user_contact_violations` count + `profiles.banned_for_contact_sharing` (or whichever existing flag — verify in `host_contact_violations` & `user_contact_violations`).
+- Trigger on `user_contact_violations` / `host_contact_violations` insert: when running count for a `user_id` reaches the admin-configured threshold (default 10, **read from admin settings, never hardcoded**), insert the user's latest verified `face_hash` into `banned_face_hashes` with `reason='contact_violation_threshold'` and the user's last-known device fingerprint into `banned_devices`.
+
+Edge function `face-verification-analyze`:
+- Before any Rekognition spend, look up the submitter's `face_hash`, `device_id`, `ip` against `banned_face_hashes` / `banned_devices` / `banned_ips`. Any hit → instant `rejected: banned_identity_reuse` and write `admin_logs` row.
+
+Client (`FaceVerification.tsx`):
+- On page mount, call a lightweight RPC `check_face_verification_eligibility()` that returns `{ eligible, reason }`. If `eligible=false`, render a permanent block screen ("Your account is permanently restricted from identity verification due to repeated policy violations") — no camera, no steps, no retry button.
+
+### F. Admin visibility
+
+- Surface the new rejection reasons (`role_mismatch_*`, `duplicate_face_banned_owner`, `banned_identity_reuse`) in `AdminFaceVerification.tsx`'s status badge map so support can see why the auto-reject fired.
+- Admin panel for the 10-strike threshold (already covered by admin-panel-single-source-of-truth core rule — will read from `app_settings` row `contact_violation_ban_threshold`).
+
+## Files touched
+
+```text
+src/pages/FaceVerification.tsx                          (lock hoist, mount-gate, stepper extract)
+src/components/face/FaceVerificationStepper.tsx         NEW
+src/components/face/StepCard.tsx                        NEW
+supabase/functions/face-verification-analyze/index.ts   (role_mismatch + banned-identity gates)
+supabase/migrations/<new>                               (is_user_contact_banned RPC, ban-propagation trigger, check_face_verification_eligibility RPC)
+src/pages/admin/AdminFaceVerification.tsx               (new rejection-reason labels)
+```
+
+## Out of scope
+
+- No changes to LiveKit / camera ownership / Camera2 native plugin (sacred path).
+- No changes to existing AWS Rekognition shard sharding logic.
+- Pricing / commission untouched — the contact-violation threshold is read from admin settings, not hardcoded.
+
+## Verification (Lovable preview, owner account)
+
+1. As host candidate male → submit → expect instant Under Review → wait ≤30 s → status flips to `rejected: role_mismatch_host_gender`.
+2. As user → submit twice in a row → second attempt blocked at mount with "Already under review".
+3. After submit, force-back + re-open Face Verification from Profile → only Under Review surface, no camera.
+4. Simulate 10 contact-violation rows for a test profile via SQL → that user's next face-verification submission is auto-rejected `banned_identity_reuse` without any AWS call (verified in edge-function logs).
+5. Create second profile with same face → `duplicate_face` reject within one analyzer cycle.
