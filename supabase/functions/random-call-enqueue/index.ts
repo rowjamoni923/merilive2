@@ -116,6 +116,76 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ===================================================
+    // BROADCAST MODE (Chamet-style fan-out)
+    // ===================================================
+    if (mode === "broadcast") {
+      const livekitRoom = `match-${crypto.randomUUID()}`;
+      const freeTrial = settings.free_trial_seconds + (profile?.is_vip ? settings.vip_free_trial_bonus_seconds : 0);
+      const ringTimeout = settings.ring_timeout_seconds ?? 20;
+      const expiresAt = new Date(Date.now() + ringTimeout * 1000).toISOString();
+
+      const { data: bc, error: bcerr } = await supabase
+        .from("random_call_broadcasts")
+        .insert({
+          caller_id: userId,
+          caller_device_id: deviceId,
+          livekit_room: livekitRoom,
+          hold_amount: holdAmount,
+          free_trial_seconds: freeTrial,
+          min_billable_seconds: settings.min_billable_seconds,
+          host_split_pct: settings.host_split_pct,
+          default_host_rate: settings.default_host_rate_coins_per_min,
+          expires_at: expiresAt,
+        })
+        .select("*")
+        .single();
+
+      if (bcerr || !bc) {
+        return new Response(JSON.stringify({ error: "broadcast_insert_failed", detail: bcerr?.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get every eligible online verified host across all countries
+      const { data: hosts } = await supabase.rpc("get_online_global_hosts", {
+        p_caller_id: userId, p_limit: 800,
+      });
+      const hostIds = ((hosts as any[]) ?? []).map((r) => r.host_id).filter(Boolean);
+
+      // Fan-out ring to every host's personal channel (best-effort, parallel)
+      await Promise.allSettled(
+        hostIds.map(async (hid: string) => {
+          const ch = supabase.channel(`user-${hid}`);
+          await ch.send({
+            type: "broadcast",
+            event: "random_incoming_call",
+            payload: {
+              broadcast_id: bc.id,
+              room: livekitRoom,
+              caller_id: userId,
+              ring_timeout_seconds: ringTimeout,
+            },
+          });
+        }),
+      );
+
+      return new Response(
+        JSON.stringify({
+          status: "broadcasting",
+          broadcast_id: bc.id,
+          room: livekitRoom,
+          fanout: hostIds.length,
+          ring_timeout_seconds: ringTimeout,
+          min_billable_seconds: settings.min_billable_seconds,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // ===================================================
+    // LEGACY QUEUE MODE (single claim_match)
+    // ===================================================
     // Insert queue row
     const expiresAt = new Date(Date.now() + settings.match_timeout_seconds * 1000).toISOString();
     const score = (profile?.level ?? 1) * (profile?.is_vip ? settings.vip_match_priority_multiplier : 1);
