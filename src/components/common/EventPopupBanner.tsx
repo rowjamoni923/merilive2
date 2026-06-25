@@ -15,6 +15,7 @@ interface PopupBanner {
   title: string;
   image_url: string;
   skip_delay_seconds: number;
+  auto_dismiss_seconds: number | null;
 }
 
 const EventPopupBanner = () => {
@@ -24,7 +25,9 @@ const EventPopupBanner = () => {
   const [imageReady, setImageReady] = useState(false);
 
   const skipDelay = banner?.skip_delay_seconds ?? 3;
+  const autoDismiss = banner?.auto_dismiss_seconds ?? 10;
   const canSkip = elapsed >= skipDelay;
+  const remaining = Math.max(0, autoDismiss - elapsed);
 
   // Preload banner media into the browser cache, resolves on load OR error
   // (errors shouldn't block the popup forever — fall through after a short cap).
@@ -70,7 +73,7 @@ const EventPopupBanner = () => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('popup_event_banners')
-        .select('id, title, image_url, skip_delay_seconds')
+        .select('id, title, image_url, skip_delay_seconds, auto_dismiss_seconds')
         .eq('is_active', true)
         .or(`start_date.is.null,start_date.lte.${now}`)
         .filter('end_date', 'gte', now)
@@ -126,6 +129,13 @@ const EventPopupBanner = () => {
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
+  // Auto-dismiss after `autoDismiss` seconds.
+  useEffect(() => {
+    if (!visible || !imageReady) return;
+    if (autoDismiss <= 0) return;
+    if (elapsed >= autoDismiss) handleDismiss();
+  }, [visible, imageReady, elapsed, autoDismiss, handleDismiss]);
+
   if (!banner) return null;
   const mediaUrl = popupCdn(banner.image_url);
   const isVideo = isVideoBanner(banner.image_url);
@@ -166,23 +176,40 @@ const EventPopupBanner = () => {
             />
           )}
 
-          {canSkip && (
+          {canSkip ? (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.18 }}
               onClick={handleDismiss}
               aria-label="Close"
-              className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-background/75 text-foreground shadow-lg backdrop-blur-md active:scale-95"
+              className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/55 text-white shadow-lg backdrop-blur-md active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
             >
               <X className="h-5 w-5" />
             </motion.button>
+          ) : (
+            <div
+              className="absolute right-3 z-10 flex h-11 min-w-[44px] items-center justify-center rounded-full border border-white/20 bg-black/55 px-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md"
+              style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
+            >
+              {Math.max(1, skipDelay - elapsed)}s
+            </div>
+          )}
+
+          {canSkip && remaining > 0 && (
+            <div
+              className="absolute left-3 z-10 flex h-9 items-center justify-center rounded-full border border-white/20 bg-black/55 px-3 text-xs font-medium text-white/90 shadow-lg backdrop-blur-md"
+              style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
+            >
+              Auto-close in {remaining}s
+            </div>
           )}
         </motion.div>
       )}
     </AnimatePresence>
   );
 };
+
 
 export default EventPopupBanner;

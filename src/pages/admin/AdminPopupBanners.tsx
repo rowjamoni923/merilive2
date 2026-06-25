@@ -40,7 +40,7 @@ const AdminPopupBanners = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '', description: '', image_url: '', link_url: '', link_type: 'internal',
-    display_duration_seconds: 3, skip_delay_seconds: 3, auto_dismiss_seconds: 7,
+    display_duration_seconds: 3, skip_delay_seconds: 3, auto_dismiss_seconds: 10,
     is_active: true, display_order: 0, start_date: '', end_date: '',
   });
 
@@ -91,7 +91,7 @@ const AdminPopupBanners = () => {
         link_type: formData.link_type || 'internal',
         display_duration_seconds: formData.display_duration_seconds || 3,
         skip_delay_seconds: formData.skip_delay_seconds || 3,
-        auto_dismiss_seconds: formData.auto_dismiss_seconds || 7,
+        auto_dismiss_seconds: formData.auto_dismiss_seconds ?? 10,
         is_active: formData.is_active, display_order: formData.display_order,
         start_date: formData.start_date || null, end_date: formData.end_date || null,
       };
@@ -146,7 +146,7 @@ const AdminPopupBanners = () => {
   const resetForm = () => {
     setFormData({
       title: '', description: '', image_url: '', link_url: '', link_type: 'internal',
-      display_duration_seconds: 3, skip_delay_seconds: 3, auto_dismiss_seconds: 7,
+      display_duration_seconds: 3, skip_delay_seconds: 3, auto_dismiss_seconds: 10,
       is_active: true, display_order: banners.length, start_date: '', end_date: '',
     });
   };
@@ -210,10 +210,14 @@ const AdminPopupBanners = () => {
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   </label>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Button Delay (s)</Label>
-                    <Input type="number" value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Btn Delay (s)</Label>
+                    <Input type="number" min={1} value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Auto Dismiss (s)</Label>
+                    <Input type="number" min={0} value={formData.auto_dismiss_seconds} onChange={(e) => setFormData({ ...formData, auto_dismiss_seconds: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
                   </div>
                   <div>
                     <Label className="text-slate-300">Display Order</Label>
@@ -260,7 +264,7 @@ const AdminPopupBanners = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-white truncate">{banner.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Close after: {banner.skip_delay_seconds}s • Order: {banner.display_order}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Skip after: {banner.skip_delay_seconds}s • Auto-close: {banner.auto_dismiss_seconds}s • Order: {banner.display_order}</p>
                       {banner.start_date && (
                         <p className="text-[10px] text-slate-500 mt-1">
                           {new Date(banner.start_date).toLocaleDateString()} — {banner.end_date ? new Date(banner.end_date).toLocaleDateString() : 'Ongoing'}
