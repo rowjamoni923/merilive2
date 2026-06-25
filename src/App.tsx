@@ -116,6 +116,7 @@ const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
 const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
 const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
+const MatchCall = lazy(lazyRetry(() => import("./pages/MatchCall")));
 const FollowingList = lazy(lazyRetry(() => import("./pages/FollowingList")));
 const SearchUsers = lazy(lazyRetry(() => import("./pages/SearchUsers")));
 const RechargeHistory = lazy(lazyRetry(() => import("./pages/RechargeHistory")));
