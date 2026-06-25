@@ -1446,7 +1446,7 @@ const AdminSupportTickets = () => {
 
               {/* Compensation Panel */}
               {showCompensation && (
-                <div className="px-6 py-4 bg-gradient-to-r from-amber-500/10 to-green-500/10 border-b border-amber-500/20">
+                <div className="px-3 sm:px-6 py-4 bg-gradient-to-r from-amber-500/10 to-green-500/10 border-b border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Gift className="w-4 h-4 text-amber-400" />
                     <p className="text-sm font-semibold text-foreground">Send Compensation</p>
