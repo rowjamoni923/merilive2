@@ -3773,51 +3773,51 @@ const FaceVerification = () => {
         </motion.div>
       )}
       
-      {/* Existing Account Modal */}
+      {/* Existing Account Modal — bottom sheet on phones, centered on larger screens */}
       {showExistingAccountModal && existingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm safe-x">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-sm bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-6 border border-purple-500/30 shadow-2xl"
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="w-full sm:max-w-sm bg-gradient-to-br from-rose-50 to-orange-50 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-6 border border-purple-500/30 shadow-2xl"
           >
             <div className="text-center">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300 sm:hidden" />
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-500/50">
                 {existingAccount.avatarUrl ? (
                   <img loading="lazy" decoding="async" src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-purple-600 flex items-center justify-center">
-                    <User className="w-10 h-10 text-slate-800" />
+                    <User className="w-10 h-10 text-white" />
                   </div>
                 )}
               </div>
               
-              <h3 className="text-xl font-bold text-slate-800 mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-2">
                 Account Already Exists
               </h3>
               
-              <p className="text-slate-600 text-sm mb-4">
+              <p className="text-slate-600 text-sm mb-4 break-anywhere">
                 This face is already registered with an account:
               </p>
               
               <div className="p-3 rounded-xl bg-amber-50/70 mb-4">
-                <p className="font-semibold text-slate-800">{existingAccount.displayName}</p>
+                <p className="font-semibold text-slate-800 break-anywhere">{existingAccount.displayName}</p>
                 {existingAccount.isDeleted && (
-                  <Badge className="mt-2 bg-amber-500/20 text-amber-300 border-amber-500/30">
+                  <Badge className="mt-2 bg-amber-500/20 text-amber-700 border-amber-500/30">
                     Deletion Scheduled
                   </Badge>
                 )}
               </div>
               
-              <p className="text-slate-500 text-xs mb-6">
+              <p className="text-slate-500 text-xs mb-5 sm:mb-6">
                 One face can only be used for one host account. Please login to your existing account.
               </p>
               
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-12 rounded-xl font-bold"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 min-h-cta h-12 rounded-xl font-bold"
                   onClick={async () => {
-                    // Sign out and go to login
                     localStorage.setItem('meri_manual_logout', 'true');
                     await supabase.auth.signOut({ scope: 'local' });
                     navigate('/auth');
@@ -3828,7 +3828,7 @@ const FaceVerification = () => {
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-500 hover:text-white hover:bg-amber-50/70"
+                  className="w-full min-h-touch text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);
