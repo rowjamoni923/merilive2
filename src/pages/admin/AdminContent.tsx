@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Save, Plus, Edit, Trash2, FileText, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
