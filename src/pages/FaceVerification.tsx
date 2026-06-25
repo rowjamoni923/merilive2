@@ -3228,6 +3228,128 @@ const FaceVerification = () => {
     </div>
   );
 
+  if (verificationStatus === 'needs_retry') {
+    const vt = retryRequired?.verification_type || 'face';
+    const isHost = vt === 'host';
+    const failed = retryRequired?.failed_evidence || [];
+    const steps = retryRequired?.steps || [];
+    const goRetry = () => {
+      // Clear only the failing pieces. Stop camera so it can be re-mounted cleanly.
+      try { stopFaceCamera(); } catch {}
+      try { teardownFaceCameraPreview?.(); } catch {}
+      postSubmitLockedRef.current = false;
+      setSubmitInProgress(false);
+
+      const needsPhoto = steps.includes('photo');
+      const needsIntroVideo = steps.includes('intro_video');
+      const needsLive = steps.includes('live_face_scan');
+      const needsHostGallery = steps.includes('host_gallery');
+
+      if (needsPhoto) {
+        setPhotoFile(null); setPhotoPreview(null);
+        setUserPhotoFile(null); setUserPhotoPreview(null);
+      }
+      if (needsIntroVideo) {
+        setVideoFile(null); setVideoPreview(null);
+      }
+      if (needsHostGallery) {
+        setHostPhotos([]); setHostPhotosPreviews([]);
+      }
+      if (needsLive) {
+        setFaceVerificationVideo(null);
+        setFaceVerified(false);
+        setVerificationStarted(false);
+        setCurrentInstruction(0);
+        setInstructionsCompleted(faceInstructions.map(() => false));
+        instructionsCompletedRef.current = faceInstructions.map(() => false);
+        setVerificationRecording(false);
+        setVerificationTime(0);
+        setVerificationFailed(false);
+        setFaceManualReviewRequired(false);
+        setCameraReady(false);
+        try { capturedAnglesRef.current = { center: null, left: null, right: null } as any; } catch {}
+      }
+
+      // Route to the FIRST failing step so user re-uploads what's needed,
+      // then naturally flows through the rest.
+      if (isHost) {
+        if (needsPhoto) setCurrentStep(1);
+        else if (needsIntroVideo || needsHostGallery) setCurrentStep(2);
+        else if (needsLive) setCurrentStep(3);
+        else setCurrentStep(1);
+      } else {
+        // user face flow
+        setUserInfoStepComplete(true); // info already collected
+        if (needsPhoto) setUserPhotoStep(true);
+        else if (needsLive) setUserPhotoStep(false);
+        else setUserPhotoStep(true);
+      }
+
+      setRetryRequired(null);
+      setRejectionReason(null);
+      setVerificationStatus('unverified');
+    };
+
+    return (
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
+        <div data-face-verification-scroll className={`relative z-10 flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+          {!usingNativeFaceCamera && renderHeader("Face Verification", "Re-upload required")}
+          <div className="flex flex-col items-center justify-center mt-8 pb-12">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
+              className="w-24 h-24 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-5 shadow-2xl shadow-amber-500/20">
+              <AlertCircle className="w-12 h-12 text-white" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center px-6">
+              {retryRequired?.headline || "Photo, Video & Live scan don't match"}
+            </h2>
+            <p className="text-slate-600 text-sm text-center max-w-md px-6 mb-5 leading-relaxed">
+              {retryRequired?.summary || "We compared your Profile Photo, Verification Video, and Live Face Scan and they don't confidently match. Your account is NOT rejected — please re-upload the item(s) below so all three are clearly the SAME person."}
+            </p>
+
+            {failed.length > 0 && (
+              <div className="w-full max-w-md px-6 mb-6 space-y-3">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">What needs to be re-uploaded</p>
+                {failed.map((f, i) => (
+                  <div key={i} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">{i + 1}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 text-sm">{f.human_name}</p>
+                        <p className="text-xs text-slate-700 mt-1 leading-relaxed">{f.message}</p>
+                        {typeof f.score === 'number' && (
+                          <p className="text-[11px] text-amber-700 mt-1.5 font-mono">Match similarity: {f.score.toFixed(1)}%  (need ≥ 85%)</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 w-full max-w-[280px] px-6">
+              <Button
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-2xl py-6 font-bold shadow-xl shadow-orange-500/30 active:scale-95 transition-transform"
+                onClick={goRetry}
+              >
+                🔄 Retry & Re-upload
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-slate-400 font-medium hover:bg-slate-50 rounded-2xl py-6"
+                onClick={() => navigate('/profile')}
+              >
+                Back to Profile
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (verificationStatus === 'rejected') {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
