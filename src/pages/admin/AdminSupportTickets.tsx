@@ -271,8 +271,7 @@ const AdminSupportTickets = () => {
           .limit(1);
         if (error || !data || data.length === 0) return;
         const latestId = data[0].id;
-        const known = messagesRef.current || [];
-        const hasLatest = known.some((m: any) => m.id === latestId);
+        const hasLatest = messages.some((m: any) => m.id === latestId);
         if (!hasLatest) {
           loadMessages(ticketId);
         }
