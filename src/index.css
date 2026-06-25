@@ -5007,3 +5007,95 @@ a:focus-visible,
   img:not([width]):not(.shrink-0) { max-width: 100%; height: auto; }
 }
 
+/* =========================================================
+ * Phase 4 — Mobile-tune: Party / Settings / Leaderboard /
+ * Search / Profile Details / Games (≤640px only)
+ * ========================================================= */
+@media (max-width: 640px) {
+  /* Party room — bottom mic/seat/gift controls clear home indicator */
+  [data-party-controls],
+  .party-bottom-bar {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem) !important;
+  }
+  /* Party seat tiles: tighter gap so 8-seat grid fits 360px screens */
+  [data-party-seats] { gap: 0.5rem; }
+  [data-party-seats] [data-seat] { min-width: 0; }
+
+  /* Settings list rows — full-row tap, min 48px, comfortable spacing */
+  [data-settings-row],
+  .settings-row {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+  /* Settings section headings breathe */
+  [data-settings-section] + [data-settings-section] { margin-top: 1rem; }
+
+  /* Leaderboard rows — avatar/name/score never collide on 320px */
+  [data-lb-row] { min-height: 56px; align-items: center; gap: 0.625rem; }
+  [data-lb-row] [data-lb-name] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Top-3 podium scales down on narrow phones */
+  [data-lb-podium] { gap: 0.5rem; }
+
+  /* Search — sticky input bar, large tap, no iOS zoom (already global) */
+  [data-search-bar] {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding-top: max(env(safe-area-inset-top), 0.5rem);
+    padding-bottom: 0.5rem;
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  [data-search-bar] input { min-height: 44px; }
+  [data-search-result] { min-height: 56px; }
+
+  /* Profile Details — hero crops, action row safe-area, stats wrap */
+  [data-profile-hero] { min-height: 240px; }
+  [data-profile-actions] {
+    position: sticky;
+    bottom: 0;
+    padding: 0.75rem 1rem max(env(safe-area-inset-bottom), 0.75rem);
+    background: linear-gradient(180deg, transparent, hsl(var(--background)) 40%);
+    z-index: 20;
+  }
+  [data-profile-stats] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  [data-profile-stats] > * { min-width: 0; text-align: center; }
+
+  /* Games section — keep tile grid tidy, never overflow */
+  [data-game-grid] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 0.625rem;
+  }
+  [data-game-tile] {
+    min-height: 96px;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  /* Game canvas / iframe always fills width without horizontal scroll */
+  [data-game-stage],
+  [data-game-stage] canvas,
+  [data-game-stage] iframe {
+    max-width: 100%;
+    width: 100%;
+  }
+  /* Game footer (bet controls) above home indicator */
+  [data-game-footer] {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+}
+
+
