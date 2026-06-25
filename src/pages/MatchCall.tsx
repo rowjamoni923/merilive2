@@ -124,6 +124,21 @@ export default function MatchCall() {
           preferred_host_gender: filters.preferred_host_gender,
         },
       });
+      // Server may return a structured error in `data` (status 4xx) instead of throwing
+      const errPayload = (data as any)?.error ? (data as any) : null;
+      if (errPayload?.error === "skip_cooldown") {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        const secs = errPayload.cooldown_seconds_remaining ?? 0;
+        toast.error(`You're skipping too fast. Try again in ${secs}s.`);
+        setPhase("prep");
+        return;
+      }
+      if (errPayload?.error === "daily_skip_limit_reached") {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        toast.error(`Daily skip limit reached (${errPayload.daily_used}/${errPayload.daily_limit}). Try again tomorrow.`);
+        setPhase("prep");
+        return;
+      }
       if (error) throw error;
 
       const handoff = async (sessionId: string, hostId: string) => {
