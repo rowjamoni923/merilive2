@@ -1545,7 +1545,7 @@ const AdminSupportTickets = () => {
 
               {/* Purchase Recovery Panel */}
               {showPurchaseRecovery && selectedTicket && (
-                <div className="px-6 py-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-500/20">
+                <div className="px-3 sm:px-6 py-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <CreditCard className="w-4 h-4 text-green-400" />
                     <p className="text-sm font-semibold text-foreground">Purchase Recovery</p>
