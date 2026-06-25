@@ -258,7 +258,7 @@ export default function AdminAutoActions() {
       </Card>
 
       <Dialog open={!!reverseTarget} onOpenChange={(o) => !o && setReverseTarget(null)}>
-        <DialogContent>
+        <DialogContent className="w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Reverse Auto Action</DialogTitle>
             <DialogDescription>

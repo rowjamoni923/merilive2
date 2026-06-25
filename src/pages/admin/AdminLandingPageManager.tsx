@@ -316,7 +316,7 @@ const AdminLandingPageManager = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col space-y-4">
-        <TabsList className="flex w-full bg-slate-900/50 p-1 h-auto shrink-0">
+        <TabsList className="flex w-full bg-slate-900/50 p-1 h-auto shrink-0 overflow-x-auto whitespace-nowrap">
           <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-3 flex-1 text-xs sm:text-sm">
             <Settings className="w-4 h-4 mr-1.5" />
             Settings
@@ -455,7 +455,7 @@ const AdminLandingPageManager = () => {
 
       {/* Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingSection?.id.startsWith("new-") ? "Add New Section" : "Edit Section"}

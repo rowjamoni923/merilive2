@@ -274,7 +274,7 @@ const AdminHelperOrders = () => {
 
         {/* Status Tabs */}
         <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
-          <TabsList className="w-full grid grid-cols-5 h-auto">
+          <TabsList className="w-full md:grid md:grid-cols-5 h-auto inline-flex md:inline-grid overflow-x-auto whitespace-nowrap">
             <TabsTrigger value="all" className="text-xs py-2">All</TabsTrigger>
             <TabsTrigger value="pending" className="text-xs py-2">Pending</TabsTrigger>
             <TabsTrigger value="processing" className="text-xs py-2">Processing</TabsTrigger>
@@ -396,7 +396,7 @@ const AdminHelperOrders = () => {
 
       {/* Order Detail Modal */}
       <Dialog open={showOrderModal} onOpenChange={setShowOrderModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>

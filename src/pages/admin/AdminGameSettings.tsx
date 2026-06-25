@@ -459,7 +459,7 @@ export default function AdminGameSettings() {
 
       {/* Category Tabs */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-transparent p-0">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-transparent p-0 overflow-x-auto">
           {CATEGORIES.map((cat) => {
             const catStats = getCategoryStats(cat.id);
             return (
@@ -677,7 +677,7 @@ export default function AdminGameSettings() {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               {editingGame && (
@@ -1111,7 +1111,7 @@ export default function AdminGameSettings() {
 
       {/* Add New Game Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Plus className="w-5 h-5 text-green-500" />
