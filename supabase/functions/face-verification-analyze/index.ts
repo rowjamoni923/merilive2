@@ -750,10 +750,13 @@ serve(async (req) => {
     let duplicateBlock: Record<string, unknown> | null = null;
     let duplicateSearchCompleted = false;
     let faceIndexedForFutureDuplicate = false;
+    let duplicateCandidateReview: Record<string, unknown> | null = null;
+    let frontB64ForProvider: string | null = null;
     const faceProvider = getProviderConfig("VERIFY_FACE_API_KEY");
     if (faceProvider && !frontError) {
       try {
         const frontB64 = uint8ToBase64(frontBytes);
+        frontB64ForProvider = frontB64;
         const search = await providerSearchFace(faceProvider, {
           image_base64: frontB64,
           // Duplicate search is intentionally lower than auto-approval match
@@ -773,42 +776,57 @@ serve(async (req) => {
             // Look up the previous account's display name / app_uid / avatar.
             const { data: prevProfile } = await supabaseAdmin
               .from("profiles")
-              .select("id,display_name,app_uid,avatar_url")
+              .select("id,display_name,app_uid,avatar_url,is_face_verified,face_verification_status,host_status")
               .eq("id", top.external_user_id as string)
               .maybeSingle();
+            const { count: approvedSubmissionCount } = await supabaseAdmin
+              .from("face_verification_submissions")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", top.external_user_id as string)
+              .in("status", ["approved", "auto_approved", "auto-approved", "verified", "passed"]);
             const prevName = (prevProfile?.display_name as string | null) || null;
             const prevUid = (prevProfile?.app_uid as string | null) || null;
             const prevAvatar = (prevProfile?.avatar_url as string | null) || null;
-            duplicateFields = {
-              is_duplicate_face: true,
-              duplicate_face_user_id: top.external_user_id,
-              duplicate_face_name: prevName,
-              duplicate_face_uid: prevUid,
-              duplicate_face_avatar: prevAvatar,
-            };
-            duplicateBlock = {
-              previous_user_id: top.external_user_id,
-              previous_display_name: prevName,
-              previous_app_uid: prevUid,
-              similarity: top.similarity,
-              other_matches: others.length,
-              indexed_at: top.indexed_at,
-            };
-            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+            const previousApproved = Boolean(
+              prevProfile?.is_face_verified === true ||
+              String(prevProfile?.face_verification_status || "").trim().toLowerCase() === "approved" ||
+              String(prevProfile?.host_status || "").trim().toLowerCase() === "approved" ||
+              (approvedSubmissionCount || 0) > 0
+            );
+            if (previousApproved) {
+              duplicateFields = {
+                is_duplicate_face: true,
+                duplicate_face_user_id: top.external_user_id,
+                duplicate_face_name: prevName,
+                duplicate_face_uid: prevUid,
+                duplicate_face_avatar: prevAvatar,
+              };
+              duplicateBlock = {
+                previous_user_id: top.external_user_id,
+                previous_display_name: prevName,
+                previous_app_uid: prevUid,
+                similarity: top.similarity,
+                other_matches: others.length,
+                indexed_at: top.indexed_at,
+                previous_approved: true,
+              };
+              duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+            } else {
+              duplicateCandidateReview = {
+                previous_user_id: top.external_user_id,
+                previous_display_name: prevName,
+                previous_app_uid: prevUid,
+                similarity: top.similarity,
+                other_matches: others.length,
+                indexed_at: top.indexed_at,
+                previous_approved: false,
+              };
+            }
           }
         }
-        // Index this submission's front face so future submissions can match it.
-        // Skip when duplicate found (we don't want to keep multiplying entries for the same person).
-        if (!duplicateBlock) {
-          faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
-            external_user_id: userId,
-            image_base64: frontB64,
-            metadata: { submission_id: submissionId, source: "merilive_main_app" },
-          });
-          if (!faceIndexedForFutureDuplicate) {
-            console.warn("[face-verification-analyze] face index failed — auto-approve will be blocked for manual review");
-          }
-        }
+        // Do not index here. Indexing happens only after all photo/video/live,
+        // liveness, gender, and quality gates pass, immediately before approval.
+        // This prevents rejected/pending attempts from poisoning duplicate search.
       } catch (e) {
         console.warn("[face-verification-analyze] duplicate check skipped:", e instanceof Error ? e.message : e);
       }
@@ -847,6 +865,7 @@ serve(async (req) => {
       }
     }
     rekognition.banned_face_match = bannedFaceMatch;
+    rekognition.duplicate_candidate_review = duplicateCandidateReview;
 
     // Re-read ai_analysis right before the merge so we never blow away client-set
     // flags like { manual_review_required: true } that the insert wrote.
@@ -1070,7 +1089,10 @@ serve(async (req) => {
                       : ""
       : "";
 
-    if (passiveManualReviewReason) {
+    if (duplicateCandidateReview) {
+      autoResult = { success: false, reason: "duplicate_candidate_manual_review" };
+      console.log("[face-verification-analyze] duplicate candidate is not an approved identity → manual review");
+    } else if (passiveManualReviewReason) {
       autoResult = { success: false, reason: passiveManualReviewReason };
       console.log(`[face-verification-analyze] ${passiveManualReviewReason} → manual review`);
     } else if (hostPhotosMismatch) {
@@ -1085,10 +1107,21 @@ serve(async (req) => {
     } else if (!duplicateSearchCompleted && !frontError) {
       autoResult = { success: false, reason: "duplicate_search_unverified" };
       console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
-    } else if (!isDuplicate && !faceIndexedForFutureDuplicate && !frontError) {
-      autoResult = { success: false, reason: "face_index_failed" };
-      console.error("[face-verification-analyze] ⚠️ face index failed — auto-approve blocked so future duplicate detection remains safe");
     } else {
+      if (!isDuplicate && faceProvider && frontB64ForProvider && !frontError) {
+        faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
+          external_user_id: userId,
+          image_base64: frontB64ForProvider,
+          metadata: { submission_id: submissionId, source: "merilive_main_app", indexed_after_gates_passed: true },
+        });
+        if (!faceIndexedForFutureDuplicate) {
+          autoResult = { success: false, reason: "face_index_failed" };
+          console.error("[face-verification-analyze] ⚠️ face index failed — auto-approve blocked so future duplicate detection remains safe");
+        }
+      }
+    }
+
+    if (!autoResult) {
       const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
         "service_auto_finalize_face_verification",
         { p_submission_id: submissionId },
@@ -1107,6 +1140,7 @@ serve(async (req) => {
       if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
       if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
       if (duplicateBlock) softFlags.push("duplicate_face");
+      if (duplicateCandidateReview) softFlags.push("duplicate_candidate_manual_review");
       if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);
       if (noFaceInAvatar) softFlags.push("no_face_in_avatar");
       if (hostNoFaceInGallery) softFlags.push("no_face_in_gallery");
@@ -1133,7 +1167,9 @@ serve(async (req) => {
                           ? "Needs admin review: liveness provider did not respond. Auto-approve was blocked for safety — verify manually."
                           : autoReason === "duplicate_search_unverified"
                             ? "Needs admin review: duplicate-face search did not complete. Auto-approve was blocked so one face cannot pass on multiple accounts."
-                            : autoReason === "face_index_failed"
+                            : autoReason === "duplicate_candidate_manual_review"
+                              ? "Needs admin review: this face matched another non-approved/pending identity candidate. Approve only if it is not a second account."
+                              : autoReason === "face_index_failed"
                               ? "Needs admin review: face indexing failed after duplicate search. Auto-approve was blocked so future duplicate detection remains safe."
                               : autoReason === "photo_video_live_evidence_missing"
                                 ? "Needs admin review: required photo/video/live evidence was missing or unreadable, so auto-approve was blocked."
