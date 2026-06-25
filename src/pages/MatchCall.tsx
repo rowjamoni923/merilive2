@@ -255,11 +255,15 @@ export default function MatchCall() {
     const estWait = hostsCount > 0
       ? Math.max(8, Math.min(60, Math.round(45 / Math.max(1, hostsCount))))
       : 45;
+    // Match the server-side hold so users see the same gate the server applies.
+    const maxRate = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
+    const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
+    const holdAmount = Math.max(0, maxRate * preauthMin);
     return (
       <>
         <PreMatchPrep
           diamondBalance={profile?.coins ?? 0}
-          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          hostRatePerMin={holdAmount > 0 ? holdAmount : (settings?.default_host_rate_coins_per_min ?? 0)}
           freeTrialSeconds={settings?.random_window_seconds ?? 60}
           minBillableSeconds={settings?.random_window_seconds ?? 60}
           availableHostsCount={hostsCount}
@@ -287,6 +291,10 @@ export default function MatchCall() {
         <MatchCallOverlay
           randomWindowSeconds={settings?.random_window_seconds ?? 60}
           hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          autoConvert={settings?.auto_convert_to_private !== false}
+          startedAt={activeSession?.started_at}
+          sessionId={activeSession?.session_id ?? null}
+          hostId={activeSession?.host_id ?? null}
           onAutoEnd={handleAutoEnd}
           onNext={handleNext}
         />
