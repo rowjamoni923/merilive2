@@ -132,14 +132,16 @@ export default function MatchCall() {
     try { await endCall(); } catch (_) {}
   };
 
-  // Triggered by overlay when 60s convert attempt resolves.
-  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed") => {
+  // Triggered by overlay when the random-window mark is reached.
+  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed" | "ended") => {
     if (reason === "converted") {
-      // Random session already marked settled by the RPC; the existing call
-      // stays open as a private call. Nothing else to do here.
+      // Random session already marked settled by the RPC; LiveKit room stays
+      // open and continues as a private call. Clear local random state.
+      setActiveSession(null);
+      activeSessionRef.current = null;
       return;
     }
-    // No balance OR convert failed → end the call immediately for both sides.
+    // No balance OR convert disabled/failed → end the call immediately.
     try { await endCall(); } catch (_) {}
   };
 
