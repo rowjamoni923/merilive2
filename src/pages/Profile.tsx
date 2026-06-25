@@ -2643,7 +2643,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </div>
           )}
 
-          {isOwnProfile && <RatingProofStatusRow />}
+          {/* Rating Reward status row moved to Task Center — auto-hides after claim. */}
 
 
         </div>
