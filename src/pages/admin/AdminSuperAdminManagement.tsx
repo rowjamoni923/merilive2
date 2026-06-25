@@ -226,7 +226,7 @@ export default function AdminSuperAdminManagement() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 w-full h-auto gap-1">
           <TabsTrigger value="pending"><FileText className="w-4 h-4 mr-1" />Pending ({pending.length})</TabsTrigger>
           <TabsTrigger value="active"><Users className="w-4 h-4 mr-1" />Active ({actives.filter(a=>a.status==='active').length})</TabsTrigger>
           <TabsTrigger value="commissions"><DollarSign className="w-4 h-4 mr-1" />Commissions</TabsTrigger>
