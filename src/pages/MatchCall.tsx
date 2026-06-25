@@ -89,8 +89,8 @@ export default function MatchCall() {
     setElapsed(0);
   };
 
-  // Chamet-style "Next": end current call, server applies 40s shield
-  // (zero charge if duration < min_billable_seconds), then auto re-enqueue.
+  // Chamet-style "Next": end current call, server applies free-window rule
+  // (zero charge if duration < random_window_seconds), then auto re-enqueue.
   const handleNext = async () => {
     try {
       const raw = window.sessionStorage.getItem("random_call:active");
@@ -103,6 +103,18 @@ export default function MatchCall() {
     autoRestartRef.current = true;
     try { await endCall(); } catch (_) {}
   };
+
+  // Triggered by overlay when 60s convert attempt resolves.
+  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed") => {
+    if (reason === "converted") {
+      // Random session already marked settled by the RPC; the existing call
+      // stays open as a private call. Nothing else to do here.
+      return;
+    }
+    // No balance OR convert failed → end the call immediately for both sides.
+    try { await endCall(); } catch (_) {}
+  };
+
 
 
   const startSearch = async (filters: MatchFilters) => {
@@ -215,8 +227,8 @@ export default function MatchCall() {
       <PreMatchPrep
         diamondBalance={profile?.coins ?? 0}
         hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
-        freeTrialSeconds={settings?.free_trial_seconds ?? 0}
-        minBillableSeconds={settings?.min_billable_seconds ?? 40}
+        freeTrialSeconds={settings?.random_window_seconds ?? 60}
+        minBillableSeconds={settings?.random_window_seconds ?? 60}
         availableHostsCount={hostsCount}
         estimatedWaitSeconds={estWait}
         isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
@@ -225,6 +237,7 @@ export default function MatchCall() {
         countryFilterEnabled={!!settings?.enable_country_filter}
         onStart={(filters) => startSearch(filters)}
       />
+
     );
   }
 
@@ -233,10 +246,13 @@ export default function MatchCall() {
     <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 text-white pb-[max(env(safe-area-inset-bottom),16px)]">
       {isInCall && (
         <MatchCallOverlay
-          minBillableSeconds={settings?.min_billable_seconds ?? 40}
+          randomWindowSeconds={settings?.random_window_seconds ?? 60}
+          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          onAutoEnd={handleAutoEnd}
           onNext={handleNext}
         />
       )}
+
       <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"
           onClick={() => (phase === "searching" ? cancelQueue() : navigate(-1))} aria-label="Close">
