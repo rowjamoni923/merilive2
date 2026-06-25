@@ -814,7 +814,11 @@ public class NativeCameraPlugin extends Plugin {
         // a transparent Capacitor WebView, even though Camera2 keeps producing
         // frames. COMPATIBLE uses TextureView so normal z-order works.
         previewView.setImplementationMode(PreviewView.ImplementationMode.COMPATIBLE);
-        previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
+        // FIT_CENTER shows the full camera sensor frame inside the preview
+        // bounds instead of cropping the top/bottom (FILL_CENTER) which made
+        // the face look heavily zoomed. The face oval guide overlay still sits
+        // on top, and the AI analysis already receives the full sensor frame.
+        previewView.setScaleType(PreviewView.ScaleType.FIT_CENTER);
         previewView.setBackgroundColor(0xFF000000);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
