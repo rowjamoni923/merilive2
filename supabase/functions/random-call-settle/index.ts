@@ -27,8 +27,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Optional caller auth check (LiveKit webhook posts without user JWT — bypass when has X-LiveKit-Signature)
-    const isWebhook = !!req.headers.get("x-livekit-signature") || !!req.headers.get("x-internal-webhook");
+    // Webhook auth: only honor a real LiveKit-signed request. The previous
+    // `x-internal-webhook` shortcut is removed — any client could spoof it.
+    const isWebhook = !!req.headers.get("x-livekit-signature");
     if (!isWebhook) {
       const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
       const { data: ud } = await supabase.auth.getUser(token);
@@ -37,7 +38,6 @@ Deno.serve(async (req) => {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // Verify caller is a participant
       const { data: sess } = await supabase
         .from("random_call_sessions")
         .select("caller_id, host_id, settled")
