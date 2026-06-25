@@ -2195,7 +2195,7 @@ export default function AdminAgencies() {
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-white/50 text-sm">Commission Rate</p>
-                  <p className="text-green-400 font-bold">{selectedAgency.commission_rate || 0}%</p>
+                  <p className="text-green-400 font-bold">{getEffectiveCommission(selectedAgency)}%</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-white/50 text-sm">Level</p>
