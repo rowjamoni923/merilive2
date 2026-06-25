@@ -162,11 +162,12 @@ export default function MatchCall() {
 
 
 
-  const startSearch = async (filters: MatchFilters) => {
+  const startSearch = async (filters: MatchFilters, opts?: { broadcast?: boolean }) => {
     if (!settings?.is_enabled) {
       toast.error("Random Call is currently disabled by admin.");
       return;
     }
+    const broadcast = !!opts?.broadcast;
     lastFiltersRef.current = filters;
     setErrorMsg("");
     setPhase("searching");
@@ -186,6 +187,7 @@ export default function MatchCall() {
 
       const { data, error } = await supabase.functions.invoke("random-call-enqueue", {
         body: {
+          mode: broadcast ? "broadcast" : "queue",
           preferred_langs: filters.preferred_langs,
           preferred_country: filters.preferred_country,
           preferred_host_gender: filters.preferred_host_gender,
