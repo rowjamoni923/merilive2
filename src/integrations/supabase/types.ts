@@ -12737,6 +12737,7 @@ export type Database = {
       random_call_queue: {
         Row: {
           coin_rate_per_min: number | null
+          device_id: string | null
           entered_at: string
           expires_at: string | null
           gender: string | null
@@ -12756,6 +12757,7 @@ export type Database = {
         }
         Insert: {
           coin_rate_per_min?: number | null
+          device_id?: string | null
           entered_at?: string
           expires_at?: string | null
           gender?: string | null
@@ -12775,6 +12777,7 @@ export type Database = {
         }
         Update: {
           coin_rate_per_min?: number | null
+          device_id?: string | null
           entered_at?: string
           expires_at?: string | null
           gender?: string | null
@@ -12799,8 +12802,11 @@ export type Database = {
           accepted_at: string | null
           beans_awarded: number
           billable_seconds: number | null
+          caller_device_id: string | null
+          caller_disconnected_at: string | null
           caller_id: string
           caller_rating: number | null
+          caller_reconnect_until: string | null
           coin_rate_per_min: number
           coins_charged: number
           created_at: string
@@ -12809,12 +12815,16 @@ export type Database = {
           ended_by: string | null
           free_trial_seconds: number
           hold_amount: number
+          host_device_id: string | null
+          host_disconnected_at: string | null
           host_id: string
           host_rating: number | null
+          host_reconnect_until: string | null
           host_split_pct: number
           id: string
           livekit_room: string
           min_billable_seconds: number
+          reconnect_count: number
           settled: boolean
           started_at: string
           status: string
@@ -12824,8 +12834,11 @@ export type Database = {
           accepted_at?: string | null
           beans_awarded?: number
           billable_seconds?: number | null
+          caller_device_id?: string | null
+          caller_disconnected_at?: string | null
           caller_id: string
           caller_rating?: number | null
+          caller_reconnect_until?: string | null
           coin_rate_per_min: number
           coins_charged?: number
           created_at?: string
@@ -12834,12 +12847,16 @@ export type Database = {
           ended_by?: string | null
           free_trial_seconds?: number
           hold_amount?: number
+          host_device_id?: string | null
+          host_disconnected_at?: string | null
           host_id: string
           host_rating?: number | null
+          host_reconnect_until?: string | null
           host_split_pct?: number
           id?: string
           livekit_room: string
           min_billable_seconds?: number
+          reconnect_count?: number
           settled?: boolean
           started_at?: string
           status?: string
@@ -12849,8 +12866,11 @@ export type Database = {
           accepted_at?: string | null
           beans_awarded?: number
           billable_seconds?: number | null
+          caller_device_id?: string | null
+          caller_disconnected_at?: string | null
           caller_id?: string
           caller_rating?: number | null
+          caller_reconnect_until?: string | null
           coin_rate_per_min?: number
           coins_charged?: number
           created_at?: string
@@ -12859,12 +12879,16 @@ export type Database = {
           ended_by?: string | null
           free_trial_seconds?: number
           hold_amount?: number
+          host_device_id?: string | null
+          host_disconnected_at?: string | null
           host_id?: string
           host_rating?: number | null
+          host_reconnect_until?: string | null
           host_split_pct?: number
           id?: string
           livekit_room?: string
           min_billable_seconds?: number
+          reconnect_count?: number
           settled?: boolean
           started_at?: string
           status?: string
@@ -21862,6 +21886,10 @@ export type Database = {
           wallet_balance: number
         }[]
       }
+      find_reconnectable_random_call: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       fix_excess_weekly_rewards: {
         Args: never
         Returns: {
@@ -22607,6 +22635,10 @@ export type Database = {
         Returns: undefined
       }
       mark_notice_read: { Args: { _notice_id: string }; Returns: undefined }
+      mark_random_disconnect: {
+        Args: { p_role: string; p_session_id: string }
+        Returns: Json
+      }
       moderate_text: {
         Args: { p_context?: string; p_text: string }
         Returns: Json
@@ -22966,6 +22998,10 @@ export type Database = {
         Returns: undefined
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
+      reconnect_random_call: {
+        Args: { p_device_id: string; p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
       record_gift_combo: {
         Args: {
           p_context_key: string
@@ -23348,6 +23384,10 @@ export type Database = {
       }
       submit_rating_proof: {
         Args: { _platform?: string; _screenshot_url: string }
+        Returns: Json
+      }
+      supersede_random_enqueue: {
+        Args: { p_new_device_id: string; p_user_id: string }
         Returns: Json
       }
       support_admin_file_report: {

@@ -117,11 +117,22 @@ export default function MatchCall() {
     timerRef.current = window.setInterval(() => setElapsed((s) => s + 1), 1000);
 
     try {
+      // Stable per-install device id for multi-device safety
+      let deviceId = "";
+      try {
+        deviceId = window.localStorage.getItem("ml_device_id") || "";
+        if (!deviceId) {
+          deviceId = (crypto as any).randomUUID?.() || `dev_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          window.localStorage.setItem("ml_device_id", deviceId);
+        }
+      } catch (_) {}
+
       const { data, error } = await supabase.functions.invoke("random-call-enqueue", {
         body: {
           preferred_langs: filters.preferred_langs,
           preferred_country: filters.preferred_country,
           preferred_host_gender: filters.preferred_host_gender,
+          device_id: deviceId,
         },
       });
       // Server may return a structured 429 error (skip cooldown / daily cap)
@@ -160,7 +171,11 @@ export default function MatchCall() {
         }
       };
 
-      if ((data as any)?.status === "matched") {
+      if ((data as any)?.status === "reconnected") {
+        toast.message("Reconnected to your active match.");
+        const r = data as any;
+        await handoff(r.session_id, r.host_id);
+      } else if ((data as any)?.status === "matched") {
         const sess = data as any;
         await handoff(sess.session_id, sess.host_id);
       } else if ((data as any)?.status === "queued") {

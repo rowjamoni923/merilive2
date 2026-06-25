@@ -39,6 +39,24 @@ Deno.serve(async (req) => {
       body.preferred_host_gender && ["male", "female", "any"].includes(body.preferred_host_gender)
         ? body.preferred_host_gender
         : null;
+    const deviceId: string = (typeof body.device_id === "string" && body.device_id) || "unknown";
+
+    // Multi-device: reconnect if a still-open session exists for this user
+    const { data: rec } = await supabase.rpc("find_reconnectable_random_call", { p_user_id: userId });
+    if ((rec as any)?.found) {
+      const r: any = rec;
+      const { data: reJoin } = await supabase.rpc("reconnect_random_call", {
+        p_session_id: r.session_id, p_user_id: userId, p_device_id: deviceId,
+      });
+      if ((reJoin as any)?.ok) {
+        return new Response(JSON.stringify({ status: "reconnected", ...(reJoin as any) }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Multi-device: cancel any waiting queue rows from a different device
+    await supabase.rpc("supersede_random_enqueue", { p_user_id: userId, p_new_device_id: deviceId });
 
 
     // Load settings
@@ -114,6 +132,7 @@ Deno.serve(async (req) => {
         score: Math.round(score),
         hold_amount: holdAmount,
         expires_at: expiresAt,
+        device_id: deviceId,
       })
 
       .select("*")
@@ -160,6 +179,7 @@ Deno.serve(async (req) => {
         host_split_pct: settings.host_split_pct,
         hold_amount: holdAmount,
         status: "ringing",
+        caller_device_id: deviceId,
       })
       .select("*")
       .single();
