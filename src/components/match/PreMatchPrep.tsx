@@ -28,6 +28,12 @@ interface Props {
   genderFilterEnabled: boolean;
   countryFilterEnabled: boolean;
   onStart: (filters: MatchFilters, beauty: boolean) => void;
+  /** Optional unified-phase props — keeps a single UI across prep/searching/matched/error. */
+  phase?: "prep" | "searching" | "matched" | "error";
+  elapsedSeconds?: number;
+  errorMsg?: string;
+  onCancel?: () => void;
+  onRetry?: () => void;
 }
 
 /**
@@ -40,10 +46,14 @@ export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip,
   countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
+  phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry,
 }: Props) {
   const navigate = useNavigate();
   const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
   const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
+  const isSearching = phase === "searching";
+  const isMatched = phase === "matched";
+  const isError = phase === "error";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [camOn, setCamOn] = useState(true);
@@ -250,17 +260,37 @@ export default function PreMatchPrep({
 
           <button
             type="button"
-            onClick={handleStart}
-            disabled={insufficient}
-            aria-label="Tap to Match"
-            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-60"
+            onClick={isSearching ? undefined : handleStart}
+            disabled={isSearching || isMatched || (phase === "prep" && insufficient)}
+            aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
+            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
           >
             <div className="text-center">
-              <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
-              <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+              {isSearching ? (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Matching…</div>
+                  <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
+                </>
+              ) : isMatched ? (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">opening call…</div>
+                </>
+              ) : isError ? (
+                <>
+                  <div className="text-[14px] font-bold tracking-tight text-rose-200 drop-shadow">Couldn't start</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">Tap retry below</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+                </>
+              )}
             </div>
           </button>
         </div>
+
 
         {/* VIP discount card (right-side floating) */}
         {!isVip && (
@@ -301,32 +331,71 @@ export default function PreMatchPrep({
         </div>
       )}
 
-      {/* Start CTA */}
+      {/* Bottom CTA — adapts to phase */}
       <div className="relative z-10 px-6 mb-4">
-        <motion.div whileTap={{ scale: 0.97 }}>
-          <Button
-            onClick={handleStart}
-            disabled={insufficient}
-            className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
-          >
-            <Phone className="w-5 h-5 mr-2" /> Start
+        {isSearching ? (
+          <motion.div whileTap={{ scale: 0.97 }}>
+            <Button
+              onClick={() => onCancel?.()}
+              variant="outline"
+              className="w-full h-14 rounded-full text-base font-bold border-white/25 bg-white/10 backdrop-blur-md text-white hover:bg-white/20"
+            >
+              Cancel
+            </Button>
+          </motion.div>
+        ) : isError ? (
+          <motion.div whileTap={{ scale: 0.97 }}>
+            <Button
+              onClick={() => onRetry?.()}
+              className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
+            >
+              <Phone className="w-5 h-5 mr-2" /> Try again
+            </Button>
+            {errorMsg && (
+              <div className="mt-2 text-center text-[11px] text-rose-200/90 px-4">{errorMsg}</div>
+            )}
+          </motion.div>
+        ) : isMatched ? (
+          <Button disabled className="w-full h-14 rounded-full text-base font-bold bg-emerald-500/40 border border-white/15">
+            Connected
           </Button>
-        </motion.div>
-        <div className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/85">
-          <span className="opacity-70">First {freeTrialSeconds}s</span>
-          <span className="font-bold">FREE</span>
-          <span className="opacity-50">·</span>
-          <Gem className="w-3 h-3 text-cyan-300" />
-          <span className="font-bold">{hostRatePerMin}</span>
-          <span className="opacity-70">/ min after</span>
-        </div>
-        {insufficient && (
-          <button onClick={() => navigate("/recharge")}
-            className="mt-3 mx-auto block px-4 h-9 rounded-full bg-amber-400 text-black text-xs font-bold">
-            Recharge — need {hostRatePerMin.toLocaleString()} diamonds for 1 minute
-          </button>
+        ) : (
+          <motion.div whileTap={{ scale: 0.97 }}>
+            <Button
+              onClick={handleStart}
+              disabled={insufficient}
+              className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
+            >
+              <Phone className="w-5 h-5 mr-2" /> Start
+            </Button>
+          </motion.div>
+        )}
+        {phase === "prep" && (
+          <>
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/85">
+              <span className="opacity-70">First {freeTrialSeconds}s</span>
+              <span className="font-bold">FREE</span>
+              <span className="opacity-50">·</span>
+              <Gem className="w-3 h-3 text-cyan-300" />
+              <span className="font-bold">{hostRatePerMin}</span>
+              <span className="opacity-70">/ min after</span>
+            </div>
+            {insufficient && (
+              <button onClick={() => navigate("/recharge")}
+                className="mt-3 mx-auto block px-4 h-9 rounded-full bg-amber-400 text-black text-xs font-bold">
+                Recharge — need {hostRatePerMin.toLocaleString()} diamonds for 1 minute
+              </button>
+            )}
+          </>
+        )}
+        {isSearching && (
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-white/70">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Please behave politely during the chat</span>
+          </div>
         )}
       </div>
+
     </div>
   );
 }
