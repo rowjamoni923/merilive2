@@ -12809,6 +12809,7 @@ export type Database = {
           caller_reconnect_until: string | null
           coin_rate_per_min: number
           coins_charged: number
+          converted_at: string | null
           created_at: string
           duration_seconds: number | null
           ended_at: string | null
@@ -12822,6 +12823,7 @@ export type Database = {
           host_reconnect_until: string | null
           host_split_pct: number
           id: string
+          linked_private_call_id: string | null
           livekit_room: string
           min_billable_seconds: number
           reconnect_count: number
@@ -12841,6 +12843,7 @@ export type Database = {
           caller_reconnect_until?: string | null
           coin_rate_per_min: number
           coins_charged?: number
+          converted_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -12854,6 +12857,7 @@ export type Database = {
           host_reconnect_until?: string | null
           host_split_pct?: number
           id?: string
+          linked_private_call_id?: string | null
           livekit_room: string
           min_billable_seconds?: number
           reconnect_count?: number
@@ -12873,6 +12877,7 @@ export type Database = {
           caller_reconnect_until?: string | null
           coin_rate_per_min?: number
           coins_charged?: number
+          converted_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -12886,6 +12891,7 @@ export type Database = {
           host_reconnect_until?: string | null
           host_split_pct?: number
           id?: string
+          linked_private_call_id?: string | null
           livekit_room?: string
           min_billable_seconds?: number
           reconnect_count?: number
@@ -12898,9 +12904,11 @@ export type Database = {
       }
       random_call_settings: {
         Row: {
+          auto_convert_to_private: boolean
           auto_on_when_live: boolean
           beans_to_usd_rate: number
           coins_to_usd_rate: number
+          convert_min_balance_seconds: number
           country_filter_requires_vip: boolean
           daily_skip_limit: number
           default_host_rate_coins_per_min: number
@@ -12929,6 +12937,7 @@ export type Database = {
           preauth_minutes_hold: number
           price_change_cooldown_seconds: number
           queue_resort_interval_seconds: number
+          random_window_seconds: number
           reconnect_window_seconds: number
           report_suspend_hours: number
           report_suspend_threshold: number
@@ -12955,9 +12964,11 @@ export type Database = {
           vip_skip_cooldown_multiplier: number
         }
         Insert: {
+          auto_convert_to_private?: boolean
           auto_on_when_live?: boolean
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
+          convert_min_balance_seconds?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
@@ -12986,6 +12997,7 @@ export type Database = {
           preauth_minutes_hold?: number
           price_change_cooldown_seconds?: number
           queue_resort_interval_seconds?: number
+          random_window_seconds?: number
           reconnect_window_seconds?: number
           report_suspend_hours?: number
           report_suspend_threshold?: number
@@ -13012,9 +13024,11 @@ export type Database = {
           vip_skip_cooldown_multiplier?: number
         }
         Update: {
+          auto_convert_to_private?: boolean
           auto_on_when_live?: boolean
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
+          convert_min_balance_seconds?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
@@ -13043,6 +13057,7 @@ export type Database = {
           preauth_minutes_hold?: number
           price_change_cooldown_seconds?: number
           queue_resort_interval_seconds?: number
+          random_window_seconds?: number
           reconnect_window_seconds?: number
           report_suspend_hours?: number
           report_suspend_threshold?: number
@@ -21386,6 +21401,10 @@ export type Database = {
           p_verified_token: string
         }
         Returns: string
+      }
+      convert_random_to_private: {
+        Args: { p_session_id: string }
+        Returns: Json
       }
       country_admin_review_agency_withdrawal: {
         Args: { _decision: string; _notes?: string; _request_id: string }
