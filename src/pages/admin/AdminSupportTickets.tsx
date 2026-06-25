@@ -1366,9 +1366,10 @@ const AdminSupportTickets = () => {
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={handleTicketDialogOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[95vh] md:max-h-[92vh] p-0 overflow-hidden w-[96vw] md:w-full border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-lg">
           {selectedTicket && (
-            <div className="flex flex-col h-[82vh] md:h-[87vh]">
+            <div className="flex flex-col h-[100dvh] sm:h-[82vh] md:h-[87vh]">
+
               {/* Compact Header Bar */}
               <div className="px-4 py-2.5 bg-gradient-to-r from-muted/30 via-muted/15 to-muted/30 border-b border-border/25 flex items-center gap-3">
                 <Avatar className="w-8 h-8 shrink-0 border border-purple-500/15">
