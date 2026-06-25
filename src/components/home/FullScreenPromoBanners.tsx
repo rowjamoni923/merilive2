@@ -148,10 +148,25 @@ export function FullScreenPromoBanners() {
 
   useEffect(() => {
     let ratingDelayTimer: number | undefined;
+    let eventListener: (() => void) | undefined;
 
     const prepareBanner = async () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
       if (localStorage.getItem(RATING_PENDING_KEY) === "true") return;
+
+      // Top-priority Event Popup must show first. Defer until it dismisses.
+      const eventActive = (() => {
+        try { return sessionStorage.getItem('event_popup_active') === '1'; } catch { return false; }
+      })();
+      if (eventActive) {
+        eventListener = () => {
+          window.removeEventListener('event-popup-dismissed', eventListener!);
+          eventListener = undefined;
+          void prepareBanner();
+        };
+        window.addEventListener('event-popup-dismissed', eventListener);
+        return;
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -186,6 +201,7 @@ export function FullScreenPromoBanners() {
 
     return () => {
       if (ratingDelayTimer) window.clearTimeout(ratingDelayTimer);
+      if (eventListener) window.removeEventListener('event-popup-dismissed', eventListener);
       subscription.unsubscribe();
     };
   }, [resolveNextBanner]);
