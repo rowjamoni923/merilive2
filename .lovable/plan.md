@@ -7,6 +7,8 @@ Fix the event popup so it behaves like the requested mobile interstitial: the up
 
 - User-provided screenshot verifies the current implementation is still a centered framed card with CTA and extra chrome, not a full-screen artwork interstitial.
 - Current code verified in `src/components/common/EventPopupBanner.tsx`: popup uses `px-4 py-6`, `max-w-[340px]`, 9:16 card frame, blurred backdrop, countdown chip, CTA button, and banner click navigation when `link_url` exists.
+- Google AdMob defines interstitials as full-screen mobile placements covering the host app interface, and Google Ad Manager describes mobile interstitials as full-page units with a large storytelling canvas. Sources: https://developers.google.com/admob/android/interstitial and https://support.google.com/admanager/answer/10320506
+- Apple modality guidance confirms presented experiences are separate modal surfaces users must be able to dismiss and return from. Source: https://developer.apple.com/design/human-interface-guidelines/modality
 - Professional mobile interstitial requirement for this app: one full-viewport creative, no accidental tap-through/navigation, delayed close affordance only. For this exact owner request, design chrome must not shrink the creative.
 
 ## What changed
