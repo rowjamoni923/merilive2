@@ -14,10 +14,7 @@ interface PopupBanner {
   id: string;
   title: string;
   image_url: string;
-  link_url: string | null;
-  link_type: string | null;
   skip_delay_seconds: number;
-  auto_dismiss_seconds: number;
 }
 
 const EventPopupBanner = () => {
@@ -73,7 +70,7 @@ const EventPopupBanner = () => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('popup_event_banners')
-        .select('id, title, image_url, link_url, link_type, skip_delay_seconds, auto_dismiss_seconds')
+        .select('id, title, image_url, skip_delay_seconds')
         .eq('is_active', true)
         .or(`start_date.is.null,start_date.lte.${now}`)
         .filter('end_date', 'gte', now)
@@ -84,7 +81,7 @@ const EventPopupBanner = () => {
       if (error) throw error;
       if (data) {
         // ★ Preload the banner image BEFORE making the modal visible so the
-        //   user never sees the black-frame + ticking countdown without art.
+        //   user never sees a blank full-screen interstitial without art.
         setBanner(data);
         setImageReady(false);
         await preloadBannerMedia(popupCdn(data.image_url));
