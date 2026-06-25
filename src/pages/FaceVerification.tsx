@@ -2319,7 +2319,7 @@ const FaceVerification = () => {
         .insert({
           user_id: userId,
           verification_type: 'host',
-          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          status: 'under_review', // ★ instant under_review
           // ★ Pkg358: do NOT pre-flag manual_review_required — let analyze pipeline decide.
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
