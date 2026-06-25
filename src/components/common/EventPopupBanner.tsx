@@ -148,8 +148,8 @@ const EventPopupBanner = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] overflow-hidden bg-background"
-          style={{ width: '100vw', height: '100dvh' }}
+          className="fixed inset-0 z-[9999] overflow-hidden bg-black"
+          style={{ width: '100vw', height: '100dvh', top: 0, left: 0, right: 0, bottom: 0, margin: 0, padding: 0 }}
         >
           {isVideo ? (
             <video
