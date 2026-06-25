@@ -1551,7 +1551,7 @@ const AdminSupportTickets = () => {
                     <p className="text-sm font-semibold text-foreground">Purchase Recovery</p>
                     <span className="text-[10px] text-muted-foreground ml-auto">Credit diamonds for failed Google Play purchase</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">Diamond Package</label>
                       <Select value={recoveryCoins} onValueChange={setRecoveryCoins}>
