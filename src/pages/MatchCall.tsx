@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
 import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep";
 import MatchCallOverlay from "@/components/match/MatchCallOverlay";
+import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
