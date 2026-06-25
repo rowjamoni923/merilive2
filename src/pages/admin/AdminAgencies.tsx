@@ -2006,7 +2006,7 @@ export default function AdminAgencies() {
                     </div>
                     <div className="text-center p-3 bg-white/5 rounded-xl border border-white/5">
                       <TrendingUp className="w-4 h-4 text-green-400 mx-auto mb-1.5" />
-                      <p className="text-white font-bold">{agency.commission_rate || 0}%</p>
+                      <p className="text-white font-bold">{getEffectiveCommission(agency)}%</p>
                       <p className="text-[10px] text-white/40 uppercase tracking-wider">Commission</p>
                     </div>
                   </div>
