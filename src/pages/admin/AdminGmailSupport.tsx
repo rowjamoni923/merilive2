@@ -603,9 +603,10 @@ const AdminGmailSupport = () => {
           setReplyBody("");
         }
       }}>
-        <DialogContent className="w-[96vw] max-w-4xl h-[90vh] max-h-[90vh] flex flex-col overflow-hidden min-h-0 p-0 border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl">
+        <DialogContent className="w-screen sm:w-[96vw] max-w-4xl h-[100dvh] sm:h-[90vh] max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg flex flex-col overflow-hidden min-h-0 p-0 border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl">
           {/* Premium Header */}
-          <div className="px-6 py-3.5 border-b border-border/30 bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 flex items-center gap-3">
+          <div className="px-3 sm:px-6 py-3 sm:py-3.5 border-b border-border/30 bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 flex items-center gap-3">
+
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500/20 to-violet-600/20 border border-purple-500/20 flex items-center justify-center shrink-0">
               <Mail className="h-4.5 w-4.5 text-purple-400" />
             </div>
