@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
 import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep";
 import MatchCallOverlay from "@/components/match/MatchCallOverlay";
+import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
@@ -30,7 +31,9 @@ export default function MatchCall() {
   const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [ratingSession, setRatingSession] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -48,8 +51,25 @@ export default function MatchCall() {
         .eq("role", "host").eq("status", "waiting");
       setHostsCount(count || 0);
     })();
-    return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
+    };
   }, []);
+
+  // Keep our queue row alive while we're in the searching phase (anti-ghost).
+  useEffect(() => {
+    if (phase !== "searching") {
+      if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+      return;
+    }
+    const ping = () => { supabase.functions.invoke("random-call-heartbeat", { body: {} }).catch(() => {}); };
+    ping();
+    heartbeatRef.current = window.setInterval(ping, 15000);
+    return () => {
+      if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+    };
+  }, [phase]);
 
   // Settle session after user exits the call overlay
   useEffect(() => {
@@ -70,6 +90,8 @@ export default function MatchCall() {
         supabase.functions.invoke("random-call-settle", {
           body: { session_id: info.session_id, duration_seconds: duration, ended_by: info.ended_by ?? "caller" },
         }).catch(() => {});
+        // Open the post-call rating sheet only for non-trivial calls.
+        if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
       } catch (_) {}
     }
     if (shouldAutoRestart && lastFiltersRef.current) {
@@ -224,20 +246,26 @@ export default function MatchCall() {
       ? Math.max(8, Math.min(60, Math.round(45 / Math.max(1, hostsCount))))
       : 45;
     return (
-      <PreMatchPrep
-        diamondBalance={profile?.coins ?? 0}
-        hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
-        freeTrialSeconds={settings?.random_window_seconds ?? 60}
-        minBillableSeconds={settings?.random_window_seconds ?? 60}
-        availableHostsCount={hostsCount}
-        estimatedWaitSeconds={estWait}
-        isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
-        countryRequiresVip={!!settings?.country_filter_requires_vip}
-        genderFilterEnabled={!!settings?.enable_gender_filter}
-        countryFilterEnabled={!!settings?.enable_country_filter}
-        onStart={(filters) => startSearch(filters)}
-      />
-
+      <>
+        <PreMatchPrep
+          diamondBalance={profile?.coins ?? 0}
+          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          freeTrialSeconds={settings?.random_window_seconds ?? 60}
+          minBillableSeconds={settings?.random_window_seconds ?? 60}
+          availableHostsCount={hostsCount}
+          estimatedWaitSeconds={estWait}
+          isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
+          countryRequiresVip={!!settings?.country_filter_requires_vip}
+          genderFilterEnabled={!!settings?.enable_gender_filter}
+          countryFilterEnabled={!!settings?.enable_country_filter}
+          onStart={(filters) => startSearch(filters)}
+        />
+        <PostCallRatingSheet
+          open={!!ratingSession}
+          sessionId={ratingSession}
+          onClose={() => setRatingSession(null)}
+        />
+      </>
     );
   }
 

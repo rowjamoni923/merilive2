@@ -1,0 +1,70 @@
+// Random / Private Call — reconnect (G4 grace window).
+// Step 1: caller asks server to MARK the call as reconnecting + receives a one-time token.
+// Step 2: after network heals, caller calls ATTEMPT with the token to rejoin
+//         the same LiveKit room without resetting the billing clock.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  try {
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    const { data: ud } = await supabase.auth.getUser(token);
+    if (!ud?.user) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const action = String(body.action ?? "mark");
+    const kind = String(body.kind ?? "private");
+    const callId: string | undefined = body.call_id;
+    const reconnectToken: string | undefined = body.token;
+    const graceSeconds = Math.max(5, Math.min(60, Number(body.grace_seconds ?? 20)));
+
+    if (!callId || !["private", "random"].includes(kind)) {
+      return new Response(JSON.stringify({ error: "missing_fields" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "mark") {
+      const { data, error } = await supabase.rpc("mark_call_reconnecting", {
+        _kind: kind, _call_id: callId, _grace_seconds: graceSeconds,
+      });
+      if (error) throw error;
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (action === "attempt") {
+      if (!reconnectToken) {
+        return new Response(JSON.stringify({ error: "missing_token" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data, error } = await supabase.rpc("attempt_call_reconnect", {
+        _kind: kind, _call_id: callId, _token: reconnectToken,
+      });
+      if (error) throw error;
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ error: "invalid_action" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String((e as any)?.message ?? e) }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

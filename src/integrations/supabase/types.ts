@@ -7942,6 +7942,7 @@ export type Database = {
           is_in_match_pool: boolean
           min_caller_level: number
           preferred_caller_countries: string[] | null
+          preferred_caller_gender: string
           preferred_caller_langs: string[] | null
           rate_changed_at: string | null
           total_beans_earned: number
@@ -7960,6 +7961,7 @@ export type Database = {
           is_in_match_pool?: boolean
           min_caller_level?: number
           preferred_caller_countries?: string[] | null
+          preferred_caller_gender?: string
           preferred_caller_langs?: string[] | null
           rate_changed_at?: string | null
           total_beans_earned?: number
@@ -7978,6 +7980,7 @@ export type Database = {
           is_in_match_pool?: boolean
           min_caller_level?: number
           preferred_caller_countries?: string[] | null
+          preferred_caller_gender?: string
           preferred_caller_langs?: string[] | null
           rate_changed_at?: string | null
           total_beans_earned?: number
@@ -12100,6 +12103,8 @@ export type Database = {
           last_billed_minute: number
           last_billing_at: string | null
           platform_cut_percent: number | null
+          reconnect_grace_until: string | null
+          reconnect_token: string | null
           reconnecting_since: string | null
           settled_at: string | null
           started_at: string | null
@@ -12137,6 +12142,8 @@ export type Database = {
           last_billed_minute?: number
           last_billing_at?: string | null
           platform_cut_percent?: number | null
+          reconnect_grace_until?: string | null
+          reconnect_token?: string | null
           reconnecting_since?: string | null
           settled_at?: string | null
           started_at?: string | null
@@ -12174,6 +12181,8 @@ export type Database = {
           last_billed_minute?: number
           last_billing_at?: string | null
           platform_cut_percent?: number | null
+          reconnect_grace_until?: string | null
+          reconnect_token?: string | null
           reconnecting_since?: string | null
           settled_at?: string | null
           started_at?: string | null
@@ -12287,6 +12296,8 @@ export type Database = {
           previous_noble_card_id: string | null
           previous_vehicle_id: string | null
           profile_photo_url: string | null
+          random_match_avg_rating: number
+          random_match_rating_count: number
           rating_banner_dismissed: boolean | null
           region: string | null
           registration_country_code: string | null
@@ -12416,6 +12427,8 @@ export type Database = {
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
+          random_match_avg_rating?: number
+          random_match_rating_count?: number
           rating_banner_dismissed?: boolean | null
           region?: string | null
           registration_country_code?: string | null
@@ -12545,6 +12558,8 @@ export type Database = {
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
+          random_match_avg_rating?: number
+          random_match_rating_count?: number
           rating_banner_dismissed?: boolean | null
           region?: string | null
           registration_country_code?: string | null
@@ -12736,6 +12751,7 @@ export type Database = {
       }
       random_call_queue: {
         Row: {
+          caller_gender: string | null
           coin_rate_per_min: number | null
           device_id: string | null
           entered_at: string
@@ -12744,10 +12760,12 @@ export type Database = {
           hold_amount: number | null
           id: string
           is_vip: boolean
+          last_heartbeat_at: string | null
           matched_with: string | null
           preferred_country: string | null
           preferred_host_gender: string | null
           preferred_langs: string[] | null
+          preview_started_at: string | null
           role: string
           score: number
           session_id: string | null
@@ -12756,6 +12774,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          caller_gender?: string | null
           coin_rate_per_min?: number | null
           device_id?: string | null
           entered_at?: string
@@ -12764,10 +12783,12 @@ export type Database = {
           hold_amount?: number | null
           id?: string
           is_vip?: boolean
+          last_heartbeat_at?: string | null
           matched_with?: string | null
           preferred_country?: string | null
           preferred_host_gender?: string | null
           preferred_langs?: string[] | null
+          preview_started_at?: string | null
           role: string
           score?: number
           session_id?: string | null
@@ -12776,6 +12797,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          caller_gender?: string | null
           coin_rate_per_min?: number | null
           device_id?: string | null
           entered_at?: string
@@ -12784,10 +12806,12 @@ export type Database = {
           hold_amount?: number | null
           id?: string
           is_vip?: boolean
+          last_heartbeat_at?: string | null
           matched_with?: string | null
           preferred_country?: string | null
           preferred_host_gender?: string | null
           preferred_langs?: string[] | null
+          preview_started_at?: string | null
           role?: string
           score?: number
           session_id?: string | null
@@ -12796,6 +12820,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      random_call_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          ratee_id: string
+          rater_id: string
+          session_id: string
+          stars: number
+          tags: string[]
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          ratee_id: string
+          rater_id: string
+          session_id: string
+          stars: number
+          tags?: string[]
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          ratee_id?: string
+          rater_id?: string
+          session_id?: string
+          stars?: number
+          tags?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "random_call_ratings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "random_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       random_call_sessions: {
         Row: {
@@ -12811,6 +12876,7 @@ export type Database = {
           coins_charged: number
           converted_at: string | null
           created_at: string
+          disconnect_grace_until: string | null
           duration_seconds: number | null
           ended_at: string | null
           ended_by: string | null
@@ -12827,6 +12893,7 @@ export type Database = {
           livekit_room: string
           min_billable_seconds: number
           reconnect_count: number
+          reconnect_token: string | null
           settled: boolean
           started_at: string
           status: string
@@ -12845,6 +12912,7 @@ export type Database = {
           coins_charged?: number
           converted_at?: string | null
           created_at?: string
+          disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
           ended_by?: string | null
@@ -12861,6 +12929,7 @@ export type Database = {
           livekit_room: string
           min_billable_seconds?: number
           reconnect_count?: number
+          reconnect_token?: string | null
           settled?: boolean
           started_at?: string
           status?: string
@@ -12879,6 +12948,7 @@ export type Database = {
           coins_charged?: number
           converted_at?: string | null
           created_at?: string
+          disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
           ended_by?: string | null
@@ -12895,6 +12965,7 @@ export type Database = {
           livekit_room?: string
           min_billable_seconds?: number
           reconnect_count?: number
+          reconnect_token?: string | null
           settled?: boolean
           started_at?: string
           status?: string
@@ -12909,6 +12980,8 @@ export type Database = {
           beans_to_usd_rate: number
           coins_to_usd_rate: number
           convert_min_balance_seconds: number
+          cooldown_seconds_hard: number
+          cooldown_seconds_soft: number
           country_filter_requires_vip: boolean
           daily_skip_limit: number
           default_host_rate_coins_per_min: number
@@ -12950,12 +13023,16 @@ export type Database = {
           score_weight_verification: number
           score_weight_vip: number
           skip_cooldown_seconds: number
+          skip_diamond_penalty: number
           skip_extended_cooldown_seconds: number
           skip_extended_trigger_count: number
           skip_extended_window_seconds: number
+          skip_hard_cap: number
+          skip_soft_cap: number
           skip_soft_cooldown_seconds: number
           skip_soft_trigger_count: number
           skip_soft_window_seconds: number
+          skip_window_seconds: number
           svip_skip_cooldown_multiplier: number
           updated_at: string
           updated_by: string | null
@@ -12969,6 +13046,8 @@ export type Database = {
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
           convert_min_balance_seconds?: number
+          cooldown_seconds_hard?: number
+          cooldown_seconds_soft?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
@@ -13010,12 +13089,16 @@ export type Database = {
           score_weight_verification?: number
           score_weight_vip?: number
           skip_cooldown_seconds?: number
+          skip_diamond_penalty?: number
           skip_extended_cooldown_seconds?: number
           skip_extended_trigger_count?: number
           skip_extended_window_seconds?: number
+          skip_hard_cap?: number
+          skip_soft_cap?: number
           skip_soft_cooldown_seconds?: number
           skip_soft_trigger_count?: number
           skip_soft_window_seconds?: number
+          skip_window_seconds?: number
           svip_skip_cooldown_multiplier?: number
           updated_at?: string
           updated_by?: string | null
@@ -13029,6 +13112,8 @@ export type Database = {
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
           convert_min_balance_seconds?: number
+          cooldown_seconds_hard?: number
+          cooldown_seconds_soft?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
@@ -13070,12 +13155,16 @@ export type Database = {
           score_weight_verification?: number
           score_weight_vip?: number
           skip_cooldown_seconds?: number
+          skip_diamond_penalty?: number
           skip_extended_cooldown_seconds?: number
           skip_extended_trigger_count?: number
           skip_extended_window_seconds?: number
+          skip_hard_cap?: number
+          skip_soft_cap?: number
           skip_soft_cooldown_seconds?: number
           skip_soft_trigger_count?: number
           skip_soft_window_seconds?: number
+          skip_window_seconds?: number
           svip_skip_cooldown_multiplier?: number
           updated_at?: string
           updated_by?: string | null
@@ -20966,6 +21055,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_random_skip_penalty: { Args: { _user_id: string }; Returns: Json }
       apply_vip_recharge_bonus: {
         Args: { _base_diamonds: number; _recharge_id: string; _user_id: string }
         Returns: Json
@@ -20999,6 +21089,10 @@ export type Database = {
       approve_seat_request: { Args: { p_request_id: string }; Returns: Json }
       assign_payroll_to_trader: {
         Args: { _withdrawal_id: string }
+        Returns: Json
+      }
+      attempt_call_reconnect: {
+        Args: { _call_id: string; _kind: string; _token: string }
         Returns: Json
       }
       auto_approve_face_verification: {
@@ -21165,6 +21259,7 @@ export type Database = {
         Returns: boolean
       }
       check_otp_rate_limit: { Args: { p_email: string }; Returns: boolean }
+      check_random_match_cooldown: { Args: { _user_id: string }; Returns: Json }
       check_random_skip_cooldown: { Args: { p_user_id: string }; Returns: Json }
       check_rate_limit: {
         Args: { _action: string; _max_per_hour?: number; _user_id: string }
@@ -21264,6 +21359,7 @@ export type Database = {
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
       cleanup_stale_party_participants_v2: { Args: never; Returns: undefined }
       cleanup_stale_party_rooms: { Args: never; Returns: number }
+      cleanup_stale_random_queue: { Args: never; Returns: number }
       cleanup_stale_stream_viewers: { Args: never; Returns: Json }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
       close_live_stream_now: { Args: { p_stream_id: string }; Returns: Json }
@@ -21804,6 +21900,8 @@ export type Database = {
           previous_noble_card_id: string | null
           previous_vehicle_id: string | null
           profile_photo_url: string | null
+          random_match_avg_rating: number
+          random_match_rating_count: number
           rating_banner_dismissed: boolean | null
           region: string | null
           registration_country_code: string | null
@@ -22626,10 +22724,15 @@ export type Database = {
         Args: { p_call_id: string; p_channel?: string; p_device_info?: Json }
         Returns: Json
       }
-      mark_call_reconnecting: {
-        Args: { p_call_id: string; p_reconnecting: boolean }
-        Returns: Json
-      }
+      mark_call_reconnecting:
+        | {
+            Args: { _call_id: string; _grace_seconds?: number; _kind: string }
+            Returns: Json
+          }
+        | {
+            Args: { p_call_id: string; p_reconnecting: boolean }
+            Returns: Json
+          }
       mark_conversation_read: {
         Args: { p_conversation_id: string }
         Returns: number
@@ -23006,6 +23109,7 @@ export type Database = {
         Args: { _host_id: string }
         Returns: undefined
       }
+      random_queue_heartbeat: { Args: { _user_id: string }; Returns: undefined }
       recalc_agency_activation: {
         Args: { p_agency_id: string }
         Returns: undefined

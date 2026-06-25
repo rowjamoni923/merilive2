@@ -101,3 +101,10 @@ project_id = "ayjdlvuurscxucatbbah"
 
 
 
+  # Random Match — heartbeat, post-call rating, reconnect grace
+  [functions.random-call-heartbeat]
+    verify_jwt = true
+  [functions.random-call-rate]
+    verify_jwt = true
+  [functions.random-call-reconnect]
+    verify_jwt = true
