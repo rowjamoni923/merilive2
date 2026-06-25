@@ -967,7 +967,9 @@ export default function AdminAgencies() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-800 border border-slate-700 mb-4 p-1 w-full grid grid-cols-3 md:grid-cols-6 md:flex md:w-auto">
+        <div className="w-full overflow-x-auto -mx-2 px-2 mb-4">
+        <TabsList className="bg-slate-800 border border-slate-700 p-1 inline-flex w-max md:w-auto md:flex">
+
           <TabsTrigger value="agencies" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Building2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             <span className="hidden md:inline">Agencies</span>
@@ -1008,6 +1010,8 @@ export default function AdminAgencies() {
             <span className="md:hidden">💎</span>
           </TabsTrigger>
         </TabsList>
+        </div>
+
 
         <TabsContent value="csa" className="space-y-4">
           <AdminCsaApprovals />

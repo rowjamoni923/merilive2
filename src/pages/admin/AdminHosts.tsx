@@ -411,7 +411,7 @@ export default function AdminHosts() {
        {/* Hosts Table */}
       <Card className="bg-white/5 border-white/10">
         <CardContent className="p-0">
-          <Table>
+          <div className="w-full overflow-x-auto"><Table>
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-transparent">
                 <TableHead className="text-white/70">Host</TableHead>
@@ -549,7 +549,7 @@ export default function AdminHosts() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
           <AdminPagination
             page={page}
             totalPages={Math.max(1, Math.ceil(totalCount / pageSize))}
@@ -563,7 +563,7 @@ export default function AdminHosts() {
 
       {/* Host Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl">
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Host Details</DialogTitle>
           </DialogHeader>

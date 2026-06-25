@@ -775,7 +775,9 @@ const AdminFaceVerification = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-6 w-full max-w-2xl">
+        <div className="w-full overflow-x-auto -mx-2 px-2">
+        <TabsList className="inline-flex w-max md:grid md:grid-cols-6 md:w-full md:max-w-2xl">
+
           <TabsTrigger value="pending" className="relative" data-testid="tab-pending">
             Pending
             <span data-testid="tab-count-pending" className={pendingCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{pendingCount}</span>
@@ -801,6 +803,8 @@ const AdminFaceVerification = () => {
             <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
+        </div>
+
 
         <TabsContent value={activeTab} className="mt-4">
           {filteredSubmissions.length === 0 ? (
@@ -990,7 +994,7 @@ const AdminFaceVerification = () => {
 
       {/* Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-slate-900 border-slate-700 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ScanFace className="w-5 h-5 text-purple-500" />
@@ -1437,7 +1441,7 @@ const AdminFaceVerification = () => {
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md">
+        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white text-lg">
               {actionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}

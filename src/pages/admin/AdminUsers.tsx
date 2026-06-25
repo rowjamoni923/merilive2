@@ -511,7 +511,7 @@ export default function AdminUsers() {
       )}
 
       <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-slate-900 border-slate-700 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white font-bold">
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
@@ -560,7 +560,7 @@ export default function AdminUsers() {
 
       {/* User Details Dialog */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-800 border-white/10 max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">User Details</DialogTitle>
           </DialogHeader>

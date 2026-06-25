@@ -130,7 +130,7 @@ export default function AdminUnifiedApprovals() {
 
       {/* Two top-level sources */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-white/10 p-1 grid grid-cols-2 w-full md:w-auto">
+        <TabsList className="bg-slate-900/80 border border-white/10 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
           <TabsTrigger value="subadmin" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white gap-2">
             <ShieldCheck className="w-4 h-4" /> Sub-Admin & Support
             {counts.sub > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.sub}</Badge>}

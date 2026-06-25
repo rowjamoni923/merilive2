@@ -93,7 +93,9 @@ const AdminFinance = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 bg-slate-900/50 p-1 h-auto">
+        <div className="w-full overflow-x-auto -mx-2 px-2">
+        <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 bg-slate-900/50 p-1 h-auto">
+
           <TabsTrigger 
             value="withdrawals" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-black py-2 text-xs"
@@ -149,6 +151,8 @@ const AdminFinance = () => {
             )}
           </TabsTrigger>
         </TabsList>
+        </div>
+
 
         <TabsContent value="withdrawals" className="mt-0">
           <AdminWithdrawals />
