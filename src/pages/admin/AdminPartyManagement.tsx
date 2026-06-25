@@ -108,7 +108,7 @@ export default function AdminPartyManagement() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap">
+        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap overflow-x-auto whitespace-nowrap">
           <TabsTrigger 
             value="rooms" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white gap-2"

@@ -256,7 +256,7 @@ const AdminNobleSubscriptions = () => {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className="bg-slate-900 border-slate-700 w-[95vw] sm:max-w-4xl max-h-[92vh] p-0 flex flex-col overflow-hidden"
+          className="bg-slate-900 border-slate-700 w-screen sm:w-[95vw] sm:max-w-4xl h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg p-0 flex flex-col overflow-hidden"
           style={{ resize: 'both', minWidth: '320px', minHeight: '400px' }}
         >
           <DialogHeader className="p-4 border-b border-slate-700 shrink-0">
