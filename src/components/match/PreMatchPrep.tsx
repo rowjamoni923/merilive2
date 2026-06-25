@@ -372,13 +372,14 @@ export default function PreMatchPrep({
         )}
         {phase === "prep" && (
           <>
-            <div className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/85">
-              <span className="opacity-70">First {freeTrialSeconds}s</span>
-              <span className="font-bold">FREE</span>
-              <span className="opacity-50">·</span>
-              <Gem className="w-3 h-3 text-cyan-300" />
-              <span className="font-bold">{hostRatePerMin}</span>
-              <span className="opacity-70">/ min after</span>
+            <div className="mt-2 flex flex-col items-center gap-0.5 text-[12px] text-white/85">
+              <div className="flex items-center gap-1.5">
+                <span className="opacity-70">1st minute</span>
+                <Gem className="w-3 h-3 text-cyan-300" />
+                <span className="font-bold">{hostRatePerMin.toLocaleString()}</span>
+                <span className="opacity-70">· host earns {Math.round(hostRatePerMin / 2).toLocaleString()}</span>
+              </div>
+              <div className="opacity-70 text-[11px]">After 1 min · host's private-call rate</div>
             </div>
             {insufficient && (
               <button onClick={() => navigate("/recharge")}
