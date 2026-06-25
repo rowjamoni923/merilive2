@@ -7996,11 +7996,13 @@ export type Database = {
           avg_rating_7d: number
           calls_completed_7d: number
           calls_short_7d: number
+          consecutive_random_rejects: number
           created_at: string
           host_id: string
           is_queue_suppressed: boolean
           last_recomputed_at: string
           quality_score: number
+          random_reject_cooldown_until: string | null
           rating_count_7d: number
           report_count_24h: number
           rings_accepted_7d: number
@@ -8016,11 +8018,13 @@ export type Database = {
           avg_rating_7d?: number
           calls_completed_7d?: number
           calls_short_7d?: number
+          consecutive_random_rejects?: number
           created_at?: string
           host_id: string
           is_queue_suppressed?: boolean
           last_recomputed_at?: string
           quality_score?: number
+          random_reject_cooldown_until?: string | null
           rating_count_7d?: number
           report_count_24h?: number
           rings_accepted_7d?: number
@@ -8036,11 +8040,13 @@ export type Database = {
           avg_rating_7d?: number
           calls_completed_7d?: number
           calls_short_7d?: number
+          consecutive_random_rejects?: number
           created_at?: string
           host_id?: string
           is_queue_suppressed?: boolean
           last_recomputed_at?: string
           quality_score?: number
+          random_reject_cooldown_until?: string | null
           rating_count_7d?: number
           report_count_24h?: number
           rings_accepted_7d?: number
@@ -12999,6 +13005,9 @@ export type Database = {
           host_max_rate_coins_per_min: number
           host_min_acceptance_pct: number
           host_min_rate_coins_per_min: number
+          host_reject_cooldown_hours: number
+          host_reject_count_timeouts: boolean
+          host_reject_streak_threshold: number
           host_split_pct: number
           id: number
           is_enabled: boolean
@@ -13065,6 +13074,9 @@ export type Database = {
           host_max_rate_coins_per_min?: number
           host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
+          host_reject_cooldown_hours?: number
+          host_reject_count_timeouts?: boolean
+          host_reject_streak_threshold?: number
           host_split_pct?: number
           id?: number
           is_enabled?: boolean
@@ -13131,6 +13143,9 @@ export type Database = {
           host_max_rate_coins_per_min?: number
           host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
+          host_reject_cooldown_hours?: number
+          host_reject_count_timeouts?: boolean
+          host_reject_streak_threshold?: number
           host_split_pct?: number
           id?: number
           is_enabled?: boolean
@@ -22589,6 +22604,11 @@ export type Database = {
       }
       helper_transfer_diamonds_to_self: {
         Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
+      host_random_on_accept: { Args: { p_host_id: string }; Returns: undefined }
+      host_random_on_reject: {
+        Args: { p_host_id: string; p_reason?: string }
         Returns: Json
       }
       host_weekly_contribution: { Args: { _uid?: string }; Returns: number }
