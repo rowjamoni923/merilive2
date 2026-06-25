@@ -110,6 +110,7 @@ export default function MatchCall() {
       toast.error("Random Call is currently disabled by admin.");
       return;
     }
+    lastFiltersRef.current = filters;
     setErrorMsg("");
     setPhase("searching");
     setElapsed(0);
