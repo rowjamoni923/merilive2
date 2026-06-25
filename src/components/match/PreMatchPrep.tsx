@@ -207,10 +207,49 @@ export default function PreMatchPrep({
           {/* static inner rings */}
           <span className="absolute w-[200px] h-[200px] rounded-full border border-white/15" />
           <span className="absolute w-[130px] h-[130px] rounded-full border border-white/20" />
-          <span className="absolute w-[80px] h-[80px] rounded-full bg-white/5 backdrop-blur-md border border-white/25" />
-          <div className="relative text-center">
-            <div className="text-[15px] font-bold tracking-tight">Tap to Match</div>
-            <div className="text-[10px] text-white/60 mt-0.5">{availableHostsCount} hosts online</div>
+          <span className="absolute w-[80px] h-[80px] rounded-full bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)]" />
+
+          {/* Floating online host avatars (orbit) */}
+          <AnimatePresence>
+            {orbitSlots.map((slot, i) => {
+              const url = orbitAvatars[i % Math.max(1, orbitAvatars.length)];
+              if (!url || !orbitAvatars.length) return null;
+              return (
+                <motion.div
+                  key={`${i}-${url}`}
+                  className="absolute rounded-full overflow-hidden ring-2 ring-white/40 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)]"
+                  style={{ width: slot.size, height: slot.size, left: "50%", top: "50%" }}
+                  initial={{ x: slot.x, y: slot.y, scale: 0, opacity: 0 }}
+                  animate={{
+                    x: [slot.x, slot.x + (slot.ring === 1 ? 6 : -4), slot.x],
+                    y: [slot.y, slot.y - 6, slot.y],
+                    scale: 1, opacity: 1,
+                  }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{
+                    x: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    y: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    scale: { duration: 0.4, delay: i * 0.05 },
+                    opacity: { duration: 0.4, delay: i * 0.05 },
+                  }}
+                >
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                    style={{ marginLeft: -slot.size / 2, marginTop: -slot.size / 2 }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+
+          <div className="relative text-center pointer-events-none">
+            <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+            <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
           </div>
         </div>
 
