@@ -171,8 +171,16 @@ const FaceVerification = () => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected'>('unverified');
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected' | 'needs_retry'>('unverified');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [retryRequired, setRetryRequired] = useState<{
+    kind: string;
+    verification_type?: string;
+    headline?: string;
+    summary?: string;
+    steps?: string[];
+    failed_evidence?: Array<{ label: string; human_name: string; step: string; score: number | null; message: string }>;
+  } | null>(null);
   const [submitInProgress, setSubmitInProgress] = useState(false);
   // Permanent block (banned face/device/IP, or 10-strike contact-violation lockout).
   // Checked once on mount via check_face_verification_eligibility RPC.
