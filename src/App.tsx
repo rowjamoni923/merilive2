@@ -245,6 +245,7 @@ const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDev
 // AdminCommissions deprecated → AdminPricingHub (Pkg30)
 const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
 const AdminRandomCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminRandomCallSettings")));
+const AdminRandomCallOps = lazy(lazyRetry(() => import("./pages/admin/AdminRandomCallOps")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
