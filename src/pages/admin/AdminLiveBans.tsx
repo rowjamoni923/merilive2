@@ -676,7 +676,7 @@ export default function AdminLiveBans() {
                       })
                     )}
                   </TableBody>
-                </Table>
+                </Table></div>
               </CardContent>
             </Card>
           </TabsContent>

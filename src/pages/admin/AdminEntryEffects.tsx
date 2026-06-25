@@ -84,7 +84,7 @@ const AdminEntryEffects = () => {
             <Car className="mr-1 h-4 w-4 sm:mr-2" />
             Vehicle <span className="hidden sm:inline">Entrances</span>
           </TabsTrigger>
-        </TabsList>
+        </TabsList></div>
 
         <TabsContent value="banners" className="mt-0">
           <AdminEntryBanners />
