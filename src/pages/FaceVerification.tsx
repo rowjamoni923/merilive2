@@ -587,7 +587,7 @@ const FaceVerification = () => {
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
-    } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted') {
+    } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted' || latestSubmission?.status === 'under_review') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
     } else if (latestSubmission?.status === 'rejected') {
@@ -1985,7 +1985,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending','submitted'])
+        .in('status', ['pending','submitted','under_review'])
         .maybeSingle();
 
       if (existingSubmission) {
@@ -2045,7 +2045,7 @@ const FaceVerification = () => {
         .insert({
           user_id: userId,
           verification_type: 'face',
-          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          status: 'under_review', // ★ instant under_review (no submitted→review delay)
           // ★ DO NOT pre-flag manual_review_required — let face-verification-analyze
           //   run the full 3-API pipeline (AWS Rekognition + liveness + duplicate) and
           //   let service_auto_finalize_face_verification decide. Pre-flagging caused
@@ -2093,8 +2093,8 @@ const FaceVerification = () => {
       }
 
       toast({
-        title: "✅ Submission Successful!",
-        description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
+        title: "✅ Under Review",
+        description: "Your verification is now under admin review. You'll be notified the moment it's approved.",
       });
       setSubmitInProgress(false);
       return;
@@ -2294,7 +2294,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending','submitted'])
+        .in('status', ['pending','submitted','under_review'])
         .maybeSingle();
 
       if (existingSubmission) {
@@ -2319,7 +2319,7 @@ const FaceVerification = () => {
         .insert({
           user_id: userId,
           verification_type: 'host',
-          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          status: 'under_review', // ★ instant under_review
           // ★ Pkg358: do NOT pre-flag manual_review_required — let analyze pipeline decide.
           admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
           ai_analysis: {
@@ -2368,8 +2368,8 @@ const FaceVerification = () => {
       }
 
       toast({
-        title: "✅ Host Application Submitted!",
-        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
+        title: "✅ Under Review",
+        description: "Your host application is now under admin review. Approval notification will appear instantly.",
       });
       setSubmitInProgress(false);
       return;
