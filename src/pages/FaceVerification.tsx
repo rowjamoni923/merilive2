@@ -1990,8 +1990,8 @@ const FaceVerification = () => {
     } catch { return null; }
   };
 
-  // Upload passive live-scan stills. Legacy admin/AI columns still expect
-  // front/left/right URLs, so side slots fall back to the same live frame.
+  // Upload passive live-scan stills. Only real captured frames are uploaded —
+  // missing left/right frames stay null so they cannot create fake evidence.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
     const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
@@ -2465,7 +2465,7 @@ const FaceVerification = () => {
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
             scan_mode: 'passive_photo_video_live',
-            evidence_required: ['profile_photo', 'intro_video', 'host_gallery_photos', 'live_face_scan'],
+            evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
             evidence_urls: {
               profile_photo_url: profilePhotoUrl,
               intro_video_frame_url: introVideoFrameUrl,
