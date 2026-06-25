@@ -141,8 +141,8 @@ export default function RechargeBannerCarousel({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl shadow-lg shadow-amber-500/10 bg-card"
-      style={{ height: "clamp(112px, 34vw, 140px)", aspectRatio: "3 / 1" }}
+      className="relative w-full overflow-hidden rounded-xl shadow-lg shadow-amber-500/10 bg-transparent"
+      style={{ height: "clamp(86px, 28vw, 112px)", aspectRatio: "3 / 1" }}
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
       onTouchStart={() => (pausedRef.current = true)}
@@ -155,6 +155,7 @@ export default function RechargeBannerCarousel({
         <button
           key={b.id}
           type="button"
+          data-recharge-banner="slide"
           aria-hidden={i !== index}
           tabIndex={i === index ? 0 : -1}
           onClick={() => onBannerClick?.(b)}
@@ -165,26 +166,14 @@ export default function RechargeBannerCarousel({
         >
           <SmartImage
             src={b.image_url}
-            alt=""
+            alt={b.title || `Banner ${i + 1}`}
             fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
-            className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-40 select-none"
-            aria-hidden="true"
+            className="relative z-10 w-full h-full object-cover object-center rounded-xl select-none"
             draggable={false}
             eager={i === index}
             resize="cover"
             cdnWidth={720}
             cdnHeight={240}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
-          <SmartImage
-            src={b.image_url}
-            alt={b.title || `Banner ${i + 1}`}
-            fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
-            className="relative z-10 w-full h-full object-contain rounded-xl select-none"
-            draggable={false}
-            eager={i === index}
-            resize="contain"
-            cdnWidth={720}
           />
         </button>
       ))}
