@@ -456,7 +456,7 @@ export default function AdminHostApplications() {
       </div>
 
       {/* Stats — Pending / Approved / Rejected / All (matches AdminFaceVerification) */}
-      <div className="grid grid-cols-4 gap-2 md:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
         {[
           { key: 'pending', icon: Clock, color: 'amber', label: 'Pending' },
           { key: 'approved', icon: CheckCircle, color: 'emerald', label: 'Approved' },
@@ -745,7 +745,7 @@ export default function AdminHostApplications() {
 
       {/* ============ DETAIL DIALOG ============ */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-4xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg overflow-y-auto p-0">
           {sel && (
             <>
               {/* Dialog Header with profile banner */}
@@ -1011,7 +1011,7 @@ export default function AdminHostApplications() {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="bg-slate-800 border-white/10">
+        <DialogContent className="bg-slate-800 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <XCircle className="w-5 h-5 text-rose-400" />

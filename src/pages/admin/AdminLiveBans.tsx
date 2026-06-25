@@ -539,7 +539,7 @@ export default function AdminLiveBans() {
             {/* Bans Table */}
             <Card>
               <CardContent className="p-0">
-                <Table>
+                <div className="w-full overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>User</TableHead>
@@ -676,7 +676,7 @@ export default function AdminLiveBans() {
                       })
                     )}
                   </TableBody>
-                </Table>
+                </Table></div>
               </CardContent>
             </Card>
           </TabsContent>

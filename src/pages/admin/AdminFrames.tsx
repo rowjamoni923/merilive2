@@ -496,7 +496,7 @@ const AdminFrames = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-purple-600">{frames.length}</p>
@@ -733,7 +733,7 @@ const AdminFrames = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-hidden flex flex-col p-0">
           <DialogHeader className="p-4 md:p-6 pb-0 flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <FileVideo className="w-5 h-5 text-purple-500" />
