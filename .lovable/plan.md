@@ -1,6 +1,17 @@
 
 ## লক্ষ্য
 
+## Support live chat hotfix — 100% two-way delivery
+
+- Root cause: `support_messages` insert succeeds path was blocked after insert because `tg_touch_support_ticket_on_user_message()` updates `support_tickets.status = 'open'`, then `tg_guard_support_tickets_update()` rejects ordinary-user status changes with `Only subject and category can be changed on your own ticket`.
+- Fix: keep direct user ticket-status edits forbidden, but allow the trusted nested server trigger to reopen/touch the ticket after a valid user message insert. This preserves security and allows unlimited user→admin messages.
+- Realtime: user messages still fan out to admin through `support_messages` / `admin_broadcast`; admin messages still fan out to the ticket owner through `app_sync` + `support_reply` notification. No polling substitute should be required for delivery.
+- Expected production behavior: admin and user can send unlimited messages on open/pending live-chat tickets; both sides reload/receive the same message history instantly; closed/resolved tickets still block new user messages.
+
+### Industry notes
+- Chamet/Bigo-style live support behaves like a normal role-scoped chat thread: participants can keep replying until support closes the ticket, and status changes must be server-authoritative.
+- Agora-style apps usually use a realtime signaling/data channel for chat fanout; in this app the equivalent is Supabase Realtime/app-sync for support chat while LiveKit remains for in-room media.
+
 Admin panel মোবাইল থেকে চালানোর সময়ও যাতে professional ভাবে কাজ করে — সব tab/table/dialog/form ৩৬০px width-এ ঠিকঠাক ফিট করে, কোনো horizontal scroll বা কাটা UI না থাকে।
 
 Sidebar শেল আগেই mobile-ready (hamburger + drawer). কাজ বাকি = ভিতরের প্রতিটা page-এর content layer।
