@@ -2093,8 +2093,8 @@ const FaceVerification = () => {
       }
 
       toast({
-        title: "✅ Submission Successful!",
-        description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
+        title: "✅ Under Review",
+        description: "Your verification is now under admin review. You'll be notified the moment it's approved.",
       });
       setSubmitInProgress(false);
       return;
