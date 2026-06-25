@@ -172,6 +172,48 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
+  const searchUsers = async (q: string) => {
+    setAddQuery(q);
+    const term = q.trim();
+    if (term.length < 2) { setAddResults([]); return; }
+    const memberIds = new Set(members.map(m => m.user_id));
+    const { data } = await supabase
+      .from('profiles_public')
+      .select('id, display_name, avatar_url, app_uid, user_level')
+      .or(`display_name.ilike.%${term}%,app_uid.ilike.%${term}%`)
+      .limit(15);
+    setAddResults((data || []).filter((u: any) => !memberIds.has(u.id)));
+  };
+
+  const handleAddMember = async (userId: string) => {
+    setAddingId(userId);
+    try {
+      const { data, error } = await supabase.rpc('add_group_member' as any, {
+        p_group_id: group.id,
+        p_user_id: userId,
+      });
+      if (error) throw error;
+      const res = data as any;
+      if (res?.ok) {
+        toast.success(res.already_member ? "Already a member" : "Member added");
+        setAddResults(r => r.filter(u => u.id !== userId));
+        fetchMembers();
+        onGroupUpdated();
+      } else {
+        const code = String(res?.error || 'failed');
+        const msg = code === 'family_limit_reached' ? "User already in a family group"
+          : code === 'not_authorized' ? "Only owner can add members"
+          : code === 'user_unavailable' ? "User unavailable"
+          : "Failed to add member";
+        toast.error(msg);
+      }
+    } catch (e) {
+      toast.error("Failed to add member");
+    } finally {
+      setAddingId(null);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header - Premium 3D Glass */}
