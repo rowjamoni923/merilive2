@@ -2218,7 +2218,14 @@ const FaceVerification = () => {
     
     postSubmitLockedRef.current = true;
     setSubmitInProgress(true);
+    setVerificationStatus('submitted'); // ★ instant lock so the Under Review screen takes over this very render
     setLoading(true);
+    // Synchronously strip the native-camera body class so the underlying
+    // CameraX surface is hidden in the same paint frame as the lock flip.
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    }
     await teardownFaceCameraPreview();
     
     try {
