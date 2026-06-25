@@ -171,7 +171,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                       <Users className="w-5 h-5 text-primary" />
                       <span className="font-medium text-foreground">Family Group</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">One user can join one family group only</p>
+                    <p className="text-xs text-muted-foreground mt-1">No agency required. One family group per user.</p>
                   </Label>
                 </div>
               </RadioGroup>
