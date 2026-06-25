@@ -19,7 +19,8 @@ import { useCall } from "@/components/call/CallProvider";
  */
 export default function MatchCall() {
   const navigate = useNavigate();
-  const { startCall } = useCall();
+  const { startCall, isInCall } = useCall();
+  const wasInCallRef = useRef(false);
   const [phase, setPhase] = useState<"intro" | "searching" | "matched" | "error">("intro");
   const [queueId, setQueueId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
