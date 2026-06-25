@@ -1,29 +1,63 @@
-import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus, Copy, Check, Search } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import {
+  ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus,
+  Copy, Check, Search, Settings as SettingsIcon, Link2, RefreshCw, Shield,
+  ShieldCheck, MoreVertical, Globe, Lock, Bell, BellOff, MessageSquare,
+  Pin, ClipboardCheck, Edit3, X
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 
 interface GroupMember {
-  id: string;
   user_id: string;
-  role: string;
+  role: "owner" | "admin" | "member" | string;
   joined_at: string;
-  profile?: {
-    display_name: string | null;
-    avatar_url: string | null;
-    user_level?: number;
-    app_uid?: string;
-  };
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
 }
 
-interface GroupSettingsPanelProps {
+interface GroupRow {
+  id: string;
+  name: string;
+  description: string | null;
+  avatar_url: string | null;
+  group_type: string;
+  group_code: string | null;
+  owner_id: string;
+  member_count: number;
+  max_members: number;
+  is_public: boolean;
+  invite_token: string | null;
+  settings: any;
+}
+
+interface JoinRequest {
+  id: string;
+  user_id: string;
+  requested_at: string;
+  profile?: { full_name: string | null; username: string | null; avatar_url: string | null };
+}
+
+interface Props {
   group: {
     id: string;
     name: string;
@@ -39,407 +73,532 @@ interface GroupSettingsPanelProps {
   onLeaveGroup: () => void;
 }
 
-export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdated, onLeaveGroup }: GroupSettingsPanelProps) => {
+const DEFAULT_SETTINGS = {
+  who_can_send: "all",
+  who_can_edit_info: "admins",
+  who_can_add_members: "admins",
+  approve_new_members: false,
+  disappearing_seconds: 0,
+  slow_mode_seconds: 0,
+};
+
+export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdated, onLeaveGroup }: Props) => {
+  const [tab, setTab] = useState<"info" | "members" | "requests" | "settings">("info");
+  const [row, setRow] = useState<GroupRow | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
+  const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
-  const [codeCopied, setCodeCopied] = useState(false);
+  const [memberQuery, setMemberQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [addQuery, setAddQuery] = useState("");
   const [addResults, setAddResults] = useState<any[]>([]);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [memberSheet, setMemberSheet] = useState<GroupMember | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [tokenCopied, setTokenCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isOwner = group.owner_id === currentUserId;
+  const isOwner = row ? row.owner_id === currentUserId : group.owner_id === currentUserId;
+  const myRole = useMemo(() => members.find(m => m.user_id === currentUserId)?.role || "member", [members, currentUserId]);
+  const isAdmin = myRole === "admin" || isOwner;
+  const settings = { ...DEFAULT_SETTINGS, ...(row?.settings || {}) };
+  const inviteUrl = row?.invite_token ? `${window.location.origin}/invite/${encodeURIComponent(row.invite_token)}` : "";
 
-  useEffect(() => {
-    fetchMembers();
-  }, [group.id]);
+  useEffect(() => { void loadAll(); /* eslint-disable-next-line */ }, [group.id]);
 
-  const fetchMembers = async () => {
+  const loadAll = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('group_members')
-        .select('id, user_id, role, joined_at')
-        .eq('group_id', group.id)
-        .order('role', { ascending: true })
-        .order('joined_at', { ascending: true });
+      const [{ data: g, error: ge }, mRes, rRes] = await Promise.all([
+        supabase.from("groups").select("id,name,description,avatar_url,group_type,group_code,owner_id,member_count,max_members,is_public,invite_token,settings").eq("id", group.id).maybeSingle(),
+        supabase.rpc("search_group_members", { p_group_id: group.id, p_q: null, p_limit: 500 }),
+        supabase.from("group_join_requests").select("id,user_id,requested_at").eq("group_id", group.id).eq("status", "pending").order("requested_at", { ascending: true }),
+      ]);
+      if (ge) throw ge;
+      setRow(g as GroupRow);
+      setEditName(g?.name || "");
+      setEditDescription(g?.description || "");
+      setMembers((mRes.data || []) as GroupMember[]);
 
-      if (error) throw error;
-
-      // Fetch profiles for all members
-      const userIds = data.map(m => m.user_id);
-      const { data: profiles } = await supabase
-        .from('profiles_public')
-        .select('id, display_name, avatar_url, user_level, app_uid')
-        .in('id', userIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-      setMembers(data.map(m => ({
-        ...m,
-        profile: profileMap.get(m.user_id) || undefined
-      })));
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    } finally {
-      setLoading(false);
-    }
+      const reqs = (rRes.data || []) as any[];
+      if (reqs.length > 0) {
+        const { data: profs } = await supabase.from("profiles_public").select("id,full_name,username,avatar_url").in("id", reqs.map(r => r.user_id));
+        const pMap = new Map((profs || []).map((p: any) => [p.id, p]));
+        setRequests(reqs.map(r => ({ ...r, profile: pMap.get(r.user_id) })));
+      } else setRequests([]);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to load group");
+    } finally { setLoading(false); }
   };
 
-  const handleRemoveMember = async (memberId: string, userId: string) => {
-    if (userId === currentUserId) return;
-    
-    try {
-      const { error } = await supabase
-        .from('group_members')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      toast.success("Member removed");
-      setConfirmRemove(null);
-      fetchMembers();
-      onGroupUpdated();
-    } catch (error) {
-      toast.error("Failed to remove member");
-    }
-  };
-
-  const handleLeaveGroup = async () => {
-    try {
-      const { error } = await supabase
-        .from('group_members')
-        .delete()
-        .eq('group_id', group.id)
-        .eq('user_id', currentUserId);
-
-      if (error) throw error;
-
-      toast.success("Left group");
-      onLeaveGroup();
-    } catch (error) {
-      toast.error("Failed to leave group");
-    }
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  /* ---------- Avatar upload ---------- */
+  const onAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f || !row) return;
+    if (!isAdmin && settings.who_can_edit_info === "admins") { toast.error("Only admins can edit"); return; }
     setUploading(true);
     try {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      if (!file.type?.startsWith('image/') || ext === 'svg') { toast.error("Invalid image type"); setUploading(false); return; }
-      const path = `group-avatars/${group.id}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(path, file, { upsert: true, contentType: file.type });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('assets')
-        .getPublicUrl(path);
-
-      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from('groups')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', group.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Group photo updated!");
-      onGroupUpdated();
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error("Failed to upload photo");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const copyGroupCode = () => {
-    navigator.clipboard.writeText(group.group_code);
-    setCodeCopied(true);
-    toast.success("Group code copied!");
-    setTimeout(() => setCodeCopied(false), 2000);
-  };
-
-  const searchUsers = async (q: string) => {
-    setAddQuery(q);
-    const term = q.trim();
-    if (term.length < 2) { setAddResults([]); return; }
-    const memberIds = new Set(members.map(m => m.user_id));
-    const { data } = await supabase
-      .from('profiles_public')
-      .select('id, display_name, avatar_url, app_uid, user_level')
-      .or(`display_name.ilike.%${term}%,app_uid.ilike.%${term}%`)
-      .limit(15);
-    setAddResults((data || []).filter((u: any) => !memberIds.has(u.id)));
-  };
-
-  const handleAddMember = async (userId: string) => {
-    setAddingId(userId);
-    try {
-      const { data, error } = await supabase.rpc('add_group_member' as any, {
-        p_group_id: group.id,
-        p_user_id: userId,
-      });
+      const ext = f.name.split(".").pop() || "jpg";
+      const path = `groups/${row.id}/${Date.now()}.${ext}`;
+      const { error: ue } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
+      if (ue) throw ue;
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { error } = await supabase.rpc("update_group_info", { p_group_id: row.id, p_avatar_url: publicUrl });
       if (error) throw error;
-      const res = data as any;
-      if (res?.ok) {
-        toast.success(res.already_member ? "Already a member" : "Member added");
-        setAddResults(r => r.filter(u => u.id !== userId));
-        fetchMembers();
-        onGroupUpdated();
-      } else {
-        const code = String(res?.error || 'failed');
-        const msg = code === 'family_limit_reached' ? "User already in a family group"
-          : code === 'not_authorized' ? "Only owner can add members"
-          : code === 'user_unavailable' ? "User unavailable"
-          : "Failed to add member";
-        toast.error(msg);
-      }
-    } catch (e) {
-      toast.error("Failed to add member");
-    } finally {
-      setAddingId(null);
-    }
+      setRow({ ...row, avatar_url: publicUrl });
+      onGroupUpdated();
+      toast.success("Group photo updated");
+    } catch (err: any) { toast.error(err?.message || "Upload failed"); }
+    finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
   };
+
+  const saveInfo = async () => {
+    if (!row) return;
+    if (!editName.trim()) { toast.error("Name required"); return; }
+    try {
+      const { error } = await supabase.rpc("update_group_info", { p_group_id: row.id, p_name: editName.trim(), p_description: editDescription.trim() || null });
+      if (error) throw error;
+      setRow({ ...row, name: editName.trim(), description: editDescription.trim() || null });
+      setShowEdit(false); onGroupUpdated(); toast.success("Saved");
+    } catch (e: any) { toast.error(e?.message || "Save failed"); }
+  };
+
+  const saveSetting = async (patch: Record<string, any>) => {
+    if (!row) return;
+    const next = { ...settings, ...patch };
+    try {
+      const { error } = await supabase.rpc("update_group_info", { p_group_id: row.id, p_settings: next });
+      if (error) throw error;
+      setRow({ ...row, settings: next });
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  const togglePublic = async (val: boolean) => {
+    if (!row) return;
+    try {
+      const { error } = await supabase.rpc("update_group_info", { p_group_id: row.id, p_is_public: val });
+      if (error) throw error;
+      setRow({ ...row, is_public: val });
+      toast.success(val ? "Group is now public" : "Group is now private");
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  /* ---------- Members ---------- */
+  const filteredMembers = useMemo(() => {
+    const q = memberQuery.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter(m => (m.full_name || "").toLowerCase().includes(q) || (m.username || "").toLowerCase().includes(q));
+  }, [members, memberQuery]);
+
+  const setRole = async (uid: string, role: "admin" | "member") => {
+    try {
+      const { error } = await supabase.rpc("set_group_member_role", { p_group_id: group.id, p_user_id: uid, p_role: role });
+      if (error) throw error;
+      toast.success(role === "admin" ? "Promoted to admin" : "Demoted to member");
+      setMemberSheet(null); await loadAll();
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+  const removeMember = async (uid: string) => {
+    try {
+      const { error } = await supabase.rpc("remove_group_member", { p_group_id: group.id, p_user_id: uid });
+      if (error) throw error;
+      toast.success("Member removed"); setMemberSheet(null); await loadAll(); onGroupUpdated();
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+  const transferOwnership = async (uid: string) => {
+    try {
+      const { error } = await supabase.rpc("transfer_group_ownership", { p_group_id: group.id, p_new_owner: uid });
+      if (error) throw error;
+      toast.success("Ownership transferred"); setMemberSheet(null); await loadAll();
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  /* ---------- Add member search ---------- */
+  useEffect(() => {
+    if (!showAdd || !addQuery.trim()) { setAddResults([]); return; }
+    let active = true;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles_public")
+        .select("id,full_name,username,avatar_url,app_uid")
+        .or(`full_name.ilike.%${addQuery}%,username.ilike.%${addQuery}%,app_uid.ilike.%${addQuery}%`)
+        .limit(20);
+      if (active) setAddResults((data || []).filter((u: any) => !members.some(m => m.user_id === u.id)));
+    }, 250);
+    return () => { active = false; clearTimeout(t); };
+  }, [addQuery, showAdd, members]);
+
+  const addMember = async (uid: string) => {
+    setAddingId(uid);
+    try {
+      const { error } = await supabase.rpc("add_group_member", { p_group_id: group.id, p_user_id: uid });
+      if (error) throw error;
+      toast.success("Member added"); await loadAll(); onGroupUpdated();
+      setAddResults(prev => prev.filter(u => u.id !== uid));
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+    finally { setAddingId(null); }
+  };
+
+  /* ---------- Invite ---------- */
+  const copyInvite = async () => {
+    if (!inviteUrl) return;
+    try { await navigator.clipboard.writeText(inviteUrl); setTokenCopied(true); setTimeout(() => setTokenCopied(false), 1500); toast.success("Invite link copied"); }
+    catch { toast.error("Copy failed"); }
+  };
+  const resetInvite = async () => {
+    try {
+      const { data, error } = await supabase.rpc("reset_group_invite", { p_group_id: group.id });
+      if (error) throw error;
+      if (row) setRow({ ...row, invite_token: data as string });
+      toast.success("Invite link reset");
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  /* ---------- Requests ---------- */
+  const decideRequest = async (id: string, approve: boolean) => {
+    try {
+      const { error } = await supabase.rpc("decide_group_join_request", { p_request_id: id, p_approve: approve });
+      if (error) throw error;
+      toast.success(approve ? "Approved" : "Rejected"); await loadAll(); onGroupUpdated();
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  /* ---------- Danger ---------- */
+  const doLeave = async () => {
+    try { const { error } = await supabase.rpc("leave_group", { p_group_id: group.id }); if (error) throw error; toast.success("Left group"); onLeaveGroup(); }
+    catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+  const doDelete = async () => {
+    try { const { error } = await supabase.rpc("delete_group", { p_group_id: group.id }); if (error) throw error; toast.success("Group deleted"); onLeaveGroup(); }
+    catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  /* ---------- UI ---------- */
+  const initials = (group.name || "G").slice(0, 2).toUpperCase();
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header - Premium 3D Glass */}
-      <header
-        className="flex-shrink-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"
-        style={{ boxShadow: "0 10px 30px -10px rgba(99,102,241,0.55), inset 0 -1px 0 rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.35)" }}
-      >
-        <div className="flex items-center gap-3 px-3 py-2.5 h-14 safe-area-top">
-          <button
-            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/25 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-            style={{ boxShadow: "0 4px 10px -4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)" }}
-            onClick={onClose}
-          >
-            <ArrowLeft className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
-          </button>
-          <h2
-            className="font-bold text-white text-lg"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
-          >
-            Group Info
-          </h2>
+    <div className="fixed inset-0 z-[60] bg-background flex flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-10 flex items-center gap-2 px-3 py-2.5 border-b bg-background/95 backdrop-blur">
+        <Button variant="ghost" size="icon" onClick={onClose}><ArrowLeft className="w-5 h-5" /></Button>
+        <div className="flex-1 min-w-0">
+          <div className="text-[16px] font-semibold truncate">Group Info</div>
+          <div className="text-[12px] text-muted-foreground truncate">{row?.member_count ?? group.member_count} members</div>
         </div>
+        {isAdmin && (
+          <Button variant="ghost" size="icon" onClick={() => setShowEdit(true)} aria-label="Edit"><Edit3 className="w-5 h-5" /></Button>
+        )}
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
-          {/* Group Avatar & Name */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative">
-              <Avatar
-                className="w-24 h-24 ring-2 ring-purple-500/30"
-                style={{ boxShadow: "0 14px 32px -10px rgba(168,85,247,0.45), inset 0 1px 0 rgba(255,255,255,0.4)" }}
-              >
-                <AvatarImage src={group.avatar_url || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 text-white text-2xl">
-                  <Users className="w-10 h-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
-                </AvatarFallback>
-              </Avatar>
-              {isOwner && (
-                <button
-                  className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-gradient-primary flex items-center justify-center hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-                  style={{ boxShadow: "0 6px 14px -4px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.35)" }}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  <ImagePlus className="w-4 h-4 text-primary-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" />
-                </button>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
+        {/* Hero */}
+        <section className="px-5 py-6 flex flex-col items-center gap-3 border-b">
+          <div className="relative">
+            <Avatar className="w-28 h-28 ring-4 ring-background shadow-xl">
+              <AvatarImage src={row?.avatar_url || group.avatar_url || ""} />
+              <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 text-white">{initials}</AvatarFallback>
+            </Avatar>
+            {isAdmin && (
+              <button
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+                aria-label="Change photo">
+                <ImagePlus className="w-4 h-4" />
+              </button>
+            )}
+            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={onAvatarPick} />
+          </div>
+          <div className="text-center">
+            <div className="text-[20px] font-bold flex items-center justify-center gap-2">
+              {row?.name || group.name}
+              <Badge variant="secondary" className="capitalize text-[10px]">{row?.group_type || group.group_type}</Badge>
+              {row?.is_public ? <Badge className="bg-emerald-500 text-white text-[10px]"><Globe className="w-3 h-3 mr-1" />Public</Badge>
+                : <Badge variant="outline" className="text-[10px]"><Lock className="w-3 h-3 mr-1" />Private</Badge>}
             </div>
-            <h3 className="text-xl font-bold text-foreground">{group.name}</h3>
-            <Badge
-              variant="outline"
-              className="text-xs bg-card border-border/60"
-              style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)" }}
-            >
-              {group.group_type === 'family' ? '👨‍👩‍👧‍👦 Family Group' : '👥 General Group'}
-            </Badge>
-
-            {/* Group Code */}
-            <button
-              onClick={copyGroupCode}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border/60 text-sm hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-              style={{ boxShadow: "0 4px 12px -6px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
-            >
-              <span className="text-muted-foreground">Code:</span>
-              <span className="font-mono font-bold text-foreground">{group.group_code}</span>
-              {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
-            </button>
+            {row?.description && <p className="text-[13px] text-muted-foreground mt-1 max-w-md whitespace-pre-wrap">{row.description}</p>}
+            {!row?.description && isAdmin && (
+              <button onClick={() => setShowEdit(true)} className="text-[12px] text-primary mt-1 underline">Add description</button>
+            )}
+            {row?.group_code && (
+              <div className="text-[11px] text-muted-foreground mt-1">Code: <span className="font-mono">{row.group_code}</span></div>
+            )}
           </div>
 
-          {/* Members */}
-          <div>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h4 className="font-semibold text-sm text-muted-foreground">
-                Members ({members.length})
-              </h4>
-              {isOwner && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="rounded-full h-8 px-3 text-xs gap-1.5"
-                  onClick={() => setShowAdd(v => !v)}
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  {showAdd ? 'Close' : 'Add member'}
+          {/* Quick actions */}
+          <div className="flex gap-2 mt-2">
+            {isAdmin && (
+              <Button size="sm" variant="outline" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" />Add</Button>
+            )}
+            <Button size="sm" variant="outline" onClick={() => setShowInvite(true)}><Link2 className="w-4 h-4 mr-1" />Invite</Button>
+            {isOwner ? (
+              <Button size="sm" variant="destructive" onClick={() => setConfirmDelete(true)}><Trash2 className="w-4 h-4 mr-1" />Delete</Button>
+            ) : (
+              <Button size="sm" variant="destructive" onClick={() => setConfirmLeave(true)}><LogOut className="w-4 h-4 mr-1" />Leave</Button>
+            )}
+          </div>
+        </section>
+
+        {/* Tabs */}
+        <Tabs value={tab} onValueChange={(v: any) => setTab(v)} className="w-full">
+          <TabsList className="w-full sticky top-0 z-[5] grid grid-cols-4 rounded-none bg-background/95 backdrop-blur border-b">
+            <TabsTrigger value="info">Info</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="requests">
+                Requests{requests.length > 0 && <Badge className="ml-1 h-4 px-1.5 text-[10px]">{requests.length}</Badge>}
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          {/* INFO */}
+          <TabsContent value="info" className="px-4 py-4 space-y-3">
+            <Card icon={<Users className="w-4 h-4" />} title="Members" value={`${row?.member_count ?? 0} / ${row?.max_members ?? 5000}`} />
+            <Card icon={<Crown className="w-4 h-4 text-amber-500" />} title="Created by" value={members.find(m => m.role === "owner")?.full_name || "—"} />
+            <Card icon={<MessageSquare className="w-4 h-4" />} title="Messaging" value={settings.who_can_send === "all" ? "All members can send" : "Admins only"} />
+            <Card icon={<Pin className="w-4 h-4" />} title="Pinned messages" value="Tap a message in chat to pin (max 3)" />
+          </TabsContent>
+
+          {/* MEMBERS */}
+          <TabsContent value="members" className="px-3 py-3 space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input value={memberQuery} onChange={e => setMemberQuery(e.target.value)} placeholder="Search members" className="pl-9 h-10" />
+            </div>
+            {isAdmin && (
+              <button onClick={() => setShowAdd(true)} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center"><UserPlus className="w-5 h-5" /></div>
+                <div className="text-[14px] font-medium">Add member</div>
+              </button>
+            )}
+            {loading ? (<div className="text-center py-8 text-muted-foreground text-sm">Loading…</div>) :
+              filteredMembers.map(m => (
+                <button key={m.user_id} onClick={() => setMemberSheet(m)} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted text-left">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={m.avatar_url || ""} />
+                    <AvatarFallback>{(m.full_name || m.username || "U").slice(0,2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-medium truncate">{m.full_name || m.username || "User"} {m.user_id === currentUserId && <span className="text-muted-foreground text-[12px]">(You)</span>}</div>
+                    {m.username && <div className="text-[12px] text-muted-foreground truncate">@{m.username}</div>}
+                  </div>
+                  {m.role === "owner" && <Badge className="bg-amber-500 text-white"><Crown className="w-3 h-3 mr-1" />Owner</Badge>}
+                  {m.role === "admin" && <Badge className="bg-indigo-500 text-white"><ShieldCheck className="w-3 h-3 mr-1" />Admin</Badge>}
+                </button>
+              ))
+            }
+          </TabsContent>
+
+          {/* REQUESTS */}
+          {isAdmin && (
+            <TabsContent value="requests" className="px-3 py-3 space-y-2">
+              {requests.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground text-sm">No pending requests</div>
+              ) : requests.map(r => (
+                <div key={r.id} className="flex items-center gap-3 p-2 rounded-lg border">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={r.profile?.avatar_url || ""} />
+                    <AvatarFallback>{(r.profile?.full_name || "U").slice(0,2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-medium truncate">{r.profile?.full_name || r.profile?.username || "User"}</div>
+                    <div className="text-[11px] text-muted-foreground">{new Date(r.requested_at).toLocaleString()}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => decideRequest(r.id, false)}>Reject</Button>
+                  <Button size="sm" onClick={() => decideRequest(r.id, true)}>Approve</Button>
+                </div>
+              ))}
+            </TabsContent>
+          )}
+
+          {/* SETTINGS */}
+          <TabsContent value="settings" className="px-4 py-4 space-y-4">
+            {row?.group_type !== "family" && (
+              <Row title="Public group" desc="Discoverable in search" icon={<Globe className="w-4 h-4" />}>
+                <Switch disabled={!isAdmin} checked={!!row?.is_public} onCheckedChange={togglePublic} />
+              </Row>
+            )}
+            <Row title="Who can send messages" icon={<MessageSquare className="w-4 h-4" />}>
+              <SegSelect disabled={!isAdmin} value={settings.who_can_send} onChange={(v) => saveSetting({ who_can_send: v })} options={[["all","All"],["admins","Admins"]]} />
+            </Row>
+            <Row title="Who can edit info" icon={<Edit3 className="w-4 h-4" />}>
+              <SegSelect disabled={!isOwner} value={settings.who_can_edit_info} onChange={(v) => saveSetting({ who_can_edit_info: v })} options={[["all","All"],["admins","Admins"]]} />
+            </Row>
+            <Row title="Who can add members" icon={<UserPlus className="w-4 h-4" />}>
+              <SegSelect disabled={!isAdmin} value={settings.who_can_add_members} onChange={(v) => saveSetting({ who_can_add_members: v })} options={[["all","All"],["admins","Admins"]]} />
+            </Row>
+            <Row title="Approve new members" desc="Join requests need admin approval" icon={<ClipboardCheck className="w-4 h-4" />}>
+              <Switch disabled={!isAdmin} checked={!!settings.approve_new_members} onCheckedChange={(v) => saveSetting({ approve_new_members: v })} />
+            </Row>
+            <Row title="Slow mode (seconds)" icon={<Bell className="w-4 h-4" />}>
+              <Input disabled={!isAdmin} type="number" min={0} className="w-24 h-9" value={settings.slow_mode_seconds}
+                     onChange={(e) => saveSetting({ slow_mode_seconds: Math.max(0, parseInt(e.target.value || "0", 10)) })} />
+            </Row>
+            <Row title="Disappearing messages (seconds)" desc="0 = off" icon={<BellOff className="w-4 h-4" />}>
+              <Input disabled={!isAdmin} type="number" min={0} className="w-24 h-9" value={settings.disappearing_seconds}
+                     onChange={(e) => saveSetting({ disappearing_seconds: Math.max(0, parseInt(e.target.value || "0", 10)) })} />
+            </Row>
+
+            <div className="pt-4 mt-4 border-t space-y-2">
+              {isOwner ? (
+                <Button variant="destructive" className="w-full" onClick={() => setConfirmDelete(true)}>
+                  <Trash2 className="w-4 h-4 mr-2" />Delete group
+                </Button>
+              ) : (
+                <Button variant="destructive" className="w-full" onClick={() => setConfirmLeave(true)}>
+                  <LogOut className="w-4 h-4 mr-2" />Leave group
                 </Button>
               )}
             </div>
-
-            {isOwner && showAdd && (
-              <div className="mb-3 rounded-2xl border border-border/60 bg-card p-3 space-y-2"
-                style={{ boxShadow: "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
-              >
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={addQuery}
-                    onChange={(e) => searchUsers(e.target.value)}
-                    placeholder="Search by name or ID"
-                    className="pl-9 h-9 rounded-full"
-                  />
-                </div>
-                <div className="max-h-64 overflow-y-auto space-y-1.5">
-                  {addQuery.trim().length < 2 ? (
-                    <p className="text-xs text-muted-foreground text-center py-3">Type at least 2 characters</p>
-                  ) : addResults.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-3">No users found</p>
-                  ) : addResults.map((u) => (
-                    <div key={u.id} className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-muted/60">
-                      <AvatarWithFrame userId={u.id} src={u.avatar_url} name={u.display_name || '?'} level={u.user_level || 1} size="sm" showFrame={false} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate text-foreground">{u.display_name || 'Unknown'}</p>
-                        {u.app_uid && <p className="text-[11px] text-muted-foreground">ID: {u.app_uid}</p>}
-                      </div>
-                      <Button
-                        size="sm"
-                        className="h-8 px-3 rounded-full"
-                        disabled={addingId === u.id}
-                        onClick={() => handleAddMember(u.id)}
-                      >
-                        {addingId === u.id ? '...' : 'Add'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
-              {loading ? (
-                <p className="text-center text-muted-foreground py-4">Loading...</p>
-              ) : (
-                members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60"
-                    style={{ boxShadow: "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
-                  >
-                    <AvatarWithFrame
-                      userId={member.user_id}
-                      src={member.profile?.avatar_url}
-                      name={member.profile?.display_name || '?'}
-                      level={member.profile?.user_level || 1}
-                      size="sm"
-                      showFrame={false}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate text-foreground">
-                        {member.profile?.display_name || 'Unknown'}
-                      </p>
-                      {member.profile?.app_uid && (
-                        <p className="text-xs text-muted-foreground">ID: {member.profile.app_uid}</p>
-                      )}
-                    </div>
-                    {member.role === 'owner' && (
-                      <Badge
-                        className="bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white border-0 text-xs"
-                        style={{ boxShadow: "0 3px 8px -2px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4)" }}
-                      >
-                        <Crown className="w-3 h-3 mr-1" />
-                        Owner
-                      </Badge>
-                    )}
-                    {isOwner && member.user_id !== currentUserId && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-full"
-                        onClick={() => setConfirmRemove(member.id)}
-                      >
-                        <UserMinus className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Leave Group */}
-          {!isOwner && (
-            <Button
-              variant="destructive"
-              className="w-full rounded-full font-bold hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-              style={{ boxShadow: "0 8px 20px -6px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.25)" }}
-              onClick={handleLeaveGroup}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Leave Group
-            </Button>
-          )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </ScrollArea>
 
-      {/* Confirm Remove Dialog */}
-      <Dialog open={!!confirmRemove} onOpenChange={() => setConfirmRemove(null)}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle>Remove Member?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to remove this member from the group?
-          </p>
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" className="flex-1" onClick={() => setConfirmRemove(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1"
-              onClick={() => {
-                const member = members.find(m => m.id === confirmRemove);
-                if (member) handleRemoveMember(member.id, member.user_id);
-              }}
-            >
-              Remove
-            </Button>
+      {/* Edit dialog */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit group info</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} maxLength={60} /></div>
+            <div><Label>Description</Label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} maxLength={500} rows={4} placeholder="What is this group about?" /></div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
+            <Button onClick={saveInfo}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add member dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Add members</DialogTitle><DialogDescription>Search by name, username or app ID</DialogDescription></DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input autoFocus value={addQuery} onChange={(e) => setAddQuery(e.target.value)} placeholder="Search…" className="pl-9 h-10" />
+          </div>
+          <ScrollArea className="max-h-80 -mx-2 px-2">
+            {addResults.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-6">{addQuery ? "No matches" : "Type to search"}</div>
+            ) : addResults.map((u: any) => (
+              <div key={u.id} className="flex items-center gap-3 p-2 rounded-lg">
+                <Avatar className="w-9 h-9"><AvatarImage src={u.avatar_url || ""} /><AvatarFallback>{(u.full_name || "U").slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-medium truncate">{u.full_name || u.username || "User"}</div>
+                  {u.username && <div className="text-[12px] text-muted-foreground truncate">@{u.username}</div>}
+                </div>
+                <Button size="sm" disabled={addingId === u.id} onClick={() => addMember(u.id)}>{addingId === u.id ? "…" : "Add"}</Button>
+              </div>
+            ))}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite dialog */}
+      <Dialog open={showInvite} onOpenChange={setShowInvite}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Invite to group</DialogTitle><DialogDescription>Anyone with this link can request to join.</DialogDescription></DialogHeader>
+          <div className="flex gap-2 items-center">
+            <Input readOnly value={inviteUrl} className="flex-1" />
+            <Button size="icon" variant="outline" onClick={copyInvite}>{tokenCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</Button>
+          </div>
+          {isAdmin && (
+            <Button variant="outline" onClick={resetInvite}><RefreshCw className="w-4 h-4 mr-2" />Reset link</Button>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Member action sheet */}
+      <Sheet open={!!memberSheet} onOpenChange={(o) => !o && setMemberSheet(null)}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          {memberSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12"><AvatarImage src={memberSheet.avatar_url || ""} /><AvatarFallback>{(memberSheet.full_name || "U").slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
+                  <div className="text-left">
+                    <div>{memberSheet.full_name || memberSheet.username || "User"}</div>
+                    <div className="text-[12px] text-muted-foreground capitalize">{memberSheet.role}</div>
+                  </div>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="space-y-1 mt-3">
+                <SheetBtn icon={<Users className="w-4 h-4" />} label="View profile" onClick={() => { setMemberSheet(null); window.location.href = `/profile-detail/${memberSheet.user_id}`; }} />
+                {isOwner && memberSheet.user_id !== currentUserId && memberSheet.role !== "owner" && (
+                  memberSheet.role === "admin"
+                    ? <SheetBtn icon={<Shield className="w-4 h-4" />} label="Demote to member" onClick={() => setRole(memberSheet.user_id, "member")} />
+                    : <SheetBtn icon={<ShieldCheck className="w-4 h-4" />} label="Promote to admin" onClick={() => setRole(memberSheet.user_id, "admin")} />
+                )}
+                {isOwner && memberSheet.user_id !== currentUserId && (
+                  <SheetBtn icon={<Crown className="w-4 h-4 text-amber-500" />} label="Transfer ownership" onClick={() => transferOwnership(memberSheet.user_id)} />
+                )}
+                {isAdmin && memberSheet.user_id !== currentUserId && memberSheet.role !== "owner" && (
+                  <SheetBtn icon={<UserMinus className="w-4 h-4 text-destructive" />} label="Remove from group" danger onClick={() => removeMember(memberSheet.user_id)} />
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Confirm leave */}
+      <Dialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Leave group?</DialogTitle><DialogDescription>You will no longer receive messages from this group.</DialogDescription></DialogHeader>
+          <DialogFooter><Button variant="outline" onClick={() => setConfirmLeave(false)}>Cancel</Button><Button variant="destructive" onClick={doLeave}>Leave</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm delete */}
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete group?</DialogTitle><DialogDescription>This action cannot be undone. All members will be removed.</DialogDescription></DialogHeader>
+          <DialogFooter><Button variant="outline" onClick={() => setConfirmDelete(false)}>Cancel</Button><Button variant="destructive" onClick={doDelete}>Delete</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
+
+/* ---------- Small UI helpers ---------- */
+const Card = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) => (
+  <div className="flex items-center gap-3 p-3 rounded-xl border bg-card">
+    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">{icon}</div>
+    <div className="flex-1 min-w-0">
+      <div className="text-[12px] text-muted-foreground">{title}</div>
+      <div className="text-[14px] font-medium truncate">{value}</div>
+    </div>
+  </div>
+);
+
+const Row = ({ icon, title, desc, children }: { icon?: React.ReactNode; title: string; desc?: string; children: React.ReactNode }) => (
+  <div className="flex items-center gap-3 py-2">
+    {icon && <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">{icon}</div>}
+    <div className="flex-1 min-w-0">
+      <div className="text-[14px] font-medium">{title}</div>
+      {desc && <div className="text-[12px] text-muted-foreground">{desc}</div>}
+    </div>
+    {children}
+  </div>
+);
+
+const SegSelect = ({ value, onChange, options, disabled }: { value: string; onChange: (v: string) => void; options: [string,string][]; disabled?: boolean }) => (
+  <div className="inline-flex rounded-lg border bg-muted/30 p-0.5">
+    {options.map(([v, l]) => (
+      <button key={v} disabled={disabled} onClick={() => onChange(v)} className={`px-3 py-1 text-[12px] rounded-md ${value === v ? "bg-background shadow font-semibold" : "text-muted-foreground"} ${disabled ? "opacity-60" : ""}`}>{l}</button>
+    ))}
+  </div>
+);
+
+const SheetBtn = ({ icon, label, onClick, danger }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
+  <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted text-left ${danger ? "text-destructive" : ""}`}>
+    {icon}<span className="text-[14px] font-medium">{label}</span>
+  </button>
+);
+
+export default GroupSettingsPanel;

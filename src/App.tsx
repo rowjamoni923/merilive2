@@ -78,6 +78,7 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // Main Pages
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
+const GroupInvitePage = lazy(lazyRetry(() => import("./pages/GroupInvitePage")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
 const LiveStreamFeed = lazy(lazyRetry(() => import("./pages/LiveStreamFeed")));
 // Wrapper to force full remount of LiveStream when stream ID changes (TikTok-style navigation)
@@ -1267,7 +1268,9 @@ const App = () => {
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveStreamKeyWrapper /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/chat" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
+                <Route path="/invite/:token" element={<ProtectedRoute session={session}><GroupInvitePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
+
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute session={session}><PaymentSuccess /></ProtectedRoute>} />
                 <Route path="/edit-profile" element={<ProtectedRoute session={session}><EditProfile /></ProtectedRoute>} />

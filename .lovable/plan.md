@@ -1,102 +1,156 @@
-## Goal
 
-Two locked deliverables:
+# Professional Group System — WhatsApp/Telegram/Messenger-class
 
-1. **CSA Diamond Wallet settings → 100% reach Country Super Admin side** (no missing, no drift).
-2. **English Policy hub for all 6 levels** (Helper L1 → Country Super Admin L6), luxurious 3D banners, deeply detailed CSA policy, linked from Email Broadcast, Email Support, and Support Ticket flows.
+Goal: rebuild our Family + Basic group experience to match how WhatsApp, Messenger, Imo, Telegram, Chamet, Bigo handle groups. Zero compromise — 100% functional, professional UI, scalable to 5,000 members.
+
+Research-first (mandatory per memory): before each phase I will pull the current behavior of WhatsApp/Telegram/Messenger/Chamet/Bigo for that specific surface (group info, member sheet, invite link, mentions, pinned, etc.) and translate to our LiveKit/Supabase stack. Citations go to plan.md.
 
 ---
 
-## Part A — CSA Settings Audit & Fix (precision pass)
+## Group types (locked with user)
 
-Owner Admin Panel writes these fields into `csa_diamond_settings`:
+| Type | Who can create | Limit per user | Discoverable | Joining |
+|---|---|---|---|---|
+| **Family** | Any user, **only if not already in a Family group** | 1 (create OR join — exclusive) | No, invite/link only | Owner approves or invite link |
+| **Basic** | Any user, unlimited | Unlimited | No, invite/link only | Owner approves or invite link |
+| **Public / Community** | Any user (after L?? — admin-config) | Unlimited | Yes, searchable in "Explore Groups" | One-tap join, no approval |
 
+All three share the same chat engine, member roles, settings, media tabs. Differences are only the rules above + a badge.
+
+Family exclusivity is enforced server-side: a DB trigger blocks `create_chat_group` and `add_group_member` if the user already has any `group_members` row where `groups.group_type = 'family'`. Leave/remove instantly frees them.
+
+---
+
+## Surfaces to build
+
+### 1. Group Info screen (`GroupInfoPanel`)
+Opened by tapping avatar / name / header anywhere.
+- Large avatar (tap → view / owner tap → change), group name, group type badge (Family / Basic / Public), member count, "created by X on date", description (multiline, admin-edit).
+- Action row: Mute, Search, Add member (admin), Share invite link.
+- **Media / Links / Docs tabs** (WhatsApp-style) — paginated query on `messages` filtered by attachment kind.
+- **Members list** — search bar, role badges (Owner 👑, Admin ⭐, Member), online dot, long-press → action sheet.
+- **Pinned messages** section (max 3, WhatsApp parity).
+- **Group settings** (admin-only block): Who can send messages (All / Admins only), Who can edit info, Who can add members, Approve new members toggle, Disappearing messages (off / 24h / 7d / 90d), Slow mode (off / 10s / 30s / 1m).
+- **Danger zone**: Mute notifications, Clear chat, Exit group, Report group, Delete group (owner only).
+
+### 2. Roles & permissions
+- `group_members.role`: `owner` | `admin` | `member`.
+- Owner: everything + transfer ownership + delete group.
+- Admin: edit info, add/remove members, pin, mute member, change settings (except delete/transfer).
+- Member: per group_settings.
+- Member action sheet (long-press): Send message, View profile, Make admin / Dismiss admin, Mute in group, Remove from group, Ban (blocks rejoin), Report.
+
+### 3. Invite system
+- **Invite link**: `merilive.top/g/<token>` — 16-char unguessable token on `groups.invite_token`. Owner/admin can: copy, share, QR code, reset link, set expiry (1h / 1d / 7d / never), set max uses.
+- **QR code**: rendered client-side with `qrcode` lib.
+- **Pending approval queue** (when "Approve new members" is ON): admin sees requests in Group Info → "Member Requests (3)" with Approve / Reject.
+- **Deep link handler** (`/g/<token>`): if logged in → preview card (group avatar, name, member count, "Join") → on tap calls `join_via_invite` RPC.
+
+### 4. Public / Community group discovery
+- New "Explore" tab inside Chat page: search bar + category chips + trending grid (sorted by member count + 7-day growth).
+- Public group card: avatar, name, member count, short description, Join button.
+- One-tap join (no approval) unless owner enables approval.
+
+### 5. Pro messaging inside groups (parity with 1:1)
+- Reply, forward (multi-select), react (emoji), pin (admin), edit (15-min window), delete (for me / for everyone within 1h, owner = anytime), copy, star.
+- **@mentions**: typing `@` opens member picker; mentioned users get push + highlighted bubble + "You were mentioned" filter in their chat list.
+- **Read receipts**: per-message; long-press → "Read by (12)" sheet with timestamps (WhatsApp parity). Settings toggle to disable globally.
+- **Typing indicator**: "Alice, Bob typing…" via Supabase Realtime broadcast (already used elsewhere — reuse channel, no polling).
+- **Reply preview** in composer, attachment sheet (image / video / camera / doc / contact / location / gift), voice note (long-press mic).
+- **System messages**: "Alice joined", "Bob was promoted to admin", "Carol changed group name to …", "Group settings updated".
+
+### 6. Scale to 5,000 members
+- Member list virtualized (`react-window`) with server-side search RPC (`search_group_members`).
+- Read receipts: aggregate counts only, list paginated.
+- Mentions: full-text search on `profiles` scoped to `group_members` (index on `(group_id, user_id)` already present).
+- Message fan-out unchanged (single insert + Realtime), but push fan-out moved to edge function batching (chunks of 500).
+
+---
+
+## Database changes
+
+```sql
+-- groups
+ALTER TABLE groups
+  ADD COLUMN description text,
+  ADD COLUMN invite_token text UNIQUE,
+  ADD COLUMN invite_expires_at timestamptz,
+  ADD COLUMN invite_max_uses int,
+  ADD COLUMN invite_used_count int DEFAULT 0,
+  ADD COLUMN settings jsonb DEFAULT '{"who_can_send":"all","who_can_edit_info":"admins","who_can_add_members":"admins","approve_new_members":false,"disappearing_seconds":0,"slow_mode_seconds":0}'::jsonb,
+  ADD COLUMN is_public boolean DEFAULT false,
+  ADD COLUMN search_vector tsvector,
+  ADD COLUMN max_members int DEFAULT 5000;
+
+-- group_members
+ALTER TABLE group_members
+  ADD COLUMN muted_until timestamptz,
+  ADD COLUMN banned_at timestamptz,
+  ADD COLUMN last_read_message_id uuid;
+-- role already exists; ensure enum: owner|admin|member
+
+-- new tables
+CREATE TABLE group_join_requests (...);   -- pending approvals
+CREATE TABLE group_pinned_messages (...); -- max 3 per group
+CREATE TABLE group_message_reads (...);   -- per-user read receipts
+CREATE TABLE group_message_reactions (...);
+CREATE TABLE group_mentions (...);        -- for "mentions" filter + push
+
+-- triggers
+- tg_enforce_family_exclusivity (BEFORE INSERT on group_members + groups)
+- tg_emit_system_message (on role change, settings change, member add/remove)
+- tg_increment_invite_used_count
 ```
-min_purchase_usd, diamonds_per_usd, visibility_threshold,
-owner_fallback_enabled, auto_credit_enabled,
-withdrawal_bonus_enabled, withdrawal_bonus_rate_percent,
-bonus_trigger_status
-```
+All with proper GRANTs + RLS (member-only read, admin-only write where relevant).
 
-Steps:
-
-1. Re-read every CSA consumer (`CsaDiamondWallet.tsx`, CSA purchase RPC, helper visibility selector, withdrawal-completion auto-bonus trigger, crypto webhook auto-credit path).
-2. Verify each setting is read live from `csa_diamond_settings` (no hardcoded fallbacks, no stale cache, no "best guess from unrelated table"). Per admin-panel-single-source-of-truth rule: missing config → show "Not configured by admin" guard, never substitute defaults.
-3. Confirm RLS / grants let CSAs read their own settings row.
-4. Confirm withdrawal-bonus auto-credit fires on the configured `bonus_trigger_status` (default `approved`) and uses `withdrawal_bonus_rate_percent` exactly.
-5. Confirm owner-fallback flag actually swaps helper visibility when CSA balance dips below threshold.
-6. Add a small "Settings Sync Status" strip on the CSA Diamond Wallet page showing the live values pulled from admin (so any CSA can verify what owner configured).
-
-Anything found broken → fixed in the same pass via migration + frontend edit.
+## RPCs (server-authoritative)
+`create_chat_group`, `update_group_info`, `update_group_settings`, `add_group_member`, `remove_group_member`, `promote_to_admin`, `demote_admin`, `transfer_ownership`, `leave_group`, `delete_group`, `mute_group_member`, `pin_message`, `unpin_message`, `react_to_message`, `mark_messages_read`, `reset_invite_link`, `join_via_invite`, `approve_join_request`, `reject_join_request`, `search_public_groups`, `search_group_members`.
 
 ---
 
-## Part B — 6-Level Policy Hub (English, luxurious 3D)
+## Frontend file plan
 
-### Levels covered
-1. **L1 — Helper** (basic top-up agent)
-2. **L2 — Verified Helper** (KYC done, higher cap)
-3. **L3 — Senior Helper / Trader** (multi-country)
-4. **L4 — Payroll Trader** (auto-payroll, commission tier)
-5. **L5 — Country Payroll Admin** (regional finance lead)
-6. **L6 — Country Super Admin (CSA)** — flagship, written in fine detail
+New:
+- `src/features/groups/GroupInfoPanel.tsx` (replaces current `GroupSettingsPanel` — full WhatsApp-style screen)
+- `src/features/groups/GroupMemberSheet.tsx` (long-press action sheet)
+- `src/features/groups/GroupInviteSheet.tsx` (link + QR + reset + expiry)
+- `src/features/groups/GroupJoinRequests.tsx`
+- `src/features/groups/GroupMediaTabs.tsx` (Media / Links / Docs)
+- `src/features/groups/PinnedMessagesBar.tsx`
+- `src/features/groups/MentionPicker.tsx`
+- `src/features/groups/ReadByList.tsx`
+- `src/features/groups/ExploreGroups.tsx` (public discovery)
+- `src/pages/GroupInvite.tsx` (`/g/:token` deep-link landing)
 
-### Structure
-- New route: `/policies/levels` (hub) + `/policies/levels/:levelCode` (detail).
-- Hub page renders 6 luxury cards in a bento layout with 3D banner artwork per level (image-gen, premium tier, gold/obsidian/sapphire theme matching admin console).
-- Each detail page sections: Eligibility · Onboarding Requirements · Responsibilities · Tools & Dashboard Access · Earnings & Commission · Compliance & Conduct · Termination & Appeal · Contact & Escalation.
-- CSA (L6) page extra sections: Diamond Wallet Operations (min purchase, diamonds/USD rate, visibility threshold, owner fallback, auto-credit, withdrawal bonus) — pulled live from `csa_diamond_settings` so the policy always matches what owner configured; Country-Level Authority; Sub-Admin Management; Payroll Oversight; Audit & Reporting; SLA & Uptime; Confidentiality.
-- All copy in English. No Bangla strings in UI (per project rule).
+Edits:
+- `src/pages/Chat.tsx` — wire new panels, add Explore tab, mentions, reactions, pin bar, system messages.
+- `src/components/chat/ChatActiveHeader.tsx` — tap → GroupInfoPanel, show typing/online.
+- `src/pages/ProfileDetail.tsx` — already shows Family/Basic badge; add "Open in Group" for shared groups.
+- `src/App.tsx` — add `/g/:token` route.
 
-### Design
-- Reuse existing design tokens (no hardcoded colors). Dark luxury surface, gold accent, glassmorphism cards, subtle parallax on banners.
-- 6 generated 3D banner images (premium quality) saved to `src/assets/policy-banners/`.
-
-### Integration points
-- **Email Broadcast composer**: add "Attach Policy Link" picker (inserts public policy URL into body).
-- **Email Support / Helper Admin Messages**: footer auto-appends "See applicable policy: <link>" based on recipient's level.
-- **Support Tickets**: ticket creation form shows a "Related Policy" inline link based on the user's current level; resolved tickets include the policy link in the closing message template.
-- **Owner Admin Panel**: add "Policies" quick link → opens the hub for review.
-
-### Storage
-- Policy content lives in a new table `policy_documents (level_code, version, title, body_md, banner_asset, updated_at)` so owner can edit copy without a redeploy.
-- Seed migration inserts v1 content for all 6 levels (English, drafted from the actual privileges already built in this project).
-- Public read for `authenticated`; write restricted to owner via `current_admin_id_from_header()` RPC.
+All English UI strings (per memory). Design stays mobile-first luxurious; no Sparkles, custom gradient banners on Group Info header.
 
 ---
 
-## Technical Section
+## Build phases (each phase verified in owner test account before next)
 
-- Migration: create `policy_documents` table + GRANTs + RLS + `admin_upsert_policy_document` RPC.
-- Audit migration (only if Part A finds drift): patch CSA consumer RPCs to read live settings.
-- New pages: `src/pages/policies/LevelsHub.tsx`, `src/pages/policies/LevelDetail.tsx`.
-- New component: `src/components/policies/PolicyBanner.tsx` (3D banner with parallax).
-- Email composer + ticket form receive a shared `<PolicyLinkPicker />`.
-- Realtime: subscribe `policy_documents` so edits propagate instantly.
+1. **DB foundation** — schema, triggers, RPCs, family-exclusivity enforcement, system messages.
+2. **Group Info screen** — full new panel + media tabs + pinned bar + settings.
+3. **Roles & member sheet** — promote/demote/remove/mute/ban + transfer ownership.
+4. **Invite system** — link + QR + expiry + approval queue + `/g/:token` page.
+5. **Pro messaging** — mentions, reactions, pin, edit/delete, read receipts, typing, forward, reply.
+6. **Public/Community + Explore** — discovery tab, search, one-tap join.
+7. **Scale** — virtualized member list, edge-function push batching, indexes.
+8. **QA** — owner-account end-to-end on preview; performance check at 1k+ members seeded.
 
----
-
-## Out of scope (will NOT touch)
-- LiveKit / camera / gift / entry animation code (sacred).
-- Existing AgencyPolicy.tsx copy (kept; new hub links to it for agency-side).
-- Marketing / promotional email content (not allowed per platform rules).
+No APK rebuild required for any phase (pure Lovable + Supabase + Realtime). Native gift/entry/camera systems untouched.
 
 ---
 
-## Deliverable order
-1. Part A audit + fix (migration if needed).
-2. `policy_documents` table + seed.
-3. Hub + Detail pages + 6 banner images.
-4. Email/Ticket integration.
-5. Owner quick link + verification screenshot.
+## What stays the same (sacred)
+- Native LiveKit, Camera2, GPUPixel, VAP/SVGA — not touched.
+- Gift / entry / animation components — not touched.
+- Admin panel as single source of truth — any new limit (max members, invite expiry options, slow-mode tiers) lives in `app_settings`.
+- English-only UI strings.
 
----
-
-## Emergency fix log — Family Group creation (2026-06-25)
-
-- Competitor/pro-standard reference: Bigo/Chamet/Poppo-style apps treat Family/Clan as a formal social group; creation is commonly limited by one-family membership or premium/agency rules, while basic chat groups allow broader creation. Current product decision: **agency is not required** for Family Group creation.
-- Verified app rule: signed-in, non-blocked users can create **1 Family Group** total and up to **20 Basic Groups**.
-- Root cause found in current DB implementation: `create_chat_group` and `tg_guard_group_members_insert` were still checking `profiles.user_id`, but the live `profiles` table only has `id`; this caused Family Group create to return the generic failure even though Basic Group could work.
-- Applied migration: patched both DB functions to check `profiles.id`, keep active-family counting, and keep owner membership creation atomic.
-
-Approve and I'll execute end-to-end in one go.
+Approve and I'll start with Phase 1 (DB foundation) — single migration with all schema + triggers + RPCs + GRANTs.
