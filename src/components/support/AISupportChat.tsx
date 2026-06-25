@@ -579,7 +579,7 @@ const AISupportChat = ({
               ticketId,
               content: attachMsg.content,
               attachmentUrl: attachMsg.attachmentPath || extractSupportAttachmentPath(attachMsg.attachmentUrl),
-              attachmentType: attachMsg.attachmentType,
+              attachmentType: attachMsg.attachmentType === "voice" ? "voice" : "image",
               voiceTranscript: attachMsg.voiceTranscript || null,
             });
           }
