@@ -198,6 +198,12 @@ export default function MatchCall() {
   // SEARCHING / MATCHED / ERROR phases — original luxe globe
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 text-white pb-[max(env(safe-area-inset-bottom),16px)]">
+      {isInCall && (
+        <MatchCallOverlay
+          minBillableSeconds={settings?.min_billable_seconds ?? 40}
+          onNext={handleNext}
+        />
+      )}
       <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"
           onClick={() => (phase === "searching" ? cancelQueue() : navigate(-1))} aria-label="Close">
