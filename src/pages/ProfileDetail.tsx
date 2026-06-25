@@ -485,8 +485,19 @@ const ProfileDetail = () => {
       id, name: data.name, icon: data.icon, count: data.count, color: ["bg-amber-50", "bg-rose-50", "bg-emerald-50"][Math.floor(Math.random() * 3)]
     })).slice(0, 10));
 
-    // Set groups
-    setGroups((groupMembershipsResult?.data?.map((m: any) => m.groups).filter(Boolean) || []).slice(0, 5));
+    // Set groups (only active, with type)
+    const rawGroups = (groupMembershipsResult?.data?.map((m: any) => m.groups).filter((g: any) => g && g.is_active !== false) || []).slice(0, 8);
+    let myMemberSet = new Set<string>();
+    if (user?.id && rawGroups.length > 0) {
+      const ids = rawGroups.map((g: any) => g.id);
+      const { data: mine } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', user.id)
+        .in('group_id', ids);
+      myMemberSet = new Set((mine || []).map((m: any) => m.group_id));
+    }
+    setGroups(rawGroups.map((g: any) => ({ ...g, is_member: myMemberSet.has(g.id) })));
 
     setLoading(false);
     // NOTE: deliberately NOT depending on resolvedLevel / resolvedLevelLoading
