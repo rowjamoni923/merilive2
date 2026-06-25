@@ -40,7 +40,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
     setMounted(true);
   }, [x, y]);
 
-  if (dismissed || !mounted) return null;
+  const hidden = dismissed || !mounted;
 
   const PILL_SIZE = 56;
   const MARGIN = 8;
