@@ -36,6 +36,7 @@ import {
   Film,
   Power,
   Clock3,
+  AlertCircle,
 } from "lucide-react";
 import { VerifiedBadge, HostVerifiedBadge } from "@/components/common/VerifiedBadge";
 import { Button } from "@/components/ui/button";
@@ -2209,10 +2210,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               </div>
             </div>
           )}
+          {isOwnProfile && !isFaceVerified && !faceVerificationUnderReview && (
+            <div className="absolute -bottom-1 -right-1 z-40">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-red-500 to-rose-600 border-2 border-white flex items-center justify-center shadow-lg shadow-red-500/35" title="Face verification required">
+                <AlertCircle className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
           {(profile?.is_verified || isFaceVerified) && (
             <div className="absolute -bottom-1 -right-1 z-40">
- <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-slate-200 flex items-center justify-center shadow-lg shadow-cyan-500/40">
- <svg className="w-4 h-4 text-display" fill="currentColor" viewBox="0 0 20 20">
+ <div className="w-7 h-7 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 border-2 border-white flex items-center justify-center shadow-lg shadow-emerald-500/40" title="Face verification verified">
+ <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
