@@ -885,12 +885,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // conflating them showed "Under Review" to users who never submitted face verification).
         const submissionRow: any = (faceVerifPendingResult as any)?.data || null;
         const submissionStatus = String(submissionRow?.status || '').toLowerCase();
+        const recentSubmissionFallback = isOwnProfileCheck && !profileData?.is_face_verified && hasRecentFaceVerificationSubmission(user?.id);
         const isPendingSubmission = submissionStatus === 'pending' || submissionStatus === 'submitted' || submissionStatus === 'under_review';
         const effectiveStatus = profileData?.is_face_verified
           ? 'approved'
-          : (submissionStatus || null);
+          : (submissionStatus || (recentSubmissionFallback ? 'under_review' : null));
         setFaceVerificationStatus(effectiveStatus);
-        setFaceVerificationPending(!profileData?.is_face_verified && isPendingSubmission);
+        setFaceVerificationPending(!profileData?.is_face_verified && (isPendingSubmission || recentSubmissionFallback));
 
         // Own profile specific data
         if (isOwnProfileCheck && user) {
@@ -1013,13 +1014,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           if (table === 'face_verification_submissions' && payload?.user_id === activeProfileId) {
             const nextStatus = String(payload?.status || '').toLowerCase();
             setFaceVerificationStatus(nextStatus || null);
-            if (payload?.status === 'approved') {
+            if (nextStatus === 'approved') {
+              try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
               setFaceVerificationPending(false);
               // Also refresh profile to get is_face_verified update
               void fetchData();
-            } else if (payload?.status === 'pending' || payload?.status === 'submitted' || payload?.status === 'under_review') {
+            } else if (nextStatus === 'pending' || nextStatus === 'submitted' || nextStatus === 'under_review') {
               setFaceVerificationPending(true);
-            } else if (payload?.status === 'rejected') {
+            } else if (nextStatus === 'rejected') {
+              try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
               setFaceVerificationPending(false);
             }
           }
