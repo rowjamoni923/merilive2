@@ -48,6 +48,7 @@ const GlobalNotificationsMount = () => {
 
 interface CallContextType {
   startCall: (hostId: string, streamId?: string) => Promise<string | null>;
+  endCall: () => Promise<void>;
   isInCall: boolean;
 }
 
