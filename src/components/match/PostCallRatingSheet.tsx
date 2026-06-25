@@ -37,11 +37,13 @@ export default function PostCallRatingSheet({ open, sessionId, rateeName, onClos
   const [tags, setTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Auto-dismiss after 8s of inactivity. Resets whenever the user interacts
+  // with the sheet (stars or tags) so we never close mid-decision.
   useEffect(() => {
     if (!open) { setStars(0); setTags([]); return; }
     const t = window.setTimeout(() => onClose(), 8000);
     return () => window.clearTimeout(t);
-  }, [open, onClose]);
+  }, [open, onClose, stars, tags]);
 
   const submit = async () => {
     if (!sessionId || !stars || submitting) return;
