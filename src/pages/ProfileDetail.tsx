@@ -181,6 +181,8 @@ interface GroupData {
   avatar_url: string | null;
   member_count: number | null;
   description: string | null;
+  group_type?: string | null;
+  is_member?: boolean;
 }
 
 const ProfileDetail = () => {
