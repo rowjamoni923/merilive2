@@ -176,23 +176,40 @@ const EventPopupBanner = () => {
             />
           )}
 
-          {canSkip && (
+          {canSkip ? (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.18 }}
               onClick={handleDismiss}
               aria-label="Close"
-              className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-background/75 text-foreground shadow-lg backdrop-blur-md active:scale-95"
+              className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/55 text-white shadow-lg backdrop-blur-md active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
             >
               <X className="h-5 w-5" />
             </motion.button>
+          ) : (
+            <div
+              className="absolute right-3 z-10 flex h-11 min-w-[44px] items-center justify-center rounded-full border border-white/20 bg-black/55 px-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md"
+              style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
+            >
+              {Math.max(1, skipDelay - elapsed)}s
+            </div>
+          )}
+
+          {canSkip && remaining > 0 && (
+            <div
+              className="absolute left-3 z-10 flex h-9 items-center justify-center rounded-full border border-white/20 bg-black/55 px-3 text-xs font-medium text-white/90 shadow-lg backdrop-blur-md"
+              style={{ top: 'max(env(safe-area-inset-top), 12px)' }}
+            >
+              Auto-close in {remaining}s
+            </div>
           )}
         </motion.div>
       )}
     </AnimatePresence>
   );
 };
+
 
 export default EventPopupBanner;
