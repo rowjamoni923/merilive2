@@ -663,7 +663,7 @@ const AdminGmailSupport = () => {
                           </div>
                         )}
                         <div className={cn(
-                          "max-w-[72%] rounded-2xl px-3.5 py-2 shadow-sm",
+                          "max-w-[85%] sm:max-w-[72%] rounded-2xl px-3.5 py-2 shadow-sm",
                           isOur 
                             ? 'bg-gradient-to-br from-purple-600/90 to-violet-700/90 text-white rounded-br-sm border border-purple-500/20' 
                             : 'bg-muted/50 border border-border/30 rounded-bl-sm'
