@@ -2061,7 +2061,7 @@ const Auth = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-8 safe-area-top safe-area-bottom">
+        <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-14 safe-area-top safe-area-bottom">
         {/* Auth Buttons */}
         <div className="space-y-2 pb-2">
           {/* Latest Login - Only show if user previously logged in */}
