@@ -255,11 +255,8 @@ const AdminSupportTickets = () => {
     }
   }, [selectedTicket]);
 
-  // Live message sync for the open ticket dialog. Three layers so user replies
-  // ALWAYS reach the admin like a normal chat thread:
-  //   1) admin-table-update event (admin_broadcast topic bump — fastest, ~500ms)
-  //   2) 2s lightweight polling fallback (catches missed broadcasts)
-  //   3) refresh on window focus / tab visibility (instant when admin returns)
+  // Live message sync for the open ticket dialog: realtime/app-sync only.
+  // No polling/focus fallback — support delivery must be event-driven.
   useEffect(() => {
     if (!selectedTicket?.id) return;
     const ticketId = selectedTicket.id;
@@ -279,37 +276,11 @@ const AdminSupportTickets = () => {
     };
     window.addEventListener('admin-table-update', onAdminEvent);
 
-    // 2) 2s polling fallback — cheap single-ticket scope
-    const interval = setInterval(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('support_messages')
-          .select('id')
-          .eq('ticket_id', ticketId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (error || !data?.length) return;
-        const latestId = data[0].id;
-        if (!messages.some((m: any) => m.id === latestId)) refresh();
-      } catch { /* silent */ }
-    }, 2000);
-
-    // 3) focus / visibility refresh
-    const onFocus = () => refresh();
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh();
-    };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisible);
-
     return () => {
       cancelled = true;
-      clearInterval(interval);
       window.removeEventListener('admin-table-update', onAdminEvent);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [selectedTicket?.id, messages]);
+  }, [selectedTicket?.id]);
 
   useEffect(() => {
     ticketsRef.current = tickets;
