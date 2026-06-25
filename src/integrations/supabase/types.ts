@@ -6310,7 +6310,7 @@ export type Database = {
           created_at?: string | null
           created_by: string
           description?: string | null
-          group_code: string
+          group_code?: string
           group_type?: string
           id?: string
           is_active?: boolean | null
@@ -21096,6 +21096,7 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_group_code: { Args: never; Returns: string }
       generate_party_room_code: { Args: never; Returns: string }
       generate_sub_agent_referral_code: {
         Args: { _agency_id: string }

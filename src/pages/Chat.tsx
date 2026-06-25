@@ -28,6 +28,20 @@ type CreateGroupResult = {
   error?: string;
 };
 
+const getCreateGroupErrorMessage = (error?: string) => {
+  const normalized = (error || '').toLowerCase();
+  if (!normalized) return "Failed to create group";
+  if (normalized.includes('auth_required')) return "Please sign in again to create a group";
+  if (normalized.includes('invalid_group_name')) return "Group name must be 1 to 80 characters";
+  if (normalized.includes('invalid_group_type')) return "Please choose a valid group type";
+  if (normalized.includes('user_blocked')) return "Your account cannot create groups right now";
+  if (normalized.includes('family_limit_reached')) return "You can only be in 1 family group";
+  if (normalized.includes('basic_limit_reached')) return "You can join max 20 general groups";
+  if (normalized.includes('profile_not_ready')) return "Your profile is still being prepared. Please try again";
+  if (normalized.includes('duplicate_group_or_member') || normalized.includes('duplicate_group_member')) return "This group could not be completed. Please try again";
+  return "Failed to create group";
+};
+
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
 import type { GiftData } from "@/features/shared/gifting";
@@ -2441,7 +2455,7 @@ const Chat = () => {
     } catch (error) {
       console.error('Create group error:', error);
       recordClientError({ label: "Chat.path", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Failed to create group");
+      toast.error(getCreateGroupErrorMessage(error instanceof Error ? error.message : String(error)));
     } finally {
       setCreatingGroup(false);
     }
