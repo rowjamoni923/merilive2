@@ -993,7 +993,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | "identity_mismatch" | null = null;
+    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1002,7 +1002,6 @@ serve(async (req) => {
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || hardGenderMismatch) hardAutoReject = "gender_mismatch";
-    else if (evidenceIdentityMismatch) hardAutoReject = "identity_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -1014,8 +1013,6 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
-      } else if (hardAutoReject === "identity_mismatch") {
-        rReason = "Verification rejected because the profile photo, verification video, and live face scan are not the same person. Please submit only your own real photo/video/live scan.";
       }
 
       await supabaseAdmin
@@ -1024,7 +1021,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : hardAutoReject === "identity_mismatch" ? `photo_live=${String(rekognition.photo_live_score)} face_video_live=${String(rekognition.face_video_live_score)} intro_video_live=${String(rekognition.intro_video_live_score)} host_min=${hostPhotosMinScore}` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -1045,6 +1042,92 @@ serve(async (req) => {
           rekognition,
           autoFinalize: { success: false, reason: hardAutoReject },
           blocker: hardAutoReject,
+          declaredGender,
+          expectedGender,
+          detectedGender: detectedGenderForDecision,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    // SOFT RETRY (identity mismatch across photo+video+live):
+    //   When the three evidence sources are NOT the same person, we do NOT
+    //   burn the user's account/ID. We mark the submission as `needs_retry`,
+    //   pinpoint which evidence(s) failed, and let the frontend re-route the
+    //   user to re-upload only those failing items and re-submit.
+    // ────────────────────────────────────────────────────────────────────
+    if (evidenceIdentityMismatch) {
+      const labelToHumanName: Record<string, string> = {
+        profile_photo: "Profile Photo",
+        face_video: "Face Verification Video",
+        intro_video: "Intro Video",
+      };
+      const labelToStep: Record<string, string> = {
+        profile_photo: "photo",
+        face_video: "live_face_scan",
+        intro_video: "intro_video",
+      };
+      const failedEvidence = evidenceChecks
+        .filter((c) => typeof c.score === "number" && (c.score as number) < 85)
+        .map((c) => ({
+          label: c.label,
+          human_name: labelToHumanName[c.label] || c.label,
+          step: labelToStep[c.label] || c.label,
+          score: typeof c.score === "number" ? Math.round((c.score as number) * 10) / 10 : null,
+          message: `${labelToHumanName[c.label] || c.label} does not match your live face (similarity ${typeof c.score === "number" ? (c.score as number).toFixed(1) + "%" : "unknown"}). Please re-upload a clear ${labelToHumanName[c.label] || c.label} that shows the SAME person as the live scan.`,
+        }));
+      if (vtForEvidence === "host" && hostPhotosMismatch) {
+        failedEvidence.push({
+          label: "host_gallery",
+          human_name: "Host Profile Photos",
+          step: "host_gallery",
+          score: typeof hostPhotosMinScore === "number" ? Math.round(hostPhotosMinScore * 10) / 10 : null,
+          message: `One or more of your host profile photos do not match your live face. Please replace them with photos of the SAME person as the live scan.`,
+        });
+      }
+      const retryRequired = {
+        kind: "identity_mismatch" as const,
+        verification_type: vtForEvidence,
+        failed_evidence: failedEvidence,
+        steps: Array.from(new Set(failedEvidence.map((f) => f.step))),
+        headline: "Your photo, video, and live face scan don't look like the same person.",
+        summary: "We compared your Profile Photo, Verification Video, and Live Face Scan side-by-side and they don't confidently match. Your account is NOT rejected — just tap Retry and re-upload only the item(s) listed below so all three are clearly the SAME person.",
+      };
+
+      const mergedAnalysisRetry = duplicateBlock
+        ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+        : { ...existingAnalysis, rekognition, retry_required: retryRequired };
+
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: mergedAnalysisRetry,
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] identity_mismatch: photo_live=${String(rekognition.photo_live_score)} face_video_live=${String(rekognition.face_video_live_score)} intro_video_live=${String(rekognition.intro_video_live_score)} host_min=${hostPhotosMinScore} failed=${failedEvidence.map((f) => f.label).join(",")}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "pending_face",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "identity_mismatch_needs_retry" },
+          blocker: null,
+          retry_required: retryRequired,
           declaredGender,
           expectedGender,
           detectedGender: detectedGenderForDecision,
