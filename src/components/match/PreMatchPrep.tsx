@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
   Users, Globe2, Languages, Crown, Lock, Phone, ShieldCheck, Gem, Clock, ChevronLeft, History,
@@ -7,6 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useUserBalance } from "@/hooks/useUserBalance";
 
 export type MatchFilters = {
   preferred_host_gender: "male" | "female" | "any";
@@ -40,6 +42,8 @@ export default function PreMatchPrep({
   countryRequiresVip, genderFilterEnabled, countryFilterEnabled, onStart,
 }: Props) {
   const navigate = useNavigate();
+  const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
+  const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [camOn, setCamOn] = useState(true);
@@ -51,6 +55,7 @@ export default function PreMatchPrep({
   const [langs, setLangs] = useState<string[]>([]);
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
+  const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
 
   const startStream = async () => {
     try {
@@ -86,7 +91,52 @@ export default function PreMatchPrep({
     return () => window.clearInterval(t);
   }, []);
 
-  const insufficient = diamondBalance < hostRatePerMin;
+  // Live orbit avatars — fetch online verified hosts and rotate the set every few seconds
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
+        if (!mounted) return;
+        const urls = (data as any[] | null)?.map((r) => r.avatar_url).filter(Boolean) as string[] | undefined;
+        if (urls && urls.length) {
+          // shuffle to randomize each refresh
+          const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 12);
+          setOrbitAvatars(shuffled);
+        } else {
+          setOrbitAvatars([]);
+        }
+      } catch (_) { /* ignore */ }
+    };
+    load();
+    const t = window.setInterval(load, 6000);
+    return () => { mounted = false; window.clearInterval(t); };
+  }, []);
+
+  // Pre-computed deterministic-ish positions inside the radar
+  const orbitSlots = useMemo(() => {
+    // 12 slots placed on 3 rings around the centre
+    const slots: { x: number; y: number; size: number; ring: number }[] = [];
+    const rings = [
+      { r: 60, count: 4, size: 28 },
+      { r: 100, count: 4, size: 32 },
+      { r: 138, count: 4, size: 26 },
+    ];
+    rings.forEach((ring, ri) => {
+      for (let i = 0; i < ring.count; i++) {
+        const angle = (i / ring.count) * Math.PI * 2 + (ri * 0.5);
+        slots.push({
+          x: Math.cos(angle) * ring.r,
+          y: Math.sin(angle) * ring.r,
+          size: ring.size,
+          ring: ri,
+        });
+      }
+    });
+    return slots;
+  }, []);
+
+  const insufficient = effectiveBalance < hostRatePerMin;
   const filtersLocked = countryRequiresVip && !isVip;
 
   const handleStart = () => {
@@ -132,7 +182,7 @@ export default function PreMatchPrep({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 h-8 px-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
             <Gem className="w-3.5 h-3.5 text-cyan-300" />
-            <span className="text-xs font-bold">{diamondBalance.toLocaleString()}</span>
+            <span className="text-xs font-bold tabular-nums">{effectiveBalance.toLocaleString()}</span>
           </div>
           <button aria-label="History"
             className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center">
@@ -157,10 +207,50 @@ export default function PreMatchPrep({
           {/* static inner rings */}
           <span className="absolute w-[200px] h-[200px] rounded-full border border-white/15" />
           <span className="absolute w-[130px] h-[130px] rounded-full border border-white/20" />
-          <span className="absolute w-[80px] h-[80px] rounded-full bg-white/5 backdrop-blur-md border border-white/25" />
-          <div className="relative text-center">
-            <div className="text-[15px] font-bold tracking-tight">Tap to Match</div>
-            <div className="text-[10px] text-white/60 mt-0.5">{availableHostsCount} hosts online</div>
+          <span className="absolute w-[80px] h-[80px] rounded-full bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)]" />
+
+          {/* Floating online host avatars (orbit) */}
+          <AnimatePresence>
+            {orbitSlots.map((slot, i) => {
+              const url = orbitAvatars[i % Math.max(1, orbitAvatars.length)];
+              if (!url || !orbitAvatars.length) return null;
+              const cx = slot.x - slot.size / 2;
+              const cy = slot.y - slot.size / 2;
+              return (
+                <motion.div
+                  key={`${i}-${url}`}
+                  className="absolute rounded-full overflow-hidden ring-2 ring-white/40 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)]"
+                  style={{ width: slot.size, height: slot.size, left: "50%", top: "50%" }}
+                  initial={{ x: cx, y: cy, scale: 0, opacity: 0 }}
+                  animate={{
+                    x: [cx, cx + (slot.ring === 1 ? 6 : -4), cx],
+                    y: [cy, cy - 6, cy],
+                    scale: 1, opacity: 1,
+                  }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{
+                    x: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    y: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    scale: { duration: 0.4, delay: i * 0.05 },
+                    opacity: { duration: 0.4, delay: i * 0.05 },
+                  }}
+                >
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+
+          <div className="relative text-center pointer-events-none">
+            <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+            <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
           </div>
         </div>
 
