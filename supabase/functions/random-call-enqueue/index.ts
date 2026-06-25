@@ -35,6 +35,11 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const preferredCountry: string | null = body.preferred_country ?? null;
     const preferredLangs: string[] = Array.isArray(body.preferred_langs) ? body.preferred_langs : [];
+    const preferredHostGender: string | null =
+      body.preferred_host_gender && ["male", "female", "any"].includes(body.preferred_host_gender)
+        ? body.preferred_host_gender
+        : null;
+
 
     // Load settings
     const { data: settings } = await supabase
