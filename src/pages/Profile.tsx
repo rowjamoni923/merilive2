@@ -58,7 +58,7 @@ import { goOfflineManually, isManuallyOffline } from "@/components/common/Presen
 // usePresence disabled here to avoid duplicate online-status DB writes (PresenceProvider already handles global presence)
 import { useCall } from "@/components/call/CallProvider";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { RatingProofStatusRow } from "@/components/rewards/RatingProofStatusRow";
+// RatingProofStatusRow removed from Profile — now lives in Task Center only.
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount } from "@/hooks/useGlobalUnreadCount";
 import { AnimatedLevelBadge, FloatingLevelIcon } from "@/components/common/AnimatedLevelBadge";
