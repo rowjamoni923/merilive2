@@ -352,7 +352,7 @@ const ProfileDetail = () => {
       // Gifts received
       supabase.from("gift_transactions").select("id, gift_id, coin_amount, sender_id, created_at, gifts(name, icon_url)").eq("receiver_id", targetId).order("created_at", { ascending: false }),
       // Groups
-      supabase.from("group_members").select("group_id, groups(id, name, avatar_url, member_count, description)").eq("user_id", targetId),
+      supabase.from("group_members").select("group_id, groups(id, name, avatar_url, member_count, description, group_type, is_active)").eq("user_id", targetId),
       // Followers count
       supabase.from("followers").select("*", { count: "exact", head: true }).eq("following_id", targetId),
       // Following count
