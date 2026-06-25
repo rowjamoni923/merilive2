@@ -174,6 +174,10 @@ const FaceVerification = () => {
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'unverified' | 'submitted' | 'rejected'>('unverified');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [submitInProgress, setSubmitInProgress] = useState(false);
+  // Permanent block (banned face/device/IP, or 10-strike contact-violation lockout).
+  // Checked once on mount via check_face_verification_eligibility RPC.
+  const [eligibilityBlock, setEligibilityBlock] = useState<{ reason: string; violation_count?: number; threshold?: number } | null>(null);
+  const [eligibilityChecked, setEligibilityChecked] = useState(false);
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
@@ -598,6 +602,49 @@ const FaceVerification = () => {
       setRejectionReason(null);
     }
   }, []);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Permanent eligibility lockout (10-strike contact-violation rule +
+  // banned face / device / IP reuse). Runs once we know who the user is.
+  // If eligibility=false, the page renders a permanent block surface and
+  // never mounts the camera — even on re-entry / back-nav.
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('check_face_verification_eligibility' as any);
+        if (cancelled) return;
+        if (error) {
+          // Fail-open: don't block legit users on RPC outage, but log it.
+          console.warn('[face-verification] eligibility RPC error', error);
+          setEligibilityChecked(true);
+          return;
+        }
+        const payload = (data ?? {}) as { eligible?: boolean; reason?: string; violation_count?: number; threshold?: number };
+        if (payload.eligible === false) {
+          setEligibilityBlock({
+            reason: String(payload.reason || 'restricted'),
+            violation_count: payload.violation_count,
+            threshold: payload.threshold,
+          });
+          // Make sure we're not holding the camera open if the lockout
+          // resolves mid-session.
+          postSubmitLockedRef.current = true;
+          if (typeof document !== 'undefined') {
+            document.documentElement.classList.remove('native-face-camera-active');
+            document.body.classList.remove('native-face-camera-active');
+          }
+        }
+        setEligibilityChecked(true);
+      } catch (e) {
+        console.warn('[face-verification] eligibility check failed', e);
+        setEligibilityChecked(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   // Pkg-instant: when an admin completes/rejects this user's face verification
   // from the admin panel, react instantly via Supabase Realtime so the user
@@ -1943,7 +1990,12 @@ const FaceVerification = () => {
     
     postSubmitLockedRef.current = true;
     setSubmitInProgress(true);
+    setVerificationStatus('submitted'); // ★ instant lock so the Under Review screen takes over this very render
     setLoading(true);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    }
     await teardownFaceCameraPreview();
     
     try {
@@ -2214,7 +2266,14 @@ const FaceVerification = () => {
     
     postSubmitLockedRef.current = true;
     setSubmitInProgress(true);
+    setVerificationStatus('submitted'); // ★ instant lock so the Under Review screen takes over this very render
     setLoading(true);
+    // Synchronously strip the native-camera body class so the underlying
+    // CameraX surface is hidden in the same paint frame as the lock flip.
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    }
     await teardownFaceCameraPreview();
     
     try {
@@ -3156,6 +3215,53 @@ const FaceVerification = () => {
 
 
   // Already submitted - pending review
+  // ★ Permanent eligibility lockout — render BEFORE every other branch so
+  // the camera path is unreachable for users who hit the 10-strike contact
+  // violation rule or whose face/device/IP is on the global ban list.
+  if (eligibilityBlock) {
+    const isContactBan = eligibilityBlock.reason === 'contact_violation_threshold';
+    const isIdentityReuse = eligibilityBlock.reason === 'banned_identity_reuse';
+    const headline = isContactBan
+      ? 'Account Permanently Restricted'
+      : isIdentityReuse
+        ? 'This Identity Is Blocked'
+        : 'Verification Unavailable';
+    const subline = isContactBan
+      ? `Your account has been flagged for repeatedly sharing contact information (${eligibilityBlock.violation_count ?? 'multiple'} strikes, limit ${eligibilityBlock.threshold ?? 10}). Face verification is no longer available for this account.`
+      : isIdentityReuse
+        ? 'This face, device, or network has been previously banned for policy violations. Re-opening a new account with the same identity is not permitted.'
+        : 'You are not eligible to submit a face verification at this time. Please contact support if you believe this is a mistake.';
+    return (
+      <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-rose-50 via-orange-50 to-rose-50 overflow-hidden">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+          {renderHeader('Face Verification', 'Identity check unavailable')}
+          <div className="flex flex-col items-center justify-center mt-16 px-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring' }}
+              className="w-28 h-28 rounded-full bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center mb-6 shadow-2xl shadow-rose-500/30"
+            >
+              <ShieldCheck className="w-14 h-14 text-white" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3 text-center">{headline}</h2>
+            <p className="text-slate-600 text-center max-w-md leading-relaxed mb-6">{subline}</p>
+            <div className="bg-white/80 backdrop-blur border border-rose-100 rounded-2xl p-4 max-w-md w-full text-sm text-slate-600 mb-6">
+              <p className="font-semibold text-slate-800 mb-1">Reason code</p>
+              <code className="text-xs text-rose-700">{eligibilityBlock.reason}</code>
+            </div>
+            <Button
+              className="bg-gradient-to-r from-slate-700 to-slate-900 text-white rounded-xl px-8 h-12 shadow-lg"
+              onClick={() => navigate('/profile')}
+            >
+              Back to Profile
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (submitInProgress || verificationStatus === 'submitted') {
     return (
       <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden">

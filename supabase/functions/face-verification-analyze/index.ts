@@ -288,6 +288,95 @@ serve(async (req) => {
       });
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRE-AWS GATE: banned-identity reuse + role mismatch (existing host
+    // trying to verify as a normal user to dodge a host-side strike).
+    // These checks are CHEAP — no Rekognition spend if any of them trip.
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      const { data: subProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("id,is_host,is_banned,face_hash,device_id,signup_ip,last_login_ip")
+        .eq("id", row.user_id)
+        .maybeSingle();
+
+      // role_mismatch_existing_host: someone whose account is already a host
+      // can never re-submit as a plain user.
+      const vt = String(row.verification_type || "").trim().toLowerCase();
+      if (vt === "user" && subProfile?.is_host === true) {
+        await supabaseAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "rejected",
+            rejection_reason: "Existing host accounts cannot re-verify as a regular user.",
+            admin_notes: "[auto-reject] role_mismatch_existing_host",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", submissionId);
+        return new Response(JSON.stringify({ ok: false, rejected: "role_mismatch_existing_host" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // banned_identity_reuse: face hash / device / IP listed in global ban
+      // tables (typically because the same person hit the contact-violation
+      // threshold on a previous account).
+      let faceMatch = 0, deviceMatch = 0, ipMatch = 0;
+      if (subProfile?.face_hash) {
+        const { count } = await supabaseAdmin
+          .from("banned_face_hashes")
+          .select("id", { count: "exact", head: true })
+          .eq("face_hash", subProfile.face_hash);
+        faceMatch = count || 0;
+      }
+      if (subProfile?.device_id) {
+        const { count } = await supabaseAdmin
+          .from("banned_devices")
+          .select("id", { count: "exact", head: true })
+          .eq("device_id", subProfile.device_id);
+        deviceMatch = count || 0;
+      }
+      const ipToCheck = subProfile?.signup_ip || subProfile?.last_login_ip;
+      if (ipToCheck) {
+        const { count } = await supabaseAdmin
+          .from("banned_ips")
+          .select("id", { count: "exact", head: true })
+          .eq("ip_address", ipToCheck);
+        ipMatch = count || 0;
+      }
+
+      if ((faceMatch + deviceMatch + ipMatch) > 0 || subProfile?.is_banned === true) {
+        await supabaseAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "rejected",
+            rejection_reason: "This identity (face, device, or IP) is permanently restricted due to prior policy violations.",
+            admin_notes: `[auto-reject] banned_identity_reuse face=${faceMatch} device=${deviceMatch} ip=${ipMatch} profile_banned=${subProfile?.is_banned === true}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", submissionId);
+        try {
+          await supabaseAdmin.from("admin_logs").insert({
+            action: "face_verification_auto_reject",
+            metadata: {
+              submission_id: submissionId,
+              user_id: row.user_id,
+              reason: "banned_identity_reuse",
+              face_match: faceMatch, device_match: deviceMatch, ip_match: ipMatch,
+            },
+          });
+        } catch (_e) { /* admin_logs schema differences — non-fatal */ }
+        return new Response(JSON.stringify({ ok: false, rejected: "banned_identity_reuse" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } catch (gateErr) {
+      console.warn("[face-verification-analyze] pre-AWS gate skipped:", gateErr instanceof Error ? gateErr.message : gateErr);
+      // Fail-open — better to let Rekognition run than block a legit user
+      // because of a transient profiles read failure.
+    }
+
+
     const frontUrl = row.front_url || row.face_image_url || row.selfie_url;
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;

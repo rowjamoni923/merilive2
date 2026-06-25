@@ -21326,6 +21326,7 @@ export type Database = {
           resolved_count: number
         }[]
       }
+      check_face_verification_eligibility: { Args: never; Returns: Json }
       check_group_membership: {
         Args: { p_group_id: string; p_user_id: string }
         Returns: boolean
@@ -22267,6 +22268,7 @@ export type Database = {
         }[]
       }
       get_call_e2ee_key: { Args: { _call_id: string }; Returns: string }
+      get_contact_violation_ban_threshold: { Args: never; Returns: number }
       get_conversations_with_details: {
         Args: { p_user_id: string }
         Returns: Json
