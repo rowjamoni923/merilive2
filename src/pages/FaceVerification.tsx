@@ -3674,18 +3674,7 @@ const FaceVerification = () => {
                 
                 <div>
                   <Label className="text-slate-700 text-sm font-semibold">Language *</Label>
-                  <Select value={language} onValueChange={setLanguage} {...({ modal: false } as any)}>
-                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.flag} {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <LanguageNativeSelect value={language} onChange={setLanguage} />
                 </div>
               </div>
             </div>
@@ -3905,18 +3894,7 @@ const FaceVerification = () => {
               
               <div>
                 <Label className="text-slate-700 text-sm font-semibold">Language</Label>
-                <Select value={language} onValueChange={setLanguage} {...({ modal: false } as any)}>
-                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LanguageNativeSelect value={language} onChange={setLanguage} />
               </div>
             </div>
           </div>
