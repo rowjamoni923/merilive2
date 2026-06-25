@@ -642,7 +642,7 @@ const AdminGmailSupport = () => {
             </div>
           ) : (
             <ScrollArea className="flex-1 min-h-0 h-full">
-              <div className="space-y-2 px-6 py-4 max-w-3xl mx-auto">
+              <div className="space-y-2 px-3 sm:px-6 py-4 max-w-3xl mx-auto">
                 {selectedThread?.map((msg, idx) => {
                   const isOur = msg.from.includes('merilive.us@gmail.com');
                   const showDateSep = idx === 0 || 
