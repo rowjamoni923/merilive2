@@ -178,17 +178,25 @@ export default function PreMatchPrep({
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
-        <button onClick={() => navigate(-1)} aria-label="Back"
-          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center">
+        <button
+          onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/"); }}
+          aria-label="Back"
+          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 h-8 px-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15">
+          <button
+            onClick={() => setRechargeOpen(true)}
+            className="flex items-center gap-1 h-8 px-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15 active:scale-95 transition"
+            aria-label="Recharge diamonds"
+          >
             <Gem className="w-3.5 h-3.5 text-cyan-300" />
             <span className="text-xs font-bold tabular-nums">{effectiveBalance.toLocaleString()}</span>
-          </div>
-          <button aria-label="History"
-            className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center">
+          </button>
+          <button
+            onClick={() => navigate("/call-history")}
+            aria-label="Call history"
+            className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition">
             <History className="w-4 h-4" />
           </button>
         </div>
