@@ -17,6 +17,25 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const queueId: string | undefined = body.queue_id;
+    const broadcastId: string | undefined = body.broadcast_id;
+
+    if (broadcastId) {
+      await supabase
+        .from("random_call_broadcasts")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", broadcastId)
+        .eq("caller_id", ud.user.id)
+        .eq("status", "pending");
+      // Tell every host listener to dismiss the ringer
+      try {
+        const ch = supabase.channel(`broadcast-${broadcastId}`);
+        await ch.send({
+          type: "broadcast",
+          event: "random_broadcast_taken",
+          payload: { broadcast_id: broadcastId, cancelled: true },
+        });
+      } catch (_) {}
+    }
 
     if (queueId) {
       await supabase
@@ -25,7 +44,7 @@ Deno.serve(async (req) => {
         .eq("id", queueId)
         .eq("user_id", ud.user.id)
         .eq("status", "waiting");
-    } else {
+    } else if (!broadcastId) {
       await supabase
         .from("random_call_queue")
         .update({ status: "cancelled", updated_at: new Date().toISOString() })
