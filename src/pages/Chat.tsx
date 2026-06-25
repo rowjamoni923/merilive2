@@ -3899,9 +3899,28 @@ const Chat = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Group Settings Panel (also rendered inside active conversation view) */}
+        {showGroupSettings && selectedGroup && currentUserId && (
+          <Suspense fallback={null}>
+            <GroupSettingsPanel
+              group={selectedGroup}
+              currentUserId={currentUserId}
+              onClose={() => setShowGroupSettings(false)}
+              onGroupUpdated={() => fetchGroups()}
+              onLeaveGroup={() => {
+                setShowGroupSettings(false);
+                setSelectedGroup(null);
+                setGroupMessages([]);
+                fetchGroups();
+              }}
+            />
+          </Suspense>
+        )}
       </div>
     );
   }
+
 
   return (
     <div data-page="chat" className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
