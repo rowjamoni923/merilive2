@@ -210,27 +210,10 @@ const AdminPopupBanners = () => {
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   </label>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2">
-                    <Label className="text-slate-300">Link URL</Label>
-                    <Input value={formData.link_url} onChange={(e) => setFormData({ ...formData, link_url: e.target.value })} placeholder="/invitation or https://..." className="mt-1 bg-slate-800 border-slate-600 text-white text-sm" />
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-slate-300">Link Type</Label>
-                    <select value={formData.link_type} onChange={(e) => setFormData({ ...formData, link_type: e.target.value })} className="mt-1 w-full bg-slate-800 border border-slate-600 text-white rounded-md px-2 py-2 text-sm">
-                      <option value="internal">Internal</option>
-                      <option value="external">External</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Skip Delay (s)</Label>
+                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Button Delay (s)</Label>
                     <Input type="number" value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
-                  </div>
-                  <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Auto Dismiss (s)</Label>
-                    <Input type="number" value={formData.auto_dismiss_seconds} onChange={(e) => setFormData({ ...formData, auto_dismiss_seconds: parseInt(e.target.value) || 7 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
                   </div>
                   <div>
                     <Label className="text-slate-300">Display Order</Label>
@@ -277,8 +260,7 @@ const AdminPopupBanners = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-white truncate">{banner.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Skip: {banner.skip_delay_seconds}s • Auto: {banner.auto_dismiss_seconds}s • Order: {banner.display_order}</p>
-                      {banner.link_url && <p className="text-xs text-purple-400 truncate mt-0.5">{banner.link_url}</p>}
+                      <p className="text-xs text-slate-400 mt-0.5">Close after: {banner.skip_delay_seconds}s • Order: {banner.display_order}</p>
                       {banner.start_date && (
                         <p className="text-[10px] text-slate-500 mt-1">
                           {new Date(banner.start_date).toLocaleDateString()} — {banner.end_date ? new Date(banner.end_date).toLocaleDateString() : 'Ongoing'}
