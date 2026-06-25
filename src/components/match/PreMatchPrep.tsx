@@ -91,6 +91,51 @@ export default function PreMatchPrep({
     return () => window.clearInterval(t);
   }, []);
 
+  // Live orbit avatars — fetch online verified hosts and rotate the set every few seconds
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
+        if (!mounted) return;
+        const urls = (data as any[] | null)?.map((r) => r.avatar_url).filter(Boolean) as string[] | undefined;
+        if (urls && urls.length) {
+          // shuffle to randomize each refresh
+          const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 12);
+          setOrbitAvatars(shuffled);
+        } else {
+          setOrbitAvatars([]);
+        }
+      } catch (_) { /* ignore */ }
+    };
+    load();
+    const t = window.setInterval(load, 6000);
+    return () => { mounted = false; window.clearInterval(t); };
+  }, []);
+
+  // Pre-computed deterministic-ish positions inside the radar
+  const orbitSlots = useMemo(() => {
+    // 12 slots placed on 3 rings around the centre
+    const slots: { x: number; y: number; size: number; ring: number }[] = [];
+    const rings = [
+      { r: 60, count: 4, size: 28 },
+      { r: 100, count: 4, size: 32 },
+      { r: 138, count: 4, size: 26 },
+    ];
+    rings.forEach((ring, ri) => {
+      for (let i = 0; i < ring.count; i++) {
+        const angle = (i / ring.count) * Math.PI * 2 + (ri * 0.5);
+        slots.push({
+          x: Math.cos(angle) * ring.r,
+          y: Math.sin(angle) * ring.r,
+          size: ring.size,
+          ring: ri,
+        });
+      }
+    });
+    return slots;
+  }, []);
+
   const insufficient = diamondBalance < hostRatePerMin;
   const filtersLocked = countryRequiresVip && !isVip;
 
