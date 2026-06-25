@@ -734,14 +734,14 @@ export default function AdminAgencyDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="hosts" className="w-full">
-        <TabsList className="bg-white/5 border border-white/10">
+        <div className="w-full overflow-x-auto -mx-2 px-2"><TabsList className="bg-white/5 border border-white/10 inline-flex w-max md:w-auto">
           <TabsTrigger value="hosts" className="data-[state=active]:bg-primary text-white">
             Host List ({hosts.length})
           </TabsTrigger>
           <TabsTrigger value="transactions" className="data-[state=active]:bg-primary text-white">
             Transfer History ({transactions.length})
           </TabsTrigger>
-        </TabsList>
+        </TabsList></div>
 
         {/* Hosts Tab */}
         <TabsContent value="hosts" className="mt-4">
@@ -955,7 +955,7 @@ export default function AdminAgencyDetail() {
 
       {/* Remove Host Dialog */}
       <Dialog open={showRemoveHostDialog} onOpenChange={setShowRemoveHostDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Remove Host</DialogTitle>
             <DialogDescription className="text-white/60">
@@ -980,7 +980,7 @@ export default function AdminAgencyDetail() {
 
       {/* Add Diamonds Dialog */}
       <Dialog open={showAddCoinsDialog} onOpenChange={setShowAddCoinsDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Diamonds</DialogTitle>
           </DialogHeader>
@@ -1011,7 +1011,7 @@ export default function AdminAgencyDetail() {
 
       {/* Change Level Dialog */}
       <Dialog open={showChangeLevelDialog} onOpenChange={setShowChangeLevelDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Change Agency Level</DialogTitle>
           </DialogHeader>
@@ -1038,7 +1038,7 @@ export default function AdminAgencyDetail() {
 
       {/* Remove All Hosts Dialog */}
       <Dialog open={showRemoveAllHostsDialog} onOpenChange={setShowRemoveAllHostsDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-red-400 flex items-center gap-2">
               <Trash2 className="w-5 h-5" />
@@ -1070,7 +1070,7 @@ export default function AdminAgencyDetail() {
 
       {/* Transfer Host Dialog */}
       <Dialog open={showTransferHostDialog} onOpenChange={setShowTransferHostDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowRightLeft className="w-5 h-5 text-blue-400" />
@@ -1139,7 +1139,7 @@ export default function AdminAgencyDetail() {
           setFoundUser(null);
         }
       }}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="w-5 h-5 text-green-400" />

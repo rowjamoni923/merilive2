@@ -339,7 +339,7 @@ const AdminCoinTraders = () => {
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-white">{stats.totalHelpers}</p><p className="text-white/80 text-xs">Total</p>
           </div>
@@ -456,7 +456,7 @@ const AdminCoinTraders = () => {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-lg flex items-center gap-2"><Clock className="w-5 h-5" />Transactions</CardTitle></CardHeader>
               <CardContent>
-                <Table>
+                <div className="w-full overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Helper</TableHead>
@@ -506,7 +506,7 @@ const AdminCoinTraders = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -549,7 +549,7 @@ const AdminCoinTraders = () => {
 
       {/* Coin Transfer Modal */}
       <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="w-5 h-5 text-emerald-600" />
@@ -690,7 +690,7 @@ const AdminCoinTraders = () => {
 
       {/* Payment Methods Edit Modal */}
       <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-[85vh] max-h-[100dvh] sm:max-h-[85vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
                <CreditCard className="w-5 h-5 text-blue-600" />

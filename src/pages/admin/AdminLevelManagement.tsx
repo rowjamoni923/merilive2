@@ -87,7 +87,7 @@ const AdminLevelManagement = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-900/50 p-1 h-auto">
+        <div className="w-full overflow-x-auto -mx-2 px-2"><TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 bg-slate-900/50 p-1 h-auto">
           <TabsTrigger 
             value="tiers" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-3"
@@ -116,7 +116,7 @@ const AdminLevelManagement = () => {
             <UserPlus className="w-4 h-4 mr-2" />
             Invitation
           </TabsTrigger>
-        </TabsList>
+        </TabsList></div>
 
         <TabsContent value="tiers" className="mt-0">
           <AdminLevelTiers />

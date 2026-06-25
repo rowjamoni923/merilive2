@@ -1028,7 +1028,7 @@ export default function AdminGifts() {
 
       {/* Edit/Create Dialog - Improved scrolling and visibility */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 shadow-2xl w-[95vw] max-w-2xl h-[90vh] max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="bg-slate-900 border-slate-700 shadow-2xl w-screen sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[90vh] max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg flex flex-col p-0">
           <DialogHeader className="p-4 md:p-6 pb-2 flex-shrink-0 border-b border-slate-700">
             <DialogTitle className="text-white text-lg md:text-xl font-bold">
               {editingGift ? "Edit Gift" : "Create New Gift"}
@@ -1438,7 +1438,7 @@ export default function AdminGifts() {
 
       {/* Lucky Gift Config Dialog */}
       <Dialog open={showLuckyConfig} onOpenChange={setShowLuckyConfig}>
-        <DialogContent className="bg-slate-900 border-slate-700 w-[95vw] max-w-lg">
+        <DialogContent className="bg-slate-900 border-slate-700 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               🎰 Lucky Gift Lottery Config
