@@ -128,11 +128,6 @@ export function RatingProofStatusRow() {
     return tips;
   }, [claim]);
 
-  if (!claim) return null;
-
-  const meta = STATUS_META[claim.status];
-  const isRejected = claim.status === "rejected";
-
   const triggerFilePicker = useCallback(() => {
     if (retrying) return;
     fileRef.current?.click();
@@ -198,6 +193,12 @@ export function RatingProofStatusRow() {
       setRetrying(false);
     }
   }, [userId, refresh]);
+
+  if (!claim) return null;
+
+  const meta = STATUS_META[claim.status];
+  const isRejected = claim.status === "rejected";
+
 
   const handleTap = () => {
     if (isRejected) {
