@@ -239,6 +239,39 @@ export default function MatchCall() {
       } else if ((data as any)?.status === "matched") {
         const sess = data as any;
         await handoff(sess.session_id, sess.host_id);
+      } else if ((data as any)?.status === "broadcasting") {
+        // Chamet-style fan-out: every online verified host is ringing.
+        // First to accept wins; we listen on our user channel for the assignment.
+        const bid = (data as any).broadcast_id as string;
+        broadcastIdRef.current = bid;
+        const ringTimeout = Number((data as any).ring_timeout_seconds ?? 20);
+
+        const { data: ud } = await supabase.auth.getUser();
+        const uid = ud?.user?.id;
+        if (!uid) throw new Error("not_authenticated");
+
+        const ch = supabase.channel(`user-${uid}`)
+          .on("broadcast", { event: "random_broadcast_matched" }, async (msg: any) => {
+            const p = msg?.payload ?? {};
+            if (p.broadcast_id !== bid) return;
+            try { supabase.removeChannel(ch); } catch (_) {}
+            broadcastChannelRef.current = null;
+            await handoff(p.session_id, p.host_id);
+          })
+          .subscribe();
+        broadcastChannelRef.current = ch;
+
+        // Auto-timeout if no host picks up within ring window
+        window.setTimeout(async () => {
+          if (broadcastIdRef.current !== bid) return;
+          if (timerRef.current) window.clearInterval(timerRef.current);
+          try { supabase.removeChannel(ch); } catch (_) {}
+          broadcastChannelRef.current = null;
+          broadcastIdRef.current = null;
+          try { await supabase.functions.invoke("random-call-cancel", { body: { broadcast_id: bid } }); } catch (_) {}
+          setErrorMsg("No host picked up. Please try again.");
+          setPhase("error");
+        }, ringTimeout * 1000 + 500);
       } else if ((data as any)?.status === "queued") {
         setQueueId((data as any).queue_id);
         const channel = supabase
