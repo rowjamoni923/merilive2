@@ -21526,6 +21526,7 @@ export type Database = {
         Args: { _product_id: string }
         Returns: Json
       }
+      get_group_invite_preview: { Args: { p_token: string }; Returns: Json }
       get_helper_daily_topup_stats: {
         Args: { _helper_ids: string[] }
         Returns: {
