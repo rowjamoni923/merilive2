@@ -768,7 +768,7 @@ const AdminAnimationStore = () => {
 
       {/* Preview Modal */}
       <Dialog open={!!previewAnimation} onOpenChange={() => setPreviewAnimation(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{previewAnimation?.name}</DialogTitle>
             <DialogDescription>
@@ -971,7 +971,7 @@ const AdminAnimationStore = () => {
 
       {/* Confirm Delete Dialog */}
       <Dialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <Trash2 className="w-5 h-5" />

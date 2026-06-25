@@ -67,7 +67,7 @@ const AdminEntryEffects = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-4 gap-1 border border-[hsl(var(--admin-border-light)/0.7)] bg-[hsl(var(--admin-card)/0.68)] p-1">
+        <div className="w-full overflow-x-auto -mx-2 px-2"><TabsList className="inline-flex w-max md:grid md:h-auto md:w-full md:grid-cols-4 gap-1 border border-[hsl(var(--admin-border-light)/0.7)] bg-[hsl(var(--admin-card)/0.68)] p-1">
           <TabsTrigger value="banners" className={tabTriggerClass}>
             <Zap className="mr-1 h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Premium</span> Effects

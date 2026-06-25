@@ -271,7 +271,7 @@ export default function AdminContent() {
       )}
 
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
-        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-slate-800">
               {editingPage ? "Edit Page" : "Create New Page"}
