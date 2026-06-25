@@ -7869,6 +7869,63 @@ export type Database = {
         }
         Relationships: []
       }
+      host_match_preferences: {
+        Row: {
+          auto_accept_calls: boolean
+          blocked_user_ids: string[] | null
+          coin_rate_per_min: number
+          created_at: string
+          flash_disconnect_cooldown_until: string | null
+          flash_disconnect_window_start: string | null
+          flash_disconnects_count: number
+          host_id: string
+          is_in_match_pool: boolean
+          min_caller_level: number
+          preferred_caller_countries: string[] | null
+          preferred_caller_langs: string[] | null
+          rate_changed_at: string | null
+          total_beans_earned: number
+          total_calls: number
+          updated_at: string
+        }
+        Insert: {
+          auto_accept_calls?: boolean
+          blocked_user_ids?: string[] | null
+          coin_rate_per_min?: number
+          created_at?: string
+          flash_disconnect_cooldown_until?: string | null
+          flash_disconnect_window_start?: string | null
+          flash_disconnects_count?: number
+          host_id: string
+          is_in_match_pool?: boolean
+          min_caller_level?: number
+          preferred_caller_countries?: string[] | null
+          preferred_caller_langs?: string[] | null
+          rate_changed_at?: string | null
+          total_beans_earned?: number
+          total_calls?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_accept_calls?: boolean
+          blocked_user_ids?: string[] | null
+          coin_rate_per_min?: number
+          created_at?: string
+          flash_disconnect_cooldown_until?: string | null
+          flash_disconnect_window_start?: string | null
+          flash_disconnects_count?: number
+          host_id?: string
+          is_in_match_pool?: boolean
+          min_caller_level?: number
+          preferred_caller_countries?: string[] | null
+          preferred_caller_langs?: string[] | null
+          rate_changed_at?: string | null
+          total_beans_earned?: number
+          total_calls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       idempotency_keys: {
         Row: {
           completed_at: string | null
@@ -12551,6 +12608,255 @@ export type Database = {
           provider_id?: string
           thumbnail_url?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      random_call_queue: {
+        Row: {
+          coin_rate_per_min: number | null
+          entered_at: string
+          expires_at: string | null
+          gender: string | null
+          hold_amount: number | null
+          id: string
+          is_vip: boolean
+          matched_with: string | null
+          preferred_country: string | null
+          preferred_langs: string[] | null
+          role: string
+          score: number
+          session_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coin_rate_per_min?: number | null
+          entered_at?: string
+          expires_at?: string | null
+          gender?: string | null
+          hold_amount?: number | null
+          id?: string
+          is_vip?: boolean
+          matched_with?: string | null
+          preferred_country?: string | null
+          preferred_langs?: string[] | null
+          role: string
+          score?: number
+          session_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coin_rate_per_min?: number | null
+          entered_at?: string
+          expires_at?: string | null
+          gender?: string | null
+          hold_amount?: number | null
+          id?: string
+          is_vip?: boolean
+          matched_with?: string | null
+          preferred_country?: string | null
+          preferred_langs?: string[] | null
+          role?: string
+          score?: number
+          session_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      random_call_sessions: {
+        Row: {
+          accepted_at: string | null
+          beans_awarded: number
+          billable_seconds: number | null
+          caller_id: string
+          caller_rating: number | null
+          coin_rate_per_min: number
+          coins_charged: number
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          ended_by: string | null
+          free_trial_seconds: number
+          hold_amount: number
+          host_id: string
+          host_rating: number | null
+          host_split_pct: number
+          id: string
+          livekit_room: string
+          min_billable_seconds: number
+          settled: boolean
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          beans_awarded?: number
+          billable_seconds?: number | null
+          caller_id: string
+          caller_rating?: number | null
+          coin_rate_per_min: number
+          coins_charged?: number
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          ended_by?: string | null
+          free_trial_seconds?: number
+          hold_amount?: number
+          host_id: string
+          host_rating?: number | null
+          host_split_pct?: number
+          id?: string
+          livekit_room: string
+          min_billable_seconds?: number
+          settled?: boolean
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          beans_awarded?: number
+          billable_seconds?: number | null
+          caller_id?: string
+          caller_rating?: number | null
+          coin_rate_per_min?: number
+          coins_charged?: number
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          ended_by?: string | null
+          free_trial_seconds?: number
+          hold_amount?: number
+          host_id?: string
+          host_rating?: number | null
+          host_split_pct?: number
+          id?: string
+          livekit_room?: string
+          min_billable_seconds?: number
+          settled?: boolean
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      random_call_settings: {
+        Row: {
+          beans_to_usd_rate: number
+          coins_to_usd_rate: number
+          country_filter_requires_vip: boolean
+          daily_skip_limit: number
+          default_host_rate_coins_per_min: number
+          enable_country_filter: boolean
+          enable_gender_filter: boolean
+          flash_disconnect_cooldown_minutes: number
+          flash_disconnect_threshold: number
+          flash_disconnect_window_seconds: number
+          free_trial_seconds: number
+          host_max_rate_coins_per_min: number
+          host_min_rate_coins_per_min: number
+          host_split_pct: number
+          id: number
+          is_enabled: boolean
+          livekit_room_max_seconds: number
+          match_timeout_seconds: number
+          min_billable_seconds: number
+          min_host_level_for_pool: number
+          preauth_minutes_hold: number
+          price_change_cooldown_seconds: number
+          ring_timeout_seconds: number
+          skip_cooldown_seconds: number
+          updated_at: string
+          updated_by: string | null
+          vip_free_trial_bonus_seconds: number
+          vip_match_priority_multiplier: number
+        }
+        Insert: {
+          beans_to_usd_rate?: number
+          coins_to_usd_rate?: number
+          country_filter_requires_vip?: boolean
+          daily_skip_limit?: number
+          default_host_rate_coins_per_min?: number
+          enable_country_filter?: boolean
+          enable_gender_filter?: boolean
+          flash_disconnect_cooldown_minutes?: number
+          flash_disconnect_threshold?: number
+          flash_disconnect_window_seconds?: number
+          free_trial_seconds?: number
+          host_max_rate_coins_per_min?: number
+          host_min_rate_coins_per_min?: number
+          host_split_pct?: number
+          id?: number
+          is_enabled?: boolean
+          livekit_room_max_seconds?: number
+          match_timeout_seconds?: number
+          min_billable_seconds?: number
+          min_host_level_for_pool?: number
+          preauth_minutes_hold?: number
+          price_change_cooldown_seconds?: number
+          ring_timeout_seconds?: number
+          skip_cooldown_seconds?: number
+          updated_at?: string
+          updated_by?: string | null
+          vip_free_trial_bonus_seconds?: number
+          vip_match_priority_multiplier?: number
+        }
+        Update: {
+          beans_to_usd_rate?: number
+          coins_to_usd_rate?: number
+          country_filter_requires_vip?: boolean
+          daily_skip_limit?: number
+          default_host_rate_coins_per_min?: number
+          enable_country_filter?: boolean
+          enable_gender_filter?: boolean
+          flash_disconnect_cooldown_minutes?: number
+          flash_disconnect_threshold?: number
+          flash_disconnect_window_seconds?: number
+          free_trial_seconds?: number
+          host_max_rate_coins_per_min?: number
+          host_min_rate_coins_per_min?: number
+          host_split_pct?: number
+          id?: number
+          is_enabled?: boolean
+          livekit_room_max_seconds?: number
+          match_timeout_seconds?: number
+          min_billable_seconds?: number
+          min_host_level_for_pool?: number
+          preauth_minutes_hold?: number
+          price_change_cooldown_seconds?: number
+          ring_timeout_seconds?: number
+          skip_cooldown_seconds?: number
+          updated_at?: string
+          updated_by?: string | null
+          vip_free_trial_bonus_seconds?: number
+          vip_match_priority_multiplier?: number
+        }
+        Relationships: []
+      }
+      random_call_skip_counters: {
+        Row: {
+          day_bucket: string
+          last_skip_at: string
+          skip_count: number
+          user_id: string
+        }
+        Insert: {
+          day_bucket?: string
+          last_skip_at?: string
+          skip_count?: number
+          user_id: string
+        }
+        Update: {
+          day_bucket?: string
+          last_skip_at?: string
+          skip_count?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -20631,6 +20937,7 @@ export type Database = {
         Returns: Json
       }
       claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
+      claim_match: { Args: { p_caller_queue_id: string }; Returns: string }
       claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
       claim_task_reward:
@@ -22669,6 +22976,14 @@ export type Database = {
       set_topup_helper_listing: { Args: { _is_listed: boolean }; Returns: Json }
       set_user_offline: { Args: { p_user_id: string }; Returns: undefined }
       settle_private_call: { Args: { p_call_id: string }; Returns: Json }
+      settle_random_call: {
+        Args: {
+          p_duration_seconds: number
+          p_ended_by: string
+          p_session_id: string
+        }
+        Returns: Json
+      }
       start_live_stream: {
         Args: {
           p_category_id?: string
