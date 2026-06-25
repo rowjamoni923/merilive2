@@ -713,12 +713,20 @@ const FaceVerification = () => {
           if (status === 'approved') {
             setVerificationStatus('verified');
             setRejectionReason(null);
+            setRetryRequired(null);
             toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
             setTimeout(() => navigate('/profile', { replace: true }), 900);
           } else if (status === 'rejected') {
             setVerificationStatus('rejected');
             setRejectionReason(next?.rejection_reason || null);
+            setRetryRequired(null);
             toast({ title: 'Face verification rejected', description: next?.rejection_reason || 'Please re-submit.', variant: 'destructive' });
+          } else if (status === 'needs_retry') {
+            const rr = (next?.ai_analysis as any)?.retry_required || null;
+            setRetryRequired(rr);
+            setVerificationStatus('needs_retry');
+            setRejectionReason(null);
+            toast({ title: 'Re-upload required', description: rr?.headline || 'Your photo, video, and live scan do not match. Please retry.', variant: 'destructive' });
           } else if (status === 'pending' || status === 'submitted' || status === 'under_review') {
             setVerificationStatus('submitted');
           }
