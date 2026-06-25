@@ -78,6 +78,19 @@ export default function PreMatchPrep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camOn, micOn, facing]);
 
+  // Release camera if the tab is hidden or the page is being torn down — prevents
+  // the "camera still on" ghost state that other live apps suffer from.
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === "hidden") stopStream(); };
+    const onPageHide = () => stopStream();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, []);
+
   const insufficient = diamondBalance < hostRatePerMin;
   const filtersLocked = countryRequiresVip && !isVip;
 
