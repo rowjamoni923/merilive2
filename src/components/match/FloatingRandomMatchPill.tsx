@@ -74,7 +74,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
     >
       <div className="relative" style={{ width: PILL_SIZE, height: PILL_SIZE }}>
-        {/* Minimal pro close chip (14px) */}
+        {/* Tiny pro dismiss dot — sits just outside the top-right, Chamet-style */}
         <button
           aria-label="Hide Random Chat"
           onPointerDown={(e) => e.stopPropagation()}
@@ -83,10 +83,15 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
             try { sessionStorage.setItem(STORAGE_DISMISSED, "1"); } catch {}
             setDismissed(true);
           }}
-          style={{ width: 14, height: 14 }}
-          className="absolute -top-0.5 -right-0.5 z-20 rounded-full bg-neutral-900/70 text-white/95 grid place-items-center shadow-[0_1px_3px_rgba(0,0,0,0.35)] ring-[0.5px] ring-white/40 backdrop-blur-md active:scale-90 transition-transform"
+          style={{
+            width: 16, height: 16, minWidth: 16, minHeight: 16,
+            top: -4, right: -4, padding: 0, lineHeight: 0,
+          }}
+          className="absolute z-20 rounded-full bg-black/55 text-white grid place-items-center
+                     ring-[0.5px] ring-white/35 shadow-[0_1px_2px_rgba(0,0,0,0.4)]
+                     backdrop-blur-sm active:scale-90 transition-transform"
         >
-          <X style={{ width: 8, height: 8 }} strokeWidth={3} />
+          <X style={{ width: 9, height: 9 }} strokeWidth={2.8} />
         </button>
 
         {/* Main pill — 3D icon-only */}
