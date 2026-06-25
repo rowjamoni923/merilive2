@@ -45,6 +45,10 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
   const [uploading, setUploading] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addQuery, setAddQuery] = useState("");
+  const [addResults, setAddResults] = useState<any[]>([]);
+  const [addingId, setAddingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwner = group.owner_id === currentUserId;
