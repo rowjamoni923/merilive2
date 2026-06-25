@@ -864,15 +864,15 @@ serve(async (req) => {
       .eq("id", submissionId);
 
     // ────────────────────────────────────────────────────────────────────
-    // POLICY (Updated F3 2026-06-09):
+    // POLICY (Updated F3 2026-06-26):
     //   Hard auto-reject cases (no admin review needed):
     //     • gender_mismatch
     //     • duplicate_face (face already on another account)
     //     • banned_face (matched account is on banned_face_hashes / is_blocked)
-    //     • photo_mismatch (avatar / host gallery do not match live face)
     //     • liveness_failed (provider explicitly flagged photo-of-photo / video replay)
-    //     • replay_suspected (all three yaw deltas <3° → static image)
-    //   Every other unclear signal goes to admin manual review.
+    //   Photo/profile/gallery mismatch and weak passive yaw are NOT instant client-visible
+    //   rejects in the new passive flow; they remain pending for admin review so users
+    //   don't bounce back to a red Required state seconds after submitting.
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
@@ -899,9 +899,9 @@ serve(async (req) => {
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
     else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
-    else if (livenessFailed) hardAutoReject = "liveness_failed";
+    else if (livenessFailed && !isPassivePhotoVideoLiveScan) hardAutoReject = "liveness_failed";
     else if (replaySuspected && !isPassivePhotoVideoLiveScan) hardAutoReject = "replay_suspected";
-    else if (profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) hardAutoReject = "photo_mismatch";
+    else if ((profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) && !isPassivePhotoVideoLiveScan) hardAutoReject = "photo_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -998,10 +998,12 @@ serve(async (req) => {
     if (!autoResult?.success) {
       const softFlags: string[] = [];
       if (livenessFailed) softFlags.push("liveness_failed");
-      if (replaySuspected && !isPassivePhotoVideoLiveScan) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
+      if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
       if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
       if (duplicateBlock) softFlags.push("duplicate_face");
       if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);
+      if (noFaceInAvatar) softFlags.push("no_face_in_avatar");
+      if (hostNoFaceInGallery) softFlags.push("no_face_in_gallery");
 
       const reviewReason = autoReason === "invalid_face_count"
         ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`

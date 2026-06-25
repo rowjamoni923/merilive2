@@ -267,6 +267,7 @@ const FaceVerification = () => {
   const autoFaceStartRef = useRef(false);
   const verifyInProgressRef = useRef(false);
   const postSubmitLockedRef = useRef(false);
+  const profileRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -509,6 +510,19 @@ const FaceVerification = () => {
     setVerificationStarted(false);
     setScanningStatus('idle');
   }, [faceStream, nativeFaceCam, setNativeFaceCameraActive]);
+
+  const scheduleProfileRedirect = useCallback(() => {
+    if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
+    profileRedirectTimerRef.current = setTimeout(() => {
+      navigate('/profile', { replace: true });
+    }, 3000);
+  }, [navigate]);
+
+  useEffect(() => {
+    return () => {
+      if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
+    };
+  }, []);
 
   // Pkg428 — useLayoutEffect so the class is removed synchronously before
   // the next route paints (prevents kalo flash on exit).
@@ -1897,6 +1911,46 @@ const FaceVerification = () => {
     return signed.signedUrl;
   };
 
+  const lockUnderReviewAndReturn = (description: string) => {
+    postSubmitLockedRef.current = true;
+    try {
+      sessionStorage.setItem('meri_face_verification_recent_submission', JSON.stringify({
+        userId,
+        status: 'under_review',
+        timestamp: Date.now(),
+      }));
+    } catch {}
+    setVerificationStatus('submitted');
+    setRejectionReason(null);
+    setLoading(false);
+    setSubmitInProgress(false);
+    toast({
+      title: '✅ Under Review',
+      description,
+    });
+    scheduleProfileRedirect();
+  };
+
+  const recoverPendingSubmissionAfterError = async () => {
+    if (!userId) return false;
+    try {
+      const { data } = await supabase
+        .from('face_verification_submissions')
+        .select('id, status')
+        .eq('user_id', userId)
+        .in('status', ['pending', 'submitted', 'under_review'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!data) return false;
+      lockUnderReviewAndReturn('Your verification was received and is now under review. Returning to profile…');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   // Convert dataURL → Blob for storage upload
   const dataUrlToBlob = (dataUrl: string): Blob | null => {
     try {
@@ -2041,15 +2095,7 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (existingSubmission) {
-        setVerificationStatus('submitted');
-        setRejectionReason(null);
-        setSubmitInProgress(false);
-        toast({
-          title: "Already Submitted",
-          description: "Your verification is already under review. Please wait for admin approval.",
-          variant: "destructive",
-        });
-        setLoading(false);
+        lockUnderReviewAndReturn('Your verification is already under review. Returning to profile…');
         return;
       }
 
@@ -2065,15 +2111,13 @@ const FaceVerification = () => {
         
         if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
           const existingName = faceData[0].display_name || 'Unknown';
-          console.log('[FaceVerification] 🚫 Duplicate face detected for USER, PERMANENT-BAN. Existing:', faceData[0].user_id);
+          console.log('[FaceVerification] Duplicate-face advisory for USER; continuing submission for server review. Existing:', faceData[0].user_id);
           toast({
-            title: "⚠️ Duplicate Account Detected",
-            description: `This face is already registered with another account (${existingName}). This account will now be permanently banned.`,
+            title: "Additional Review Needed",
+            description: `This face may match another account (${existingName}). Your verification will be reviewed securely.`,
             variant: "destructive",
           });
           await enforceDuplicateFaceBan(faceData[0]);
-          setLoading(false);
-          return;
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
@@ -2144,15 +2188,14 @@ const FaceVerification = () => {
         });
       }
 
-      toast({
-        title: "✅ Under Review",
-        description: "Your verification is now under admin review. You'll be notified the moment it's approved.",
-      });
-      setSubmitInProgress(false);
+      lockUnderReviewAndReturn("Your verification is now under admin review. Returning to profile…");
       return;
       
     } catch (error: any) {
+      const recovered = await recoverPendingSubmissionAfterError();
+      if (recovered) return;
       postSubmitLockedRef.current = false;
+      setVerificationStatus('unverified');
       setSubmitInProgress(false);
       toast({
         title: "Error",
@@ -2300,16 +2343,14 @@ const FaceVerification = () => {
           duplicateFaceName = faceData[0].display_name || 'Unknown';
           duplicateFaceUid = (faceData[0] as any).app_uid || null;
           duplicateFaceAvatar = faceData[0].avatar_url || null;
-          console.log('[FaceVerification] 🚫 Duplicate face detected, PERMANENT-BAN. Existing account:', duplicateFaceUserId);
+          console.log('[FaceVerification] Duplicate-face advisory for HOST; continuing submission for server review. Existing account:', duplicateFaceUserId);
           
           toast({
-            title: "⚠️ Duplicate Account Detected",
-            description: `This face is already registered with another account (${duplicateFaceName}). This account will now be permanently banned.`,
+            title: "Additional Review Needed",
+            description: `This face may match another account (${duplicateFaceName}). Your application will be reviewed securely.`,
             variant: "destructive",
           });
           await enforceDuplicateFaceBan(faceData[0]);
-          setLoading(false);
-          return;
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
@@ -2357,15 +2398,7 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (existingSubmission) {
-        setVerificationStatus('submitted');
-        setRejectionReason(null);
-        setSubmitInProgress(false);
-        toast({
-          title: "Already Submitted",
-          description: "Your verification is already under review. Please wait for admin approval.",
-          variant: "destructive",
-        });
-        setLoading(false);
+        lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…');
         return;
       }
       
@@ -2426,15 +2459,14 @@ const FaceVerification = () => {
         });
       }
 
-      toast({
-        title: "✅ Under Review",
-        description: "Your host application is now under admin review. Approval notification will appear instantly.",
-      });
-      setSubmitInProgress(false);
+      lockUnderReviewAndReturn('Your host application is now under admin review. Returning to profile…');
       return;
 
     } catch (error: any) {
+      const recovered = await recoverPendingSubmissionAfterError();
+      if (recovered) return;
       postSubmitLockedRef.current = false;
+      setVerificationStatus('unverified');
       setSubmitInProgress(false);
       toast({
         title: "Error",
@@ -3068,7 +3100,7 @@ const FaceVerification = () => {
 
 
 
-  if (loading && !submitInProgress) {
+  if (loading && !submitInProgress && verificationStatus !== 'submitted' && verificationStatus !== 'verified' && verificationStatus !== 'rejected') {
     return (
       <PageSkeleton
         className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"
