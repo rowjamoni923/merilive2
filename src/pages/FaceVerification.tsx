@@ -2045,7 +2045,7 @@ const FaceVerification = () => {
         .insert({
           user_id: userId,
           verification_type: 'face',
-          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          status: 'under_review', // ★ instant under_review (no submitted→review delay)
           // ★ DO NOT pre-flag manual_review_required — let face-verification-analyze
           //   run the full 3-API pipeline (AWS Rekognition + liveness + duplicate) and
           //   let service_auto_finalize_face_verification decide. Pre-flagging caused
