@@ -543,7 +543,7 @@ export default function AdminGameProviders() {
 
       {/* Add Provider Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
@@ -555,7 +555,7 @@ export default function AdminGameProviders() {
           </DialogHeader>
 
           <Tabs defaultValue="presets" className="mt-4">
-            <TabsList className="w-full">
+            <TabsList className="w-full overflow-x-auto whitespace-nowrap">
               <TabsTrigger value="presets" className="flex-1">Popular Providers</TabsTrigger>
               <TabsTrigger value="custom" className="flex-1">Custom Provider</TabsTrigger>
             </TabsList>
@@ -784,7 +784,7 @@ export default function AdminGameProviders() {
 
       {/* Edit Provider Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Provider</DialogTitle>
           </DialogHeader>

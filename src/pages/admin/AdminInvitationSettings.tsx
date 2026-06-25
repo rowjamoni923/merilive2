@@ -257,7 +257,7 @@ const AdminInvitationSettings = () => {
               New Tier
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md bg-slate-900 border-slate-700">
+          <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
             <DialogHeader>
               <DialogTitle className="text-white">
                 {editingTier ? 'Edit Tier' : 'Create New Tier'}

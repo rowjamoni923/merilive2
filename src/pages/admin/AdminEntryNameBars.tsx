@@ -376,7 +376,7 @@ const AdminEntryNameBars = () => {
               Add Flying Name Bar
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-slate-900 border-purple-500/20 w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-slate-900 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Add Entry Name Bar</DialogTitle>
             </DialogHeader>
@@ -507,7 +507,7 @@ const AdminEntryNameBars = () => {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-slate-900 border-purple-500/20 w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-slate-900 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Entry Name Bar</DialogTitle>
           </DialogHeader>
@@ -523,7 +523,7 @@ const AdminEntryNameBars = () => {
 
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500/20 max-w-md">
+        <DialogContent className="bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500/20 max-w-md w-[95vw] rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Preview: {selectedNameBar?.name}</DialogTitle>
           </DialogHeader>
