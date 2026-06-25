@@ -1416,6 +1416,7 @@ const App = () => {
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
                   {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
                   <Route path="pricing-hub" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminPricingHub /></AdminRouteGuard>} />
+                  <Route path="random-call" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminRandomCallSettings /></AdminRouteGuard>} />
                   {/* Deprecated → unified Pricing Hub */}
                   <Route path="commissions" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="withdrawals" element={<AdminRouteGuard routeSegment="withdrawals"><AdminWithdrawals /></AdminRouteGuard>} />
