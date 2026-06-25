@@ -72,7 +72,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Daily skip cap check (not enforced on enqueue, only on skip endpoint)
+    // Anti-abuse: skip cooldown / daily cap check
+    const { data: cd } = await supabase.rpc("check_random_skip_cooldown", { p_user_id: userId });
+    const cdObj: any = cd ?? {};
+    if (cdObj.on_cooldown) {
+      return new Response(
+        JSON.stringify({
+          error: "skip_cooldown",
+          cooldown_seconds_remaining: cdObj.cooldown_seconds_remaining,
+          cooldown_until: cdObj.cooldown_until,
+          reason: cdObj.cooldown_reason,
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (cdObj.daily_exhausted) {
+      return new Response(
+        JSON.stringify({
+          error: "daily_skip_limit_reached",
+          daily_used: cdObj.daily_used,
+          daily_limit: cdObj.daily_limit,
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // Insert queue row
     const expiresAt = new Date(Date.now() + settings.match_timeout_seconds * 1000).toISOString();
