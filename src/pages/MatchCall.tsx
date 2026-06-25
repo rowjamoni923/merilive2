@@ -171,7 +171,11 @@ export default function MatchCall() {
         }
       };
 
-      if ((data as any)?.status === "matched") {
+      if ((data as any)?.status === "reconnected") {
+        toast.message("Reconnected to your active match.");
+        const r = data as any;
+        await handoff(r.session_id, r.host_id);
+      } else if ((data as any)?.status === "matched") {
         const sess = data as any;
         await handoff(sess.session_id, sess.host_id);
       } else if ((data as any)?.status === "queued") {
