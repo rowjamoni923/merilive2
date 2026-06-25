@@ -2195,23 +2195,40 @@ export default function AdminLayout() {
         return;
       }
 
-      // Admin notifications table — broadcast singleton signal that some
-      // backend trigger inserted an admin_notifications row (e.g. new face
-      // verification, host application, payroll request, etc.). Always toast
-      // + sound on the INSERT so the owner panel never silently misses an
-      // event. Synthetic payload only has {version,row_id}; fetch the row.
+      // Admin notifications table — DB triggers insert one row here per domain
+      // event (new face verification, host app, support ticket, withdrawal, etc.).
+      // To prevent duplicate toasts (the domain table itself already fires a
+      // proper context-aware toast above/below), we ONLY toast here for types
+      // that have NO domain-table handler. Sound + pending count refresh always
+      // run so the bell badge updates instantly.
       if (table === 'admin_notifications') {
         playSoundViaRef();
         fetchPendingCounts();
+
+        // Types whose source table already fires its own toast — skip the
+        // shadow toast from admin_notifications so the admin sees ONE alert
+        // per real event, not 2-3-4.
+        const SHADOW_SUPPRESSED_TYPES = new Set([
+          'face_verification',
+          'host_application',
+          'helper_application',
+          'helper_topup',
+          'helper_upgrade',
+          'support_ticket',
+          'new_agency',
+          'withdrawal',
+        ]);
+
         const rowId = payload?.row_id || payload?.id;
         if (rowId) {
           adminSupabase
-
             .from('admin_notifications')
             .select('title, message, type, data')
             .eq('id', rowId)
             .maybeSingle()
             .then(({ data }) => {
+              const t = String(data?.type || '').toLowerCase();
+              if (SHADOW_SUPPRESSED_TYPES.has(t)) return; // domain toast already fired
               const title = data?.title || '🔔 New Admin Alert';
               const message = data?.message || 'A new event needs your attention';
               showBrowserNotifViaRef(title, message);
@@ -2220,7 +2237,6 @@ export default function AdminLayout() {
                 action: {
                   label: '👉 View',
                   onClick: () => {
-                    const t = String(data?.type || '');
                     if (t === 'face_verification') navigate('/admin/face-verification');
                     else if (t === 'host_application') navigate('/admin/host-applications');
                     else navigate('/admin/notifications');
@@ -2229,12 +2245,12 @@ export default function AdminLayout() {
                 duration: 8000,
               });
             });
-        } else {
-          showBrowserNotifViaRef('🔔 New Admin Alert', 'A new event needs your attention');
-          toast('🔔 New Admin Alert', { description: 'A new event needs your attention', duration: 6000 });
         }
+        // No rowId → silent (sound + count already fired); avoids generic
+        // "🔔 New Admin Alert" duplicates with no context.
         return;
       }
+
 
       // Standard alert toasts
 
