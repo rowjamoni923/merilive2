@@ -13,7 +13,6 @@ import {
   providerVerifyFace,
 } from "../_shared/externalVerify.ts";
 
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -648,9 +647,9 @@ serve(async (req) => {
     // ───────────────────────────────────────────────────────────────────
     // Gender-declaration cross-check.
     // The user picks a gender at signup ("host account" = female by app
-    // convention). If Rekognition is confident (≥90%) the face does not
-    // match that declaration → block auto-approve AND surface a blocker
-    // so the client can route the user to support.
+    // convention). If Rekognition is highly confident (≥90%) the face does
+    // not match that declaration → hard auto-reject. Below that threshold,
+    // keep it for manual review to avoid false positive user-visible rejects.
     // ───────────────────────────────────────────────────────────────────
     let declaredGender: string | null = null;
     let expectedGender: "male" | "female" | null = null;
@@ -678,7 +677,8 @@ serve(async (req) => {
           rawG !== "unknown" &&
           rawG !== expectedGender &&
           genderConf >= 90 &&
-          !frontError
+          !frontError &&
+          !genderConflict
         ) {
           genderDeclarationMismatch = true;
         }
@@ -746,6 +746,8 @@ serve(async (req) => {
     let duplicateFields: Record<string, unknown> = {};
     let duplicateNote = "";
     let duplicateBlock: Record<string, unknown> | null = null;
+    let duplicateSearchCompleted = false;
+    let faceIndexedForFutureDuplicate = false;
     const faceProvider = getProviderConfig("VERIFY_FACE_API_KEY");
     if (faceProvider && !frontError) {
       try {
@@ -755,6 +757,7 @@ serve(async (req) => {
           threshold: 92,
           max_matches: 5,
         });
+        duplicateSearchCompleted = search !== null;
         if (search && search.status === "matches_found" && search.matches.length > 0) {
           // Filter out the current user (re-submissions are not duplicates).
           const others = search.matches.filter(
@@ -786,17 +789,20 @@ serve(async (req) => {
               other_matches: others.length,
               indexed_at: top.indexed_at,
             };
-            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Requires manual admin review.`;
+            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
           }
         }
         // Index this submission's front face so future submissions can match it.
         // Skip when duplicate found (we don't want to keep multiplying entries for the same person).
         if (!duplicateBlock) {
-          void providerIndexFace(faceProvider, {
+          faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
             external_user_id: userId,
             image_base64: frontB64,
             metadata: { submission_id: submissionId, source: "merilive_main_app" },
           });
+          if (!faceIndexedForFutureDuplicate) {
+            console.warn("[face-verification-analyze] face index failed — auto-approve will be blocked for manual review");
+          }
         }
       } catch (e) {
         console.warn("[face-verification-analyze] duplicate check skipped:", e instanceof Error ? e.message : e);
@@ -865,11 +871,11 @@ serve(async (req) => {
 
     // ────────────────────────────────────────────────────────────────────
     // POLICY (Updated F3 2026-06-26):
-    //   Passive photo/video/live scan must never bounce a just-submitted user
-    //   back to Required because one provider signal is ambiguous. Professional
-    //   identity apps keep the row Pending for admin review unless the identity
-    //   is already on the platform ban list. That protects conversion while
-    //   still blocking banned-account reuse.
+    //   User-visible auto-reject is allowed ONLY for hard fraud:
+    //   1) the same face already belongs to another account, or
+    //   2) a highly confident account-gender mismatch.
+    //   Liveness/replay/photo/profile/gallery quality problems block
+    //   auto-approve and stay Pending for manual admin review.
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
@@ -883,22 +889,28 @@ serve(async (req) => {
       genderConf >= 70 &&
       !frontError
     );
+    const hardGenderMismatch = Boolean(
+      expectedGender &&
+      (expectedGender === "male" || expectedGender === "female") &&
+      rawG !== "unknown" &&
+      rawG !== expectedGender &&
+      genderConf >= 90 &&
+      !frontError &&
+      !genderConflict
+    );
 
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "photo_mismatch" | "banned_face" | "liveness_failed" | "replay_suspected" | null = null;
+    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
     const noFaceInAvatar = profileMatchSkipReason === "no_face_in_avatar";
 
     if (isBannedFace) hardAutoReject = "banned_face";
-    else if (isDuplicate && !isPassivePhotoVideoLiveScan) hardAutoReject = "duplicate_face";
-    else if ((genderDeclarationMismatch || strictGenderMismatch) && !isPassivePhotoVideoLiveScan) hardAutoReject = "gender_mismatch";
-    else if (livenessFailed && !isPassivePhotoVideoLiveScan) hardAutoReject = "liveness_failed";
-    else if (replaySuspected && !isPassivePhotoVideoLiveScan) hardAutoReject = "replay_suspected";
-    else if ((profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) && !isPassivePhotoVideoLiveScan) hardAutoReject = "photo_mismatch";
+    else if (isDuplicate) hardAutoReject = "duplicate_face";
+    else if (genderDeclarationMismatch || hardGenderMismatch) hardAutoReject = "gender_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -910,22 +922,6 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
-      } else if (hardAutoReject === "liveness_failed") {
-        rReason = "Liveness check failed. We detected that the submitted video may not be from a live person (e.g. photo, screen recording, or video replay). Please record a fresh, well-lit video of your own face following the on-screen instructions.";
-      } else if (hardAutoReject === "replay_suspected") {
-        rReason = `Replay detected. Your head did not turn enough between the front, left, and right captures (yaw deltas L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°). Please follow the on-screen prompts and turn your head clearly to each side.`;
-      } else if (hardAutoReject === "photo_mismatch") {
-        if (noFaceInAvatar) {
-          rReason = "Verification failed: No clear face detected in your profile photo. Please upload a clear face photo as your profile picture and try again.";
-        } else if (hostNoFaceInGallery) {
-          rReason = "Verification failed: One or more of your host gallery photos do not have a clear face. All gallery photos must show your face clearly. Please update your photos and try again.";
-        } else if (profileMismatch && hostPhotosMismatch) {
-          rReason = "Verification failed: Both your profile photo and your host gallery photos do not match your face scan. Please ensure all uploaded photos are of you and try again.";
-        } else if (profileMismatch) {
-          rReason = "Verification failed: Your profile photo does not match your face scan. Please update your profile photo to a real photo of yourself and try again.";
-        } else {
-          rReason = "Verification failed: One or more of your host gallery photos do not match your face scan. Please ensure all your photos are of the same person and try again.";
-        }
       }
 
       await supabaseAdmin
@@ -934,11 +930,20 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "Mismatch in photos vs video"}`,
+          admin_notes: `${summary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .in("status", ["submitted", "pending", "under_review"]);
+        .in("status", ["submitted", "pending", "under_review", "rejected"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "rejected",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
 
       return new Response(
         JSON.stringify({
@@ -954,9 +959,10 @@ serve(async (req) => {
       );
     }
 
-    // Other soft signals (liveness/replay/profile/duplicate/etc.) are NOT
-    // user-visible instant rejects in passive mode, but they also must NOT be
-    // auto-approved. Keep the row Pending/Under Review so admin can decide.
+    // Other non-fraud soft signals (liveness/replay/profile/gallery/quality and
+    // lower-confidence gender signals) are NOT user-visible instant rejects, but
+    // they also must NOT be auto-approved. Keep the row Pending/Under Review so
+    // admin can decide. Hard fraud duplicate/gender cases already returned above.
     let autoResult: Record<string, unknown> | null = null;
     // ★ SECURITY GATE (P0 hardening 2026-06-18): Auto-approve is ONLY safe when
     //    BOTH AWS Rekognition (compare/detect) AND the external liveness +
@@ -968,11 +974,9 @@ serve(async (req) => {
     const livenessProviderAvailable = !!faceProviderEarly;
     const livenessActuallyRan = livenessStatus !== null;
     const passiveManualReviewReason = isPassivePhotoVideoLiveScan
-      ? isDuplicate
-        ? "duplicate_face_manual_review"
-        : (genderDeclarationMismatch || strictGenderMismatch)
-          ? "gender_mismatch_manual_review"
-          : livenessFailed
+      ? strictGenderMismatch
+        ? "gender_mismatch_manual_review"
+        : livenessFailed
             ? "liveness_failed_manual_review"
             : replaySuspected
               ? "replay_suspected_manual_review"
@@ -999,6 +1003,12 @@ serve(async (req) => {
     } else if (!livenessActuallyRan) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
+    } else if (!duplicateSearchCompleted && !frontError) {
+      autoResult = { success: false, reason: "duplicate_search_unverified" };
+      console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
+    } else if (!isDuplicate && !faceIndexedForFutureDuplicate && !frontError) {
+      autoResult = { success: false, reason: "face_index_failed" };
+      console.error("[face-verification-analyze] ⚠️ face index failed — auto-approve blocked so future duplicate detection remains safe");
     } else {
       const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
         "service_auto_finalize_face_verification",
@@ -1009,8 +1019,8 @@ serve(async (req) => {
     }
 
 
-    // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row
-    //   in `submitted` so admin sees it in Pending and reviews manually.
+    // If auto-approve cannot safely fire for a non-fraud reason, leave the row
+    // in Pending/Under Review so admin sees it and reviews manually.
     const autoReason = String(autoResult?.reason || "");
     if (!autoResult?.success) {
       const softFlags: string[] = [];
@@ -1040,6 +1050,10 @@ serve(async (req) => {
                         ? "Needs admin review: liveness provider unavailable (VERIFY_FACE_API_KEY not configured). Auto-approve was blocked for safety — verify manually."
                         : autoReason === "liveness_provider_unreachable"
                           ? "Needs admin review: liveness provider did not respond. Auto-approve was blocked for safety — verify manually."
+                          : autoReason === "duplicate_search_unverified"
+                            ? "Needs admin review: duplicate-face search did not complete. Auto-approve was blocked so one face cannot pass on multiple accounts."
+                            : autoReason === "face_index_failed"
+                              ? "Needs admin review: face indexing failed after duplicate search. Auto-approve was blocked so future duplicate detection remains safe."
                           : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
 
 
