@@ -3604,8 +3604,8 @@ const FaceVerification = () => {
         return;
       }
       // Move only after an explicit tap. Do not auto-advance while the user is
-      // still interacting with SelectContent; otherwise the language menu
-      // unmounts immediately and looks like a jump/bounce on mobile WebView.
+      // still interacting with the language control; otherwise Step 1 unmounts
+      // immediately and looks like a jump/bounce on mobile WebView.
       setUserInfoStepComplete(true);
       setUserPhotoStep(true);
     };
