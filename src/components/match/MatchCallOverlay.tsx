@@ -1,20 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, SkipForward, Flag, Crown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Phone, Flag, SkipForward, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCall } from "@/components/call/CallProvider";
 
 /**
- * MatchCallOverlay — floats above ActiveCallScreen during a random-match call.
+ * MatchCallOverlay — Chamet/Olamet-style in-call HUD overlay.
+ *
+ * Layout (matches reference apps):
+ *   • Top-left: glassmorphic mini-bar with caller+host avatars and a red hang-up
+ *     bubble (single-tap end).
+ *   • Bottom-center: "Random match · Free" gradient capsule that switches to
+ *     "Private · N/min" after auto-conversion at the 60s mark.
  *
  * Industry rule (Chamet / Olamet / Poppo):
- *   • Minute 1 is FREE random call (no coins, no beans).
- *   • At second `randomWindowSeconds` (default 60) the system tries to convert
- *     the random session into a normal Private Call using the host's admin-set
- *     per-minute rate.
- *   • Convert succeeds  → user keeps talking; minute 2 onward is paid private.
- *   • Convert fails     → call ends instantly for both sides + toast.
+ *   Minute 1 free → at `randomWindowSeconds` convert to Private Call.
+ *   Convert ok → keep talking (paid); convert fail → end instantly.
  */
 export interface MatchCallOverlayProps {
   randomWindowSeconds: number;
@@ -29,24 +31,46 @@ export default function MatchCallOverlay({
   onAutoEnd,
   onNext,
 }: MatchCallOverlayProps) {
+  const { endCall } = useCall();
   const [elapsed, setElapsed] = useState(0);
   const [reporting, setReporting] = useState(false);
   const [converted, setConverted] = useState(false);
+  const [avatars, setAvatars] = useState<{ me?: string; host?: string }>({});
   const convertingRef = useRef(false);
 
+  // Timer
   useEffect(() => {
-    let raw: string | null = null;
-    try { raw = window.sessionStorage.getItem("random_call:active"); } catch (_) {}
-    if (!raw) return;
     let started = Date.now();
-    try { started = (JSON.parse(raw) as any).started_at ?? Date.now(); } catch (_) {}
+    try {
+      const raw = window.sessionStorage.getItem("random_call:active");
+      if (raw) started = (JSON.parse(raw) as any).started_at ?? Date.now();
+    } catch (_) { /* */ }
     const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - started) / 1000)));
     tick();
     const t = window.setInterval(tick, 500);
     return () => window.clearInterval(t);
   }, []);
 
-  // Auto-convert at the 60s mark
+  // Pull both avatars for the mini-bar
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = window.sessionStorage.getItem("random_call:active");
+        const info = raw ? (JSON.parse(raw) as any) : null;
+        const { data: u } = await supabase.auth.getUser();
+        const ids = [u?.user?.id, info?.host_id].filter(Boolean) as string[];
+        if (ids.length === 0) return;
+        const { data: profs } = await supabase
+          .from("profiles").select("id, avatar_url").in("id", ids);
+        const myId = u?.user?.id;
+        const me = profs?.find((p: any) => p.id === myId)?.avatar_url;
+        const host = profs?.find((p: any) => p.id === info?.host_id)?.avatar_url;
+        setAvatars({ me, host });
+      } catch (_) { /* */ }
+    })();
+  }, []);
+
+  // Auto-convert at the random-window mark
   useEffect(() => {
     if (converted || convertingRef.current) return;
     if (elapsed < randomWindowSeconds) return;
@@ -63,13 +87,10 @@ export default function MatchCallOverlay({
         if (error) throw error;
         const r = data as any;
         if (r?.ok && r?.private_call_id) {
-          // Stop the random-settle path firing on call end
           try { window.sessionStorage.removeItem("random_call:active"); } catch (_) {}
           try {
-            window.sessionStorage.setItem(
-              "random_call:converted",
-              JSON.stringify({ private_call_id: r.private_call_id, at: Date.now() }),
-            );
+            window.sessionStorage.setItem("random_call:converted",
+              JSON.stringify({ private_call_id: r.private_call_id, at: Date.now() }));
           } catch (_) {}
           setConverted(true);
           toast.success(`Now on Private Call · ${r.rate_per_min} coins/min`);
@@ -88,8 +109,8 @@ export default function MatchCallOverlay({
     })();
   }, [elapsed, randomWindowSeconds, converted, onAutoEnd]);
 
-  const inFree = elapsed < randomWindowSeconds;
   const freeRemaining = Math.max(0, randomWindowSeconds - elapsed);
+  const inFree = !converted && elapsed < randomWindowSeconds;
 
   const handleReport = async () => {
     if (reporting) return;
@@ -120,57 +141,98 @@ export default function MatchCallOverlay({
     }
   };
 
-  return (
-    <div className="pointer-events-none fixed inset-x-0 top-[max(env(safe-area-inset-top),12px)] z-[60] flex flex-col items-center gap-2 px-4">
-      <AnimatePresence>
-        {inFree && !converted && (
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            className="pointer-events-auto flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-300/40 backdrop-blur-md px-3 py-1.5 text-emerald-50 text-xs font-semibold shadow-lg"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            Random · free {freeRemaining}s
-            {hostRatePerMin > 0 && (
-              <span className="text-emerald-100/80 font-normal">
-                · then {hostRatePerMin}/min
-              </span>
-            )}
-          </motion.div>
-        )}
-        {converted && (
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="pointer-events-auto flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-300/40 backdrop-blur-md px-3 py-1.5 text-amber-50 text-xs font-semibold shadow-lg"
-          >
-            <Crown className="w-3.5 h-3.5 text-amber-200" />
-            Private Call · {hostRatePerMin}/min
-          </motion.div>
-        )}
-      </AnimatePresence>
+  const Avatar = ({ url, ring }: { url?: string; ring: string }) => (
+    url ? (
+      <img src={url} alt="" className={`w-8 h-8 rounded-full object-cover ring-2 ${ring}`} />
+    ) : (
+      <span className={`w-8 h-8 rounded-full bg-white/30 ring-2 ${ring}`} />
+    )
+  );
 
-      <div className="pointer-events-auto mt-1 flex items-center gap-2">
-        <Button
+  return (
+    <>
+      {/* TOP-LEFT mini active-call bar (Chamet/Olamet pattern) */}
+      <div className="pointer-events-none fixed left-3 top-[max(env(safe-area-inset-top),12px)] z-[60]">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="pointer-events-auto flex items-center gap-1.5 pl-1 pr-1 h-11 rounded-full
+            bg-gradient-to-r from-fuchsia-500/85 via-purple-500/85 to-pink-500/85
+            border border-white/20 backdrop-blur-md shadow-lg"
+        >
+          <div className="flex -space-x-2 pl-0.5">
+            <Avatar url={avatars.host} ring="ring-white/80" />
+            <Avatar url={avatars.me} ring="ring-white/80" />
+          </div>
+          {converted && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white pr-1.5">
+              Private
+            </span>
+          )}
+          <button
+            onClick={() => endCall().catch(() => {})}
+            aria-label="End call"
+            className="w-9 h-9 rounded-full bg-rose-500 hover:bg-rose-600 grid place-items-center shadow-md"
+          >
+            <Phone className="w-4 h-4 text-white rotate-[135deg]" />
+          </button>
+        </motion.div>
+      </div>
+
+      {/* TOP-RIGHT report + next */}
+      <div className="pointer-events-none fixed right-3 top-[max(env(safe-area-inset-top),12px)] z-[60] flex items-center gap-2">
+        <button
           onClick={handleReport}
-          variant="outline"
-          size="sm"
-          className="h-9 rounded-full border-white/20 bg-black/40 backdrop-blur-md text-white hover:bg-white/10"
           aria-label="Report"
+          className="pointer-events-auto h-9 w-9 rounded-full bg-black/45 backdrop-blur-md border border-white/15 grid place-items-center text-white/90"
         >
           <Flag className="w-4 h-4" />
-        </Button>
+        </button>
         {!converted && (
-          <Button
+          <button
             onClick={onNext}
-            size="sm"
-            className="h-9 rounded-full px-4 bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white font-bold shadow-lg shadow-fuchsia-500/30"
+            aria-label="Next match"
+            className="pointer-events-auto h-9 px-3 rounded-full bg-gradient-to-r from-cyan-400 to-sky-500 text-white font-bold text-xs shadow-md flex items-center gap-1"
           >
-            <SkipForward className="w-4 h-4 mr-1.5" /> Next
-          </Button>
+            <SkipForward className="w-3.5 h-3.5" /> Next
+          </button>
         )}
       </div>
-    </div>
+
+      {/* BOTTOM-CENTER status capsule (Chamet "Random match Free" pill) */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-[60] flex justify-center px-6">
+        <AnimatePresence mode="wait">
+          {inFree ? (
+            <motion.div
+              key="free"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
+              className="pointer-events-auto px-5 py-2.5 rounded-full
+                bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500
+                shadow-[0_10px_30px_-8px_rgba(168,85,247,0.7)] border border-white/20 text-center"
+            >
+              <div className="text-[13px] font-bold text-white leading-tight">Random match</div>
+              <div className="text-[10px] text-white/85 leading-tight">
+                Free · {freeRemaining}s
+                {hostRatePerMin > 0 && <span className="opacity-80"> · then {hostRatePerMin}/min</span>}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="paid"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              className="pointer-events-auto px-5 py-2.5 rounded-full
+                bg-gradient-to-r from-amber-400 to-orange-500
+                shadow-[0_10px_30px_-8px_rgba(245,158,11,0.6)] border border-white/20 text-center flex items-center gap-2"
+            >
+              <Crown className="w-4 h-4 text-white" />
+              <div>
+                <div className="text-[13px] font-bold text-white leading-tight">Private Call</div>
+                <div className="text-[10px] text-white/90 leading-tight">{hostRatePerMin} diamonds / min</div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   );
 }

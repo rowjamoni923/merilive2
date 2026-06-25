@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Globe, X, Phone } from "lucide-react";
+import { Phone, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
@@ -269,9 +268,10 @@ export default function MatchCall() {
     );
   }
 
-  // SEARCHING / MATCHED / ERROR phases — original luxe globe
+  // SEARCHING / MATCHED / ERROR — Olamet-style candidate row + safety tagline
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 text-white pb-[max(env(safe-area-inset-bottom),16px)]">
+    <div className="relative min-h-[100svh] overflow-hidden text-white pb-[max(env(safe-area-inset-bottom),16px)]
+      bg-[radial-gradient(circle_at_50%_35%,#7c3aed_0%,#5b21b6_42%,#1e1b4b_100%)]">
       {isInCall && (
         <MatchCallOverlay
           randomWindowSeconds={settings?.random_window_seconds ?? 60}
@@ -281,58 +281,83 @@ export default function MatchCall() {
         />
       )}
 
-      <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
-        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"
-          onClick={() => (phase === "searching" ? cancelQueue() : navigate(-1))} aria-label="Close">
+      {/* Soft animated bloom */}
+      <motion.div
+        className="absolute left-1/2 top-[30%] -translate-x-1/2 w-[420px] h-[420px] rounded-full bg-fuchsia-400/20 blur-3xl"
+        animate={phase === "searching" ? { scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] } : { opacity: 0.3 }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
+
+      {/* Top bar */}
+      <div className="relative z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),16px)]">
+        <div className="w-10" />
+        <div className="text-[11px] uppercase tracking-[0.2em] text-white/70">
+          {phase === "searching" ? "Matching" : phase === "matched" ? "Connected" : "Failed"}
+        </div>
+        <Button variant="ghost" size="icon" aria-label="Close"
+          onClick={() => (phase === "searching" ? cancelQueue() : navigate(-1))}
+          className="text-white hover:bg-white/10 rounded-full h-10 w-10 bg-white/10 backdrop-blur-md border border-white/15">
           <X className="h-5 w-5" />
         </Button>
-        <Badge className="bg-white/10 border-white/20 text-white text-xs">Match Call</Badge>
-        <div className="w-9" />
       </div>
 
-      <div className="px-6 pt-4 text-center">
-        <div className="relative mx-auto w-56 h-56 mb-6">
-          <motion.div className="absolute inset-0 rounded-full border-2 border-cyan-400/40"
-            animate={phase === "searching" ? { rotate: 360, scale: [1, 1.05, 1] } : { rotate: 0 }}
-            transition={{ rotate: { duration: 4, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity } }} />
-          <motion.div className="absolute inset-4 rounded-full border-2 border-fuchsia-400/40"
-            animate={phase === "searching" ? { rotate: -360 } : { rotate: 0 }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }} />
-          <motion.div className="absolute inset-8 rounded-full bg-gradient-to-br from-cyan-500/30 via-fuchsia-500/30 to-purple-500/30 backdrop-blur-md flex items-center justify-center"
-            animate={phase === "searching" ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-            transition={{ duration: 2, repeat: Infinity }}>
-            <Globe className="w-20 h-20 text-white drop-shadow-lg" />
-          </motion.div>
+      {/* Candidate-avatars carousel + status (Olamet pattern) */}
+      <div className="relative z-10 mt-[18vh] flex flex-col items-center">
+        <div className="flex items-center justify-center gap-3 mb-7">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={i}
+              className="rounded-full bg-gradient-to-br from-white/30 to-white/5 border-2 border-white/40 overflow-hidden"
+              style={{
+                width: i === 2 ? 64 : i === 1 || i === 3 ? 52 : 40,
+                height: i === 2 ? 64 : i === 1 || i === 3 ? 52 : 40,
+              }}
+              animate={phase === "searching"
+                ? { scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }
+                : { scale: 1, opacity: 1 }}
+              transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.12 }}
+            >
+              <div className="w-full h-full bg-gradient-to-br from-fuchsia-400/60 via-purple-400/60 to-pink-400/60" />
+            </motion.div>
+          ))}
         </div>
 
         {phase === "searching" && (
           <>
-            <h1 className="text-2xl font-bold mb-1">Finding a match…</h1>
-            <p className="text-white/70 text-sm mb-2">{elapsed}s · please keep this screen open</p>
-            <p className="text-white/50 text-xs mb-6">Average wait: 15-45 seconds</p>
+            <h1 className="text-[22px] font-bold tracking-tight">Matching in progress</h1>
+            <div className="mt-1 text-white/65 text-xs tabular-nums">{elapsed}s · please keep this screen open</div>
           </>
         )}
         {phase === "matched" && (
-          <h1 className="text-2xl font-bold mb-2 text-emerald-300">Match found!</h1>
+          <h1 className="text-[22px] font-bold text-emerald-300">Match found!</h1>
         )}
         {phase === "error" && (
           <>
-            <h1 className="text-2xl font-bold mb-2 text-rose-300">Couldn't start</h1>
-            <p className="text-white/70 text-sm mb-6">{errorMsg}</p>
+            <h1 className="text-[22px] font-bold text-rose-200">Couldn't start</h1>
+            <p className="text-white/70 text-xs mt-1 px-8 text-center">{errorMsg}</p>
           </>
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(env(safe-area-inset-bottom),16px)] bg-gradient-to-t from-slate-950 to-transparent">
+      {/* Safety tagline (Globe-matcher pattern) */}
+      {phase === "searching" && (
+        <div className="absolute left-0 right-0 bottom-32 z-10 flex items-center justify-center gap-1.5 text-[12px] text-white/80 px-6 text-center">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+          <span>Please behave politely during the chat</span>
+        </div>
+      )}
+
+      {/* Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 px-6 pb-[max(env(safe-area-inset-bottom),16px)] pt-4 z-10">
         {phase === "searching" && (
           <Button onClick={cancelQueue} variant="outline"
-            className="w-full h-14 rounded-2xl text-base font-bold border-white/20 bg-white/5 text-white hover:bg-white/10">
-            Cancel search
+            className="w-full h-13 rounded-full text-sm font-bold border-white/25 bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
+            Cancel
           </Button>
         )}
         {phase === "error" && (
           <Button onClick={() => setPhase("prep")}
-            className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-cyan-500 to-teal-500">
+            className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)]">
             <Phone className="w-5 h-5 mr-2" /> Try again
           </Button>
         )}

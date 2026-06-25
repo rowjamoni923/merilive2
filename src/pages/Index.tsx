@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
 const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPromoBanners").then(m => ({ default: m.FullScreenPromoBanners })));
+const FloatingRandomMatchPill = lazy(() => import("@/components/match/FloatingRandomMatchPill"));
 
 
 import { Search, Eye, Radio, Sparkles, Heart, Compass, RefreshCcw } from "lucide-react";
@@ -910,6 +911,12 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {/* Chamet-style floating "Random Chat — Free" pill */}
+      <Suspense fallback={null}>
+        <FloatingRandomMatchPill />
+      </Suspense>
+
 
       {/* Full-Screen Promo Banners on Entry */}
       <Suspense fallback={null}>
