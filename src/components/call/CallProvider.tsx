@@ -755,6 +755,11 @@ export function CallProvider({ children }: CallProviderProps) {
           via `useNativeCallBillingSync` → `open-call-gift-sheet` event. */}
       {userId ? <GlobalCallGiftSheet /> : null}
 
+      {/* Random Call (Chamet-style broadcast) host-side incoming ringer.
+          Subscribes to `user-${uid}` for `random_incoming_call`, gates on
+          is_host, and routes accepted matches to /match-call?incoming_session=…. */}
+      {userId ? <IncomingRandomCallPortal /> : null}
+
       {typeof document !== 'undefined'
         ? createPortal(incomingCallModalNode, document.body)
         : incomingCallModalNode}
