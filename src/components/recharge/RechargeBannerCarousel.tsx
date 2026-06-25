@@ -141,8 +141,8 @@ export default function RechargeBannerCarousel({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-2xl shadow-xl shadow-amber-500/10 bg-black"
-      style={{ aspectRatio: "16 / 9" }}
+      className="relative w-full overflow-hidden rounded-xl shadow-lg shadow-amber-500/10 bg-card"
+      style={{ height: "clamp(112px, 34vw, 140px)", aspectRatio: "3 / 1" }}
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
       onTouchStart={() => (pausedRef.current = true)}
@@ -165,12 +165,27 @@ export default function RechargeBannerCarousel({
         >
           <SmartImage
             src={b.image_url}
+            alt=""
+            fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
+            className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-40 select-none"
+            aria-hidden="true"
+            draggable={false}
+            eager={i === index}
+            resize="cover"
+            cdnWidth={720}
+            cdnHeight={240}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
+          <SmartImage
+            src={b.image_url}
             alt={b.title || `Banner ${i + 1}`}
             fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
-            className="w-full h-full object-contain rounded-2xl select-none"
+            className="relative z-10 w-full h-full object-contain rounded-xl select-none"
             draggable={false}
             eager={i === index}
             resize="contain"
+            cdnWidth={720}
+            cdnHeight={240}
           />
         </button>
       ))}
@@ -178,7 +193,7 @@ export default function RechargeBannerCarousel({
 
       {/* Premium gold border glow */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-2xl z-20"
+        className="pointer-events-none absolute inset-0 rounded-xl z-20"
         style={{
           border: "1px solid rgba(255,215,0,0.35)",
           boxShadow:
