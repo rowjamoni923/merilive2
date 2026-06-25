@@ -3600,9 +3600,9 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}>
+      <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden safe-top`}>
         {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
-        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + var(--content-bottom-padding, 1rem))` }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
