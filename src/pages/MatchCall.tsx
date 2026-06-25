@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Phone, X, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
@@ -33,7 +30,6 @@ export default function MatchCall() {
   const [settings, setSettings] = useState<any>(null);
   const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
-  const [hostAvatars, setHostAvatars] = useState<string[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
   // Authoritative active-session state (no longer derived from sessionStorage during settle).
@@ -74,7 +70,7 @@ export default function MatchCall() {
     if (!settings) return;
     instantFiredRef.current = true;
     void startSearch(
-      { preferred_langs: [], preferred_country: null, preferred_host_gender: null },
+      { preferred_langs: [], preferred_country: null, preferred_host_gender: "any" },
       { broadcast: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,25 +89,6 @@ export default function MatchCall() {
       if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
     };
   }, [phase]);
-
-  // Live verified-host avatars for the searching screen (rotates every 5s).
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
-        if (!mounted) return;
-        const urls = ((data as any[] | null) ?? [])
-          .map((r) => r?.avatar_url)
-          .filter((u): u is string => !!u);
-        const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 5);
-        setHostAvatars(shuffled);
-      } catch (_) { /* ignore */ }
-    };
-    load();
-    const t = window.setInterval(load, 5000);
-    return () => { mounted = false; window.clearInterval(t); };
-  }, []);
 
   // Settle session after user exits the call overlay (server recomputes duration authoritatively)
   useEffect(() => {
@@ -374,7 +351,7 @@ export default function MatchCall() {
           setErrorMsg("");
           setPhase("prep");
           void startSearch(
-            lastFiltersRef.current ?? { preferred_langs: [], preferred_country: null, preferred_host_gender: null },
+            lastFiltersRef.current ?? { preferred_langs: [], preferred_country: null, preferred_host_gender: "any" },
             { broadcast: true },
           );
         }}
