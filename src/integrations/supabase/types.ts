@@ -18240,6 +18240,10 @@ export type Database = {
         Args: { _amount: number; _user_id: string }
         Returns: Json
       }
+      add_group_member: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: Json
+      }
       add_to_helper_wallet: {
         Args: { _amount: number; _helper_id: string }
         Returns: undefined
