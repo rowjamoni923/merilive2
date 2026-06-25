@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
 import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep";
+import MatchCallOverlay from "@/components/match/MatchCallOverlay";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
