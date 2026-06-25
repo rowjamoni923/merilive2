@@ -94,6 +94,18 @@ interface LevelTier {
   level_icon: string;
 }
 
+const hasRecentFaceVerificationSubmission = (userId?: string | null) => {
+  try {
+    const raw = sessionStorage.getItem('meri_face_verification_recent_submission');
+    if (!raw) return false;
+    const cached = JSON.parse(raw);
+    if (userId && cached?.userId && cached.userId !== userId) return false;
+    return Date.now() - Number(cached?.timestamp || 0) < 5 * 60 * 1000;
+  } catch {
+    return false;
+  }
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId?: string }>();
@@ -1613,8 +1625,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Check face verification status
   const isFaceVerified = (profile as any)?.is_face_verified;
-  const [faceVerificationPending, setFaceVerificationPending] = useState(false);
-  const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
+  const [faceVerificationPending, setFaceVerificationPending] = useState(() => hasRecentFaceVerificationSubmission());
+  const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(() => hasRecentFaceVerificationSubmission() ? 'under_review' : null);
+  useEffect(() => {
+    if (!isOwnProfile || !currentUser?.id || isFaceVerified) return;
+    if (hasRecentFaceVerificationSubmission(currentUser.id)) {
+      setFaceVerificationPending(true);
+      setFaceVerificationStatus((prev) => prev || 'under_review');
+    }
+  }, [currentUser?.id, isFaceVerified, isOwnProfile]);
   // Only the actual face_verification_submissions status drives this UI. Do NOT mix in host_status
   // (host application state) or any other profile column — they caused false "Under Review" banners.
   const effectiveFaceVerificationStatus = String(faceVerificationStatus || '').toLowerCase();
