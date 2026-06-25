@@ -362,7 +362,7 @@ const AdminHelperApplications = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full justify-start">
+          <div className="w-full overflow-x-auto -mx-2 px-2"><TabsList className="justify-start inline-flex w-max md:w-full">
             <TabsTrigger value="applications" className="gap-2">
               <Users className="w-4 h-4" />
               Applications
@@ -625,7 +625,7 @@ const AdminHelperApplications = () => {
 
         {/* Detail Dialog */}
         <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
             {selectedApp && (
               <>
                 <DialogHeader>

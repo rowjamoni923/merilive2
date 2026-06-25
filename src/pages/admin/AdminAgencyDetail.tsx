@@ -734,7 +734,7 @@ export default function AdminAgencyDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="hosts" className="w-full">
-        <TabsList className="bg-white/5 border border-white/10">
+        <div className="w-full overflow-x-auto -mx-2 px-2"><TabsList className="bg-white/5 border border-white/10 inline-flex w-max md:w-auto">
           <TabsTrigger value="hosts" className="data-[state=active]:bg-primary text-white">
             Host List ({hosts.length})
           </TabsTrigger>
