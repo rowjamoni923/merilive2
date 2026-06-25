@@ -78,6 +78,7 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // Main Pages
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
+const GroupInvitePage = lazy(lazyRetry(() => import("./pages/GroupInvitePage")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
 const LiveStreamFeed = lazy(lazyRetry(() => import("./pages/LiveStreamFeed")));
 // Wrapper to force full remount of LiveStream when stream ID changes (TikTok-style navigation)

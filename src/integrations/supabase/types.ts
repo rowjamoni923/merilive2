@@ -6224,56 +6224,217 @@ export type Database = {
         }
         Relationships: []
       }
+      group_join_requests: {
+        Row: {
+          decided_at: string | null
+          decided_by: string | null
+          group_id: string
+          id: string
+          note: string | null
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id: string
+          id?: string
+          note?: string | null
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id?: string
+          id?: string
+          note?: string | null
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
+          banned_at: string | null
           group_id: string
           id: string
           joined_at: string | null
+          last_read_message_id: string | null
+          muted_until: string | null
+          notifications_muted: boolean
           role: string | null
           user_id: string
         }
         Insert: {
+          banned_at?: string | null
           group_id: string
           id?: string
           joined_at?: string | null
+          last_read_message_id?: string | null
+          muted_until?: string | null
+          notifications_muted?: boolean
           role?: string | null
           user_id: string
         }
         Update: {
+          banned_at?: string | null
           group_id?: string
           id?: string
           joined_at?: string | null
+          last_read_message_id?: string | null
+          muted_until?: string | null
+          notifications_muted?: boolean
           role?: string | null
           user_id?: string
         }
         Relationships: []
       }
+      group_mentions: {
+        Row: {
+          by_user_id: string
+          created_at: string
+          group_id: string
+          id: string
+          mentioned_user_id: string
+          message_id: string
+          seen_at: string | null
+        }
+        Insert: {
+          by_user_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+          mentioned_user_id: string
+          message_id: string
+          seen_at?: string | null
+        }
+        Update: {
+          by_user_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          mentioned_user_id?: string
+          message_id?: string
+          seen_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_mentions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_mentions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_messages: {
         Row: {
           content: string
           created_at: string | null
+          deleted_at: string | null
+          edited_at: string | null
           group_id: string
           id: string
+          is_deleted: boolean
+          is_system: boolean
+          media_url: string | null
           message_type: string | null
+          pinned_at: string | null
+          pinned_by: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
           content: string
           created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
           group_id: string
           id?: string
+          is_deleted?: boolean
+          is_system?: boolean
+          media_url?: string | null
           message_type?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
           group_id?: string
           id?: string
+          is_deleted?: boolean
+          is_system?: boolean
+          media_url?: string | null
           message_type?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "group_messages_reply_to_fk"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "group_messages_sender_id_fkey"
             columns: ["sender_id"]
@@ -6290,48 +6451,111 @@ export type Database = {
           },
         ]
       }
+      group_pinned_messages: {
+        Row: {
+          group_id: string
+          id: string
+          message_id: string
+          pinned_at: string
+          pinned_by: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          message_id: string
+          pinned_at?: string
+          pinned_by: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          message_id?: string
+          pinned_at?: string
+          pinned_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_pinned_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_pinned_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           avatar_url: string | null
           created_at: string | null
           created_by: string
+          deleted_at: string | null
           description: string | null
           group_code: string
           group_type: string
           id: string
+          invite_expires_at: string | null
+          invite_max_uses: number | null
+          invite_token: string | null
+          invite_used_count: number
           is_active: boolean | null
+          is_public: boolean
           max_members: number | null
           member_count: number
           name: string
           owner_id: string
+          settings: Json
+          updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
           created_by: string
+          deleted_at?: string | null
           description?: string | null
           group_code?: string
           group_type?: string
           id?: string
+          invite_expires_at?: string | null
+          invite_max_uses?: number | null
+          invite_token?: string | null
+          invite_used_count?: number
           is_active?: boolean | null
+          is_public?: boolean
           max_members?: number | null
           member_count?: number
           name: string
           owner_id: string
+          settings?: Json
+          updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
           created_by?: string
+          deleted_at?: string | null
           description?: string | null
           group_code?: string
           group_type?: string
           id?: string
+          invite_expires_at?: string | null
+          invite_max_uses?: number | null
+          invite_token?: string | null
+          invite_used_count?: number
           is_active?: boolean | null
+          is_public?: boolean
           max_members?: number | null
           member_count?: number
           name?: string
           owner_id?: string
+          settings?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -18242,7 +18466,7 @@ export type Database = {
       }
       add_group_member: {
         Args: { p_group_id: string; p_user_id: string }
-        Returns: Json
+        Returns: undefined
       }
       add_to_helper_wallet: {
         Args: { _amount: number; _helper_id: string }
@@ -20609,8 +20833,14 @@ export type Database = {
         Returns: Json
       }
       create_chat_group: {
-        Args: { p_group_type?: string; p_name: string }
-        Returns: Json
+        Args: {
+          p_avatar_url?: string
+          p_description?: string
+          p_group_type?: string
+          p_is_public?: boolean
+          p_name: string
+        }
+        Returns: string
       }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
       create_helper_order: {
@@ -20788,6 +21018,10 @@ export type Database = {
           step: string
         }[]
       }
+      decide_group_join_request: {
+        Args: { p_approve: boolean; p_request_id: string }
+        Returns: undefined
+      }
       decline_host_request: { Args: { p_request_id: string }; Returns: boolean }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
       decline_seat_invitation: {
@@ -20826,6 +21060,7 @@ export type Database = {
             }
             Returns: Json
           }
+      delete_group: { Args: { p_group_id: string }; Returns: undefined }
       detect_contact_in_text: { Args: { p_text: string }; Returns: Json }
       diagnose_helper_payment_visibility: {
         Args: { _country_code: string }
@@ -21714,6 +21949,7 @@ export type Database = {
         Args: { p_stream_id: string }
         Returns: number
       }
+      join_via_invite: { Args: { p_token: string }; Returns: Json }
       kick_party_participant: {
         Args: {
           p_ban_minutes?: number
@@ -21728,6 +21964,7 @@ export type Database = {
         Returns: string
       }
       leave_agency: { Args: never; Returns: Json }
+      leave_group: { Args: { p_group_id: string }; Returns: undefined }
       leave_live_stream_viewer: {
         Args: { p_stream_id: string }
         Returns: number
@@ -21822,6 +22059,7 @@ export type Database = {
         Args: { p_room_id: string }
         Returns: undefined
       }
+      pin_group_message: { Args: { p_message_id: string }; Returns: undefined }
       pk_battle_accept: {
         Args: { _battle_id: string; _stream_id?: string }
         Returns: {
@@ -22230,6 +22468,10 @@ export type Database = {
       release_call_balance: { Args: { p_hold_id: string }; Returns: Json }
       release_expired_gift_holds: { Args: never; Returns: number }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
+      remove_group_member: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: undefined
+      }
       report_live_face_event: {
         Args: {
           p_device_info?: Json
@@ -22265,6 +22507,10 @@ export type Database = {
           p_host_id: string
         }
         Returns: Json
+      }
+      reset_group_invite: {
+        Args: { p_expires_at?: string; p_group_id: string; p_max_uses?: number }
+        Returns: string
       }
       reset_host_weekly_policy_after_withdrawal: {
         Args: { p_host_id: string }
@@ -22326,6 +22572,28 @@ export type Database = {
           owner_name: string
         }[]
       }
+      search_group_members: {
+        Args: { p_group_id: string; p_limit?: number; p_q?: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          joined_at: string
+          role: string
+          user_id: string
+          username: string
+        }[]
+      }
+      search_public_groups: {
+        Args: { p_limit?: number; p_q?: string }
+        Returns: {
+          avatar_url: string
+          description: string
+          group_type: string
+          id: string
+          member_count: number
+          name: string
+        }[]
+      }
       search_user_by_app_uid: {
         Args: { _app_uid: string }
         Returns: {
@@ -22371,6 +22639,10 @@ export type Database = {
       service_set_admin_password: {
         Args: { _admin_user_id: string; _new_password: string }
         Returns: Json
+      }
+      set_group_member_role: {
+        Args: { p_group_id: string; p_role: string; p_user_id: string }
+        Returns: undefined
       }
       set_seat_lock: {
         Args: {
@@ -22480,12 +22752,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      transfer_group_ownership: {
+        Args: { p_group_id: string; p_new_owner: string }
+        Returns: undefined
+      }
       transfer_party_host: {
         Args: { p_new_host_id: string; p_room_id: string }
         Returns: Json
       }
       trigger_weekly_agency_schedule: { Args: never; Returns: Json }
       unmute_all_speakers: { Args: { p_room_id: string }; Returns: Json }
+      unpin_group_message: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
       update_active_session: {
         Args: { _device_info?: Json; _session_id: string }
         Returns: undefined
@@ -22495,6 +22775,17 @@ export type Database = {
         Returns: undefined
       }
       update_avatar: { Args: { p_public_url: string }; Returns: Json }
+      update_group_info: {
+        Args: {
+          p_avatar_url?: string
+          p_description?: string
+          p_group_id: string
+          p_is_public?: boolean
+          p_name?: string
+          p_settings?: Json
+        }
+        Returns: undefined
+      }
       update_host_call_rate: { Args: { p_rate: number }; Returns: Json }
       update_host_earnings_only: {
         Args: {
