@@ -17,6 +17,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
   const [dismissed, setDismissed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const draggedRef = useRef(false);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -56,8 +57,6 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
     try { localStorage.setItem(STORAGE_POS, JSON.stringify({ x: targetX, y: targetY })); } catch (_) {}
   };
 
-  const draggedRef = useRef(false);
-
   return (
     <motion.div
       ref={containerRef}
@@ -79,7 +78,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
     >
       <div className="relative" style={{ width: PILL_SIZE, height: PILL_SIZE }}>
-        {/* Close button */}
+        {/* Close button — minimal pro chip (14px) */}
         <button
           aria-label="Hide Random Chat"
           onPointerDown={(e) => e.stopPropagation()}
@@ -88,9 +87,10 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
             try { sessionStorage.setItem(STORAGE_DISMISSED, "1"); } catch (_) {}
             setDismissed(true);
           }}
-          className="absolute -top-1 -right-1 z-20 w-5 h-5 rounded-full bg-black/80 text-white grid place-items-center shadow-lg ring-1 ring-white/30 backdrop-blur-sm active:scale-90 transition-transform"
+          style={{ width: 14, height: 14 }}
+          className="absolute -top-0.5 -right-0.5 z-20 rounded-full bg-neutral-900/70 text-white/95 grid place-items-center shadow-[0_1px_3px_rgba(0,0,0,0.35)] ring-[0.5px] ring-white/40 backdrop-blur-md active:scale-90 transition-transform"
         >
-          <X className="w-3 h-3" strokeWidth={3} />
+          <X style={{ width: 8, height: 8 }} strokeWidth={3} />
         </button>
 
         {/* Main pill — 3D icon-only */}
