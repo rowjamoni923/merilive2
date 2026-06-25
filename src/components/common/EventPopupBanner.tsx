@@ -129,6 +129,13 @@ const EventPopupBanner = () => {
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
+  // Auto-dismiss after `autoDismiss` seconds.
+  useEffect(() => {
+    if (!visible || !imageReady) return;
+    if (autoDismiss <= 0) return;
+    if (elapsed >= autoDismiss) handleDismiss();
+  }, [visible, imageReady, elapsed, autoDismiss, handleDismiss]);
+
   if (!banner) return null;
   const mediaUrl = popupCdn(banner.image_url);
   const isVideo = isVideoBanner(banner.image_url);
