@@ -146,6 +146,21 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      minHeight: {
+        touch: "44px",
+        "touch-lg": "48px",
+        cta: "56px",
+      },
+      minWidth: {
+        touch: "44px",
+        "touch-lg": "48px",
+      },
+      spacing: {
+        "safe-top": "env(safe-area-inset-top)",
+        "safe-bottom": "env(safe-area-inset-bottom)",
+        "safe-left": "env(safe-area-inset-left)",
+        "safe-right": "env(safe-area-inset-right)",
+      },
       keyframes: {
         "accordion-down": {
           from: {
