@@ -110,6 +110,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'helper-requests': 'trader-hub',
   'helper-orders': 'trader-hub',
   'level5-helpers': 'trader-hub',
+  'super-admin-management': 'trader-hub',
   'helper-diamond-pricing': 'trader-hub',
 
   // Games

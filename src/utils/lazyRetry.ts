@@ -15,7 +15,18 @@ export const isChunkLoadError = (error: unknown) => {
     message.includes('Loading chunk') ||
     message.includes('Importing a module script failed') ||
     message.includes('dynamically imported module') ||
+    message.includes("Cannot read properties of undefined (reading 'default')") ||
+    message.includes('Cannot read properties of undefined (reading "default")') ||
     getErrorName(error) === 'ChunkLoadError';
+};
+
+const assertLazyModule = <T,>(module: { default: T } | undefined | null, source: string): { default: T } => {
+  if (!module || typeof module !== 'object' || !('default' in module) || module.default == null) {
+    const error = new Error(`Lazy module resolved without a default export: ${getModuleKey(source)}`);
+    error.name = 'ChunkLoadError';
+    throw error;
+  }
+  return module;
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -169,8 +180,9 @@ export function lazyRetry<T>(
     // without a full page reload). Backoff: 250ms, 750ms, 1500ms.
     const delays = [250, 750, 1500];
     let lastError: unknown;
+    const source = String(importFn);
     try {
-      return await importFn();
+      return assertLazyModule(await importFn(), source);
     } catch (e) {
       lastError = e;
       if (!isChunkLoadError(e)) throw e;
@@ -178,7 +190,7 @@ export function lazyRetry<T>(
     for (const d of delays) {
       await sleep(d);
       try {
-        return await importFn();
+        return assertLazyModule(await importFn(), source);
       } catch (e) {
         lastError = e;
         if (!isChunkLoadError(e)) throw e;
@@ -188,11 +200,11 @@ export function lazyRetry<T>(
     // Attempt cache-clearing recovery, then retry one final time so we never
     // leave a Suspense boundary stuck on a forever-pending promise (which
     // would render a blank screen with no recovery affordance).
-    const recovered = await scheduleChunkLoadRecovery(lastError, String(importFn));
+    const recovered = await scheduleChunkLoadRecovery(lastError, source);
     if (recovered) {
       await sleep(400);
       try {
-        return await importFn();
+        return assertLazyModule(await importFn(), source);
       } catch (e) {
         lastError = e;
       }
