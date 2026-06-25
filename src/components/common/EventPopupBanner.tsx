@@ -137,13 +137,23 @@ const EventPopupBanner = () => {
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
-  // Banner is display-only — clicking does NOT navigate anywhere.
-  // User must dismiss via the X / skip button (after skip delay).
-  const handleBannerClick = useCallback((e: React.MouseEvent) => {
+  // Banner click → navigate if link_url is set, otherwise just absorb the click.
+  const handleBannerClick = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
-  }, []);
+    if (!banner?.link_url) return;
+    try {
+      handleDismiss();
+      const { openInApp } = await import("@/utils/inAppNavigation");
+      await openInApp(banner.link_url);
+    } catch {
+      window.location.href = banner.link_url;
+    }
+  }, [banner, handleDismiss]);
 
   if (!banner) return null;
+  const hasCta = Boolean(banner.link_url);
+  const mediaUrl = popupCdn(banner.image_url);
+  const isVideo = isVideoBanner(banner.image_url);
 
   return (
     <AnimatePresence>
@@ -153,60 +163,46 @@ const EventPopupBanner = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] bg-black flex items-stretch justify-stretch overflow-hidden"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4 py-6 overflow-hidden"
           onClick={canSkip ? handleDismiss : undefined}
-          style={{
-            // Edge-to-edge: no padding. Image covers the entire viewport.
-            // Safe-area is applied only to the floating chips so notch /
-            // bottom-bar don't eat them.
-            width: '100vw',
-            height: '100dvh',
-          }}
+          style={{ width: '100vw', height: '100dvh' }}
         >
-          <motion.div
-            initial={{ scale: 1.03, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.97, opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="relative w-full h-full"
+          {/* Blurred backdrop derived from the banner art — no raw black bars */}
+          {!isVideo && (
+            <img
+              src={mediaUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover scale-125 blur-3xl opacity-50"
+            />
+          )}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(120% 80% at 50% 0%, rgba(30,10,60,0.55) 0%, rgba(10,5,25,0.85) 55%, rgba(0,0,0,0.95) 100%)",
+            }}
+          />
+
+          {/* Top safe-area chips: live countdown + skip/close */}
+          <div
+            className="relative z-30 w-full max-w-sm flex items-center justify-between"
+            style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {isVideoBanner(banner.image_url) ? (
-              <video
-                src={popupCdn(banner.image_url)}
-                onClick={handleBannerClick}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-              />
-            ) : (
-              <img loading="lazy" decoding="async"
-                src={popupCdn(banner.image_url)}
-                alt={banner.title}
-                onClick={handleBannerClick}
-                {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
-                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-                draggable={false}
-                onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
-              />
-            )}
-
-            {/* Countdown Timer Badge (safe-area aware) */}
             <div
-              className="absolute flex items-center gap-2 bg-slate-900/85 backdrop-blur-md rounded-full pl-2.5 pr-3 py-1.5 border border-white/10 shadow-lg z-10" /* dark-ok */
+              className="flex items-center gap-2 rounded-full px-3 py-1.5"
               style={{
-                top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-                left: 'calc(env(safe-area-inset-left, 0px) + 12px)',
+                background: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(255,255,255,0.12)",
               }}
             >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
               </span>
-              <span className="text-white text-[11px] font-semibold tabular-nums tracking-wide"> {/* dark-ok */}
+              <span className="text-white/90 text-[11px] font-semibold tabular-nums tracking-wide">
                 {Math.max(0, autoDismiss - elapsed)}s
               </span>
             </div>
@@ -215,26 +211,123 @@ const EventPopupBanner = () => {
               <button
                 onClick={handleDismiss}
                 aria-label="Close"
-                className="absolute w-10 h-10 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-lg text-white hover:bg-slate-900 active:scale-95 transition z-10" /* dark-ok */
+                className="flex items-center gap-1.5 rounded-full pl-3 pr-2 py-1.5 text-white active:scale-95 transition"
                 style={{
-                  top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-                  right: 'calc(env(safe-area-inset-right, 0px) + 12px)',
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(0,0,0,0.4)",
                 }}
               >
-                <X className="w-5 h-5" strokeWidth={2.5} />
+                <span className="text-[11px] font-semibold tracking-wide">Skip</span>
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15">
+                  <X className="h-3 w-3" />
+                </div>
               </button>
             ) : (
               <div
-                className="absolute px-3 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/10 text-white/90 text-[11px] font-medium tabular-nums z-10 shadow-lg" /* dark-ok */
+                className="rounded-full px-3 py-1.5 text-white/70 text-[11px] font-medium tabular-nums"
                 style={{
-                  top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-                  right: 'calc(env(safe-area-inset-right, 0px) + 12px)',
+                  background: "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
                 }}
               >
                 Skip in {Math.max(0, skipDelay - elapsed)}s
               </div>
             )}
+          </div>
+
+          {/* Premium 9:16 card with gold ring frame */}
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.92, opacity: 0 }}
+            transition={{ type: "spring", damping: 24, stiffness: 280 }}
+            className="relative z-20 my-3 w-full max-w-[340px] overflow-hidden rounded-[28px]"
+            style={{
+              aspectRatio: "9 / 16",
+              boxShadow:
+                "0 30px 80px -10px rgba(0,0,0,0.7), 0 0 60px -10px rgba(168,85,247,0.35), inset 0 0 0 1px rgba(255,255,255,0.12)",
+              cursor: hasCta ? 'pointer' : 'default',
+            }}
+            onClick={handleBannerClick}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 z-30 rounded-[28px]"
+              style={{
+                padding: "1.5px",
+                background:
+                  "linear-gradient(135deg, rgba(252,211,77,0.7) 0%, rgba(245,158,11,0.2) 35%, rgba(255,255,255,0.15) 60%, rgba(245,158,11,0.6) 100%)",
+                WebkitMask:
+                  "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                WebkitMaskComposite: "xor",
+                maskComposite: "exclude",
+              }}
+            />
+
+            {isVideo ? (
+              <video
+                src={mediaUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={mediaUrl}
+                alt={banner.title}
+                width={1080}
+                height={1920}
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+                className="absolute inset-0 h-full w-full object-cover"
+                draggable={false}
+                onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
+              />
+            )}
+
+            {/* Subtle top sheen + bottom CTA-readability gradient */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/12 to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent z-10" />
           </motion.div>
+
+          {/* Premium CTA pill — only when banner has a link */}
+          {hasCta && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="relative z-30 w-full max-w-sm"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleBannerClick}
+                className="relative w-full overflow-hidden rounded-2xl py-3.5 px-5 text-white flex items-center justify-center gap-2"
+                style={{
+                  background:
+                    "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
+                  boxShadow:
+                    "0 14px 30px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                }}
+              >
+                <div className="pointer-events-none absolute inset-x-2 top-1 h-2 rounded-full bg-white/40 blur-[2px]" />
+                <span
+                  className="relative text-[14px] font-bold tracking-wide"
+                  style={{ textShadow: "0 1px 2px rgba(120,53,15,0.6)" }}
+                >
+                  ✨ View Event Details
+                </span>
+              </motion.button>
+            </motion.div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
