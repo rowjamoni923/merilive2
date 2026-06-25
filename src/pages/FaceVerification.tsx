@@ -3218,7 +3218,7 @@ const FaceVerification = () => {
                 className="w-full border-slate-200 text-slate-600 rounded-2xl py-6 font-semibold bg-white active:scale-95 transition-transform"
                 onClick={async () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
-                  postSubmitLockedRef.current = false; setSubmitInProgress(false);
+                  postSubmitLockedRef.current = false; setSubmitInProgress(false); setUserInfoStepComplete(false);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
                   setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
                   setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
