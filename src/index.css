@@ -5098,4 +5098,178 @@ a:focus-visible,
   }
 }
 
+/* =========================================================
+ * Phase 5 — Mobile-tune: Agency Dashboard, Helper Guide,
+ * L1-L6 Helper Dashboards, Withdrawal, Host Management,
+ * Sub-Agency, Diamond Exchange, Transfer / Withdrawal History
+ * (≤640px only — design unchanged, ergonomics only)
+ * ========================================================= */
+@media (max-width: 640px) {
+  /* KPI / stat cards: 2-up on phones, never overflow */
+  [data-agency-kpis],
+  [data-helper-kpis] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+  [data-agency-kpis] > *,
+  [data-helper-kpis] > * { min-width: 0; padding: 0.875rem; }
+  [data-agency-kpis] [data-kpi-value],
+  [data-helper-kpis] [data-kpi-value] {
+    font-size: clamp(1rem, 4.6vw, 1.375rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  /* Dashboard quick-action grid — 4 icons across, big tap */
+  [data-quick-actions] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  [data-quick-actions] > * { min-height: 64px; min-width: 0; }
+
+  /* Helper guide steps — readable line length, breathing padding */
+  [data-guide-step] {
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+  }
+  [data-guide-step] + [data-guide-step] { margin-top: 0.625rem; }
+  [data-guide-step] p { line-height: 1.55; }
+
+  /* Withdrawal / Recharge / Exchange forms — tall inputs, sticky CTA */
+  [data-money-form] input,
+  [data-money-form] select,
+  [data-money-form] textarea {
+    min-height: 48px;
+    font-size: 16px; /* iOS no-zoom */
+  }
+  [data-money-form] [data-amount-input] {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    font-weight: 700;
+    text-align: center;
+    min-height: 64px;
+  }
+  [data-money-cta] {
+    position: sticky;
+    bottom: 0;
+    padding: 0.75rem 1rem max(env(safe-area-inset-bottom), 0.75rem);
+    background: linear-gradient(180deg, transparent, hsl(var(--background)) 35%);
+    z-index: 20;
+  }
+  [data-money-cta] button { min-height: 52px; font-weight: 600; }
+
+  /* Host / Sub-Agency management list rows
+     (avatar • name/id • status • action) */
+  [data-host-row],
+  [data-subagency-row] {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 0.625rem;
+    align-items: center;
+    min-height: 64px;
+    padding: 0.625rem 0.75rem;
+  }
+  [data-host-row] [data-row-main],
+  [data-subagency-row] [data-row-main] { min-width: 0; }
+  [data-host-row] [data-row-main] > *,
+  [data-subagency-row] [data-row-main] > * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-host-row] [data-row-action] button,
+  [data-subagency-row] [data-row-action] button {
+    min-height: 36px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Filter / segmented bars (Today / Week / Month) */
+  [data-filter-bar] {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.375rem 1rem;
+    scroll-snap-type: x proximity;
+  }
+  [data-filter-bar]::-webkit-scrollbar { display: none; }
+  [data-filter-bar] > * {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0 0.875rem;
+    scroll-snap-align: start;
+  }
+
+  /* Diamond Exchange — big amount display + rate card */
+  [data-exchange-amount] {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+  [data-exchange-rate] { font-size: 0.8125rem; opacity: 0.75; }
+
+  /* History tables → card list pattern (no horizontal scroll) */
+  [data-history-table] { display: block; }
+  [data-history-table] thead { display: none; }
+  [data-history-table] tbody,
+  [data-history-table] tr {
+    display: block;
+    width: 100%;
+  }
+  [data-history-table] tr {
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 0.75rem 0.875rem;
+    margin-bottom: 0.5rem;
+    background: hsl(var(--card));
+  }
+  [data-history-table] td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+    border: 0;
+    font-size: 0.875rem;
+  }
+  [data-history-table] td::before {
+    content: attr(data-label);
+    font-weight: 500;
+    opacity: 0.65;
+    flex: 0 0 auto;
+  }
+  [data-history-table] td[data-label=""]::before { content: none; }
+
+  /* Generic history list rows (non-table) */
+  [data-history-row] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 60px;
+    padding: 0.625rem 0.875rem;
+  }
+  [data-history-row] [data-history-amount] {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  [data-history-row] [data-history-meta] {
+    font-size: 0.75rem;
+    opacity: 0.65;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Status badges stay legible without wrapping */
+  [data-status-badge] {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+}
 
