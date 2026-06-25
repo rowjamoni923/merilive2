@@ -42,6 +42,32 @@ export default function MatchCall() {
     };
   }, []);
 
+  // Settle the random_call_session when the user exits the call overlay.
+  // Server enforces the 40-second min-billable rule inside `settle_random_call`.
+  useEffect(() => {
+    if (isInCall) {
+      wasInCallRef.current = true;
+      return;
+    }
+    if (!wasInCallRef.current) return;
+    wasInCallRef.current = false;
+    let raw: string | null = null;
+    try {
+      raw = window.sessionStorage.getItem("random_call:active");
+      window.sessionStorage.removeItem("random_call:active");
+    } catch (_) {}
+    if (!raw) return;
+    try {
+      const info = JSON.parse(raw) as { session_id: string; started_at: number };
+      const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
+      supabase.functions.invoke("random-call-settle", {
+        body: { session_id: info.session_id, duration_seconds: duration, ended_by: "caller" },
+      }).catch(() => {});
+    } catch (_) {}
+    setPhase("intro");
+  }, [isInCall]);
+
+
   const cancelQueue = async () => {
     try {
       await supabase.functions.invoke("random-call-cancel", {
