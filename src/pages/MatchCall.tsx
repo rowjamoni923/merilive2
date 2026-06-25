@@ -31,6 +31,12 @@ export default function MatchCall() {
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
+  // Authoritative active-session state (no longer derived from sessionStorage during settle).
+  const [activeSession, setActiveSession] = useState<{
+    session_id: string; host_id: string; started_at: number; ended_by?: string;
+  } | null>(null);
+  const activeSessionRef = useRef<typeof activeSession>(null);
+  useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
