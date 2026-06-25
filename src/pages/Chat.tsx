@@ -1123,6 +1123,29 @@ const Chat = () => {
         setMessage(decodeURIComponent(autoMsg));
       }
     }
+    const groupId = searchParams.get('group');
+    if (groupId && currentUserId && !selectedGroup) {
+      (async () => {
+        const { data } = await supabase
+          .from('groups')
+          .select('id, name, avatar_url, group_type, group_code, owner_id, created_by, member_count, is_active')
+          .eq('id', groupId)
+          .maybeSingle();
+        if (data) {
+          const { data: mem } = await supabase
+            .from('group_members')
+            .select('role')
+            .eq('group_id', groupId)
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+          handleSelectGroup({
+            ...(data as any),
+            is_owner: (data as any).owner_id === currentUserId || (data as any).created_by === currentUserId,
+            role: mem?.role || 'member',
+          } as any);
+        }
+      })();
+    }
   }, [searchParams, currentUserId]);
 
   // Pro-app scroll behavior (WhatsApp/Messenger/Chamet style):
