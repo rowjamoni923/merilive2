@@ -299,6 +299,21 @@ export default function AdminAgencies() {
     }
   }, []);
 
+  // Resolve the canonical commission % for an agency from its level tier,
+  // so the admin card matches what the user-facing app shows (e.g. 12% Bronze)
+  // instead of the stale per-row agency.commission_rate default.
+  const getEffectiveCommission = useCallback((agency: { level?: string | null; commission_rate?: number | null }) => {
+    const lvl = String(agency?.level ?? '').trim().toLowerCase();
+    if (lvl) {
+      const tier = levelTiers.find(t =>
+        String(t.level_code ?? '').toLowerCase() === lvl ||
+        String(t.level_name ?? '').toLowerCase() === lvl
+      );
+      if (tier && typeof tier.commission_rate === 'number') return tier.commission_rate;
+    }
+    return agency?.commission_rate ?? 0;
+  }, [levelTiers]);
+
   // Initial data load
   useEffect(() => {
     fetchCommissionSettings();
@@ -1991,7 +2006,7 @@ export default function AdminAgencies() {
                     </div>
                     <div className="text-center p-3 bg-white/5 rounded-xl border border-white/5">
                       <TrendingUp className="w-4 h-4 text-green-400 mx-auto mb-1.5" />
-                      <p className="text-white font-bold">{agency.commission_rate || 0}%</p>
+                      <p className="text-white font-bold">{getEffectiveCommission(agency)}%</p>
                       <p className="text-[10px] text-white/40 uppercase tracking-wider">Commission</p>
                     </div>
                   </div>
@@ -2180,7 +2195,7 @@ export default function AdminAgencies() {
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-white/50 text-sm">Commission Rate</p>
-                  <p className="text-green-400 font-bold">{selectedAgency.commission_rate || 0}%</p>
+                  <p className="text-green-400 font-bold">{getEffectiveCommission(selectedAgency)}%</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-white/50 text-sm">Level</p>
