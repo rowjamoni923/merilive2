@@ -1990,14 +1990,15 @@ const FaceVerification = () => {
     } catch { return null; }
   };
 
-  // Upload passive live-scan stills. Legacy admin/AI columns still expect
-  // front/left/right URLs, so side slots fall back to the same live frame.
+  // Upload passive live-scan stills. Only real captured frames are uploaded —
+  // missing left/right frames stay null so they cannot create fake evidence.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
     const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
     if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
-    if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
-    if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
+    // Do NOT fake left/right frames with the center frame. The server treats
+    // identical side frames as a replay/static-photo signal. Passive scan
+    // approval now depends on photo + video-frame + live-frame identity checks.
     const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
       ['center', 'front_url', 'face-angles/front'],
       ['left', 'left_url', 'face-angles/left'],
@@ -2016,6 +2017,23 @@ const FaceVerification = () => {
       if (url) out[field] = url;
     }
     return out;
+  };
+
+  // Upload a JPEG still extracted from a video so the server can compare
+  // uploaded/recorded video evidence against the live scan. Rekognition cannot
+  // compare a raw webm/mp4 URL as an image; without this frame, video evidence
+  // would be visible to admins but not part of the automatic same-person gate.
+  const uploadVideoEvidenceFrame = async (videoBlob: Blob, folder: string): Promise<string | null> => {
+    try {
+      const base64 = await captureFrameFromVideo(videoBlob, 720);
+      const rawBlob = dataUrlToBlob(`data:image/jpeg;base64,${base64}`);
+      if (!rawBlob || rawBlob.size < 1000) return null;
+      const file = new File([rawBlob], `video-frame-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      return await uploadFile(file, folder);
+    } catch (e) {
+      console.warn('[FaceVerification] video evidence frame capture failed', e);
+      return null;
+    }
   };
 
   const getMissingHostRequirements = () => {
@@ -2157,6 +2175,10 @@ const FaceVerification = () => {
 
       // Upload passive live scan stills for photo/video/live face comparison
       const angleUrls = await uploadCapturedAngles();
+      const faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face');
+      if (!faceVideoFrameUrl) {
+        throw new Error('Submission blocked: face verification video frame could not be captured. Please record again.');
+      }
 
       // Insert submission with ALL user info (name, age, language, photo) + 3 angles
       const { data: submissionData, error: submissionError } = await supabase
@@ -2174,6 +2196,11 @@ const FaceVerification = () => {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
             scan_mode: 'passive_photo_video_live',
             evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
+            evidence_urls: {
+              profile_photo_url: profilePhotoUrl,
+              face_video_frame_url: faceVideoFrameUrl,
+              live_face_scan_url: angleUrls.front_url || null,
+            },
             visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
             challenge_randomized: false,
@@ -2379,6 +2406,8 @@ const FaceVerification = () => {
       const profilePhotoUrl = photoFile ? await uploadFile(photoFile, 'photos') : null;
       const introVideoUrl = videoFile ? await uploadFile(videoFile, 'videos') : null;
       const faceVideoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
+      const introVideoFrameUrl = videoFile ? await uploadVideoEvidenceFrame(videoFile, 'video-frames/intro') : null;
+      const faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face');
       
       const photoUrls: string[] = [];
       for (const photo of hostPhotos) {
@@ -2386,7 +2415,7 @@ const FaceVerification = () => {
         if (url) photoUrls.push(url);
       }
 
-      if (!profilePhotoUrl || !introVideoUrl || !faceVideoUrl || photoUrls.length !== 3) {
+      if (!profilePhotoUrl || !introVideoUrl || !faceVideoUrl || !introVideoFrameUrl || !faceVideoFrameUrl || photoUrls.length !== 3) {
         throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
       }
       
@@ -2436,7 +2465,14 @@ const FaceVerification = () => {
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
             scan_mode: 'passive_photo_video_live',
-            evidence_required: ['profile_photo', 'intro_video', 'host_gallery_photos', 'live_face_scan'],
+            evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
+            evidence_urls: {
+              profile_photo_url: profilePhotoUrl,
+              intro_video_frame_url: introVideoFrameUrl,
+              face_video_frame_url: faceVideoFrameUrl,
+              live_face_scan_url: angleUrls.front_url || null,
+              host_photo_urls: photoUrls,
+            },
             visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
             challenge_randomized: false,
