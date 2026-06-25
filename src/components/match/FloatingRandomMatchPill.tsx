@@ -7,9 +7,10 @@ import { Shuffle, X } from "lucide-react";
  * Chamet-style draggable, dismissible 3D "Random Chat" mini pill.
  * Stable hook order — never early-returns mid-render.
  */
-const STORAGE_POS = "random_pill_pos_v3";
-const STORAGE_DISMISSED = "random_pill_dismissed_v3";
-const PILL_SIZE = 56;
+const STORAGE_POS = "random_pill_pos_v4";
+const STORAGE_DISMISSED = "random_pill_dismissed_v4";
+const PILL_W = 150;
+const PILL_H = 44;
 const MARGIN = 8;
 
 function readDismissed(): boolean {
