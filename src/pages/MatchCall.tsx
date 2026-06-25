@@ -117,11 +117,22 @@ export default function MatchCall() {
     timerRef.current = window.setInterval(() => setElapsed((s) => s + 1), 1000);
 
     try {
+      // Stable per-install device id for multi-device safety
+      let deviceId = "";
+      try {
+        deviceId = window.localStorage.getItem("ml_device_id") || "";
+        if (!deviceId) {
+          deviceId = (crypto as any).randomUUID?.() || `dev_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          window.localStorage.setItem("ml_device_id", deviceId);
+        }
+      } catch (_) {}
+
       const { data, error } = await supabase.functions.invoke("random-call-enqueue", {
         body: {
           preferred_langs: filters.preferred_langs,
           preferred_country: filters.preferred_country,
           preferred_host_gender: filters.preferred_host_gender,
+          device_id: deviceId,
         },
       });
       // Server may return a structured 429 error (skip cooldown / daily cap)
