@@ -32,6 +32,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { formatNumber as fmtNum } from "@/utils/formatNumber";
 import { parseCallRateSettings, resolveEffectiveCallRate } from "@/utils/callRateSettings";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { HostMatchToggleCard } from "@/components/host/HostMatchToggleCard";
 
 interface EarningStats {
   totalEarnings: number;
