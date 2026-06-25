@@ -282,23 +282,73 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
 
   return (
     <div className="fixed inset-0 z-[60] bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center gap-2 px-3 py-2.5 border-b bg-background/95 backdrop-blur">
-        <Button variant="ghost" size="icon" onClick={onClose}><ArrowLeft className="w-5 h-5" /></Button>
-        <div className="flex-1 min-w-0">
-          <div className="text-[16px] font-semibold truncate">Group Info</div>
-          <div className="text-[12px] text-muted-foreground truncate">{row?.member_count ?? group.member_count} members</div>
-        </div>
-        {isAdmin && (
-          <Button variant="ghost" size="icon" onClick={() => setShowEdit(true)} aria-label="Edit"><Edit3 className="w-5 h-5" /></Button>
-        )}
-      </header>
+      {/* Luxurious gradient hero with integrated header */}
+      <div className="relative overflow-hidden">
+        {/* Gradient backdrop */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 20% 0%, hsl(280 85% 62% / 0.95) 0%, transparent 55%), radial-gradient(120% 90% at 90% 10%, hsl(330 88% 60% / 0.85) 0%, transparent 50%), linear-gradient(160deg, hsl(258 70% 28%) 0%, hsl(290 65% 22%) 45%, hsl(330 70% 26%) 100%)",
+          }}
+        />
+        {/* Soft orbs */}
+        <div aria-hidden className="absolute -top-16 -right-10 w-56 h-56 rounded-full blur-3xl opacity-40" style={{ background: "hsl(50 95% 65%)" }} />
+        <div aria-hidden className="absolute -bottom-20 -left-10 w-64 h-64 rounded-full blur-3xl opacity-30" style={{ background: "hsl(200 95% 60%)" }} />
+        {/* Fine grid */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
 
-      <ScrollArea className="flex-1">
-        {/* Hero */}
-        <section className="px-5 py-6 flex flex-col items-center gap-3 border-b">
+        {/* Header (always visible — solid icon buttons on gradient) */}
+        <header
+          className="relative z-10 flex items-center gap-2 px-3 pt-[max(env(safe-area-inset-top),0.5rem)] pb-2"
+        >
+          <button
+            onClick={onClose}
+            aria-label="Back"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-md border border-white/25 text-white shadow-lg transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1 min-w-0 text-center">
+            <div className="text-[15px] font-semibold text-white tracking-wide drop-shadow">Group Info</div>
+            <div className="text-[11px] text-white/75 truncate">{row?.member_count ?? group.member_count} members</div>
+          </div>
+          {isAdmin ? (
+            <button
+              onClick={() => setShowEdit(true)}
+              aria-label="Edit"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-md border border-white/25 text-white shadow-lg transition"
+            >
+              <Edit3 className="w-5 h-5" />
+            </button>
+          ) : (
+            <div className="w-10 h-10" />
+          )}
+        </header>
+
+        {/* Hero content */}
+        <section className="relative z-10 px-5 pt-3 pb-7 flex flex-col items-center gap-3">
           <div className="relative">
-            <Avatar className="w-28 h-28 ring-4 ring-background shadow-xl">
+            {/* Luxe ring */}
+            <div
+              aria-hidden
+              className="absolute -inset-2 rounded-full opacity-90"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, hsl(48 95% 65%), hsl(330 90% 65%), hsl(260 95% 70%), hsl(48 95% 65%))",
+                filter: "blur(2px)",
+              }}
+            />
+            <Avatar className="relative w-28 h-28 ring-4 ring-white/90 shadow-2xl">
               <AvatarImage src={row?.avatar_url || group.avatar_url || ""} />
               <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 text-white">{initials}</AvatarFallback>
             </Avatar>
@@ -306,42 +356,64 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
               <button
                 disabled={uploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-white text-fuchsia-600 shadow-xl flex items-center justify-center border border-white/60"
                 aria-label="Change photo">
                 <ImagePlus className="w-4 h-4" />
               </button>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={onAvatarPick} />
           </div>
+
           <div className="text-center">
-            <div className="text-[20px] font-bold flex items-center justify-center gap-2">
-              {row?.name || group.name}
-              <Badge variant="secondary" className="capitalize text-[10px]">{row?.group_type || group.group_type}</Badge>
-              {row?.is_public ? <Badge className="bg-emerald-500 text-white text-[10px]"><Globe className="w-3 h-3 mr-1" />Public</Badge>
-                : <Badge variant="outline" className="text-[10px]"><Lock className="w-3 h-3 mr-1" />Private</Badge>}
+            <div className="text-[22px] font-bold text-white drop-shadow flex items-center justify-center gap-2 flex-wrap">
+              <span className="tracking-tight">{row?.name || group.name}</span>
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white capitalize">
+                {row?.group_type || group.group_type}
+              </span>
+              {row?.is_public ? (
+                <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/90 text-emerald-950">
+                  <Globe className="w-3 h-3 mr-1" />Public
+                </span>
+              ) : (
+                <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white">
+                  <Lock className="w-3 h-3 mr-1" />Private
+                </span>
+              )}
             </div>
-            {row?.description && <p className="text-[13px] text-muted-foreground mt-1 max-w-md whitespace-pre-wrap">{row.description}</p>}
+            {row?.description && <p className="text-[13px] text-white/85 mt-1.5 max-w-md whitespace-pre-wrap">{row.description}</p>}
             {!row?.description && isAdmin && (
-              <button onClick={() => setShowEdit(true)} className="text-[12px] text-primary mt-1 underline">Add description</button>
+              <button onClick={() => setShowEdit(true)} className="text-[12px] text-white/90 mt-1.5 underline underline-offset-2">Add description</button>
             )}
             {row?.group_code && (
-              <div className="text-[11px] text-muted-foreground mt-1">Code: <span className="font-mono">{row.group_code}</span></div>
+              <div className="text-[11px] text-white/70 mt-1.5">Code: <span className="font-mono tracking-wider text-white/90">{row.group_code}</span></div>
             )}
           </div>
 
-          {/* Quick actions */}
-          <div className="flex gap-2 mt-2">
+          {/* Quick actions — glass pill buttons */}
+          <div className="flex gap-2 mt-2 flex-wrap justify-center">
             {isAdmin && (
-              <Button size="sm" variant="outline" onClick={() => setShowAdd(true)}><UserPlus className="w-4 h-4 mr-1" />Add</Button>
+              <button onClick={() => setShowAdd(true)} className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white text-[13px] font-medium shadow-md transition">
+                <UserPlus className="w-4 h-4" />Add
+              </button>
             )}
-            <Button size="sm" variant="outline" onClick={() => setShowInvite(true)}><Link2 className="w-4 h-4 mr-1" />Invite</Button>
+            <button onClick={() => setShowInvite(true)} className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white text-[13px] font-medium shadow-md transition">
+              <Link2 className="w-4 h-4" />Invite
+            </button>
             {isOwner ? (
-              <Button size="sm" variant="destructive" onClick={() => setConfirmDelete(true)}><Trash2 className="w-4 h-4 mr-1" />Delete</Button>
+              <button onClick={() => setConfirmDelete(true)} className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-rose-500/95 hover:bg-rose-500 text-white text-[13px] font-semibold shadow-lg border border-white/20 transition">
+                <Trash2 className="w-4 h-4" />Delete
+              </button>
             ) : (
-              <Button size="sm" variant="destructive" onClick={() => setConfirmLeave(true)}><LogOut className="w-4 h-4 mr-1" />Leave</Button>
+              <button onClick={() => setConfirmLeave(true)} className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-rose-500/95 hover:bg-rose-500 text-white text-[13px] font-semibold shadow-lg border border-white/20 transition">
+                <LogOut className="w-4 h-4" />Leave
+              </button>
             )}
           </div>
         </section>
+      </div>
+
+      <ScrollArea className="flex-1">
+
 
         {/* Tabs */}
         <Tabs value={tab} onValueChange={(v: any) => setTab(v)} className="w-full">
