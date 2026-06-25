@@ -246,20 +246,26 @@ export default function MatchCall() {
       ? Math.max(8, Math.min(60, Math.round(45 / Math.max(1, hostsCount))))
       : 45;
     return (
-      <PreMatchPrep
-        diamondBalance={profile?.coins ?? 0}
-        hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
-        freeTrialSeconds={settings?.random_window_seconds ?? 60}
-        minBillableSeconds={settings?.random_window_seconds ?? 60}
-        availableHostsCount={hostsCount}
-        estimatedWaitSeconds={estWait}
-        isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
-        countryRequiresVip={!!settings?.country_filter_requires_vip}
-        genderFilterEnabled={!!settings?.enable_gender_filter}
-        countryFilterEnabled={!!settings?.enable_country_filter}
-        onStart={(filters) => startSearch(filters)}
-      />
-
+      <>
+        <PreMatchPrep
+          diamondBalance={profile?.coins ?? 0}
+          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          freeTrialSeconds={settings?.random_window_seconds ?? 60}
+          minBillableSeconds={settings?.random_window_seconds ?? 60}
+          availableHostsCount={hostsCount}
+          estimatedWaitSeconds={estWait}
+          isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
+          countryRequiresVip={!!settings?.country_filter_requires_vip}
+          genderFilterEnabled={!!settings?.enable_gender_filter}
+          countryFilterEnabled={!!settings?.enable_country_filter}
+          onStart={(filters) => startSearch(filters)}
+        />
+        <PostCallRatingSheet
+          open={!!ratingSession}
+          sessionId={ratingSession}
+          onClose={() => setRatingSession(null)}
+        />
+      </>
     );
   }
 
