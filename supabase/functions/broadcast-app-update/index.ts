@@ -93,6 +93,22 @@ const handler = async (req: Request): Promise<Response> => {
     const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // ── Auth gate: require either an admin session OR a valid CRON secret ──
+    const cronSecret = Deno.env.get("CRON_SECRET") || "";
+    const providedCron = req.headers.get("x-cron-secret") || "";
+    const isCronCaller = !!cronSecret && providedCron === cronSecret;
+
+    if (!isCronCaller) {
+      const { requireAdminSession } = await import("../_shared/adminAuth.ts");
+      const guard = await requireAdminSession(req, supabase, { ownerOnly: true });
+      if (!guard.ok) {
+        return new Response(
+          JSON.stringify({ success: false, error: guard.error }),
+          { status: guard.status, headers: { "Content-Type": "application/json", ...corsHeaders } },
+        );
+      }
+    }
+
     const { versionSettingsId, platform: platformFilter } = await req.json()
       .catch(() => ({}));
 
