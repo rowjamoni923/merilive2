@@ -210,10 +210,14 @@ const AdminPopupBanners = () => {
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   </label>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Button Delay (s)</Label>
-                    <Input type="number" value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Btn Delay (s)</Label>
+                    <Input type="number" min={1} value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Auto Dismiss (s)</Label>
+                    <Input type="number" min={0} value={formData.auto_dismiss_seconds} onChange={(e) => setFormData({ ...formData, auto_dismiss_seconds: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
                   </div>
                   <div>
                     <Label className="text-slate-300">Display Order</Label>
