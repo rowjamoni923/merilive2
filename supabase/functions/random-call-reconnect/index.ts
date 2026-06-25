@@ -28,7 +28,20 @@ Deno.serve(async (req) => {
     const kind = String(body.kind ?? "private");
     const callId: string | undefined = body.call_id;
     const reconnectToken: string | undefined = body.token;
-    const graceSeconds = Math.max(5, Math.min(60, Number(body.grace_seconds ?? 20)));
+
+    // Admin-controlled default grace window (random_call_settings.reconnect_window_seconds).
+    // Client-supplied grace_seconds is ignored to keep this as a single source of truth.
+    let graceSeconds = 20;
+    try {
+      const { data: s } = await supabase
+        .from("random_call_settings")
+        .select("reconnect_window_seconds")
+        .eq("id", 1)
+        .maybeSingle();
+      if (s?.reconnect_window_seconds) {
+        graceSeconds = Math.max(5, Math.min(120, Number(s.reconnect_window_seconds)));
+      }
+    } catch (_) { /* fall back to default */ }
 
     if (!callId || !["private", "random"].includes(kind)) {
       return new Response(JSON.stringify({ error: "missing_fields" }), {
