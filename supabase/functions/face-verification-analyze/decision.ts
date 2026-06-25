@@ -2,13 +2,12 @@
 // Extracted so the exact outcome rules (hard reject / soft retry / manual review
 // / auto approve) can be unit tested without AWS, Supabase or the network.
 //
-// Policy (locked 2026-06-26):
-//   HARD AUTO-REJECT (no retry, user-visible)
-//     1. banned_face        — face is on the ban list
+// Policy (locked 2026-06-26, updated per owner rules):
+//   HARD AUTO-REJECT (no retry, user-visible) — ONLY these reasons:
+//     1. banned_face        — face is on the ban list (previously banned account)
 //     2. duplicate_face     — face already belongs to another APPROVED account
-//     3. gender_mismatch    — declared host/user gender vs. detected gender
-//                              mismatch at >=90% confidence (or hard
-//                              declaration mismatch flag)
+//        (role mismatch: existing host re-verifying as user, etc. is enforced
+//         in index.ts before AWS and short-circuits here.)
 //   SOFT RETRY (status=needs_retry, user can re-upload only failing items)
 //     - All required evidence (profile photo, face video frame, and for hosts
 //       intro video frame) was readable, but at least one CompareFaces score
@@ -20,10 +19,10 @@
 //     - Face indexing failed
 //     - Pending duplicate candidate (not yet approved on the other account)
 //     - Required evidence missing/unreadable
-//     - Lower-confidence gender / liveness / replay / profile / gallery soft
-//       flags that don't qualify as hard fraud
 //   AUTO APPROVE
-//     - None of the above and all three evidence sources >= 85% to live scan.
+//     - Host: profile photo + face video + intro video all >= 85% to live scan.
+//     - User: profile photo + face video all >= 85% to live scan.
+//   Gender check is NO LONGER used for reject or manual review — owner rule.
 
 export const SIMILARITY_THRESHOLD = 85;
 export const HARD_GENDER_CONF = 90;
@@ -74,28 +73,17 @@ export type DecisionInput = {
 };
 
 export type Decision =
-  | { kind: "reject"; reason: "banned_face" | "duplicate_face" | "gender_mismatch" }
+  | { kind: "reject"; reason: "banned_face" | "duplicate_face" }
   | { kind: "needs_retry"; failedEvidence: string[] }
   | { kind: "manual_review"; reason: string }
   | { kind: "auto_approve" };
 
 export function decideFaceVerificationOutcome(input: DecisionInput): Decision {
-  // 1) HARD FRAUD — checked first so nothing else can override.
+  // 1) HARD FRAUD — only banned face / duplicate of already-approved account.
+  //    Gender mismatch is NOT a reject reason (owner policy 2026-06-26).
   if (input.isBannedFace) return { kind: "reject", reason: "banned_face" };
   if (input.isDuplicateApproved) return { kind: "reject", reason: "duplicate_face" };
 
-  const hardGender = !!(
-    input.expectedGender &&
-    (input.expectedGender === "male" || input.expectedGender === "female") &&
-    input.detectedGender !== "unknown" &&
-    input.detectedGender !== input.expectedGender &&
-    input.genderConf >= HARD_GENDER_CONF &&
-    !input.frontError &&
-    !input.genderConflict
-  );
-  if (input.genderDeclarationMismatch || hardGender) {
-    return { kind: "reject", reason: "gender_mismatch" };
-  }
 
   // 2) EVIDENCE COMPLETENESS — if anything required is missing/unreadable,
   //    we cannot fairly say "not the same person", so it's manual review.
@@ -149,16 +137,8 @@ export function decideFaceVerificationOutcome(input: DecisionInput): Decision {
   if (input.profileMismatch) {
     return { kind: "manual_review", reason: "profile_mismatch_manual_review" };
   }
-  // Lower-confidence gender (between conflict-clear and 90%) → manual.
-  if (
-    input.expectedGender &&
-    input.detectedGender !== "unknown" &&
-    input.detectedGender !== input.expectedGender &&
-    input.genderConf >= 70 &&
-    input.genderConf < HARD_GENDER_CONF
-  ) {
-    return { kind: "manual_review", reason: "gender_mismatch_manual_review" };
-  }
+  // Gender mismatch is intentionally NOT checked here (owner policy 2026-06-26).
+
 
   // 5) Everything green.
   return { kind: "auto_approve" };

@@ -993,7 +993,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1001,13 +1001,13 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch || hardGenderMismatch) hardAutoReject = "gender_mismatch";
+    // Gender mismatch is intentionally NOT a hard reject (owner policy 2026-06-26).
+    // Only duplicate_face and banned_face (and the pre-AWS role_mismatch_existing_host)
+    // can auto-reject. Everything else → soft retry or manual review.
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
-      if (hardAutoReject === "gender_mismatch") {
-        rReason = `Account type mismatch detected. This face scan does not match the selected ${expectedGender === "female" ? "host" : "user"} account type. If you are trying to open the wrong account type, verification cannot be approved. Please contact Support Chat to resolve this.`;
-      } else if (hardAutoReject === "duplicate_face") {
+      if (hardAutoReject === "duplicate_face") {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
@@ -1021,7 +1021,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
