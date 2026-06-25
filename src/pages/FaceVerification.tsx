@@ -2368,8 +2368,8 @@ const FaceVerification = () => {
       }
 
       toast({
-        title: "✅ Host Application Submitted!",
-        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
+        title: "✅ Under Review",
+        description: "Your host application is now under admin review. Approval notification will appear instantly.",
       });
       setSubmitInProgress(false);
       return;
