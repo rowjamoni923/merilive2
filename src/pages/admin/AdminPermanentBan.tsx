@@ -210,7 +210,11 @@ export default function AdminPermanentBan() {
       _duration_value: durationInt ?? 0,
       _reason: reason.trim(),
       _evidence: evidenceArr,
+      _ban_device: banDevice,
+      _ban_ip: banIp,
+      _ban_face: banFace,
     });
+
 
     setSubmitting(false);
     if (error) {
