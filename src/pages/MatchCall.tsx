@@ -33,6 +33,7 @@ export default function MatchCall() {
   const [settings, setSettings] = useState<any>(null);
   const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
+  const [hostAvatars, setHostAvatars] = useState<string[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
   // Authoritative active-session state (no longer derived from sessionStorage during settle).
