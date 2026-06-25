@@ -299,20 +299,26 @@ export default function AdminAgencies() {
     }
   }, []);
 
-  // Resolve the canonical commission % for an agency from its level tier,
-  // so the admin card matches what the user-facing app shows (e.g. 12% Bronze)
-  // instead of the stale per-row agency.commission_rate default.
-  const getEffectiveCommission = useCallback((agency: { level?: string | null; commission_rate?: number | null }) => {
+  // Owners who are verified L5 payroll helpers => agency gets min 12% (matches app).
+  const [payrollOwnerIds, setPayrollOwnerIds] = useState<Set<string>>(new Set());
+  const PAYROLL_COMMISSION_RATE = 12;
+
+  // Resolve the canonical commission % for an agency, mirroring AgencyDashboard:
+  // effective = isPayrollAgency ? max(tier, 12) : tier
+  const getEffectiveCommission = useCallback((agency: { level?: string | null; commission_rate?: number | null; owner_id?: string | null }) => {
     const lvl = String(agency?.level ?? '').trim().toLowerCase();
+    let tierRate: number | null = null;
     if (lvl) {
       const tier = levelTiers.find(t =>
         String(t.level_code ?? '').toLowerCase() === lvl ||
         String(t.level_name ?? '').toLowerCase() === lvl
       );
-      if (tier && typeof tier.commission_rate === 'number') return tier.commission_rate;
+      if (tier && typeof tier.commission_rate === 'number') tierRate = Number(tier.commission_rate);
     }
-    return agency?.commission_rate ?? 0;
-  }, [levelTiers]);
+    const base = tierRate ?? Number(agency?.commission_rate ?? 0);
+    const isPayroll = agency?.owner_id ? payrollOwnerIds.has(agency.owner_id) : false;
+    return isPayroll ? Math.max(base, PAYROLL_COMMISSION_RATE) : base;
+  }, [levelTiers, payrollOwnerIds]);
 
   // Initial data load
   useEffect(() => {
