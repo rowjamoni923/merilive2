@@ -993,7 +993,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "gender_mismatch" | "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1001,7 +1001,9 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch || hardGenderMismatch) hardAutoReject = "gender_mismatch";
+    // Gender mismatch is intentionally NOT a hard reject (owner policy 2026-06-26).
+    // Only duplicate_face and banned_face (and the pre-AWS role_mismatch_existing_host)
+    // can auto-reject. Everything else → soft retry or manual review.
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
