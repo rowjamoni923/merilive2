@@ -136,7 +136,7 @@ export default function PreMatchPrep({
     return slots;
   }, []);
 
-  const insufficient = diamondBalance < hostRatePerMin;
+  const insufficient = effectiveBalance < hostRatePerMin;
   const filtersLocked = countryRequiresVip && !isVip;
 
   const handleStart = () => {
