@@ -1,8 +1,7 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
-import nodemailer from 'npm:nodemailer@6.9.12'
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
@@ -11,17 +10,11 @@ const SITE_NAME = "merilive2"
 // SENDER_DOMAIN is the verified sender subdomain FQDN (e.g., "notify.example.com").
 // It MUST match the subdomain delegated to Lovable's nameservers — never the root domain.
 // The email API looks up this exact domain; a mismatch causes "No email domain record found".
-const SENDER_DOMAIN = "notify.merilive.com"
+const SENDER_DOMAIN = "notify.send.merilive.com"
 // FROM_DOMAIN is the domain shown in the From: header (e.g., "example.com").
 // When display_from_root is enabled, this can be the root domain for cleaner branding,
 // even though actual sending uses the subdomain above.
-const FROM_DOMAIN = "merilive.com"
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
+const FROM_DOMAIN = "send.merilive.com"
 
 // Generate a cryptographically random 32-byte hex token
 function generateToken(): string {
@@ -30,39 +23,6 @@ function generateToken(): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
-}
-
-let cachedGmailTransporter: any = null
-
-function getGmailTransporter() {
-  if (cachedGmailTransporter) return cachedGmailTransporter
-  const user = (Deno.env.get('GMAIL_USER') ?? '').trim()
-  const pass = (Deno.env.get('GMAIL_APP_PASSWORD') ?? '').replace(/\s+/g, '')
-  if (!user || !pass) return null
-  cachedGmailTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: { user, pass },
-    pool: true,
-    maxConnections: 2,
-    maxMessages: 100,
-  })
-  return cachedGmailTransporter
-}
-
-async function sendOtpViaGmailFallback(to: string, subject: string, html: string, text: string) {
-  const transporter = getGmailTransporter()
-  const user = (Deno.env.get('GMAIL_USER') ?? '').trim()
-  if (!transporter || !user) throw new Error('Gmail fallback is not configured')
-
-  await transporter.sendMail({
-    from: `${SITE_NAME} <${user}>`,
-    to,
-    subject,
-    html,
-    text,
-  })
 }
 
 // Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
@@ -87,18 +47,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
-  }
-
-  const authHeader = req.headers.get('Authorization')
-  const apiKeyHeader = req.headers.get('apikey')
-  const isTrustedInternalRequest =
-    authHeader === `Bearer ${supabaseServiceKey}` && apiKeyHeader === supabaseServiceKey
-
-  if (!isTrustedInternalRequest) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
   }
 
   // Parse request body
@@ -167,59 +115,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
-  }
-
-  if (templateName === 'otp-code') {
-    const apiKey = Deno.env.get('LOVABLE_API_KEY')
-    if (!apiKey) {
-      console.error('Missing LOVABLE_API_KEY for OTP email send')
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const html = await renderAsync(React.createElement(template.component, templateData))
-    const text = await renderAsync(React.createElement(template.component, templateData), {
-      plainText: true,
-    })
-    const resolvedSubject =
-      typeof template.subject === 'function' ? template.subject(templateData) : template.subject
-
-    try {
-      try {
-        await sendLovableEmail(
-          {
-            message_id: messageId,
-            to: effectiveRecipient,
-            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-            sender_domain: SENDER_DOMAIN,
-            subject: resolvedSubject,
-            html,
-            text,
-            purpose: 'transactional',
-            label: templateName,
-            idempotency_key: idempotencyKey,
-            unsubscribe_token: generateToken(),
-          },
-          { apiKey, idempotencyKey },
-        )
-      } catch (primaryError) {
-        console.warn('Lovable Email unavailable for OTP, using Gmail fallback', { primaryError })
-        await sendOtpViaGmailFallback(effectiveRecipient, resolvedSubject, html, text)
-      }
-      console.log('OTP email sent', { templateName, effectiveRecipient })
-      return new Response(JSON.stringify({ success: true, sent: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    } catch (error) {
-      console.error('OTP email send failed', { error, templateName, effectiveRecipient })
-      return new Response(JSON.stringify({ error: 'Failed to send email' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
   }
 
   // Create Supabase client with service role (bypasses RLS)
