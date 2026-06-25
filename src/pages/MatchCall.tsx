@@ -33,6 +33,7 @@ export default function MatchCall() {
   const [settings, setSettings] = useState<any>(null);
   const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
+  const [hostAvatars, setHostAvatars] = useState<string[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
   // Authoritative active-session state (no longer derived from sessionStorage during settle).
@@ -92,6 +93,25 @@ export default function MatchCall() {
       if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
     };
   }, [phase]);
+
+  // Live verified-host avatars for the searching screen (rotates every 5s).
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
+        if (!mounted) return;
+        const urls = ((data as any[] | null) ?? [])
+          .map((r) => r?.avatar_url)
+          .filter((u): u is string => !!u);
+        const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 5);
+        setHostAvatars(shuffled);
+      } catch (_) { /* ignore */ }
+    };
+    load();
+    const t = window.setInterval(load, 5000);
+    return () => { mounted = false; window.clearInterval(t); };
+  }, []);
 
   // Settle session after user exits the call overlay (server recomputes duration authoritatively)
   useEffect(() => {
@@ -386,22 +406,34 @@ export default function MatchCall() {
       {/* Candidate-avatars carousel + status (Olamet pattern) */}
       <div className="relative z-10 mt-[18vh] flex flex-col items-center">
         <div className="flex items-center justify-center gap-3 mb-7">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <motion.div
-              key={i}
-              className="rounded-full bg-gradient-to-br from-white/30 to-white/5 border-2 border-white/40 overflow-hidden"
-              style={{
-                width: i === 2 ? 64 : i === 1 || i === 3 ? 52 : 40,
-                height: i === 2 ? 64 : i === 1 || i === 3 ? 52 : 40,
-              }}
-              animate={phase === "searching"
-                ? { scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }
-                : { scale: 1, opacity: 1 }}
-              transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.12 }}
-            >
-              <div className="w-full h-full bg-gradient-to-br from-fuchsia-400/60 via-purple-400/60 to-pink-400/60" />
-            </motion.div>
-          ))}
+          {[0, 1, 2, 3, 4].map((i) => {
+            const size = i === 2 ? 64 : i === 1 || i === 3 ? 52 : 40;
+            const url = hostAvatars[i];
+            return (
+              <motion.div
+                key={i}
+                className="rounded-full bg-gradient-to-br from-white/20 to-white/5 border-2 border-white/40 overflow-hidden shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]"
+                style={{ width: size, height: size }}
+                animate={phase === "searching"
+                  ? { scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }
+                  : { scale: 1, opacity: 1 }}
+                transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.12 }}
+              >
+                {url ? (
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-400/60 via-purple-400/60 to-pink-400/60" />
+                )}
+              </motion.div>
+            );
+          })}
         </div>
 
         {phase === "searching" && (
