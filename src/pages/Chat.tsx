@@ -468,10 +468,20 @@ const Chat = () => {
   const anchorChatToBottomSoon = useCallback(() => {
     latestPinTimersRef.current.forEach(clearTimeout);
     latestPinTimersRef.current = [];
-    const stick = () => hardPinChatToLatest();
-    stick();
-    requestAnimationFrame(stick);
-    [40, 100, 180, 320, 560, 900, 1400].forEach((delay) => {
+    // Guard: only pin if the user hasn't scrolled away. Prevents the
+    // queued timers from yanking the view back to bottom while the user
+    // is reading older messages (the previous behavior caused visible
+    // jitter when scrolling up shortly after a send/reflow).
+    const stick = () => {
+      const c = chatScrollRef.current;
+      if (!c) return;
+      const dist = c.scrollHeight - c.scrollTop - c.clientHeight;
+      if (dist < 120 || wasNearBottomRef.current) hardPinChatToLatest();
+    };
+    // First two ticks always pin (covers the just-sent message case).
+    hardPinChatToLatest();
+    requestAnimationFrame(() => hardPinChatToLatest());
+    [80, 200, 450, 900].forEach((delay) => {
       latestPinTimersRef.current.push(setTimeout(stick, delay));
     });
   }, [hardPinChatToLatest]);
@@ -1182,7 +1192,7 @@ const Chat = () => {
     const currentLen = (selectedGroup ? groupMessages.length : messages.length);
     // Distance from bottom in px BEFORE the new render-induced layout shift
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const wasNearBottom = wasNearBottomRef.current || distanceFromBottom < 120;
+    const wasNearBottom = wasNearBottomRef.current && distanceFromBottom < 240;
 
     if (isNewConversation) {
       // Conversation switch — reset tracking and reset the windowed slice.
@@ -1242,14 +1252,17 @@ const Chat = () => {
     const container = chatScrollRef.current;
     if (!container || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
-      if (wasNearBottomRef.current) {
+      // Double-check current scroll distance — wasNearBottomRef may be
+      // stale while the user is actively scrolling up, and an
+      // unconditional pin would snap them back (UI jitter).
+      const dist = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (dist < 80 && wasNearBottomRef.current) {
         hardPinChatToLatest();
       }
     });
     ro.observe(container);
-    Array.from(container.children).forEach((child) => ro.observe(child as Element));
     return () => ro.disconnect();
-  }, [selectedConversation?.id, selectedGroup?.id, messages.length, groupMessages.length, hardPinChatToLatest]);
+  }, [selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
