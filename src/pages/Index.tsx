@@ -875,7 +875,7 @@ const Index = () => {
             </p>
 
             {/* Primary action — Go Live for hosts, Discover for viewers */}
-            <div className="flex flex-col sm:flex-row items-stretch gap-2.5 w-full max-w-[300px]">
+            <div className="flex flex-row items-stretch gap-2.5 w-full max-w-[340px]">
               <button
                 onClick={() => navigate('/go-live')}
                 className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
