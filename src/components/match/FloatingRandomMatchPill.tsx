@@ -7,9 +7,10 @@ import { Shuffle, X } from "lucide-react";
  * Chamet-style draggable, dismissible 3D "Random Chat" mini pill.
  * Stable hook order — never early-returns mid-render.
  */
-const STORAGE_POS = "random_pill_pos_v3";
-const STORAGE_DISMISSED = "random_pill_dismissed_v3";
-const PILL_SIZE = 56;
+const STORAGE_POS = "random_pill_pos_v4";
+const STORAGE_DISMISSED = "random_pill_dismissed_v4";
+const PILL_W = 150;
+const PILL_H = 44;
 const MARGIN = 8;
 
 function readDismissed(): boolean {
@@ -45,8 +46,8 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
     const vh = window.innerHeight;
     const curX = x.get();
     const curY = y.get();
-    const targetX = curX + PILL_SIZE / 2 < vw / 2 ? MARGIN : vw - PILL_SIZE - MARGIN;
-    const targetY = Math.max(80, Math.min(vh - PILL_SIZE - 100, curY));
+    const targetX = curX + PILL_W / 2 < vw / 2 ? MARGIN : vw - PILL_W - MARGIN;
+    const targetY = Math.max(80, Math.min(vh - PILL_H - 100, curY));
     animate(x, targetX, { type: "spring", stiffness: 380, damping: 32 });
     animate(y, targetY, { type: "spring", stiffness: 380, damping: 32 });
     try { localStorage.setItem(STORAGE_POS, JSON.stringify({ x: targetX, y: targetY })); } catch {}
@@ -61,20 +62,20 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
       dragElastic={0.08}
       dragConstraints={{
         left: 0,
-        right: typeof window !== "undefined" ? window.innerWidth - PILL_SIZE : 320,
+        right: typeof window !== "undefined" ? window.innerWidth - PILL_W : 320,
         top: 60,
-        bottom: typeof window !== "undefined" ? window.innerHeight - PILL_SIZE - 90 : 600,
+        bottom: typeof window !== "undefined" ? window.innerHeight - PILL_H - 90 : 600,
       }}
       onDragStart={() => { draggedRef.current = true; }}
       onDragEnd={() => { handleDragEnd(); setTimeout(() => { draggedRef.current = false; }, 150); }}
       style={{ x, y }}
       className={`fixed left-0 top-0 z-40 touch-none select-none ${className}`}
-      initial={{ opacity: 0, scale: 0.8 }}
+      initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
     >
-      <div className="relative" style={{ width: PILL_SIZE, height: PILL_SIZE }}>
-        {/* Tiny pro dismiss dot — sits just outside the top-right, Chamet-style */}
+      <div className="relative" style={{ width: PILL_W, height: PILL_H }}>
+        {/* Tiny pro dismiss dot */}
         <button
           aria-label="Hide Random Chat"
           onPointerDown={(e) => e.stopPropagation()}
@@ -85,33 +86,36 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
           }}
           style={{
             width: 16, height: 16, minWidth: 16, minHeight: 16,
-            top: -4, right: -4, padding: 0, lineHeight: 0,
+            top: -5, right: -5, padding: 0, lineHeight: 0,
           }}
-          className="absolute z-20 rounded-full bg-black/55 text-white grid place-items-center
+          className="absolute z-20 rounded-full bg-black/60 text-white grid place-items-center
                      ring-[0.5px] ring-white/35 shadow-[0_1px_2px_rgba(0,0,0,0.4)]
                      backdrop-blur-sm active:scale-90 transition-transform"
         >
           <X style={{ width: 9, height: 9 }} strokeWidth={2.8} />
         </button>
 
-        {/* Main pill — 3D icon-only */}
+        {/* Main pill — rectangular, icon + label */}
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => {
             if (draggedRef.current) return;
             navigate("/match-call?instant=1");
           }}
-          aria-label="Start Random Match"
+          aria-label="Start Random Chat"
           className="group relative w-full h-full rounded-full overflow-hidden
-            bg-gradient-to-br from-fuchsia-500 via-purple-500 to-pink-500
-            shadow-[0_10px_24px_-6px_rgba(168,85,247,0.55),0_4px_10px_-3px_rgba(236,72,153,0.5),inset_0_1px_0_rgba(255,255,255,0.35),inset_0_-2px_4px_rgba(0,0,0,0.18)]
-            ring-1 ring-white/30 active:scale-[0.94] transition-transform"
+            bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500
+            shadow-[0_8px_20px_-6px_rgba(168,85,247,0.55),0_3px_8px_-3px_rgba(236,72,153,0.5),inset_0_1px_0_rgba(255,255,255,0.35),inset_0_-2px_4px_rgba(0,0,0,0.18)]
+            ring-1 ring-white/30 active:scale-[0.96] transition-transform
+            flex items-center gap-2 pl-2 pr-4"
         >
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-full bg-gradient-to-b from-white/40 via-white/10 to-transparent" />
-          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-pink-400/25 blur-md animate-pulse" />
-          <span aria-hidden className="pointer-events-none absolute -inset-1 rounded-full ring-2 ring-pink-400/40 animate-ping" />
-          <span className="relative grid place-items-center w-full h-full">
-            <Shuffle className="w-6 h-6 text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)]" strokeWidth={2.6} />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-full bg-gradient-to-b from-white/35 via-white/10 to-transparent" />
+          <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-pink-400/20 blur-md animate-pulse" />
+          <span className="relative grid place-items-center rounded-full bg-white/20 ring-1 ring-white/40" style={{ width: 30, height: 30 }}>
+            <Shuffle className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" strokeWidth={2.8} />
+          </span>
+          <span className="relative text-white font-semibold text-[13px] tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)] whitespace-nowrap">
+            Random Chat
           </span>
         </button>
       </div>
