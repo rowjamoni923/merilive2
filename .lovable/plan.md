@@ -1,21 +1,21 @@
 
 ## Goal
 
-Fix OTP email delivery 500 on `/auth` without changing the Auth UI design.
+Fix Face Verification professionalism regressions: language selection jumping in Step 1, and passive AI review bouncing users from Under Review back to Required/Rejected too aggressively.
 
 ## Research + verified signal
 
-- Lovable custom/app emails require a verified sender domain and deployed sender logic; project domain `notify.send.merilive.com` is verified. Source: https://docs.lovable.dev/features/custom-emails
-- Supabase Edge Functions need required secrets available at runtime and should be redeployed after send-code changes. Source: https://supabase.com/docs/guides/functions/examples/send-emails
-- Professional OTP UX should not block the verification screen on email-provider latency; the UI already advances instantly, while backend delivery must return a real success/failure.
-- Root cause verified in logs: `send-transactional-email` returned `PGRST202` because `public.enqueue_email(queue_name, payload)` does not exist.
-- Fix verified: `/send-email-otp` returned HTTP 200 at 2026-06-25 15:53:46 UTC; `email_send_log` latest row for `otp-code` is `sent`.
+- KYC / identity-verification best practice is workflow-based: unclear model/provider signals should become manual review, not immediate user-visible rejection. Source: https://secured.vision/identity-verification-workflow-best-practices-for-saas-onboarding
+- False positives usually come from combining signals/thresholds too aggressively; reduce false positives by separating hard fraud from review-needed cases. Source: https://validator.cloud/reduce-false-positives-in-identity-verification-workflows
+- Manual identity verification is still required when automation cannot confidently decide. Source: https://www.signzy.com/blogs/manual-identity-verification
+- Current code root cause verified: `face-verification-analyze` still set `status='rejected'` for passive `duplicate_face` and `gender_mismatch`, which made Profile clear Pending and show Required/Rejected immediately after submit.
+- Current UI root cause verified: user Step 1 computed completion live from `fullName + age + language`, so selecting language immediately unmounted Step 1 and mounted Step 2 while the Select was still closing, causing visible jumping.
 
 ## What changed
 
-- `send-transactional-email` now sends directly through the verified Lovable sender domain using `LOVABLE_API_KEY` instead of the missing queue RPC.
-- Kept the existing OTP template and email audit logging intact.
-- Deployed `send-transactional-email` and validated the real OTP endpoint.
+- User Face Verification Step 1 now advances only after explicit **Next** tap (`userInfoStepComplete`), so selecting language no longer causes auto-unmount/jump.
+- Passive photo/video/live scans now keep ambiguous duplicate/gender/liveness/replay/photo mismatch cases in Pending manual review instead of instant user-visible rejection.
+- Soft-risk passive cases also block auto-approve and stay Pending, so safety is preserved without non-professional false rejects.
 
 ---
 
