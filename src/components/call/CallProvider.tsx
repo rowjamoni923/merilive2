@@ -9,6 +9,7 @@ import { CallEndedModal } from './CallEndedModal';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@/plugins/NativeCall';
 import { GlobalCallGiftSheet } from './GlobalCallGiftSheet';
+import { IncomingRandomCallPortal } from '@/components/match/IncomingRandomCallScreen';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { useProCamera } from '@/camera/useProCamera';
