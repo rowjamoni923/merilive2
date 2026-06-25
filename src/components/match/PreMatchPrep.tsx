@@ -260,17 +260,37 @@ export default function PreMatchPrep({
 
           <button
             type="button"
-            onClick={handleStart}
-            disabled={insufficient}
-            aria-label="Tap to Match"
-            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-60"
+            onClick={isSearching ? undefined : handleStart}
+            disabled={isSearching || isMatched || (phase === "prep" && insufficient)}
+            aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
+            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
           >
             <div className="text-center">
-              <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
-              <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+              {isSearching ? (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Matching…</div>
+                  <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
+                </>
+              ) : isMatched ? (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">opening call…</div>
+                </>
+              ) : isError ? (
+                <>
+                  <div className="text-[14px] font-bold tracking-tight text-rose-200 drop-shadow">Couldn't start</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">Tap retry below</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+                </>
+              )}
             </div>
           </button>
         </div>
+
 
         {/* VIP discount card (right-side floating) */}
         {!isVip && (
