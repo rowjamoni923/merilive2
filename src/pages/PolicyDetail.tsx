@@ -1,10 +1,15 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { policyDetails } from "@/data/policyContent";
 
 const PolicyDetail = () => {
   const { policyId } = useParams<{ policyId: string }>();
   const navigate = useNavigate();
+
+  if (policyId?.toLowerCase() === "levels") {
+    return <Navigate to="/policies/levels" replace />;
+  }
+
   const policy = policyId ? policyDetails[policyId] : null;
 
   if (!policy) {
