@@ -1190,9 +1190,11 @@ const Chat = () => {
     const convId = selectedConversation?.id || selectedGroup?.id || null;
     const isNewConversation = lastScrollConvIdRef.current !== convId;
     const currentLen = (selectedGroup ? groupMessages.length : messages.length);
-    // Distance from bottom in px BEFORE the new render-induced layout shift
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const wasNearBottom = wasNearBottomRef.current && distanceFromBottom < 240;
+    // Trust the scroll-tracked ref — by the time useLayoutEffect runs, the
+    // new message is already in the DOM so a fresh distance reading would
+    // be misleadingly large for tall messages (gifts, images). The scroll
+    // handler updates wasNearBottomRef based on the user's last real scroll.
+    const wasNearBottom = wasNearBottomRef.current;
 
     if (isNewConversation) {
       // Conversation switch — reset tracking and reset the windowed slice.
