@@ -214,15 +214,17 @@ export default function PreMatchPrep({
             {orbitSlots.map((slot, i) => {
               const url = orbitAvatars[i % Math.max(1, orbitAvatars.length)];
               if (!url || !orbitAvatars.length) return null;
+              const cx = slot.x - slot.size / 2;
+              const cy = slot.y - slot.size / 2;
               return (
                 <motion.div
                   key={`${i}-${url}`}
                   className="absolute rounded-full overflow-hidden ring-2 ring-white/40 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)]"
                   style={{ width: slot.size, height: slot.size, left: "50%", top: "50%" }}
-                  initial={{ x: slot.x, y: slot.y, scale: 0, opacity: 0 }}
+                  initial={{ x: cx, y: cy, scale: 0, opacity: 0 }}
                   animate={{
-                    x: [slot.x, slot.x + (slot.ring === 1 ? 6 : -4), slot.x],
-                    y: [slot.y, slot.y - 6, slot.y],
+                    x: [cx, cx + (slot.ring === 1 ? 6 : -4), cx],
+                    y: [cy, cy - 6, cy],
                     scale: 1, opacity: 1,
                   }}
                   exit={{ scale: 0, opacity: 0 }}
@@ -239,7 +241,6 @@ export default function PreMatchPrep({
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
-                    style={{ marginLeft: -slot.size / 2, marginTop: -slot.size / 2 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
                   />
                 </motion.div>
