@@ -2181,7 +2181,49 @@ export default function AdminLayout() {
         return;
       }
 
+      // Admin notifications table — broadcast singleton signal that some
+      // backend trigger inserted an admin_notifications row (e.g. new face
+      // verification, host application, payroll request, etc.). Always toast
+      // + sound on the INSERT so the owner panel never silently misses an
+      // event. Synthetic payload only has {version,row_id}; fetch the row.
+      if (table === 'admin_notifications') {
+        playSoundViaRef();
+        fetchPendingCounts();
+        const rowId = payload?.row_id || payload?.id;
+        if (rowId) {
+          adminSupabase
+
+            .from('admin_notifications')
+            .select('title, message, type, data')
+            .eq('id', rowId)
+            .maybeSingle()
+            .then(({ data }) => {
+              const title = data?.title || '🔔 New Admin Alert';
+              const message = data?.message || 'A new event needs your attention';
+              showBrowserNotifViaRef(title, message);
+              toast(title, {
+                description: message,
+                action: {
+                  label: '👉 View',
+                  onClick: () => {
+                    const t = String(data?.type || '');
+                    if (t === 'face_verification') navigate('/admin/face-verification');
+                    else if (t === 'host_application') navigate('/admin/host-applications');
+                    else navigate('/admin/notifications');
+                  },
+                },
+                duration: 8000,
+              });
+            });
+        } else {
+          showBrowserNotifViaRef('🔔 New Admin Alert', 'A new event needs your attention');
+          toast('🔔 New Admin Alert', { description: 'A new event needs your attention', duration: 6000 });
+        }
+        return;
+      }
+
       // Standard alert toasts
+
       const config = alertTableConfig[table];
       if (config) {
         // Filter only runs on direct-path payload — synthetic broadcast always fires
