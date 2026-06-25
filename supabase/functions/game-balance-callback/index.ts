@@ -78,18 +78,23 @@ serve(async (req) => {
       }
     }
 
-    // SECURITY: require provider HMAC signature when GAME_CALLBACK_HMAC_SECRET is configured.
-    // Header: X-Signature (hex sha256), X-Timestamp (unix seconds). Falls back to body fields for legacy providers.
+    // SECURITY: require provider HMAC signature on every request. Fail closed
+    // when GAME_CALLBACK_HMAC_SECRET is not configured so no caller can ever
+    // hit handle_game_callback without proving provider identity.
     const hmacSecret = Deno.env.get('GAME_CALLBACK_HMAC_SECRET') || '';
-    if (hmacSecret) {
-      const sig = req.headers.get('x-signature') || params.signature || params.sign || '';
-      const ts = req.headers.get('x-timestamp') || params.timestamp || params.ts || '';
-      const ok = await verifyHmac(hmacSecret, rawBody, sig, ts);
-      if (!ok) {
-        return new Response(JSON.stringify({
-          success: false, code: 401, message: 'Invalid signature', status: 0,
-        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+    if (!hmacSecret) {
+      console.error('[GameCallback] GAME_CALLBACK_HMAC_SECRET not configured — rejecting');
+      return new Response(JSON.stringify({
+        success: false, code: 503, message: 'Provider auth not configured', status: 0,
+      }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const sig = req.headers.get('x-signature') || params.signature || params.sign || '';
+    const ts = req.headers.get('x-timestamp') || params.timestamp || params.ts || '';
+    const ok = await verifyHmac(hmacSecret, rawBody, sig, ts);
+    if (!ok) {
+      return new Response(JSON.stringify({
+        success: false, code: 401, message: 'Invalid signature', status: 0,
+      }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const action = params.action || params.type || params.method || 'getUserInfo';

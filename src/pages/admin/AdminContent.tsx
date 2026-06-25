@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Save, Plus, Edit, Trash2, FileText, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -164,11 +165,13 @@ export default function AdminContent() {
         }
         const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const boldedLine = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const safeHtml = DOMPurify.sanitize(boldedLine, { ALLOWED_TAGS: ['strong'], ALLOWED_ATTR: [] });
         if (line.startsWith("- ")) {
-          return <li key={i} className="ml-4 text-slate-600" dangerouslySetInnerHTML={{ __html: boldedLine.slice(2) }} />;
+          const safeItem = DOMPurify.sanitize(boldedLine.slice(2), { ALLOWED_TAGS: ['strong'], ALLOWED_ATTR: [] });
+          return <li key={i} className="ml-4 text-slate-600" dangerouslySetInnerHTML={{ __html: safeItem }} />;
         }
         if (line.trim() === "") return <br key={i} />;
-        return <p key={i} className="mb-1 text-slate-600" dangerouslySetInnerHTML={{ __html: boldedLine }} />;
+        return <p key={i} className="mb-1 text-slate-600" dangerouslySetInnerHTML={{ __html: safeHtml }} />;
       });
   };
 

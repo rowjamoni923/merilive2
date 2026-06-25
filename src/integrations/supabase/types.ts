@@ -22464,6 +22464,13 @@ export type Database = {
         }[]
       }
       get_host_live_bonus_state: { Args: { _host_id: string }; Returns: Json }
+      get_host_match_rate: {
+        Args: { p_host_id: string }
+        Returns: {
+          coin_rate_per_min: number
+          host_id: string
+        }[]
+      }
       get_host_violation_week_start: {
         Args: { p_host_id: string }
         Returns: string
