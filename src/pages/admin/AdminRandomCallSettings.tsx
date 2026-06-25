@@ -108,7 +108,7 @@ export default function AdminRandomCallSettings() {
   if (loading || !s) {
     return (
       <div className="p-6">
-        <AdminPageHeader title="Random Call Settings" description="Loading..." icon={Phone} />
+        <AdminPageHeader title="Random Call Settings" subtitle="Loading..." icon={Phone} />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function AdminRandomCallSettings() {
     <div className="p-4 md:p-6 space-y-5 max-w-5xl mx-auto">
       <AdminPageHeader
         title="Random Call (Match Call)"
-        description="Single source of truth for the 1v1 random video-match feature. All numbers apply instantly."
+        subtitle="Single source of truth for the 1v1 random video-match feature. All numbers apply instantly."
         icon={Phone}
       />
 
