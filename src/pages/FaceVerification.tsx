@@ -3691,25 +3691,27 @@ const FaceVerification = () => {
           </div>
           
           {/* Host Photos */}
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <ImagePlus className="w-5 h-5 text-slate-800" />
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3 text-base sm:text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
+                <ImagePlus className="w-5 h-5 text-white" />
               </div>
               Photos Upload (up to 3)
             </h2>
             
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="aspect-square rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
+                  className="aspect-square rounded-xl sm:rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
+                  role="button"
+                  aria-label={`Add photo ${index + 1}`}
                 >
                   {hostPhotosPreviews[index] ? (
                     <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   ) : (
-                    <ImagePlus className="w-8 h-8 text-slate-500" />
+                    <ImagePlus className="w-7 h-7 sm:w-8 sm:h-8 text-slate-500" />
                   )}
                 </div>
               ))}
@@ -3724,22 +3726,25 @@ const FaceVerification = () => {
             />
           </div>
           
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 h-14 rounded-2xl font-semibold"
-              onClick={() => setCurrentStep(1)}
-            >
-              Back
-            </Button>
-            <Button
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
-              onClick={saveHostStep2}
-              disabled={loading || !videoFile || hostPhotos.length !== 3}
-            >
-              Next
-            </Button>
+          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <div className="flex gap-2 sm:gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 min-h-cta h-14 rounded-2xl font-semibold"
+                onClick={() => setCurrentStep(1)}
+              >
+                Back
+              </Button>
+              <Button
+                className="flex-[1.4] bg-gradient-to-r from-purple-500 to-pink-500 min-h-cta h-14 rounded-2xl text-base sm:text-lg font-bold"
+                onClick={saveHostStep2}
+                disabled={loading || !videoFile || hostPhotos.length !== 3}
+              >
+                Next
+              </Button>
+            </div>
           </div>
+
         </motion.div>
       )}
       
