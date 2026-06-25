@@ -98,10 +98,14 @@ export default function AdminPermanentBan() {
   const [reason, setReason] = useState("");
   const [evidence, setEvidence] = useState("");
   const [durationValue, setDurationValue] = useState<string>("7");
+  const [banDevice, setBanDevice] = useState(false);
+  const [banIp, setBanIp] = useState(false);
+  const [banFace, setBanFace] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Detail
   const [selectedBan, setSelectedBan] = useState<SeverityBan | null>(null);
+
 
   const fetchBans = useCallback(async () => {
     setLoading(true);
@@ -129,7 +133,13 @@ export default function AdminPermanentBan() {
     if (activeSeverity === "high") setDurationValue("24");
     else if (activeSeverity === "medium") setDurationValue("7");
     else setDurationValue("0");
+    // Urgent forces all three; for medium/high default OFF (admin opts in)
+    const urgent = activeSeverity === "urgent";
+    setBanDevice(urgent);
+    setBanIp(urgent);
+    setBanFace(urgent);
   }, [activeSeverity]);
+
 
   const handleSearchUser = async () => {
     if (!searchUid.trim()) return;
@@ -200,7 +210,11 @@ export default function AdminPermanentBan() {
       _duration_value: durationInt ?? 0,
       _reason: reason.trim(),
       _evidence: evidenceArr,
+      _ban_device: banDevice,
+      _ban_ip: banIp,
+      _ban_face: banFace,
     });
+
 
     setSubmitting(false);
     if (error) {
@@ -214,8 +228,14 @@ export default function AdminPermanentBan() {
         `🚨 URGENT BAN APPLIED — Permanently blocked: ${summary?.devices_banned || 0} device, ${summary?.ips_banned || 0} IP, ${summary?.faces_banned || 0} face hash.`
       );
     } else {
-      toast.success(`${SEVERITY_CONFIG[activeSeverity].label} ban applied — ends ${summary?.ban_end ? format(new Date(summary.ban_end), "PP p") : "—"}`);
+      const extras: string[] = [];
+      if (summary?.devices_banned) extras.push(`${summary.devices_banned} device`);
+      if (summary?.ips_banned) extras.push(`${summary.ips_banned} IP`);
+      if (summary?.faces_banned) extras.push(`${summary.faces_banned} face`);
+      const extraStr = extras.length ? ` · Blocked ${extras.join(", ")}` : "";
+      toast.success(`${SEVERITY_CONFIG[activeSeverity].label} ban applied — ends ${summary?.ban_end ? format(new Date(summary.ban_end), "PP p") : "—"}${extraStr}`);
     }
+
 
     setSearchUid("");
     setSearchedUser(null);
@@ -366,6 +386,41 @@ export default function AdminPermanentBan() {
                     <span className="text-xs text-muted-foreground">{cfg.durationUnit}</span>
                   </div>
                 )}
+
+                {sev !== "urgent" && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                    <p className="text-xs font-semibold text-foreground/80">
+                      Optional permanent blocks (factory-reset proof)
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Tick any of these to prevent this person from re-opening an account on the same device, IP, or face — even after this {cfg.durationUnit} suspension ends.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banDevice ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banDevice} onChange={(e) => setBanDevice(e.target.checked)} className="accent-rose-500" />
+                        <Smartphone className="h-3.5 w-3.5" /> Device
+                      </label>
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banIp ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banIp} onChange={(e) => setBanIp(e.target.checked)} className="accent-rose-500" />
+                        <Globe className="h-3.5 w-3.5" /> IP
+                      </label>
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banFace ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banFace} onChange={(e) => setBanFace(e.target.checked)} className="accent-rose-500" />
+                        <ScanFace className="h-3.5 w-3.5" /> Face
+                      </label>
+                    </div>
+                  </div>
+                )}
+
 
                 {sev === "urgent" && (
                   <div className="rounded-lg border border-rose-500/40 bg-rose-500/5 p-3 space-y-2">
