@@ -2104,15 +2104,13 @@ const FaceVerification = () => {
         
         if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
           const existingName = faceData[0].display_name || 'Unknown';
-          console.log('[FaceVerification] 🚫 Duplicate face detected for USER, PERMANENT-BAN. Existing:', faceData[0].user_id);
+          console.log('[FaceVerification] Duplicate-face advisory for USER; continuing submission for server review. Existing:', faceData[0].user_id);
           toast({
-            title: "⚠️ Duplicate Account Detected",
-            description: `This face is already registered with another account (${existingName}). This account will now be permanently banned.`,
+            title: "Additional Review Needed",
+            description: `This face may match another account (${existingName}). Your verification will be reviewed securely.`,
             variant: "destructive",
           });
           await enforceDuplicateFaceBan(faceData[0]);
-          setLoading(false);
-          return;
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
@@ -2338,16 +2336,14 @@ const FaceVerification = () => {
           duplicateFaceName = faceData[0].display_name || 'Unknown';
           duplicateFaceUid = (faceData[0] as any).app_uid || null;
           duplicateFaceAvatar = faceData[0].avatar_url || null;
-          console.log('[FaceVerification] 🚫 Duplicate face detected, PERMANENT-BAN. Existing account:', duplicateFaceUserId);
+          console.log('[FaceVerification] Duplicate-face advisory for HOST; continuing submission for server review. Existing account:', duplicateFaceUserId);
           
           toast({
-            title: "⚠️ Duplicate Account Detected",
-            description: `This face is already registered with another account (${duplicateFaceName}). This account will now be permanently banned.`,
+            title: "Additional Review Needed",
+            description: `This face may match another account (${duplicateFaceName}). Your application will be reviewed securely.`,
             variant: "destructive",
           });
           await enforceDuplicateFaceBan(faceData[0]);
-          setLoading(false);
-          return;
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
