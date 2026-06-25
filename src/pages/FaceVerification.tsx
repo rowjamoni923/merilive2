@@ -30,13 +30,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,6 +53,31 @@ const languages = [
   { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
   { code: "tl", name: "Filipino", flag: "🇵🇭" },
 ];
+
+const LanguageNativeSelect = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) => (
+  <div className="relative mt-1.5">
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full h-12 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-base leading-5 text-slate-900 outline-none appearance-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+      aria-label="Language"
+    >
+      <option value="" disabled>Select language</option>
+      {languages.map((lang) => (
+        <option key={lang.code} value={lang.code}>
+          {lang.flag} {lang.name}
+        </option>
+      ))}
+    </select>
+    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden />
+  </div>
+);
 
 // Pure pose / threshold logic lives in `@/lib/face-pose` so the regression
 // test runner + dev replay tool can exercise the exact same functions.
@@ -3586,8 +3604,8 @@ const FaceVerification = () => {
         return;
       }
       // Move only after an explicit tap. Do not auto-advance while the user is
-      // still interacting with SelectContent; otherwise the language menu
-      // unmounts immediately and looks like a jump/bounce on mobile WebView.
+      // still interacting with the language control; otherwise Step 1 unmounts
+      // immediately and looks like a jump/bounce on mobile WebView.
       setUserInfoStepComplete(true);
       setUserPhotoStep(true);
     };
@@ -3656,18 +3674,7 @@ const FaceVerification = () => {
                 
                 <div>
                   <Label className="text-slate-700 text-sm font-semibold">Language *</Label>
-                  <Select value={language} onValueChange={setLanguage} {...({ modal: false } as any)}>
-                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.flag} {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <LanguageNativeSelect value={language} onChange={setLanguage} />
                 </div>
               </div>
             </div>
@@ -3887,18 +3894,7 @@ const FaceVerification = () => {
               
               <div>
                 <Label className="text-slate-700 text-sm font-semibold">Language</Label>
-                <Select value={language} onValueChange={setLanguage} {...({ modal: false } as any)}>
-                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl text-base focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LanguageNativeSelect value={language} onChange={setLanguage} />
               </div>
             </div>
           </div>
