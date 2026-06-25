@@ -865,14 +865,11 @@ serve(async (req) => {
 
     // ────────────────────────────────────────────────────────────────────
     // POLICY (Updated F3 2026-06-26):
-    //   Hard auto-reject cases (no admin review needed):
-    //     • gender_mismatch
-    //     • duplicate_face (face already on another account)
-    //     • banned_face (matched account is on banned_face_hashes / is_blocked)
-    //     • liveness_failed (provider explicitly flagged photo-of-photo / video replay)
-    //   Photo/profile/gallery mismatch and weak passive yaw are NOT instant client-visible
-    //   rejects in the new passive flow; they remain pending for admin review so users
-    //   don't bounce back to a red Required state seconds after submitting.
+    //   Passive photo/video/live scan must never bounce a just-submitted user
+    //   back to Required because one provider signal is ambiguous. Professional
+    //   identity apps keep the row Pending for admin review unless the identity
+    //   is already on the platform ban list. That protects conversion while
+    //   still blocking banned-account reuse.
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
@@ -897,8 +894,8 @@ serve(async (req) => {
     const noFaceInAvatar = profileMatchSkipReason === "no_face_in_avatar";
 
     if (isBannedFace) hardAutoReject = "banned_face";
-    else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch || strictGenderMismatch) hardAutoReject = "gender_mismatch";
+    else if (isDuplicate && !isPassivePhotoVideoLiveScan) hardAutoReject = "duplicate_face";
+    else if ((genderDeclarationMismatch || strictGenderMismatch) && !isPassivePhotoVideoLiveScan) hardAutoReject = "gender_mismatch";
     else if (livenessFailed && !isPassivePhotoVideoLiveScan) hardAutoReject = "liveness_failed";
     else if (replaySuspected && !isPassivePhotoVideoLiveScan) hardAutoReject = "replay_suspected";
     else if ((profileMismatch || hostPhotosMismatch || noFaceInAvatar || hostNoFaceInGallery) && !isPassivePhotoVideoLiveScan) hardAutoReject = "photo_mismatch";
@@ -957,12 +954,9 @@ serve(async (req) => {
       );
     }
 
-    // Other soft signals (liveness/replay/profile/duplicate/etc.) — log to
-    // admin_notes for admin awareness, but DO NOT block auto-approve unless
-    // the underlying Rekognition thresholds also fail. Admin will see flags
-    // in ai_analysis and can manually override if needed.
-    // If host gallery photos don't match the live face, force manual review
-    // by short-circuiting the auto-finalize RPC call.
+    // Other soft signals (liveness/replay/profile/duplicate/etc.) are NOT
+    // user-visible instant rejects in passive mode, but they also must NOT be
+    // auto-approved. Keep the row Pending/Under Review so admin can decide.
     let autoResult: Record<string, unknown> | null = null;
     // ★ SECURITY GATE (P0 hardening 2026-06-18): Auto-approve is ONLY safe when
     //    BOTH AWS Rekognition (compare/detect) AND the external liveness +
@@ -973,7 +967,30 @@ serve(async (req) => {
     //    leave the row in `submitted` for manual admin review.
     const livenessProviderAvailable = !!faceProviderEarly;
     const livenessActuallyRan = livenessStatus !== null;
-    if (hostPhotosMismatch) {
+    const passiveManualReviewReason = isPassivePhotoVideoLiveScan
+      ? isDuplicate
+        ? "duplicate_face_manual_review"
+        : (genderDeclarationMismatch || strictGenderMismatch)
+          ? "gender_mismatch_manual_review"
+          : livenessFailed
+            ? "liveness_failed_manual_review"
+            : replaySuspected
+              ? "replay_suspected_manual_review"
+              : profileMismatch
+                ? "profile_mismatch_manual_review"
+                : hostPhotosMismatch
+                  ? "host_photos_mismatch"
+                  : noFaceInAvatar
+                    ? "no_face_in_avatar_manual_review"
+                    : hostNoFaceInGallery
+                      ? "no_face_in_gallery_manual_review"
+                      : ""
+      : "";
+
+    if (passiveManualReviewReason) {
+      autoResult = { success: false, reason: passiveManualReviewReason };
+      console.log(`[face-verification-analyze] ${passiveManualReviewReason} → manual review`);
+    } else if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
     } else if (!livenessProviderAvailable) {

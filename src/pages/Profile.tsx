@@ -1020,9 +1020,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               // Also refresh profile to get is_face_verified update
               void fetchData();
             } else if (nextStatus === 'pending' || nextStatus === 'submitted' || nextStatus === 'under_review') {
+              setFaceVerificationStatus(nextStatus);
               setFaceVerificationPending(true);
             } else if (nextStatus === 'rejected') {
               try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
+              setFaceVerificationStatus('rejected');
               setFaceVerificationPending(false);
             }
           }
