@@ -2057,7 +2057,7 @@ const Auth = () => {
           }} />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
