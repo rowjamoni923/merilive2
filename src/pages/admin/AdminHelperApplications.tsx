@@ -377,7 +377,7 @@ const AdminHelperApplications = () => {
                 <Badge className="ml-1 bg-purple-500 text-white">{stats.pendingPayroll}</Badge>
               )}
             </TabsTrigger>
-          </TabsList>
+          </TabsList></div>
 
           <TabsContent value="applications" className="space-y-4">
             {/* Filters */}

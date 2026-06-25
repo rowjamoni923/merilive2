@@ -741,7 +741,7 @@ export default function AdminAgencyDetail() {
           <TabsTrigger value="transactions" className="data-[state=active]:bg-primary text-white">
             Transfer History ({transactions.length})
           </TabsTrigger>
-        </TabsList>
+        </TabsList></div>
 
         {/* Hosts Tab */}
         <TabsContent value="hosts" className="mt-4">

@@ -116,7 +116,7 @@ const AdminLevelManagement = () => {
             <UserPlus className="w-4 h-4 mr-2" />
             Invitation
           </TabsTrigger>
-        </TabsList>
+        </TabsList></div>
 
         <TabsContent value="tiers" className="mt-0">
           <AdminLevelTiers />
