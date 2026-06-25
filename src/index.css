@@ -971,6 +971,15 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     background-color: transparent !important;
   }
 
+  /* Prevent Radix Select/Dialog scroll-lock from padding <body> and shifting
+     the fixed-layout Face Verification page (caused visible "jump/jitter"
+     every time the language Select opens or closes). */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    overflow: visible !important;
+  }
+
   body.native-face-camera-active .face-native-page-mask {
     -webkit-mask-image: radial-gradient(
       ellipse var(--face-aperture-rx, 112px) var(--face-aperture-ry, 190px)
