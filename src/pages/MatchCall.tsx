@@ -201,9 +201,11 @@ export default function MatchCall() {
         if (timerRef.current) window.clearInterval(timerRef.current);
         setPhase("matched");
         const startedAt = Date.now();
+        const next = { session_id: sessionId, host_id: hostId, started_at: startedAt };
+        setActiveSession(next);
+        activeSessionRef.current = next;
         try {
-          window.sessionStorage.setItem("random_call:active",
-            JSON.stringify({ session_id: sessionId, host_id: hostId, started_at: startedAt }));
+          window.sessionStorage.setItem("random_call:active", JSON.stringify(next));
         } catch (_) {}
         const callId = await startCall(hostId);
         if (!callId) {
