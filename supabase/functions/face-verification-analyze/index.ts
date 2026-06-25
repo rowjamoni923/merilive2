@@ -1021,7 +1021,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} confidence=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
