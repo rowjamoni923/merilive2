@@ -141,14 +141,15 @@ export function useRandomCallIncoming() {
       const r = data as any;
       setIncoming(null);
       if (r?.ok) {
-        // Navigate host into MatchCall with the matched session so it can
-        // join the LiveKit room and run the same overlay/auto-convert flow.
-        const params = new URLSearchParams({
-          incoming_session: String(r.session_id ?? ""),
-          room: String(r.room ?? current.room),
-          caller: current.callerId,
-        });
-        navigate(`/match-call?${params.toString()}`);
+        // Server has now broadcast `random_broadcast_matched` to the caller.
+        // The caller's MatchCall page completes the handoff which calls
+        // `startCall(hostId)` → standard private-call pipeline (call-deliver
+        // FCM + private_calls postgres_changes) rings this host through the
+        // existing IncomingCallModal → host taps Accept → joins the LiveKit
+        // room. We deliberately do NOT navigate here; the global
+        // CallProvider already handles the rest. A subtle toast confirms the
+        // claim so the host knows their accept registered.
+        toast.success("Matched — connecting…");
       } else if (r?.reason === "already_taken") {
         // silent — another host won
       } else {
