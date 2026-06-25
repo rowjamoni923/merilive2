@@ -167,13 +167,15 @@ export default function PreMatchPrep({
         {/* VIP discount card (right-side floating) */}
         {!isVip && (
           <div className="absolute right-3 top-[150px] flex flex-col items-end gap-1.5">
-            <div className="px-2 py-1 rounded-md bg-rose-600/90 text-white text-[10px] font-mono font-bold tracking-wider border border-white/20 shadow-md">
+            <div className="px-2 py-1 rounded-md bg-rose-600/90 text-white text-[10px] font-mono font-bold tracking-wider border border-white/20 shadow-md whitespace-nowrap tabular-nums">
               {fmtClock(vipCountdown)}
             </div>
             <button onClick={() => navigate("/vip")}
-              className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 shadow-lg border-2 border-white/30 grid place-items-center overflow-hidden">
-              <Crown className="w-6 h-6 text-amber-200" />
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 rounded-full bg-fuchsia-600 text-[8px] font-bold border border-white/40">60% OFF</span>
+              className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 shadow-[0_10px_28px_-8px_rgba(168,85,247,0.6)] border-2 border-white/30 grid place-items-center">
+              <Crown className="w-7 h-7 text-amber-200 drop-shadow" />
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white text-[9px] font-extrabold tracking-wide border border-white/40 shadow-md whitespace-nowrap leading-none">
+                60% OFF
+              </span>
             </button>
           </div>
         )}
