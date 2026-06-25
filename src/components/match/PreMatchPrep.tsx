@@ -327,8 +327,6 @@ export default function PreMatchPrep({
           </button>
         )}
       </div>
-
-      </div>
     </div>
   );
 }
