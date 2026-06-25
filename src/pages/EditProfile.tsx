@@ -406,7 +406,7 @@ const EditProfile = () => {
         code.includes("weak_password")
       ) {
         friendly =
-          "This password has been found in a public data breach. Please pick a unique password — try mixing uppercase, lowercase, numbers and a symbol (e.g. M3ri!Live#2026).";
+          "This password is too common or has appeared in a public data breach. Please choose a stronger, unique password by mixing uppercase, lowercase, numbers and a symbol.";
       } else if (raw.includes("same") && raw.includes("password")) {
         friendly = "New password must be different from your current password.";
       } else if (raw.includes("rate") || raw.includes("too many")) {
