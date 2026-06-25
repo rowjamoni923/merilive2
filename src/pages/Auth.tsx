@@ -161,6 +161,13 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
   }, [branding.background_url, branding.background_type]);
 
   const mediaStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    minWidth: '100%',
+    minHeight: '100%',
+    display: 'block',
+    objectFit: 'cover',
+    objectPosition: 'center center',
     imageRendering: 'high-quality' as React.CSSProperties['imageRendering'],
     transform: 'translateZ(0)',
     backfaceVisibility: 'hidden',
