@@ -86,6 +86,9 @@ const EventPopupBanner = () => {
         setBanner(data);
         setImageReady(false);
         await preloadBannerMedia(popupCdn(data.image_url));
+        // Mark this interstitial as the top-priority modal so other popups
+        // (DailyLoginPopup / FullScreenPromoBanners / RatingRewardPopup) wait.
+        try { sessionStorage.setItem('event_popup_active', '1'); } catch { /* ignore */ }
         // Only mark as shown once we actually display the banner — otherwise
         // an early empty/failed fetch would block it for the whole session.
         sessionStorage.setItem('popup_banner_shown', 'true');
@@ -125,7 +128,9 @@ const EventPopupBanner = () => {
 
   const handleDismiss = useCallback(() => {
     setVisible(false);
-    // Dispatch custom event so RatingRewardPopup knows to show next
+    try { sessionStorage.removeItem('event_popup_active'); } catch { /* ignore */ }
+    // Dispatch custom event so RatingRewardPopup / DailyLoginPopup / FullScreenPromoBanners
+    // know the top-priority interstitial has cleared and they can now appear.
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 

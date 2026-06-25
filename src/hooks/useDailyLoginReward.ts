@@ -130,10 +130,22 @@ export const useDailyLoginReward = () => {
       const todayRewardConfig = days.find(d => d.day_number === nextDay);
       setTodayReward(todayRewardConfig || null);
 
-      // Show popup only once per day using localStorage
+      // Show popup only once per day using localStorage.
+      // Defer while the top-priority Event Popup interstitial is still on screen.
       const dismissedDate = localStorage.getItem('daily_login_popup_dismissed');
       if (!alreadyClaimedToday && dismissedDate !== today) {
-        setShowPopup(true);
+        const eventActive = (() => {
+          try { return sessionStorage.getItem('event_popup_active') === '1'; } catch { return false; }
+        })();
+        if (eventActive) {
+          const onEventDismissed = () => {
+            window.removeEventListener('event-popup-dismissed', onEventDismissed);
+            setShowPopup(true);
+          };
+          window.addEventListener('event-popup-dismissed', onEventDismissed);
+        } else {
+          setShowPopup(true);
+        }
       }
     } catch (err) {
       console.error('[DailyLogin] Error:', err);
