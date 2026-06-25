@@ -1807,6 +1807,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       label: "Host Registration",
       path: "/host-verification",
       rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
+      rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-pink-600",
       highlight: !faceVerificationUnderReview,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-display",
@@ -1821,6 +1822,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       label: "Face Verification",
       path: faceVerificationUnderReview ? "" : "/face-verification",
       rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Required",
+      rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full",
       highlight: !faceVerificationUnderReview,
       iconBg: faceVerificationUnderReview ? "bg-yellow-50 border border-yellow-200" : "bg-amber-100",
       iconColor: faceVerificationUnderReview ? "text-yellow-600" : "text-amber-500",
@@ -2605,7 +2607,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </Badge>
                     )}
                     {item.rightText && (
-                      <span className="text-xs text-slate-600 font-semibold">{item.rightText}</span>
+                      <span className={cn("text-xs text-slate-600 font-semibold", (item as any).rightTextClass)}>{item.rightText}</span>
                     )}
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
