@@ -1114,7 +1114,7 @@ const Auth = () => {
     }
   };
 
-  // NEW Email Flow - Step 1: Send OTP using Supabase Auth email OTP
+  // NEW Email Flow - Step 1: Send OTP (optimistic / instant UI)
   const handleSendEmailOtp = async () => {
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -1128,45 +1128,43 @@ const Auth = () => {
       return;
     }
 
-    // Brute-force / abuse gate (shared identifier namespace with login)
-    const canProceed = await checkBeforeLogin(`otp:${normalizedEmail}`);
-    if (!canProceed) return;
-
+    // INSTANT UI: move to OTP screen immediately, send in the background.
     setEmail(normalizedEmail);
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("send-email-otp", {
-        body: { email: normalizedEmail, purpose: "login" },
-      });
+    setAuthStep("email_otp");
+    startResendCountdown();
+    toast({
+      title: "📧 Sending Verification Code",
+      description: `Code is being sent to ${normalizedEmail}. Check your inbox in a few seconds.`,
+    });
 
-      if (error) throw error;
-      if (data && data.success === false) {
-        throw new Error(data.error || "Failed to send verification code");
+    // Fire-and-forget background send + abuse gate
+    (async () => {
+      try {
+        const canProceed = await checkBeforeLogin(`otp:${normalizedEmail}`);
+        if (!canProceed) return;
+
+        const { data, error } = await supabase.functions.invoke("send-email-otp", {
+          body: { email: normalizedEmail, purpose: "login" },
+        });
+
+        if (error) throw error;
+        if (data && data.success === false) {
+          throw new Error(data.error || "Failed to send verification code");
+        }
+
+        await recordAttempt(`otp:${normalizedEmail}`, false);
+      } catch (error: any) {
+        console.error("Email OTP error:", error);
+        recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
+        await recordAttempt(`otp:${normalizedEmail}`, false);
+        const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
-
-      // Count a successful send as one "attempt" so spam loops still trip the gate
-      await recordAttempt(`otp:${normalizedEmail}`, false);
-
-      toast({
-        title: "📧 Verification Code Sent",
-        description: `Check your email at ${normalizedEmail} for the 6-digit verification code.`,
-      });
-
-      setAuthStep("email_otp");
-      startResendCountdown();
-    } catch (error: any) {
-      console.error("Email OTP error:", error);
-      recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
-      await recordAttempt(`otp:${normalizedEmail}`, false);
-      const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    })();
   };
 
   // NEW Email Flow - Step 2: Verify OTP via custom edge function and sign in
