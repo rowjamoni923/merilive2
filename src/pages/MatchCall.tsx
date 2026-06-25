@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCall } from "@/components/call/CallProvider";
 
 /**
  * MatchCall — Random 1-on-1 video matching screen.
