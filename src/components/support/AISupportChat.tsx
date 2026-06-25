@@ -675,37 +675,58 @@ const AISupportChat = ({
     const lowerMsg = messageText.toLowerCase().trim();
 
     if (phase === "live_chat" && liveChatTicketId && userId) {
+      const tempId = `user-${Date.now()}`;
+      const trimmed = messageText.trim();
       const userMessage: Message = {
-        id: `user-${Date.now()}`,
+        id: tempId,
         role: "user",
-        content: messageText.trim(),
+        content: trimmed,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
       setInput("");
 
+      // Auto-translate user message to Bengali for admin (best-effort, non-blocking for insert)
+      let translatedContent = "";
       try {
-        // Auto-translate user message to Bengali for admin
-        let translatedContent = "";
-        try {
-          const { data: transData } = await supabase.functions.invoke("translate", {
-            body: { text: messageText.trim(), targetLanguage: "Bengali" },
-          });
-          translatedContent = transData?.translatedText || "";
-        } catch (e) {
-          console.error("Translation error:", e);
-        }
+        const { data: transData } = await supabase.functions.invoke("translate", {
+          body: { text: trimmed, targetLanguage: "Bengali" },
+        });
+        translatedContent = transData?.translatedText || "";
+      } catch (e) {
+        console.error("Translation error:", e);
+      }
 
-        await supabase.from("support_messages").insert({
+      // Retry up to 2 times on transient failure; surface error to user if all fail
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error } = await supabase.from("support_messages").insert({
           ticket_id: liveChatTicketId,
           sender_id: userId,
           sender_type: "user",
-          content: messageText.trim(),
+          content: trimmed,
           translated_content: translatedContent || null,
           original_language: "auto",
         } as any);
-      } catch (error) {
-        console.error("Send error:", error);
+        if (!error) {
+          lastError = null;
+          break;
+        }
+        lastError = error;
+        console.error(`Send attempt ${attempt + 1} failed:`, error);
+        await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+      }
+
+      if (lastError) {
+        // Mark message as failed in UI
+        setMessages(prev => prev.map(m => m.id === tempId
+          ? { ...m, content: `${m.content}  ⚠️` }
+          : m));
+        toast({
+          title: "Message failed",
+          description: lastError.message || "Could not deliver your message. Please try again.",
+          variant: "destructive",
+        });
       }
       return;
     }
