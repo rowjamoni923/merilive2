@@ -89,8 +89,8 @@ export default function MatchCall() {
     setElapsed(0);
   };
 
-  // Chamet-style "Next": end current call, server applies 40s shield
-  // (zero charge if duration < min_billable_seconds), then auto re-enqueue.
+  // Chamet-style "Next": end current call, server applies free-window rule
+  // (zero charge if duration < random_window_seconds), then auto re-enqueue.
   const handleNext = async () => {
     try {
       const raw = window.sessionStorage.getItem("random_call:active");
@@ -103,6 +103,18 @@ export default function MatchCall() {
     autoRestartRef.current = true;
     try { await endCall(); } catch (_) {}
   };
+
+  // Triggered by overlay when 60s convert attempt resolves.
+  const handleAutoEnd = async (reason: "converted" | "no_balance" | "convert_failed") => {
+    if (reason === "converted") {
+      // Random session already marked settled by the RPC; the existing call
+      // stays open as a private call. Nothing else to do here.
+      return;
+    }
+    // No balance OR convert failed → end the call immediately for both sides.
+    try { await endCall(); } catch (_) {}
+  };
+
 
 
   const startSearch = async (filters: MatchFilters) => {
