@@ -1192,7 +1192,7 @@ const Chat = () => {
     const currentLen = (selectedGroup ? groupMessages.length : messages.length);
     // Distance from bottom in px BEFORE the new render-induced layout shift
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const wasNearBottom = wasNearBottomRef.current || distanceFromBottom < 120;
+    const wasNearBottom = wasNearBottomRef.current && distanceFromBottom < 240;
 
     if (isNewConversation) {
       // Conversation switch — reset tracking and reset the windowed slice.
