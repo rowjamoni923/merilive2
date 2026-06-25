@@ -12867,6 +12867,7 @@ export type Database = {
           default_host_rate_coins_per_min: number
           enable_country_filter: boolean
           enable_gender_filter: boolean
+          engagement_fresh_seconds: number
           flash_disconnect_cooldown_minutes: number
           flash_disconnect_threshold: number
           flash_disconnect_window_seconds: number
@@ -12881,6 +12882,7 @@ export type Database = {
           host_split_pct: number
           id: number
           is_enabled: boolean
+          level_norm_cap: number
           livekit_room_max_seconds: number
           match_timeout_seconds: number
           min_billable_seconds: number
@@ -12893,6 +12895,12 @@ export type Database = {
           report_suspend_threshold: number
           ring_timeout_seconds: number
           same_pair_block_minutes: number
+          score_weight_engagement: number
+          score_weight_history: number
+          score_weight_level: number
+          score_weight_profile: number
+          score_weight_verification: number
+          score_weight_vip: number
           skip_cooldown_seconds: number
           skip_extended_cooldown_seconds: number
           skip_extended_trigger_count: number
@@ -12916,6 +12924,7 @@ export type Database = {
           default_host_rate_coins_per_min?: number
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
+          engagement_fresh_seconds?: number
           flash_disconnect_cooldown_minutes?: number
           flash_disconnect_threshold?: number
           flash_disconnect_window_seconds?: number
@@ -12930,6 +12939,7 @@ export type Database = {
           host_split_pct?: number
           id?: number
           is_enabled?: boolean
+          level_norm_cap?: number
           livekit_room_max_seconds?: number
           match_timeout_seconds?: number
           min_billable_seconds?: number
@@ -12942,6 +12952,12 @@ export type Database = {
           report_suspend_threshold?: number
           ring_timeout_seconds?: number
           same_pair_block_minutes?: number
+          score_weight_engagement?: number
+          score_weight_history?: number
+          score_weight_level?: number
+          score_weight_profile?: number
+          score_weight_verification?: number
+          score_weight_vip?: number
           skip_cooldown_seconds?: number
           skip_extended_cooldown_seconds?: number
           skip_extended_trigger_count?: number
@@ -12965,6 +12981,7 @@ export type Database = {
           default_host_rate_coins_per_min?: number
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
+          engagement_fresh_seconds?: number
           flash_disconnect_cooldown_minutes?: number
           flash_disconnect_threshold?: number
           flash_disconnect_window_seconds?: number
@@ -12979,6 +12996,7 @@ export type Database = {
           host_split_pct?: number
           id?: number
           is_enabled?: boolean
+          level_norm_cap?: number
           livekit_room_max_seconds?: number
           match_timeout_seconds?: number
           min_billable_seconds?: number
@@ -12991,6 +13009,12 @@ export type Database = {
           report_suspend_threshold?: number
           ring_timeout_seconds?: number
           same_pair_block_minutes?: number
+          score_weight_engagement?: number
+          score_weight_history?: number
+          score_weight_level?: number
+          score_weight_profile?: number
+          score_weight_verification?: number
+          score_weight_vip?: number
           skip_cooldown_seconds?: number
           skip_extended_cooldown_seconds?: number
           skip_extended_trigger_count?: number
@@ -21210,6 +21234,10 @@ export type Database = {
           withdrawal_count: number
         }[]
       }
+      compute_host_match_score: {
+        Args: { p_caller_id: string; p_host_id: string }
+        Returns: number
+      }
       compute_payouts_for_range: {
         Args: { p_end: string; p_start: string }
         Returns: {
@@ -22850,6 +22878,7 @@ export type Database = {
         Args: { _a: string; _b: string; _match_id: string }
         Returns: undefined
       }
+      random_match_resort_queue: { Args: never; Returns: number }
       random_match_set_host_availability: {
         Args: { _host_id: string; _on: boolean }
         Returns: {

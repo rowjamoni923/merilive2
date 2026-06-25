@@ -38,7 +38,18 @@ interface RandomCallSettings {
   livekit_room_max_seconds: number;
   coins_to_usd_rate: number;
   beans_to_usd_rate: number;
+  score_weight_verification: number;
+  score_weight_vip: number;
+  score_weight_engagement: number;
+  score_weight_profile: number;
+  score_weight_level: number;
+  score_weight_history: number;
+  engagement_fresh_seconds: number;
+  level_norm_cap: number;
+  same_pair_block_minutes: number;
+  queue_resort_interval_seconds: number;
 }
+
 
 const NUM = (s: string) => (s === "" ? 0 : Number(s));
 
@@ -150,12 +161,14 @@ export default function AdminRandomCallSettings() {
       </Card>
 
       <Tabs defaultValue="billing" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="matching">Matching</TabsTrigger>
+          <TabsTrigger value="scoring">Scoring</TabsTrigger>
           <TabsTrigger value="abuse">Anti-abuse</TabsTrigger>
           <TabsTrigger value="vip">VIP & Misc</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="billing">
           <Card>
@@ -220,6 +233,59 @@ export default function AdminRandomCallSettings() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="scoring">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Weighted Matching Engine</CardTitle>
+              <CardDescription>
+                Composite host score (0–100) = sum of factors × weights. Weights should add up to <strong>1.00</strong>.
+                Applied by <code>compute_host_match_score()</code> and read by <code>claim_match()</code>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Verification weight" hint="Phone + face + baseline. Industry default 0.20.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_verification} onChange={(e) => update("score_weight_verification", Number(e.target.value))} />
+              </Field>
+              <Field label="VIP / SVIP weight" hint="Higher tier = higher score. Default 0.20.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_vip} onChange={(e) => update("score_weight_vip", Number(e.target.value))} />
+              </Field>
+              <Field label="Engagement weight" hint="Recency of last_active_at. Default 0.20.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_engagement} onChange={(e) => update("score_weight_engagement", Number(e.target.value))} />
+              </Field>
+              <Field label="Profile completion weight" hint="Avatar + bio + gender. Default 0.15.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_profile} onChange={(e) => update("score_weight_profile", Number(e.target.value))} />
+              </Field>
+              <Field label="User level weight" hint="Normalized against cap. Default 0.15.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_level} onChange={(e) => update("score_weight_level", Number(e.target.value))} />
+              </Field>
+              <Field label="Historical quality weight" hint="Acceptance × completion × rating. Default 0.10.">
+                <Input type="number" step="0.01" min={0} max={1} value={s.score_weight_history} onChange={(e) => update("score_weight_history", Number(e.target.value))} />
+              </Field>
+              <Field label="Engagement fresh window (seconds)" hint="Host active within this window scores max engagement. Default 600.">
+                <Input type="number" min={60} max={3600} value={s.engagement_fresh_seconds} onChange={(e) => update("engagement_fresh_seconds", NUM(e.target.value))} />
+              </Field>
+              <Field label="Level normalization cap" hint="Host reaching this level scores max on Level factor. Default 50.">
+                <Input type="number" min={5} max={200} value={s.level_norm_cap} onChange={(e) => update("level_norm_cap", NUM(e.target.value))} />
+              </Field>
+              <Field label="Same-pair block (minutes)" hint="Two users can't be re-matched inside this window. Default 30.">
+                <Input type="number" min={1} max={240} value={s.same_pair_block_minutes} onChange={(e) => update("same_pair_block_minutes", NUM(e.target.value))} />
+              </Field>
+              <Field label="Queue resort interval (seconds)" hint="How often pg_cron re-scores the waiting queue. Default 30.">
+                <Input type="number" min={10} max={300} value={s.queue_resort_interval_seconds} onChange={(e) => update("queue_resort_interval_seconds", NUM(e.target.value))} />
+              </Field>
+              <div className="md:col-span-2 p-3 border rounded text-xs bg-muted/30">
+                <strong>Current sum of weights:</strong>{" "}
+                {(
+                  s.score_weight_verification + s.score_weight_vip + s.score_weight_engagement +
+                  s.score_weight_profile + s.score_weight_level + s.score_weight_history
+                ).toFixed(2)} / 1.00
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+
 
         <TabsContent value="abuse">
           <Card>
