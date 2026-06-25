@@ -19392,16 +19392,30 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_apply_severity_ban: {
-        Args: {
-          _duration_value?: number
-          _evidence?: Json
-          _reason?: string
-          _severity: string
-          _target_user_id: string
-        }
-        Returns: Json
-      }
+      admin_apply_severity_ban:
+        | {
+            Args: {
+              _duration_value?: number
+              _evidence?: Json
+              _reason?: string
+              _severity: string
+              _target_user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _ban_device?: boolean
+              _ban_face?: boolean
+              _ban_ip?: boolean
+              _duration_value?: number
+              _evidence?: Json
+              _reason?: string
+              _severity: string
+              _target_user_id: string
+            }
+            Returns: Json
+          }
       admin_approve_csa_action: { Args: { _action_id: string }; Returns: Json }
       admin_approve_device: {
         Args: { _device_id: string; _owner_admin_id: string }
