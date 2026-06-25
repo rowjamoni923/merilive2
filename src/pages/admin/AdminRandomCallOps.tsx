@@ -76,7 +76,7 @@ export default function AdminRandomCallOps() {
         .select("host_id, calls_completed_7d, avg_duration_sec_7d, avg_rating_7d, rating_count_7d, acceptance_pct, quality_score, report_count_24h, is_queue_suppressed")
         .order("quality_score", { ascending: false }).limit(20),
       (supabase as any).from("random_call_skip_counters")
-        .select("*").order("skips_count", { ascending: false }).limit(20),
+        .select("*").order("skip_count", { ascending: false }).limit(20),
       (supabase as any).from("random_call_sessions")
         .select("id, status, billable_seconds, coins_charged, beans_awarded")
         .gte("started_at", startToday.toISOString()).limit(5000),
