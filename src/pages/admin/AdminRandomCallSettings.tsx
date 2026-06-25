@@ -147,9 +147,10 @@ export default function AdminRandomCallSettings() {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          <strong>40-second rule:</strong> Calls ending before <code>min_billable_seconds</code> award <strong>0 beans</strong> to the host and do <strong>not refund</strong> the caller (unless inside the free trial window). This is enforced server-side in <code>settle_random_call()</code>.
+          <strong>1-minute random rule:</strong> Random calls are <strong>free for the first {s.random_window_seconds ?? 60} seconds</strong>. At that point the system auto-converts the call into a paid Private Call at the host's per-minute rate. If the caller doesn't have at least <strong>{s.convert_min_balance_seconds ?? 60}s of coins</strong> at that moment, the call ends instantly for both sides. Enforced server-side by <code>convert_random_to_private()</code> + <code>settle_random_call()</code>.
         </AlertDescription>
       </Alert>
+
 
       <Card>
         <CardHeader className="pb-3">
