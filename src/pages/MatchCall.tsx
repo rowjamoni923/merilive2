@@ -227,8 +227,8 @@ export default function MatchCall() {
       <PreMatchPrep
         diamondBalance={profile?.coins ?? 0}
         hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
-        freeTrialSeconds={settings?.free_trial_seconds ?? 0}
-        minBillableSeconds={settings?.min_billable_seconds ?? 40}
+        freeTrialSeconds={settings?.random_window_seconds ?? 60}
+        minBillableSeconds={settings?.random_window_seconds ?? 60}
         availableHostsCount={hostsCount}
         estimatedWaitSeconds={estWait}
         isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
@@ -237,6 +237,7 @@ export default function MatchCall() {
         countryFilterEnabled={!!settings?.enable_country_filter}
         onStart={(filters) => startSearch(filters)}
       />
+
     );
   }
 
