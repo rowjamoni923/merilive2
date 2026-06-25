@@ -94,6 +94,25 @@ export default function MatchCall() {
     };
   }, [phase]);
 
+  // Live verified-host avatars for the searching screen (rotates every 5s).
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
+        if (!mounted) return;
+        const urls = ((data as any[] | null) ?? [])
+          .map((r) => r?.avatar_url)
+          .filter((u): u is string => !!u);
+        const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 5);
+        setHostAvatars(shuffled);
+      } catch (_) { /* ignore */ }
+    };
+    load();
+    const t = window.setInterval(load, 5000);
+    return () => { mounted = false; window.clearInterval(t); };
+  }, []);
+
   // Settle session after user exits the call overlay (server recomputes duration authoritatively)
   useEffect(() => {
     if (isInCall) { wasInCallRef.current = true; return; }
