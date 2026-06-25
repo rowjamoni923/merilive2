@@ -1,120 +1,48 @@
-# Random Match Call — Phase A (Chamet-tier, 0% gap target)
+## Random Call — Diagnostic & Fix Plan
 
-Goal: Close all 5 P0 gaps in a single, fully-verified pass. Each gap = DB + RPC + client + admin + verification. Nothing ships behind a flag; everything wired end-to-end. Research locked against Chamet/Olamet/Poppo/Hollah/Bigo patterns.
+### What I verified
 
-## UI unification update — 2026-06-25
+**✅ Already correct**
+- Caller side (`MatchCall.tsx`) uses `mode: "broadcast"` → `random-call-enqueue` fans out to *every* online verified host via `get_online_global_hosts` (up to 800).
+- Server emits Realtime `random_incoming_call` event on each host's `user-${hid}` channel.
+- First-host-wins is atomic via `claim_random_broadcast` RPC; losers get `random_broadcast_taken`.
+- `convert_random_to_private` RPC exists and is solid:
+  - Runs at `random_window_seconds` (60s default).
+  - Reads host rate from `host_match_preferences` (admin single source of truth) with safe fallbacks.
+  - Creates a fresh row in `private_calls` and links it back via `linked_private_call_id`.
+  - First 60s on `random_call_sessions` are recorded as `coins_charged = 0` (the random-rate billing for that window is settled by `random-call-settle`, separate from private billing) — so minute 1 stays on the random meter, minute 2+ on the private meter. ✔ matches the rule you described.
+- `MatchCallOverlay` already calls `convert_random_to_private` at the 60s mark and toasts the new private rate.
 
-- Research check: Chamet describes starting video chat through one matching feature / match button, and private matching as a single algorithmic flow rather than a separate failed/error surface (https://www.ichamet.com/help/faq/how-to-start-video-chat-session, https://www.ichamet.com/help/faq/how-does-private-matching-work).
-- Research check: BIGO-style video interaction guides describe calls woven into one live/video flow, not a second unrelated purple failure layout (https://www.bigo.tv/blog/bigo-live-video-call).
-- Implementation rule: `MatchCall` must render `PreMatchPrep` as the only non-call UI for prep, searching, matched, and error states. State may change labels/CTA only; no second full-screen random-call design.
-- Verified UI numbers retained on the unified surface: random free window 60s by admin setting fallback, minimum billable/random window 60s, top-up hold based on admin max rate × preauth minutes.
+**🛑 Critical bug — random call never actually reaches hosts**
 
----
+There is **no client subscriber** anywhere in `src/` that listens for `random_incoming_call` on `user-${hostId}`. The backend fans out perfectly, but every host's app ignores the broadcast → no ring screen, no accept button, the call sits until ring-timeout and dies. This is why random call appears broken end-to-end.
 
-## G1 — Gender filter actually enforced (currently advisory only)
+(Private call works because it uses a different delivery path: FCM data push + `private_calls` postgres_changes. Random call has no equivalent listener.)
 
-**DB**
-- `host_match_preferences.preferred_caller_gender` (`any|male|female`) already exists — add index.
-- `random_call_queue.caller_gender` populated from `profiles.gender` on enqueue (server-side, not client).
-- Matching RPC `find_random_match` rewrites WHERE clause: skip hosts whose `preferred_caller_gender` ≠ `any` AND ≠ caller gender.
+### Fix
 
-**Client**
-- `PreMatchPrep.tsx`: hide "any gender" toggle for hosts unless VIP≥3 (Chamet rule).
-- Caller side: read-only badge "Matching ♀ hosts" if user filtered.
+1. **New hook `useRandomCallIncoming`** (mounts once for any logged-in user; verified-host gate inside).
+   - Subscribes to `supabase.channel('user-' + uid)` for event `random_incoming_call`.
+   - Subscribes to `broadcast-${broadcastId}` for `random_broadcast_taken` while a ring is active to dismiss losers instantly.
+   - 20s ring timeout (reads `ring_timeout_seconds` from `random_call_settings`, matches server `expires_at`).
+   - On Accept → `supabase.functions.invoke('random-call-host-respond', { body: { broadcast_id, action: 'accept' } })`. If `ok:true` (winner) → navigate to `/match/active?session=<id>&room=<room>`. If `ok:false` (already taken) → silent dismiss.
+   - On Reject / Ignore-timeout → broadcast path is silent (per existing server logic — no reject-streak penalty for broadcast).
 
-**Verify**: Seed 2 hosts (♀-only, any), seed 1 ♂ caller → only "any" host returned.
+2. **Mount it globally** in `App.tsx` alongside the existing private-call provider so every host gets the ring regardless of which page they're on.
 
----
+3. **Reuse `IncomingCallScreen` UI** if possible, or render a Chamet-style full-screen ringer (caller avatar + name + Accept/Reject) that auto-dismisses on `random_broadcast_taken`.
 
-## G2 — Pre-match preview hardening (camera leak + ghost queue)
+4. **Active-call route**: confirm `/match/active` (or equivalent) consumes `?session=…&room=…`, joins the LiveKit room, and renders `MatchCallOverlay` with `sessionId` + `hostId` so the 60s auto-convert pipeline kicks in for both caller and host.
 
-**DB**: `random_call_queue.preview_started_at`, auto-cleanup RPC `cleanup_stale_queue` (>90s idle removed).
+### Out of scope (already verified working)
+- Billing math, host-split %, conversion RPC, claim-atomicity, fan-out reach, reject-streak ban (24h), admin rate settings.
 
-**Client**
-- `PreMatchPrep.tsx`: camera track stops on unmount, route change, tab hidden >5s, and on enqueue success.
-- Heartbeat ping every 15s; missing 2 = server removes from queue.
-- Cron-like edge function `random-call-janitor` runs every 60s.
+### Files touched
+- `src/hooks/useRandomCallIncoming.ts` (new)
+- `src/components/match/IncomingRandomCallScreen.tsx` (new, or reuse existing private incoming UI)
+- `src/App.tsx` (mount the hook)
+- Quick audit of the active-match route to make sure it accepts session/room from query/state.
 
-**Verify**: Open prep → background app 2min → return → queue empty, camera released.
+No DB migration, no edge function change — server side is already correct.
 
----
-
-## G3 — Skip penalty + cooldown (anti-abuse, Chamet's core retention lever)
-
-**DB**
-- `random_call_skip_counters` already exists — wire properly.
-- New `random_call_settings` cols: `skip_soft_cap`, `skip_hard_cap`, `skip_window_seconds`, `cooldown_seconds_soft`, `cooldown_seconds_hard`, `skip_diamond_penalty`.
-- Trigger on `random_call_sessions` UPDATE (`ended_reason='skipped'` and duration<10s) → increments counter, applies cooldown row in `account_lockouts` scope='random_match'.
-
-**Client**
-- `MatchCallOverlay`: skip button disabled while cooldown active, shows "Next match in 15s".
-- After hard-cap: "Too many skips — try again in 5 min" + optional diamond unlock.
-
-**Admin**: `AdminRandomCallSettings.tsx` → new "Anti-abuse" panel with all 6 fields.
-
-**Verify**: Skip 5 calls in 60s → 6th call blocked with countdown.
-
----
-
-## G4 — Reconnect grace window (saves dropped revenue calls)
-
-**DB**
-- `random_call_sessions.disconnect_grace_until` timestamptz.
-- `private_calls.reconnect_token` (uuid) + `reconnect_grace_until`.
-- RPC `attempt_call_reconnect(session_id, token)` → if within 20s grace, rejoin same LiveKit room, resume billing clock without double-charge.
-
-**Client**
-- `CallProvider`: on LiveKit `disconnect` event → stay on call screen with "Reconnecting..." for 20s, retry token-fetch ×3.
-- Other party sees "Partner reconnecting…" banner instead of immediate end.
-- If grace expires → settle normally.
-
-**Verify**: Force airplane mode mid-call for 15s → call resumes, billing continuous.
-
----
-
-## G5 — Post-call rating + report (trust loop, drives matching weights)
-
-**DB**
-- New table `random_call_ratings`: session_id, rater_id, ratee_id, stars (1-5), tags text[], created_at. RLS: rater can insert once, both parties can read aggregate.
-- `profiles.random_match_avg_rating`, `random_match_rating_count` (updated by trigger).
-- Matching RPC: ratings ≥4.0 get +score boost in weighted engine (already exists, add field).
-
-**Client**
-- New `PostCallRatingSheet.tsx` — bottom sheet after call end (≥10s duration only).
-- 5-star + chip tags (Friendly / Clear video / Boring / Inappropriate).
-- Report button → existing `support_reports` flow with prefilled context.
-- Auto-dismiss in 8s if ignored.
-
-**Admin**: `AdminRandomCallOps.tsx` → "Low rated hosts" tab (avg<3.0, >10 ratings) for review.
-
-**Verify**: End 10s+ call → sheet appears → submit → rating persists → host profile shows new avg.
-
----
-
-## Verification matrix (must all pass before claiming done)
-
-| # | Test | Pass criteria |
-|---|------|---------------|
-| 1 | Gender filter | ♂ caller never matched to ♀-only host |
-| 2 | Queue ghost | 2min idle prep removes row |
-| 3 | Camera leak | Backgrounding releases camera track |
-| 4 | Skip soft cap | 3 fast skips → 15s cooldown |
-| 5 | Skip hard cap | 5 fast skips → 5min lockout |
-| 6 | Reconnect | 15s airplane → call resumes, no double-bill |
-| 7 | Rating | 10s+ call → sheet → DB row → host avg updated |
-| 8 | Settlement | Random→Private conversion still works |
-| 9 | Admin panel | All new settings editable + reflected live |
-| 10 | English UI | No Bangla strings in any new component |
-
----
-
-## Execution order (one batch, sequential commits)
-
-1. DB migration (one file: all 5 areas, GRANTs included)
-2. Edge functions: `random-call-janitor`, update `random-match-enqueue`, `random-match-skip`, new `random-call-reconnect`, `random-call-rate`
-3. Client: `PreMatchPrep`, `MatchCallOverlay`, `CallProvider`, new `PostCallRatingSheet`
-4. Admin: `AdminRandomCallSettings` + `AdminRandomCallOps` updates
-5. Run verification matrix via Playwright + owner test account
-6. Report back with pass/fail table
-
-No phase-B work mixed in. No flags. No "later". Approve and I ship.
+Approve and I'll implement.
