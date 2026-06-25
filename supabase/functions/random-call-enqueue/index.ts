@@ -132,6 +132,7 @@ Deno.serve(async (req) => {
         score: Math.round(score),
         hold_amount: holdAmount,
         expires_at: expiresAt,
+        device_id: deviceId,
       })
 
       .select("*")
