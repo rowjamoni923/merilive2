@@ -30,13 +30,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,6 +53,31 @@ const languages = [
   { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
   { code: "tl", name: "Filipino", flag: "🇵🇭" },
 ];
+
+const LanguageNativeSelect = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) => (
+  <div className="relative mt-1.5">
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full h-12 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-base leading-5 text-slate-900 outline-none appearance-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
+      aria-label="Language"
+    >
+      <option value="" disabled>Select language</option>
+      {languages.map((lang) => (
+        <option key={lang.code} value={lang.code}>
+          {lang.flag} {lang.name}
+        </option>
+      ))}
+    </select>
+    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden />
+  </div>
+);
 
 // Pure pose / threshold logic lives in `@/lib/face-pose` so the regression
 // test runner + dev replay tool can exercise the exact same functions.
