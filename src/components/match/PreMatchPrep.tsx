@@ -60,6 +60,7 @@ export default function PreMatchPrep({
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
   const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
+  const [rechargeOpen, setRechargeOpen] = useState(false);
 
   const startStream = async () => {
     try {
