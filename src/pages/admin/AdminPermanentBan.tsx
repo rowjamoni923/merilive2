@@ -228,8 +228,14 @@ export default function AdminPermanentBan() {
         `🚨 URGENT BAN APPLIED — Permanently blocked: ${summary?.devices_banned || 0} device, ${summary?.ips_banned || 0} IP, ${summary?.faces_banned || 0} face hash.`
       );
     } else {
-      toast.success(`${SEVERITY_CONFIG[activeSeverity].label} ban applied — ends ${summary?.ban_end ? format(new Date(summary.ban_end), "PP p") : "—"}`);
+      const extras: string[] = [];
+      if (summary?.devices_banned) extras.push(`${summary.devices_banned} device`);
+      if (summary?.ips_banned) extras.push(`${summary.ips_banned} IP`);
+      if (summary?.faces_banned) extras.push(`${summary.faces_banned} face`);
+      const extraStr = extras.length ? ` · Blocked ${extras.join(", ")}` : "";
+      toast.success(`${SEVERITY_CONFIG[activeSeverity].label} ban applied — ends ${summary?.ban_end ? format(new Date(summary.ban_end), "PP p") : "—"}${extraStr}`);
     }
+
 
     setSearchUid("");
     setSearchedUser(null);
