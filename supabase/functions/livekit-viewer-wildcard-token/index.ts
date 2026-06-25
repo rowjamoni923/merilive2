@@ -83,7 +83,11 @@ Deno.serve(async (req) => {
     });
     at.addGrant({
       roomJoin: true,
-      room: "*", // wildcard — valid for any room
+      // Scoped to public live-stream rooms only. Private call (`call_*`) and
+      // party (`party_*`) rooms require their own per-room token mints so
+      // password / participant / followers-only checks aren't bypassed at
+      // the LiveKit layer.
+      roomPrefix: "live_",
       canPublish: false,
       canPublishData: false,
       canSubscribe: true,
