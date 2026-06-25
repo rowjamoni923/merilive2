@@ -242,7 +242,8 @@ const AdminEmailBroadcast = () => {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Edit3 className="w-5 h-5 text-purple-400" />
