@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCall } from "@/components/call/CallProvider";
 import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep";
+import MatchCallOverlay from "@/components/match/MatchCallOverlay";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
@@ -18,8 +19,10 @@ import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep
  */
 export default function MatchCall() {
   const navigate = useNavigate();
-  const { startCall, isInCall } = useCall();
+  const { startCall, endCall, isInCall } = useCall();
   const wasInCallRef = useRef(false);
+  const lastFiltersRef = useRef<MatchFilters | null>(null);
+  const autoRestartRef = useRef(false);
   const [phase, setPhase] = useState<"prep" | "searching" | "matched" | "error">("prep");
   const [queueId, setQueueId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -58,15 +61,24 @@ export default function MatchCall() {
       raw = window.sessionStorage.getItem("random_call:active");
       window.sessionStorage.removeItem("random_call:active");
     } catch (_) {}
-    if (!raw) return;
-    try {
-      const info = JSON.parse(raw) as { session_id: string; started_at: number };
-      const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
-      supabase.functions.invoke("random-call-settle", {
-        body: { session_id: info.session_id, duration_seconds: duration, ended_by: "caller" },
-      }).catch(() => {});
-    } catch (_) {}
-    setPhase("prep");
+    const shouldAutoRestart = autoRestartRef.current;
+    autoRestartRef.current = false;
+    if (raw) {
+      try {
+        const info = JSON.parse(raw) as { session_id: string; started_at: number; ended_by?: string };
+        const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
+        supabase.functions.invoke("random-call-settle", {
+          body: { session_id: info.session_id, duration_seconds: duration, ended_by: info.ended_by ?? "caller" },
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    if (shouldAutoRestart && lastFiltersRef.current) {
+      // Re-enqueue with the same filters (Chamet-style Next)
+      const f = lastFiltersRef.current;
+      setTimeout(() => { void startSearch(f); }, 250);
+    } else {
+      setPhase("prep");
+    }
   }, [isInCall]);
 
   const cancelQueue = async () => {
@@ -77,11 +89,28 @@ export default function MatchCall() {
     setElapsed(0);
   };
 
+  // Chamet-style "Next": end current call, server applies 40s shield
+  // (zero charge if duration < min_billable_seconds), then auto re-enqueue.
+  const handleNext = async () => {
+    try {
+      const raw = window.sessionStorage.getItem("random_call:active");
+      if (raw) {
+        const info = JSON.parse(raw) as any;
+        info.ended_by = "caller_skip";
+        window.sessionStorage.setItem("random_call:active", JSON.stringify(info));
+      }
+    } catch (_) {}
+    autoRestartRef.current = true;
+    try { await endCall(); } catch (_) {}
+  };
+
+
   const startSearch = async (filters: MatchFilters) => {
     if (!settings?.is_enabled) {
       toast.error("Random Call is currently disabled by admin.");
       return;
     }
+    lastFiltersRef.current = filters;
     setErrorMsg("");
     setPhase("searching");
     setElapsed(0);
@@ -169,6 +198,12 @@ export default function MatchCall() {
   // SEARCHING / MATCHED / ERROR phases — original luxe globe
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 text-white pb-[max(env(safe-area-inset-bottom),16px)]">
+      {isInCall && (
+        <MatchCallOverlay
+          minBillableSeconds={settings?.min_billable_seconds ?? 40}
+          onNext={handleNext}
+        />
+      )}
       <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full"
           onClick={() => (phase === "searching" ? cancelQueue() : navigate(-1))} aria-label="Close">
