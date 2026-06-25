@@ -1882,7 +1882,7 @@ const FaceVerification = () => {
   };
 
   useEffect(() => {
-    if (verificationStatus === 'submitted' || verificationStatus === 'verified' || verificationStatus === 'rejected') {
+    if (verificationStatus === 'submitted' || verificationStatus === 'verified' || verificationStatus === 'rejected' || verificationStatus === 'needs_retry') {
       void teardownFaceCameraPreview();
     }
   }, [verificationStatus, teardownFaceCameraPreview]);
