@@ -436,7 +436,7 @@ export default function AdminRandomCallOps() {
                   {skipAbusers.map((r) => (
                     <TableRow key={r.user_id || r.id}>
                       <TableCell className="text-xs">{pName(r.user_id)}</TableCell>
-                      <TableCell>{r.skips_count ?? r.daily_count ?? 0}</TableCell>
+                      <TableCell>{r.skip_count ?? r.daily_count ?? 0}</TableCell>
                       <TableCell className="text-xs">{fmtTime(r.cooldown_until)}</TableCell>
                       <TableCell className="text-xs">{fmtTime(r.updated_at || r.last_skip_at)}</TableCell>
                     </TableRow>
