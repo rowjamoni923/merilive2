@@ -1952,6 +1952,28 @@ const FaceVerification = () => {
     }
   };
 
+  const invokeFaceVerificationAnalyze = (submissionId: string) => {
+    void supabase.functions.invoke('face-verification-analyze', {
+      body: { submissionId },
+    }).then(({ data, error }) => {
+      if (error) {
+        console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', error);
+        return;
+      }
+
+      const blocker = String((data as any)?.blocker || '').trim();
+      if (!blocker) return;
+
+      // The edge function has already written the terminal status. Mirror it
+      // locally so the current screen never waits on a delayed Realtime event.
+      setSubmitInProgress(false);
+      setVerificationStatus('rejected');
+      setRejectionReason(String((data as any)?.rejection_reason || (data as any)?.autoFinalize?.reason || blocker));
+    }).catch((err) => {
+      console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
+    });
+  };
+
   // Convert dataURL → Blob for storage upload
   const dataUrlToBlob = (dataUrl: string): Blob | null => {
     try {
@@ -2182,11 +2204,7 @@ const FaceVerification = () => {
       setVerificationStatus('submitted');
       setRejectionReason(null);
       if (submissionData?.id) {
-        void supabase.functions.invoke('face-verification-analyze', {
-          body: { submissionId: submissionData.id },
-        }).catch((err) => {
-          console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
-        });
+        invokeFaceVerificationAnalyze(submissionData.id);
       }
 
       lockUnderReviewAndReturn("Your verification is now under admin review. Returning to profile…");
@@ -2453,11 +2471,7 @@ const FaceVerification = () => {
       setVerificationStatus('submitted');
       setRejectionReason(null);
       if (submissionData?.id) {
-        void supabase.functions.invoke('face-verification-analyze', {
-          body: { submissionId: submissionData.id },
-        }).catch((err) => {
-          console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
-        });
+        invokeFaceVerificationAnalyze(submissionData.id);
       }
 
       lockUnderReviewAndReturn('Your host application is now under admin review. Returning to profile…');
