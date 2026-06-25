@@ -65,12 +65,12 @@ Playwright with viewport `375×812` (iPhone) + `360×780` (Android) → screensh
 - Professional mobile commerce/recharge banners must preserve the creative's intended aspect ratio because aspect ratio directly controls image appearance in-app (GoodBarber Design System: https://www.goodbarber.com/uxdesign/images-aspect-ratios/).
 - Merchandising creative guidelines emphasize supplying and displaying media in predictable dimensions for storefront placements, not letting text-critical artwork crop unpredictably (Instacart Storefront media dimensions: https://docs.instacart.com/storefront/learn_about_your_storefront/merchandising_opportunities/media_dimensions).
 - Mobile banner ad/storefront patterns commonly use narrow placements around 2.5:1–3:1 to preserve vertical screen real estate (Publift mobile banner sizing guide: https://www.publift.com/blog/mobile-banner-ads-sizes-types).
-- Verified local default recharge assets are `1920×1080` (`16:9`). Current implementation used a full-width `16 / 9` recharge carousel, which made the Diamond Store banner too tall on 360px mobile screens; the previous `object-contain` avoided text crop but still occupied a non-professional oversized block.
+- Verified local default first recharge asset is `1920×1080` but its actual non-white banner artwork is approx `1920×676` (`2.84:1`) with white margins inside the image itself; `object-contain` exposes those white bars in the compact slot.
 
 ### Fix applied
-- Recharge carousel is now a compact ~3:1 mobile promo slot (`clamp(112px, 34vw, 140px)`; verified 363px preview renders 140px high) matching the marked area.
-- Foreground banner remains `object-contain`, so the complete uploaded banner artwork and text stay visible.
-- A blurred duplicate background fills any side letterboxing professionally without cropping the real banner.
+- Recharge carousel is now a compact marked-area promo slot (`clamp(86px, 28vw, 112px)`).
+- Removed the duplicate blurred/gradient background and all white/letterbox fill.
+- The banner image now uses centered `object-cover`, which removes the image's own white top/bottom margins and keeps the visible promo design inside the marked slot.
 
 ---
 
