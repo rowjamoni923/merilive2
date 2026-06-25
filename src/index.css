@@ -5407,4 +5407,268 @@ a:focus-visible,
   [data-reaction-bar] { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
 }
 
+/* ============================================================
+ * Mobile tune — Batch 4
+ * Reels • Go-Live preview • Sticker shop • Live streaming room
+ * Header visitor bar • Live footer composer • Party preview
+ * Party broadcast room • Private call
+ * Additive, data-attribute scoped, never touches native VAP/SVGA layers.
+ * ============================================================ */
+@media (max-width: 480px) {
+  /* ---------- Reels ---------- */
+  [data-reels-feed] {
+    height: 100dvh; height: 100svh;
+    scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  [data-reels-item] {
+    height: 100dvh; height: 100svh;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    position: relative;
+  }
+  [data-reels-actions] {
+    position: absolute; right: 0.5rem;
+    bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+    display: flex; flex-direction: column; gap: 1rem; align-items: center;
+    z-index: 20;
+  }
+  [data-reels-actions] button { min-width: 44px; min-height: 44px; }
+  [data-reels-caption] {
+    position: absolute; left: 0.75rem; right: 4rem;
+    bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
+    font-size: 0.875rem; line-height: 1.35;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+  }
+
+  /* ---------- Go-Live preview (pre-broadcast camera screen) ---------- */
+  [data-golive-preview] {
+    position: fixed; inset: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  [data-golive-topbar] {
+    position: absolute; top: env(safe-area-inset-top); left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0.75rem; gap: 0.5rem; z-index: 30;
+  }
+  [data-golive-toolstrip] {
+    position: absolute; right: 0.5rem;
+    top: calc(env(safe-area-inset-top) + 3.5rem);
+    display: flex; flex-direction: column; gap: 0.75rem; z-index: 25;
+  }
+  [data-golive-toolstrip] button { width: 44px; height: 44px; border-radius: 22px; }
+  [data-golive-bottombar] {
+    position: absolute; left: 0; right: 0;
+    bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center;
+    z-index: 30;
+  }
+  [data-golive-start] { flex: 1 1 0; min-height: 52px; border-radius: 26px; font-weight: 700; }
+
+  /* ---------- Sticker shop / settings ---------- */
+  [data-sticker-shop-grid] {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 0.625rem; padding: 0.75rem;
+  }
+  [data-sticker-card] {
+    aspect-ratio: 1 / 1.15; border-radius: 14px; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0.5rem; min-height: 96px;
+  }
+  [data-sticker-card] img { max-width: 64px; max-height: 64px; object-fit: contain; }
+  [data-sticker-card] [data-sticker-name] {
+    font-size: 0.6875rem; line-height: 1.1; margin-top: 0.25rem;
+    text-align: center; overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  }
+  [data-sticker-tabs] {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 0.375rem; padding: 0.5rem 0.75rem;
+    overflow-x: auto; scrollbar-width: none;
+    backdrop-filter: blur(8px);
+  }
+  [data-sticker-tabs]::-webkit-scrollbar { display: none; }
+  [data-sticker-tabs] [data-tab] { flex: 0 0 auto; padding: 0.375rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; min-height: 36px; }
+
+  /* ---------- Live streaming room (host/viewer common) ---------- */
+  [data-live-room] {
+    position: fixed; inset: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Top — host badge + close. Compact. */
+  [data-live-header] {
+    position: absolute; top: env(safe-area-inset-top); left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0.625rem; gap: 0.5rem; z-index: 30;
+  }
+  [data-live-host-chip] {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.25rem 0.625rem 0.25rem 0.25rem; border-radius: 999px;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+    max-width: 60vw;
+  }
+  [data-live-host-chip] [data-host-name] {
+    font-size: 0.8125rem; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32vw;
+  }
+
+  /* Viewer bar (horizontal scroll of top viewers) — fixed under header */
+  [data-live-viewer-bar] {
+    position: absolute; left: 0; right: 3.25rem;
+    top: calc(env(safe-area-inset-top) + 3rem);
+    display: flex; align-items: center; gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+    z-index: 25; min-height: 36px;
+  }
+  [data-live-viewer-bar]::-webkit-scrollbar { display: none; }
+  [data-live-viewer-bar] [data-viewer-avatar] {
+    flex: 0 0 auto; width: 28px; height: 28px; border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.8);
+  }
+  [data-live-viewer-count] {
+    flex: 0 0 auto; padding: 2px 8px; border-radius: 999px;
+    background: rgba(0,0,0,0.5); font-size: 0.6875rem; font-weight: 600;
+  }
+
+  /* Chat overlay — bottom-left scrolling messages */
+  [data-live-chat-stream] {
+    position: absolute; left: 0.5rem; right: 4.25rem;
+    bottom: calc(env(safe-area-inset-bottom) + 4rem);
+    max-height: 38vh; padding: 0.25rem 0;
+    display: flex; flex-direction: column; gap: 0.25rem;
+    overflow-y: auto; scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 100%);
+            mask-image: linear-gradient(180deg, transparent 0, #000 18%, #000 100%);
+    z-index: 22;
+  }
+  [data-live-chat-stream]::-webkit-scrollbar { display: none; }
+  [data-live-chat-stream] [data-chat-msg] {
+    display: inline-flex; align-items: flex-start; gap: 0.375rem;
+    padding: 0.25rem 0.5rem; border-radius: 12px;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    font-size: 0.8125rem; line-height: 1.3; max-width: 100%;
+    word-break: break-word;
+  }
+
+  /* Live footer — message composer + actions */
+  [data-live-footer] {
+    position: absolute; left: 0; right: 0;
+    bottom: 0;
+    padding: 0.5rem 0.625rem max(env(safe-area-inset-bottom), 0.625rem);
+    display: flex; align-items: center; gap: 0.375rem;
+    z-index: 30;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35) 40%);
+  }
+  [data-live-footer] [data-msg-input] {
+    flex: 1 1 0; min-height: 40px; border-radius: 20px;
+    padding: 0 0.875rem; font-size: 0.9375rem;
+    background: rgba(0,0,0,0.55); color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  [data-live-footer] [data-footer-action] {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* When mobile keyboard opens, lift composer above it */
+  [data-live-footer][data-kb-open="true"] {
+    bottom: env(keyboard-inset-height, 0);
+    padding-bottom: 0.5rem;
+  }
+
+  /* ---------- Party preview (pre-join) ---------- */
+  [data-party-preview] {
+    padding: 0.75rem;
+    padding-top: max(env(safe-area-inset-top), 0.75rem);
+  }
+  [data-party-preview-card] {
+    border-radius: 18px; overflow: hidden;
+    padding: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem;
+  }
+  [data-party-preview-seats] {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 0.5rem;
+  }
+  [data-party-preview-seats] [data-seat] {
+    aspect-ratio: 1 / 1; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  [data-party-join-cta] { min-height: 48px; border-radius: 24px; font-weight: 700; }
+
+  /* ---------- Party broadcast room (mirrors live-streaming) ---------- */
+  [data-party-room] {
+    position: fixed; inset: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  [data-party-room] [data-live-header],
+  [data-party-room] [data-live-viewer-bar],
+  [data-party-room] [data-live-chat-stream],
+  [data-party-room] [data-live-footer] { /* same overlay rules apply */ }
+
+  [data-party-seat-grid] {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 0.5rem; padding: 0.5rem 0.625rem;
+  }
+  [data-party-seat-grid] [data-seat] {
+    aspect-ratio: 1 / 1.15; border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0.375rem;
+  }
+  [data-party-seat-grid] [data-seat] [data-seat-avatar] {
+    width: 48px; height: 48px; border-radius: 24px;
+  }
+  [data-party-seat-grid] [data-seat] [data-seat-name] {
+    font-size: 0.6875rem; line-height: 1.1; margin-top: 0.25rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+
+  /* ---------- Private call ---------- */
+  [data-private-call] {
+    position: fixed; inset: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  [data-private-call-remote] {
+    position: absolute; inset: 0;
+    background: #000;
+  }
+  [data-private-call-local] {
+    position: absolute; right: 0.75rem;
+    top: calc(env(safe-area-inset-top) + 3.5rem);
+    width: 96px; height: 128px; border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 25;
+  }
+  [data-private-call-info] {
+    position: absolute; top: env(safe-area-inset-top); left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0.625rem 0.75rem; gap: 0.125rem; z-index: 20;
+  }
+  [data-private-call-info] [data-peer-name] { font-size: 1rem; font-weight: 700; }
+  [data-private-call-info] [data-call-timer] {
+    font-size: 0.8125rem; opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-private-call-controls] {
+    position: absolute; left: 0; right: 0;
+    bottom: max(env(safe-area-inset-bottom), 1rem);
+    display: flex; justify-content: center; gap: 0.875rem;
+    padding: 0 1rem; z-index: 30;
+  }
+  [data-private-call-controls] [data-call-btn] {
+    width: 56px; height: 56px; border-radius: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  [data-private-call-controls] [data-call-btn][data-variant="end"] {
+    width: 64px; height: 64px; border-radius: 32px;
+    background: hsl(0 84% 55%); color: #fff;
+  }
+}
+
+
 
