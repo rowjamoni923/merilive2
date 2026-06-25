@@ -173,8 +173,14 @@ export default function AdminRandomCallOps() {
 
   const forceEndSession = async (sessionId: string) => {
     if (!confirm("Force-end this call? Caller will be charged for billable seconds only.")) return;
+    // Compute duration from the live session row so the RPC has a real number
+    // (server clamps it again to its own elapsed value — this is just the floor).
+    const sess = sessions.find((s) => s.id === sessionId);
+    const startedAtMs = sess?.started_at ? new Date(sess.started_at).getTime() : Date.now();
+    const duration = Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000));
     const { error } = await (supabase as any).rpc("settle_random_call", {
       p_session_id: sessionId,
+      p_duration_seconds: duration,
       p_ended_by: "admin",
     });
     if (error) return toast.error("Failed: " + error.message);
