@@ -124,8 +124,11 @@ export default function MatchCall() {
           preferred_host_gender: filters.preferred_host_gender,
         },
       });
-      // Server may return a structured error in `data` (status 4xx) instead of throwing
-      const errPayload = (data as any)?.error ? (data as any) : null;
+      // Server may return a structured 429 error (skip cooldown / daily cap)
+      let errPayload: any = (data as any)?.error ? data : null;
+      if (!errPayload && error && (error as any).context?.json) {
+        try { errPayload = await (error as any).context.json(); } catch (_) {}
+      }
       if (errPayload?.error === "skip_cooldown") {
         if (timerRef.current) window.clearInterval(timerRef.current);
         const secs = errPayload.cooldown_seconds_remaining ?? 0;
