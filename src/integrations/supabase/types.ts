@@ -20840,7 +20840,7 @@ export type Database = {
           p_is_public?: boolean
           p_name: string
         }
-        Returns: string
+        Returns: Json
       }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
       create_helper_order: {
