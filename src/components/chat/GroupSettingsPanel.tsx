@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, Copy, Check } from "lucide-react";
+import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus, Copy, Check, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
