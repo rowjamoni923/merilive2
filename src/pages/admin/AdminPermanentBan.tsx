@@ -387,6 +387,41 @@ export default function AdminPermanentBan() {
                   </div>
                 )}
 
+                {sev !== "urgent" && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                    <p className="text-xs font-semibold text-foreground/80">
+                      Optional permanent blocks (factory-reset proof)
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Tick any of these to prevent this person from re-opening an account on the same device, IP, or face — even after this {cfg.durationUnit} suspension ends.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banDevice ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banDevice} onChange={(e) => setBanDevice(e.target.checked)} className="accent-rose-500" />
+                        <Smartphone className="h-3.5 w-3.5" /> Device
+                      </label>
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banIp ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banIp} onChange={(e) => setBanIp(e.target.checked)} className="accent-rose-500" />
+                        <Globe className="h-3.5 w-3.5" /> IP
+                      </label>
+                      <label className={cn(
+                        "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
+                        banFace ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                      )}>
+                        <input type="checkbox" checked={banFace} onChange={(e) => setBanFace(e.target.checked)} className="accent-rose-500" />
+                        <ScanFace className="h-3.5 w-3.5" /> Face
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+
                 {sev === "urgent" && (
                   <div className="rounded-lg border border-rose-500/40 bg-rose-500/5 p-3 space-y-2">
                     <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
