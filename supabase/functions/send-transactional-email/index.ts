@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
@@ -25,9 +26,11 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+const isAuthorizedServiceCall = (req: Request, serviceKey: string) => {
+  const authHeader = req.headers.get('Authorization') || ''
+  const apiKeyHeader = req.headers.get('apikey') || ''
+  return authHeader === `Bearer ${serviceKey}` || apiKeyHeader === serviceKey
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -37,8 +40,9 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey || !lovableApiKey) {
     console.error('Missing required environment variables')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
@@ -47,6 +51,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  if (!isAuthorizedServiceCall(req, supabaseServiceKey)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   // Parse request body
@@ -292,8 +303,9 @@ Deno.serve(async (req) => {
       ? template.subject(templateData)
       : template.subject
 
-  // 5. Enqueue the pre-rendered email for async processing by the dispatcher.
-  // The dispatcher (process-email-queue) handles sending, retries, and rate-limit backoff.
+  // 5. Send through the verified Lovable sender domain. This intentionally
+  // avoids the optional pgmq queue path because OTP delivery must not fail when
+  // queue RPCs are unavailable in this external Supabase project.
 
   // Log pending BEFORE enqueue so we have a record even if enqueue crashes
   await supabase.from('email_send_log').insert({
@@ -303,9 +315,9 @@ Deno.serve(async (req) => {
     status: 'pending',
   })
 
-  const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-    queue_name: 'transactional_emails',
-    payload: {
+  try {
+    await sendLovableEmail(
+      {
       message_id: messageId,
       to: effectiveRecipient,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
@@ -317,13 +329,12 @@ Deno.serve(async (req) => {
       label: templateName,
       idempotency_key: idempotencyKey,
       unsubscribe_token: unsubscribeToken,
-      queued_at: new Date().toISOString(),
-    },
-  })
-
-  if (enqueueError) {
-    console.error('Failed to enqueue email', {
-      error: enqueueError,
+      },
+      { apiKey: lovableApiKey }
+    )
+  } catch (sendError) {
+    console.error('Failed to send email', {
+      error: sendError instanceof Error ? sendError.message : String(sendError),
       templateName,
       effectiveRecipient,
     })
@@ -333,19 +344,26 @@ Deno.serve(async (req) => {
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: 'Failed to enqueue email',
+      error_message: sendError instanceof Error ? sendError.message : 'Failed to send email',
     })
 
-    return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
+    return new Response(JSON.stringify({ error: 'Failed to send email' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  console.log('Transactional email enqueued', { templateName, effectiveRecipient })
+  await supabase.from('email_send_log').insert({
+    message_id: messageId,
+    template_name: templateName,
+    recipient_email: effectiveRecipient,
+    status: 'sent',
+  })
+
+  console.log('Transactional email sent', { templateName, effectiveRecipient })
 
   return new Response(
-    JSON.stringify({ success: true, queued: true }),
+    JSON.stringify({ success: true, sent: true }),
     {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

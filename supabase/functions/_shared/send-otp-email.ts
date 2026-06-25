@@ -1,5 +1,5 @@
-// Shared helper: send OTP via Lovable Email infrastructure
-// Replaces direct Gmail SMTP — uses send-transactional-email + queue (unlimited).
+// Shared helper: send OTP via the verified Lovable Email sender domain.
+// Replaces direct Gmail SMTP and avoids blocking Auth UI on provider latency.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 export interface SendOtpEmailArgs {
