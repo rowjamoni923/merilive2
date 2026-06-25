@@ -40,7 +40,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
     setMounted(true);
   }, [x, y]);
 
-  if (dismissed || !mounted) return null;
+  const hidden = dismissed || !mounted;
 
   const PILL_SIZE = 56;
   const MARGIN = 8;
@@ -71,8 +71,9 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
       }}
       onDragStart={() => { draggedRef.current = true; }}
       onDragEnd={() => { handleDragEnd(); setTimeout(() => { draggedRef.current = false; }, 150); }}
-      style={{ x, y }}
+      style={{ x, y, visibility: hidden ? "hidden" : "visible", pointerEvents: hidden ? "none" : "auto" }}
       className={`fixed left-0 top-0 z-40 touch-none select-none ${className}`}
+      aria-hidden={hidden}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
