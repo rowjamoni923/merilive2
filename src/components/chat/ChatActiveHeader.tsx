@@ -93,12 +93,12 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
           <div
             className="cursor-pointer shrink-0"
             onClick={() => {
-              const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
-              if (userId) navigate(`/profile-detail/${userId}`);
+              if (isGroup) setShowGroupSettings(true);
+              else if (selectedConversation?.other_user?.id) navigate(`/profile-detail/${selectedConversation.other_user.id}`);
             }}
           >
             <AvatarWithFrame
-              userId={isGroup ? selectedGroup?.owner_id : undefined}
+              userId={isGroup ? undefined : undefined}
               src={chatAvatar || undefined}
               name={chatName || "U"}
               level={1}
@@ -112,8 +112,11 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
         <div
           className="flex-1 min-w-0 cursor-pointer ml-0.5"
           onClick={() => {
-            const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
-            if (userId) navigate(`/profile-detail/${userId}`);
+            if (isGroup) {
+              setShowGroupSettings(true);
+            } else if (selectedConversation?.other_user?.id) {
+              navigate(`/profile-detail/${selectedConversation.other_user.id}`);
+            }
           }}
         >
           <div className="flex items-center gap-1.5">

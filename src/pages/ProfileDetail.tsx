@@ -181,6 +181,8 @@ interface GroupData {
   avatar_url: string | null;
   member_count: number | null;
   description: string | null;
+  group_type?: string | null;
+  is_member?: boolean;
 }
 
 const ProfileDetail = () => {
@@ -350,7 +352,7 @@ const ProfileDetail = () => {
       // Gifts received
       supabase.from("gift_transactions").select("id, gift_id, coin_amount, sender_id, created_at, gifts(name, icon_url)").eq("receiver_id", targetId).order("created_at", { ascending: false }),
       // Groups
-      supabase.from("group_members").select("group_id, groups(id, name, avatar_url, member_count, description)").eq("user_id", targetId),
+      supabase.from("group_members").select("group_id, groups(id, name, avatar_url, member_count, description, group_type, is_active)").eq("user_id", targetId),
       // Followers count
       supabase.from("followers").select("*", { count: "exact", head: true }).eq("following_id", targetId),
       // Following count
@@ -483,8 +485,19 @@ const ProfileDetail = () => {
       id, name: data.name, icon: data.icon, count: data.count, color: ["bg-amber-50", "bg-rose-50", "bg-emerald-50"][Math.floor(Math.random() * 3)]
     })).slice(0, 10));
 
-    // Set groups
-    setGroups((groupMembershipsResult?.data?.map((m: any) => m.groups).filter(Boolean) || []).slice(0, 5));
+    // Set groups (only active, with type)
+    const rawGroups = (groupMembershipsResult?.data?.map((m: any) => m.groups).filter((g: any) => g && g.is_active !== false) || []).slice(0, 8);
+    let myMemberSet = new Set<string>();
+    if (user?.id && rawGroups.length > 0) {
+      const ids = rawGroups.map((g: any) => g.id);
+      const { data: mine } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', user.id)
+        .in('group_id', ids);
+      myMemberSet = new Set((mine || []).map((m: any) => m.group_id));
+    }
+    setGroups(rawGroups.map((g: any) => ({ ...g, is_member: myMemberSet.has(g.id) })));
 
     setLoading(false);
     // NOTE: deliberately NOT depending on resolvedLevel / resolvedLevelLoading
@@ -1817,33 +1830,52 @@ const ProfileDetail = () => {
           {groups.length > 0 ? (
             <ScrollArea className="w-full">
               <div className="flex gap-3 pb-2">
-                {groups.map((group) => (
-                  <motion.button
-                    key={group.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-shrink-0 w-48 rounded-2xl p-4 text-left profile-home-section"
-                  >
-                    <div className="flex items-center gap-3">
- <Avatar className="w-12 h-12 border border-slate-200/10">
-                        <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-                          {group.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-800 truncate flex items-center gap-1 text-sm">
-                          <span>👨‍👩‍👧‍👦</span>
-                          {group.name}
-                        </p>
-                        <p className="text-xs text-white/80 flex items-center gap-1 mt-0.5">
-                          <Users className="w-3 h-3" />
-                          ({group.member_count || 0})
-                        </p>
+                {groups.map((group) => {
+                  const isFamily = group.group_type === 'family';
+                  return (
+                    <motion.div
+                      key={group.id}
+                      whileHover={{ scale: 1.02 }}
+                      className="flex-shrink-0 w-56 rounded-2xl p-3 text-left profile-home-section"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12 border border-slate-200/10">
+                          <AvatarImage src={group.avatar_url || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                            <Users className="w-5 h-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-800 truncate text-sm">{group.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${isFamily ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'}`}>
+                              {isFamily ? '👨‍👩‍👧‍👦 Family' : '👥 Basic'}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">{group.member_count || 0}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </motion.button>
-                ))}
+                      <button
+                        onClick={async () => {
+                          if (group.is_member) { navigate(`/chat?group=${group.id}`); return; }
+                          if (!currentUser?.id) { navigate('/auth'); return; }
+                          const { data, error } = await supabase.rpc('add_group_member' as any, { p_group_id: group.id, p_user_id: currentUser.id });
+                          const res = data as any;
+                          if (error || !res?.ok) {
+                            const code = String(res?.error || '');
+                            toast({ title: code === 'family_limit_reached' ? 'You are already in a family group' : 'Could not join group', variant: 'destructive' });
+                            return;
+                          }
+                          toast({ title: res.already_member ? 'Already a member' : 'Joined group' });
+                          setGroups(prev => prev.map(g => g.id === group.id ? { ...g, is_member: true, member_count: (g.member_count || 0) + (res.already_member ? 0 : 1) } : g));
+                        }}
+                        className={`mt-3 w-full h-8 rounded-full text-xs font-semibold ${group.is_member ? 'bg-muted text-foreground' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'}`}
+                      >
+                        {group.is_member ? 'Open chat' : 'Join group'}
+                      </button>
+                    </motion.div>
+                  );
+                })}
               </div>
             </ScrollArea>
           ) : (

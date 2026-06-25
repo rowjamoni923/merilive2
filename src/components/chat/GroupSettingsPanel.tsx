@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, Copy, Check } from "lucide-react";
+import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus, Copy, Check, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,10 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
   const [uploading, setUploading] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addQuery, setAddQuery] = useState("");
+  const [addResults, setAddResults] = useState<any[]>([]);
+  const [addingId, setAddingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwner = group.owner_id === currentUserId;
@@ -167,6 +172,48 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
+  const searchUsers = async (q: string) => {
+    setAddQuery(q);
+    const term = q.trim();
+    if (term.length < 2) { setAddResults([]); return; }
+    const memberIds = new Set(members.map(m => m.user_id));
+    const { data } = await supabase
+      .from('profiles_public')
+      .select('id, display_name, avatar_url, app_uid, user_level')
+      .or(`display_name.ilike.%${term}%,app_uid.ilike.%${term}%`)
+      .limit(15);
+    setAddResults((data || []).filter((u: any) => !memberIds.has(u.id)));
+  };
+
+  const handleAddMember = async (userId: string) => {
+    setAddingId(userId);
+    try {
+      const { data, error } = await supabase.rpc('add_group_member' as any, {
+        p_group_id: group.id,
+        p_user_id: userId,
+      });
+      if (error) throw error;
+      const res = data as any;
+      if (res?.ok) {
+        toast.success(res.already_member ? "Already a member" : "Member added");
+        setAddResults(r => r.filter(u => u.id !== userId));
+        fetchMembers();
+        onGroupUpdated();
+      } else {
+        const code = String(res?.error || 'failed');
+        const msg = code === 'family_limit_reached' ? "User already in a family group"
+          : code === 'not_authorized' ? "Only owner can add members"
+          : code === 'user_unavailable' ? "User unavailable"
+          : "Failed to add member";
+        toast.error(msg);
+      }
+    } catch (e) {
+      toast.error("Failed to add member");
+    } finally {
+      setAddingId(null);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header - Premium 3D Glass */}
@@ -246,9 +293,61 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
 
           {/* Members */}
           <div>
-            <h4 className="font-semibold text-sm text-muted-foreground mb-3 px-1">
-              Members ({members.length})
-            </h4>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h4 className="font-semibold text-sm text-muted-foreground">
+                Members ({members.length})
+              </h4>
+              {isOwner && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full h-8 px-3 text-xs gap-1.5"
+                  onClick={() => setShowAdd(v => !v)}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  {showAdd ? 'Close' : 'Add member'}
+                </Button>
+              )}
+            </div>
+
+            {isOwner && showAdd && (
+              <div className="mb-3 rounded-2xl border border-border/60 bg-card p-3 space-y-2"
+                style={{ boxShadow: "0 4px 14px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
+              >
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={addQuery}
+                    onChange={(e) => searchUsers(e.target.value)}
+                    placeholder="Search by name or ID"
+                    className="pl-9 h-9 rounded-full"
+                  />
+                </div>
+                <div className="max-h-64 overflow-y-auto space-y-1.5">
+                  {addQuery.trim().length < 2 ? (
+                    <p className="text-xs text-muted-foreground text-center py-3">Type at least 2 characters</p>
+                  ) : addResults.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-3">No users found</p>
+                  ) : addResults.map((u) => (
+                    <div key={u.id} className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-muted/60">
+                      <AvatarWithFrame userId={u.id} src={u.avatar_url} name={u.display_name || '?'} level={u.user_level || 1} size="sm" showFrame={false} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate text-foreground">{u.display_name || 'Unknown'}</p>
+                        {u.app_uid && <p className="text-[11px] text-muted-foreground">ID: {u.app_uid}</p>}
+                      </div>
+                      <Button
+                        size="sm"
+                        className="h-8 px-3 rounded-full"
+                        disabled={addingId === u.id}
+                        onClick={() => handleAddMember(u.id)}
+                      >
+                        {addingId === u.id ? '...' : 'Add'}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               {loading ? (
                 <p className="text-center text-muted-foreground py-4">Loading...</p>
