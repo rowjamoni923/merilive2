@@ -494,7 +494,24 @@ export default function AdminAgencies() {
           .in("id", uniqueOwnerIds);
         if (owners) {
           ownersMap = Object.fromEntries(owners.map(o => [o.id, o]));
-        }
+      }
+
+      // Detect payroll-helper owners (verified + active + L5 + payroll_enabled) → 12% min
+      if (uniqueOwnerIds.length > 0) {
+        const { data: helpers } = await supabase
+          .from("topup_helpers")
+          .select("user_id, is_verified, is_active, trader_level, payroll_enabled")
+          .in("user_id", uniqueOwnerIds);
+        const payrollSet = new Set<string>();
+        (helpers || []).forEach((h: any) => {
+          if (h?.is_verified && h?.is_active && h?.trader_level === 5 && h?.payroll_enabled) {
+            payrollSet.add(h.user_id);
+          }
+        });
+        setPayrollOwnerIds(payrollSet);
+      } else {
+        setPayrollOwnerIds(new Set());
+      }
       }
 
       // ⚡ Batch fetch ALL parent agencies in ONE query
