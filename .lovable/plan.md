@@ -90,4 +90,13 @@ Anything found broken → fixed in the same pass via migration + frontend edit.
 4. Email/Ticket integration.
 5. Owner quick link + verification screenshot.
 
+---
+
+## Emergency fix log — Family Group creation (2026-06-25)
+
+- Competitor/pro-standard reference: Bigo/Chamet/Poppo-style apps treat Family/Clan as a formal social group; creation is commonly limited by one-family membership or premium/agency rules, while basic chat groups allow broader creation. Current product decision: **agency is not required** for Family Group creation.
+- Verified app rule: signed-in, non-blocked users can create **1 Family Group** total and up to **20 Basic Groups**.
+- Root cause found in current DB implementation: `create_chat_group` and `tg_guard_group_members_insert` were still checking `profiles.user_id`, but the live `profiles` table only has `id`; this caused Family Group create to return the generic failure even though Basic Group could work.
+- Applied migration: patched both DB functions to check `profiles.id`, keep active-family counting, and keep owner membership creation atomic.
+
 Approve and I'll execute end-to-end in one go.
