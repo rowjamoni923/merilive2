@@ -15,6 +15,7 @@ interface PopupBanner {
   title: string;
   image_url: string;
   skip_delay_seconds: number;
+  auto_dismiss_seconds: number | null;
 }
 
 const EventPopupBanner = () => {
@@ -24,7 +25,9 @@ const EventPopupBanner = () => {
   const [imageReady, setImageReady] = useState(false);
 
   const skipDelay = banner?.skip_delay_seconds ?? 3;
+  const autoDismiss = banner?.auto_dismiss_seconds ?? 10;
   const canSkip = elapsed >= skipDelay;
+  const remaining = Math.max(0, autoDismiss - elapsed);
 
   // Preload banner media into the browser cache, resolves on load OR error
   // (errors shouldn't block the popup forever — fall through after a short cap).
