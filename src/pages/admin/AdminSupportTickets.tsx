@@ -1779,7 +1779,7 @@ const AdminSupportTickets = () => {
               </div>
 
               {/* Reply Input - Enhanced for PC */}
-              <div className="px-4 py-3 border-t border-border/25 bg-muted/5 backdrop-blur-sm">
+              <div className="px-3 sm:px-4 py-3 border-t border-border/25 bg-muted/5 backdrop-blur-sm safe-area-bottom">
                 <div className="flex items-center gap-2 mb-2">
                   <Languages className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground">Reply in:</span>
