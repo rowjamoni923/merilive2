@@ -248,10 +248,18 @@ export default function PreMatchPrep({
             })}
           </AnimatePresence>
 
-          <div className="relative text-center pointer-events-none">
-            <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
-            <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
-          </div>
+          <button
+            type="button"
+            onClick={handleStart}
+            disabled={insufficient}
+            aria-label="Tap to Match"
+            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-60"
+          >
+            <div className="text-center">
+              <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+              <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+            </div>
+          </button>
         </div>
 
         {/* VIP discount card (right-side floating) */}
