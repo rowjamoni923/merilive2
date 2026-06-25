@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
-  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History, X, Bitcoin, Smartphone,
+  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -60,7 +60,7 @@ export default function PreMatchPrep({
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
   const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
-  const [rechargeOpen, setRechargeOpen] = useState(false);
+  
 
   const startStream = async () => {
     try {
@@ -186,7 +186,7 @@ export default function PreMatchPrep({
         </button>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setRechargeOpen(true)}
+            onClick={() => navigate("/recharge")}
             className="flex items-center gap-1 h-8 px-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15 active:scale-95 transition"
             aria-label="Recharge diamonds"
           >
@@ -299,7 +299,7 @@ export default function PreMatchPrep({
             <div className="px-2 py-1 rounded-md bg-rose-600/90 text-white text-[10px] font-mono font-bold tracking-wider border border-white/20 shadow-md whitespace-nowrap tabular-nums">
               {fmtClock(vipCountdown)}
             </div>
-            <button onClick={() => setRechargeOpen(true)} aria-label="Up to 60% bonus recharge"
+            <button onClick={() => navigate("/recharge")} aria-label="Up to 60% bonus recharge"
               className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 shadow-[0_10px_28px_-8px_rgba(168,85,247,0.6)] border-2 border-white/30 grid place-items-center active:scale-95 transition">
               <Crown className="w-7 h-7 text-amber-200 drop-shadow" />
               <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white text-[9px] font-extrabold tracking-wide border border-white/40 shadow-md whitespace-nowrap leading-none">
@@ -396,73 +396,6 @@ export default function PreMatchPrep({
         )}
       </div>
 
-      {/* Recharge bonus popup — Google Play + Crypto */}
-      {rechargeOpen && (
-        <div
-          className="fixed inset-0 z-[100] grid place-items-center bg-black/70 backdrop-blur-sm p-5"
-          onClick={() => setRechargeOpen(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-white/10 shadow-2xl overflow-hidden"
-          >
-            <div className="relative px-5 pt-5 pb-4 bg-gradient-to-br from-fuchsia-600/30 via-purple-600/20 to-transparent">
-              <button
-                onClick={() => setRechargeOpen(false)}
-                aria-label="Close"
-                className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/10 border border-white/15 grid place-items-center hover:bg-white/20"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="flex items-center gap-2">
-                <Crown className="w-6 h-6 text-amber-300" />
-                <h3 className="text-base font-extrabold tracking-tight">Up to 60% Bonus</h3>
-              </div>
-              <p className="mt-1 text-xs text-white/70">
-                Top up diamonds now and get extra bonus on every recharge.
-              </p>
-            </div>
-
-            <div className="p-4 space-y-3">
-              <button
-                onClick={() => { setRechargeOpen(false); navigate("/recharge?method=google"); }}
-                className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition text-left"
-              >
-                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 grid place-items-center shadow-lg">
-                  <Smartphone className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold">Google Play</div>
-                  <div className="text-[11px] text-white/60">Instant in-app purchase</div>
-                </div>
-                <span className="text-[10px] font-extrabold px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  +60%
-                </span>
-              </button>
-
-              <button
-                onClick={() => { setRechargeOpen(false); navigate("/recharge?method=crypto"); }}
-                className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition text-left"
-              >
-                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 grid place-items-center shadow-lg">
-                  <Bitcoin className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold">Crypto (USDT/BTC)</div>
-                  <div className="text-[11px] text-white/60">Auto-credit via SwiftPay</div>
-                </div>
-                <span className="text-[10px] font-extrabold px-2 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  +60%
-                </span>
-              </button>
-
-              <p className="text-[10px] text-center text-white/40 pt-1">
-                Bonus % depends on the selected package and active campaign.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
