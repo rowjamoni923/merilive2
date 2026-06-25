@@ -335,7 +335,11 @@ const isChatImageMessage = (messageType?: string | null, content?: string | null
 };
 
 const isChatVideoMessage = (messageType?: string | null, content?: string | null) => {
+  // Voice notes upload as .webm too — make sure audio messages don't fall into the video branch.
+  if (messageType === 'audio' || messageType === 'voice') return false;
+  if (/^\[(Audio|Voice):/i.test(content || '')) return false;
   const noQuery = extractChatMediaPath(content).split('?')[0];
+  if (/voice-\d+\.webm$/i.test(noQuery)) return false;
   return messageType === 'video'
     || /^\[Video:/i.test(content || '')
     || /\.(mp4|mov|avi|mkv|webm)$/i.test(noQuery);
