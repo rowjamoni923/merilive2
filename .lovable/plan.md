@@ -1,21 +1,23 @@
 
 ## Goal
 
-Fix Face Verification professionalism regressions: language selection jumping in Step 1, and passive AI review bouncing users from Under Review back to Required/Rejected too aggressively.
+Fix Face Verification professionalism regressions and lock the final policy: auto-approve/auto-reject must be deterministic, and user-visible auto-reject is allowed only for a previous-account duplicate face or a confident account-gender mismatch.
 
 ## Research + verified signal
 
 - KYC / identity-verification best practice is workflow-based: unclear model/provider signals should become manual review, not immediate user-visible rejection. Source: https://secured.vision/identity-verification-workflow-best-practices-for-saas-onboarding
 - False positives usually come from combining signals/thresholds too aggressively; reduce false positives by separating hard fraud from review-needed cases. Source: https://validator.cloud/reduce-false-positives-in-identity-verification-workflows
 - Manual identity verification is still required when automation cannot confidently decide. Source: https://www.signzy.com/blogs/manual-identity-verification
-- Current code root cause verified: `face-verification-analyze` still set `status='rejected'` for passive `duplicate_face` and `gender_mismatch`, which made Profile clear Pending and show Required/Rejected immediately after submit.
+- Current code root cause verified: a previous emergency passive-scan guard changed `duplicate_face` and `gender_mismatch` into manual-review reasons for `scan_mode='passive_photo_video_live'`, so the two fraud cases the owner expects to reject could remain Pending instead of Rejected.
+- Current live DB signal verified: last 7 days show 5 approved and 5 rejected submissions; rejection samples include gender mismatch and duplicate-face cases, so the pipeline exists, but the edge policy had split behavior between passive and non-passive paths.
 - Current UI root cause verified: user Step 1 computed completion live from `fullName + age + language`, so selecting language immediately unmounted Step 1 and mounted Step 2 while the Select was still closing, causing visible jumping.
+- Policy correction locked: duplicate previous account and confident gender/account mismatch are hard fraud decisions; liveness/replay/photo/profile/gallery/quality problems are manual-review blockers for auto-approve, not instant user-visible rejects.
 
 ## What changed
 
 - User Face Verification Step 1 now advances only after explicit **Next** tap (`userInfoStepComplete`), so selecting language no longer causes auto-unmount/jump.
-- Passive photo/video/live scans now keep ambiguous duplicate/gender/liveness/replay/photo mismatch cases in Pending manual review instead of instant user-visible rejection.
-- Soft-risk passive cases also block auto-approve and stay Pending, so safety is preserved without non-professional false rejects.
+- Passive photo/video/live scans now hard-reject only duplicate previous account and confident gender/account mismatch, matching the owner requirement.
+- Soft-risk passive cases (liveness/replay/photo/profile/gallery/quality) block auto-approve and stay Pending for admin review, so safety is preserved without false rejects.
 
 ---
 
