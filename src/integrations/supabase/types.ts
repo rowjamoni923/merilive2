@@ -7878,7 +7878,11 @@ export type Database = {
           host_id: string
           is_available: boolean
           last_active_at: string
+          match_suspend_until: string | null
           preferred_caller_gender: string | null
+          reports_window_count: number
+          reports_window_start: string | null
+          suspend_reason: string | null
           suspended_until: string | null
           suspension_reason: string | null
           turned_off_at: string | null
@@ -7893,7 +7897,11 @@ export type Database = {
           host_id: string
           is_available?: boolean
           last_active_at?: string
+          match_suspend_until?: string | null
           preferred_caller_gender?: string | null
+          reports_window_count?: number
+          reports_window_start?: string | null
+          suspend_reason?: string | null
           suspended_until?: string | null
           suspension_reason?: string | null
           turned_off_at?: string | null
@@ -7908,7 +7916,11 @@ export type Database = {
           host_id?: string
           is_available?: boolean
           last_active_at?: string
+          match_suspend_until?: string | null
           preferred_caller_gender?: string | null
+          reports_window_count?: number
+          reports_window_start?: string | null
+          suspend_reason?: string | null
           suspended_until?: string | null
           suspension_reason?: string | null
           turned_off_at?: string | null
@@ -13036,21 +13048,45 @@ export type Database = {
       }
       random_call_skip_counters: {
         Row: {
+          cooldown_reason: string | null
+          cooldown_until: string | null
           day_bucket: string
+          extended_window_count: number
+          extended_window_start: string | null
+          last_report_at: string | null
           last_skip_at: string
+          reports_count: number
           skip_count: number
+          soft_window_count: number
+          soft_window_start: string | null
           user_id: string
         }
         Insert: {
+          cooldown_reason?: string | null
+          cooldown_until?: string | null
           day_bucket?: string
+          extended_window_count?: number
+          extended_window_start?: string | null
+          last_report_at?: string | null
           last_skip_at?: string
+          reports_count?: number
           skip_count?: number
+          soft_window_count?: number
+          soft_window_start?: string | null
           user_id: string
         }
         Update: {
+          cooldown_reason?: string | null
+          cooldown_until?: string | null
           day_bucket?: string
+          extended_window_count?: number
+          extended_window_start?: string | null
+          last_report_at?: string | null
           last_skip_at?: string
+          reports_count?: number
           skip_count?: number
+          soft_window_count?: number
+          soft_window_start?: string | null
           user_id?: string
         }
         Relationships: []
@@ -21090,6 +21126,7 @@ export type Database = {
         Returns: boolean
       }
       check_otp_rate_limit: { Args: { p_email: string }; Returns: boolean }
+      check_random_skip_cooldown: { Args: { p_user_id: string }; Returns: Json }
       check_rate_limit: {
         Args: { _action: string; _max_per_hour?: number; _user_id: string }
         Returns: boolean
@@ -22266,6 +22303,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_random_skip_multiplier: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }
       get_task_center_calendar: { Args: never; Returns: Json }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
@@ -22892,7 +22933,11 @@ export type Database = {
           host_id: string
           is_available: boolean
           last_active_at: string
+          match_suspend_until: string | null
           preferred_caller_gender: string | null
+          reports_window_count: number
+          reports_window_start: string | null
+          suspend_reason: string | null
           suspended_until: string | null
           suspension_reason: string | null
           turned_off_at: string | null
@@ -23017,6 +23062,7 @@ export type Database = {
         }
         Returns: string
       }
+      register_random_skip: { Args: { p_user_id: string }; Returns: Json }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
         Returns: Json
@@ -23042,6 +23088,15 @@ export type Database = {
           p_stream_id: string
         }
         Returns: string
+      }
+      report_random_match: {
+        Args: {
+          p_detail?: string
+          p_reason: string
+          p_reporter_id: string
+          p_session_id: string
+        }
+        Returns: Json
       }
       request_account_deletion: {
         Args: { user_id_param: string }

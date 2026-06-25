@@ -41,14 +41,17 @@ export default function MatchCallOverlay({ minBillableSeconds, onNext }: MatchCa
     try {
       const raw = window.sessionStorage.getItem("random_call:active");
       const info = raw ? JSON.parse(raw) : null;
-      if (info?.host_id) {
-        await supabase.from("user_reports" as any).insert({
-          reported_user_id: info.host_id,
-          reason: "random_call_violation",
-          context: "random_call",
-          source_id: info.session_id,
+      const { data: u } = await supabase.auth.getUser();
+      if (info?.session_id && u?.user?.id) {
+        const { data, error } = await supabase.rpc("report_random_match" as any, {
+          p_session_id: info.session_id,
+          p_reporter_id: u.user.id,
+          p_reason: "random_call_violation",
+          p_detail: null,
         });
-        toast.success("Report submitted. Our team will review.");
+        if (error) throw error;
+        const suspended = (data as any)?.host_suspended;
+        toast.success(suspended ? "Report submitted — host auto-suspended for review." : "Report submitted. Our team will review.");
       }
     } catch (_) {
       toast.error("Could not submit report.");
