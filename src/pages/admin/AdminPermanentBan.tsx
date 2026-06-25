@@ -98,10 +98,14 @@ export default function AdminPermanentBan() {
   const [reason, setReason] = useState("");
   const [evidence, setEvidence] = useState("");
   const [durationValue, setDurationValue] = useState<string>("7");
+  const [banDevice, setBanDevice] = useState(false);
+  const [banIp, setBanIp] = useState(false);
+  const [banFace, setBanFace] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Detail
   const [selectedBan, setSelectedBan] = useState<SeverityBan | null>(null);
+
 
   const fetchBans = useCallback(async () => {
     setLoading(true);
