@@ -2393,7 +2393,7 @@ const Chat = () => {
 
       // Create group + owner membership atomically.
       // If the membership insert fails, the group insert is rolled back too.
-      const { data: createResult, error } = await supabase.rpc('create_chat_group', {
+      const { data: createResult, error } = await supabase.rpc('create_chat_group' as any, {
         p_name: newGroupName.trim(),
         p_group_type: newGroupType,
       });
