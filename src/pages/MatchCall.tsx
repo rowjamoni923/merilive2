@@ -19,8 +19,10 @@ import MatchCallOverlay from "@/components/match/MatchCallOverlay";
  */
 export default function MatchCall() {
   const navigate = useNavigate();
-  const { startCall, isInCall } = useCall();
+  const { startCall, endCall, isInCall } = useCall();
   const wasInCallRef = useRef(false);
+  const lastFiltersRef = useRef<MatchFilters | null>(null);
+  const autoRestartRef = useRef(false);
   const [phase, setPhase] = useState<"prep" | "searching" | "matched" | "error">("prep");
   const [queueId, setQueueId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
