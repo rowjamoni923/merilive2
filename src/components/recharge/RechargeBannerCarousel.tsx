@@ -141,8 +141,8 @@ export default function RechargeBannerCarousel({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-2xl shadow-xl shadow-amber-500/10"
-      style={{ aspectRatio: "3 / 1" }}
+      className="relative w-full overflow-hidden rounded-2xl shadow-xl shadow-amber-500/10 bg-black"
+      style={{ aspectRatio: "16 / 9" }}
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
       onTouchStart={() => (pausedRef.current = true)}
@@ -159,7 +159,7 @@ export default function RechargeBannerCarousel({
           tabIndex={i === index ? 0 : -1}
           onClick={() => onBannerClick?.(b)}
           className={cn(
-            "absolute inset-0 w-full h-full transition-opacity duration-700 ease-out",
+            "absolute inset-0 w-full h-full transition-opacity duration-700 ease-out flex items-center justify-center",
             i === index ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
           )}
         >
@@ -167,13 +167,14 @@ export default function RechargeBannerCarousel({
             src={b.image_url}
             alt={b.title || `Banner ${i + 1}`}
             fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
-            className="w-full h-full object-cover rounded-2xl select-none"
+            className="w-full h-full object-contain rounded-2xl select-none"
             draggable={false}
             eager={i === index}
-            resize="cover"
+            resize="contain"
           />
         </button>
       ))}
+
 
       {/* Premium gold border glow */}
       <div
