@@ -4928,3 +4928,82 @@ a:focus-visible,
   /* Increase tap area for all native buttons/links inside forms */
   button, [role="button"], a.button { -webkit-tap-highlight-color: transparent; }
 }
+
+/* =========================================================
+ * Phase 3 — Global mobile-tune (Home/Profile/Live/Call/Chat/Agency)
+ * Chamet/Bigo style: keep existing design, only fix spacing /
+ * touch-target / typography / safe-area on phones (≤640px).
+ * Desktop & tablet untouched.
+ * ========================================================= */
+@media (max-width: 640px) {
+  /* Any bottom-pinned bar respects the home-indicator safe area */
+  .fixed.bottom-0:not([data-no-safe]),
+  .sticky.bottom-0:not([data-no-safe]) {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.25rem);
+  }
+
+  /* Top-pinned headers honor the notch */
+  header.fixed.top-0:not([data-no-safe]),
+  header.sticky.top-0:not([data-no-safe]),
+  nav.fixed.top-0:not([data-no-safe]) {
+    padding-top: max(env(safe-area-inset-top), 0.25rem);
+  }
+
+  /* Long usernames, IDs, URLs never break the layout */
+  .card, [class*="rounded-2xl"], [class*="rounded-3xl"] {
+    overflow-wrap: anywhere;
+  }
+
+  /* Dialog / sheet content gets safe-area padding by default */
+  [role="dialog"] > div:last-child,
+  [data-radix-popper-content-wrapper] {
+    padding-bottom: max(var(--radix-dialog-content-pb, 0px), env(safe-area-inset-bottom));
+  }
+
+  /* Bottom sheets opened with shadcn Sheet from="bottom" */
+  [data-state="open"][data-side="bottom"] {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+
+  /* Ensure typical icon buttons meet the 40px floor without overriding
+     explicitly larger sizes (Chamet uses ~40px circular controls) */
+  button.h-7, a.h-7, [role="button"].h-7 { min-height: 40px; }
+  button.h-8, a.h-8, [role="button"].h-8 { min-height: 40px; }
+  button.h-9, a.h-9, [role="button"].h-9 { min-height: 40px; }
+  button.w-7, button.w-8, button.w-9 { min-width: 40px; }
+
+  /* Tabs / pill nav: a touch more vertical breathing */
+  [role="tablist"] [role="tab"] { min-height: 40px; }
+
+  /* Chat composer & inputs sit above the keyboard with breathing room */
+  .chat-composer,
+  [data-chat-composer] {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+
+  /* Live overlay action rows clear the home indicator */
+  .live-bottom-actions,
+  [data-live-bottom] {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+
+  /* Tame oversized desktop headings on phones (only when the page
+     forgot to add responsive sizes) */
+  h1:not([class*="text-"]) { font-size: 1.5rem; line-height: 1.25; }
+  h2:not([class*="text-"]) { font-size: 1.25rem; line-height: 1.3; }
+  h3:not([class*="text-"]) { font-size: 1.125rem; line-height: 1.35; }
+
+  /* Horizontal scrollers (stories, leaderboards, gift trays) get
+     edge fade + snap behavior without changing markup */
+  .hide-scrollbar,
+  [data-h-scroll] {
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-left: 1rem;
+    scroll-padding-right: 1rem;
+  }
+
+  /* Prevent images from blowing out narrow phones */
+  img:not([width]):not(.shrink-0) { max-width: 100%; height: auto; }
+}
+
