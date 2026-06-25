@@ -473,6 +473,9 @@ const HostDashboard = () => {
           </Card>
         )}
 
+        {/* Match Call Availability */}
+        <HostMatchToggleCard />
+
         {/* Call Rate Settings */}
         <Card className="border-primary/30">
           <CardHeader className="pb-3">
