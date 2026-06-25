@@ -38,7 +38,18 @@ interface RandomCallSettings {
   livekit_room_max_seconds: number;
   coins_to_usd_rate: number;
   beans_to_usd_rate: number;
+  score_weight_verification: number;
+  score_weight_vip: number;
+  score_weight_engagement: number;
+  score_weight_profile: number;
+  score_weight_level: number;
+  score_weight_history: number;
+  engagement_fresh_seconds: number;
+  level_norm_cap: number;
+  same_pair_block_minutes: number;
+  queue_resort_interval_seconds: number;
 }
+
 
 const NUM = (s: string) => (s === "" ? 0 : Number(s));
 
