@@ -7869,6 +7869,54 @@ export type Database = {
         }
         Relationships: []
       }
+      host_match_availability: {
+        Row: {
+          accepts_countries: string[] | null
+          accepts_languages: string[] | null
+          auto_on_when_live: boolean
+          created_at: string
+          host_id: string
+          is_available: boolean
+          last_active_at: string
+          preferred_caller_gender: string | null
+          suspended_until: string | null
+          suspension_reason: string | null
+          turned_off_at: string | null
+          turned_on_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepts_countries?: string[] | null
+          accepts_languages?: string[] | null
+          auto_on_when_live?: boolean
+          created_at?: string
+          host_id: string
+          is_available?: boolean
+          last_active_at?: string
+          preferred_caller_gender?: string | null
+          suspended_until?: string | null
+          suspension_reason?: string | null
+          turned_off_at?: string | null
+          turned_on_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepts_countries?: string[] | null
+          accepts_languages?: string[] | null
+          auto_on_when_live?: boolean
+          created_at?: string
+          host_id?: string
+          is_available?: boolean
+          last_active_at?: string
+          preferred_caller_gender?: string | null
+          suspended_until?: string | null
+          suspension_reason?: string | null
+          turned_off_at?: string | null
+          turned_on_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       host_match_preferences: {
         Row: {
           auto_accept_calls: boolean
@@ -7922,6 +7970,69 @@ export type Database = {
           rate_changed_at?: string | null
           total_beans_earned?: number
           total_calls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      host_match_stats: {
+        Row: {
+          acceptance_pct: number | null
+          avg_duration_sec_7d: number
+          avg_rating_7d: number
+          calls_completed_7d: number
+          calls_short_7d: number
+          created_at: string
+          host_id: string
+          is_queue_suppressed: boolean
+          last_recomputed_at: string
+          quality_score: number
+          rating_count_7d: number
+          report_count_24h: number
+          rings_accepted_7d: number
+          rings_received_7d: number
+          rings_rejected_7d: number
+          rings_timeout_7d: number
+          suppressed_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          acceptance_pct?: number | null
+          avg_duration_sec_7d?: number
+          avg_rating_7d?: number
+          calls_completed_7d?: number
+          calls_short_7d?: number
+          created_at?: string
+          host_id: string
+          is_queue_suppressed?: boolean
+          last_recomputed_at?: string
+          quality_score?: number
+          rating_count_7d?: number
+          report_count_24h?: number
+          rings_accepted_7d?: number
+          rings_received_7d?: number
+          rings_rejected_7d?: number
+          rings_timeout_7d?: number
+          suppressed_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acceptance_pct?: number | null
+          avg_duration_sec_7d?: number
+          avg_rating_7d?: number
+          calls_completed_7d?: number
+          calls_short_7d?: number
+          created_at?: string
+          host_id?: string
+          is_queue_suppressed?: boolean
+          last_recomputed_at?: string
+          quality_score?: number
+          rating_count_7d?: number
+          report_count_24h?: number
+          rings_accepted_7d?: number
+          rings_received_7d?: number
+          rings_rejected_7d?: number
+          rings_timeout_7d?: number
+          suppressed_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -12748,6 +12859,7 @@ export type Database = {
       }
       random_call_settings: {
         Row: {
+          auto_on_when_live: boolean
           beans_to_usd_rate: number
           coins_to_usd_rate: number
           country_filter_requires_vip: boolean
@@ -12758,8 +12870,13 @@ export type Database = {
           flash_disconnect_cooldown_minutes: number
           flash_disconnect_threshold: number
           flash_disconnect_window_seconds: number
+          free_preview_seconds: number
           free_trial_seconds: number
+          grace_cancel_seconds: number
+          host_idle_timeout_seconds: number
+          host_max_acceptance_pct: number
           host_max_rate_coins_per_min: number
+          host_min_acceptance_pct: number
           host_min_rate_coins_per_min: number
           host_split_pct: number
           id: number
@@ -12770,14 +12887,28 @@ export type Database = {
           min_host_level_for_pool: number
           preauth_minutes_hold: number
           price_change_cooldown_seconds: number
+          queue_resort_interval_seconds: number
+          reconnect_window_seconds: number
+          report_suspend_hours: number
+          report_suspend_threshold: number
           ring_timeout_seconds: number
+          same_pair_block_minutes: number
           skip_cooldown_seconds: number
+          skip_extended_cooldown_seconds: number
+          skip_extended_trigger_count: number
+          skip_extended_window_seconds: number
+          skip_soft_cooldown_seconds: number
+          skip_soft_trigger_count: number
+          skip_soft_window_seconds: number
+          svip_skip_cooldown_multiplier: number
           updated_at: string
           updated_by: string | null
           vip_free_trial_bonus_seconds: number
           vip_match_priority_multiplier: number
+          vip_skip_cooldown_multiplier: number
         }
         Insert: {
+          auto_on_when_live?: boolean
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
           country_filter_requires_vip?: boolean
@@ -12788,8 +12919,13 @@ export type Database = {
           flash_disconnect_cooldown_minutes?: number
           flash_disconnect_threshold?: number
           flash_disconnect_window_seconds?: number
+          free_preview_seconds?: number
           free_trial_seconds?: number
+          grace_cancel_seconds?: number
+          host_idle_timeout_seconds?: number
+          host_max_acceptance_pct?: number
           host_max_rate_coins_per_min?: number
+          host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
           host_split_pct?: number
           id?: number
@@ -12800,14 +12936,28 @@ export type Database = {
           min_host_level_for_pool?: number
           preauth_minutes_hold?: number
           price_change_cooldown_seconds?: number
+          queue_resort_interval_seconds?: number
+          reconnect_window_seconds?: number
+          report_suspend_hours?: number
+          report_suspend_threshold?: number
           ring_timeout_seconds?: number
+          same_pair_block_minutes?: number
           skip_cooldown_seconds?: number
+          skip_extended_cooldown_seconds?: number
+          skip_extended_trigger_count?: number
+          skip_extended_window_seconds?: number
+          skip_soft_cooldown_seconds?: number
+          skip_soft_trigger_count?: number
+          skip_soft_window_seconds?: number
+          svip_skip_cooldown_multiplier?: number
           updated_at?: string
           updated_by?: string | null
           vip_free_trial_bonus_seconds?: number
           vip_match_priority_multiplier?: number
+          vip_skip_cooldown_multiplier?: number
         }
         Update: {
+          auto_on_when_live?: boolean
           beans_to_usd_rate?: number
           coins_to_usd_rate?: number
           country_filter_requires_vip?: boolean
@@ -12818,8 +12968,13 @@ export type Database = {
           flash_disconnect_cooldown_minutes?: number
           flash_disconnect_threshold?: number
           flash_disconnect_window_seconds?: number
+          free_preview_seconds?: number
           free_trial_seconds?: number
+          grace_cancel_seconds?: number
+          host_idle_timeout_seconds?: number
+          host_max_acceptance_pct?: number
           host_max_rate_coins_per_min?: number
+          host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
           host_split_pct?: number
           id?: number
@@ -12830,12 +12985,25 @@ export type Database = {
           min_host_level_for_pool?: number
           preauth_minutes_hold?: number
           price_change_cooldown_seconds?: number
+          queue_resort_interval_seconds?: number
+          reconnect_window_seconds?: number
+          report_suspend_hours?: number
+          report_suspend_threshold?: number
           ring_timeout_seconds?: number
+          same_pair_block_minutes?: number
           skip_cooldown_seconds?: number
+          skip_extended_cooldown_seconds?: number
+          skip_extended_trigger_count?: number
+          skip_extended_window_seconds?: number
+          skip_soft_cooldown_seconds?: number
+          skip_soft_trigger_count?: number
+          skip_soft_window_seconds?: number
+          svip_skip_cooldown_multiplier?: number
           updated_at?: string
           updated_by?: string | null
           vip_free_trial_bonus_seconds?: number
           vip_match_priority_multiplier?: number
+          vip_skip_cooldown_multiplier?: number
         }
         Relationships: []
       }
@@ -13079,6 +13247,27 @@ export type Database = {
           status?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recent_match_pairs: {
+        Row: {
+          match_id: string | null
+          matched_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          match_id?: string | null
+          matched_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          match_id?: string | null
+          matched_at?: string
+          user_a?: string
+          user_b?: string
         }
         Relationships: []
       }
@@ -22656,6 +22845,38 @@ export type Database = {
           p_severity: string
         }
         Returns: Json
+      }
+      random_match_record_pair: {
+        Args: { _a: string; _b: string; _match_id: string }
+        Returns: undefined
+      }
+      random_match_set_host_availability: {
+        Args: { _host_id: string; _on: boolean }
+        Returns: {
+          accepts_countries: string[] | null
+          accepts_languages: string[] | null
+          auto_on_when_live: boolean
+          created_at: string
+          host_id: string
+          is_available: boolean
+          last_active_at: string
+          preferred_caller_gender: string | null
+          suspended_until: string | null
+          suspension_reason: string | null
+          turned_off_at: string | null
+          turned_on_at: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "host_match_availability"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      random_match_touch_host_availability: {
+        Args: { _host_id: string }
+        Returns: undefined
       }
       recalc_agency_activation: {
         Args: { p_agency_id: string }
