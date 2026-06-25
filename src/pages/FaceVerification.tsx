@@ -3176,7 +3176,7 @@ const FaceVerification = () => {
 
 
 
-  if (loading && !submitInProgress && verificationStatus !== 'submitted' && verificationStatus !== 'verified' && verificationStatus !== 'rejected') {
+  if (loading && !submitInProgress && verificationStatus !== 'submitted' && verificationStatus !== 'verified' && verificationStatus !== 'rejected' && verificationStatus !== 'needs_retry') {
     return (
       <PageSkeleton
         className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"
