@@ -4,6 +4,7 @@ import l3Banner from "@/assets/policy-banners/l3.jpg";
 import l4Banner from "@/assets/policy-banners/l4.jpg";
 import l5Banner from "@/assets/policy-banners/l5.jpg";
 import l6Banner from "@/assets/policy-banners/l6.jpg";
+import { MAIN_APP_ORIGIN } from "@/utils/publicRoutes";
 
 export type PolicyLevelCode = "L1" | "L2" | "L3" | "L4" | "L5" | "L6";
 
@@ -86,6 +87,5 @@ export function getPolicyLevel(code: string): PolicyLevelMeta | undefined {
 }
 
 export function policyPublicUrl(code: PolicyLevelCode): string {
-  if (typeof window === "undefined") return `/policies/levels/${code}`;
-  return `${window.location.origin}/policies/levels/${code}`;
+  return `${MAIN_APP_ORIGIN}/policies/levels/${code}`;
 }

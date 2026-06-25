@@ -41,7 +41,7 @@ Opened by tapping avatar / name / header anywhere.
 - Member action sheet (long-press): Send message, View profile, Make admin / Dismiss admin, Mute in group, Remove from group, Ban (blocks rejoin), Report.
 
 ### 3. Invite system
-- **Invite link**: `merilive.top/g/<token>` — 16-char unguessable token on `groups.invite_token`. Owner/admin can: copy, share, QR code, reset link, set expiry (1h / 1d / 7d / never), set max uses.
+- **Invite link**: `merilive.com/g/<token>` — 16-char unguessable token on `groups.invite_token`. Owner/admin can: copy, share, QR code, reset link, set expiry (1h / 1d / 7d / never), set max uses. `merilive.top` remains landing-only.
 - **QR code**: rendered client-side with `qrcode` lib.
 - **Pending approval queue** (when "Approve new members" is ON): admin sees requests in Group Info → "Member Requests (3)" with Approve / Reject.
 - **Deep link handler** (`/g/<token>`): if logged in → preview card (group avatar, name, member count, "Join") → on tap calls `join_via_invite` RPC.
@@ -144,6 +144,14 @@ All English UI strings (per memory). Design stays mobile-first luxurious; no Spa
 8. **QA** — owner-account end-to-end on preview; performance check at 1k+ members seeded.
 
 No APK rebuild required for any phase (pure Lovable + Supabase + Realtime). Native gift/entry/camera systems untouched.
+
+---
+
+## Policy / deep-link routing standard (locked)
+
+- Professional chat apps use a canonical app domain for public joins and policy/deep links: WhatsApp documents web-accessible group invite joining (`faq.whatsapp.com/1139252413769848`) and Telegram documents canonical `t.me` HTTPS deep links plus private/public invite links (`core.telegram.org/api/links`, `core.telegram.org/api/invites`).
+- MeriLive canonical main-app policy links must use `https://merilive.com`, not the landing-only `merilive.top` and not the preview origin.
+- `/policies/levels` and `/policies/levels/:levelCode` must be registered before `/policies/:policyId` on every router branch, with a defensive redirect if `policyId="levels"` ever reaches the generic policy detail page.
 
 ---
 
