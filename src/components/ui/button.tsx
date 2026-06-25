@@ -34,11 +34,12 @@ const buttonVariants = cva(
           "bg-transparent text-foreground font-semibold rounded-xl border-2 border-amber-400/60 hover:border-amber-400 hover:bg-amber-400/10 hover:text-amber-100 hover:shadow-[0_6px_18px_-8px_rgba(245,158,11,0.4)] focus-visible:border-amber-300 focus-visible:bg-amber-400/10 focus-visible:ring-amber-300/70 transition-colors",
       },
       size: {
-        default: "h-11 px-6 py-2.5",
-        sm: "h-9 rounded-lg px-4 text-xs leading-4",
+        // Mobile-first: ensure ≥44px touch target on phones, keep desktop look unchanged
+        default: "min-h-11 h-11 px-6 py-2.5 max-sm:min-h-[44px]",
+        sm: "h-9 rounded-lg px-4 text-xs leading-4 max-sm:min-h-[40px] max-sm:px-4",
         lg: "h-12 rounded-xl px-8 text-base leading-6",
         xl: "h-14 rounded-2xl px-10 text-lg leading-7",
-        icon: "h-10 w-10 rounded-xl",
+        icon: "h-10 w-10 rounded-xl max-sm:min-h-[44px] max-sm:min-w-[44px]",
       },
     },
     defaultVariants: {
