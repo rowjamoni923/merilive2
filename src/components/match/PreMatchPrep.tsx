@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
   Users, Globe2, Languages, Crown, Lock, Phone, ShieldCheck, Gem, Clock, ChevronLeft, History,
@@ -7,6 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useUserBalance } from "@/hooks/useUserBalance";
 
 export type MatchFilters = {
   preferred_host_gender: "male" | "female" | "any";
