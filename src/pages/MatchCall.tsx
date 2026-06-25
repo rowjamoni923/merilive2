@@ -90,6 +90,8 @@ export default function MatchCall() {
         supabase.functions.invoke("random-call-settle", {
           body: { session_id: info.session_id, duration_seconds: duration, ended_by: info.ended_by ?? "caller" },
         }).catch(() => {});
+        // Open the post-call rating sheet only for non-trivial calls.
+        if (duration >= 10 && !shouldAutoRestart) setRatingSession(info.session_id);
       } catch (_) {}
     }
     if (shouldAutoRestart && lastFiltersRef.current) {
