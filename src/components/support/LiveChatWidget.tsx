@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { isLiveChatOnline, getSupportHoursLocal } from "@/components/support/AISupportChat";
+import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import Skeleton from "@/components/Skeleton";
 
@@ -34,6 +35,7 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const ticketIdRef = useRef<string | null>(null);
+  const { toast } = useToast();
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(userId);
@@ -145,12 +147,13 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
   const handleSend = async () => {
     if (!input.trim() || !ticketId || !userId || sending) return;
     const text = input.trim();
+    const tempId = `temp-${Date.now()}`;
     setInput("");
     setSending(true);
 
     // Optimistic update
     const optimisticMsg: LiveMessage = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       sender_type: "user",
       content: text,
       is_read: false,
@@ -159,17 +162,35 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
-      await supabase.from("support_messages").insert({
-        ticket_id: ticketId,
-        sender_id: userId,
-        sender_type: "user",
-        content: text,
-      });
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error } = await supabase.from("support_messages").insert({
+          ticket_id: ticketId,
+          sender_id: userId,
+          sender_type: "user",
+          content: text,
+        });
+        if (!error) {
+          lastError = null;
+          break;
+        }
+        lastError = error;
+        await new Promise(resolve => setTimeout(resolve, 400 * (attempt + 1)));
+      }
+
+      if (lastError) throw lastError;
+      await loadMessages(ticketId);
 
       // 🔥 AWS Comprehend toxic content moderation (background)
       checkToxic(text, { contextType: 'support' }).catch(() => {});
-    } catch (error) {
+    } catch (error: any) {
       console.error("Send error:", error);
+      setMessages(prev => prev.map(msg => msg.id === tempId ? { ...msg, content: `${msg.content}  ⚠️` } : msg));
+      toast({
+        title: "Message failed",
+        description: error?.message || "Could not deliver your message. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSending(false);
       inputRef.current?.focus();
