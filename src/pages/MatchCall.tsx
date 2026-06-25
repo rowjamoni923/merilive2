@@ -334,9 +334,9 @@ export default function MatchCall() {
       )}
       <PreMatchPrep
         diamondBalance={profile?.coins ?? 0}
-        hostRatePerMin={holdAmount > 0 ? holdAmount : (settings?.default_host_rate_coins_per_min ?? 0)}
+        hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 500}
         freeTrialSeconds={settings?.random_window_seconds ?? 60}
-        minBillableSeconds={settings?.random_window_seconds ?? 60}
+        minBillableSeconds={settings?.min_billable_seconds ?? 40}
         availableHostsCount={hostsCount}
         estimatedWaitSeconds={estWait}
         isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
