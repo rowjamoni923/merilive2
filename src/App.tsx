@@ -1322,6 +1322,8 @@ const App = () => {
                 <Route path="/host-transfer-history" element={<ProtectedRoute session={session}><HostTransferHistory /></ProtectedRoute>} />
                 <Route path="/call-history" element={<ProtectedRoute session={session}><CallHistory /></ProtectedRoute>} />
                 <Route path="/call" element={<Navigate to="/call-history" replace />} />
+                <Route path="/match-call" element={<ProtectedRoute session={session}><MatchCall /></ProtectedRoute>} />
+                <Route path="/match-call/session/:sessionId" element={<ProtectedRoute session={session}><MatchCall /></ProtectedRoute>} />
                 <Route path="/following" element={<ProtectedRoute session={session}><FollowingList /></ProtectedRoute>} />
                 <Route path="/following-list" element={<ProtectedRoute session={session}><FollowingList /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute session={session}><SearchUsers /></ProtectedRoute>} />
