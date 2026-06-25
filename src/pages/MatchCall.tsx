@@ -69,16 +69,37 @@ export default function MatchCall() {
       });
       if (error) throw error;
 
-      if ((data as any)?.status === "matched") {
-        // Hand off to existing private-call flow with the new session/room
+      const handoff = async (sessionId: string, hostId: string) => {
         if (timerRef.current) window.clearInterval(timerRef.current);
         setPhase("matched");
+
+        // Track session start for settlement on call end
+        const startedAt = Date.now();
+        try {
+          window.sessionStorage.setItem(
+            "random_call:active",
+            JSON.stringify({ session_id: sessionId, host_id: hostId, started_at: startedAt }),
+          );
+        } catch (_) {}
+
+        // Reuse the proven private-call flow — full LiveKit + UI handled by CallProvider
+        const callId = await startCall(hostId);
+        if (!callId) {
+          toast.error("Could not start the call. Please try again.");
+          setPhase("error");
+          setErrorMsg("Failed to open call window.");
+          return;
+        }
+        // CallProvider mounts ActiveCallScreen as overlay; we stay on this page
+        // (it will be hidden behind the call UI). On end, the call-ended modal
+        // appears and the user returns here automatically.
+      };
+
+      if ((data as any)?.status === "matched") {
         const sess = data as any;
-        // Route to existing call screen by session ID — adapter screen will pick it up
-        navigate(`/match-call/session/${sess.session_id}?room=${encodeURIComponent(sess.room)}&host=${sess.host_id}`);
+        await handoff(sess.session_id, sess.host_id);
       } else if ((data as any)?.status === "queued") {
         setQueueId((data as any).queue_id);
-        // Listen for our own queue row turning into "matched" via Realtime
         const channel = supabase
           .channel(`match-q-${(data as any).queue_id}`)
           .on(
@@ -86,7 +107,6 @@ export default function MatchCall() {
             { event: "UPDATE", schema: "public", table: "random_call_queue", filter: `id=eq.${(data as any).queue_id}` },
             async (payload: any) => {
               if (payload.new?.status === "matched" && payload.new?.session_id) {
-                if (timerRef.current) window.clearInterval(timerRef.current);
                 const sid = payload.new.session_id;
                 const { data: sess } = await supabase
                   .from("random_call_sessions" as any)
@@ -94,9 +114,7 @@ export default function MatchCall() {
                   .eq("id", sid)
                   .maybeSingle();
                 supabase.removeChannel(channel);
-                if (sess) {
-                  navigate(`/match-call/session/${sid}?room=${encodeURIComponent((sess as any).livekit_room)}&host=${(sess as any).host_id}`);
-                }
+                if (sess) await handoff(sid, (sess as any).host_id);
               }
             },
           )
