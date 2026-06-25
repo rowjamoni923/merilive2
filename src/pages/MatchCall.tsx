@@ -66,6 +66,19 @@ export default function MatchCall() {
     };
   }, []);
 
+  // Instant-mode (pill tap): auto-fire broadcast as soon as settings load.
+  const instantFiredRef = useRef(false);
+  useEffect(() => {
+    if (!instantMode || instantFiredRef.current) return;
+    if (!settings) return;
+    instantFiredRef.current = true;
+    void startSearch(
+      { preferred_langs: [], preferred_country: null, preferred_host_gender: null },
+      { broadcast: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instantMode, settings]);
+
   // Keep our queue row alive while we're in the searching phase (anti-ghost).
   useEffect(() => {
     if (phase !== "searching") {
