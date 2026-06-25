@@ -51,8 +51,25 @@ export default function MatchCall() {
         .eq("role", "host").eq("status", "waiting");
       setHostsCount(count || 0);
     })();
-    return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
+    };
   }, []);
+
+  // Keep our queue row alive while we're in the searching phase (anti-ghost).
+  useEffect(() => {
+    if (phase !== "searching") {
+      if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+      return;
+    }
+    const ping = () => { supabase.functions.invoke("random-call-heartbeat", { body: {} }).catch(() => {}); };
+    ping();
+    heartbeatRef.current = window.setInterval(ping, 15000);
+    return () => {
+      if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+    };
+  }, [phase]);
 
   // Settle session after user exits the call overlay
   useEffect(() => {
