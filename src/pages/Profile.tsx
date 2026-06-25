@@ -35,6 +35,7 @@ import {
   Lock,
   Film,
   Power,
+  Clock3,
 } from "lucide-react";
 import { VerifiedBadge, HostVerifiedBadge } from "@/components/common/VerifiedBadge";
 import { Button } from "@/components/ui/button";
@@ -871,7 +872,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // conflating them showed "Under Review" to users who never submitted face verification).
         const submissionRow: any = (faceVerifPendingResult as any)?.data || null;
         const submissionStatus = String(submissionRow?.status || '').toLowerCase();
-        const isPendingSubmission = submissionStatus === 'pending' || submissionStatus === 'submitted';
+        const isPendingSubmission = submissionStatus === 'pending' || submissionStatus === 'submitted' || submissionStatus === 'under_review';
         const effectiveStatus = profileData?.is_face_verified
           ? 'approved'
           : (submissionStatus || null);
@@ -1003,7 +1004,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setFaceVerificationPending(false);
               // Also refresh profile to get is_face_verified update
               void fetchData();
-            } else if (payload?.status === 'pending' || payload?.status === 'submitted') {
+            } else if (payload?.status === 'pending' || payload?.status === 'submitted' || payload?.status === 'under_review') {
               setFaceVerificationPending(true);
             } else if (payload?.status === 'rejected') {
               setFaceVerificationPending(false);
@@ -1616,6 +1617,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Only the actual face_verification_submissions status drives this UI. Do NOT mix in host_status
   // (host application state) or any other profile column — they caused false "Under Review" banners.
   const effectiveFaceVerificationStatus = String(faceVerificationStatus || '').toLowerCase();
+  const faceVerificationUnderReview = faceVerificationPending || effectiveFaceVerificationStatus === 'pending' || effectiveFaceVerificationStatus === 'submitted' || effectiveFaceVerificationStatus === 'under_review';
   const faceVerificationRejected = effectiveFaceVerificationStatus === 'rejected';
 
   // Open Call Price Modal - fetch settings and current rate
@@ -1803,27 +1805,27 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Star,
       label: "Host Registration",
       path: "/host-verification",
-      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
-      highlight: !faceVerificationPending,
+      rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
+      highlight: !faceVerificationUnderReview,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-display",
       show: canApplyForHost,
-      onClick: faceVerificationPending ? () => {
-        toast({ title: "Under Review", description: "Your host application is being reviewed by our team. Please wait." });
+      onClick: faceVerificationUnderReview ? () => {
+        toast({ title: "Pending Review", description: "Your host application is being reviewed by our team. Please wait." });
       } : undefined,
     },
     // Face Verification — only for non-host-candidate users (males); females use Host Registration
     {
       icon: UserCheck,
       label: "Face Verification",
-      path: faceVerificationPending ? "" : "/face-verification",
-      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Required",
-      highlight: !faceVerificationPending,
-      iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
-      iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
+      path: faceVerificationUnderReview ? "" : "/face-verification",
+      rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Required",
+      highlight: !faceVerificationUnderReview,
+      iconBg: faceVerificationUnderReview ? "bg-yellow-50 border border-yellow-200" : "bg-amber-100",
+      iconColor: faceVerificationUnderReview ? "text-yellow-600" : "text-amber-500",
       show: isOwnProfile && !isFaceVerified && !canApplyForHost, // hidden for females (they see Host Registration)
-      onClick: faceVerificationPending ? () => {
-        toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
+      onClick: faceVerificationUnderReview ? () => {
+        toast({ title: "Pending Review", description: "Your face verification is being reviewed by our team. Please wait." });
       } : undefined,
     },
     {
@@ -1974,7 +1976,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     },
   ].filter(item => item.show), [
     isOwnProfile, isFemale, isHost, isFaceVerified, isAgencyOwner, isInActiveAgency,
-    showAgencyCenter, canApplyForHost, faceVerificationPending, faceVerificationRejected,
+    showAgencyCenter, canApplyForHost, faceVerificationPending, faceVerificationUnderReview, faceVerificationRejected,
     hostAvailability, handleToggleAvailability, profile, callRateSettings,
     userLevel, userVIPTier, levelProgress, nextLevel,
     globalUnread.messages, notificationCount, hasUnclaimedReward, toast,
@@ -2200,6 +2202,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           />
           
           {/* Verified Badge - Premium - Bottom Right Position */}
+          {isOwnProfile && !isFaceVerified && faceVerificationUnderReview && (
+            <div className="absolute -bottom-1 -right-1 z-40">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border-2 border-white flex items-center justify-center shadow-lg shadow-yellow-500/40" title="Face verification pending">
+                <Clock3 className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
           {(profile?.is_verified || isFaceVerified) && (
             <div className="absolute -bottom-1 -right-1 z-40">
  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-slate-200 flex items-center justify-center shadow-lg shadow-cyan-500/40">
