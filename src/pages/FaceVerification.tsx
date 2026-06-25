@@ -3757,16 +3757,18 @@ const FaceVerification = () => {
           {renderFaceVerificationSection()}
           
           {!faceVerified && (
-            <Button
-              variant="outline"
-              className="w-full h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
-              onClick={() => {
-                stopFaceCamera();
-                setCurrentStep(2);
-              }}
-            >
-              Go Back
-            </Button>
+            <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+              <Button
+                variant="outline"
+                className="w-full min-h-touch h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
+                onClick={() => {
+                  stopFaceCamera();
+                  setCurrentStep(2);
+                }}
+              >
+                Go Back
+              </Button>
+            </div>
           )}
         </motion.div>
       )}
