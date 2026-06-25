@@ -1947,7 +1947,12 @@ const FaceVerification = () => {
     
     postSubmitLockedRef.current = true;
     setSubmitInProgress(true);
+    setVerificationStatus('submitted'); // ★ instant lock so the Under Review screen takes over this very render
     setLoading(true);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('native-face-camera-active');
+      document.body.classList.remove('native-face-camera-active');
+    }
     await teardownFaceCameraPreview();
     
     try {
