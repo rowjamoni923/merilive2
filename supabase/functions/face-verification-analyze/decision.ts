@@ -73,28 +73,17 @@ export type DecisionInput = {
 };
 
 export type Decision =
-  | { kind: "reject"; reason: "banned_face" | "duplicate_face" | "gender_mismatch" }
+  | { kind: "reject"; reason: "banned_face" | "duplicate_face" }
   | { kind: "needs_retry"; failedEvidence: string[] }
   | { kind: "manual_review"; reason: string }
   | { kind: "auto_approve" };
 
 export function decideFaceVerificationOutcome(input: DecisionInput): Decision {
-  // 1) HARD FRAUD — checked first so nothing else can override.
+  // 1) HARD FRAUD — only banned face / duplicate of already-approved account.
+  //    Gender mismatch is NOT a reject reason (owner policy 2026-06-26).
   if (input.isBannedFace) return { kind: "reject", reason: "banned_face" };
   if (input.isDuplicateApproved) return { kind: "reject", reason: "duplicate_face" };
 
-  const hardGender = !!(
-    input.expectedGender &&
-    (input.expectedGender === "male" || input.expectedGender === "female") &&
-    input.detectedGender !== "unknown" &&
-    input.detectedGender !== input.expectedGender &&
-    input.genderConf >= HARD_GENDER_CONF &&
-    !input.frontError &&
-    !input.genderConflict
-  );
-  if (input.genderDeclarationMismatch || hardGender) {
-    return { kind: "reject", reason: "gender_mismatch" };
-  }
 
   // 2) EVIDENCE COMPLETENESS — if anything required is missing/unreadable,
   //    we cannot fairly say "not the same person", so it's manual review.
