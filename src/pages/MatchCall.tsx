@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Phone, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,15 @@ import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
  */
 export default function MatchCall() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const instantMode = searchParams.get("instant") === "1";
   const { startCall, endCall, isInCall } = useCall();
   const wasInCallRef = useRef(false);
   const lastFiltersRef = useRef<MatchFilters | null>(null);
   const autoRestartRef = useRef(false);
-  const [phase, setPhase] = useState<"prep" | "searching" | "matched" | "error">("prep");
+  const broadcastChannelRef = useRef<any>(null);
+  const broadcastIdRef = useRef<string | null>(null);
+  const [phase, setPhase] = useState<"prep" | "searching" | "matched" | "error">(instantMode ? "searching" : "prep");
   const [queueId, setQueueId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [settings, setSettings] = useState<any>(null);
@@ -61,6 +65,19 @@ export default function MatchCall() {
       if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
     };
   }, []);
+
+  // Instant-mode (pill tap): auto-fire broadcast as soon as settings load.
+  const instantFiredRef = useRef(false);
+  useEffect(() => {
+    if (!instantMode || instantFiredRef.current) return;
+    if (!settings) return;
+    instantFiredRef.current = true;
+    void startSearch(
+      { preferred_langs: [], preferred_country: null, preferred_host_gender: null },
+      { broadcast: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instantMode, settings]);
 
   // Keep our queue row alive while we're in the searching phase (anti-ghost).
   useEffect(() => {
@@ -110,8 +127,19 @@ export default function MatchCall() {
   }, [isInCall]);
 
   const cancelQueue = async () => {
-    try { await supabase.functions.invoke("random-call-cancel", { body: queueId ? { queue_id: queueId } : {} }); } catch (_) {}
+    try {
+      const body: any = {};
+      if (queueId) body.queue_id = queueId;
+      if (broadcastIdRef.current) body.broadcast_id = broadcastIdRef.current;
+      await supabase.functions.invoke("random-call-cancel", { body });
+    } catch (_) {}
+    if (broadcastChannelRef.current) {
+      try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {}
+      broadcastChannelRef.current = null;
+    }
+    broadcastIdRef.current = null;
     if (timerRef.current) window.clearInterval(timerRef.current);
+    if (instantMode) { navigate(-1); return; }
     setPhase("prep");
     setQueueId(null);
     setElapsed(0);
@@ -147,11 +175,12 @@ export default function MatchCall() {
 
 
 
-  const startSearch = async (filters: MatchFilters) => {
+  const startSearch = async (filters: MatchFilters, opts?: { broadcast?: boolean }) => {
     if (!settings?.is_enabled) {
       toast.error("Random Call is currently disabled by admin.");
       return;
     }
+    const broadcast = !!opts?.broadcast;
     lastFiltersRef.current = filters;
     setErrorMsg("");
     setPhase("searching");
@@ -171,6 +200,7 @@ export default function MatchCall() {
 
       const { data, error } = await supabase.functions.invoke("random-call-enqueue", {
         body: {
+          mode: broadcast ? "broadcast" : "queue",
           preferred_langs: filters.preferred_langs,
           preferred_country: filters.preferred_country,
           preferred_host_gender: filters.preferred_host_gender,
@@ -222,6 +252,39 @@ export default function MatchCall() {
       } else if ((data as any)?.status === "matched") {
         const sess = data as any;
         await handoff(sess.session_id, sess.host_id);
+      } else if ((data as any)?.status === "broadcasting") {
+        // Chamet-style fan-out: every online verified host is ringing.
+        // First to accept wins; we listen on our user channel for the assignment.
+        const bid = (data as any).broadcast_id as string;
+        broadcastIdRef.current = bid;
+        const ringTimeout = Number((data as any).ring_timeout_seconds ?? 20);
+
+        const { data: ud } = await supabase.auth.getUser();
+        const uid = ud?.user?.id;
+        if (!uid) throw new Error("not_authenticated");
+
+        const ch = supabase.channel(`user-${uid}`)
+          .on("broadcast", { event: "random_broadcast_matched" }, async (msg: any) => {
+            const p = msg?.payload ?? {};
+            if (p.broadcast_id !== bid) return;
+            try { supabase.removeChannel(ch); } catch (_) {}
+            broadcastChannelRef.current = null;
+            await handoff(p.session_id, p.host_id);
+          })
+          .subscribe();
+        broadcastChannelRef.current = ch;
+
+        // Auto-timeout if no host picks up within ring window
+        window.setTimeout(async () => {
+          if (broadcastIdRef.current !== bid) return;
+          if (timerRef.current) window.clearInterval(timerRef.current);
+          try { supabase.removeChannel(ch); } catch (_) {}
+          broadcastChannelRef.current = null;
+          broadcastIdRef.current = null;
+          try { await supabase.functions.invoke("random-call-cancel", { body: { broadcast_id: bid } }); } catch (_) {}
+          setErrorMsg("No host picked up. Please try again.");
+          setPhase("error");
+        }, ringTimeout * 1000 + 500);
       } else if ((data as any)?.status === "queued") {
         setQueueId((data as any).queue_id);
         const channel = supabase
