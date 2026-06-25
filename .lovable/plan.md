@@ -1,77 +1,65 @@
-# Mobile Customization — Full App (Chamet/Bigo style)
+# Random Match Call (Match Call) — Implementation Plan
 
-## Approach
+Research complete (Chamet/Poppo/Olamet/Bigo/HiiClub/WeJoy/Crush Live/Hollah/Kome). Full report: `/mnt/documents/random-match-call-competitive-research.md`. Industry-verified defaults locked: **40s minimum billable**, **90s free trial**, **60% host / 40% platform**, **15s host ring timeout**, **3 flash-disconnects/hour → 30 min pool ban**.
 
-পুরো design unchanged রেখে শুধু **mobile ergonomics** professional level-এ আনা হবে:
-- Min touch target 44×44px (Apple HIG) / 48dp (Material)
-- Safe-area insets (notch/home-indicator) সব fullscreen surface-এ
-- Responsive typography scale (clamp-based, no overflow)
-- Bottom-sheet pattern modals যেখানে desktop-only dialog ছিল
-- Sticky/safe CTA bars নিচে — thumb-zone reachable
-- Horizontal overflow audit + fix
-- Image/avatar sizing standardized
+## What gets built
 
-design-sacred rule অনুযায়ী colors/fonts/visual identity, gift-entry animations, native LiveKit path **touch করব না**।
+### 1. Database (1 migration)
+- `random_call_settings` — admin-editable singleton (price/min/max, min_billable_seconds=40, free_trial_seconds=90, host_split_pct=0.60, ring_timeout=15, flash thresholds, daily skip cap, VIP multipliers, no-match timeout)
+- `random_call_queue` — waiting callers + hosts, indexed for fast atomic matching
+- `random_call_sessions` — every match (status: ringing/active/completed/sub_minimum/aborted, duration, coins_charged, beans_awarded, ended_by)
+- `host_match_preferences` — opt-in, rate, langs, blocked users, flash-disconnect counter + cooldown
+- RPCs: `claim_match` (FOR UPDATE SKIP LOCKED), `pre_authorize_random_call`, `settle_random_call` (enforces 40s rule)
+- GRANTs + RLS per project standards
 
-## Phase Plan (একাধিক turn লাগবে — honesty)
+### 2. Edge Functions (3)
+- `random-call-enqueue` — pre-auth coins, insert queue, attempt instant match, broadcast `incoming_call` via Supabase Realtime to host
+- `random-call-cancel` — release hold, mark cancelled
+- `livekit-webhook-random` — on `room_finished`: enforce 40s rule (host=0 beans, caller=no refund unless within free trial), bump flash counter if host ended early, credit beans/debit coins otherwise
 
-### Phase 1 — Foundation (এই turn)
-- `src/index.css` এ mobile utility tokens (touch-target, safe-area helpers, mobile type scale)
-- Global Button/Input/Dialog/Sheet shadcn variants-এ min-height bump for `sm:` and below
-- `tailwind.config.ts`-এ `min-h-touch` (44px) + `safe-*` utilities
+### 3. Admin Panel
+- New menu item **"Random Call"** under existing admin pricing/settings section (same pattern as private-call price page → single source of truth)
+- `AdminRandomCallSettings.tsx` — all knobs editable, "Not configured" guard if row missing, instant reflection
+- Sub-tab: live sessions monitor + flash-disconnect leaderboard
 
-### Phase 2 — Face Verification (এই turn-এর পরের turn)
-3837 lines — step-by-step mobile audit:
-- Camera preview full-bleed with safe-area
-- Instruction overlay readable on 360px width
-- Bottom action bar sticky, thumb-zone, 56px height CTAs
-- Progress indicator মোবাইলে compact
-- Error/retry sheet bottom-sheet-এ
+### 4. User UI
+- Home tab → **"Match Call"** button (existing nav, professional Chamet-style icon)
+- `RandomCallSearchScreen.tsx` — spinning globe animation, gender/country chips (country gated by VIP if admin enables), cancel button, queue position
+- `IncomingRandomCallScreen.tsx` — reuses existing private-call ring UI (15s timer from admin config)
+- In-call: existing LiveKit private-call screen reused; adds free-trial timer (0–90s "FREE") + billing ticker after
+- Post-call summary: duration, coins spent, rate host ★
 
-### Phase 3 — Top traffic screens (subsequent turns)
-Home → Profile → Live → Call → Chat → Recharge → Wallet → Agency → CSA Dashboard → Admin → Policies
+### 5. Anti-abuse
+- 3s skip cooldown, 30 daily skips, 3-flash-disconnect/hour → 30min pool ban (all admin-configurable)
+- Coin pre-authorization (2 min @ host rate) before queue entry — insufficient balance rejected immediately
+- LiveKit webhook is sole source of truth for billing (no client-side timer trust)
 
-### Phase 4 — Owner-account end-to-end test
-smdollarex923 দিয়ে preview-এ 360×800 viewport-এ প্রত্যেক screen verify।
+## What does NOT change
+- Existing private-call (direct 1-on-1 from host profile) untouched
+- LiveKit native plugin / camera path untouched (decoder/SFU only — no Android rebuild needed for this feature, edge-only)
+- All existing pricing/wallet/withdraw flows intact
+- Design language matches existing private-call screens (no redesign)
 
-## Technical Details
+## Defaults (admin-editable, English-only UI strings)
+| Setting | Default | Source |
+|---|---|---|
+| min_billable_seconds | 40 | Chamet agency policy |
+| free_trial_seconds | 90 | Chamet Free Chat Card |
+| host_split_pct | 0.60 | Chamet/Olamet standard |
+| host_min_rate_coins_per_min | 1200 | Chamet floor |
+| host_max_rate_coins_per_min | 20000 | Chamet ceiling |
+| ring_timeout_seconds | 15 | Industry standard |
+| match_timeout_seconds | 300 | Industry standard |
+| daily_skip_limit | 30 | Industry standard |
+| flash_disconnect_threshold | 3 / 1 hr | Industry standard |
+| flash_disconnect_cooldown_min | 30 | Industry standard |
 
-```css
-/* index.css additions */
-@layer utilities {
-  .touch-target { min-height: 44px; min-width: 44px; }
-  .safe-top { padding-top: env(safe-area-inset-top); }
-  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .mobile-h1 { font-size: clamp(1.25rem, 5vw, 1.75rem); }
-  .mobile-body { font-size: clamp(0.875rem, 3.8vw, 1rem); }
-  .sticky-cta { position: sticky; bottom: 0; padding-bottom: env(safe-area-inset-bottom); }
-}
-```
+## Verification plan (owner test account)
+Login as `smdollarex923@gmail.com` → Home → Match Call → enqueue → second window as host opts in → match → end at 20s (verify host gets 0, caller no refund) → second call end at 60s (verify host gets beans, caller charged correctly) → check admin panel settings reflect instantly when changed.
 
-Button component-এ `default` size mobile-এ `h-12` (48px) করা হবে, desktop-এ unchanged।
+## Out of scope (this turn)
+- AI nudity/minor moderation (Phase 2 — needs Vision API decision)
+- VIP score multiplier UI (defaults applied in matching algo; VIP UI later)
+- Mass-market matching (we're starting with simple gender + lang preference; Chamet's 6-factor score = Phase 2)
 
-## Out of scope
-- Color/font/visual redesign (design memory rule)
-- Gift/entry animation files (constraint memory)
-- Native LiveKit/Camera2 paths
-- Business logic changes
-
-## Verification per phase
-Playwright with viewport `375×812` (iPhone) + `360×780` (Android) → screenshot every modified screen → confirm no overflow, touch targets ≥44px, CTAs reachable।
-
-## 2026-06-25 Recharge banner clipping fix
-
-### Research + current gap
-- Professional mobile commerce/recharge banners must preserve the creative's intended aspect ratio because aspect ratio directly controls image appearance in-app (GoodBarber Design System: https://www.goodbarber.com/uxdesign/images-aspect-ratios/).
-- Merchandising creative guidelines emphasize supplying and displaying media in predictable dimensions for storefront placements, not letting text-critical artwork crop unpredictably (Instacart Storefront media dimensions: https://docs.instacart.com/storefront/learn_about_your_storefront/merchandising_opportunities/media_dimensions).
-- Mobile banner ad/storefront patterns commonly use narrow placements around 2.5:1–3:1 to preserve vertical screen real estate (Publift mobile banner sizing guide: https://www.publift.com/blog/mobile-banner-ads-sizes-types).
-- Verified local default first recharge asset is `1920×1080` but its actual non-white banner artwork is approx `1920×676` (`2.84:1`) with white margins inside the image itself; `object-contain` exposes those white bars in the compact slot.
-
-### Fix applied
-- Recharge carousel is now a compact marked-area promo slot (`clamp(86px, 28vw, 112px)`).
-- Removed the duplicate blurred/gradient background and all white/letterbox fill.
-- The banner image now uses centered `object-cover`, which removes the image's own white top/bottom margins and keeps the visible promo design inside the marked slot.
-
----
-
-**Confirm করলে Phase 1 (Foundation tokens + global shadcn variants) এই turn-এ শেষ করি, তারপর Phase 2 Face Verification পরের turn।**
+Ship as one coherent migration + 3 edge functions + admin page + match-call user screens.
