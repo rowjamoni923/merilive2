@@ -3436,7 +3436,7 @@ const FaceVerification = () => {
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps — professional KYC-style indicator */}
-      <div className={`mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
+      <div className={`mb-6 sm:mb-8 px-1 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between">
           {[
             { n: 1, label: 'Basic Info' },
@@ -3446,10 +3446,10 @@ const FaceVerification = () => {
             const done = currentStep > s.n;
             const active = currentStep === s.n;
             return (
-              <div key={s.n} className="flex items-center flex-1">
-                <div className="flex flex-col items-center gap-1.5">
+              <div key={s.n} className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <motion.div
-                    className={`relative w-11 h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+                    className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
                       done
                         ? 'bg-emerald-600 text-white ring-2 ring-emerald-200'
                         : active
@@ -3461,12 +3461,12 @@ const FaceVerification = () => {
                   >
                     {done ? <CheckCircle2 className="w-5 h-5" /> : s.n}
                   </motion.div>
-                  <span className={`text-[10px] font-medium tracking-tight whitespace-nowrap ${
+                  <span className={`text-[10px] sm:text-xs font-medium tracking-tight text-center leading-tight max-w-[72px] truncate ${
                     active ? 'text-slate-900' : done ? 'text-emerald-700' : 'text-slate-400'
                   }`}>{s.label}</span>
                 </div>
                 {idx < 2 && (
-                  <div className="flex-1 h-[2px] mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
+                  <div className="flex-1 h-[2px] mx-1.5 sm:mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
                     <motion.div
                       className="h-full bg-emerald-500"
                       initial={false}
@@ -3480,6 +3480,7 @@ const FaceVerification = () => {
           })}
         </div>
       </div>
+
 
       
       {/* Step Content */}
