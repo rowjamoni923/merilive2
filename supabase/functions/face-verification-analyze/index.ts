@@ -934,7 +934,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .in("status", ["submitted", "pending", "under_review"]);
+        .in("status", ["submitted", "pending", "under_review", "rejected"]);
 
       await supabaseAdmin
         .from("profiles")
