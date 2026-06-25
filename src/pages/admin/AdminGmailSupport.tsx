@@ -734,7 +734,7 @@ const AdminGmailSupport = () => {
           </div>
 
           {/* Reply Section - Premium Desktop */}
-          <div className="border-t border-border/30 px-5 py-3 bg-muted/10">
+          <div className="border-t border-border/30 px-3 sm:px-5 py-3 bg-muted/10 safe-area-bottom">
             {!showReply ? (
               <Button 
                 onClick={() => setShowReply(true)} 
