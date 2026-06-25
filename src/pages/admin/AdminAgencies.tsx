@@ -299,6 +299,21 @@ export default function AdminAgencies() {
     }
   }, []);
 
+  // Resolve the canonical commission % for an agency from its level tier,
+  // so the admin card matches what the user-facing app shows (e.g. 12% Bronze)
+  // instead of the stale per-row agency.commission_rate default.
+  const getEffectiveCommission = useCallback((agency: { level?: string | null; commission_rate?: number | null }) => {
+    const lvl = String(agency?.level ?? '').trim().toLowerCase();
+    if (lvl) {
+      const tier = levelTiers.find(t =>
+        String(t.level_code ?? '').toLowerCase() === lvl ||
+        String(t.level_name ?? '').toLowerCase() === lvl
+      );
+      if (tier && typeof tier.commission_rate === 'number') return tier.commission_rate;
+    }
+    return agency?.commission_rate ?? 0;
+  }, [levelTiers]);
+
   // Initial data load
   useEffect(() => {
     fetchCommissionSettings();
