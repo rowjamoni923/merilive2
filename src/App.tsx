@@ -1290,6 +1290,7 @@ const App = () => {
             <ConnectionStatus />
             <BrowserRouter>
               {!isStandalonePublicRoute && <ScrollToTop />}
+              {!isStandalonePublicRoute && <ScrollSafetyNet />}
               {!isStandalonePublicRoute && <RouteTransitionHost />}
               {!isStandalonePublicRoute && <GlobalInstantNavigation />}
               {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
