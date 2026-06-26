@@ -249,6 +249,12 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
               onComplete={handleAnimationComplete}
               onError={handleSvgaError}
               center={false}
+              // Industry-standard SVGA dynamic compositing — engraves the
+              // user's avatar/name/level INSIDE the animation timeline so
+              // they move with the animation frame-by-frame (Chamet/BIGO).
+              dynamicAvatarUrl={entry.avatarUrl ?? null}
+              dynamicUserName={entry.displayName ?? null}
+              dynamicUserLevel={entry.level ?? null}
             />
           </div>
         </motion.div>
