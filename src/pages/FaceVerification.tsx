@@ -1962,11 +1962,12 @@ const FaceVerification = () => {
     return signed.signedUrl;
   };
 
-  const lockUnderReviewAndReturn = (description: string) => {
+  const lockUnderReviewAndReturn = (description: string, submissionId?: string) => {
     postSubmitLockedRef.current = true;
     try {
       sessionStorage.setItem('meri_face_verification_recent_submission', JSON.stringify({
         userId,
+        submissionId,
         status: 'under_review',
         timestamp: Date.now(),
       }));
@@ -1980,6 +1981,14 @@ const FaceVerification = () => {
       description,
     });
     scheduleProfileRedirect();
+  };
+
+  const completeSubmissionUploadsViaRpc = async (submissionId: string, payload: Record<string, unknown>) => {
+    const { error } = await (supabase as any).rpc('complete_face_verification_submission_uploads', {
+      _submission_id: submissionId,
+      _payload: payload,
+    });
+    if (error) throw error;
   };
 
   const recoverPendingSubmissionAfterError = async () => {
