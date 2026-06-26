@@ -14,6 +14,8 @@ import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator
 
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { VoiceWaveform } from "@/components/chat/VoiceWaveform";
+import { SmartImage } from "@/components/chat/SmartImage";
+import { SmartVideo } from "@/components/chat/SmartVideo";
 const EmojiPicker = lazy(() => import("@/components/chat/EmojiPicker").then(m => ({ default: m.EmojiPicker })));
 const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(m => ({ default: m.MediaUploader })));
 import { usePersistedCache } from "@/hooks/usePersistedCache";
