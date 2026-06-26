@@ -1270,10 +1270,10 @@ const App = () => {
             <SonnerToaster />
             <ConnectionStatus />
             <BrowserRouter>
-              <ScrollToTop />
-              <BlankScreenGuard />
-              <NativeLiveKitRouteSurvivor />
-              <Suspense fallback={null}><DeepLinkHandler /></Suspense>
+              {!isStandalonePublicRoute && <ScrollToTop />}
+              {session && !isStandalonePublicRoute && <BlankScreenGuard />}
+              {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><DeepLinkHandler /></Suspense>}
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
               {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
               {session && !isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
