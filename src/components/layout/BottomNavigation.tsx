@@ -34,7 +34,7 @@ interface BottomNavigationProps {
   onTabChange?: (path: string) => void;
 }
 
-export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: BottomNavigationProps) => {
+export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showActionMenu, setShowActionMenu] = useState(false);
