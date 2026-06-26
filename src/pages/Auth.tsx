@@ -2470,77 +2470,74 @@ const Auth = () => {
       {/* NEW Email Flow - Step 2: OTP Verification - ULTRA PREMIUM */}
       {authStep === "email_otp" && (
       <Dialog open={authStep === "email_otp"} onOpenChange={() => resetAuthState()}>
-        <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-emerald-900/30">
-          {/* Animated gradient border */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/40 via-cyan-500/30 to-green-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
-            {/* Decorative orbs */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-emerald-600/12 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-cyan-600/8 rounded-full blur-3xl pointer-events-none" />
-            
-            {/* Close button handled by DialogContent */}
+        <DialogContent className="max-w-[92vw] sm:max-w-[400px] mx-auto p-0 border-0 rounded-2xl overflow-hidden bg-white shadow-2xl shadow-slate-900/20">
+          <div className="relative px-7 pt-8 pb-7">
+            {/* Subtle top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500" />
 
-            <DialogHeader className="relative z-10">
+            <DialogHeader>
               <div className="flex justify-center mb-5">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-full blur-lg opacity-50 animate-pulse" />
-                  <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 via-green-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 ring-2 ring-white/10">
- <Lock className="w-9 h-9 text-slate-900 drop-shadow-lg" />
-                  </div>
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-100">
+                  <Lock className="w-6 h-6 text-emerald-600" strokeWidth={2.25} />
                 </div>
               </div>
- <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
-                Enter Verification Code
+              <DialogTitle className="text-slate-900 text-center text-[20px] font-semibold tracking-tight">
+                Verify your email
               </DialogTitle>
-              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
-                6-digit code sent to <span className="text-emerald-400 font-medium">{email}</span>
+              <DialogDescription className="text-slate-500 text-center text-[13px] mt-1.5 leading-relaxed">
+                Enter the 6-digit code we sent to
+                <br />
+                <span className="text-slate-900 font-medium">{email}</span>
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="py-5 space-y-6 relative z-10">
-              {/* OTP Input - Premium styled */}
-              <div className="flex justify-center">
-                <div className="relative group">
-                  <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-emerald-500/50 via-cyan-500/50 to-emerald-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <Input
-                    type="text"
-                    value={otpCode}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setOtpCode(value);
-                    }}
-                    placeholder="000000"
-                    maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
-                    autoFocus
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    pattern="[0-9]*"
-                    enterKeyHint="done"
-                  />
 
-                </div>
+            <div className="pt-7 space-y-5">
+              {/* OTP Input — separated slots */}
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(value) => setOtpCode(value.replace(/\D/g, '').slice(0, 6))}
+                  autoFocus
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                >
+                  <InputOTPGroup className="gap-2">
+                    {[0,1,2,3,4,5].map((i) => (
+                      <InputOTPSlot
+                        key={i}
+                        index={i}
+                        className="h-12 w-10 sm:h-13 sm:w-11 text-lg font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg first:rounded-l-lg last:rounded-r-lg data-[active=true]:ring-2 data-[active=true]:ring-emerald-500/30 data-[active=true]:border-emerald-500 data-[active=true]:bg-white transition-all"
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
-              
+
               {/* Verify Button */}
               <Button
                 onClick={handleVerifyEmailOtp}
                 disabled={otpLoading || otpCode.length !== 6}
- className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-[15px] shadow-sm transition-colors disabled:bg-slate-200 disabled:text-slate-400"
               >
-                <Check className="w-5 h-5 mr-2.5" />
-                Verify Code
+                {otpLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Verify"
+                )}
               </Button>
-              
-              {/* Resend Code — industry-standard 60s countdown (Phase 1 audit 2026-06-09) */}
-              <div className="text-center space-y-2">
-                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
+
+              {/* Resend */}
+              <div className="text-center">
                 <button
                   onClick={handleResendEmailOtp}
                   disabled={otpLoading || resendCountdown > 0}
-                  className="text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-all disabled:opacity-40 hover:underline underline-offset-4"
+                  className="text-[13px] text-slate-500 hover:text-slate-900 transition-colors disabled:hover:text-slate-500"
                 >
-                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+                  Didn't receive it?{" "}
+                  <span className={resendCountdown > 0 ? "text-slate-400" : "text-emerald-600 font-medium"}>
+                    {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend code"}
+                  </span>
                 </button>
               </div>
             </div>
