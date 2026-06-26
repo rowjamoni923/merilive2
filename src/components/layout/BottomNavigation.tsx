@@ -140,6 +140,8 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/go-live')}
+                data-instant-path="/go-live"
+                data-prefetch-path="/go-live"
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 rounded-2xl shadow-2xl shadow-pink-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
@@ -158,6 +160,8 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/create-party')}
+                data-instant-path="/create-party"
+                data-prefetch-path="/create-party"
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-500 rounded-2xl shadow-2xl shadow-purple-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
@@ -176,6 +180,8 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/match-call')}
+                data-instant-path="/match-call"
+                data-prefetch-path="/match-call"
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
@@ -298,6 +304,8 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                 onClick={() => handleNavClick(item)}
                 onPointerDown={() => prefetchRoute(item.path)}
                 onMouseEnter={() => prefetchRoute(item.path)}
+                data-instant-path={item.path}
+                data-prefetch-path={item.path}
                 className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-opacity duration-75 min-w-[54px] active:opacity-90 touch-manipulation relative"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 aria-label={item.label}
