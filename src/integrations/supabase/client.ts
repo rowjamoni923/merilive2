@@ -93,6 +93,22 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       }
 
       const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      // Edge Functions must not receive app-specific platform headers unless each
+      // function explicitly allows them in CORS. A single disallowed header makes
+      // the browser preflight fail and creates a global navigation/network storm.
+      if (requestUrl.includes('/functions/v1/')) {
+        const opts: RequestInit = init ? { ...init } : {};
+        const headers = new Headers(
+          opts.headers || (typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined),
+        );
+        headers.delete('x-client-platform');
+        headers.delete('x-supabase-client-platform');
+        headers.delete('x-supabase-client-platform-version');
+        headers.delete('x-supabase-client-runtime');
+        headers.delete('x-supabase-client-runtime-version');
+        opts.headers = headers;
+        init = opts;
+      }
       return fetchWithInstantRestCache(input, init, {
         namespace: 'app',
         ttlMs: 45_000,

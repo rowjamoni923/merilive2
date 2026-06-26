@@ -626,7 +626,6 @@ const AgencyDashboard = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, debouncedRefetch)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_diamond_transactions' }, debouncedRefetch)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_withdrawals' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, debouncedRefetch)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, debouncedRefetch)
       .on(
         'postgres_changes',

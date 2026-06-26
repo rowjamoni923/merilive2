@@ -495,7 +495,12 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
     location.pathname.startsWith('/stream/');
   const isLandingDomain = typeof window !== 'undefined' && isLandingOnlyHostname(window.location.hostname);
   const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
-  const showPopups = !isAdminRoute && !isPublicPage && !isMediaRoute && hasSession;
+  // Optional marketing/onboarding popups are intentionally home-scoped. Mounting
+  // them on every deep section (VIP, agency, face verification, chat, etc.) adds
+  // queries, image decodes and sometimes full-screen overlays during navigation,
+  // which feels like a blank/laggy page in Android WebView.
+  const isHomeSurface = location.pathname === '/' || location.pathname === '/home';
+  const showPopups = isHomeSurface && !isAdminRoute && !isPublicPage && !isMediaRoute && hasSession;
 
   useUserBalancePrefetch(userId);
 
@@ -1386,10 +1391,17 @@ const App = () => {
                 <Route path="/live-feed/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamFeed /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveStreamKeyWrapper /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/chat" element={isTabKeepAliveEnabled() ? <ProtectedRoute session={session}><></></ProtectedRoute> : <ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
+                <Route path="/messages" element={<Navigate to="/chat" replace />} />
+                <Route path="/message" element={<Navigate to="/chat" replace />} />
+                <Route path="/inbox" element={<Navigate to="/chat" replace />} />
                 <Route path="/invite/:token" element={<GroupInvitePage />} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
 
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
+                <Route path="/top-up" element={<Navigate to="/recharge" replace />} />
+                <Route path="/topup" element={<Navigate to="/recharge" replace />} />
+                <Route path="/diamond-top-up" element={<Navigate to="/recharge" replace />} />
+                <Route path="/diamonds" element={<Navigate to="/recharge" replace />} />
                 <Route path="/payment-success" element={<ProtectedRoute session={session}><PaymentSuccess /></ProtectedRoute>} />
                 <Route path="/edit-profile" element={<ProtectedRoute session={session}><EditProfile /></ProtectedRoute>} />
                 <Route path="/level" element={<ProtectedRoute session={session}><Level /></ProtectedRoute>} />
@@ -1400,6 +1412,10 @@ const App = () => {
                 <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
                 <Route path="/country-admin/dashboard" element={<ProtectedRoute session={session}><CountryAdminDashboard /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
+                <Route path="/ai-chat" element={<Navigate to="/settings/customer-service" replace />} />
+                <Route path="/ai-support" element={<Navigate to="/settings/customer-service" replace />} />
+                <Route path="/user-id" element={<Navigate to="/edit-profile" replace />} />
+                <Route path="/account-id" element={<Navigate to="/edit-profile" replace />} />
                 <Route path="/debug/referrer" element={<ProtectedRoute session={session}><DebugReferrer /></ProtectedRoute>} />
                 <Route path="/debug/referrer-test" element={<ProtectedRoute session={session}><DebugReferrerTest /></ProtectedRoute>} />
                 <Route path="/settings/blacklist" element={<ProtectedRoute session={session}><Blacklist /></ProtectedRoute>} />
@@ -1420,6 +1436,9 @@ const App = () => {
                 <Route path="/pk-leaderboard/:id" element={<ProtectedRoute session={session}><PKLeaderboard /></ProtectedRoute>} />
                 <Route path="/host-application" element={<ProtectedRoute session={session}><HostApplication /></ProtectedRoute>} />
                 <Route path="/agent-wallet" element={<ProtectedRoute session={session}><AgentWallet /></ProtectedRoute>} />
+                <Route path="/wallet" element={<Navigate to="/agent-wallet" replace />} />
+                <Route path="/my-beans" element={<Navigate to="/agent-wallet" replace />} />
+                <Route path="/beans" element={<Navigate to="/agent-wallet" replace />} />
                 <Route path="/transfer-history" element={<ProtectedRoute session={session}><TransferHistory /></ProtectedRoute>} />
                 <Route path="/create-agency" element={session ? <ProtectedRoute session={session}><CreateAgency /></ProtectedRoute> : publicPage(<AgencySignup />)} />
                 <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
@@ -1456,6 +1475,7 @@ const App = () => {
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
+                <Route path="/create" element={<Navigate to="/go-live" replace />} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><RequireNoActiveCall><PartyRoom /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveSessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/live-session" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><RequireNoActiveCall><LiveSessionPage /></RequireNoActiveCall></RequireNativeAndroidGate></ProtectedRoute>} />
