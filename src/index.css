@@ -2438,6 +2438,15 @@ body[data-admin-active="true"] {
   background: hsl(230 15% 6%);
 }
 
+/* Admin can never coexist with a private-call overlay. If
+   call-overlay-active leaked from a previous route, force #root visible so
+   admin pages remain interactive and scrollable. */
+body[data-admin-active="true"].call-overlay-active #root,
+body[data-admin-active="true"] #root {
+  visibility: visible !important;
+}
+
+
 /* Desktop: lock body, scroll inside main pane */
 @media (min-width: 1024px) {
   body[data-admin-active="true"] {

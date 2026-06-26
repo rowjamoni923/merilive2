@@ -1392,6 +1392,28 @@ export default function AdminLayout() {
     // It was scanning every DOM mutation across the entire admin app and
     // caused major Chrome lag. All admin media now flows through
     // AdminMediaFrame, which resolves URLs explicitly.
+
+    // Scroll safety net: admin never coexists with native camera / call
+    // overlays. Clear any leaked surface classes from a previous live/party/
+    // call/face-cam route that would otherwise hide #root (call-overlay-active)
+    // or turn body/root transparent (native-media-active, lk-camera-live,
+    // native-face-camera-active) and make the admin panel un-scrollable.
+    const leakedClasses = [
+      'call-overlay-active',
+      'native-media-active',
+      'lk-camera-live',
+      'native-face-camera-active',
+      'route-changing',
+    ];
+    leakedClasses.forEach((cls) => {
+      document.body.classList.remove(cls);
+      document.documentElement.classList.remove(cls);
+    });
+    // Some modal libraries set inline overflow:hidden on body and forget to
+    // clear it on unmount. Force scroll back on while admin is mounted.
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+
     return () => {
       document.body.removeAttribute('data-admin-active');
     };
