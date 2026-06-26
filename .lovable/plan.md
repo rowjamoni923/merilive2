@@ -131,3 +131,50 @@ Patch scope:
 - Phone OTP now commits to the OTP sheet immediately while WhatsApp send/abuse checks run in the background.
 - Auth route gets a scoped native modal style: near-transparent overlay, no backdrop blur/zoom animation, opacity-only tap feedback.
 - `/auth`, `/reset-password`, and OAuth callback routes are now classified as public boot surfaces so LiveKit token pre-mint / connection-pool warmup cannot create a login-screen network storm.
+
+---
+
+# Phase 10 — Global 400-page instant response pass (2026-06-26)
+
+Research / professional standard:
+- Native live/social apps keep tap handlers under one frame: visual state changes immediately; prefetch/realtime/maintenance work runs after paint or on realtime events.
+- React 18 transitions are useful for non-urgent updates, but primary tab/page commits in a mobile app must not be deferred behind background rendering.
+
+Verified current gap:
+- `RouteScopedBackgroundHooks` reset `backgroundReady` and remounted heavy hooks on every pathname change, so every page navigation could restart non-visual services.
+- Bottom navigation used `startTransition` around primary `navigate(...)`, delaying the route commit on busy WebViews.
+- Global `<Button>` had a guarded click wrapper and timer, adding overhead to every button press.
+- `useExpiredItemsRestorer` ran immediately and every minute from Profile/VIP, repeatedly hitting DB and logging in the foreground.
+- Presence heartbeat/logging woke every 30s and matched the user's console spam during lag reports.
+
+Patch scope:
+- Keep background hooks mounted once after first app surface; route change no longer resets them.
+- Route-change video lifecycle pause is idle-deferred so it cannot block navigation paint.
+- Bottom tabs/action menu navigate synchronously; route warming remains background-only.
+- Global button guard removed; CSS `touch-action: manipulation` enforced for tappables.
+- Expired item restore changed to one idle maintenance pass per user / 6h, no minute polling.
+- Presence heartbeat relaxed to 120s and logs gated to dev-only.
+- React Router `v7_startTransition` future flag removed so primary route commits are not transition-deferred.
+- Bottom nav active pill changed from shared-layout spring animation to static instant paint; no haptic/no-op bridge calls on tab/action taps.
+- React Query localStorage persistence throttle raised to 120s native / 60s web to reduce synchronous storage jank during navigation.
+
+---
+
+# Phase 11 — Remove remaining global boot/navigation jank (2026-06-26)
+
+Verified current gap:
+- Public/auth pages still mounted several protected-app guards/overlays and non-visual bridges before login, adding first-paint work.
+- BottomNavigation mounted profile + level realtime hooks only to gate the plus menu, opening extra DB/realtime work on every main page.
+- The unread badge hook ran multi-query counts immediately on mount, competing with route paint.
+- Maintenance/analytics bootstrap still did foreground network work (`getUser` / app setting fetch) during app boot.
+- Realtime connection-status polling and presence cleanup maintenance woke too frequently for a mobile WebView.
+
+Patch scope:
+- Gate protected overlays/guards behind authenticated non-public routes only.
+- BottomNavigation no longer opens profile/level realtime channels; tab/action taps never wait on network.
+- Bottom action menu uses opacity/linear 60-80ms transitions, removes blur-heavy overlay, and flattens shadows/blur on low-end devices.
+- Unread badge initial count now runs on idle and is throttled for 30s.
+- Analytics uses local `getSession()` instead of network `getUser()`; maintenance check runs on idle.
+- Realtime polling relaxed to 30s and presence cleanup to 30min/foreground-only.
+- Route-change video lifecycle scan now runs only when leaving media routes, not on every page transition.
+- User balance prefetch now receives the App session userId directly, so it does not perform an extra auth-session lookup while the route is painting.

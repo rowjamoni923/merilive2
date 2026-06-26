@@ -1,21 +1,15 @@
-import { useState, useTransition, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle, Video } from "lucide-react";
+import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { hapticFeedback } from "@/utils/nativeUtils";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
-import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
-import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
-import { useRealtimeProfile } from "@/hooks/useRealtimeData";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
-import { LevelLockModal } from "@/components/level/LevelLockModal";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
 import { warmRouteForNavigation } from "@/utils/routePrefetch";
+import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
@@ -40,38 +34,14 @@ interface BottomNavigationProps {
   onTabChange?: (path: string) => void;
 }
 
-export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: BottomNavigationProps) => {
+export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [, startTransition] = useTransition();
   const { t } = useTranslation();
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
-  const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { profile: realtimeProfile, loading: profileLoading } = useRealtimeProfile(currentUserId);
-  const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
-  const [lockModal, setLockModal] = useState<{ open: boolean; featureName: string; requiredLevel: number; currentLevel: number; isHost: boolean }>({
-    open: false,
-    featureName: "",
-    requiredLevel: 0,
-    currentLevel: 0,
-    isHost: false,
-  });
-
-  // Initialize currentUserId
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setCurrentUserId(session.user.id);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUserId(session?.user?.id ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const lowEnd = useMemo(() => isLowEndDevice(), []);
 
   // 🚀 Native Badge Sync: Push unread counts to native bottom bar
   useEffect(() => {
@@ -84,24 +54,17 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     }
   }, [unreadCounts.total]);
 
-  const userProfile = realtimeProfile;
-
-    
   const currentPath = location.pathname;
-  const activeTab = externalActiveTab || currentPath;
-
   const handleNavClick = useCallback((item: NavItem) => {
-    hapticFeedback('light');
     if (item.isCenter) {
-      hapticFeedback('medium');
       setShowActionMenu(prev => !prev);
     } else {
       void warmRouteForNavigation(item.path)?.catch(() => undefined);
-      startTransition(() => { navigate(item.path); });
+      navigate(item.path);
       onTabChange?.(item.path);
       setShowActionMenu(false);
     }
-  }, [navigate, onTabChange, startTransition]);
+  }, [navigate, onTabChange]);
 
   // 🚀 INSTANT NAV: warm up the route chunk on touch-start / hover so the
   // tap itself navigates with zero perceived delay.
@@ -119,44 +82,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   }, []);
 
   const handleActionClick = (path: string) => {
-    hapticFeedback('medium');
-
-    const featureKey = path === '/create-party' ? 'create_party' : path === '/go-live' ? 'go_live' : null;
-    if (featureKey) {
-      if (featureLevelLoading || resolvedLevelLoading || !userProfile) {
-        toast.info('Loading your level, please try again.');
-        setShowActionMenu(false);
-        return;
-      }
-
-      const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
-      const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
-      // Use highest known level so we never block a user whose stored level is already sufficient
-      // (resolvedUserLevel can briefly read 1 from cache before the resolver completes).
-      const currentLevel = Math.max(
-        Number(resolvedUserLevel) || 0,
-        Number(userProfile.user_level) || 0,
-        Number(userProfile.host_level) || 0,
-        Number(userProfile.max_user_level) || 0,
-      );
-      const result = checkFeatureAccess(featureKey, currentLevel, isHost);
-
-      if (!result.canAccess) {
-        setLockModal({
-          open: true,
-          featureName: featureKey === 'go_live' ? 'Go Live' : 'Create Party',
-          requiredLevel: result.requiredLevel,
-          currentLevel,
-          isHost,
-        });
-        setShowActionMenu(false);
-        return;
-      }
-    }
-    
     setShowActionMenu(false);
     void warmRouteForNavigation(path)?.catch(() => undefined);
-    startTransition(() => { navigate(path); });
+    navigate(path);
     onTabChange?.(path);
   };
 
@@ -169,7 +97,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            transition={{ duration: 0.06 }}
+            className="fixed inset-0 bg-black/35"
             style={{ zIndex: 9998 }}
             onClick={() => setShowActionMenu(false)}
           />
@@ -182,16 +111,16 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
           <motion.div
             className="fixed left-0 right-0 flex justify-center px-4"
             style={{ zIndex: 9999, bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.08, ease: "linear" }}
           >
             <div className="flex flex-col gap-3 w-full max-w-[280px]">
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/go-live')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 rounded-2xl shadow-2xl shadow-pink-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -207,9 +136,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               </motion.button>
 
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/create-party')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-500 rounded-2xl shadow-2xl shadow-purple-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -225,9 +154,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               </motion.button>
 
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/match-call')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -252,13 +181,16 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         style={{
           zIndex: 9990,
           paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))',
-          background:
-            'linear-gradient(180deg, rgba(255,253,248,0.96) 0%, rgba(252,247,237,0.98) 100%)',
-          backdropFilter: 'saturate(160%) blur(18px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(18px)',
+          background: lowEnd
+            ? '#fffdf8'
+            : 'linear-gradient(180deg, rgba(255,253,248,0.96) 0%, rgba(252,247,237,0.98) 100%)',
+          backdropFilter: lowEnd ? 'none' : 'saturate(160%) blur(18px)',
+          WebkitBackdropFilter: lowEnd ? 'none' : 'saturate(160%) blur(18px)',
           borderTop: '1px solid rgba(201,168,76,0.18)',
-          boxShadow:
-            '0 -10px 28px -14px rgba(120,80,20,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+          boxShadow: lowEnd
+            ? '0 -1px 0 rgba(201,168,76,0.18)'
+            : '0 -10px 28px -14px rgba(120,80,20,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+          willChange: 'opacity, transform',
         }}
       >
         {/* champagne sheen line on top edge */}
@@ -287,7 +219,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   aria-label="Create"
                 >
                   <div
-                    className="absolute -inset-4 rounded-full blur-2xl"
+                    className={cn("absolute -inset-4 rounded-full", lowEnd ? "hidden" : "blur-2xl")}
                     style={{
                       background:
                         'radial-gradient(circle, rgba(236,72,153,0.35) 0%, rgba(168,85,247,0.25) 45%, transparent 70%)',
@@ -295,13 +227,14 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   />
                   <motion.div
                     animate={showActionMenu ? { rotate: 45 } : { rotate: 0 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.06 }}
                     className="relative w-[58px] h-[58px] rounded-full flex items-center justify-center overflow-hidden"
                     style={{
                       background:
                         'radial-gradient(circle at 30% 25%, #ffd1ea 0%, #ec4899 35%, #a855f7 70%, #6366f1 100%)',
-                      boxShadow:
-                        '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
+                      boxShadow: lowEnd
+                        ? '0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.35)'
+                        : '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
                     }}
                   >
                     <div
@@ -352,8 +285,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                 aria-label={item.label}
               >
                 {isActive && (
-                  <motion.span
-                    layoutId="bottomnav-active-pill"
+                  <span
                     className="absolute inset-0 rounded-2xl -z-0"
                     style={{
                       background:
@@ -361,7 +293,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       boxShadow:
                         '0 4px 12px -4px rgba(236,72,153,0.30), inset 0 0 0 1px rgba(236,72,153,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
                     }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
                 <div className="relative">
@@ -389,11 +320,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   />
 
                   {item.path === '/profile' && unreadCounts.total > 0 && (
-                    <motion.span
+                    <span
                       key={unreadCounts.total}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: 'spring', stiffness: 600, damping: 14 }}
                       className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-white text-[8px] font-bold rounded-full flex items-center justify-center z-20"
                       style={{
                         background: 'linear-gradient(135deg,#ef4444,#ec4899)',
@@ -401,7 +329,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       }}
                     >
                       {formatBadgeCount(unreadCounts.total)}
-                    </motion.span>
+                    </span>
                   )}
                 </div>
 
@@ -434,14 +362,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
           <CampaignFloatingButton />
         </Suspense>
       </ErrorBoundary>
-      <LevelLockModal
-        open={lockModal.open}
-        onClose={() => setLockModal((s) => ({ ...s, open: false }))}
-        featureName={lockModal.featureName}
-        requiredLevel={lockModal.requiredLevel}
-        currentLevel={lockModal.currentLevel}
-        isHost={lockModal.isHost}
-      />
     </>
   );
 };

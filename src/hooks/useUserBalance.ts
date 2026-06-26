@@ -37,7 +37,7 @@ let balanceFetchPromise: Promise<number> | null = null;
 /**
  * Fetch user balance and update cache
  */
-async function fetchBalance(): Promise<number> {
+async function fetchBalance(userIdOverride?: string | null): Promise<number> {
   // Prevent duplicate fetches
   if (balanceCache.loading) {
     return balanceFetchPromise ?? Promise.resolve(balanceCache.balance);
@@ -47,10 +47,14 @@ async function fetchBalance(): Promise<number> {
 
   balanceFetchPromise = (async () => {
     try {
-      // Use getSession (local) instead of getUser (network) for speed
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) {
+      // Prefer caller-provided userId from App session to avoid even a local auth lookup during route paint.
+      let userId = userIdOverride || null;
+      if (!userId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        userId = session?.user?.id || null;
+      }
+
+      if (!userId) {
         balanceCache.balance = 0;
         balanceCache.userId = null;
         balanceCache.timestamp = Date.now();
@@ -61,7 +65,7 @@ async function fetchBalance(): Promise<number> {
 
       // Return cached if valid
       if (
-        balanceCache.userId === user.id &&
+        balanceCache.userId === userId &&
         balanceCache.initialized &&
         Date.now() - balanceCache.timestamp < CACHE_DURATION
       ) {
@@ -72,7 +76,7 @@ async function fetchBalance(): Promise<number> {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('coins, diamonds')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -83,7 +87,7 @@ async function fetchBalance(): Promise<number> {
 
       const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
       balanceCache.balance = newBalance;
-      balanceCache.userId = user.id;
+      balanceCache.userId = userId;
       balanceCache.timestamp = Date.now();
       balanceCache.initialized = true;
 
@@ -160,22 +164,27 @@ export function clearBalanceCache(): void {
  * Hook to prefetch balance on mount
  * Call this in App.tsx to pre-warm cache
  */
-export function useUserBalancePrefetch(): void {
-  const prefetched = useRef(false);
+export function useUserBalancePrefetch(userId?: string | null): void {
+  const prefetchedUserId = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      prefetchedUserId.current = null;
+      return;
+    }
     if (typeof window !== 'undefined' && isStandalonePublicLocation()) return;
-    if (prefetched.current) return;
-    prefetched.current = true;
+    if (prefetchedUserId.current === userId) return;
+    prefetchedUserId.current = userId;
 
     // Prefetch on idle so auth/home first paint does not compete with this DB read.
     const w = window as any;
-    const timer = typeof w.requestIdleCallback === 'function'
+    const usesIdle = typeof w.requestIdleCallback === 'function';
+    const timer = usesIdle
       ? w.requestIdleCallback(() => {
-        fetchBalance();
+        fetchBalance(userId);
       }, { timeout: 3500 })
       : setTimeout(() => {
-      fetchBalance();
+      fetchBalance(userId);
       }, 3500);
 
     // Balance sync is event-based here. A prior global `profiles` subscription was
@@ -186,9 +195,7 @@ export function useUserBalancePrefetch(): void {
       if (detail?.topic !== 'profiles') return;
 
       const payload = detail.payload || {};
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      if (!userId || (payload.profile_id && payload.profile_id !== userId)) return;
+      if (payload.profile_id && payload.profile_id !== userId) return;
 
       const coins = payload.coins;
       const diamonds = payload.diamonds;
@@ -207,17 +214,17 @@ export function useUserBalancePrefetch(): void {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-        setTimeout(() => void fetchBalance(), 0);
+        setTimeout(() => void fetchBalance(session.user.id), 0);
       }
     });
 
     return () => {
-      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(timer);
+      if (usesIdle && typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(timer);
       else clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [userId]);
 }
 
 /**

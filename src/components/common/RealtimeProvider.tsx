@@ -65,7 +65,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
     if (!showConnectionStatus) return;
     const interval = setInterval(() => {
       setConnectionState(getConnectionStatus());
-    }, 5000); // Increased from 15s to 5s for faster reactive feel
+    }, 30000);
     return () => clearInterval(interval);
   }, [showConnectionStatus]);
 
@@ -84,7 +84,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
   // Force reconnect without page reload
   const forceReconnect = useCallback(() => {
     if (isAdminRoute()) return;
-    console.log('[RealtimeProvider] 🔄 Force reconnect triggered');
+    if (import.meta.env.DEV) console.info('[RealtimeProvider] 🔄 Force reconnect triggered');
     forceReconnectChannel();
   }, []);
 

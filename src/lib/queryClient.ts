@@ -44,7 +44,7 @@ export const queryPersister = (() => {
       // localStorage persistence is synchronous; writing a dehydrated cache a few
       // seconds after login was visible as WebView jank. Keep instant in-memory
       // React Query behavior, but persist less aggressively in the background.
-      throttleTime: isNative ? 30000 : 15000,
+      throttleTime: isNative ? 120000 : 60000,
     });
   } catch {
     return undefined;

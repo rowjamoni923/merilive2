@@ -477,6 +477,7 @@ import PrivacyConsentDialog from "./components/privacy/PrivacyConsentDialog";
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
+  const previousMediaRouteRef = useRef(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isMediaRoute =
@@ -496,13 +497,14 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
   const showPopups = !isAdminRoute && !isPublicPage && !isMediaRoute && hasSession;
 
-  useUserBalancePrefetch();
+  useUserBalancePrefetch(userId);
 
   useEffect(() => {
     if (isPublicPage) {
       setBackgroundReady(false);
       return;
     }
+    if (backgroundReady) return;
     const w = window as any;
     const id = typeof w.requestIdleCallback === 'function'
       ? w.requestIdleCallback(() => setBackgroundReady(true), { timeout: 3500 })
@@ -511,18 +513,33 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
-  }, [isPublicPage, location.pathname]);
+  }, [isPublicPage, backgroundReady]);
 
   useEffect(() => {
     if (!hasSeenFirstRouteRef.current) {
       hasSeenFirstRouteRef.current = true;
+      previousMediaRouteRef.current = isMediaRoute;
       return;
     }
 
-    import('@/utils/globalVideoLifecycle')
-      .then((m) => m.pauseAllVideosNow())
-      .catch(() => {});
-  }, [location.pathname]);
+    const wasMediaRoute = previousMediaRouteRef.current;
+    previousMediaRouteRef.current = isMediaRoute;
+    if (!wasMediaRoute || isMediaRoute) return;
+
+    const w = window as any;
+    const run = () => {
+      import('@/utils/globalVideoLifecycle')
+        .then((m) => m.pauseAllVideosNow())
+        .catch(() => {});
+    };
+    const id = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(run, { timeout: 1200 })
+      : window.setTimeout(run, 250);
+    return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+  }, [location.pathname, isMediaRoute]);
 
   return (
     <>
@@ -614,7 +631,14 @@ const App = () => {
         console.error('[App] Maintenance check failed:', e);
       }
     };
-    checkMaintenance();
+    const w = window as any;
+    const id = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(checkMaintenance, { timeout: 8000 })
+      : window.setTimeout(checkMaintenance, 5000);
+    return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
   }, []);
 
   const runLegacyProfileSync = async (userId: string) => {
@@ -1234,29 +1258,8 @@ const App = () => {
     );
   }
 
-  return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: queryPersister as any,
-        maxAge: 1000 * 60 * 60 * 6,
-        buster: 'merilive-v2-lean',
-        dehydrateOptions: {
-          shouldDehydrateQuery: (query: any) => {
-            const root = String(query?.queryKey?.[0] ?? '');
-            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
-          },
-        },
-      }}
-    >
-      <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
-      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
-      <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
-      <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
-
-
-      <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
-        <PresenceProvider>
+  const appShell = (
+    <>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
               tells every <motion.*> in the app to skip transform/opacity transitions
               and snap to final values. Falls back to `"user"` (honour OS setting) on
@@ -1266,27 +1269,27 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter future={{ v7_startTransition: true }}>
-              <ScrollToTop />
-              <BlankScreenGuard />
-              <NativeLiveKitRouteSurvivor />
-              <Suspense fallback={null}><DeepLinkHandler /></Suspense>
+            <BrowserRouter>
+              {!isStandalonePublicRoute && <ScrollToTop />}
+              {session && !isStandalonePublicRoute && <BlankScreenGuard />}
+              {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
+              {!isStandalonePublicRoute && <Suspense fallback={null}><DeepLinkHandler /></Suspense>}
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
               {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
-              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
-              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
-              {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
               <Suspense fallback={null}><RouteGroupAttributeBridge /></Suspense>
 
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
-              <AudioUnlockOverlay />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <AudioUnlockOverlay />}
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
-              <DisconnectReasonToaster />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <DisconnectReasonToaster />}
               {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
-              <LuckyGiftHost />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <LuckyGiftHost />}
               <CallProviderGate enabled={!!session && !isAdminRoute && !isStandalonePublicRoute}>
                   {/* Tab keep-alive is explicit opt-in only; default route owner stays single to prevent duplicate UI. */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
@@ -1657,8 +1660,39 @@ const App = () => {
             </BrowserRouter>
           </TooltipProvider>
           </MotionConfig>
-        </PresenceProvider>
-      </RealtimeProvider>
+      </>
+  );
+
+  return (
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister as any,
+        maxAge: 1000 * 60 * 60 * 6,
+        buster: 'merilive-v2-lean',
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query: any) => {
+            const root = String(query?.queryKey?.[0] ?? '');
+            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
+          },
+        },
+      }}
+    >
+      <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
+      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
+      <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
+      <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
+
+
+      {session && !isAdminRoute && !isStandalonePublicRoute ? (
+        <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
+          <PresenceProvider>
+            {appShell}
+          </PresenceProvider>
+        </RealtimeProvider>
+      ) : (
+        appShell
+      )}
     </PersistQueryClientProvider>
   );
 };

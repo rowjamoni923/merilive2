@@ -5,12 +5,12 @@ import { toast } from "sonner";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Heartbeat interval - 30 seconds
-const HEARTBEAT_INTERVAL = 30_000;
+// Heartbeat interval — keep hosts online without waking every screen constantly.
+const HEARTBEAT_INTERVAL = 120_000;
 
 // Cleanup RPC guard
 const CLEANUP_STORAGE_KEY = 'presence_cleanup_last_run_at';
-const CLEANUP_COOLDOWN_MS = 2 * 60 * 1000;
+const CLEANUP_COOLDOWN_MS = 30 * 60 * 1000;
 
 // Manual offline key
 const MANUAL_OFFLINE_KEY = 'meri_manual_offline';
@@ -53,7 +53,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setOfflineStatus = useCallback(async (uid: string, force = false) => {
     // Only go offline if forced (logout or explicit "Go Offline" button)
     if (!force) {
-      console.log('[Presence] 🟢 Skipping offline - user stays online');
+      if (import.meta.env.DEV) console.info('[Presence] 🟢 Skipping offline - user stays online');
       return;
     }
 
@@ -61,7 +61,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isSettingOffline.current = true;
 
     try {
-      console.log('[Presence] 🔴 Setting OFFLINE for:', uid);
+      if (import.meta.env.DEV) console.info('[Presence] 🔴 Setting OFFLINE for:', uid);
       
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || SUPABASE_ANON_KEY;
@@ -88,7 +88,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setOnlineStatus = useCallback(async (uid: string) => {
     // Only hosts can go manually offline; regular users are ALWAYS online
     if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true' && isHost) {
-      console.log('[Presence] 🔴 Host is manually offline, skipping heartbeat');
+      if (import.meta.env.DEV) console.info('[Presence] 🔴 Host is manually offline, skipping heartbeat');
       return;
     }
 
@@ -98,7 +98,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     try {
       await supabase.rpc('sync_host_online_status', { p_user_id: uid, p_is_online: true });
-      console.log('[Presence] 🟢 Set ONLINE for:', uid);
+      if (import.meta.env.DEV) console.info('[Presence] 🟢 Set ONLINE for:', uid);
     } catch (e) {
       console.error('[Presence] Failed to set online:', e);
     }
@@ -106,6 +106,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // ============ CLEANUP STALE SESSIONS ============
   const runCleanupIfDue = useCallback(async () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
     const now = Date.now();
     try {
       const lastRun = Number(localStorage.getItem(CLEANUP_STORAGE_KEY) || 0);
@@ -228,11 +229,11 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!userId) return;
     // Only hosts can be manually offline; regular users always start heartbeat
     if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true' && isHost) {
-      console.log('[Presence] Host is manually offline, not starting heartbeat');
+      if (import.meta.env.DEV) console.info('[Presence] Host is manually offline, not starting heartbeat');
       return;
     }
 
-    console.log('[Presence] Starting presence tracking for:', userId);
+    if (import.meta.env.DEV) console.info('[Presence] Starting presence tracking for:', userId);
 
     // Set online shortly after first paint; avoids stacking this RPC with auth,
     // profile, route chunk and notification startup work on slow WebViews.
@@ -260,7 +261,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 data: { call_id: call.id, caller_id: call.caller_id },
               },
             }));
-            console.log('[Presence] 🔔 Re-ringing missed call:', call.id);
+            if (import.meta.env.DEV) console.info('[Presence] 🔔 Re-ringing missed call:', call.id);
           }
         } catch {
           /* ignore — non-critical re-ring path */
@@ -288,7 +289,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // ============ CLEANUP ============
     return () => {
-      console.log('[Presence] Cleanup for:', userId);
+      if (import.meta.env.DEV) console.info('[Presence] Cleanup for:', userId);
       
       cancelIdle(onlineIdleId);
       cancelIdle(missedCallIdleId);
@@ -309,7 +310,7 @@ export async function goOfflineManually(userId: string) {
   localStorage.setItem(MANUAL_OFFLINE_KEY, 'true');
   try {
     await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: false });
-    console.log('[Presence] 🔴 Manual offline for:', userId);
+    if (import.meta.env.DEV) console.info('[Presence] 🔴 Manual offline for:', userId);
   } catch (e) {
     console.error('[Presence] Manual offline failed:', e);
   }
@@ -322,7 +323,7 @@ export async function goOnlineManually(userId: string) {
   localStorage.removeItem(MANUAL_OFFLINE_KEY);
   try {
     await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: true });
-    console.log('[Presence] 🟢 Manual online for:', userId);
+    if (import.meta.env.DEV) console.info('[Presence] 🟢 Manual online for:', userId);
   } catch (e) {
     console.error('[Presence] Manual online failed:', e);
   }

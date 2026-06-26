@@ -44,7 +44,7 @@ export function useAnalyticsBootstrap() {
       Analytics.setUserId(uid);
     };
 
-    supabase.auth.getUser().then(({ data }) => syncUser(data.user?.id ?? null));
+    supabase.auth.getSession().then(({ data }) => syncUser(data.session?.user?.id ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       syncUser(session?.user?.id ?? null);
     });
@@ -57,8 +57,8 @@ export function useAnalyticsBootstrap() {
     // React to consent flips: re-sync user + emit first opt-in event.
     const offConsent = onConsentChange((state) => {
       if (state === 'granted') {
-        supabase.auth.getUser().then(({ data }) => {
-          Analytics.setUserId(data.user?.id ?? null);
+        supabase.auth.getSession().then(({ data }) => {
+          Analytics.setUserId(data.session?.user?.id ?? null);
           Analytics.logEvent('analytics_opt_in');
         });
       } else {

@@ -198,6 +198,8 @@ button:not(:disabled),
 a[href],
 .tap-feedback {
   transition: opacity 60ms linear;
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 button:not(:disabled):active,
