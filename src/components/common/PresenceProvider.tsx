@@ -237,9 +237,8 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     if (import.meta.env.DEV) console.info('[Presence] Starting presence tracking for:', userId);
 
-    // Set online shortly after first paint; avoids stacking this RPC with auth,
-    // profile, route chunk and notification startup work on slow WebViews.
-    const onlineIdleId = idle(() => void setOnlineStatus(userId), 1200);
+    // Set online almost immediately — instant presence on app open / route enter.
+    const onlineIdleId = idle(() => void setOnlineStatus(userId, { force: true }), 200);
 
     // Phase-3 C7: after coming back online, check for missed calls that are
     // still pending/ringing within the timeout window and re-fire the incoming
