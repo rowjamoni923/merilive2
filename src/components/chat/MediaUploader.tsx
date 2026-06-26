@@ -127,7 +127,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
         throw uploadError;
       }
 
-      const mediaType = getFriendlyType(file.type);
+      const mediaType = getFriendlyType(resolvedType);
       const previewUrl = mediaType === 'image' || mediaType === 'video' || mediaType === 'audio'
         ? URL.createObjectURL(file)
         : undefined;
