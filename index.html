@@ -42,49 +42,25 @@
     <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.core.min.js" defer></script>
     
     <style>
-      html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-      body { margin: 0; padding: 0; background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-
-      #root { min-height: 100vh; min-height: 100dvh; background-color: #f8fafc; position: relative; z-index: 1; }
-
-      /* Pkg504: dark-route boot bg */
-      html[data-boot-theme="dark"],
-      html[data-boot-theme="dark"] body,
-      html[data-boot-theme="dark"] #root { background-color: #050208 !important; color: #ffffff; }
-
-      /* Auth-route boot bg — matches AuthBackground gradient so APK cold-start
-         never flashes raw white before React mounts. */
-      html[data-boot-theme="auth"],
-      html[data-boot-theme="auth"] body,
-      html[data-boot-theme="auth"] #root {
-        background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%) !important;
-        color: #ffffff;
+      html { overflow-x: hidden; -webkit-overflow-scrolling: touch; background: transparent; }
+      /* Professional native-app pattern: keep WebView transparent on boot so the
+         Capacitor native splash screen stays visible until React paints the real
+         page. NO intermediate white/dark flash — same behavior as Chamet, Bigo,
+         TikTok, WhatsApp. Once React mounts, each page paints its own bg. */
+      body {
+        margin: 0; padding: 0;
+        background: transparent;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        overflow-x: hidden;
       }
+      #root { min-height: 100vh; min-height: 100dvh; background: transparent; position: relative; z-index: 1; }
 
       html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
       html, body { scrollbar-width: none; -ms-overflow-style: none; }
     </style>
-    <script>
-      // Pkg504: pick boot theme from URL before any paint.
-      // Dark only for true full-screen room routes (live room, party room,
-      // go-live, video calls). List/lobby pages stay light.
-      // Auth route gets a dark gradient boot bg to kill APK cold-start white flash.
-      (function () {
-        try {
-          var p = (location.pathname || '/').toLowerCase();
-          var dark =
-            /^\/live\/[^\/]+/.test(p) ||
-            /^\/party\//.test(p) ||
-            p === '/go-live' ||
-            /^\/call\//.test(p) ||
-            /^\/(active-call|incoming-call|outgoing-call)(\/|$)/.test(p) ||
-            /^\/stream\//.test(p);
-          var isAuth = /^\/auth(\/|$)/.test(p) || /^\/(login|signup|sign-in|sign-up)(\/|$)/.test(p);
-          if (dark) document.documentElement.setAttribute('data-boot-theme', 'dark');
-          else if (isAuth) document.documentElement.setAttribute('data-boot-theme', 'auth');
-        } catch (_) { /* ignore */ }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
