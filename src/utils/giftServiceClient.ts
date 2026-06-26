@@ -167,6 +167,20 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     ...payload,
     idempotencyKey: payload.idempotencyKey || generateIdempotencyKey(),
   };
+  const idemKey = stablePayload.idempotencyKey!;
+
+  // Phase 4A — silent recovery helper. Any "soft failure" path (timeout, 5xx,
+  // network drop, RPC fallback returning empty error) checks the DB before
+  // surfacing an error to the user, because the server may have committed.
+  const tryConfirm = async (fallback: GiftServiceResponse): Promise<GiftServiceResponse> => {
+    const confirmed = await confirmGiftByIdempotencyKey(idemKey);
+    return confirmed ?? fallback;
+  };
+  const tryConfirmOrThrow = async (err: Error): Promise<GiftServiceResponse> => {
+    const confirmed = await confirmGiftByIdempotencyKey(idemKey);
+    if (confirmed) return confirmed;
+    throw err;
+  };
 
   let accessToken = await getAccessToken(false);
   if (!accessToken) accessToken = await getAccessToken(true);
@@ -177,7 +191,13 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     response = await doRequest(accessToken, stablePayload);
   } catch (error) {
     console.warn('[GiftServiceClient] Edge fetch failed; falling back to RPC:', error);
-    return callGiftRpcFallback(stablePayload);
+    try {
+      const rpc = await callGiftRpcFallback(stablePayload);
+      if (!rpc.success) return tryConfirm(rpc);
+      return rpc;
+    } catch (e) {
+      return tryConfirmOrThrow(e as Error);
+    }
   }
 
   // Token may have been revoked server-side (single-device displacement,
@@ -189,7 +209,13 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
         response = await doRequest(refreshed, stablePayload);
       } catch (error) {
         console.warn('[GiftServiceClient] Edge retry fetch failed; falling back to RPC:', error);
-        return callGiftRpcFallback(stablePayload);
+        try {
+          const rpc = await callGiftRpcFallback(stablePayload);
+          if (!rpc.success) return tryConfirm(rpc);
+          return rpc;
+        } catch (e) {
+          return tryConfirmOrThrow(e as Error);
+        }
       }
     }
   }
@@ -199,14 +225,31 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   if (!response.ok) {
     if (response.status === 401) {
+      // Hard auth failure — DB poll won't help since the server never
+      // accepted the request.
       throw new Error("Your session expired. Please sign in again to send gifts.");
     }
     if (response.status === 502 || response.status === 503 || response.status === 504) {
       console.warn('[GiftServiceClient] Edge temporarily unavailable; falling back to RPC:', response.status);
-      return callGiftRpcFallback(stablePayload);
+      try {
+        const rpc = await callGiftRpcFallback(stablePayload);
+        if (!rpc.success) return tryConfirm(rpc);
+        return rpc;
+      } catch (e) {
+        return tryConfirmOrThrow(e as Error);
+      }
     }
-    throw new Error(data?.error || `Gift request failed (${response.status})`);
+    // Unknown error status — server MIGHT have processed before crashing.
+    // Silently confirm before throwing to the caller.
+    return tryConfirmOrThrow(new Error(data?.error || `Gift request failed (${response.status})`));
   }
 
-  return data ?? { success: false };
+  // Edge returned 200 but body says success:false (RPC inside reported
+  // failure). Confirm via DB before surfacing — covers the "Gift failed:
+  // Gift failed" empty-error path the user has been seeing.
+  if (data && data.success === false) {
+    return tryConfirm(data);
+  }
+
+  return data ?? tryConfirm({ success: false, error: 'Empty response' });
 }
