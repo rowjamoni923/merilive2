@@ -239,6 +239,28 @@ Patch scope:
 
 ---
 
+# Phase 15 — Random-call balance authority fix (2026-06-26)
+
+Research / professional standard:
+- Chamet diamond guides document that premium matching/video calls are gated by diamond balance and top-up is the recovery path, not a generic crash/error flow — https://buffget.com/news/chamet-diamonds-guide-vip-call-costs-and-cheap-top-up
+- Bigo/TikTok-style wallet UX keeps failed paid actions as wallet conversion moments: show the required balance/current balance and route users to recharge immediately.
+- Supabase PostgREST rejects selects that include nonexistent columns; edge functions must select only deployed columns or the data object becomes null and downstream balance checks can falsely read 0.
+
+Verified current gap:
+- Deployed `profiles` has `coins`, `diamonds`, `user_level`, `host_level`, `vip_tier`, and `current_vip_tier_id`, but does not have `level` or `is_vip`.
+- `random-call-enqueue` selected `level,is_vip`; that select fails, `profile` becomes null, and the server returns `402 { balance: 0 }` even when the user has diamonds in `coins`.
+- `MatchCall` selected `is_vip`; that client profile read also fails and the prep UI shows 0 balance.
+- UI precheck used only 1 minute of rate while the server requires the admin-configured preauth hold (`host_max_rate_coins_per_min * preauth_minutes_hold`, currently 500 * 2 = 1000).
+- Admin Support “Add Diamonds” was sending `_field: "diamonds"` to the balance RPC, while the paid-call/gift/game wallet uses `profiles.coins` as the spendable diamond balance.
+
+Patch scope:
+- Read only valid balance/VIP/level columns and compute `effectiveBalance = max(coins, diamonds)` for the gate shown to users.
+- Keep the admin-configured preauth hold as the required amount everywhere; no hardcoded call price fallback beyond already-loaded admin settings.
+- If balance is missing/low, route directly to `/recharge` from both client precheck and edge-function 402 handling, while preserving the real random-call prep surface.
+- Admin Support diamond add/remove now adjusts `coins`, so future manual support credits are immediately spendable in random calls.
+
+---
+
 # Phase 14 — Agency dashboard realtime crash fix (2026-06-26)
 
 Research / professional standard:

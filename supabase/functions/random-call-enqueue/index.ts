@@ -74,19 +74,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Profile lookup (gender, vip, coins, level)
-    const { data: profile } = await supabase
+    // Profile lookup (gender, VIP, balance, level). Use only deployed columns:
+    // `level` / `is_vip` do not exist on this schema, and selecting them makes
+    // Supabase return null data, which falsely blocks paid calls as balance 0.
+    const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("id, gender, coins, level, is_vip")
+      .select("id, gender, coins, diamonds, user_level, host_level, vip_tier, current_vip_tier_id")
       .eq("id", userId)
       .single();
 
+    if (profileErr || !profile) {
+      console.error("[random-call-enqueue] profile lookup failed", profileErr);
+      return new Response(JSON.stringify({ error: "profile_not_found" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const callerRateForHold = settings.host_max_rate_coins_per_min;
     const holdAmount = callerRateForHold * settings.preauth_minutes_hold;
+    const callerBalance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
+    const callerIsVip = Number(profile.vip_tier ?? 0) > 0 || !!profile.current_vip_tier_id;
+    const callerLevel = Math.max(Number(profile.user_level ?? 0), Number(profile.host_level ?? 0));
 
-    if ((profile?.coins ?? 0) < holdAmount) {
+    if (callerBalance < holdAmount) {
       return new Response(
-        JSON.stringify({ error: "insufficient_coins", required: holdAmount, balance: profile?.coins ?? 0 }),
+        JSON.stringify({ error: "insufficient_coins", required: holdAmount, balance: callerBalance }),
         { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -121,7 +134,7 @@ Deno.serve(async (req) => {
     // ===================================================
     if (mode === "broadcast") {
       const livekitRoom = `match-${crypto.randomUUID()}`;
-      const freeTrial = settings.free_trial_seconds + (profile?.is_vip ? settings.vip_free_trial_bonus_seconds : 0);
+      const freeTrial = settings.free_trial_seconds + (callerIsVip ? settings.vip_free_trial_bonus_seconds : 0);
       const ringTimeout = settings.ring_timeout_seconds ?? 20;
       const expiresAt = new Date(Date.now() + ringTimeout * 1000).toISOString();
 
@@ -188,7 +201,7 @@ Deno.serve(async (req) => {
     // ===================================================
     // Insert queue row
     const expiresAt = new Date(Date.now() + settings.match_timeout_seconds * 1000).toISOString();
-    const score = (profile?.level ?? 1) * (profile?.is_vip ? settings.vip_match_priority_multiplier : 1);
+    const score = Math.max(callerLevel, 1) * (callerIsVip ? settings.vip_match_priority_multiplier : 1);
 
     const { data: qrow, error: qerr } = await supabase
       .from("random_call_queue")
@@ -199,7 +212,7 @@ Deno.serve(async (req) => {
         preferred_langs: preferredLangs,
         preferred_country: preferredCountry,
         preferred_host_gender: preferredHostGender,
-        is_vip: !!profile?.is_vip,
+        is_vip: callerIsVip,
         score: Math.round(score),
         hold_amount: holdAmount,
         expires_at: expiresAt,
@@ -236,7 +249,7 @@ Deno.serve(async (req) => {
     const hostRate = hpref?.coin_rate_per_min ?? settings.default_host_rate_coins_per_min;
 
     const livekitRoom = `match-${crypto.randomUUID()}`;
-    const freeTrial = settings.free_trial_seconds + (profile?.is_vip ? settings.vip_free_trial_bonus_seconds : 0);
+    const freeTrial = settings.free_trial_seconds + (callerIsVip ? settings.vip_free_trial_bonus_seconds : 0);
 
     const { data: session, error: serr } = await supabase
       .from("random_call_sessions")

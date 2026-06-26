@@ -410,7 +410,7 @@ const AdminTopupSystem = () => {
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
         _target_type: 'profile',
         _target_id: selectedUser.id,
-        _field: 'diamonds',
+        _field: 'coins',
         _delta: diamondAmount,
         _reason: note || null
       });
