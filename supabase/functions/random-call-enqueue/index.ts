@@ -184,6 +184,43 @@ Deno.serve(async (req) => {
         }),
       );
 
+      // Dual-path: high-priority FCM data push to backgrounded hosts.
+      // Realtime broadcast above only reaches foreground/attached clients;
+      // without this, ~20% of online hosts (background app) never see the ring.
+      let fcmSent = 0;
+      try {
+        if (hostIds.length > 0) {
+          const { data: tokens } = await supabase
+            .from("device_tokens")
+            .select("token, platform, user_id")
+            .in("user_id", hostIds)
+            .eq("is_active", true);
+          const tokenList = (tokens ?? []).map((t: any) => ({ token: t.token, platform: t.platform }));
+          if (tokenList.length > 0) {
+            const callerName = (profile as any)?.username ?? "Someone";
+            const results = await dispatchHighPriorityData(
+              tokenList,
+              {
+                type: "random_incoming_call",
+                broadcast_id: bc.id,
+                room: livekitRoom,
+                caller_id: userId,
+                caller_name: String(callerName),
+                ring_timeout_seconds: String(ringTimeout),
+              },
+              ringTimeout,
+            );
+            fcmSent = results.filter((r) => r.success).length;
+            const invalidTokens = results.filter((r) => r.invalid).map((r) => r.token);
+            if (invalidTokens.length > 0) {
+              await supabase.from("device_tokens").update({ is_active: false }).in("token", invalidTokens);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[random-call-enqueue] fcm fanout failed", e);
+      }
+
       return new Response(
         JSON.stringify({
           status: "broadcasting",
