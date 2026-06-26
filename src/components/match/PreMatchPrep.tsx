@@ -393,15 +393,15 @@ export default function PreMatchPrep({
             aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
             className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
           >
-            <div className="text-center">
+            <div className="text-center" style={{ transform: (isSearching || isMatched) && centreAvatar ? "translateY(78px)" : undefined }}>
               {isSearching ? (
                 <>
-                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Matching…</div>
+                  <div className="text-[13px] font-bold tracking-tight drop-shadow">Matching…</div>
                   <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
                 </>
               ) : isMatched ? (
                 <>
-                  <div className="text-[15px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
+                  <div className="text-[13px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
                   <div className="text-[10px] text-white/70 mt-0.5">opening call…</div>
                 </>
               ) : isError ? (
