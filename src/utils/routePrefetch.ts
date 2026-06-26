@@ -213,42 +213,53 @@ export function installRoutePrefetch() {
   if (installed || typeof window === 'undefined') return;
   installed = true;
 
+  const runAfterInput = (cb: () => void) => {
+    // Keep pointerdown under budget: never import chunks / walk route tables on
+    // the same critical input frame. A 0ms macrotask still normally runs before
+    // mobile click/navigation, but it lets the native tap feedback paint first.
+    window.setTimeout(cb, 0);
+  };
+
   const handler = (ev: Event) => {
     const target = ev.target as Element | null;
     if (!target || !('closest' in target)) return;
 
-    // 1) explicit data-prefetch hint
-    const hinted = target.closest<HTMLElement>('[data-prefetch]');
-    if (hinted) {
-      const kind = hinted.dataset.prefetch;
-      if (kind === 'live') prefetchLiveStream(hinted.dataset.streamId || undefined);
-      else if (kind === 'party') prefetchPartyRoom(hinted.dataset.roomId || undefined);
-      else if (kind === 'profile') prefetchProfileDetail();
-      else if (kind === 'chat') prefetchChat();
-      return;
-    }
+    runAfterInput(() => {
+      if (!target.isConnected) return;
 
-    // 2) any anchor whose href matches a known instant-tap route
-    const anchor = target.closest<HTMLAnchorElement>('a[href]');
-    if (anchor) {
-      const href = anchor.getAttribute('href') || '';
-      if (href.startsWith('/live/')) {
-        prefetchLiveStream(href.slice(6).split(/[/?#]/)[0]);
-      } else if (href === '/live-feed' || href.startsWith('/live-feed/')) {
-        prefetchByHref('/live-feed');
-      } else if (href.startsWith('/party/')) {
-        prefetchPartyRoom(href.slice(7).split(/[/?#]/)[0]);
-      } else if (href.startsWith('/profile-detail/') || href.startsWith('/profile/')) {
-        prefetchProfileDetail();
-      } else if (href.startsWith('/pk-leaderboard/')) {
-        prefetchByHref('/pk-leaderboard');
-      } else if (href === '/chat' || href.startsWith('/chat/')) {
-        prefetchChat();
-      } else {
-        // Generic table lookup for every other known user-facing route
-        prefetchByHref(href);
+      // 1) explicit data-prefetch hint
+      const hinted = target.closest<HTMLElement>('[data-prefetch]');
+      if (hinted) {
+        const kind = hinted.dataset.prefetch;
+        if (kind === 'live') prefetchLiveStream(hinted.dataset.streamId || undefined);
+        else if (kind === 'party') prefetchPartyRoom(hinted.dataset.roomId || undefined);
+        else if (kind === 'profile') prefetchProfileDetail();
+        else if (kind === 'chat') prefetchChat();
+        return;
       }
-    }
+
+      // 2) any anchor whose href matches a known instant-tap route
+      const anchor = target.closest<HTMLAnchorElement>('a[href]');
+      if (anchor) {
+        const href = anchor.getAttribute('href') || '';
+        if (href.startsWith('/live/')) {
+          prefetchLiveStream(href.slice(6).split(/[/?#]/)[0]);
+        } else if (href === '/live-feed' || href.startsWith('/live-feed/')) {
+          prefetchByHref('/live-feed');
+        } else if (href.startsWith('/party/')) {
+          prefetchPartyRoom(href.slice(7).split(/[/?#]/)[0]);
+        } else if (href.startsWith('/profile-detail/') || href.startsWith('/profile/')) {
+          prefetchProfileDetail();
+        } else if (href.startsWith('/pk-leaderboard/')) {
+          prefetchByHref('/pk-leaderboard');
+        } else if (href === '/chat' || href.startsWith('/chat/')) {
+          prefetchChat();
+        } else {
+          // Generic table lookup for every other known user-facing route
+          prefetchByHref(href);
+        }
+      }
+    });
   };
 
   // `pointerdown` fires ~50-150ms before `click` on touch devices — that's

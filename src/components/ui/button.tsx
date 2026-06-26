@@ -67,10 +67,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         clickGuardRef.current = true;
         try {
           const result = onClick(e) as unknown;
+          const unlock = () => { clickGuardRef.current = false; };
+          window.setTimeout(unlock, 180);
           if (result && typeof result === 'object' && typeof (result as Promise<unknown>).finally === 'function') {
-            (result as Promise<unknown>).finally(() => { clickGuardRef.current = false; });
+            (result as Promise<unknown>).finally(unlock);
           } else {
-            requestAnimationFrame(() => { clickGuardRef.current = false; });
+            window.setTimeout(unlock, 0);
           }
         } catch {
           clickGuardRef.current = false;
