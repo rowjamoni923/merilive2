@@ -4,7 +4,7 @@ import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import Auth from "./pages/Auth";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
 import { Session } from "@supabase/supabase-js";
@@ -392,13 +392,13 @@ const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/Gl
 // back press never falls through to the system default (which would exit the app).
 import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonHandler";
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
+import { StableRoutes } from "@/components/common/StableRoutes";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { RequireNoActiveCall } from "@/components/call/RequireNoActiveCall";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import LuckyGiftHost from "@/components/lucky/LuckyGiftHost";
 import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
-import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 
 
 
@@ -1287,7 +1287,6 @@ const App = () => {
             <BrowserRouter future={{ v7_startTransition: true }}>
               {!isStandalonePublicRoute && <ScrollToTop />}
               {!isStandalonePublicRoute && <RouteTransitionHost />}
-              {!isStandalonePublicRoute && <BlankScreenGuard />}
               {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
               {!isStandalonePublicRoute && <Suspense fallback={null}><DeepLinkHandler /></Suspense>}
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
@@ -1311,13 +1310,13 @@ const App = () => {
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
                   )}
-                  {/* No fake fallback UI: keep previous real screen via BlankScreenGuard. */}
+                  {/* No fake fallback UI: StableRoutes keeps the previous real route mounted while the next route prepares hidden. */}
                   <Suspense fallback={<RouteChunkFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
                     // URLs must render directly without the app splash or app-only popups.
-                    <Routes>
+                    <StableRoutes>
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/landing" element={<LandingPage />} />
                       <Route path="/download" element={<LandingPage />} />
@@ -1347,9 +1346,9 @@ const App = () => {
                       <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
                       <Route path="/unsubscribe" element={publicPage(<Unsubscribe />)} />
                       <Route path="*" element={<LandingPage />} />
-                    </Routes>
+                    </StableRoutes>
                   ) : (
-                  <Routes>
+                  <StableRoutes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
                 {/* ============================================= */}
@@ -1671,7 +1670,7 @@ const App = () => {
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+              </StableRoutes>
               )}
               </ErrorBoundary>
               
