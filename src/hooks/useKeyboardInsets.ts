@@ -34,26 +34,27 @@ export function useKeyboardInsets() {
     };
 
     if (isNativeApp()) {
-      let showHandle: { remove: () => Promise<void> } | null = null;
-      let hideHandle: { remove: () => Promise<void> } | null = null;
+      const handles: Array<{ remove: () => Promise<void> }> = [];
       let cancelled = false;
 
       import('@capacitor/keyboard')
         .then(async ({ Keyboard }) => {
           if (cancelled) return;
-          showHandle = await Keyboard.addListener('keyboardWillShow', (info) => {
+          // iOS fires keyboardWillShow/Hide; Android only fires keyboardDidShow/Hide.
+          // Subscribe to BOTH so Samsung / Pixel / OnePlus all lift the composer.
+          const onShow = (info: { keyboardHeight?: number } | undefined) =>
             commitKb(info?.keyboardHeight ?? 0);
-          });
-          hideHandle = await Keyboard.addListener('keyboardWillHide', () => {
-            commitKb(0);
-          });
+          const onHide = () => commitKb(0);
+          handles.push(await Keyboard.addListener('keyboardWillShow', onShow));
+          handles.push(await Keyboard.addListener('keyboardDidShow', onShow));
+          handles.push(await Keyboard.addListener('keyboardWillHide', onHide));
+          handles.push(await Keyboard.addListener('keyboardDidHide', onHide));
         })
         .catch(() => { /* plugin missing on web build — ignore */ });
 
       return () => {
         cancelled = true;
-        showHandle?.remove().catch(() => {});
-        hideHandle?.remove().catch(() => {});
+        handles.forEach((h) => { h.remove().catch(() => {}); });
         setKb(0);
       };
     }
