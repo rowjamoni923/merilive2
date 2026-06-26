@@ -52,6 +52,15 @@
       html[data-boot-theme="dark"] body,
       html[data-boot-theme="dark"] #root { background-color: #050208 !important; color: #ffffff; }
 
+      /* Auth-route boot bg — matches AuthBackground gradient so APK cold-start
+         never flashes raw white before React mounts. */
+      html[data-boot-theme="auth"],
+      html[data-boot-theme="auth"] body,
+      html[data-boot-theme="auth"] #root {
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%) !important;
+        color: #ffffff;
+      }
+
       html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
       html, body { scrollbar-width: none; -ms-overflow-style: none; }
     </style>
@@ -59,6 +68,7 @@
       // Pkg504: pick boot theme from URL before any paint.
       // Dark only for true full-screen room routes (live room, party room,
       // go-live, video calls). List/lobby pages stay light.
+      // Auth route gets a dark gradient boot bg to kill APK cold-start white flash.
       (function () {
         try {
           var p = (location.pathname || '/').toLowerCase();
@@ -69,7 +79,9 @@
             /^\/call\//.test(p) ||
             /^\/(active-call|incoming-call|outgoing-call)(\/|$)/.test(p) ||
             /^\/stream\//.test(p);
+          var isAuth = /^\/auth(\/|$)/.test(p) || /^\/(login|signup|sign-in|sign-up)(\/|$)/.test(p);
           if (dark) document.documentElement.setAttribute('data-boot-theme', 'dark');
+          else if (isAuth) document.documentElement.setAttribute('data-boot-theme', 'auth');
         } catch (_) { /* ignore */ }
       })();
     </script>
