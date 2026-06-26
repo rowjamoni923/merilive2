@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bell, Send, Users, Globe, Target, Clock, CheckCircle2, Loader2, Link2, ImagePlus, X, ExternalLink, Zap, ChevronDown, ChevronUp, Edit3, Save, Trash2, Plus } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
@@ -144,7 +145,10 @@ export default function AdminPushBroadcast() {
     try {
       let imageUrl: string | null = null;
       if (imageFile) imageUrl = await uploadImage();
+      const adminToken = getAdminSessionToken();
+      if (!adminToken) { toast.error("Admin session expired. Please sign in again."); setIsSending(false); return; }
       const { data, error } = await supabase.functions.invoke('send-push-notification', {
+        headers: { 'x-admin-token': adminToken },
         body: {
           title: title.trim(), body: message.trim(), target: targetAudience,
           imageUrl: imageUrl || undefined,
