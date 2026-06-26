@@ -32,6 +32,7 @@ import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAli
 import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
 import { RouteTransitionHost } from "./components/RouteTransitionHost";
 import { GlobalInstantNavigation } from "./components/common/GlobalInstantNavigation";
+import { ScrollSafetyNet } from "./components/common/ScrollSafetyNet";
 import { startIdleRoutePrefetch } from "./utils/idleRoutePrefetch";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
