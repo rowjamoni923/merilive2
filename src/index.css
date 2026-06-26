@@ -249,6 +249,41 @@ a[href]:active,
   transition: bottom 180ms ease-out, padding-bottom 180ms ease-out, transform 180ms ease-out;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Native-Android tap & touch polish (Pillar 1 — Keyboard / Touch feel).
+   Removes the legacy 300ms tap-delay and the grey/blue tap-flash overlay
+   that immediately gives away "this is a webview". Buttons and links now
+   respond instantly the moment the finger lifts — identical to a true
+   native Android UI. Inputs/textareas keep default text-selection behavior
+   so users can still long-press to select / copy / paste.
+   ───────────────────────────────────────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+label,
+summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+/* Allow normal selection inside actual content fields. */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 html[data-kb-open="true"] .kb-hide-when-open {
   display: none !important;
 }
