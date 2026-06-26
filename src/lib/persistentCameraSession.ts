@@ -106,6 +106,20 @@ export async function acquireCameraSession(
     return toHandle(s);
   }
 
+  if (pending && pendingKey !== wantKey) {
+    try {
+      const stale = await pending;
+      if (active === stale && stale.refCount <= 0) {
+        hardStop(stale);
+        active = null;
+        emitCameraSessionChange();
+      }
+    } finally {
+      pending = null;
+      pendingKey = null;
+    }
+  }
+
   pending = (async (): Promise<Session> => {
     const stream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
     const session: Session = {
