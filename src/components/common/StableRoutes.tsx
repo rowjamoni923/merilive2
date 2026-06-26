@@ -165,7 +165,7 @@ export const StableRoutes = memo(({ children }: StableRoutesProps) => {
     { id: nextId, location, status: "current" },
   ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setStages((prev) => {
       const current = prev.find((stage) => stage.status === "current") ?? prev[0];
       if (current?.id === nextId) {
