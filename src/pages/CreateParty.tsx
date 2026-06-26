@@ -111,6 +111,7 @@ const CreateParty = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMirrorMode, setIsMirrorMode] = useState(true);
   const [nativePreviewActive, setNativePreviewActive] = useState(false);
+  const nativePartyPreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
   // Party rooms are always public (industry standard — Chamet/Bigo/Poppo).
   // Entry fee remains as an optional gate; password gating fully removed.
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
@@ -194,13 +195,21 @@ const CreateParty = () => {
           // LocalVideoTrack via promotePreviewToSession — no Camera2
           // re-open between Create Party → Party Room.
           try {
-            const started = await nativeLiveKitController.startLocalPreview({
-              lens: 'front',
-              resolution: '1080p',
-              mirror: true,
-              roomScope: 'party',
-              boundedOnly: true,
-            });
+            const previewScope = nativeLiveKitController.getPreviewScope();
+            const activeScope = nativeLiveKitController.getActiveScope();
+            const started = previewScope === 'party' || activeScope === 'party'
+              ? true
+              : await (nativePartyPreviewStartPromiseRef.current ??= nativeLiveKitController
+                  .startLocalPreview({
+                    lens: 'front',
+                    resolution: '1080p',
+                    mirror: true,
+                    roomScope: 'party',
+                    boundedOnly: true,
+                  })
+                  .finally(() => {
+                    nativePartyPreviewStartPromiseRef.current = null;
+                  }));
             setNativePreviewActive(started);
             nativeReady = started;
           } catch (e) {
