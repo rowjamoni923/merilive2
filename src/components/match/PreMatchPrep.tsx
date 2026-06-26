@@ -116,8 +116,20 @@ export default function PreMatchPrep({
   }, [navigate, onHistory]);
 
   const bindInstantHeaderAction = (key: "back" | "history", action: () => void) => ({
+    onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      runHeaderAction(key, action);
+    },
     onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => {
       if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      runHeaderAction(key, action);
+    },
+    onTouchStart: (event: ReactTouchEvent<HTMLButtonElement>) => {
+      if (typeof window !== "undefined" && "PointerEvent" in window) return;
       event.preventDefault();
       event.stopPropagation();
       runHeaderAction(key, action);
