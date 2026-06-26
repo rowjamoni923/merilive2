@@ -4102,6 +4102,39 @@ const Chat = () => {
       }} />
 
       <ImageViewer src={imageViewer.viewerImage} open={imageViewer.isOpen} onClose={imageViewer.closeImage} alt="Shared Image" />
+
+      {/* Quick-react popup (long-press / React menu) */}
+      <ReactionPickerSheet
+        open={!!reactionPickerMsgId}
+        onClose={() => setReactionPickerMsgId(null)}
+        onPick={(emoji) => {
+          if (reactionPickerMsgId) toggleReaction(reactionPickerMsgId, emoji);
+        }}
+      />
+
+      {/* Full-screen swipeable media gallery */}
+      <MediaGalleryViewer
+        open={galleryOpen}
+        startId={galleryStartId}
+        onClose={() => setGalleryOpen(false)}
+        items={(selectedGroup ? groupMessages : messages)
+          .filter((m: any) =>
+            isChatImageMessage(m.message_type, m.content) ||
+            isChatVideoMessage(m.message_type, m.content)
+          )
+          .map((m: any): GalleryItem => {
+            const clean = extractChatMediaPath(m.content || '');
+            return {
+              id: m.id,
+              url: signedChatMediaUrls[clean] || clean,
+              type: isChatVideoMessage(m.message_type, m.content) ? 'video' : 'image',
+              sender: m.sender_id === currentUserId
+                ? (myProfile?.display_name || 'You')
+                : (selectedGroup ? m.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User',
+              createdAt: m.created_at,
+            };
+          })}
+      />
       <NumberSharingWarningDialog
         open={numberWarning.warningState.open}
         onClose={numberWarning.closeWarning}
