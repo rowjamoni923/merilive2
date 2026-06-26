@@ -146,6 +146,14 @@ class NativeLiveKitController {
         if (requestedFeature && activeScope && activeScope !== requestedFeature) {
           throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
         }
+        if (!requestedFeature || !activeScope || activeScope === requestedFeature) {
+          this.connected = true;
+          this.activeFeature = requestedFeature ?? activeScope ?? null;
+          this.previewFeature = null;
+          this.autoAttachLocalRenderer = opts.attachLocal !== false;
+          if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
+          return { sid: '', identity: '' };
+        }
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
           this.connected = false;
