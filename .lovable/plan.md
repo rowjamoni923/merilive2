@@ -256,3 +256,21 @@ Patch scope:
 - Header buttons now commit on pointer/touch end, stop propagation, dedupe the following click, stop the local preview stream immediately, and navigate synchronously.
 - Back uses React Router history index with `/` fallback; History routes directly to `/call-history`.
 - Queue/broadcast cancellation is kept, but it runs in the background so the tap is never blocked by Supabase/native cleanup.
+
+---
+
+# Phase 16 — Shop preview dialog centering hardening (2026-06-26)
+
+Research / professional standard:
+- Material Design dialogs are modal surfaces that must stay visually focused and centered within the viewport, with scroll contained inside the surface when content is tall — https://m3.material.io/components/dialogs/overview
+- Apple HIG sheets/dialog-style surfaces keep the user’s task in focus and avoid unexpected off-screen placement; content should adapt to available viewport rather than anchor below the visible center — https://developer.apple.com/design/human-interface-guidelines/sheets
+- Android dialog guidance treats dialogs as transient focused windows; large content should scroll inside the dialog instead of moving the whole dialog out of view — https://developer.android.com/develop/ui/views/components/dialogs
+
+Verified current gap:
+- The shop preview dialog still used transform-based Radix/Tailwind enter animations (`zoom`/`slide-in-from-top`) on the same element that relies on `translate(-50%, -50%)` for centering. During/after the open animation, the animation transform could override the centering transform, leaving the dialog’s top-left at viewport center — exactly the user screenshot where the preview surface appears stuck near the bottom.
+- `DialogContent` also spread incoming `style` after its own keyboard/scroll styles, so Shop’s custom gradient style replaced the centering/keyboard-safe inline safeguards.
+
+Patch scope:
+- Dialog content now uses stable center positioning with no transform-based open/close animation on the centered element.
+- Incoming styles are merged without replacing the core centered transform / momentum-scroll / keyboard padding safeguards.
+- Shop preview modal gets a `100dvh - 32px` max-height and stable mobile width so entry/portrait previews scroll inside the modal while the modal itself remains in the visual middle.

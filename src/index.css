@@ -6091,5 +6091,13 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   }
 }
 
+/* Dialog centering guard: the centered modal element must never inherit a
+   transform-reset or transform-based enter animation. Shop item previews rely
+   on this to stay in the visual middle on Android WebView and desktop preview. */
+[data-meri-dialog-content="true"] {
+  transform: translate3d(-50%, -50%, 0) !important;
+  transform-origin: center center;
+}
+
 
 
