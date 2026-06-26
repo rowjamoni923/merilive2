@@ -27,6 +27,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { useNativeReelsPlayer } from "@/hooks/useNativeReelsPlayer";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import { tryHeartBurst } from "@/plugins/NativeHeartBurst";
 import { isNativeHeartBurstFlagOn } from "@/utils/nativeHeartBurstFlag";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
@@ -143,6 +144,12 @@ const Reels = () => {
   const [showComments, setShowComments] = useState(false);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const reelsCommentsScroll = useStableChatScroll({
+    dependency: comments.length,
+    resetKey: reels[currentIndex]?.id,
+    bottomThreshold: 96,
+    initialPinFrames: 3,
+  });
   const [newComment, setNewComment] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -1120,7 +1127,7 @@ const Reels = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent shrink-0" />
 
           {/* List */}
-          <ScrollArea className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}>
+          <ScrollArea ref={reelsCommentsScroll.scrollRef} className="flex-1 min-h-0 chat-scroll-stable" style={{ paddingBottom: 'calc(var(--kb-h, 0px) + 0.75rem)' }}>
             {comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
