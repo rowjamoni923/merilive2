@@ -6002,7 +6002,7 @@ body[data-route-group="agency"] [data-radix-scroll-area-viewport].chat-scroll-st
 /* Login/auth: no black modal flash and no transform work on the tap frame.
    The auth background stays visible while sheets open like a native surface. */
 body.auth-native-route [data-meri-dialog-overlay="true"] {
-  background: rgba(15, 23, 42, 0.08) !important;
+  background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   animation: none !important;
