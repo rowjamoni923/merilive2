@@ -2286,7 +2286,7 @@ const Chat = () => {
           
         // Track + background phone check
         trackTaskProgress('messages_sent', { increment: 1 });
-        checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
+        if (senderIsHost) checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
         checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
       }
     } catch (error: any) {
