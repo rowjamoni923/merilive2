@@ -477,6 +477,7 @@ import PrivacyConsentDialog from "./components/privacy/PrivacyConsentDialog";
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
+  const previousMediaRouteRef = useRef(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isMediaRoute =
@@ -517,8 +518,13 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   useEffect(() => {
     if (!hasSeenFirstRouteRef.current) {
       hasSeenFirstRouteRef.current = true;
+      previousMediaRouteRef.current = isMediaRoute;
       return;
     }
+
+    const wasMediaRoute = previousMediaRouteRef.current;
+    previousMediaRouteRef.current = isMediaRoute;
+    if (!wasMediaRoute || isMediaRoute) return;
 
     const w = window as any;
     const run = () => {
@@ -533,7 +539,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
-  }, [location.pathname]);
+  }, [location.pathname, isMediaRoute]);
 
   return (
     <>
