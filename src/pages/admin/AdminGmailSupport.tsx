@@ -28,6 +28,7 @@ import DOMPurify from "dompurify";
 import UserSupportTool from "@/components/admin/UserSupportTool";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 interface GmailMessage {
   id: string;
@@ -64,7 +65,12 @@ const AdminGmailSupport = () => {
   const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
   const [confirmDeleteThread, setConfirmDeleteThread] = useState<{ threadId: string; subject: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const gmailThreadScroll = useStableChatScroll({
+    dependency: selectedThread?.length || 0,
+    resetKey: selectedEmail?.threadId,
+    bottomThreshold: 96,
+    initialPinFrames: 4,
+  });
 
   const callGmailApi = async (action: string, params: any = {}) => {
     const adminToken = getAdminSessionToken();
@@ -374,12 +380,6 @@ const AdminGmailSupport = () => {
     return () => clearInterval(poll);
   }, [fetchInboxStats, triggerAutoReplies]);
 
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [selectedThread]);
-
   const filters = [
     { value: "in:inbox", label: "📥 Inbox" },
     { value: "in:inbox is:unread", label: "📬 Unread" },
@@ -641,7 +641,7 @@ const AdminGmailSupport = () => {
               </div>
             </div>
           ) : (
-            <ScrollArea className="flex-1 min-h-0 h-full">
+            <ScrollArea ref={gmailThreadScroll.scrollRef} className="flex-1 min-h-0 h-full chat-scroll-stable">
               <div className="space-y-2 px-3 sm:px-6 py-4 max-w-3xl mx-auto">
                 {selectedThread?.map((msg, idx) => {
                   const isOur = msg.from.includes('merilive.us@gmail.com');
@@ -720,7 +720,6 @@ const AdminGmailSupport = () => {
                     </div>
                   );
                 })}
-                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
           )}

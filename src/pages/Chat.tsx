@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -28,6 +28,7 @@ import { loadChatSnapshot, saveChatSnapshot } from "@/utils/chatSnapshots";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
 import { emitInboxTyping } from "@/hooks/useInboxTyping";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 type CreateGroupResult = {
@@ -489,52 +490,30 @@ const Chat = () => {
   const playedGiftMessageIdsRef = useRef<Set<string>>(new Set());
   const playedGiftStorageUserRef = useRef<string | null>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
-  const lastScrollConvIdRef = useRef<string | null>(null);
-  const wasNearBottomRef = useRef(true);
-  const initialScrollDoneRef = useRef(false);
-  const latestPinTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadBelow, setUnreadBelow] = useState(0);
+  const chatThreadKey = selectedConversation?.id || selectedGroup?.id || null;
+  const {
+    scrollRef: chatScrollRef,
+    isNearBottomRef: wasNearBottomRef,
+    scrollToLatest,
+  } = useStableChatScroll({
+    dependency: `${messages.length}:${groupMessages.length}:${isOtherTyping ? 1 : 0}`,
+    resetKey: chatThreadKey,
+    bottomThreshold: 120,
+    initialPinFrames: 5,
+  });
 
   const hardPinChatToLatest = useCallback(() => {
-    const c = chatScrollRef.current;
-    if (!c) return;
-    const previousBehavior = c.style.scrollBehavior;
-    c.style.scrollBehavior = 'auto';
-    c.scrollTop = c.scrollHeight;
-    c.style.scrollBehavior = previousBehavior;
+    scrollToLatest('instant');
     wasNearBottomRef.current = true;
     setShowScrollToBottom(false);
     setUnreadBelow(0);
-  }, []);
+  }, [scrollToLatest, wasNearBottomRef]);
 
   const anchorChatToBottomSoon = useCallback(() => {
-    latestPinTimersRef.current.forEach(clearTimeout);
-    latestPinTimersRef.current = [];
-    // Guard: only pin if the user hasn't scrolled away. Prevents the
-    // queued timers from yanking the view back to bottom while the user
-    // is reading older messages (the previous behavior caused visible
-    // jitter when scrolling up shortly after a send/reflow).
-    const stick = () => {
-      const c = chatScrollRef.current;
-      if (!c) return;
-      const dist = c.scrollHeight - c.scrollTop - c.clientHeight;
-      if (dist < 120 || wasNearBottomRef.current) hardPinChatToLatest();
-    };
-    // First two ticks always pin (covers the just-sent message case).
     hardPinChatToLatest();
-    requestAnimationFrame(() => hardPinChatToLatest());
-    [80, 200, 450, 900].forEach((delay) => {
-      latestPinTimersRef.current.push(setTimeout(stick, delay));
-    });
   }, [hardPinChatToLatest]);
-
-  useEffect(() => () => {
-    latestPinTimersRef.current.forEach(clearTimeout);
-    latestPinTimersRef.current = [];
-  }, []);
   
   // Group creation
   const [showGroupActions, setShowGroupActions] = useState(false);
@@ -1223,64 +1202,6 @@ const Chat = () => {
     }
   }, [searchParams, currentUserId]);
 
-  // Pro-app scroll behavior (WhatsApp/Messenger/Chamet style):
-  //  • On conversation switch / first paint → JUMP to bottom instantly (no animation).
-  //  • On new incoming/outgoing messages → smooth-scroll only if user is already
-  //    near the bottom; otherwise leave them where they are (so they can read
-  //    older messages without being yanked away).
-  useLayoutEffect(() => {
-    const container = chatScrollRef.current;
-    const end = messagesEndRef.current;
-    if (!container || !end) return;
-    const convId = selectedConversation?.id || selectedGroup?.id || null;
-    const isNewConversation = lastScrollConvIdRef.current !== convId;
-    const currentLen = (selectedGroup ? groupMessages.length : messages.length);
-    // Trust the scroll-tracked ref — by the time useLayoutEffect runs, the
-    // new message is already in the DOM so a fresh distance reading would
-    // be misleadingly large for tall messages (gifts, images). The scroll
-    // handler updates wasNearBottomRef based on the user's last real scroll.
-    const wasNearBottom = wasNearBottomRef.current;
-
-    if (isNewConversation) {
-      // Conversation switch — reset tracking and reset the windowed slice.
-      lastScrollConvIdRef.current = convId;
-      initialScrollDoneRef.current = false;
-      setVisibleMessageCount(MESSAGES_PAGE_SIZE);
-      wasNearBottomRef.current = true;
-    }
-
-    // Keep slamming to the bottom (no animation) until the first real batch of
-    // messages has rendered for this conversation. This handles the case where
-    // useLayoutEffect runs while messages are still loading async, which would
-    // otherwise leave the view stuck at the top (WhatsApp/imo always open at
-    // the latest message).
-    if (!initialScrollDoneRef.current) {
-      requestAnimationFrame(hardPinChatToLatest);
-      if (currentLen > 0) {
-        initialScrollDoneRef.current = true;
-        anchorChatToBottomSoon();
-      }
-      return;
-    }
-
-    if (wasNearBottom && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-      requestAnimationFrame(hardPinChatToLatest);
-    }
-  }, [messages, groupMessages, isOtherTyping, selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest, anchorChatToBottomSoon]);
-
-  // Track whether the user is sitting near the bottom of the thread.
-  useEffect(() => {
-    const container = chatScrollRef.current;
-    if (!container) return;
-    wasNearBottomRef.current = true;
-    const onScroll = () => {
-      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-      wasNearBottomRef.current = distanceFromBottom < 120;
-    };
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
-  }, [selectedConversation?.id, selectedGroup?.id]);
-
   // Track unread messages that arrive while the user is scrolled up.
   const prevMessageCountRef = useRef(0);
   useEffect(() => {
@@ -1291,62 +1212,6 @@ const Chat = () => {
     }
     prevMessageCountRef.current = total;
   }, [messages, groupMessages, showScrollToBottom]);
-
-  // Keep the thread pinned to the bottom when content reflows (avatars,
-  // images, gift media loading after first paint). Mirrors WhatsApp/imo
-  // behavior where opening a chat always lands on the latest message.
-  useEffect(() => {
-    const container = chatScrollRef.current;
-    if (!container || typeof ResizeObserver === 'undefined') return;
-    // Track the scrollHeight observed just BEFORE each reflow. When a gift /
-    // image / lottie inside the latest message finishes loading, the content
-    // grows *below* the viewport — scrollTop stays the same but scrollHeight
-    // jumps. That makes the post-reflow distance from bottom suddenly large,
-    // so a naive `dist < 80` check fails and the latest message appears to
-    // "scroll up". Comparing against the PREVIOUS distance lets us pin
-    // whenever the user was sitting at the bottom right before the reflow,
-    // matching WhatsApp/Messenger/imo behavior.
-    let prevScrollHeight = container.scrollHeight;
-    let prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const ro = new ResizeObserver(() => {
-      const newScrollHeight = container.scrollHeight;
-      const grew = newScrollHeight > prevScrollHeight;
-      const wasAtBottom = prevDist < 120 || wasNearBottomRef.current;
-      const stillAtBottom = (newScrollHeight - container.scrollTop - container.clientHeight) < 120;
-      if (grew && wasAtBottom && !stillAtBottom) {
-        // Content expanded below viewport while we were pinned to bottom —
-        // re-pin so the latest message stays in view.
-        hardPinChatToLatest();
-      } else if (stillAtBottom && wasNearBottomRef.current) {
-        hardPinChatToLatest();
-      }
-      prevScrollHeight = container.scrollHeight;
-      prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
-    });
-    ro.observe(container);
-    // Also observe direct children so gift/image height changes are caught.
-    const childObserver = new ResizeObserver(() => {
-      const newScrollHeight = container.scrollHeight;
-      const wasAtBottom = prevDist < 120 || wasNearBottomRef.current;
-      if (newScrollHeight > prevScrollHeight && wasAtBottom) {
-        hardPinChatToLatest();
-      }
-      prevScrollHeight = newScrollHeight;
-      prevDist = container.scrollHeight - container.scrollTop - container.clientHeight;
-    });
-    Array.from(container.children).forEach((el) => childObserver.observe(el as Element));
-    const mutationObs = new MutationObserver(() => {
-      Array.from(container.children).forEach((el) => {
-        try { childObserver.observe(el as Element); } catch {}
-      });
-    });
-    mutationObs.observe(container, { childList: true, subtree: false });
-    return () => {
-      ro.disconnect();
-      childObserver.disconnect();
-      mutationObs.disconnect();
-    };
-  }, [selectedConversation?.id, selectedGroup?.id, hardPinChatToLatest]);
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
@@ -1769,8 +1634,6 @@ const Chat = () => {
         .eq('id', otherUserId)
         .maybeSingle();
 
-      lastScrollConvIdRef.current = null;
-      initialScrollDoneRef.current = false;
       wasNearBottomRef.current = true;
       setMessages([]);
       setGroupMessages([]);
@@ -1812,8 +1675,6 @@ const Chat = () => {
         last_message: '',
         unread_count: 0
       });
-      lastScrollConvIdRef.current = null;
-      initialScrollDoneRef.current = false;
       wasNearBottomRef.current = true;
       setVisibleMessageCount(MESSAGES_PAGE_SIZE);
       setShowScrollToBottom(false);
@@ -2161,8 +2022,6 @@ const Chat = () => {
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
-    lastScrollConvIdRef.current = null;
-    initialScrollDoneRef.current = false;
     wasNearBottomRef.current = true;
     setSelectedConversation(conv);
     setSelectedGroup(null);
@@ -2190,8 +2049,6 @@ const Chat = () => {
   };
 
   const handleSelectGroup = (group: Group) => {
-    lastScrollConvIdRef.current = null;
-    initialScrollDoneRef.current = false;
     wasNearBottomRef.current = true;
     setSelectedGroup(group);
     setSelectedConversation(null);
@@ -3181,7 +3038,6 @@ const Chat = () => {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Scroll-to-bottom FAB (WhatsApp-style) */}

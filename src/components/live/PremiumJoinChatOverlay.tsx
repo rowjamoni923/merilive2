@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback, useRef } from "react";
+import React, { memo, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +14,7 @@ import {
   formatLevel 
 } from "@/features/shared/level";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 // ============= TYPES =============
 export interface JoinNotification {
@@ -309,17 +310,14 @@ export const PremiumJoinChatOverlay = memo(({
   maxHeight = "200px", // Default scrollable area height
   className,
 }: PremiumJoinChatOverlayProps) => {
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  
   // Show all messages or limit if maxMessages is provided
   const displayMessages = maxMessages ? messages.slice(-maxMessages) : messages;
-  
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages.length]);
+  const premiumChatScroll = useStableChatScroll({
+    dependency: `${messages.length}:${joinNotifications.length}`,
+    resetKey: null,
+    bottomThreshold: 72,
+    initialPinFrames: 3,
+  });
   
   return (
     <div className={cn(
@@ -335,8 +333,8 @@ export const PremiumJoinChatOverlay = memo(({
 
       {/* Scrollable Chat Container - ALL messages visible by scrolling */}
       <div 
-        ref={chatContainerRef}
-        className="flex flex-col gap-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+        ref={premiumChatScroll.scrollRef}
+        className="flex flex-col gap-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent chat-scroll-stable"
         style={{ maxHeight }}
       >
         {/* Chat messages - Oldest at top, newest at bottom */}

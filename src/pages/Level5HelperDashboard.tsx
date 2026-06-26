@@ -36,6 +36,7 @@ import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
@@ -217,6 +218,12 @@ const Level5HelperDashboard = () => {
   const [replyScreenshot, setReplyScreenshot] = useState<File | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
   const [loadingReplies, setLoadingReplies] = useState(false);
+  const helperInboxScroll = useStableChatScroll({
+    dependency: messageReplies.length,
+    resetKey: selectedMessage?.id,
+    bottomThreshold: 72,
+    initialPinFrames: 3,
+  });
   
   // Admin-managed payment methods & currency rates
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<TopupPaymentMethod[]>([]);
@@ -2516,7 +2523,7 @@ const Level5HelperDashboard = () => {
           </DialogHeader>
 
           {/* Scrollable Chat Area */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+          <div ref={helperInboxScroll.scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 chat-scroll-stable">
             {/* Original Admin Message */}
             <div className="bg-violet-50 text-slate-900 border border-violet-200/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">

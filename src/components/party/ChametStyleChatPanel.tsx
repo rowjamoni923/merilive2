@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { getLevelGradient, ensureValidLevel, formatLevel } from "@/features/shared/level";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 interface ChatMessage {
   id: string;
@@ -52,18 +53,13 @@ export const ChametStyleChatPanel = ({
   hostId,
 }: ChametStyleChatPanelProps) => {
   const [inputValue, setInputValue] = useState("");
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Smooth bottom-anchor scroll on new messages
-  useEffect(() => {
-    if (!isOpen) return;
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    });
-  }, [messages, isOpen]);
+  const panelScroll = useStableChatScroll({
+    dependency: messages.length,
+    resetKey: isOpen ? 'open' : 'closed',
+    bottomThreshold: 96,
+    initialPinFrames: 4,
+  });
 
   // Focus input when panel opens
   useEffect(() => {
@@ -155,8 +151,8 @@ export const ChametStyleChatPanel = ({
               />
 
               <div
-                ref={scrollContainerRef}
-                className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 space-y-2 scroll-smooth"
+                ref={panelScroll.scrollRef}
+                className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 space-y-2 chat-scroll-stable"
                 style={{
                   scrollbarWidth: "thin",
                   scrollbarColor: "rgba(168,85,247,0.3) transparent",

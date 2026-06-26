@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -14,14 +15,13 @@ export function AIChatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const aiChatScroll = useStableChatScroll({
+    dependency: `${messages.length}:${isLoading ? 1 : 0}`,
+    resetKey: isOpen ? 'open' : 'closed',
+    bottomThreshold: 96,
+    initialPinFrames: 3,
+  });
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -180,7 +180,7 @@ export function AIChatbot() {
             </div>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(0.75rem + var(--kb-h, 0px))' }}>
+            <div ref={aiChatScroll.scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 chat-scroll-stable" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(0.75rem + var(--kb-h, 0px))' }}>
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 flex items-center justify-center mb-4">

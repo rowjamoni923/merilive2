@@ -11,6 +11,7 @@ import { isLiveChatOnline, getSupportHoursLocal } from "@/components/support/AIS
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import Skeleton from "@/components/Skeleton";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 interface LiveMessage {
   id: string;
@@ -32,10 +33,15 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
   const [ticketId, setTicketId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [ticketStatus, setTicketStatus] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const ticketIdRef = useRef<string | null>(null);
   const { toast } = useToast();
+  const liveChatScroll = useStableChatScroll({
+    dependency: messages.length,
+    resetKey: ticketId,
+    bottomThreshold: 96,
+    initialPinFrames: 4,
+  });
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(userId);
@@ -43,11 +49,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
   useEffect(() => {
     ticketIdRef.current = ticketId;
   }, [ticketId]);
-
-  // Auto-scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   // Initialize: find or create a live chat ticket
   useEffect(() => {
@@ -379,7 +380,7 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
+      <ScrollArea ref={liveChatScroll.scrollRef} className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -438,7 +439,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </ScrollArea>

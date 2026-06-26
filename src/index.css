@@ -246,7 +246,7 @@ a[href]:active,
      scrollTop adjust (new msg, image load, reflow) animate and fight the
      user's finger → visible jitter. Native chat apps use `auto` and only
      animate via explicit element.scrollIntoView({behavior:'smooth'}). */
-  scroll-behavior: auto;
+  scroll-behavior: auto !important;
   /* Compositor-only scroll + native momentum (iOS + Android WebView). */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -256,6 +256,17 @@ a[href]:active,
   /* Snap scroll to whole pixels — kills 1px sub-pixel shimmer during
      fast flings on high-DPI Android panels. */
   -webkit-font-smoothing: antialiased;
+}
+
+/* Chat rows must keep their real measured height while the user scrolls.
+   `content-visibility:auto` is great for generic feeds, but in inbox/live
+   chat it can replace off-screen rows with approximate placeholders and then
+   expand them during a fling — the exact "lafalafi" jump users feel on
+   Android. Stable chat containers render real row heights instead. */
+.chat-scroll-stable .chat-msg-row {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+  contain: layout paint style;
 }
 
 
@@ -5939,6 +5950,14 @@ body[data-route-group="agency"] .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   scroll-behavior: smooth;
+}
+
+body[data-route-group="agency"] .chat-scroll-stable,
+body[data-route-group="agency"] .chat-scroll-stable.overflow-y-auto,
+body[data-route-group="agency"] .chat-scroll-stable.overflow-auto,
+body[data-route-group="agency"] [data-radix-scroll-area-viewport].chat-scroll-stable {
+  scroll-behavior: auto !important;
+  overscroll-behavior: contain;
 }
 
 /* Tap-feedback parity — buttons/links/role=button get a 120ms
