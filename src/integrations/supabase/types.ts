@@ -16873,6 +16873,47 @@ export type Database = {
           },
         ]
       }
+      user_conversation_prefs: {
+        Row: {
+          conversation_id: string
+          is_archived: boolean
+          is_muted: boolean
+          is_pinned: boolean
+          marked_unread: boolean
+          pinned_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          is_archived?: boolean
+          is_muted?: boolean
+          is_pinned?: boolean
+          marked_unread?: boolean
+          pinned_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          is_archived?: boolean
+          is_muted?: boolean
+          is_pinned?: boolean
+          marked_unread?: boolean
+          pinned_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_conversation_prefs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_entry_banners: {
         Row: {
           entry_banner_id: string
