@@ -2769,7 +2769,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell min-h-screen min-h-0 w-full max-w-full bg-[#06060a]">
+    <div className="admin-shell min-h-screen lg:min-h-0 w-full max-w-full bg-[#06060a]">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -2983,7 +2983,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
+      <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-visible lg:overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
@@ -3163,7 +3163,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
+        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-visible lg:overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-auto lg:overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh] w-full flex items-center justify-center">
               <PremiumSpinner size="lg" labelClassName="text-slate-400" />
