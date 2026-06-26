@@ -272,6 +272,10 @@ const Auth = () => {
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
   useEffect(() => {
+    document.body.classList.add('auth-native-route');
+    return () => document.body.classList.remove('auth-native-route');
+  }, []);
+  useEffect(() => {
     if (!pendingBtn) return;
     // Clear spinner as soon as we leave the landing buttons or after a safety timeout
     if (authStep !== null) { setPendingBtn(null); return; }
@@ -560,7 +564,7 @@ const Auth = () => {
 
   // Google Sign-In removed - using only Start button and Email/Password
 
-  const handleStartClick = async () => {
+  const handleStartClick = () => {
     if (!agreed) {
       toast({
         title: "Accept Terms",
@@ -570,10 +574,14 @@ const Auth = () => {
       return;
     }
 
-    setLoading(true);
+    // Native apps commit the next UI surface immediately. Device/session
+    // recovery is useful, but it must never hold the touch frame hostage.
+    setIsEmailFlow(false);
+    setAuthStep("gender");
     localStorage.removeItem('meri_manual_logout');
-    
-    try {
+
+    void (async () => {
+      try {
       // Check if already logged in
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -618,21 +626,13 @@ const Auth = () => {
         console.warn('[Auth] Device recovery failed, falling back to registration');
       }
 
-      // STEP 2: No existing account → proceed to registration form
-      setIsEmailFlow(false);
-      setAuthStep("gender");
-
     } catch (error) {
       console.error("Start click error:", error);
       recordClientError({ label: "Auth.handleStartClick", message: error instanceof Error ? error.message : String(error) });
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      // Keep the already-open registration sheet; background recovery failure
+      // should not show a blocking error on a fresh start tap.
     }
+    })();
   };
 
   const handleLastUserLogin = () => {
@@ -1488,12 +1488,19 @@ const Auth = () => {
       return;
     }
 
-    // Brute-force / abuse gate — shared namespace prevents OTP spam
-    const canProceed = await checkBeforeLogin(`otp:${phoneDigits}`);
-    if (!canProceed) return;
+    setAuthStep("phone_otp");
+    startResendCountdown();
+    toast({
+      title: "📱 Sending WhatsApp Code",
+      description: `Code is being sent to ${displayPhone}.`,
+    });
 
-    setLoading(true);
+    void (async () => {
     try {
+      // Brute-force / abuse gate — shared namespace prevents OTP spam
+      const canProceed = await checkBeforeLogin(`otp:${phoneDigits}`);
+      if (!canProceed) return;
+
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
         body: { phone_number: displayPhone, action: "send" }
       });
@@ -1514,8 +1521,6 @@ const Auth = () => {
         title: "📱 WhatsApp OTP Sent!",
         description: `Verification code sent to ${displayPhone} via WhatsApp`,
       });
-      setAuthStep("phone_otp");
-      startResendCountdown();
     } catch (error: any) {
       recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1524,9 +1529,8 @@ const Auth = () => {
         description: error.message || "Failed to send WhatsApp OTP",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+    })();
   };
 
   // Phone Flow - Step 2: Verify WhatsApp OTP
@@ -2116,8 +2120,8 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={() => { setPendingBtn('start'); handleStartClick(); }}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
-            disabled={loading}
+            data-auth-action="true"
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-opacity duration-75 active:opacity-90 backdrop-blur-md" /* dark-ok */
           >
             <span className="flex items-center gap-2">
               {pendingBtn === 'start' ? (
@@ -2145,7 +2149,8 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+            data-auth-action="true"
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-opacity duration-75 active:opacity-90 backdrop-blur-md" /* dark-ok */
           >
             {pendingBtn === 'phone' ? (
               <Loader2 className="w-5 h-5 mr-2 animate-spin text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
@@ -2172,7 +2177,8 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
-  className="w-full h-10 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+            data-auth-action="true"
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-opacity duration-75 active:opacity-90 backdrop-blur-md" /* dark-ok */
           >
             {pendingBtn === 'email' ? (
               <Loader2 className="w-5 h-5 mr-2 animate-spin text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />

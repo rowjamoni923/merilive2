@@ -5999,6 +5999,41 @@ body[data-route-group="agency"] [data-radix-scroll-area-viewport].chat-scroll-st
   overscroll-behavior: contain;
 }
 
+/* Login/auth: no black modal flash and no transform work on the tap frame.
+   The auth background stays visible while sheets open like a native surface. */
+body.auth-native-route [data-meri-dialog-overlay="true"] {
+  background: rgba(15, 23, 42, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+body.auth-native-route [data-meri-dialog-content="true"] {
+  animation: none !important;
+  transition: top 80ms linear, max-height 80ms linear !important;
+  will-change: auto !important;
+}
+
+body.auth-native-route [data-auth-action="true"],
+body.auth-native-route [data-auth-action="true"] * {
+  transform: none !important;
+  animation-duration: 650ms;
+}
+
+body.auth-native-route button:not(:disabled),
+body.auth-native-route [role="button"]:not([aria-disabled="true"]) {
+  touch-action: manipulation;
+  transition-property: opacity, background-color, border-color, color, box-shadow !important;
+  transition-duration: 75ms !important;
+}
+
+body.auth-native-route button:not(:disabled):active,
+body.auth-native-route [role="button"]:not([aria-disabled="true"]):active {
+  opacity: 0.9;
+  transform: none !important;
+}
+
 /* Tap-feedback parity — buttons/links/role=button get a 120ms
    compositor-only press-in scale. Opt out with data-no-tap-feedback. */
 body[data-route-group="agency"] button:not([data-no-tap-feedback]):not(:disabled),

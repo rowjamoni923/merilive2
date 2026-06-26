@@ -111,3 +111,22 @@ Patch scope:
 4. Optimistic local gift push
 5. Profile/Chat snapshot hydrate
 6. Verify with owner account
+
+---
+
+# Phase 9 — Auth black-flash + login CTA INP fix (2026-06-26)
+
+Research / professional standard:
+- Google/web.dev INP: responsive UI must minimize input delay and avoid long main-thread work before the next paint — https://web.dev/articles/optimize-inp and https://web.dev/articles/optimize-input-delay
+- Android dialog guidance: dialogs are transient surfaces for input/decisions; they should not feel like a full-screen blocking route change — https://developer.android.com/develop/ui/views/components/dialogs
+- Chamet/Bigo/TikTok-style native login pattern: tap commits the next surface instantly; auth/session/device checks run behind visible progress, never before first visual response.
+
+Verified current gap:
+- `Auth.handleStartClick` waited for Supabase session lookup, persistent device id, `recover_session_by_device`, edge-function session exchange, and profile readiness before opening registration. On slow WebView this made Start feel dead.
+- Auth dialogs used a dark Radix overlay (`bg-slate-900/50 backdrop-blur`) plus zoom/fade animation, producing the user-visible black flash over the login background.
+- Auth CTAs still carried 300ms transition + active scale, which costs paint/compositor work on the same tap frame.
+
+Patch scope:
+- Start now opens the gender/name sheet immediately; device/session recovery continues in the background and navigates only if a valid session is recovered.
+- Phone OTP now commits to the OTP sheet immediately while WhatsApp send/abuse checks run in the background.
+- Auth route gets a scoped native modal style: near-transparent overlay, no backdrop blur/zoom animation, opacity-only tap feedback.
