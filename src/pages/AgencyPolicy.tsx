@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
+
 import { 
   ArrowLeft, 
   FileText, 
@@ -228,29 +230,9 @@ const AgencyPolicy = () => {
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0">
-          <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => navigate(-1)} className="p-2 -ml-2">
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-            <h1 className="text-lg font-bold text-white flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Agency Policy
-            </h1>
-            <div className="w-9" />
-          </div>
-        </div>
-        <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-32 w-full rounded-2xl" />
-          <Skeleton className="h-20 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
-          <Skeleton className="h-64 w-full rounded-xl" />
-        </div>
-      </div>
-    );
+    return <PageSkeleton className="fixed inset-0 flex flex-col bg-background overflow-hidden" rows={6} hero />;
   }
+
 
   const exchangeRate = policyData?.exchange_rate || { rate: 9000, currency: 'Beans', display: '9,000 Beans = $1 USD' };
   
