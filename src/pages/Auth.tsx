@@ -1,7 +1,7 @@
 import { useState, useEffect, type ImgHTMLAttributes } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
-import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search } from "lucide-react";
+import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search, Loader2 } from "lucide-react";
  import { Rocket3DIcon } from "@/components/ui/Rocket3DIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
