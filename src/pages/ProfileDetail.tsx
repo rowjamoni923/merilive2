@@ -36,6 +36,7 @@ import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { SafePhoto } from "@/components/common/SafePhoto";
 import { formatCompactCount } from "@/utils/formatCount";
 
 import { Button } from "@/components/ui/button";
@@ -871,13 +872,17 @@ const ProfileDetail = () => {
                   preload="auto"
                 />
               ) : (
-                <img
-                  src={enhanceThumbnail(url, { width: 750, quality: 85 })}
+                <SafePhoto
+                  src={url}
                   alt=""
+                  width={750}
+                  quality={85}
+                  fallbackSeed={profile?.id || url}
+                  fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="sync"
-                  {...({ fetchpriority: active ? 'high' : 'low' } as ImgHTMLAttributes<HTMLImageElement>)}
+                  fetchPriority={active ? 'high' : 'low'}
                 />
               )}
             </motion.div>
@@ -897,13 +902,17 @@ const ProfileDetail = () => {
               preload="auto"
             />
           ) : (
-            <img
-              src={enhanceThumbnail(coverSrc, { width: 750, quality: 85 })}
+            <SafePhoto
+              src={coverSrc}
               alt=""
+              width={750}
+              quality={85}
+              fallbackSeed={profile?.id || coverSrc}
+              fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
               decoding="sync"
-              {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}
+              fetchPriority="high"
             />
           );
         })()}
@@ -947,9 +956,13 @@ const ProfileDetail = () => {
                         </span>
                       </>
                     ) : (
-                      <img
-                        src={enhanceThumbnail(poster.image_url, { width: 120, quality: 75 })}
+                      <SafePhoto
+                        src={poster.image_url}
                         alt=""
+                        width={120}
+                        quality={75}
+                        fallbackSeed={profile?.id || poster.image_url}
+                        fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
                         className="h-full w-full object-cover"
                         loading="lazy"
                         decoding="async"
