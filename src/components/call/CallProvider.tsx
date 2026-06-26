@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
 import { useNativeCallBillingSync } from '@/hooks/useNativeCallBillingSync';
@@ -21,6 +21,7 @@ import {
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
+import { CallContext, type CallContextType } from './CallContext';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
 // Do NOT kick off this import at module load. On Android WebView that creates
@@ -42,27 +43,6 @@ const GlobalNotificationsMount = () => {
   useNotifications({ realtimeOnly: true });
   return null;
 };
-
-interface CallContextType {
-  startCall: (hostId: string, streamId?: string) => Promise<string | null>;
-  endCall: () => Promise<void>;
-  isInCall: boolean;
-}
-
-const CallContext = createContext<CallContextType | null>(null);
-
-export function useCall() {
-  const context = useContext(CallContext);
-  if (!context) {
-    // Silent fallback during HMR/edge cases - no console spam
-    return {
-      startCall: async () => null as string | null,
-      endCall: async () => {},
-      isInCall: false,
-    };
-  }
-  return context;
-}
 
 interface CallProviderProps {
   children: ReactNode;
