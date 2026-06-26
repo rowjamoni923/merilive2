@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getBalanceWithFetch, useUserBalance } from "@/hooks/useUserBalance";
+import AnimatedGlobeBackdrop from "./AnimatedGlobeBackdrop";
+
 
 export type MatchFilters = {
   preferred_host_gender: "male" | "female" | "any";
@@ -259,24 +261,21 @@ export default function PreMatchPrep({
   };
 
   return (
-    <div className="relative min-h-[100svh] bg-slate-950 text-white overflow-hidden">
-      {/* Ambient blurred self-cam background */}
-      <div className="absolute inset-0">
-        {camOn ? (
-          <video
-            ref={videoRef}
-            autoPlay playsInline muted
-            className="w-full h-full object-cover scale-110"
-            style={{
-              transform: facing === "user" ? "scaleX(-1) scale(1.1)" : "scale(1.1)",
-              filter: `blur(28px) brightness(0.55) saturate(1.1)${beauty ? " contrast(0.95)" : ""}`,
-            }}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-950 via-indigo-950 to-fuchsia-950" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/20 to-slate-950/90" />
-      </div>
+    <div className="relative min-h-[100svh] bg-[#04020f] text-white overflow-hidden">
+      {/* Premium animated world backdrop */}
+      <AnimatedGlobeBackdrop />
+      {/* Keep camera element mounted (continuity) but hidden — backdrop is the globe */}
+      {camOn && (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute w-1 h-1 opacity-0 pointer-events-none"
+          aria-hidden
+        />
+      )}
+
 
       {/* Header */}
       <div className="relative z-30 flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
