@@ -411,6 +411,13 @@ html.reduce-motion body.route-changing [data-page-root] {
   animation: pkg434-spin 0.7s linear infinite;
 }
 
+/* ---- Inbox "typing…" dots bounce ---- */
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+
 /* ---- Image fade-in on load (avoid pop-in flicker) ---- */
 img.fade-in-on-load {
   opacity: 0;

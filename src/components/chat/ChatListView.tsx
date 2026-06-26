@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Search, Users, Crown, Pin, BellOff, Trash2, CheckCheck, Bell, Archive } from "lucide-react";
+import { useInboxTyping } from "@/hooks/useInboxTyping";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -55,16 +56,34 @@ const CONV_ROW_HEIGHT = 76;
 const GROUP_ROW_HEIGHT = 76;
 const LONG_PRESS_MS = 480;
 
+// Swipe-action thresholds (px). Mirrors WhatsApp/Telegram feel.
+const SWIPE_REVEAL = 72;     // distance to rest the row open at
+const SWIPE_TRIGGER = 132;   // distance past which release auto-fires action
+const SWIPE_MAX = 160;       // hard rubber-band cap
+const SWIPE_LOCK = 8;        // px of horizontal travel before we claim the gesture
+
+// ------------------------- Typing dots ------------------------- //
+const TypingDots: React.FC = () => (
+  <span className="inline-flex items-end gap-[3px] h-[14px]">
+    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-[typing-bounce_1s_ease-in-out_infinite]" />
+    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-[typing-bounce_1s_ease-in-out_infinite] [animation-delay:120ms]" />
+    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-[typing-bounce_1s_ease-in-out_infinite] [animation-delay:240ms]" />
+  </span>
+);
+
 // ------------------------- Conversation row ------------------------- //
 interface ConversationRowProps {
   conv: Conversation;
   pref?: ConversationPref;
+  isTyping?: boolean;
   onSelect: (c: Conversation) => void;
   onLongPress: (c: Conversation) => void;
+  onTogglePin: (c: Conversation) => void;
+  onToggleMute: (c: Conversation) => void;
 }
 
 const ConversationRow: React.FC<ConversationRowProps> = React.memo(
-  ({ conv, pref, onSelect, onLongPress }) => {
+  ({ conv, pref, isTyping, onSelect, onLongPress, onTogglePin, onToggleMute }) => {
     const pressTimer = useRef<number | null>(null);
     const longPressed = useRef(false);
     const isPinned = pref?.is_pinned ?? false;
@@ -72,7 +91,29 @@ const ConversationRow: React.FC<ConversationRowProps> = React.memo(
     const markedUnread = pref?.marked_unread ?? false;
     const effectiveUnread = conv.unread_count > 0 || markedUnread;
 
-    const start = useCallback(() => {
+    // Swipe state — translateX of the row content, with reveal panels behind.
+    const [dx, setDx] = useState(0);
+    const dragState = useRef<{
+      startX: number;
+      startY: number;
+      startDx: number;
+      pointerId: number;
+      claimed: boolean; // true once we lock the horizontal gesture
+      cancelled: boolean;
+    } | null>(null);
+
+    const resetSwipe = useCallback(() => setDx(0), []);
+
+    const closeIfOpen = useCallback(() => {
+      if (dx !== 0) setDx(0);
+    }, [dx]);
+
+    const cancelPress = useCallback(() => {
+      if (pressTimer.current) window.clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }, []);
+
+    const startPress = useCallback(() => {
       longPressed.current = false;
       pressTimer.current = window.setTimeout(() => {
         longPressed.current = true;
@@ -81,101 +122,233 @@ const ConversationRow: React.FC<ConversationRowProps> = React.memo(
       }, LONG_PRESS_MS);
     }, [conv, onLongPress]);
 
-    const cancel = useCallback(() => {
-      if (pressTimer.current) window.clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }, []);
+    const onPointerDown = useCallback(
+      (e: React.PointerEvent) => {
+        // Only react to primary pointer (touch/mouse-left/pen).
+        if (e.button !== undefined && e.button !== 0) return;
+        dragState.current = {
+          startX: e.clientX,
+          startY: e.clientY,
+          startDx: dx,
+          pointerId: e.pointerId,
+          claimed: false,
+          cancelled: false,
+        };
+        startPress();
+      },
+      [dx, startPress],
+    );
+
+    const onPointerMove = useCallback(
+      (e: React.PointerEvent) => {
+        const s = dragState.current;
+        if (!s || s.cancelled) return;
+        const deltaX = e.clientX - s.startX;
+        const deltaY = e.clientY - s.startY;
+
+        if (!s.claimed) {
+          // Vertical scroll wins — bail out and let the list scroll.
+          if (Math.abs(deltaY) > SWIPE_LOCK && Math.abs(deltaY) > Math.abs(deltaX)) {
+            s.cancelled = true;
+            cancelPress();
+            return;
+          }
+          if (Math.abs(deltaX) > SWIPE_LOCK) {
+            s.claimed = true;
+            cancelPress();
+            try { (e.currentTarget as HTMLElement).setPointerCapture(s.pointerId); } catch { /* noop */ }
+          } else {
+            return;
+          }
+        }
+
+        let next = s.startDx + deltaX;
+        // Rubber-band clamp.
+        if (next > SWIPE_MAX) next = SWIPE_MAX + (next - SWIPE_MAX) * 0.18;
+        if (next < -SWIPE_MAX) next = -SWIPE_MAX + (next + SWIPE_MAX) * 0.18;
+        setDx(next);
+      },
+      [cancelPress],
+    );
+
+    const onPointerUp = useCallback(
+      (e: React.PointerEvent) => {
+        const s = dragState.current;
+        dragState.current = null;
+        cancelPress();
+        if (!s) return;
+        try { (e.currentTarget as HTMLElement).releasePointerCapture(s.pointerId); } catch { /* noop */ }
+        if (!s.claimed || s.cancelled) return;
+        // Decide final resting state.
+        if (dx >= SWIPE_TRIGGER) {
+          setDx(0);
+          hapticFeedback("medium");
+          onTogglePin(conv);
+        } else if (dx <= -SWIPE_TRIGGER) {
+          setDx(0);
+          hapticFeedback("medium");
+          onToggleMute(conv);
+        } else if (dx >= SWIPE_REVEAL) {
+          setDx(SWIPE_REVEAL);
+        } else if (dx <= -SWIPE_REVEAL) {
+          setDx(-SWIPE_REVEAL);
+        } else {
+          setDx(0);
+        }
+        // Click intercept: if we actually dragged, swallow the upcoming click.
+        longPressed.current = true;
+      },
+      [conv, dx, cancelPress, onTogglePin, onToggleMute],
+    );
 
     const handleClick = useCallback(() => {
       if (longPressed.current) {
         longPressed.current = false;
         return;
       }
+      if (dx !== 0) {
+        resetSwipe();
+        return;
+      }
       onSelect(conv);
-    }, [conv, onSelect]);
+    }, [conv, dx, onSelect, resetSwipe]);
+
+    const handleRevealAction = useCallback(
+      (kind: "pin" | "mute") => {
+        setDx(0);
+        hapticFeedback("light");
+        if (kind === "pin") onTogglePin(conv);
+        else onToggleMute(conv);
+      },
+      [conv, onTogglePin, onToggleMute],
+    );
 
     return (
-      <button
-        onClick={handleClick}
-        onTouchStart={start}
-        onTouchEnd={cancel}
-        onTouchMove={cancel}
-        onTouchCancel={cancel}
-        onMouseDown={start}
-        onMouseUp={cancel}
-        onMouseLeave={cancel}
-        onContextMenu={(e) => { e.preventDefault(); onLongPress(conv); }}
-        className={cn(
-          "w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150",
-          isPinned && "bg-primary/[0.025]",
-        )}
+      <div
+        className={cn("relative w-full overflow-hidden", isPinned && "bg-primary/[0.025]")}
+        onPointerLeave={closeIfOpen}
       >
-        <div className="relative shrink-0 self-center">
-          {conv.other_user?.id ? (
-            <AvatarWithFrame
-              userId={conv.other_user.id}
-              src={conv.other_user?.avatar_url || undefined}
-              name={conv.other_user?.display_name || "User"}
-              level={pickDisplayLevel(conv.other_user as any)}
-              size="md"
-              showAnimation={false}
-            />
-          ) : (
-            <Avatar className="w-14 h-14">
-              <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-              <AvatarFallback className="bg-muted text-muted-foreground">
-                {conv.other_user?.display_name?.[0] || "?"}
-              </AvatarFallback>
-            </Avatar>
+        {/* Right-swipe reveal (pin) — sits on the LEFT, revealed when dx > 0 */}
+        <button
+          type="button"
+          aria-label={isPinned ? "Unpin" : "Pin"}
+          onClick={() => handleRevealAction("pin")}
+          tabIndex={dx > 0 ? 0 : -1}
+          className={cn(
+            "absolute inset-y-0 left-0 flex items-center justify-start pl-5 pr-3 transition-opacity duration-150",
+            "bg-gradient-to-r from-amber-500/95 to-amber-400/80 text-white",
+            dx > 4 ? "opacity-100" : "opacity-0 pointer-events-none",
           )}
-          {conv.other_user?.is_online && (
-            <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
+          style={{ width: Math.max(0, dx) }}
+        >
+          <Pin className="w-5 h-5 shrink-0" />
+        </button>
+        {/* Left-swipe reveal (mute) — sits on the RIGHT, revealed when dx < 0 */}
+        <button
+          type="button"
+          aria-label={isMuted ? "Unmute" : "Mute"}
+          onClick={() => handleRevealAction("mute")}
+          tabIndex={dx < 0 ? 0 : -1}
+          className={cn(
+            "absolute inset-y-0 right-0 flex items-center justify-end pr-5 pl-3 transition-opacity duration-150",
+            "bg-gradient-to-l from-slate-600/95 to-slate-500/80 text-white",
+            dx < -4 ? "opacity-100" : "opacity-0 pointer-events-none",
           )}
-        </div>
-        <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
-          <div className="flex items-center gap-1.5">
-            <h3 className="font-medium text-[15.5px] truncate text-foreground">
-              {conv.other_user?.display_name || "User"}
-            </h3>
-            {conv.other_user?.country_flag && (
-              <span className="text-xs shrink-0">{conv.other_user.country_flag}</span>
+          style={{ width: Math.max(0, -dx) }}
+        >
+          {isMuted ? <Bell className="w-5 h-5 shrink-0" /> : <BellOff className="w-5 h-5 shrink-0" />}
+        </button>
+
+        <button
+          onClick={handleClick}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onContextMenu={(e) => { e.preventDefault(); onLongPress(conv); }}
+          style={{
+            transform: `translate3d(${dx}px, 0, 0)`,
+            transition: dragState.current?.claimed ? "none" : "transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)",
+            touchAction: "pan-y",
+          }}
+          className={cn(
+            "relative w-full flex items-stretch gap-3 px-4 py-2.5 bg-card active:bg-muted/60",
+          )}
+        >
+          <div className="relative shrink-0 self-center">
+            {conv.other_user?.id ? (
+              <AvatarWithFrame
+                userId={conv.other_user.id}
+                src={conv.other_user?.avatar_url || undefined}
+                name={conv.other_user?.display_name || "User"}
+                level={pickDisplayLevel(conv.other_user as any)}
+                size="md"
+                showAnimation={false}
+              />
+            ) : (
+              <Avatar className="w-14 h-14">
+                <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  {conv.other_user?.display_name?.[0] || "?"}
+                </AvatarFallback>
+              </Avatar>
             )}
-            <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-            <span
-              className={cn(
-                "text-[11px] shrink-0 ml-auto",
-                effectiveUnread && !isMuted ? "text-emerald-600 font-semibold" : "text-muted-foreground",
-              )}
-            >
-              {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
-            </span>
+            {conv.other_user?.is_online && (
+              <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
+            )}
           </div>
-          <div className="flex items-center justify-between gap-2 mt-0.5">
-            <p
-              className={cn(
-                "text-[13.5px] truncate",
-                effectiveUnread && !isMuted ? "text-foreground/90" : "text-muted-foreground",
+          <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-medium text-[15.5px] truncate text-foreground">
+                {conv.other_user?.display_name || "User"}
+              </h3>
+              {conv.other_user?.country_flag && (
+                <span className="text-xs shrink-0">{conv.other_user.country_flag}</span>
               )}
-            >
-              {conv.last_message || "No messages yet"}
-            </p>
-            <div className="flex items-center gap-1 shrink-0">
-              {isMuted && <BellOff className="w-3.5 h-3.5 text-muted-foreground" />}
-              {isPinned && <Pin className="w-3.5 h-3.5 text-muted-foreground fill-muted-foreground/40" />}
-              {effectiveUnread && (
-                <span
+              <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
+              <span
+                className={cn(
+                  "text-[11px] shrink-0 ml-auto",
+                  effectiveUnread && !isMuted ? "text-emerald-600 font-semibold" : "text-muted-foreground",
+                )}
+              >
+                {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2 mt-0.5">
+              {isTyping ? (
+                <p className="text-[13.5px] truncate text-emerald-600 font-medium flex items-center gap-1.5">
+                  <TypingDots />
+                  <span>typing…</span>
+                </p>
+              ) : (
+                <p
                   className={cn(
-                    "min-w-[20px] h-5 px-1.5 text-white text-[11px] font-semibold rounded-full flex items-center justify-center",
-                    isMuted ? "bg-muted-foreground/60" : "bg-emerald-500",
+                    "text-[13.5px] truncate",
+                    effectiveUnread && !isMuted ? "text-foreground/90" : "text-muted-foreground",
                   )}
                 >
-                  {conv.unread_count > 99 ? "99+" : conv.unread_count > 0 ? conv.unread_count : "•"}
-                </span>
+                  {conv.last_message || "No messages yet"}
+                </p>
               )}
+              <div className="flex items-center gap-1 shrink-0">
+                {isMuted && <BellOff className="w-3.5 h-3.5 text-muted-foreground" />}
+                {isPinned && <Pin className="w-3.5 h-3.5 text-muted-foreground fill-muted-foreground/40" />}
+                {effectiveUnread && (
+                  <span
+                    className={cn(
+                      "min-w-[20px] h-5 px-1.5 text-white text-[11px] font-semibold rounded-full flex items-center justify-center",
+                      isMuted ? "bg-muted-foreground/60" : "bg-emerald-500",
+                    )}
+                  >
+                    {conv.unread_count > 99 ? "99+" : conv.unread_count > 0 ? conv.unread_count : "•"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </button>
+        </button>
+      </div>
     );
   },
 );
@@ -213,9 +386,12 @@ const VirtualConversations: React.FC<{
   scrollRef: React.RefObject<HTMLElement>;
   items: Conversation[];
   prefs: Record<string, ConversationPref>;
+  typingSet: Set<string>;
   onSelect: (c: Conversation) => void;
   onLongPress: (c: Conversation) => void;
-}> = ({ scrollRef, items, prefs, onSelect, onLongPress }) => {
+  onTogglePin: (c: Conversation) => void;
+  onToggleMute: (c: Conversation) => void;
+}> = ({ scrollRef, items, prefs, typingSet, onSelect, onLongPress, onTogglePin, onToggleMute }) => {
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollRef.current,
@@ -241,8 +417,11 @@ const VirtualConversations: React.FC<{
           <ConversationRow
             conv={items[vi.index]}
             pref={prefs[items[vi.index].id]}
+            isTyping={typingSet.has(items[vi.index].id)}
             onSelect={onSelect}
             onLongPress={onLongPress}
+            onTogglePin={onTogglePin}
+            onToggleMute={onToggleMute}
           />
         </div>
       ))}
@@ -333,6 +512,24 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
   );
 
   const handleLongPress = useCallback((c: Conversation) => setActionTarget(c), []);
+  const typingSet = useInboxTyping(currentUserId ?? null);
+
+  const handleTogglePin = useCallback(
+    (c: Conversation) => {
+      const cur = prefs[c.id]?.is_pinned ?? false;
+      updatePref(c.id, { is_pinned: !cur });
+      toast({ title: !cur ? "Pinned" : "Unpinned", duration: 1200 });
+    },
+    [prefs, updatePref],
+  );
+  const handleToggleMute = useCallback(
+    (c: Conversation) => {
+      const cur = prefs[c.id]?.is_muted ?? false;
+      updatePref(c.id, { is_muted: !cur });
+      toast({ title: !cur ? "Muted" : "Unmuted", duration: 1200 });
+    },
+    [prefs, updatePref],
+  );
 
   const activePref = actionTarget ? prefs[actionTarget.id] : undefined;
 
@@ -517,8 +714,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                         key={conv.id}
                         conv={conv}
                         pref={prefs[conv.id]}
+                        isTyping={typingSet.has(conv.id)}
                         onSelect={onSelectConversation}
                         onLongPress={handleLongPress}
+                        onTogglePin={handleTogglePin}
+                        onToggleMute={handleToggleMute}
                       />
                     ))}
                     <div className="h-px bg-border/40 mx-4 my-1" />
@@ -528,8 +728,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                   scrollRef={scrollRef}
                   items={regular}
                   prefs={prefs}
+                  typingSet={typingSet}
                   onSelect={onSelectConversation}
                   onLongPress={handleLongPress}
+                  onTogglePin={handleTogglePin}
+                  onToggleMute={handleToggleMute}
                 />
               </>
             ) : (
@@ -544,8 +747,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                         key={conv.id}
                         conv={conv}
                         pref={prefs[conv.id]}
+                        isTyping={typingSet.has(conv.id)}
                         onSelect={onSelectConversation}
                         onLongPress={handleLongPress}
+                        onTogglePin={handleTogglePin}
+                        onToggleMute={handleToggleMute}
                       />
                     ))}
                     <div className="h-px bg-border/40 mx-4 my-1" />
@@ -556,8 +762,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                     key={conv.id}
                     conv={conv}
                     pref={prefs[conv.id]}
+                    isTyping={typingSet.has(conv.id)}
                     onSelect={onSelectConversation}
                     onLongPress={handleLongPress}
+                    onTogglePin={handleTogglePin}
+                    onToggleMute={handleToggleMute}
                   />
                 ))}
               </div>

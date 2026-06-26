@@ -21,6 +21,7 @@ const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
+import { emitInboxTyping } from "@/hooks/useInboxTyping";
 import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 type CreateGroupResult = {
@@ -1426,7 +1427,8 @@ const Chat = () => {
     };
   }, [selectedConversation?.id, currentUserId]);
 
-  // Broadcast typing event
+  // Broadcast typing event — per-thread (existing) + per-peer inbox (Phase 2.5).
+  const lastInboxTypingAt = useRef(0);
   const broadcastTyping = useCallback(() => {
     if (typingChannelRef.current && currentUserId) {
       typingChannelRef.current.send({
@@ -1435,7 +1437,18 @@ const Chat = () => {
         payload: { userId: currentUserId },
       });
     }
-  }, [currentUserId]);
+    // Throttled inbox-typing ping so the peer's chat-list row shows "typing…"
+    // even when their thread isn't open.
+    const peerId = selectedConversation?.other_user?.id;
+    const convId = selectedConversation?.id;
+    if (peerId && convId && currentUserId) {
+      const now = Date.now();
+      if (now - lastInboxTypingAt.current > 1500) {
+        lastInboxTypingAt.current = now;
+        void emitInboxTyping({ toUserId: peerId, fromUserId: currentUserId, conversationId: convId });
+      }
+    }
+  }, [currentUserId, selectedConversation?.other_user?.id, selectedConversation?.id]);
 
   // Group messages are loaded once per selected group. Zero-refresh policy: no
   // background polling loop; new outgoing messages update local state directly.
