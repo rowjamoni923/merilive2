@@ -4883,7 +4883,6 @@ a:focus-visible,
 /* PkgInstant global hard rule: never show screenshot-like skeleton/spinner pages.
    Keep async work behind already-painted UI; these legacy primitives become
    static/invisible instead of animated beige placeholders. */
-.animate-spin,
 .animate-pulse,
 .animate-bounce,
 .ptr-spinner,
