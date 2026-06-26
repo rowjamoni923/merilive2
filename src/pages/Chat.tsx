@@ -2858,11 +2858,18 @@ const Chat = () => {
                       </span>
                     </div>
                   )}
-                  <div
+                  <MessageRowShell
                     id={`msg-${msg.id}`}
-                    className={cn("chat-msg-row flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
+                    isMine={isMine}
+                    sameAsPrev={sameAsPrev}
+                    onReply={() => setReplyingTo({
+                      messageId: msg.id,
+                      content: msg.content || '',
+                      senderName: senderName,
+                      senderId: msg.sender_id,
+                      messageType: msg.message_type,
+                    })}
                   >
-                    <div className={cn("flex gap-2 max-w-[92%] min-w-0", isMine && "flex-row-reverse")}>
                     {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
                     {showAvatar ? (
                       <button
