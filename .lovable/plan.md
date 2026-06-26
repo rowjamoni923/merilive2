@@ -154,3 +154,6 @@ Patch scope:
 - Global button guard removed; CSS `touch-action: manipulation` enforced for tappables.
 - Expired item restore changed to one idle maintenance pass per user / 6h, no minute polling.
 - Presence heartbeat relaxed to 120s and logs gated to dev-only.
+- React Router `v7_startTransition` future flag removed so primary route commits are not transition-deferred.
+- Bottom nav active pill changed from shared-layout spring animation to static instant paint; no haptic/no-op bridge calls on tab/action taps.
+- React Query localStorage persistence throttle raised to 120s native / 60s web to reduce synchronous storage jank during navigation.
