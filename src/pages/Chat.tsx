@@ -401,6 +401,19 @@ const Chat = () => {
   // Media gallery viewer
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartId, setGalleryStartId] = useState<string | null>(null);
+
+  // Persistent reactions (DB-backed, realtime synced)
+  const activeMessageIds = useMemo(() => {
+    const src = selectedGroup ? groupMessages : messages;
+    return src.map((m: any) => m.id).filter(Boolean);
+  }, [messages, groupMessages, selectedGroup]);
+  const reactionConvKey = selectedGroup?.id || selectedConversation?.id || null;
+  const { reactionsByMessage, toggleReaction } = useMessageReactions({
+    currentUserId,
+    conversationKey: reactionConvKey,
+    messageIds: activeMessageIds,
+  });
+  
   
   // Message info dialog
   const [showMessageInfo, setShowMessageInfo] = useState(false);
