@@ -23,16 +23,11 @@ import {
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
-// Eagerly kick off the import the moment this module loads (not on
-// idle, not on userId-ready) so the chunk is in cache before the very
-// first call attempt — otherwise the Suspense fallback paints during
-// the chunk fetch and the user sees a blank-ish "Calling…" stage.
+// Do NOT kick off this import at module load. On Android WebView that creates
+// a startup network/parse spike on every page, even when the user never calls.
+// It is warmed only after auth idle and of course loaded when the call UI opens.
 const importActiveCallScreen = () => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen }));
 const ActiveCallScreen = lazy(importActiveCallScreen);
-if (typeof window !== 'undefined') {
-  // Fire-and-forget — never blocks render, never throws into module init.
-  Promise.resolve().then(() => { importActiveCallScreen().catch(() => {}); });
-}
 
 
 /**
@@ -142,8 +137,8 @@ export function CallProvider({ children }: CallProviderProps) {
     const w = typeof window !== 'undefined' ? window : null;
     const schedule: (cb: () => void) => void =
       w && 'requestIdleCallback' in w
-        ? (cb) => (w as any).requestIdleCallback(cb, { timeout: 2000 })
-        : (cb) => setTimeout(cb, 800);
+        ? (cb) => (w as any).requestIdleCallback(cb, { timeout: 10000 })
+        : (cb) => setTimeout(cb, 10000);
     schedule(() => { importActiveCallScreen().catch(() => {}); });
   }, [userId]);
 

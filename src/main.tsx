@@ -16,7 +16,6 @@ import { installColdStartCapture } from "./utils/coldStartCapture";
 import { installRippleTracker } from "./utils/rippleTracker";
 import { installGlobalHaptics } from "./utils/globalHaptics";
 import { installRoutePrefetch } from "./utils/routePrefetch";
-import { startIdleRoutePrefetch } from "./utils/idleRoutePrefetch";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
 import { applyLowEndMotionClass } from "./utils/lowEndDevice";
 
@@ -41,9 +40,10 @@ installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
 installRoutePrefetch();
 
-if (!window.location.pathname.startsWith('/admin') && !isStandalonePublicLocation()) {
-  setTimeout(() => startIdleRoutePrefetch(), 500);
-}
+// Do NOT bulk-import every route at boot. On Android WebView this creates a
+// 10-15s CPU/network storm right after login and makes the whole app feel like
+// a laggy website. `installRoutePrefetch()` still gives native-feel navigation
+// by warming the exact destination on pointer-down, before the click fires.
 
 // Vite emits this before React can render an ErrorBoundary when a lazy route
 // points to a deleted post-deploy chunk. Catch it globally and reboot cleanly.

@@ -41,7 +41,10 @@ export const queryPersister = (() => {
     return createSyncStoragePersister({
       storage: window.localStorage,
       key: 'merilive-rq-cache-v1',
-      throttleTime: isNative ? 5000 : 2500,
+      // localStorage persistence is synchronous; writing a dehydrated cache a few
+      // seconds after login was visible as WebView jank. Keep instant in-memory
+      // React Query behavior, but persist less aggressively in the background.
+      throttleTime: isNative ? 30000 : 15000,
     });
   } catch {
     return undefined;

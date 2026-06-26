@@ -2,13 +2,7 @@ import { useEffect, useRef, useState, lazy, Suspense, memo } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Discover from "./pages/Discover";
-import Live from "./pages/Live";
-import Profile from "./pages/Profile";
-import AgencyDashboard from "./pages/AgencyDashboard";
-import Level5HelperDashboard from "./pages/Level5HelperDashboard";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,15 +46,15 @@ import { isLowEndDevice } from "@/utils/lowEndDevice";
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
 // CallProvider needs special handling as it wraps children
 // =============================================
-import { CallProvider } from "./components/call/CallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
-import DeferredAppHooks from "./components/common/DeferredAppHooks";
 // AppUpdateChecker + PushNotificationInitializer are pure side-effect components.
 // Lazy-loaded so their chunks (and the dependencies they pull — Capacitor app-update,
 // firebase messaging shims, etc.) never block first paint. They mount inside <Suspense>.
 const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
+const DeferredAppHooks = lazy(lazyRetry(() => import("./components/common/DeferredAppHooks")));
+const CallProvider = lazy(lazyRetry(() => import("./components/call/CallProvider").then(m => ({ default: m.CallProvider }))));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -77,6 +71,12 @@ const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // LAZY LOADED PAGES - Load on demand
 // =============================================
 // Main Pages
+const Index = lazy(lazyRetry(() => import("./pages/Index")));
+const Discover = lazy(lazyRetry(() => import("./pages/Discover")));
+const Live = lazy(lazyRetry(() => import("./pages/Live")));
+const Profile = lazy(lazyRetry(() => import("./pages/Profile")));
+const AgencyDashboard = lazy(lazyRetry(() => import("./pages/AgencyDashboard")));
+const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperDashboard")));
 const Chat = lazy(lazyRetry(() => import("./pages/Chat")));
 const GroupInvitePage = lazy(lazyRetry(() => import("./pages/GroupInvitePage")));
 const LiveStream = lazy(lazyRetry(() => import("./pages/LiveStream")));
@@ -485,6 +485,7 @@ import PrivacyConsentDialog from "./components/privacy/PrivacyConsentDialog";
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const hasSeenFirstRouteRef = useRef(false);
+  const [backgroundReady, setBackgroundReady] = useState(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isMediaRoute =
     /^\/live\/[^/]+/.test(location.pathname) ||
@@ -506,6 +507,21 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   useUserBalancePrefetch();
 
   useEffect(() => {
+    if (isPublicPage) {
+      setBackgroundReady(false);
+      return;
+    }
+    const w = window as any;
+    const id = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(() => setBackgroundReady(true), { timeout: 3500 })
+      : window.setTimeout(() => setBackgroundReady(true), 3500);
+    return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+  }, [isPublicPage, location.pathname]);
+
+  useEffect(() => {
     if (!hasSeenFirstRouteRef.current) {
       hasSeenFirstRouteRef.current = true;
       return;
@@ -518,17 +534,21 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
 
   return (
     <>
-      {!isAdminRoute && !isPublicPage && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
-      {!isPublicPage && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
+      {!isAdminRoute && !isPublicPage && backgroundReady && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      {!isPublicPage && backgroundReady && <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>}
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
-          <WelcomeOnboarding />
-          <EventPopupBanner />
-          <DailyLoginPopup />
-          <RatingRewardPopup />
+          {backgroundReady ? (
+            <>
+              <WelcomeOnboarding />
+              <EventPopupBanner />
+              <DailyLoginPopup />
+              <RatingRewardPopup />
+            </>
+          ) : null}
         </ErrorBoundary>
       ) : null}
-      {!isAdminRoute && !isPublicPage && (
+      {!isAdminRoute && !isPublicPage && backgroundReady && (
         <>
           <Suspense fallback={null}><AppUpdateChecker /></Suspense>
           <NetworkStatusBar />
@@ -549,6 +569,19 @@ const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
 };
 
 const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</StandalonePublicShell>;
+
+const CallProviderGate = ({ enabled, children }: { enabled: boolean; children: ReactNode }) => {
+  if (!enabled) return <>{children}</>;
+
+  // Never block the visible route while the call/camera stack downloads.
+  // The current screen stays painted; once loaded, private-call overlays/context
+  // become available without a fake loader or blank frame.
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <CallProvider>{children}</CallProvider>
+    </Suspense>
+  );
+};
 
 const App = () => {
   useAnalyticsBootstrap();
@@ -627,11 +660,9 @@ const App = () => {
       staleTime: 1000 * 60 * 2,
     });
 
-    // Phase 5 — idle-deferred, network-aware boot warmup for gift catalog,
-    // top icons (IDB) and top animation payloads (Cache API). Runs ONCE per
-    // session, skips on saveData / 2g. Makes the first panel open & first
-    // gift tap of the session hit local caches instead of the network.
-    void import('@/utils/bootWarmup').then((m) => m.startBootWarmup()).catch(() => {});
+    // No boot-time gift/asset warmup here. Even idle-deferred warmups can fire
+    // 5-10s after login on Android WebView and steal frames from the visible UI.
+    // Gift/live panels now warm their own exact assets on demand/pointer-down.
   }, [isAuthenticated, session?.user?.id]);
 
   
@@ -644,7 +675,8 @@ const App = () => {
   const isStandalonePublicRoute = isLandingDomain || isStandalonePublicPath(currentPath) || (currentPath === '/' && !session);
   const isNativeApp = Capacitor.isNativePlatform();
 
-  // Preload core routes IMMEDIATELY on mount — don't wait for idle
+  // Startup work must stay tiny: first paint + auth/session win; everything
+  // non-visual is idle/delayed so Android WebView never enters a boot storm.
   useEffect(() => {
     if (isStandalonePublicLocation()) return;
 
@@ -656,7 +688,7 @@ const App = () => {
     const idle = (cb: () => void, timeout = 2500) => {
       const w = window as any;
       if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
-      return window.setTimeout(cb, 1200);
+      return window.setTimeout(cb, timeout);
     };
     const cancelIdle = (id: number) => {
       const w = window as any;
@@ -671,21 +703,23 @@ const App = () => {
       m.registerImageCacheSW();
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
-    }).catch(() => {}), 5000);
+    }).catch(() => {}), 900);
 
     // Clear stale-chunk auto-reload guard on a successful boot so the next
     // post-deploy chunk failure can also self-heal exactly once.
     try { sessionStorage.removeItem('meri_chunk_auto_reload_v1'); } catch { /* ignore */ }
 
-    // Pkg357 — Global video lifecycle: pause off-screen + tab-hidden videos,
-    // skip LiveKit publisher/subscriber. Mirrors Chamet/TikTok behavior.
-    import('@/utils/globalVideoLifecycle')
-      .then(m => m.installGlobalVideoLifecycle())
-      .catch(() => {});
+    // Pkg357 — Global video lifecycle. Install after startup so login/home
+    // first frames don't pay MutationObserver/import cost.
+    const videoLifecycleIdleId = idle(() => {
+      import('@/utils/globalVideoLifecycle')
+        .then(m => m.installGlobalVideoLifecycle())
+        .catch(() => {});
+    }, 5000);
 
 
     // Defer SVGA module prewarm to idle (JS module only — zero network bytes).
-    const svgaIdleId = idle(() => prewarmSVGA(), 2000);
+    const svgaIdleId = idle(() => prewarmSVGA(), 8000);
 
     // Gift metadata is fetched when a gift panel/room actually needs it.
     // Boot-time gift queries + animation warmups were still stealing bandwidth
@@ -706,10 +740,11 @@ const App = () => {
       import('@/utils/nativePermissions')
         .then(m => m.ensureBatteryOptimizationWhitelistOnce())
         .catch(() => {});
-    }, 6000);
+    }, 20000);
 
     return () => {
       cancelIdle(imageIdleId);
+      cancelIdle(videoLifecycleIdleId);
       cancelIdle(svgaIdleId);
       if (giftIdleId) cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
@@ -720,12 +755,28 @@ const App = () => {
   // ⚡ REALTIME → REACT QUERY BRIDGE moved inside QueryClientProvider (see RealtimeQuerySyncBridge below)
 
   useEffect(() => {
-    // Initialize error logging service (deferred)
-    import('./services/ErrorLoggingService').then(m => m.default.initialize());
+    const idle = (cb: () => void, timeout = 12000) => {
+      const w = window as any;
+      if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+      return window.setTimeout(cb, timeout);
+    };
+    const cancelIdle = (id: number) => {
+      const w = window as any;
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+
+    // Initialize non-visual services only after the first screens are usable.
+    const errorLoggingIdleId = idle(() => {
+      import('./services/ErrorLoggingService').then(m => m.default.initialize()).catch(() => {});
+    }, 12000);
 
     // 🔐 ENCRYPTED STORAGE - Migrate plaintext sensitive data to encrypted
+    let encryptedMigrationIdleId = 0;
     if (secureStorage.isAvailable()) {
-      secureStorage.migrateToEncrypted();
+      encryptedMigrationIdleId = idle(() => {
+        secureStorage.migrateToEncrypted().catch(() => {});
+      }, 20000);
     }
 
     // 🔒 SECURE LINK GUARD - Block unauthorized external links in native app
@@ -1113,6 +1164,8 @@ const App = () => {
 
     return () => {
       mounted = false;
+      cancelIdle(errorLoggingIdleId);
+      if (encryptedMigrationIdleId) cancelIdle(encryptedMigrationIdleId);
       subscription.unsubscribe();
       cleanupLinkGuard?.();
       if (Capacitor.isNativePlatform()) {
@@ -1233,7 +1286,7 @@ const App = () => {
               <DisconnectReasonToaster />
               {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
               <LuckyGiftHost />
-              <CallProvider>
+              <CallProviderGate enabled={!!session && !isAdminRoute && !isStandalonePublicRoute}>
                   {/* Tab keep-alive is explicit opt-in only; default route owner stays single to prevent duplicate UI. */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
@@ -1599,7 +1652,7 @@ const App = () => {
                 />
               )}
             </Suspense>
-              </CallProvider>
+              </CallProviderGate>
             </BrowserRouter>
           </TooltipProvider>
           </MotionConfig>

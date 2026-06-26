@@ -168,10 +168,15 @@ export function useUserBalancePrefetch(): void {
     if (prefetched.current) return;
     prefetched.current = true;
 
-    // Prefetch after a small delay to not block initial render
-    const timer = setTimeout(() => {
+    // Prefetch on idle so auth/home first paint does not compete with this DB read.
+    const w = window as any;
+    const timer = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(() => {
+        fetchBalance();
+      }, { timeout: 3500 })
+      : setTimeout(() => {
       fetchBalance();
-    }, 300);
+      }, 3500);
 
     // Balance sync is event-based here. A prior global `profiles` subscription was
     // unfiltered inside the shared channel, so every profile change in the app was
@@ -207,7 +212,8 @@ export function useUserBalancePrefetch(): void {
     });
 
     return () => {
-      clearTimeout(timer);
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(timer);
+      else clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
       authListener.subscription.unsubscribe();
     };
