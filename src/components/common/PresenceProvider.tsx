@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { registerFCMToken, setupForegroundMessageHandler, deactivateFCMToken } from "@/services/firebaseMessaging";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -15,6 +14,18 @@ const CLEANUP_COOLDOWN_MS = 2 * 60 * 1000;
 
 // Manual offline key
 const MANUAL_OFFLINE_KEY = 'meri_manual_offline';
+
+const idle = (cb: () => void, timeout = 8000) => {
+  const w = window as any;
+  if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+  return window.setTimeout(cb, timeout);
+};
+
+const cancelIdle = (id: number) => {
+  const w = window as any;
+  if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+  else clearTimeout(id);
+};
 
 const isAdminRoute = () =>
   typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
@@ -131,44 +142,41 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           void (async () => { try { await supabase.rpc('sync_host_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
         }
 
-        // Register FCM push notification token
+        // Register FCM push notification token after first screens are smooth.
         if (!fcmInitialized.current) {
           fcmInitialized.current = true;
-          registerFCMToken(user.id).catch(e => console.warn('[FCM] Registration skipped:', e));
-          
-          setupForegroundMessageHandler((payload) => {
-            const data = payload.data || {};
-            const notifTitle = payload.notification?.title || data.title;
-            const notifBody = payload.notification?.body || data.body;
+          idle(() => {
+            import('@/services/firebaseMessaging').then(({ registerFCMToken, setupForegroundMessageHandler }) => {
+              registerFCMToken(user.id).catch(e => console.warn('[FCM] Registration skipped:', e));
+              
+              setupForegroundMessageHandler((payload) => {
+                const data = payload.data || {};
+                const notifTitle = payload.notification?.title || data.title;
+                const notifBody = payload.notification?.body || data.body;
 
-            if (data.type === 'incoming_call') {
-              // Phase-3 C6: bridge foreground FCM `incoming_call` to the same
-              // window event that the `notifications` realtime listener fires.
-              // This is a redundant safety path — if the Realtime channel is
-              // reconnecting at the exact moment the call lands, FCM still
-              // wakes the IncomingCallModal instantly instead of waiting for
-              // the next channel reconnect.
-              try {
-                const callId = (data as any).call_id || (data as any).callId;
-                if (callId && typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('incoming-call-notification', {
-                    detail: {
-                      type: 'incoming_call',
-                      data: {
-                        call_id: callId,
-                        caller_id: (data as any).caller_id,
-                        caller_name: (data as any).caller_name,
-                      },
-                    },
-                  }));
+                if (data.type === 'incoming_call') {
+                  try {
+                    const callId = (data as any).call_id || (data as any).callId;
+                    if (callId && typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+                        detail: {
+                          type: 'incoming_call',
+                          data: {
+                            call_id: callId,
+                            caller_id: (data as any).caller_id,
+                            caller_name: (data as any).caller_name,
+                          },
+                        },
+                      }));
+                    }
+                  } catch { /* noop */ }
+                  toast.info(`📞 ${notifTitle}`, { description: notifBody, duration: 30000 });
+                } else if (notifTitle) {
+                  toast(notifTitle, { description: notifBody });
                 }
-              } catch { /* noop */ }
-              // Incoming call — show prominent toast as a secondary cue
-              toast.info(`📞 ${notifTitle}`, { description: notifBody, duration: 30000 });
-            } else if (notifTitle) {
-              toast(notifTitle, { description: notifBody });
-            }
-          }).catch(e => console.warn('[FCM] Foreground handler skipped:', e));
+              }).catch(e => console.warn('[FCM] Foreground handler skipped:', e));
+            }).catch(() => {});
+          }, 8000);
         }
       }
     };
@@ -187,13 +195,19 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .single()
           .then(({ data }) => setIsHost(data?.is_host === true));
 
-        // Register FCM token for new login
-        registerFCMToken(session.user.id).catch(() => {});
+        // Register FCM token for new login without blocking auth UI.
+        idle(() => {
+          import('@/services/firebaseMessaging')
+            .then(({ registerFCMToken }) => registerFCMToken(session.user.id).catch(() => {}))
+            .catch(() => {});
+        }, 8000);
       } else if (event === 'SIGNED_OUT') {
         // Force offline + deactivate FCM on logout
         if (userId) {
           setOfflineStatus(userId, true);
-          deactivateFCMToken(userId).catch(() => {});
+          import('@/services/firebaseMessaging')
+            .then(({ deactivateFCMToken }) => deactivateFCMToken(userId).catch(() => {}))
+            .catch(() => {});
         }
         localStorage.removeItem(MANUAL_OFFLINE_KEY);
         setUserId(null);
@@ -220,39 +234,42 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     console.log('[Presence] Starting presence tracking for:', userId);
 
-    // Set online immediately
-    void setOnlineStatus(userId);
+    // Set online shortly after first paint; avoids stacking this RPC with auth,
+    // profile, route chunk and notification startup work on slow WebViews.
+    const onlineIdleId = idle(() => void setOnlineStatus(userId), 1200);
 
     // Phase-3 C7: after coming back online, check for missed calls that are
     // still pending/ringing within the timeout window and re-fire the incoming
     // call notification so the modal pops up instantly.
-    void (async () => {
-      try {
-        const { data: missedCalls } = await supabase
-          .from('private_calls')
-          .select('id, caller_id, created_at, status')
-          .eq('host_id', userId)
-          .in('status', ['pending', 'ringing'])
-          .gt('created_at', new Date(Date.now() - 120_000).toISOString())
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (missedCalls && missedCalls.length > 0) {
-          const call = missedCalls[0];
-          window.dispatchEvent(new CustomEvent('incoming-call-notification', {
-            detail: {
-              type: 'incoming_call',
-              data: { call_id: call.id, caller_id: call.caller_id },
-            },
-          }));
-          console.log('[Presence] 🔔 Re-ringing missed call:', call.id);
+    const missedCallIdleId = idle(() => {
+      void (async () => {
+        try {
+          const { data: missedCalls } = await supabase
+            .from('private_calls')
+            .select('id, caller_id, created_at, status')
+            .eq('host_id', userId)
+            .in('status', ['pending', 'ringing'])
+            .gt('created_at', new Date(Date.now() - 120_000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (missedCalls && missedCalls.length > 0) {
+            const call = missedCalls[0];
+            window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+              detail: {
+                type: 'incoming_call',
+                data: { call_id: call.id, caller_id: call.caller_id },
+              },
+            }));
+            console.log('[Presence] 🔔 Re-ringing missed call:', call.id);
+          }
+        } catch {
+          /* ignore — non-critical re-ring path */
         }
-      } catch {
-        /* ignore — non-critical re-ring path */
-      }
-    })();
+      })();
+    }, 2500);
 
-    // Run cleanup
-    runCleanupIfDue();
+    // Stale cleanup is maintenance work; never run it during visible startup.
+    const cleanupIdleId = idle(() => runCleanupIfDue(), 30000);
     const cleanupInterval = setInterval(() => runCleanupIfDue(), CLEANUP_COOLDOWN_MS);
 
     // Heartbeat
@@ -273,6 +290,9 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       console.log('[Presence] Cleanup for:', userId);
       
+      cancelIdle(onlineIdleId);
+      cancelIdle(missedCallIdleId);
+      cancelIdle(cleanupIdleId);
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
       clearInterval(cleanupInterval);
       // DO NOT set offline on unmount — user stays online

@@ -123,8 +123,22 @@ export const getBlockedReason = (url: string): string => {
  * Fetches rules from DB and intercepts all external link clicks.
  */
 export const initSecureLinkGuard = (): (() => void) => {
-  // Fetch rules immediately
-  fetchAllowedLinks();
+  const w = window as any;
+  const scheduleIdle = (cb: () => void, timeout = 6000) => {
+    if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+    return window.setTimeout(cb, timeout);
+  };
+  const cancelIdle = (id: number) => {
+    if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+    else clearTimeout(id);
+  };
+
+  // Keep the click/window.open guard active immediately, but move the whitelist
+  // DB read out of the login first-paint path. Until rules load, fallback
+  // domains only are allowed, so security is preserved without startup jank.
+  const initialFetchIdleId = scheduleIdle(() => {
+    void fetchAllowedLinks();
+  }, 6000);
 
   const handleAdminUpdate = (event: Event) => {
     const table = (event as CustomEvent<{ table?: string }>).detail?.table;
@@ -173,6 +187,7 @@ export const initSecureLinkGuard = (): (() => void) => {
 
   // Cleanup
   return () => {
+    cancelIdle(initialFetchIdleId);
     document.removeEventListener('click', handleClick, true);
     window.open = originalWindowOpen;
     window.removeEventListener('admin-table-update', handleAdminUpdate as EventListener);

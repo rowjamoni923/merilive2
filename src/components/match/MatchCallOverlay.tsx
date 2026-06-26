@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Phone, Flag, SkipForward, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 
 /**
  * MatchCallOverlay — Chamet/Olamet-style in-call HUD overlay.

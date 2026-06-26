@@ -58,7 +58,7 @@ export function scheduleWrite(fn: FrameCallback) {
 export function enablePassiveScrolling(container: HTMLElement) {
   container.style.overscrollBehavior = 'contain';
   (container.style as any).webkitOverflowScrolling = 'touch';
-  (container.style as any).scrollBehavior = 'smooth';
+  (container.style as any).scrollBehavior = 'auto';
   container.style.touchAction = 'pan-y';
 }
 

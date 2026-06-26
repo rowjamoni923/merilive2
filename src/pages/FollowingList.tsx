@@ -7,7 +7,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 import { toast } from "sonner";
 
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";

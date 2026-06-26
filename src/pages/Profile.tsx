@@ -56,7 +56,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { goOfflineManually, isManuallyOffline } from "@/components/common/PresenceProvider";
 // usePresence disabled here to avoid duplicate online-status DB writes (PresenceProvider already handles global presence)
-import { useCall } from "@/components/call/CallProvider";
+import { useCall } from "@/components/call/CallContext";
 import { useGeolocation } from "@/hooks/useGeolocation";
 // RatingProofStatusRow removed from Profile — now lives in Task Center only.
 import { useNotifications } from "@/hooks/useNotifications";

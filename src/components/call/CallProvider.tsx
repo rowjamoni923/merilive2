@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
 import { useNativeCallBillingSync } from '@/hooks/useNativeCallBillingSync';
@@ -21,18 +21,14 @@ import {
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
+import { CallContext, setGlobalCallController, type CallContextType } from './CallContext';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
-// Eagerly kick off the import the moment this module loads (not on
-// idle, not on userId-ready) so the chunk is in cache before the very
-// first call attempt — otherwise the Suspense fallback paints during
-// the chunk fetch and the user sees a blank-ish "Calling…" stage.
+// Do NOT kick off this import at module load. On Android WebView that creates
+// a startup network/parse spike on every page, even when the user never calls.
+// It is warmed only after auth idle and of course loaded when the call UI opens.
 const importActiveCallScreen = () => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen }));
 const ActiveCallScreen = lazy(importActiveCallScreen);
-if (typeof window !== 'undefined') {
-  // Fire-and-forget — never blocks render, never throws into module init.
-  Promise.resolve().then(() => { importActiveCallScreen().catch(() => {}); });
-}
 
 
 /**
@@ -48,29 +44,8 @@ const GlobalNotificationsMount = () => {
   return null;
 };
 
-interface CallContextType {
-  startCall: (hostId: string, streamId?: string) => Promise<string | null>;
-  endCall: () => Promise<void>;
-  isInCall: boolean;
-}
-
-const CallContext = createContext<CallContextType | null>(null);
-
-export function useCall() {
-  const context = useContext(CallContext);
-  if (!context) {
-    // Silent fallback during HMR/edge cases - no console spam
-    return {
-      startCall: async () => null as string | null,
-      endCall: async () => {},
-      isInCall: false,
-    };
-  }
-  return context;
-}
-
 interface CallProviderProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 // Store accepted call info to persist after incomingCall is cleared
@@ -142,8 +117,8 @@ export function CallProvider({ children }: CallProviderProps) {
     const w = typeof window !== 'undefined' ? window : null;
     const schedule: (cb: () => void) => void =
       w && 'requestIdleCallback' in w
-        ? (cb) => (w as any).requestIdleCallback(cb, { timeout: 2000 })
-        : (cb) => setTimeout(cb, 800);
+        ? (cb) => (w as any).requestIdleCallback(cb, { timeout: 10000 })
+        : (cb) => setTimeout(cb, 10000);
     schedule(() => { importActiveCallScreen().catch(() => {}); });
   }, [userId]);
 
@@ -741,8 +716,19 @@ export function CallProvider({ children }: CallProviderProps) {
     />
   );
 
+  const contextValue = useMemo<CallContextType>(() => ({
+    startCall,
+    endCall: handleEndCall,
+    isInCall,
+  }), [startCall, handleEndCall, isInCall]);
+
+  useEffect(() => {
+    setGlobalCallController(contextValue);
+    return () => setGlobalCallController(null);
+  }, [contextValue]);
+
   return (
-    <CallContext.Provider value={{ startCall, endCall: handleEndCall, isInCall }}>
+    <CallContext.Provider value={contextValue}>
       {/* Global persistent camera bridge — paints the warm MediaStream
           during route swaps (GoLive → LiveStream, CreateParty → PartyRoom,
           idle → ActiveCall) so users never see a camera off→on flicker.
