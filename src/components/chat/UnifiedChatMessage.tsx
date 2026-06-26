@@ -276,17 +276,19 @@ export const DirectChatBubble = memo(function DirectChatBubble({
     >
       <div
         className={cn(
-          "max-w-[75%] rounded-2xl px-2.5 py-1.5 text-[13px] leading-[1.35] shadow-sm",
+          "max-w-[82%] sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[14.5px] leading-[1.45] tracking-[0.005em] shadow-sm",
           isMine
-            ? "bg-primary text-primary-foreground rounded-br-sm shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
-            : "bg-card text-card-foreground rounded-bl-sm border border-border/60",
+            ? "bg-primary text-primary-foreground rounded-br-md shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+            : "bg-card text-card-foreground rounded-bl-md border border-border/60",
           optimistic && "opacity-70",
         )}
       >
-        {children ?? <span className="break-words">{message}</span>}
+        <div className="break-words whitespace-pre-wrap [overflow-wrap:anywhere]">
+          {children ?? message}
+        </div>
         <span
           className={cn(
-            "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
+            "text-[10px] mt-1 ml-2 float-right flex items-center gap-0.5 leading-none pt-1",
             isMine ? "text-primary-foreground/75" : "text-muted-foreground/80",
           )}
         >
@@ -296,6 +298,7 @@ export const DirectChatBubble = memo(function DirectChatBubble({
           )}
         </span>
       </div>
+
     </motion.div>
   );
 });
