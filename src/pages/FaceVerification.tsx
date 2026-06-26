@@ -3352,7 +3352,7 @@ const FaceVerification = () => {
                         <p className="font-semibold text-slate-900 text-sm">{f.human_name}</p>
                         <p className="text-xs text-slate-700 mt-1 leading-relaxed">{f.message}</p>
                         {typeof f.score === 'number' && (
-                          <p className="text-[11px] text-amber-700 mt-1.5 font-mono">Match similarity: {f.score.toFixed(1)}%  (need ≥ 85%)</p>
+                          <p className="text-[11px] text-amber-700 mt-1.5 font-mono">Match similarity: {f.score.toFixed(1)}%  (need ≥ 55%)</p>
                         )}
                       </div>
                     </div>
