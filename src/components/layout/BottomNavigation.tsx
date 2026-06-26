@@ -75,8 +75,9 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
         case '/discover': import('@/pages/Discover'); break;
         case '/reels': import('@/pages/Reels'); break;
         case '/profile': import('@/pages/Profile'); break;
-        case '/go-live': import('@/pages/GoLive').catch(() => {}); break;
-        case '/create-party': import('@/pages/CreateParty').catch(() => {}); break;
+        case '/go-live': import('@/pages/LiveSessionPage').catch(() => {}); break;
+        case '/create-party': import('@/pages/PartySessionPage').catch(() => {}); break;
+        case '/match-call': import('@/pages/MatchCall').catch(() => {}); break;
       }
     } catch {}
   }, []);
