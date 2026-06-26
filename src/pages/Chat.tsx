@@ -2246,13 +2246,15 @@ const Chat = () => {
           }).catch(err => console.log('[Push] Message notification background:', err));
         }
 
-        // 🔍 Phone number check in BACKGROUND (non-blocking)
-        // Skip detection for helper/payroll helper conversations
-        isHelperConversation().then(isHelper => {
-          if (!isHelper) {
-            checkPhoneNumber(originalContent, selectedConversation.id, undefined).catch(() => {});
-          }
-        }).catch(() => {});
+        // 🔍 Phone number check in BACKGROUND (non-blocking) — host senders only.
+        // Skip detection for helper/payroll helper conversations.
+        if (senderIsHost) {
+          isHelperConversation().then(isHelper => {
+            if (!isHelper) {
+              checkPhoneNumber(originalContent, selectedConversation.id, undefined).catch(() => {});
+            }
+          }).catch(() => {});
+        }
         checkToxic(originalContent, { contextType: 'chat', conversationId: selectedConversation.id }).catch(() => {});
         // AI Auto-Reply in background
         const otherUser = selectedConversation.other_user;
