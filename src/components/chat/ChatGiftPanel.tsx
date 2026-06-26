@@ -108,7 +108,7 @@ const GiftItem = memo(({
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
           ) : (
-            <img loading="lazy" decoding="async"
+            <SmartGiftIcon
               src={gift.icon_url}
               alt={gift.name}
               className="w-11 h-11 object-contain"
