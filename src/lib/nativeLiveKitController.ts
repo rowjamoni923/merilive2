@@ -52,6 +52,7 @@ class NativeLiveKitController {
   private autoAttachLocalRenderer = true;
   private activeFeature: NativeRoomScope | null = null;
   private previewFeature: NativeRoomScope | null = null;
+  private previewStartPromise: Promise<boolean> | null = null;
 
   private inferScopeFromCallType(callType?: string | null): NativeRoomScope | null {
     const s = String(callType || '').toLowerCase();
@@ -135,15 +136,23 @@ class NativeLiveKitController {
       // LocalVideoTrack inside connectInternal() when previewRoom/previewTrack
       // exist, so Live / video party / game party / private call reuse the
       // already-open camera instead of closing and reopening it.
-      // Never adopt a surviving Room for live / party / private call media.
-      // Professional Android apps keep exactly one visible native SDK media
-      // owner; stale adoption is what creates "already live" and background
-      // camera leaks after an explicit end/exit.
+      // If native already completed the same-scope promotion while JS is still
+      // resolving (rapid taps / phase remount), adopt it instead of tearing the
+      // camera down. Different-scope sessions are still rejected below.
       const active = await NativeLiveKit.getActiveSession().catch(() => null);
       if (active?.active) {
-        const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
+        const sessionScope = (active.roomScope || this.inferScopeFromCallType(active.callType) || null) as NativeRoomScope | null;
+        const activeScope = this.activeFeature ?? sessionScope;
         if (requestedFeature && activeScope && activeScope !== requestedFeature) {
           throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
+        }
+        if (!requestedFeature || !activeScope || activeScope === requestedFeature) {
+          this.connected = true;
+          this.activeFeature = requestedFeature ?? activeScope ?? null;
+          this.previewFeature = null;
+          this.autoAttachLocalRenderer = opts.attachLocal !== false;
+          if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
+          return { sid: '', identity: '' };
         }
           try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
           try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
@@ -344,10 +353,26 @@ class NativeLiveKitController {
    * the camera is busy — callers should surface a friendly message.
    */
   async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean; boundedOnly?: boolean; roomScope?: NativeRoomScope }): Promise<boolean> {
-    await this.waitForIdle('startLocalPreview');
-    this.busy = true;
-    try {
-      const requestedFeature = opts?.roomScope ?? null;
+    const requestedFeature = opts?.roomScope ?? null;
+
+    // T-shirt rule: if preview for this exact media family is already alive
+    // (or currently opening), reuse it. Never stop/reopen Camera2 just because
+    // React re-rendered, the user tapped twice, or the next phase mounted.
+    if (this.previewStartPromise && (!requestedFeature || !this.previewFeature || this.previewFeature === requestedFeature)) {
+      return this.previewStartPromise;
+    }
+    if (this.connected && this.activeFeature && requestedFeature && this.activeFeature === requestedFeature) {
+      return true;
+    }
+    if (!this.connected && this.previewFeature && requestedFeature && this.previewFeature === requestedFeature) {
+      if (!opts?.boundedOnly) await this.attachLocalWithRetry().catch(() => undefined);
+      return true;
+    }
+
+    const startPromise = (async () => {
+      await this.waitForIdle('startLocalPreview');
+      this.busy = true;
+      try {
       if (this.connected && this.activeFeature && requestedFeature && this.activeFeature !== requestedFeature) {
         throw new Error(`NativeLiveKit session already active for ${this.activeFeature}; refusing ${requestedFeature} preview`);
       }
@@ -360,11 +385,11 @@ class NativeLiveKitController {
         await NativeLiveKit.startLocalPreview(opts ?? {});
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e ?? '');
-        if (!/Preview busy|preview busy/i.test(message)) throw e;
-        await NativeLiveKit.stopLocalPreview().catch(() => undefined);
-        this.previewFeature = null;
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        await NativeLiveKit.startLocalPreview(opts ?? {});
+        if (!/Preview busy|preview busy|already running|camera.*busy/i.test(message)) throw e;
+        // Older APKs can reject with "Preview busy" even when the SAME
+        // preview track is already running. Treat that as reuse. Stopping here
+        // was the real camera reset/black-flash bug during preview→publish.
+        console.warn('[NativeLiveKitController] startLocalPreview reused busy native preview:', message);
       }
       this.previewFeature = requestedFeature;
       if (!opts?.boundedOnly) await this.attachLocalWithRetry().catch(() => undefined);
@@ -374,11 +399,18 @@ class NativeLiveKitController {
       return false;
     } finally {
       this.busy = false;
+      if (this.previewStartPromise === startPromise) this.previewStartPromise = null;
     }
+    })();
+
+    this.previewStartPromise = startPromise;
+    return startPromise;
   }
 
   /** Stop the prejoin preview and release the camera. Always safe. */
   async stopLocalPreview(): Promise<void> {
+    const pending = this.previewStartPromise;
+    if (pending) await pending.catch(() => false);
     try { await NativeLiveKit.stopLocalPreview(); } catch { /* no preview / not implemented */ }
     this.previewFeature = null;
   }

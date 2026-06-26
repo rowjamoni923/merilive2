@@ -32,6 +32,7 @@ import {
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 export type LiveSessionPhase = 'preview' | 'broadcast' | 'ended';
 
@@ -83,6 +84,11 @@ export function LiveSessionProvider({
   const handleRef = useRef<CameraSessionHandle | null>(null);
 
   useEffect(() => {
+    // Native Android uses the LiveKitPlugin Camera2 preview surface. Opening a
+    // hidden WebView getUserMedia stream here steals/reopens the camera during
+    // preview → publish, so the persistent web-session safety net is web-only.
+    if (isNativeAndroidApp()) return;
+
     let cancelled = false;
     (async () => {
       try {
