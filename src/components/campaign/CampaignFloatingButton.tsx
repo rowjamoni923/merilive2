@@ -874,8 +874,9 @@ function CampaignFloatingButton() {
             onPointerCancel={finishFloatingPointerDrag}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
-            {/* Close (×) — large enough for mobile fingers, visually light, and
-                separate from the timer so neither control overlaps the card. */}
+            {/* Premium close (×) — glassy light chip that matches the timer pill
+                so the two controls read as a single design system, not mismatched
+                black/red blobs. */}
             <button
               type="button"
               aria-label="Dismiss campaign"
@@ -890,23 +891,27 @@ function CampaignFloatingButton() {
                 setRemainingSeconds(0);
               }}
               onClick={(e) => { e.stopPropagation(); }}
-              className="absolute -top-3 -left-2 z-30 flex h-7 w-7 items-center justify-center rounded-full border-0 p-0 active:scale-90 transition-transform"
+              className="absolute -top-3 -left-2 z-30 flex h-6 w-6 items-center justify-center rounded-full p-0 active:scale-90 transition-transform"
               style={{
-                background: 'linear-gradient(145deg, rgba(20,20,28,0.92), rgba(4,4,8,0.82))',
-                boxShadow: '0 6px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
-                border: '1px solid rgba(255,255,255,0.18)',
+                background:
+                  'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(238,238,244,0.88))',
+                boxShadow:
+                  '0 6px 14px rgba(15,15,25,0.28), 0 1px 2px rgba(15,15,25,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+                border: '1px solid rgba(217,18,72,0.35)',
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
               }}
             >
-              <X className="h-3.5 w-3.5 text-white" strokeWidth={3.25} />
+              <X className="h-3 w-3" strokeWidth={3} style={{ color: '#871132' }} />
             </button>
 
 
-            {/* Compact countdown pill — fixed dimensions so 28:35 / 1:28:35 never
+            {/* Premium countdown pill — fixed dimensions so 28:35 / 1:28:35 never
                 jumps, clips, or covers the artwork on narrow Android WebViews. */}
             <motion.div
               className="absolute -top-3 -right-2 z-20 pointer-events-none"
               style={{
-                width: floatingCountdownText.length > 5 ? 72 : 58,
+                width: floatingCountdownText.length > 5 ? 74 : 60,
                 height: 24,
               }}
               role="timer"
@@ -917,23 +922,29 @@ function CampaignFloatingButton() {
               <div
                 className="flex h-full w-full items-center justify-center gap-1 rounded-full px-2"
                 style={{
-                  background: 'linear-gradient(135deg, #ff3158 0%, #d91248 48%, #871132 100%)',
-                  boxShadow: '0 7px 16px rgba(135,17,50,0.42), inset 0 1px 0 rgba(255,255,255,0.38)',
-                  border: '1px solid rgba(255,255,255,0.42)',
+                  background:
+                    'linear-gradient(135deg, #ff3d6a 0%, #e01250 50%, #8a1235 100%)',
+                  boxShadow:
+                    '0 7px 16px rgba(135,17,50,0.42), 0 1px 2px rgba(135,17,50,0.35), inset 0 1px 0 rgba(255,255,255,0.45)',
+                  border: '1px solid rgba(255,255,255,0.55)',
                 }}
               >
                 <span
                   className="h-1.5 w-1.5 shrink-0 rounded-full"
                   style={{
-                    background: 'rgba(255,244,170,0.98)',
-                    boxShadow: '0 0 7px rgba(255,244,170,0.9)',
+                    background: '#ffe27a',
+                    boxShadow: '0 0 6px rgba(255,226,122,0.95)',
                   }}
                 />
-                <span className="block min-w-0 text-center text-[10px] font-black leading-none text-white tabular-nums drop-shadow-sm">
+                <span
+                  className="block min-w-0 text-center text-[10.5px] font-bold leading-none text-white tabular-nums tracking-wide"
+                  style={{ fontFeatureSettings: '"tnum"', textShadow: '0 1px 1px rgba(0,0,0,0.25)' }}
+                >
                   {floatingCountdownText}
                 </span>
               </div>
             </motion.div>
+
 
             {/* Float/breathe wrapper */}
             <motion.div
