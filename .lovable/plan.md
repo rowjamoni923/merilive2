@@ -361,4 +361,5 @@ Verified current gap:
 Patch scope:
 - Remove random-call insufficient-balance UI/banner behavior; low balance now redirects straight to `/recharge` with no toast/action banner.
 - Force random-call prechecks to fetch the authoritative spendable diamond wallet (`max(profiles.coins, profiles.diamonds)`) before starting.
+- Edge random-call enqueue now selects only stable wallet/VIP columns, so optional profile-level schema drift can no longer make the server return balance `0` for a real diamond wallet.
 - Harden `useUserBalance` so signed-out `0` is not treated as a valid initialized logged-in balance, and stale/racing balance fetches cannot overwrite the latest real wallet.
