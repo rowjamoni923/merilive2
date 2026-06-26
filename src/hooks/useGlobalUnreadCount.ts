@@ -33,7 +33,7 @@ const EMPTY_COUNTS: UnreadCounts = {
   total: 0,
 };
 
-const MIN_FETCH_INTERVAL_MS = 800;
+const MIN_FETCH_INTERVAL_MS = 30_000;
 const MAX_BADGE_CONVERSATIONS = 500;
 
 type CountsListener = (counts: UnreadCounts) => void;
@@ -226,13 +226,15 @@ export const useGlobalUnreadCount = () => {
     listeners.add(setCounts);
     setCounts(sharedCounts);
 
-    const init = async () => {
-      await fetchSharedCounts();
-    };
-
-    void init();
+    const w = window as any;
+    const init = () => { void fetchSharedCounts(); };
+    const idleId = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(init, { timeout: 2500 })
+      : window.setTimeout(init, 1800);
 
     return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
       listeners.delete(setCounts);
       cleanupRealtimeSubscriptionIfUnused();
     };
