@@ -126,6 +126,7 @@ const GoLive = () => {
   const [previewHasFrame, setPreviewHasFrame] = useState(false);
   const [nativePreviewActive, setNativePreviewActive] = useState(false);
   const nativePreviewStartInFlightRef = useRef(false);
+  const nativePreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
 
   const applyNativePreviewTransparency = useCallback((active: boolean) => {
     if (typeof document === 'undefined') return;
@@ -188,35 +189,54 @@ const GoLive = () => {
   // startLocalPreview), so there is no CameraX/Camera2 ownership race —
   // NativeCamera stays reserved for Face Verification.
   const startNativePreview = useCallback(async () => {
-    if (nativePreviewStartInFlightRef.current) return false;
-    nativePreviewStartInFlightRef.current = true;
-    // 🚀 Zero-delay reveal: flip the WebView body to transparent SYNCHRONOUSLY
-    // before awaiting Camera2 open. Without this the WebView paints an opaque
-    // white background OVER the native TextureView for the entire ~1–3s
-    // camera bring-up, which users perceive as a long blank delay. The body
-    // class is reverted in the failure branch so we never leave a stale
-    // transparent surface if preview never starts.
-    applyNativePreviewTransparency(true);
-    try {
-      const started = await nativeLiveKitController.startLocalPreview({
-        lens: 'front',
-        resolution: '1080p',
-        mirror: true,
-        roomScope: 'live',
-      });
-      if (started) {
-        setNativePreviewActive(true);
-        setPreviewHasFrame(true);
-      } else {
+    // If the user taps Go Live while the silent/permission preview start is
+    // still opening Camera2, DO NOT report "preview unavailable" and DO NOT
+    // start a second open. Await the exact same in-flight preview promise so
+    // the preview → publish handoff promotes one continuous native track.
+    if (nativePreviewStartPromiseRef.current) return nativePreviewStartPromiseRef.current;
+
+    const startPromise = (async () => {
+      nativePreviewStartInFlightRef.current = true;
+      // 🚀 Zero-delay reveal: flip the WebView body to transparent SYNCHRONOUSLY
+      // before awaiting Camera2 open. Without this the WebView paints an opaque
+      // white background OVER the native TextureView for the entire ~1–3s
+      // camera bring-up, which users perceive as a long blank delay. The body
+      // class is reverted in the failure branch so we never leave a stale
+      // transparent surface if preview never starts.
+      applyNativePreviewTransparency(true);
+      try {
+        const previewScope = nativeLiveKitController.getPreviewScope();
+        const activeScope = nativeLiveKitController.getActiveScope();
+        if (previewScope === 'live' || activeScope === 'live') {
+          setNativePreviewActive(true);
+          setPreviewHasFrame(true);
+          return true;
+        }
+
+        const started = await nativeLiveKitController.startLocalPreview({
+          lens: 'front',
+          resolution: '1080p',
+          mirror: true,
+          roomScope: 'live',
+        });
+        if (started) {
+          setNativePreviewActive(true);
+          setPreviewHasFrame(true);
+        } else {
+          applyNativePreviewTransparency(false);
+        }
+        return started;
+      } catch (e) {
         applyNativePreviewTransparency(false);
+        throw e;
+      } finally {
+        nativePreviewStartInFlightRef.current = false;
+        nativePreviewStartPromiseRef.current = null;
       }
-      return started;
-    } catch (e) {
-      applyNativePreviewTransparency(false);
-      throw e;
-    } finally {
-      nativePreviewStartInFlightRef.current = false;
-    }
+    })();
+
+    nativePreviewStartPromiseRef.current = startPromise;
+    return startPromise;
   }, [applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
