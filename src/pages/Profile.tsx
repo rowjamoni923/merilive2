@@ -1010,13 +1010,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             }
           }
 
-          // Face verification submission status changes (pending/approved/rejected)
+          // Face verification submission status changes (pending/approved/rejected/needs_retry)
           if (table === 'face_verification_submissions' && payload?.user_id === activeProfileId) {
             const nextStatus = String(payload?.status || '').toLowerCase();
             setFaceVerificationStatus(nextStatus || null);
             if (nextStatus === 'approved') {
               try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
               setFaceVerificationPending(false);
+              toast({ title: '✅ Face verification approved', description: 'You are now verified.' });
               // Also refresh profile to get is_face_verified update
               void fetchData();
             } else if (nextStatus === 'pending' || nextStatus === 'submitted' || nextStatus === 'under_review') {
@@ -1026,6 +1027,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
               setFaceVerificationStatus('rejected');
               setFaceVerificationPending(false);
+              toast({
+                title: 'Face verification rejected',
+                description: String(payload?.rejection_reason || '').slice(0, 220) || 'Please review the rejection details.',
+                variant: 'destructive',
+              });
+              // Take the user to the verification screen so they can see the
+              // full reason (duplicate account info, gender mismatch, etc.).
+              navigate('/face-verification');
+            } else if (nextStatus === 'needs_retry') {
+              try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
+              setFaceVerificationStatus('needs_retry');
+              setFaceVerificationPending(false);
+              toast({
+                title: 'Re-upload required',
+                description: 'Your photo, video and live scan do not match. Please retry the failing step.',
+                variant: 'destructive',
+              });
+              navigate('/face-verification');
             }
           }
 
