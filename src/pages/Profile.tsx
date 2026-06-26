@@ -2604,12 +2604,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     } else if ((item as any).action === 'call_price') {
                       handleOpenCallPriceModal();
                     } else if (item.path) {
-                      const warm = warmRouteForNavigation(item.path);
-                      if (warm) {
-                        void warm.catch(() => undefined).then(() => navigate(item.path));
-                      } else {
-                        navigate(item.path);
-                      }
+                      void warmRouteForNavigation(item.path)?.catch(() => undefined);
+                      navigate(item.path);
                     }
                   }}
                   className="w-full flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"

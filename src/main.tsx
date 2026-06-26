@@ -13,7 +13,6 @@ import { initLocalizationEngine } from "./i18n/engine";
 initLocalizationEngine();
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { installColdStartCapture } from "./utils/coldStartCapture";
-import { installRippleTracker } from "./utils/rippleTracker";
 import { installGlobalHaptics } from "./utils/globalHaptics";
 import { installRoutePrefetch } from "./utils/routePrefetch";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
@@ -61,7 +60,6 @@ schedule(() => {
     startNetworkResilienceEngine();
   }
   installAudioUnlock();
-  installRippleTracker();
   installGlobalHaptics();
   // Phase 1 (instant-entry): pre-mint a 6h wildcard LiveKit viewer token in
   // the background so the first live-room / party-browse tap pays zero

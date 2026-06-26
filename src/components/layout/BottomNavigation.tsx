@@ -96,16 +96,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
       hapticFeedback('medium');
       setShowActionMenu(prev => !prev);
     } else {
-      const warm = warmRouteForNavigation(item.path);
-      if (warm) {
-        void warm.catch(() => undefined).then(() => {
-          startTransition(() => { navigate(item.path); });
-          onTabChange?.(item.path);
-        });
-      } else {
-        startTransition(() => { navigate(item.path); });
-        onTabChange?.(item.path);
-      }
+      void warmRouteForNavigation(item.path)?.catch(() => undefined);
+      startTransition(() => { navigate(item.path); });
+      onTabChange?.(item.path);
       setShowActionMenu(false);
     }
   }, [navigate, onTabChange, startTransition]);
@@ -162,14 +155,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     }
     
     setShowActionMenu(false);
-    const warm = warmRouteForNavigation(path);
-    if (warm) {
-      void warm.catch(() => undefined).then(() => {
-        startTransition(() => { navigate(path); });
-        onTabChange?.(path);
-      });
-      return;
-    }
+    void warmRouteForNavigation(path)?.catch(() => undefined);
     startTransition(() => { navigate(path); });
     onTabChange?.(path);
   };
