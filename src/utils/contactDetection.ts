@@ -584,24 +584,23 @@ export async function checkIsHost(userId: string): Promise<boolean> {
 /**
  * Full detection and processing pipeline.
  *
- * Rule (industry standard — Chamet / Bigo / Holla):
- *   Detection fires ONLY when AT LEAST ONE party is a verified host.
- *     - sender is host  → mask + 2,000 beans deduction (server RPC)
- *     - recipient side includes a host (live/party broadcaster, or DM peer.is_host)
- *       AND sender is not host → mask + popup warning, NO deduction
- *     - user↔user / user↔agency / agency↔agency → no detection, freely allowed
+ * Rule (owner-locked):
+ *   Mask + violation pipeline fires ONLY when the SENDER is a verified host.
+ *   user↔user, user↔agency, agency↔agency, user→host, agency→host all flow
+ *   freely with no mask, no warning, no admin alert. Only verified hosts are
+ *   prohibited from sharing phone numbers / social handles.
  *
- * Callers MUST pass `recipientIncludesHost` so we can gate correctly when
- * the sender themselves is not a host.
+ *   The `recipientIncludesHost` parameter is kept for call-site compatibility
+ *   but is no longer used as a gate — only sender role matters.
  */
 export async function detectAndProcessViolation(
   senderId: string,
   messageContent: string,
   sourceType: 'chat' | 'live_stream' | 'private_call' | 'private_message',
   sourceId?: string,
-  recipientIncludesHost: boolean = false
+  _recipientIncludesHost: boolean = false
 ): Promise<{ detected: boolean; warningOnly?: boolean; violationNumber?: number; beansDeducted?: number; isBanned?: boolean }> {
-  console.log('[ContactDetection] Checking message from:', senderId, 'recipientIncludesHost:', recipientIncludesHost);
+  console.log('[ContactDetection] Checking message from:', senderId);
 
   // Detect contact info FIRST (cheap regex pass)
   const detection = detectContactInfo(messageContent);
@@ -609,7 +608,7 @@ export async function detectAndProcessViolation(
     return { detected: false };
   }
 
-  // Resolve sender role
+  // Resolve sender role — only verified hosts are subject to the rule.
   let senderIsHost = false;
   try {
     const { data } = await supabase
@@ -620,16 +619,9 @@ export async function detectAndProcessViolation(
     senderIsHost = data?.is_host === true;
   } catch {}
 
-  // Gate: at least one side must be a host
-  if (!senderIsHost && !recipientIncludesHost) {
-    console.log('[ContactDetection] Neither side is host — freely allowed');
+  if (!senderIsHost) {
+    console.log('[ContactDetection] Sender is not a verified host — freely allowed');
     return { detected: false };
-  }
-
-  // Non-host sender → host recipient: mask + popup warning, no deduction
-  if (!senderIsHost && recipientIncludesHost) {
-    console.log('[ContactDetection] Non-host → host: warning only, no deduction');
-    return { detected: true, warningOnly: true };
   }
 
   // Host sender: server RPC handles 2,000-bean deduction, logs, ban escalation
