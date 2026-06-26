@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -6,6 +6,11 @@ import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
+import { useMessageReactions } from "@/hooks/useMessageReactions";
+import { ReactionBar } from "@/components/chat/ReactionBar";
+import { ReactionPickerSheet } from "@/components/chat/ReactionPickerSheet";
+import { MessageRowShell } from "@/components/chat/MessageRowShell";
+import { MediaGalleryViewer, type GalleryItem } from "@/components/chat/MediaGalleryViewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Mic, Languages, Phone, ChevronRight, ChevronDown, Plus, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info, Paperclip, FileText } from "lucide-react";
 import { hapticFeedback } from "@/utils/nativeUtils";
@@ -390,8 +395,16 @@ const Chat = () => {
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
   const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string; message_type?: string | null }>>({});
   
-  // Message reactions (client-side only until DB table exists)
-  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
+  // Reaction picker target message id
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState<string | null>(null);
+
+  // Media gallery viewer
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStartId, setGalleryStartId] = useState<string | null>(null);
+
+  // (reactions hook is initialized below, after currentUserId is declared)
+
+  
   
   // Message info dialog
   const [showMessageInfo, setShowMessageInfo] = useState(false);
@@ -435,6 +448,18 @@ const Chat = () => {
   const [loading, setLoading] = useState(!hadConvCache);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Persistent reactions (DB-backed, realtime synced)
+  const activeMessageIds = useMemo(() => {
+    const src = selectedGroup ? groupMessages : messages;
+    return src.map((m: any) => m.id).filter(Boolean);
+  }, [messages, groupMessages, selectedGroup]);
+  const reactionConvKey = selectedGroup?.id || selectedConversation?.id || null;
+  const { reactionsByMessage, toggleReaction } = useMessageReactions({
+    currentUserId: currentUserId || "",
+    conversationKey: reactionConvKey,
+    messageIds: activeMessageIds,
+  });
   const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -2833,11 +2858,18 @@ const Chat = () => {
                       </span>
                     </div>
                   )}
-                  <div
+                  <MessageRowShell
                     id={`msg-${msg.id}`}
-                    className={cn("chat-msg-row flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
+                    isMine={isMine}
+                    sameAsPrev={sameAsPrev}
+                    onReply={() => setReplyingTo({
+                      messageId: msg.id,
+                      content: msg.content || '',
+                      senderName: senderName,
+                      senderId: msg.sender_id,
+                      messageType: msg.message_type,
+                    })}
                   >
-                    <div className={cn("flex gap-2 max-w-[92%] min-w-0", isMine && "flex-row-reverse")}>
                     {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
                     {showAvatar ? (
                       <button
@@ -2973,7 +3005,7 @@ const Chat = () => {
                                 width={360}
                                 quality={78}
                                 className="w-[220px] h-[260px]"
-                                onClick={() => imageViewer.openImage(displayUrl)}
+                                onClick={() => { setGalleryStartId(msg.id); setGalleryOpen(true); }}
                               />
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
@@ -3032,19 +3064,12 @@ const Chat = () => {
                           </DirectChatBubble>
                         );
                       })()}
-                      {/* Reactions */}
-                      {messageReactions[msg.id] && messageReactions[msg.id].length > 0 && (
-                        <div className={cn(
-                          "flex flex-wrap gap-1 mt-0.5",
-                          isMine ? "justify-end" : "justify-start"
-                        )}>
-                          {messageReactions[msg.id].map((emoji, i) => (
-                            <span key={i} className="text-[13px] leading-none bg-card/80 rounded-full px-1 py-0.5 shadow-sm border border-border">
-                              {emoji}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {/* Reactions (DB-backed, realtime synced) */}
+                      <ReactionBar
+                        reactions={reactionsByMessage[msg.id] || []}
+                        isMine={isMine}
+                        onToggle={(e) => toggleReaction(msg.id, e)}
+                      />
                     </div>
                     
                     {/* Three Dot Menu for each message */}
@@ -3070,13 +3095,9 @@ const Chat = () => {
                           <span className="font-medium text-sm">Reply</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          setMessageReactions(prev => {
-                            const current = prev[msg.id] || [];
-                            const next = current.includes('❤️') ? current.filter(e => e !== '❤️') : [...current, '❤️'];
-                            return { ...prev, [msg.id]: next };
-                          });
-                          toast.success('Reacted ❤️');
+                          setReactionPickerMsgId(msg.id);
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+
                           <SmilePlus className="w-4 h-4 text-warning-600" />
                           <span className="font-medium text-sm">React</span>
                         </DropdownMenuItem>
@@ -3101,8 +3122,7 @@ const Chat = () => {
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                  </div>
+                  </MessageRowShell>
                 </React.Fragment>
               );
             })
@@ -4082,6 +4102,39 @@ const Chat = () => {
       }} />
 
       <ImageViewer src={imageViewer.viewerImage} open={imageViewer.isOpen} onClose={imageViewer.closeImage} alt="Shared Image" />
+
+      {/* Quick-react popup (long-press / React menu) */}
+      <ReactionPickerSheet
+        open={!!reactionPickerMsgId}
+        onClose={() => setReactionPickerMsgId(null)}
+        onPick={(emoji) => {
+          if (reactionPickerMsgId) toggleReaction(reactionPickerMsgId, emoji);
+        }}
+      />
+
+      {/* Full-screen swipeable media gallery */}
+      <MediaGalleryViewer
+        open={galleryOpen}
+        startId={galleryStartId}
+        onClose={() => setGalleryOpen(false)}
+        items={(selectedGroup ? groupMessages : messages)
+          .filter((m: any) =>
+            isChatImageMessage(m.message_type, m.content) ||
+            isChatVideoMessage(m.message_type, m.content)
+          )
+          .map((m: any): GalleryItem => {
+            const clean = extractChatMediaPath(m.content || '');
+            return {
+              id: m.id,
+              url: signedChatMediaUrls[clean] || clean,
+              type: isChatVideoMessage(m.message_type, m.content) ? 'video' : 'image',
+              sender: m.sender_id === currentUserId
+                ? (myProfile?.display_name || 'You')
+                : (selectedGroup ? m.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User',
+              createdAt: m.created_at,
+            };
+          })}
+      />
       <NumberSharingWarningDialog
         open={numberWarning.warningState.open}
         onClose={numberWarning.closeWarning}
