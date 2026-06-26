@@ -5,31 +5,35 @@ interface MessageStatusIndicatorProps {
   status: 'sending' | 'queued' | 'sent' | 'delivered' | 'read';
   isMine: boolean;
   className?: string;
+  iconClassName?: string;
 }
 
 /**
  * Messenger-grade message delivery status indicator
  * ⏳ sending  |  ☁️✕ queued (offline)  |  ✓ sent  |  ✓✓ delivered  |  ✓✓ (blue) read
  */
-export const MessageStatusIndicator = ({ status, isMine, className }: MessageStatusIndicatorProps) => {
+export const MessageStatusIndicator = ({ status, isMine, className, iconClassName }: MessageStatusIndicatorProps) => {
   if (!isMine) return null;
+
+  const mutedIconClass = cn("w-3 h-3", iconClassName || "text-muted-foreground");
+  const readIconClass = cn("w-3 h-3", iconClassName || "text-primary");
 
   return (
     <span className={cn("inline-flex items-center ml-1", className)}>
       {status === 'sending' && (
-        <Clock className="w-3 h-3 text-muted-foreground animate-pulse" />
+        <Clock className={cn(mutedIconClass, "animate-pulse")} />
       )}
       {status === 'queued' && (
-        <CloudOff className="w-3 h-3 text-muted-foreground" aria-label="Queued — will send when online" />
+        <CloudOff className={mutedIconClass} aria-label="Queued — will send when online" />
       )}
       {status === 'sent' && (
-        <Check className="w-3 h-3 text-muted-foreground" />
+        <Check className={mutedIconClass} />
       )}
       {status === 'delivered' && (
-        <CheckCheck className="w-3 h-3 text-muted-foreground" />
+        <CheckCheck className={mutedIconClass} />
       )}
       {status === 'read' && (
-        <CheckCheck className="w-3 h-3 text-primary" />
+        <CheckCheck className={readIconClass} />
       )}
     </span>
   );

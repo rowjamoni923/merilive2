@@ -3061,9 +3061,7 @@ const Chat = () => {
                             createdAt={msg.created_at}
                             status={msg.status || (msg.is_read ? 'read' : 'sent')}
                             optimistic={msg._optimistic}
-                          >
-                            <span className="break-words whitespace-pre-wrap">{content}</span>
-                          </DirectChatBubble>
+                          />
                         );
                       })()}
                       {/* Reactions (DB-backed, realtime synced) */}

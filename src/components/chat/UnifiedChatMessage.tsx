@@ -268,6 +268,8 @@ export const DirectChatBubble = memo(function DirectChatBubble({
   children,
 }: DirectChatBubbleProps) {
   const time = formatTime(createdAt);
+  const showStatus = Boolean(status && isMine);
+  const metaReserveClass = showStatus ? "w-[58px]" : "w-[38px]";
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -276,25 +278,31 @@ export const DirectChatBubble = memo(function DirectChatBubble({
     >
       <div
         className={cn(
-          "max-w-[82%] sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[14.5px] leading-[1.45] tracking-[0.005em] shadow-sm",
+          "relative inline-block w-fit min-w-[72px] max-w-[82vw] sm:max-w-[310px] rounded-[18px] px-3 py-[7px] text-[14.5px] leading-[1.38] tracking-normal shadow-sm",
           isMine
             ? "bg-primary text-primary-foreground rounded-br-md shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
             : "bg-card text-card-foreground rounded-bl-md border border-border/60",
           optimistic && "opacity-70",
         )}
       >
-        <div className="break-words whitespace-pre-wrap [overflow-wrap:anywhere]">
+        <span className="block break-words whitespace-pre-wrap [overflow-wrap:anywhere]">
           {children ?? message}
-        </div>
+          <span aria-hidden className={cn("inline-block h-3 align-baseline", metaReserveClass)} />
+        </span>
         <span
           className={cn(
-            "text-[10px] mt-1 ml-2 float-right flex items-center gap-0.5 leading-none pt-1",
+            "absolute bottom-[5px] right-2 inline-flex h-4 items-center justify-end gap-0.5 text-[10px] leading-none tabular-nums whitespace-nowrap",
             isMine ? "text-primary-foreground/75" : "text-muted-foreground/80",
           )}
         >
           {time}
-          {status && (
-            <MessageStatusIndicator status={status} isMine={isMine} />
+          {showStatus && status && (
+            <MessageStatusIndicator
+              status={status}
+              isMine={isMine}
+              className="ml-0"
+              iconClassName={isMine ? "text-primary-foreground/75" : undefined}
+            />
           )}
         </span>
       </div>
