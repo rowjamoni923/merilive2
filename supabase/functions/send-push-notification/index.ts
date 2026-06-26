@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 interface PushNotificationRequest {
+  requestId?: string;
   userId?: string;
   userIds?: string[];
   title: string;
@@ -15,6 +16,19 @@ interface PushNotificationRequest {
   data?: Record<string, unknown>;
   type?: string;
   target?: 'all' | 'android' | 'ios';
+}
+
+interface DeviceTokenRow {
+  token: string;
+  platform: string | null;
+  user_id: string | null;
+}
+
+interface PushSendResult {
+  success: boolean;
+  platform: string | null;
+  messageId?: string;
+  error?: unknown;
 }
 
 interface ServiceAccountCredentials {
@@ -72,6 +86,92 @@ const channelPriority = (type?: string): string => {
   if (ch === "merilive_messages" || ch === "merilive_gifts") return "PRIORITY_HIGH";
   if (ch === "merilive_system" || ch === "merilive_promo") return "PRIORITY_LOW";
   return "PRIORITY_DEFAULT";
+};
+
+const FCM_BATCH_SIZE = 25;
+
+const chunkArray = <T,>(items: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+};
+
+const sanitizeIdempotencyKey = (input?: unknown): string | null => {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim();
+  if (!trimmed || trimmed.length > 120) return null;
+  return /^[a-zA-Z0-9._:-]+$/.test(trimmed) ? trimmed : null;
+};
+
+const compactFcmError = (error: unknown): Record<string, unknown> => {
+  const e = (error || {}) as Record<string, unknown>;
+  const nested = e.error as Record<string, unknown> | undefined;
+  return {
+    code: nested?.code ?? e.code ?? null,
+    status: nested?.status ?? e.status ?? null,
+    message: String(nested?.message ?? e.message ?? error ?? "FCM error").slice(0, 240),
+  };
+};
+
+const shouldDeactivateToken = (error: unknown): boolean => {
+  const e = (error || {}) as Record<string, unknown>;
+  const nested = (e.error || e) as Record<string, unknown>;
+  const status = String(nested.status || "");
+  const message = String(nested.message || "").toLowerCase();
+  const details = Array.isArray(nested.details) ? nested.details as Array<Record<string, unknown>> : [];
+
+  // Only deactivate proven-dead registration tokens. Do NOT deactivate every
+  // token on generic INVALID_ARGUMENT, because a bad image URL/payload can also
+  // return INVALID_ARGUMENT and would wipe all devices in one broadcast.
+  return status === "NOT_FOUND"
+    || details.some((d) => String(d.errorCode || "") === "UNREGISTERED")
+    || message.includes("registration token is not a valid fcm registration token")
+    || message.includes("requested entity was not found");
+};
+
+const waitForExistingDispatch = async (
+  supabase: ReturnType<typeof createClient>,
+  idempotencyKey: string,
+): Promise<Record<string, unknown>> => {
+  const started = Date.now();
+  while (Date.now() - started < 8_000) {
+    const { data } = await supabase
+      .from("push_broadcast_dispatches")
+      .select("status,result")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle();
+
+    if (data?.result && typeof data.result === "object") {
+      return { ...(data.result as Record<string, unknown>), idempotent_replay: true };
+    }
+    if (data?.status === "failed") {
+      return { success: false, error: "Previous broadcast attempt failed", idempotent_replay: true };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+
+  return {
+    success: true,
+    accepted: true,
+    sent: 0,
+    total: 0,
+    idempotent_replay: true,
+    message: "This broadcast is already processing. Please wait; do not send it again.",
+  };
+};
+
+const saveDispatchResult = async (
+  supabase: ReturnType<typeof createClient>,
+  idempotencyKey: string | null,
+  status: "completed" | "failed",
+  result: Record<string, unknown>,
+) => {
+  if (!idempotencyKey) return;
+  const { error } = await supabase
+    .from("push_broadcast_dispatches")
+    .update({ status, result, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("idempotency_key", idempotencyKey);
+  if (error) console.warn("[Push] Could not save idempotency result:", error.message);
 };
 
 // Generate JWT for FCM V1 authentication
@@ -163,9 +263,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, userIds, title, body, imageUrl, data: rawData = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const { requestId, userId, userIds, title, body, imageUrl, data: rawData = {}, type = 'general', target }: PushNotificationRequest = await req.json();
     const data = sanitizeFcmData(rawData);
     const shouldPersistFallback = String(data.persist_fallback ?? 'true') !== 'false';
+    let dispatchKey = sanitizeIdempotencyKey(requestId) || sanitizeIdempotencyKey(rawData.broadcast_id) || sanitizeIdempotencyKey(data.broadcast_id);
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
     const isMultiUser = Array.isArray(userIds) && userIds.length > 0;
@@ -257,6 +358,41 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // Admin broadcast idempotency: if the browser loses the response after the
+    // Edge Function already completed, retrying with the same requestId must NOT
+    // send a second push. The first request owns the row and all later requests
+    // replay the saved result or wait briefly for it.
+    const shouldUseDispatchLock = !!dispatchKey && (isBroadcast || isMultiUser);
+    if (shouldUseDispatchLock) {
+      const { error: lockError } = await supabase
+        .from("push_broadcast_dispatches")
+        .insert({
+          idempotency_key: dispatchKey,
+          status: "processing",
+          request: {
+            title,
+            body,
+            target,
+            userIds: Array.isArray(userIds) ? userIds.slice(0, 250) : undefined,
+            hasImage: !!imageUrl,
+            type,
+          },
+        });
+
+      if (lockError?.code === "23505") {
+        const replay = await waitForExistingDispatch(supabase, dispatchKey!);
+        return new Response(JSON.stringify(replay), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      if (lockError) {
+        console.warn("[Push] Idempotency lock unavailable; continuing once:", lockError.message);
+        dispatchKey = null;
+      }
+    }
+
     if (isVerifiedNotificationTrigger && notificationTriggerId) {
       const { error: dispatchError } = await supabase
         .from("notification_push_dispatches")
@@ -301,8 +437,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!deviceTokens || deviceTokens.length === 0) {
       console.log("[Push] No active device tokens found");
+      const noTokenResult = { success: false, error: "No device tokens found", sent: 0, total: 0 };
+      await saveDispatchResult(supabase, dispatchKey, "completed", noTokenResult);
       return new Response(
-        JSON.stringify({ success: false, error: "No device tokens found" }),
+        JSON.stringify(noTokenResult),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -318,8 +456,10 @@ const handler = async (req: Request): Promise<Response> => {
 
         console.log(`[Push] Using FCM V1 API for project: ${projectId}`);
 
-        const results = await Promise.all(
-          deviceTokens.map(async (device) => {
+        const results: PushSendResult[] = [];
+        for (const batch of chunkArray(deviceTokens as DeviceTokenRow[], FCM_BATCH_SIZE)) {
+          const batchResults = await Promise.all(
+          batch.map(async (device): Promise<PushSendResult> => {
             try {
               // Build FCM V1 message
               // For call notifications: data-only message (no notification block)
@@ -409,41 +549,53 @@ const handler = async (req: Request): Promise<Response> => {
                 }
               );
 
-              const result = await response.json();
-              console.log(`[Push] FCM V1 response for ${device.platform}:`, result);
+              const resultText = await response.text();
+              let result: Record<string, unknown> = {};
+              try { result = resultText ? JSON.parse(resultText) : {}; } catch { result = { raw: resultText.slice(0, 500) }; }
 
               if (!response.ok) {
                 // Handle invalid tokens
-                if (result.error?.details?.some((d: { errorCode?: string }) => 
-                  d.errorCode === 'UNREGISTERED' || d.errorCode === 'INVALID_ARGUMENT'
-                )) {
+                if (shouldDeactivateToken(result)) {
                   await supabase
                     .from("device_tokens")
                     .update({ is_active: false })
                     .eq("token", device.token);
                   console.log(`[Push] Marked invalid token as inactive`);
                 }
-                return { success: false, platform: device.platform, error: result.error };
+                console.warn(`[Push] FCM failed for ${device.platform}:`, compactFcmError(result));
+                return { success: false, platform: device.platform, error: compactFcmError(result) };
               }
 
-              return { success: true, platform: device.platform, messageId: result.name };
+              return { success: true, platform: device.platform, messageId: String(result.name || '') };
             } catch (err) {
               console.error(`[Push] Error sending to ${device.platform}:`, err);
-              return { success: false, platform: device.platform, error: err };
+              return { success: false, platform: device.platform, error: err instanceof Error ? err.message : String(err) };
             }
           })
-        );
+          );
+          results.push(...batchResults);
+        }
 
         const successCount = results.filter(r => r.success).length;
+        const failureCount = results.length - successCount;
+        const failures = results
+          .filter((r) => !r.success)
+          .slice(0, 10)
+          .map((r) => ({ platform: r.platform, error: r.error }));
         console.log(`[Push] Sent ${successCount}/${deviceTokens.length} notifications successfully`);
 
+        const responsePayload = {
+          success: successCount > 0,
+          sent: successCount,
+          total: deviceTokens.length,
+          failed: failureCount,
+          failures,
+        };
+
+        await saveDispatchResult(supabase, dispatchKey, successCount > 0 ? "completed" : "failed", responsePayload);
+
         return new Response(
-          JSON.stringify({ 
-            success: successCount > 0, 
-            sent: successCount, 
-            total: deviceTokens.length,
-            results 
-          }),
+          JSON.stringify(responsePayload),
           { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       } catch (fcmError) {
@@ -458,13 +610,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Notifications inserted by the DB trigger already exist in the notifications table;
     // re-inserting them here creates an infinite notification -> push -> notification loop.
     if (!shouldPersistFallback) {
+      const fallbackSkipped = {
+        success: false,
+        error: "FCM not configured or failed; fallback persistence skipped",
+        persisted: false,
+        tokens_found: deviceTokens.length
+      };
+      await saveDispatchResult(supabase, dispatchKey, "failed", fallbackSkipped);
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: "FCM not configured or failed; fallback persistence skipped",
-          persisted: false,
-          tokens_found: deviceTokens.length
-        }),
+        JSON.stringify(fallbackSkipped),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -478,12 +632,14 @@ const handler = async (req: Request): Promise<Response> => {
       data,
     });
 
-    return new Response(
-      JSON.stringify({ 
+    const persistedPayload = { 
         success: true, 
         message: "Notification stored in database (FCM not configured)",
         tokens_found: deviceTokens.length 
-      }),
+      };
+    await saveDispatchResult(supabase, dispatchKey, "completed", persistedPayload);
+    return new Response(
+      JSON.stringify(persistedPayload),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: unknown) {

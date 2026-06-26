@@ -17,6 +17,93 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { useBroadcastTemplates, type BroadcastTemplate } from "@/hooks/useBroadcastTemplates";
 import { SmartImage } from "@/components/ui/smart-image";
+import { recordAdminError } from "@/utils/adminErrorLog";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
+const SEND_PUSH_URL = `${SUPABASE_URL}/functions/v1/send-push-notification`;
+
+type PushBroadcastResponse = {
+  success?: boolean;
+  accepted?: boolean;
+  sent?: number;
+  total?: number;
+  failed?: number;
+  error?: string;
+  message?: string;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const createBroadcastRequestId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `push-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const parseMaybeJson = (text: string): any => {
+  try { return text ? JSON.parse(text) : {}; } catch { return { error: text }; }
+};
+
+const waitForPublicImage = async (url: string) => {
+  // FCM validates/downloads the image from Google's servers. Immediately after a
+  // browser upload, public storage can take a moment to become readable; waiting
+  // here removes the image-upload race that made rich pushes flaky.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const resp = await fetch(`${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (resp.ok) return true;
+    } catch { /* retry below */ }
+    await sleep(350 + attempt * 250);
+  }
+  return false;
+};
+
+const invokePushBroadcastWithFallback = async (
+  payload: Record<string, unknown>,
+  adminToken: string,
+  requestId: string,
+): Promise<PushBroadcastResponse> => {
+  const body = { ...payload, requestId };
+  const headers = { "x-admin-token": adminToken };
+
+  const { data, error } = await supabase.functions.invoke("send-push-notification", {
+    headers,
+    body,
+  });
+
+  if (!error) return (data || {}) as PushBroadcastResponse;
+
+  recordAdminError({
+    kind: "edge",
+    label: "AdminPushBroadcast.SDKInvoke",
+    message: error.message || "Supabase SDK invoke failed; retrying with direct fetch",
+    detail: JSON.stringify((error as any)?.context || {}).slice(0, 1000),
+    silent: true,
+  });
+
+  // Same requestId makes this retry idempotent on the Edge Function side: if the
+  // first request actually reached the function but the browser lost the response,
+  // this direct fetch replays the saved result instead of sending a duplicate push.
+  await sleep(600);
+  const resp = await fetch(SEND_PUSH_URL, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      "content-type": "application/json",
+      "x-admin-token": adminToken,
+    },
+    body: JSON.stringify(body),
+  });
+  const parsed = parseMaybeJson(await resp.text());
+  if (!resp.ok) {
+    throw new Error(parsed?.error || parsed?.message || `Edge Function failed (${resp.status})`);
+  }
+  return parsed as PushBroadcastResponse;
+};
 
 const PUSH_CATEGORIES: Record<string, { label: string; color: string }> = {
   push_host: { label: "🎤 Host Messages", color: "from-purple-600/80 to-pink-600/80" },
