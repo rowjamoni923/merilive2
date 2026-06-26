@@ -956,9 +956,13 @@ const ProfileDetail = () => {
                         </span>
                       </>
                     ) : (
-                      <img
-                        src={enhanceThumbnail(poster.image_url, { width: 120, quality: 75 })}
+                      <SafePhoto
+                        src={poster.image_url}
                         alt=""
+                        width={120}
+                        quality={75}
+                        fallbackSeed={profile?.id || poster.image_url}
+                        fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
                         className="h-full w-full object-cover"
                         loading="lazy"
                         decoding="async"
