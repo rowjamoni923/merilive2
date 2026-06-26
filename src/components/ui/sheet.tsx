@@ -52,28 +52,53 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {}
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, ...props }, ref) => (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-        {children}
-        <SheetPrimitive.Close
-          aria-label="Close panel"
-          className="absolute right-3 top-3 z-20 w-9 h-9 rounded-full flex items-center justify-center overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(245,245,250,0.96))",
-            border: "1px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.95)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-          }}
+  ({ side = "right", className, children, style, ...props }, ref) => {
+    // Keyboard-aware positioning. On-screen keyboard height lives in --kb-h
+    // (set by useKeyboardInsets). For bottom sheets we translate the panel
+    // upward by --kb-h so its content (composer / form / OTP) stays above the
+    // keyboard. For side sheets we just trim max-height so internal scroll
+    // areas can reach the focused field. Side='top' is unaffected.
+    const kbStyle: React.CSSProperties =
+      side === "bottom"
+        ? {
+            transform: "translateY(calc(var(--kb-h, 0px) * -1))",
+            maxHeight: "calc(100dvh - var(--kb-h, 0px) - 16px)",
+            transition: "transform 200ms ease-out, max-height 200ms ease-out",
+          }
+        : side === "left" || side === "right"
+          ? {
+              maxHeight: "calc(100dvh - var(--kb-h, 0px))",
+              transition: "max-height 200ms ease-out",
+            }
+          : {};
+    return (
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetPrimitive.Content
+          ref={ref}
+          className={cn(sheetVariants({ side }), className)}
+          style={{ ...kbStyle, ...style }}
+          {...props}
         >
-          <X className="h-4 w-4 text-slate-700" strokeWidth={2.4} />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  ),
+          {children}
+          <SheetPrimitive.Close
+            aria-label="Close panel"
+            className="absolute right-3 top-3 z-20 w-9 h-9 rounded-full flex items-center justify-center overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(245,245,250,0.96))",
+              border: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.95)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+            }}
+          >
+            <X className="h-4 w-4 text-slate-700" strokeWidth={2.4} />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        </SheetPrimitive.Content>
+      </SheetPortal>
+    );
+  },
 );
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 

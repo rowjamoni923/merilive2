@@ -2,11 +2,88 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Native-Android-feel Input.
+ * Auto-derives mobile keyboard hints (`inputMode`, `enterKeyHint`, `autoCapitalize`,
+ * `autoCorrect`, `spellCheck`, `autoComplete`) from the `type` prop so every input
+ * across the app shows the right keyboard (email / tel / numeric / search / etc.)
+ * without each call-site repeating the same attributes.
+ *
+ * Any prop the caller passes ALWAYS wins — defaults only fill the gaps.
+ * Pure presentation: zero behavior change for desktop browsers; massive feel
+ * upgrade on mobile (correct keyboard, no spurious auto-cap, SMS one-time-code
+ * autofill, Enter-key label, etc.).
+ */
+type InputType = React.ComponentProps<"input">["type"];
+
+function deriveNativeHints(type: InputType): Partial<React.ComponentProps<"input">> {
+  switch (type) {
+    case "email":
+      return {
+        inputMode: "email",
+        autoComplete: "email",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "next",
+      };
+    case "tel":
+      return {
+        inputMode: "tel",
+        autoComplete: "tel",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "next",
+      };
+    case "url":
+      return {
+        inputMode: "url",
+        autoComplete: "url",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "go",
+      };
+    case "search":
+      return {
+        inputMode: "search",
+        autoComplete: "off",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "search",
+      };
+    case "number":
+      return {
+        inputMode: "decimal",
+        autoComplete: "off",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "next",
+      };
+    case "password":
+      return {
+        autoComplete: "current-password",
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        enterKeyHint: "go",
+      };
+    default:
+      return {};
+  }
+}
+
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    const hints = React.useMemo(() => deriveNativeHints(type), [type]);
     return (
       <input
         type={type}
+        // Defaults first, caller props override — exactly the precedence we want.
+        {...hints}
         className={cn(
           // Premium luxury input: glass surface, subtle border, gold focus ring, larger touch target
           // Standardized typography: 16px/24px mobile (no iOS zoom), 14px/20px md+
