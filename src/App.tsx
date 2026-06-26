@@ -31,6 +31,8 @@ import AdminRouteGuard, { SubAdminDashboardGuard } from "./components/admin/Admi
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
 import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
 import { RouteTransitionHost } from "./components/RouteTransitionHost";
+import { GlobalInstantNavigation } from "./components/common/GlobalInstantNavigation";
+import { startIdleRoutePrefetch } from "./utils/idleRoutePrefetch";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
@@ -705,6 +707,7 @@ const App = () => {
     // No boot-time gift/asset warmup here. Even idle-deferred warmups can fire
     // 5-10s after login on Android WebView and steal frames from the visible UI.
     // Gift/live panels now warm their own exact assets on demand/pointer-down.
+    startIdleRoutePrefetch();
   }, [isAuthenticated, session?.user?.id]);
 
   
@@ -1284,9 +1287,10 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter future={{ v7_startTransition: true }}>
+            <BrowserRouter>
               {!isStandalonePublicRoute && <ScrollToTop />}
               {!isStandalonePublicRoute && <RouteTransitionHost />}
+              {!isStandalonePublicRoute && <GlobalInstantNavigation />}
               {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
               {!isStandalonePublicRoute && <Suspense fallback={null}><DeepLinkHandler /></Suspense>}
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
