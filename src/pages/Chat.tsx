@@ -2974,7 +2974,7 @@ const Chat = () => {
                           const inlineIconUrl = catalogIconUrl || (mediaUrl && /\.(gif|png|webp|jpg|jpeg)(\?|$)/i.test(mediaUrl.split('?')[0]) ? mediaUrl : null);
 
                           return (
-                            <div className={cn("flex flex-col gap-0.5", isMine ? "items-end" : "items-start")}>
+                            <div className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                               <InlineGiftRow
                                 senderName={senderName}
                                 senderAvatar={senderAvatar || undefined}
@@ -2986,11 +2986,13 @@ const Chat = () => {
                                 isSelf={isMine}
                                 surface="chat"
                                 compact
+                                footerSlot={
+                                  <>
+                                    {formatTime(msg.created_at)}
+                                    <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
+                                  </>
+                                }
                               />
-                              <p className={cn("text-[8px] text-muted-foreground/60 flex items-center gap-0.5", isMine ? "pr-2" : "pl-2")}>
-                                {formatTime(msg.created_at)}
-                                <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
-                              </p>
                             </div>
                           );
                         }
