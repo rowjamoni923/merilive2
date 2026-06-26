@@ -874,9 +874,8 @@ function CampaignFloatingButton() {
             onPointerCancel={finishFloatingPointerDrag}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
-            {/* Premium close (×) — glassy light chip that matches the timer pill
-                so the two controls read as a single design system, not mismatched
-                black/red blobs. */}
+            {/* Bare close (×) — no chip, no circle. Just the icon with a tight
+                drop-shadow so it stays legible over bright artwork. */}
             <button
               type="button"
               aria-label="Dismiss campaign"
@@ -891,19 +890,19 @@ function CampaignFloatingButton() {
                 setRemainingSeconds(0);
               }}
               onClick={(e) => { e.stopPropagation(); }}
-              className="absolute -top-2 -left-1.5 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full p-0 active:scale-90 transition-transform"
-              style={{
-                background:
-                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(232,232,240,0.92))',
-                boxShadow:
-                  '0 3px 8px rgba(15,15,25,0.32), 0 1px 1px rgba(15,15,25,0.18), inset 0 1px 0 rgba(255,255,255,0.95)',
-                border: '0.5px solid rgba(135,17,50,0.45)',
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
-              }}
+              className="absolute -top-2 -left-1.5 z-30 flex h-5 w-5 items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
             >
-              <X style={{ width: 9, height: 9, color: '#871132' }} strokeWidth={3} />
+              <X
+                style={{
+                  width: 14,
+                  height: 14,
+                  color: '#ffffff',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.85)) drop-shadow(0 0 1px rgba(0,0,0,0.9))',
+                }}
+                strokeWidth={3.5}
+              />
             </button>
+
 
 
             {/* Premium countdown pill — fixed dimensions so 28:35 / 1:28:35 never
