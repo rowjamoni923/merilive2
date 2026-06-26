@@ -20,6 +20,7 @@ import {
   acquireCameraSession,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
+import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
 // Eagerly kick off the import the moment this module loads (not on
