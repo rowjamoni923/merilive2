@@ -2586,7 +2586,7 @@ const Auth = () => {
               <div className="flex justify-center">
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" enterKeyHint="done" />
                 </div>
               </div>
               
