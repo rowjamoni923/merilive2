@@ -2781,31 +2781,18 @@ const AgencyWithdrawal = () => {
                         )}
                       </div>
                     </div>
-                  ) : withdrawalFees.length > 0 ? (
+                  ) : localWithdrawalFeePercent !== null ? (
                     <div className="mt-2 text-xs text-gray-700 bg-white rounded-lg p-2">
-                      <p className="font-medium mb-1">Fee Tiers (set by admin):</p>
-                      <div className="space-y-0.5">
-                        <div className="text-success-700">
-                          ≤ {formatNumber(freeWithdrawalLimit)} Beans: <span className="font-bold">Free</span>
-                        </div>
-                        {withdrawalFees.map((tier, idx) => {
-                          const beansAmt = localToBeans(localAmount);
-                          const active = beansAmt >= tier.min_amount && beansAmt <= tier.max_amount;
-                          const label = tier.max_amount >= 999999999
-                            ? `> ${formatNumber(tier.min_amount)} Beans`
-                            : `${formatNumber(tier.min_amount)} – ${formatNumber(tier.max_amount)} Beans`;
-                          const feeLabel = tier.fee_type === 'percent'
-                            ? `${tier.fee_value}%`
-                            : `$${tier.fee_value} flat`;
-                          return (
-                            <div key={idx} className={active ? 'font-bold text-gray-900' : 'text-gray-600'}>
-                              {label}: <span>{feeLabel}</span>{active && ' ← current'}
-                            </div>
-                          );
-                        })}
+                      <p className="font-medium mb-1">Local Payment Withdrawal Fee (set by admin):</p>
+                      <div className="text-gray-800">
+                        <span className="font-bold">{localWithdrawalFeePercent}%</span> of withdrawal amount
                       </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="mt-2 text-xs text-gray-600 bg-white rounded-lg p-2">
+                      Fee not configured by admin.
+                    </div>
+                  )}
 
                   
                   {/* Net Payout Calculation */}
