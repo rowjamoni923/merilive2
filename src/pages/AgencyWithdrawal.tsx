@@ -1787,8 +1787,12 @@ const AgencyWithdrawal = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
-  const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(50000); // beans below this = no fee
+  const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(0); // beans below this = no fee (admin-controlled)
   const [minWithdrawalBeans, setMinWithdrawalBeans] = useState(100000);
+  // Admin-configured single % for LOCAL (payroll helper / bKash / Nagad / UPI etc.) withdrawals.
+  // Source: app_settings.agency_withdrawal_fee = { rate: N }. Single source of truth.
+  // `null` until loaded — guards against showing wrong fee from stale tiered config.
+  const [localWithdrawalFeePercent, setLocalWithdrawalFeePercent] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
