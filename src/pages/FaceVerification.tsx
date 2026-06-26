@@ -3338,7 +3338,7 @@ const FaceVerification = () => {
     return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden safe-top`}>
         {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
-        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + var(--content-bottom-padding, 1rem))` }}>
+        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + 1rem)` }}>
         {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
@@ -3507,7 +3507,7 @@ const FaceVerification = () => {
   return (
       <div data-face-verification-shell className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden safe-top`}>
        {usingNativeFaceCamera && <div aria-hidden className="face-native-page-mask pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]" />}
-       <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + var(--content-bottom-padding, 1rem))` }}>
+        <div data-face-verification-scroll className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4 sm:pt-4 safe-left safe-right" style={{ WebkitOverflowScrolling: "touch", paddingBottom: `calc(env(safe-area-inset-bottom) + 1rem)` }}>
 
       {!usingNativeFaceCamera && renderHeader("Host Verification", "Get verified as a host")}
       
@@ -3636,7 +3636,7 @@ const FaceVerification = () => {
             </div>
           </div>
           
-          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+          <div className="flow-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
             <Button
               className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white min-h-cta h-14 rounded-2xl text-base sm:text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl active:scale-[0.98] disabled:opacity-40"
               onClick={saveHostStep1}
@@ -3801,7 +3801,7 @@ const FaceVerification = () => {
             />
           </div>
           
-          <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+          <div className="flow-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
             <div className="flex gap-2 sm:gap-3">
               <Button
                 variant="outline"
@@ -3832,7 +3832,7 @@ const FaceVerification = () => {
           {renderFaceVerificationSection()}
           
           {!faceVerified && (
-            <div className="sticky-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <div className="flow-cta-bar -mx-3 sm:-mx-4 px-3 sm:px-4">
               <Button
                 variant="outline"
                 className="w-full min-h-touch h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
