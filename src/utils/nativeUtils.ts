@@ -85,61 +85,17 @@ export const handleDeepLink = (url: string): { path: string; params: Record<stri
   }
 };
 
-// Haptic feedback - Phase C #3: Unified preset-based haptics
+// Haptic feedback — globally disabled by product decision (all no-op).
 export type HapticPreset = 'tick' | 'success' | 'error' | 'warning' | 'gift' | 'pkWin' | 'pkLose' | 'message' | 'mention' | 'callRing' | 'callConnect' | 'callEnd' | 'light' | 'medium' | 'heavy';
 
-export const hapticFeedback = async (preset: HapticPreset = 'tick'): Promise<void> => {
-  if (isNativeApp()) {
-    try {
-      // Step 254: try our optimized custom Vibration plugin first
-      const { registerPlugin } = await import('@capacitor/core');
-      const Vibration = registerPlugin<any>('Vibration');
-      
-      // Map light/medium/heavy to Tick for backward compatibility if needed, 
-      // but try to use the richer presets when possible.
-      const p = (preset === 'light' || preset === 'medium' || preset === 'heavy') ? 'tick' : preset;
-      
-      await Vibration.preset({ name: p });
-      return;
-    } catch {
-      // Fallback to standard Haptics if custom plugin fails
-      try {
-        const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
-        const styleMap: Record<string, any> = {
-          light: ImpactStyle.Light,
-          medium: ImpactStyle.Medium,
-          heavy: ImpactStyle.Heavy,
-          tick: ImpactStyle.Light,
-        };
-        await Haptics.impact({ style: styleMap[preset] || ImpactStyle.Light });
-      } catch (error) { /* fail silently */ }
-    }
-  } else if ('vibrate' in navigator) {
-    const durations: Record<string, number | number[]> = { 
-      light: 10, medium: 20, heavy: 30, tick: 10,
-      success: [0, 10, 50, 10], error: [0, 50, 50, 50]
-    };
-    navigator.vibrate(durations[preset] || 10);
-  }
+export const hapticFeedback = async (_preset: HapticPreset = 'tick'): Promise<void> => {
+  /* no-op */
 };
 
-
-// Vibrate pattern
-export const vibrate = async (pattern: number | number[]): Promise<void> => {
-  if (isNativeApp()) {
-    try {
-      const { Haptics, NotificationType } = await import('@capacitor/haptics');
-      await Haptics.notification({ type: NotificationType.Success });
-    } catch (error) {
-      // Fallback to web vibrate
-      if ('vibrate' in navigator) {
-        navigator.vibrate(pattern);
-      }
-    }
-  } else if ('vibrate' in navigator) {
-    navigator.vibrate(pattern);
-  }
+export const vibrate = async (_pattern: number | number[]): Promise<void> => {
+  /* no-op */
 };
+
 
 // Keep screen awake (for live streams)
 // Note: Requires @capacitor-community/keep-awake to be installed locally
