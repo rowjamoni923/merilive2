@@ -760,8 +760,9 @@ const Index = () => {
           {/* Search Button - Left Side */}
           <button
             aria-label="Search"
+            data-prefetch-path="/search"
             onClick={() => navigate('/search')}
-            className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-card border border-border hover:-translate-y-0.5"
+            className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:opacity-90 touch-manipulation transition-opacity duration-75 bg-card border border-border"
             style={{ boxShadow: '0 4px 10px -3px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
           >
             <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
@@ -782,7 +783,7 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "flex-1 min-w-0 px-1.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-95 touch-manipulation flex items-center justify-center gap-1 whitespace-nowrap",
+                    "flex-1 min-w-0 px-1.5 py-1 rounded-full text-[11px] font-semibold transition-opacity duration-75 active:opacity-90 touch-manipulation flex items-center justify-center gap-1 whitespace-nowrap",
                     isActive ? "bg-gradient-primary text-on-dark" : "text-muted-pro hover:text-foreground"
                   )}
                   style={isActive ? { boxShadow: '0 4px 10px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' } : undefined}
@@ -797,8 +798,9 @@ const Index = () => {
           {/* Leaderboard Button - Right Side */}
           <button
             aria-label="Leaderboard"
+            data-prefetch-path="/leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform duration-200 hover:-translate-y-0.5"
+            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:opacity-90 touch-manipulation transition-opacity duration-75"
           >
             <span className="leaderboard-3d-orbit" aria-hidden="true" />
             <span className="leaderboard-3d-face" aria-hidden="true" />
@@ -814,10 +816,10 @@ const Index = () => {
                   key={country.code}
                   onClick={() => setSelectedCountry(country.code)}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap active:scale-95 touch-manipulation border",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-opacity duration-75 whitespace-nowrap active:opacity-90 touch-manipulation border",
                     selectedCountry === country.code
                       ? "bg-gradient-primary text-on-dark border-transparent"
-                      : "bg-card text-heading border-border hover:bg-muted hover:-translate-y-0.5"
+                      : "bg-card text-heading border-border hover:bg-muted"
                   )}
                   style={
                     selectedCountry === country.code
@@ -904,8 +906,9 @@ const Index = () => {
             {/* Primary action — Go Live for hosts, Discover for viewers */}
             <div className="flex flex-row items-stretch gap-2.5 w-full max-w-[340px]">
               <button
+                data-prefetch-path="/go-live"
                 onClick={() => navigate('/go-live')}
-                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:opacity-90 transition-opacity duration-75 touch-manipulation flex items-center justify-center gap-2"
                 style={{
                   boxShadow:
                     '0 6px 18px -4px hsl(var(--primary) / 0.5), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)',
@@ -916,7 +919,7 @@ const Index = () => {
               </button>
               <button
                 onClick={handlePullRefresh}
-                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-heading bg-card border border-border active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-heading bg-card border border-border active:opacity-90 transition-opacity duration-75 touch-manipulation flex items-center justify-center gap-2"
                 style={{
                   boxShadow:
                     '0 3px 8px -2px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
