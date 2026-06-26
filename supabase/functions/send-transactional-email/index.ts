@@ -17,6 +17,62 @@ const SENDER_DOMAIN = "notify.support.merilive.com"
 // even though actual sending uses the subdomain above.
 const FROM_DOMAIN = "support.merilive.com"
 
+type EmailSendFailure = {
+  code: string
+  message: string
+  status: number
+  providerType?: string
+}
+
+function normalizeEmailSendError(error: unknown): EmailSendFailure {
+  const raw = error instanceof Error ? error.message : String(error)
+  const jsonMatch = raw.match(/Email API error:\s*\d+\s*(\{.*\})/s)
+  let providerType = ''
+  let providerMessage = raw
+
+  if (jsonMatch?.[1]) {
+    try {
+      const parsed = JSON.parse(jsonMatch[1])
+      providerType = typeof parsed?.type === 'string' ? parsed.type : ''
+      providerMessage = typeof parsed?.message === 'string' ? parsed.message : providerMessage
+    } catch {
+      // Keep the original provider message if the payload is not JSON.
+    }
+  }
+
+  switch (providerType) {
+    case 'domain_not_verified':
+      return {
+        code: 'EMAIL_DOMAIN_NOT_VERIFIED',
+        message: 'Email delivery is still activating. Please try again after setup finishes.',
+        status: 503,
+        providerType,
+      }
+    case 'no_matching_sender':
+      return {
+        code: 'EMAIL_SENDER_DOMAIN_NOT_READY',
+        message: 'Email sender setup is not ready yet. Please try again shortly.',
+        status: 503,
+        providerType,
+      }
+    case 'lovable_api_key_not_registered':
+    case 'unauthorized':
+      return {
+        code: 'EMAIL_SERVICE_AUTH_FAILED',
+        message: 'Email service is being refreshed. Please try again shortly.',
+        status: 503,
+        providerType,
+      }
+    default:
+      return {
+        code: 'EMAIL_DELIVERY_FAILED',
+        message: providerMessage || 'Failed to send email',
+        status: 500,
+        providerType: providerType || undefined,
+      }
+  }
+}
+
 // Generate a cryptographically random 32-byte hex token
 function generateToken(): string {
   const bytes = new Uint8Array(32)
@@ -333,8 +389,11 @@ Deno.serve(async (req) => {
       { apiKey: lovableApiKey }
     )
   } catch (sendError) {
+    const normalizedError = normalizeEmailSendError(sendError)
     console.error('Failed to send email', {
       error: sendError instanceof Error ? sendError.message : String(sendError),
+      code: normalizedError.code,
+      providerType: normalizedError.providerType,
       templateName,
       effectiveRecipient,
     })
@@ -344,11 +403,15 @@ Deno.serve(async (req) => {
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: sendError instanceof Error ? sendError.message : 'Failed to send email',
+      error_message: normalizedError.code,
     })
 
-    return new Response(JSON.stringify({ error: 'Failed to send email' }), {
-      status: 500,
+    return new Response(JSON.stringify({
+      success: false,
+      error: normalizedError.message,
+      code: normalizedError.code,
+    }), {
+      status: normalizedError.status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }

@@ -159,10 +159,30 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   }, [emailOtpTimer]);
 
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    const mapEmailCode = (code?: string) => {
+      switch (code) {
+        case "EMAIL_DOMAIN_NOT_VERIFIED":
+          return "Email delivery is still activating for MeriLive. Please try again after setup finishes.";
+        case "EMAIL_SENDER_DOMAIN_NOT_READY":
+          return "Email sender setup is not ready yet. Please try again shortly.";
+        case "EMAIL_SERVICE_AUTH_FAILED":
+          return "Email service is being refreshed. Please try again shortly.";
+        case "EMAIL_DELIVERY_FAILED":
+          return "Unable to send the verification code right now. Please try again in a moment.";
+        default:
+          return "";
+      }
+    };
+
+    const mappedDirect = mapEmailCode(error?.code);
+    if (mappedDirect) return mappedDirect;
+
     try {
       const response = error?.context;
       if (response && typeof response.json === "function") {
         const payload = await response.json();
+        const mapped = mapEmailCode(payload?.code);
+        if (mapped) return mapped;
         return payload?.error || payload?.message || fallback;
       }
     } catch {}
@@ -308,14 +328,14 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         body: { email: normalizedEmail, purpose: 'verify', context: 'sub_agency_signup' }
       });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send email OTP"));
-      if (!data?.success) throw new Error(data?.error || "Failed to send email OTP");
+      if (!data?.success) throw Object.assign(new Error(data?.error || "Failed to send email OTP"), { code: data?.code });
       setEmailOtpSent(true);
       setEmailOtpTimer(300);
       setEmailOtp("");
       setEmailVerified(false);
       setEmailVerifiedToken("");
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to send email OTP");
+      setErrorMessage(await getFunctionErrorMessage(error, "Failed to send email OTP"));
     } finally {
       setSendingEmailOtp(false);
     }

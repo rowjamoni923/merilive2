@@ -128,8 +128,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (!result.success) {
       console.error("[send-signup-confirmation] Lovable Email failed:", result.error);
       return new Response(
-        JSON.stringify({ success: false, error: "Email delivery failed", details: result.error, code: verificationCode }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({
+          success: false,
+          error: result.error || "Email delivery failed",
+          code: result.code || "EMAIL_DELIVERY_FAILED",
+        }),
+        { status: result.status && result.status >= 400 ? result.status : 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 

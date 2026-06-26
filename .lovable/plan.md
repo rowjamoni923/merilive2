@@ -178,3 +178,23 @@ Patch scope:
 - Realtime polling relaxed to 30s and presence cleanup to 30min/foreground-only.
 - Route-change video lifecycle scan now runs only when leaving media routes, not on every page transition.
 - User balance prefetch now receives the App session userId directly, so it does not perform an extra auth-session lookup while the route is painting.
+
+---
+
+# Phase 12 — OTP email delivery failure hardening (2026-06-26)
+
+Research / professional standard:
+- Google Identity Platform email action guidance treats verification/reset emails as security-critical account flows that must show clear user action and avoid ambiguous failure states — https://cloud.google.com/identity-platform/docs/email
+- OWASP authentication guidance requires short-lived OTPs and safe error handling that does not expose secrets or implementation details — https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html
+- Professional live/social apps (Chamet/Bigo/TikTok-style flows) keep the OTP UI instant, but if delivery fails they return the user to the input surface with a clear, non-technical reason instead of leaving them on a code screen that can never verify.
+
+Verified current gap:
+- Latest `send-transactional-email` logs show the old `LOVABLE_API_KEY` and `no_matching_sender` issues were replaced by `domain_not_verified` at 2026-06-26T19:05–19:06 UTC, meaning code is reaching the sender but DNS/project email activation is not complete yet.
+- `send-email-otp` collapsed all sender-domain failures into a generic 500, so the login toast only said “Failed to send verification email.”
+- `send-signup-confirmation` returned the OTP code in an error payload when email delivery failed; this is not acceptable for a production OTP flow.
+
+Patch scope:
+- Normalize Lovable Email provider failures into safe app codes: `EMAIL_DOMAIN_NOT_VERIFIED`, `EMAIL_SENDER_DOMAIN_NOT_READY`, `EMAIL_SERVICE_AUTH_FAILED`, and `EMAIL_DELIVERY_FAILED`.
+- Propagate safe codes through `sendOtpEmail` and OTP edge functions without leaking provider internals or OTP secrets.
+- Auth/agency UI now maps those codes to professional English messages and returns from the OTP screen when delivery was never possible.
+- Delivery still requires the configured email domain to finish activation; code cannot bypass DNS verification.

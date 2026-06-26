@@ -318,13 +318,30 @@ const Auth = () => {
   const startResendCountdown = () => setResendCountdown(60);
 
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    const mapEmailCode = (code?: string) => {
+      switch (code) {
+        case "EMAIL_DOMAIN_NOT_VERIFIED":
+          return "Email delivery is still activating for MeriLive. Please try again after setup finishes.";
+        case "EMAIL_SENDER_DOMAIN_NOT_READY":
+          return "Email sender setup is not ready yet. Please try again shortly.";
+        case "EMAIL_SERVICE_AUTH_FAILED":
+          return "Email service is being refreshed. Please try again shortly.";
+        case "EMAIL_DELIVERY_FAILED":
+          return "Unable to send the verification code right now. Please try again in a moment.";
+        default:
+          return "";
+      }
+    };
+
+    const mappedDirect = mapEmailCode(error?.code);
+    if (mappedDirect) return mappedDirect;
+
     try {
       const response = error?.context;
       if (response && typeof response.json === "function") {
         const payload = await response.json();
-        if (payload?.code === "EMAIL_DELIVERY_FAILED") {
-          return "Unable to send the verification code right now. Please try again in a moment.";
-        }
+        const mapped = mapEmailCode(payload?.code);
+        if (mapped) return mapped;
 
         return payload?.error || payload?.detail || payload?.message || fallback;
       }
@@ -1164,7 +1181,7 @@ const Auth = () => {
 
         if (error) throw error;
         if (data && data.success === false) {
-          throw new Error(data.error || "Failed to send verification code");
+          throw Object.assign(new Error(data.error || "Failed to send verification code"), { code: data.code });
         }
 
         await recordAttempt(`otp:${normalizedEmail}`, false);
@@ -1173,6 +1190,10 @@ const Auth = () => {
         recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
         await recordAttempt(`otp:${normalizedEmail}`, false);
         const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
+        if (error?.code === "EMAIL_DOMAIN_NOT_VERIFIED" || error?.code === "EMAIL_SENDER_DOMAIN_NOT_READY") {
+          setAuthStep((current) => current === "email_otp" ? "email" : current);
+          setResendCountdown(0);
+        }
         toast({
           title: "Error",
           description: errorMessage,
@@ -1753,7 +1774,7 @@ const Auth = () => {
 
       if (error) throw error;
       if (data && data.success === false) {
-        throw new Error(data.error || "Failed to resend code");
+        throw Object.assign(new Error(data.error || "Failed to resend code"), { code: data.code });
       }
 
       await recordAttempt(`otp:${normalizedEmail}`, false);
