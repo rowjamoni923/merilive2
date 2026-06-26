@@ -179,8 +179,10 @@ export default function PreMatchPrep({
       try {
         const { data } = await supabase
           .from("live_streams")
-          .select("host_id, profiles:host_id(avatar_url)")
+          .select("host_id, profiles!inner(avatar_url, is_host, is_face_verified)")
           .eq("status", "active")
+          .eq("profiles.is_host", true)
+          .eq("profiles.is_face_verified", true)
           .order("host_id", { ascending: true })
           .limit(24);
         if (!mounted) return;
