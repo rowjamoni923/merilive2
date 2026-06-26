@@ -12842,6 +12842,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_broadcast_dispatches: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          request: Json
+          result: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          request?: Json
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          request?: Json
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       random_call_broadcasts: {
         Row: {
           caller_device_id: string | null
