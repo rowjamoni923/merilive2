@@ -177,11 +177,11 @@ export default function PreMatchPrep({
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
+      <div className="relative z-30 flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),16px)]">
         <button
-          onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/"); }}
+          onClick={() => navigate(-1)}
           aria-label="Back"
-          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition">
+          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition relative z-40">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
@@ -195,8 +195,9 @@ export default function PreMatchPrep({
           </button>
           <button
             onClick={() => navigate("/call-history")}
+            data-instant-path="/call-history"
             aria-label="Call history"
-            className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition">
+            className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition relative z-40">
             <History className="w-4 h-4" />
           </button>
         </div>
