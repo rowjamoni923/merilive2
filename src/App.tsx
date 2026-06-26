@@ -406,6 +406,18 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 const AdminChunkLoader = memo(() => null);
 AdminChunkLoader.displayName = "AdminChunkLoader";
 
+const RouteChunkFallback = memo(() => (
+  <div
+    className="fixed inset-0 z-[9997] flex items-start justify-center bg-background/96 pt-[calc(env(safe-area-inset-top,0px)+14px)]"
+    aria-label="Loading page"
+  >
+    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-primary/15 shadow-[0_6px_20px_-8px_hsl(var(--primary)/0.65)]">
+      <div className="h-full w-1/2 animate-[routeLoadSlide_0.72s_ease-in-out_infinite] rounded-full bg-gradient-primary" />
+    </div>
+  </div>
+));
+RouteChunkFallback.displayName = "RouteChunkFallback";
+
 // =============================================
 // MAIN APP COMPONENT
 // =============================================
