@@ -297,6 +297,16 @@ export default function MatchCall() {
 
       const handoff = async (sessionId: string, hostId: string) => {
         if (timerRef.current) window.clearInterval(timerRef.current);
+        // Fetch matched host avatar so the centre orb freezes on their photo
+        // before the full call screen opens (Chamet/Olamet-style reveal).
+        try {
+          const { data: hp } = await supabase
+            .from("profiles")
+            .select("avatar_url")
+            .eq("id", hostId)
+            .maybeSingle();
+          setMatchedAvatarUrl((hp as any)?.avatar_url ?? null);
+        } catch (_) { /* ignore */ }
         setPhase("matched");
         const startedAt = Date.now();
         const next = { session_id: sessionId, host_id: hostId, started_at: startedAt };
@@ -305,6 +315,9 @@ export default function MatchCall() {
         try {
           window.sessionStorage.setItem("random_call:active", JSON.stringify(next));
         } catch (_) {}
+        // Brief reveal so the user sees the matched avatar settle before the
+        // full call surface takes over (~600ms).
+        await new Promise((r) => setTimeout(r, 600));
         const callId = await startCall(hostId);
         if (!callId) {
           toast.error("Could not start the call. Please try again.");
