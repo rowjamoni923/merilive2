@@ -299,6 +299,9 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             onComplete={handleAnimationComplete}
             onError={() => handleAnimationComplete()}
             center={false}
+            dynamicAvatarUrl={entry.avatarUrl ?? null}
+            dynamicUserName={entry.displayName ?? null}
+            dynamicUserLevel={entry.level ?? null}
           />
         </div>
       </motion.div>
