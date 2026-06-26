@@ -2150,7 +2150,7 @@ const FaceVerification = () => {
       document.documentElement.classList.remove('native-face-camera-active');
       document.body.classList.remove('native-face-camera-active');
     }
-    await teardownFaceCameraPreview();
+    void teardownFaceCameraPreview().catch((e) => console.warn('[FaceVerification] camera teardown after submit failed', e));
     
     try {
       // Save Basic Information immediately; media is uploaded in the background after
@@ -2406,7 +2406,7 @@ const FaceVerification = () => {
       document.documentElement.classList.remove('native-face-camera-active');
       document.body.classList.remove('native-face-camera-active');
     }
-    await teardownFaceCameraPreview();
+    void teardownFaceCameraPreview().catch((e) => console.warn('[FaceVerification] camera teardown after host submit failed', e));
     
     try {
       // Save only basic profile info immediately; all heavy media uploads continue
