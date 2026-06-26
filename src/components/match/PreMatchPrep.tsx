@@ -27,6 +27,7 @@ export type MatchFilters = {
 interface Props {
   diamondBalance: number;
   hostRatePerMin: number;
+  requiredBalance?: number;
   freeTrialSeconds: number;
   minBillableSeconds: number;
   availableHostsCount: number;
@@ -52,7 +53,7 @@ interface Props {
  * only the center copy and bottom CTA change so users never see a second design.
  */
 export default function PreMatchPrep({
-  diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
+  diamondBalance, hostRatePerMin, requiredBalance, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip, onStart,
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
 }: Props) {
@@ -212,8 +213,17 @@ export default function PreMatchPrep({
     return slots;
   }, []);
 
-  const insufficient = effectiveBalance < hostRatePerMin;
+  const requiredToStart = Math.max(Number(requiredBalance ?? hostRatePerMin), hostRatePerMin, 0);
+  const balanceKnown = balanceReady || diamondBalance > 0;
+  const insufficient = balanceKnown && effectiveBalance < requiredToStart;
   const handleStart = () => {
+    if (insufficient) {
+      stopStream();
+      navigate("/recharge", {
+        state: { reason: "random_call_low_balance", required: requiredToStart, balance: effectiveBalance },
+      });
+      return;
+    }
     stopStream();
     onStart({
       preferred_host_gender: "any",
@@ -335,7 +345,7 @@ export default function PreMatchPrep({
           <button
             type="button"
             onClick={isSearching ? undefined : handleStart}
-            disabled={isSearching || isMatched || (phase === "prep" && insufficient)}
+              disabled={isSearching || isMatched}
             aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
             className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
           >
@@ -436,10 +446,9 @@ export default function PreMatchPrep({
           <motion.div whileTap={{ scale: 0.97 }}>
             <Button
               onClick={handleStart}
-              disabled={insufficient}
               className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
             >
-              <Phone className="w-5 h-5 mr-2" /> Start
+              <Phone className="w-5 h-5 mr-2" /> {insufficient ? "Top Up" : "Start"}
             </Button>
           </motion.div>
         )}
@@ -457,7 +466,7 @@ export default function PreMatchPrep({
             {insufficient && (
               <button onClick={() => navigate("/recharge")}
                 className="mt-3 mx-auto block px-4 h-9 rounded-full bg-amber-400 text-black text-xs font-bold">
-                Recharge — need {hostRatePerMin.toLocaleString()} diamonds for 1 minute
+                Recharge — need {requiredToStart.toLocaleString()} diamonds
               </button>
             )}
           </>

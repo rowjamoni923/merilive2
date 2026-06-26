@@ -7,6 +7,7 @@ import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep
 import MatchCallOverlay from "@/components/match/MatchCallOverlay";
 import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
 import { extractEdgeFnErrorPayload } from "@/utils/edgeFnError";
+import { getBalanceWithFetch } from "@/hooks/useUserBalance";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
@@ -29,7 +30,13 @@ export default function MatchCall() {
   const [queueId, setQueueId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [settings, setSettings] = useState<any>(null);
-  const [profile, setProfile] = useState<{ id: string; coins: number; vip_tier: number; is_vip: boolean } | null>(null);
+  const [profile, setProfile] = useState<{
+    id: string;
+    coins: number;
+    diamonds?: number | null;
+    vip_tier: number | null;
+    current_vip_tier_id?: string | null;
+  } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
@@ -50,7 +57,7 @@ export default function MatchCall() {
       const { data: u } = await supabase.auth.getUser();
       if (u?.user) {
         const { data: p } = await supabase.from("profiles")
-          .select("id, coins, vip_tier, is_vip").eq("id", u.user.id).maybeSingle();
+          .select("id, coins, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
         if (p) setProfile(p as any);
       }
       const { count } = await supabase
@@ -220,6 +227,20 @@ export default function MatchCall() {
     const broadcast = !!opts?.broadcast;
     lastFiltersRef.current = filters;
     setErrorMsg("");
+
+    const maxRateForHold = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
+    const preauthMinutes = Number(settings?.preauth_minutes_hold ?? 0);
+    const requiredBalance = Math.max(0, maxRateForHold * preauthMinutes);
+    const currentBalance = profile
+      ? Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0))
+      : await getBalanceWithFetch();
+    if (requiredBalance > 0 && currentBalance < requiredBalance) {
+      navigate("/recharge", {
+        state: { reason: "random_call_low_balance", required: requiredBalance, balance: currentBalance },
+      });
+      return;
+    }
+
     setPhase("searching");
     setElapsed(0);
     timerRef.current = window.setInterval(() => setElapsed((s) => s + 1), 1000);
@@ -263,10 +284,10 @@ export default function MatchCall() {
         if (timerRef.current) window.clearInterval(timerRef.current);
         const need = Number(errPayload.required ?? 0);
         const bal = Number(errPayload.balance ?? 0);
-        toast.error(`Not enough coins. Need ${need}, balance ${bal}.`, {
-          action: { label: "Recharge", onClick: () => navigate("/wallet") },
-        });
         setPhase("prep");
+        navigate("/recharge", {
+          state: { reason: "random_call_low_balance", required: need, balance: bal },
+        });
         return;
       }
       if (error) throw error;
@@ -355,10 +376,10 @@ export default function MatchCall() {
       if (payload?.error === "insufficient_coins") {
         const need = Number(payload.required ?? 0);
         const bal = Number(payload.balance ?? 0);
-        toast.error(`Not enough coins. Need ${need}, balance ${bal}.`, {
-          action: { label: "Recharge", onClick: () => navigate("/wallet") },
-        });
         setPhase("prep");
+        navigate("/recharge", {
+          state: { reason: "random_call_low_balance", required: need, balance: bal },
+        });
         return;
       }
       const msg = String(e?.message ?? e);
@@ -374,6 +395,8 @@ export default function MatchCall() {
   const maxRate = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
   const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
   const holdAmount = Math.max(0, maxRate * preauthMin);
+  const profileBalance = Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0));
+  const profileIsVip = Number(profile?.vip_tier ?? 0) > 0 || !!profile?.current_vip_tier_id;
 
   return (
     <>
@@ -390,13 +413,14 @@ export default function MatchCall() {
         />
       )}
       <PreMatchPrep
-        diamondBalance={profile?.coins ?? 0}
+        diamondBalance={profileBalance}
         hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 500}
+        requiredBalance={holdAmount}
         freeTrialSeconds={settings?.random_window_seconds ?? 60}
         minBillableSeconds={settings?.min_billable_seconds ?? 40}
         availableHostsCount={hostsCount}
         estimatedWaitSeconds={estWait}
-        isVip={!!(profile?.is_vip || (profile?.vip_tier ?? 0) > 0)}
+        isVip={profileIsVip}
         countryRequiresVip={!!settings?.country_filter_requires_vip}
         genderFilterEnabled={!!settings?.enable_gender_filter}
         countryFilterEnabled={!!settings?.enable_country_filter}
