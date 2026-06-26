@@ -240,29 +240,13 @@ function BannerCarousel({ banners, isAboveFold, onBannerClick, loadedImages, set
             >
               {banner.image_url ? (
                 <div className="relative aspect-[2.4/1] w-full overflow-hidden rounded-2xl bg-muted/30">
-                  <img
-                    loading={isAboveFold ? 'eager' : 'lazy'}
-                    decoding="async"
+                  <BulletproofImage
                     src={bannerCdn(banner.image_url)}
+                    fallbacks={[normalizePublicMediaUrl(banner.image_url, "banners"), banner.image_url]}
                     alt={banner.title}
-                    // @ts-expect-error – fetchpriority is a standard HTML hint
-                    fetchpriority={isAboveFold ? 'high' : 'low'}
-                    className={cn(
-                      "block h-full w-full rounded-2xl object-cover select-none transition-opacity duration-75",
-                      loadedImages[banner.id] ? "opacity-100" : "opacity-0"
-                    )}
-                    draggable={false}
-                    onLoad={(e) => {
-                      const img = e.currentTarget;
-                      const markReady = () => setLoadedImages((s) => ({ ...s, [banner.id]: true }));
-                      if (typeof img.decode === 'function') img.decode().then(markReady).catch(markReady);
-                      else markReady();
-                    }}
-                    onError={(e) => {
-                      const t = e.currentTarget;
-                      if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
-                      setLoadedImages((s) => ({ ...s, [banner.id]: true }));
-                    }}
+                    priority={isAboveFold ? 'high' : 'low'}
+                    className="absolute inset-0 block h-full w-full rounded-2xl object-cover select-none"
+                    onReady={() => setLoadedImages((s) => (s[banner.id] ? s : { ...s, [banner.id]: true }))}
                   />
                 </div>
               ) : (
