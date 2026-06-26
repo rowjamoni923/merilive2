@@ -57,6 +57,8 @@ WhatsApp/Messenger/Chamet inbox list pattern check: pinned section on top, swipe
 
 ### Research first
 WhatsApp/Telegram/Messenger thread pattern check: long-press menu (reply, react, copy, forward, delete, info), swipe-right-to-reply, reply quote bubble, message reactions (6 emoji + custom), pinch-zoom image viewer with swipe-between-media gallery, voice waveform with playback scrubber, link previews.
+- 2026-06-26 regular text bubble audit: WhatsApp-style timestamp must live inside the bubble bottom-right, with short messages sharing the last line and long messages reserving only end-of-line space (StackOverflow references: “Whatsapp Message Layout - How to get time-view in the same row”, “CSS: Tough time imitating Whatsapp alignment in message bubble”). Messenger research also confirms state/read indicators must be visually tied to the message bubble, not floating as a separate stacked row (Ishadeed, “Facebook Messenger's Chat Bubble”).
+- Current gap found in `DirectChatBubble`: message body rendered as a block, then timestamp used `float-right flex`; float + flex caused short messages like “hi” to stack time/checks vertically and look non-native. Fix target: relative bubble, inline text flow, reserved meta spacer, absolute bottom-right timestamp/read receipt.
 
 ### What we ship
 1. **Long-press menu** — bottom sheet with Reply / React / Copy / Forward / Delete / Info. Haptic on open.
