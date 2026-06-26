@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
+
 import { ArrowLeft, Gift, Coins, Diamond, Sparkles, Clock, TrendingUp, Star, Check, ChevronRight, Zap, Crown, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,32 +110,9 @@ const Rewards = () => {
   // Pkg503: full skeleton on first load — prevents empty shell flash with
   // zeroed stats and blank tier rows while initial fetch is in flight.
   if (loading) {
-    return (
-      <div className="mobile-page bg-background" aria-busy="true" aria-live="polite">
-        <header className="sticky top-0 z-40 glass-card border-b border-border/50 safe-area-top">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate(-1)}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-lg font-bold">Rewards Center</h1>
-          </div>
-        </header>
-        <div className="p-4 space-y-4">
-          <div className="h-24 rounded-2xl bg-muted/50 animate-pulse" />
-          <div className="flex gap-2">
-            {tabs.map((t) => (
-              <div key={t.key} className="h-10 flex-1 rounded-xl bg-muted/40 animate-pulse" />
-            ))}
-          </div>
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-muted/40 animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <PageSkeleton className="mobile-page bg-background" rows={5} hero />;
   }
+
 
   return (
     <div className="mobile-page bg-background">
