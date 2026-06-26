@@ -25,7 +25,6 @@
 //   Gender check is NO LONGER used for reject or manual review — owner rule.
 
 export const SIMILARITY_THRESHOLD = 55;
-export const HARD_GENDER_CONF = 90;
 
 export type VerificationType = "host" | "user";
 
