@@ -14,6 +14,8 @@ import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator
 
 import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { VoiceWaveform } from "@/components/chat/VoiceWaveform";
+import { SmartImage } from "@/components/chat/SmartImage";
+import { SmartVideo } from "@/components/chat/SmartVideo";
 const EmojiPicker = lazy(() => import("@/components/chat/EmojiPicker").then(m => ({ default: m.EmojiPicker })));
 const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(m => ({ default: m.MediaUploader })));
 import { usePersistedCache } from "@/hooks/usePersistedCache";
@@ -2948,22 +2950,17 @@ const Chat = () => {
                           );
                         }
 
-                        // Image messages - no background, instant display
+                        // Image messages — instant placeholder, thumb-then-full
                         if (isImage) {
                           return (
                             <div className="flex flex-col">
-                              <img
+                              <SmartImage
                                 src={displayUrl}
                                 alt="Shared image"
-                                loading="eager"
-                                decoding="async"
-                                fetchPriority="high"
-                                referrerPolicy="no-referrer"
-                                className="max-w-[220px] max-h-[280px] rounded-2xl object-cover cursor-pointer hover:opacity-95 transition-opacity bg-muted"
+                                width={360}
+                                quality={78}
+                                className="w-[220px] h-[260px]"
                                 onClick={() => imageViewer.openImage(displayUrl)}
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = '/placeholder.svg';
-                                }}
                               />
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
@@ -2973,20 +2970,14 @@ const Chat = () => {
                           );
                         }
 
-                        // Video messages - no background
+                        // Video messages — lazy-attach src, poster-first
                         if (isVideo) {
                           return (
                             <div className="flex flex-col">
-                              <video 
+                              <SmartVideo
                                 src={displayUrl}
-                                muted
-                                controls
-                                controlsList="nodownload noremoteplayback noplaybackrate"
-                                disablePictureInPicture
-                                disableRemotePlayback
-                                playsInline
-                                preload="metadata"
-                                className="max-w-[220px] max-h-[260px] rounded-xl object-cover bg-black"/>
+                                className="w-[220px] h-[260px]"
+                              />
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -2994,6 +2985,7 @@ const Chat = () => {
                             </div>
                           );
                         }
+
 
                         // Audio messages - WhatsApp-style waveform player
                         if (isAudio) {
