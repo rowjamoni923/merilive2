@@ -24,6 +24,7 @@ import { SmartVideo } from "@/components/chat/SmartVideo";
 const EmojiPicker = lazy(() => import("@/components/chat/EmojiPicker").then(m => ({ default: m.EmojiPicker })));
 const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(m => ({ default: m.MediaUploader })));
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { loadChatSnapshot, saveChatSnapshot } from "@/utils/chatSnapshots";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
 import { emitInboxTyping } from "@/hooks/useInboxTyping";
