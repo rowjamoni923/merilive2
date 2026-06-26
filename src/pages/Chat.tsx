@@ -427,6 +427,22 @@ const Chat = () => {
     });
   }, [groupMessages]);
 
+  // Phase 7 — Instant Paint: keep the localStorage snapshot of the active
+  // thread in sync with subsequent realtime inserts / optimistic sends so the
+  // next reopen also paints in <16ms. Debounced via rAF + 400ms idle.
+  const snapshotConvIdRef = useRef<string | null>(null);
+  useEffect(() => { snapshotConvIdRef.current = selectedConversation?.id ?? null; });
+  useEffect(() => {
+    const convId = selectedConversation?.id;
+    if (!convId || !messages.length) return;
+    const t = setTimeout(() => {
+      if (snapshotConvIdRef.current === convId) {
+        try { saveChatSnapshot(convId, messages); } catch {}
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [messages, selectedConversation?.id]);
+
   useEffect(() => {
     const paths = [...messages, ...groupMessages]
       .map((m) => extractChatMediaPath(m.content || ''))
