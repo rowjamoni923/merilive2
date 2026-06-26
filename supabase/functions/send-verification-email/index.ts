@@ -29,8 +29,8 @@ serve(async (req: Request): Promise<Response> => {
 
     if (!result.success) {
       return new Response(
-        JSON.stringify({ success: false, error: result.error || "Failed to send" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ success: false, error: result.error || "Failed to send", code: result.code || "EMAIL_DELIVERY_FAILED" }),
+        { status: result.status && result.status >= 400 ? result.status : 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 

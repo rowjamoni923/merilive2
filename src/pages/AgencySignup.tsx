@@ -93,10 +93,30 @@ const AgencySignup = () => {
   }, [appOtpTimer]);
 
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    const mapEmailCode = (code?: string) => {
+      switch (code) {
+        case "EMAIL_DOMAIN_NOT_VERIFIED":
+          return "Email delivery is still activating for MeriLive. Please try again after setup finishes.";
+        case "EMAIL_SENDER_DOMAIN_NOT_READY":
+          return "Email sender setup is not ready yet. Please try again shortly.";
+        case "EMAIL_SERVICE_AUTH_FAILED":
+          return "Email service is being refreshed. Please try again shortly.";
+        case "EMAIL_DELIVERY_FAILED":
+          return "Unable to send the verification code right now. Please try again in a moment.";
+        default:
+          return "";
+      }
+    };
+
+    const mappedDirect = mapEmailCode(error?.code);
+    if (mappedDirect) return mappedDirect;
+
     try {
       const response = error?.context;
       if (response && typeof response.json === "function") {
         const payload = await response.json();
+        const mapped = mapEmailCode(payload?.code);
+        if (mapped) return mapped;
         return payload?.error || payload?.message || fallback;
       }
     } catch {}
@@ -234,7 +254,7 @@ const AgencySignup = () => {
       });
 
       if (error) throw error;
-      if (data && !data.success) throw new Error(data.error || 'Failed to send OTP');
+      if (data && !data.success) throw Object.assign(new Error(data.error || 'Failed to send OTP'), { code: data.code });
 
       toast({ title: "✅ OTP Sent!", description: `A 6-digit code has been sent to ${formData.email}` });
       setEmailOtpSent(true);
@@ -242,7 +262,7 @@ const AgencySignup = () => {
     } catch (error: any) {
       console.error('Email OTP error:', error);
       recordClientError({ label: "AgencySignup.sendEmailOtp", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: "Error", description: error.message || "Failed to send email OTP", variant: "destructive" });
+      toast({ title: "Error", description: await getFunctionErrorMessage(error, "Failed to send email OTP"), variant: "destructive" });
     } finally {
       setSendingEmailOtp(false);
     }

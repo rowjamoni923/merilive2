@@ -79,7 +79,11 @@ Deno.serve(async (req) => {
     if (!result.success) {
       console.error("[send-email-otp] Email delivery failed:", result.error);
       await supabase.from("email_otps").update({ is_used: true }).eq("email", email).eq("otp_code", otp).eq("is_used", false);
-      return json({ success: false, error: "Failed to send verification email. Please try again." }, 500);
+      return json({
+        success: false,
+        error: result.error || "Failed to send verification email. Please try again.",
+        code: result.code || "EMAIL_DELIVERY_FAILED",
+      }, result.status && result.status >= 400 ? result.status : 500);
     }
 
     console.log(`[send-email-otp] OTP queued for ${email} (${purpose}) via Lovable Email`);

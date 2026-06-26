@@ -15,7 +15,7 @@ export interface SendOtpEmailArgs {
   idempotencyKey?: string;
 }
 
-export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<{ success: boolean; error?: string }> {
+export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<{ success: boolean; error?: string; code?: string; status?: number }> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
@@ -65,11 +65,11 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<{ success: b
 
     if (!resp.ok) {
       console.error("[sendOtpEmail] HTTP", resp.status, text);
-      return { success: false, error: data?.error || `HTTP ${resp.status}: ${text}` };
+      return { success: false, error: data?.error || `HTTP ${resp.status}: ${text}`, code: data?.code, status: resp.status };
     }
     if (data && data.error) {
       console.error("[sendOtpEmail] response error:", data.error);
-      return { success: false, error: data.error };
+      return { success: false, error: data.error, code: data?.code, status: data?.status };
     }
     return { success: true };
   } catch (e) {
