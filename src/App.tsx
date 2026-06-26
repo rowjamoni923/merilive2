@@ -497,7 +497,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const isPublicPage = isLandingDomain || isStandalonePublicPath(location.pathname) || ((!hasSession && location.pathname === '/') || location.pathname.startsWith('/auth'));
   const showPopups = !isAdminRoute && !isPublicPage && !isMediaRoute && hasSession;
 
-  useUserBalancePrefetch(session?.user?.id ?? null);
+  useUserBalancePrefetch(userId);
 
   useEffect(() => {
     if (isPublicPage) {
