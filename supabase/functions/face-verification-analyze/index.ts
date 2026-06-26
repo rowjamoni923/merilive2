@@ -840,7 +840,7 @@ serve(async (req) => {
       try {
         const { data: approvedProfiles } = await supabaseAdmin
           .from("profiles")
-          .select("id,display_name,app_uid,avatar_url,is_face_verified,face_verification_status,host_status")
+          .select("id,display_name,app_uid,avatar_url,face_verification_image,is_face_verified,face_verification_status,host_status")
           .neq("id", userId)
           .or("is_face_verified.eq.true,face_verification_status.eq.approved,host_status.eq.approved")
           .not("avatar_url", "is", null)
@@ -848,7 +848,7 @@ serve(async (req) => {
 
         let bestLegacyCandidate: Record<string, unknown> | null = null;
         for (const candidate of approvedProfiles || []) {
-          const candidateUrl = (candidate.avatar_url as string | null) || null;
+          const candidateUrl = ((candidate as any).face_verification_image as string | null) || (candidate.avatar_url as string | null) || null;
           if (!candidateUrl) continue;
           try {
             const candidateBytes = await fetchImageBytes(candidateUrl, supabaseAdmin);
@@ -863,6 +863,7 @@ serve(async (req) => {
                 previous_display_name: candidate.display_name || null,
                 previous_app_uid: candidate.app_uid || null,
                 previous_avatar: candidate.avatar_url || null,
+                previous_face_image: (candidate as any).face_verification_image || null,
                 similarity,
                 source: "rekognition_legacy_approved_profile_scan",
                 previous_approved: true,
