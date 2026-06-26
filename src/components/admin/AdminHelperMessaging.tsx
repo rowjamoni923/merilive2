@@ -89,6 +89,39 @@ const AdminHelperMessaging = () => {
     };
   }, [selectedMessage]);
 
+  // 📨 Reliability layer (mirrors LiveChatWidget). helper_admin_messages /
+  // helper_message_replies are NOT in supabase_realtime publication, so we
+  // pair admin_broadcast with: 6s inbox polling, 3s open-conversation polling,
+  // and a window-focus refresh. Guarantees zero missed helper replies.
+  useEffect(() => {
+    const poll = window.setInterval(() => {
+      loadRecentMessages();
+      loadUnreadRepliesCount();
+    }, 6000);
+    const onFocus = () => {
+      loadRecentMessages();
+      loadUnreadRepliesCount();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMessage?.id) return;
+    const poll = window.setInterval(() => {
+      loadMessageReplies(selectedMessage.id);
+    }, 3000);
+    const onFocus = () => loadMessageReplies(selectedMessage.id);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [selectedMessage?.id]);
+
   const loadHelpers = async () => {
     const { data } = await supabase
       .from('topup_helpers')
