@@ -529,7 +529,7 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "border-danger/60";
+      if (user.isLive) return "border-brand/45";
       if (displayLevel >= 40) return "border-warning/55";
       if (displayLevel >= 20) return "border-brand/45";
       if (displayLevel >= 10) return "border-info/45";
@@ -538,7 +538,7 @@ const Index = () => {
 
     const getCardShadow = (): string => {
       if (user.isLive)
-        return '0 10px 24px -8px hsl(var(--danger) / 0.35), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
+        return '0 10px 24px -8px hsl(var(--brand) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
       if (displayLevel >= 40)
         return '0 10px 24px -8px hsl(var(--warning) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.6)';
       if (displayLevel >= 20)
@@ -713,13 +713,13 @@ const Index = () => {
           )}
 
 
-          {/* Bottom Info — luxurious gradient bar */}
+          {/* Bottom Info — premium professional gradient bar */}
           <div
             className="absolute bottom-0 left-0 right-0 px-2.5 pt-4 pb-2.5"
             style={{
-              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,10,35,0.55) 35%, rgba(60,20,90,0.85) 75%, rgba(90,30,130,0.95) 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,215,140,0.25), inset 0 -1px 0 rgba(255,200,120,0.35)',
-              borderTop: '1px solid rgba(255,200,120,0.18)',
+              background: 'linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(30,41,99,0.55) 35%, rgba(49,46,129,0.88) 75%, rgba(67,56,202,0.96) 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(165,180,252,0.25), inset 0 -1px 0 rgba(129,140,248,0.2)',
+              borderTop: '1px solid rgba(165,180,252,0.18)',
             }}
           >
 
