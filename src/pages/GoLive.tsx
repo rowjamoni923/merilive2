@@ -678,7 +678,7 @@ const GoLive = () => {
         if (isNativeAndroid) {
           const previewStarted = await startNativePreview();
           if (!previewStarted) {
-            toast.error('Camera preview unavailable. Please update the app to the latest build.');
+            console.warn('[GoLive] Native preview auto-start did not report ready; keeping permission primer available.');
           }
           return;
         }
@@ -750,7 +750,7 @@ const GoLive = () => {
         // sees themselves before going live (Chamet/Bigo standard).
         const previewStarted = await startNativePreview();
         if (!previewStarted) {
-          toast.error('Camera preview unavailable. Please update the app to the latest build.');
+          toast.error('Camera preview is still starting. Please wait a moment and tap Go Live again.');
         }
         return;
       } catch (error: any) {
