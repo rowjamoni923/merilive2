@@ -99,7 +99,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            transition={{ duration: 0.06 }}
+            className="fixed inset-0 bg-black/35"
             style={{ zIndex: 9998 }}
             onClick={() => setShowActionMenu(false)}
           />
@@ -112,16 +113,16 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
           <motion.div
             className="fixed left-0 right-0 flex justify-center px-4"
             style={{ zIndex: 9999, bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.08, ease: "linear" }}
           >
             <div className="flex flex-col gap-3 w-full max-w-[280px]">
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/go-live')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 rounded-2xl shadow-2xl shadow-pink-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -137,9 +138,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               </motion.button>
 
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/create-party')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-500 rounded-2xl shadow-2xl shadow-purple-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -155,9 +156,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               </motion.button>
 
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15, type: "spring" }}
+                transition={{ duration: 0.06 }}
                 onClick={() => handleActionClick('/match-call')}
                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -220,7 +221,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   aria-label="Create"
                 >
                   <div
-                    className="absolute -inset-4 rounded-full blur-2xl"
+                    className={cn("absolute -inset-4 rounded-full", lowEnd ? "hidden" : "blur-2xl")}
                     style={{
                       background:
                         'radial-gradient(circle, rgba(236,72,153,0.35) 0%, rgba(168,85,247,0.25) 45%, transparent 70%)',
@@ -228,13 +229,14 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   />
                   <motion.div
                     animate={showActionMenu ? { rotate: 45 } : { rotate: 0 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.06 }}
                     className="relative w-[58px] h-[58px] rounded-full flex items-center justify-center overflow-hidden"
                     style={{
                       background:
                         'radial-gradient(circle at 30% 25%, #ffd1ea 0%, #ec4899 35%, #a855f7 70%, #6366f1 100%)',
-                      boxShadow:
-                        '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
+                      boxShadow: lowEnd
+                        ? '0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.35)'
+                        : '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
                     }}
                   >
                     <div
@@ -320,11 +322,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   />
 
                   {item.path === '/profile' && unreadCounts.total > 0 && (
-                    <motion.span
+                    <span
                       key={unreadCounts.total}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: 'spring', stiffness: 600, damping: 14 }}
                       className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-white text-[8px] font-bold rounded-full flex items-center justify-center z-20"
                       style={{
                         background: 'linear-gradient(135deg,#ef4444,#ec4899)',
@@ -332,7 +331,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       }}
                     >
                       {formatBadgeCount(unreadCounts.total)}
-                    </motion.span>
+                    </span>
                   )}
                 </div>
 
