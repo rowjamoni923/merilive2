@@ -349,3 +349,16 @@ Patch scope:
 - Image/contact OCR runs only when the sender is a restricted host, never because the recipient is a host.
 - Edge functions `detect-phone-number`, `scan-image-contact`, and `admin-phone-alert` skip agency owners and verified top-up helpers.
 - `process_contact_violation` now returns a safe skipped result for non-hosts, agency owners, and verified top-up helpers; only real verified hosts can receive deductions/bans.
+
+---
+
+# Phase 18 — Random-call direct top-up + real diamond wallet fix (2026-06-26)
+
+Verified current gap:
+- Random-call insufficient-balance recovery still surfaced a Sonner-style banner/action before navigation in some client/server error paths.
+- Balance cache could be initialized during a signed-out/auth-transition state and report `0`, so a caller with a real spendable diamond wallet in `profiles.coins` could be blocked incorrectly.
+
+Patch scope:
+- Remove random-call insufficient-balance UI/banner behavior; low balance now redirects straight to `/recharge` with no toast/action banner.
+- Force random-call prechecks to fetch the authoritative spendable diamond wallet (`max(profiles.coins, profiles.diamonds)`) before starting.
+- Harden `useUserBalance` so signed-out `0` is not treated as a valid initialized logged-in balance, and stale/racing balance fetches cannot overwrite the latest real wallet.
