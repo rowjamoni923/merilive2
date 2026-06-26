@@ -444,14 +444,6 @@ const NativeMessageActionsBridge = lazy(lazyRetry(() => import("./hooks/useNativ
   return { default: Bridge };
 })));
 
-// Pillar 2 — global tap haptics: fires Haptics.impact(Light) on every real
-// touch on a button/role=button/link. Single delegated listener, no
-// per-call-site change needed.
-const GlobalTapHapticsBridge = lazy(lazyRetry(() => import("./hooks/useGlobalTapHaptics").then(m => {
-  const Bridge = () => { m.useGlobalTapHaptics(); return null; };
-  return { default: Bridge };
-})));
-
 // Pillar 3 — global image defaults (loading=lazy + decoding=async on every
 // <img> via a single MutationObserver). Opt out per-img with data-eager="true".
 const GlobalImageDefaultsBridge = lazy(lazyRetry(() => import("./hooks/useGlobalImageDefaults").then(m => {
@@ -1260,7 +1252,6 @@ const App = () => {
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
-      <Suspense fallback={null}><GlobalTapHapticsBridge /></Suspense>
       <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
 
 

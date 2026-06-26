@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm leading-5 font-semibold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 disabled:saturate-[0.6] disabled:shadow-none disabled:brightness-95 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm leading-5 font-semibold ring-offset-background transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 disabled:saturate-[0.6] disabled:shadow-none disabled:brightness-95 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -67,10 +67,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         clickGuardRef.current = true;
         try {
           const result = onClick(e) as unknown;
+          const unlock = () => { clickGuardRef.current = false; };
+          window.setTimeout(unlock, 180);
           if (result && typeof result === 'object' && typeof (result as Promise<unknown>).finally === 'function') {
-            (result as Promise<unknown>).finally(() => { clickGuardRef.current = false; });
+            (result as Promise<unknown>).finally(unlock);
           } else {
-            requestAnimationFrame(() => { clickGuardRef.current = false; });
+            window.setTimeout(unlock, 0);
           }
         } catch {
           clickGuardRef.current = false;

@@ -86,6 +86,24 @@ Already PersistentCameraSurface + prejoin preview আছে। যোগ:
 - Playwright run — chat open, profile open, gift panel open paint timing
 - Network throttle 4G simulation — warmup-এর পরে second tap zero network
 
+---
+
+# Phase 8 — App-wide instant taps + instant page commit (2026-06-26)
+
+Research / professional standard:
+- Google/web.dev INP guidance: a responsive app must minimize input delay, avoid long main-thread tasks during interaction, and paint the next visual response quickly — https://web.dev/articles/optimize-inp and https://web.dev/articles/optimize-input-delay
+- web.dev bfcache guidance confirms instant navigation comes from keeping surfaces/state ready and avoiding work that blocks navigation — https://web.dev/articles/bfcache
+- For Chamet/Bigo/TikTok-style mobile UX, tap must commit immediately; chunk/data warmup can start on pointer-down, but it must never block the actual click/navigation.
+
+Verified current gap:
+- 3 navigation handlers were waiting for `warmRouteForNavigation(...).then(...)` before `navigate(...)`: BottomNavigation main tabs, BottomNavigation action menu, Profile menu. On slow Android WebView or cold chunks, that makes a button feel late.
+- Multiple button styles still used `active:scale`, ripple pseudo-elements, 300ms transitions, and hover transforms. These are layout/paint work during the exact input frame.
+
+Patch scope:
+- Prefetch remains, but navigation commits immediately; warm promises run in the background only.
+- Global haptic bridge stays unmounted because vibration was already rejected; no extra pointer listener for no-op haptics.
+- Ripple/scale press effects are neutralized; feedback remains cheap opacity-only.
+
 # Rollout order (one pass)
 1. svgaCache + SVGAPlayer patch
 2. bootWarmup + App.tsx

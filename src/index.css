@@ -41,10 +41,12 @@
   display: none !important;
 }
 
-/* User mandate: no visible spinning loaders anywhere in the app chrome.
-   Buttons may still disable to prevent duplicate submits; they just won't spin. */
-.animate-spin,
-[class*="animate-[spin_"] {
+/* Full-page/route spinners stay hidden, but local button/action loaders are
+   allowed so taps show immediate feedback instead of feeling frozen. */
+[data-loading-indicator="page"] .animate-spin,
+[data-loading-indicator="route"] .animate-spin,
+.animate-spin[data-loading-indicator="page"],
+.animate-spin[data-loading-indicator="route"] {
   animation: none !important;
 }
 
@@ -195,7 +197,7 @@ button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),
 a[href],
 .tap-feedback {
-  transition: opacity 80ms ease-out;
+  transition: opacity 60ms linear;
   -webkit-tap-highlight-color: transparent;
 }
 button:not(:disabled):active,
@@ -389,7 +391,7 @@ html.reduce-motion body.route-changing [data-page-root] {
   isolation: isolate;
 }
 .ripple::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -402,9 +404,9 @@ html.reduce-motion body.route-changing [data-page-root] {
   transition: opacity 420ms ease-out, transform 420ms ease-out;
 }
 .ripple:active::after {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 0ms, transform 0ms;
+  opacity: 0;
+  transform: none;
+  transition: none;
 }
 
 /* ---- Skeleton shimmer ---- */
@@ -1985,12 +1987,11 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   /* Card Hover Effects */
   .card-hover {
-    @apply transition-all duration-300;
+    @apply transition-colors duration-100;
   }
 
   .card-hover:hover {
     @apply shadow-elevated;
-    transform: translateY(-4px) scale(1.02);
   }
 
   .card-premium {
@@ -2011,22 +2012,21 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   /* Button Styles - Chamet */
   .btn-primary {
-    @apply font-bold rounded-2xl transition-all duration-300 active:scale-[0.97];
+    @apply font-bold rounded-2xl transition-colors duration-100;
     background: var(--gradient-primary);
     box-shadow: var(--shadow-glow);
   }
 
   .btn-primary:hover {
     box-shadow: 0 0 50px -10px hsl(330 85% 60% / 0.6);
-    transform: translateY(-2px);
   }
 
   .btn-secondary {
-    @apply bg-white/10 text-white font-semibold rounded-2xl hover:bg-white/15 transition-all duration-300 border border-white/10;
+    @apply bg-white/10 text-white font-semibold rounded-2xl hover:bg-white/15 transition-colors duration-100 border border-white/10;
   }
 
   .btn-gold {
-    @apply font-bold rounded-2xl transition-all duration-300;
+    @apply font-bold rounded-2xl transition-colors duration-100;
     background: var(--gradient-gold);
     box-shadow: var(--shadow-gold);
     color: hsl(20 14% 4%);
@@ -2331,7 +2331,7 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   .ripple::after {
-    content: '';
+    content: none;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -2344,8 +2344,8 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   .ripple:active::after {
-    width: 200%;
-    height: 200%;
+    width: 0;
+    height: 0;
   }
 
   /* iOS style blur backgrounds */
@@ -4883,7 +4883,6 @@ a:focus-visible,
 /* PkgInstant global hard rule: never show screenshot-like skeleton/spinner pages.
    Keep async work behind already-painted UI; these legacy primitives become
    static/invisible instead of animated beige placeholders. */
-.animate-spin,
 .animate-pulse,
 .animate-bounce,
 .ptr-spinner,
@@ -4894,9 +4893,9 @@ a:focus-visible,
   animation: none !important;
 }
 
-.animate-spin,
 .ptr-spinner,
-[data-loading-indicator] .animate-spin,
+[data-loading-indicator="page"] .animate-spin,
+[data-loading-indicator="route"] .animate-spin,
 .premium-spinner,
 [role="status"] svg.animate-spin {
   display: none !important;
@@ -5811,9 +5810,54 @@ input[type="reset"],
   [role="button"]:not([aria-disabled="true"]):active,
   a:active,
   .tap-target:active {
-    opacity: 0.88;
-    transition: opacity 80ms ease-out;
+    opacity: 0.92;
+    transition: opacity 60ms linear;
   }
+
+  button,
+  [role="button"],
+  a[href],
+  label,
+  summary,
+  .tap-target,
+  .tappable {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity !important;
+    transition-duration: 80ms !important;
+  }
+
+  button:hover,
+  [role="button"]:hover,
+  a[href]:hover,
+  label:hover,
+  summary:hover,
+  .tap-target:hover,
+  .tappable:hover {
+    transform: none !important;
+  }
+}
+
+/* PkgInstant: no layout-changing press effects. Native Android buttons should
+   respond immediately without scale/ripple paints that steal frames on WebView. */
+button,
+[role="button"],
+a[href],
+.tap-target,
+.tappable,
+.ripple {
+  will-change: auto !important;
+}
+.ripple::before,
+.ripple::after {
+  content: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+button:active,
+[role="button"]:active,
+a[href]:active,
+.tap-target:active,
+.tappable:active {
+  transform: none !important;
 }
 
 /* Prevent the long-press "save image / open in new tab" sheet on UI imagery.

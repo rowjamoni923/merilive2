@@ -13,7 +13,6 @@ import { initLocalizationEngine } from "./i18n/engine";
 initLocalizationEngine();
 import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 import { installColdStartCapture } from "./utils/coldStartCapture";
-import { installRippleTracker } from "./utils/rippleTracker";
 import { installGlobalHaptics } from "./utils/globalHaptics";
 import { installRoutePrefetch } from "./utils/routePrefetch";
 import { isStandalonePublicLocation } from "./utils/publicRoutes";
@@ -61,7 +60,6 @@ schedule(() => {
     startNetworkResilienceEngine();
   }
   installAudioUnlock();
-  installRippleTracker();
   installGlobalHaptics();
   // Phase 1 (instant-entry): pre-mint a 6h wildcard LiveKit viewer token in
   // the background so the first live-room / party-browse tap pays zero
@@ -173,15 +171,29 @@ const markBootedWhenSurfaceIsReady = () => {
     if ((root.innerText || "").trim().length > 0) return true;
     return !!root.querySelector("main,header,nav,button,input,textarea,img,video,[data-page],[data-page-root]:not([data-page-root='instant-ready-shell']),[role='dialog'],[aria-busy='true']");
   };
+  const complete = () => {
+    try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
+    hideNativeSplash();
+  };
   const tick = () => {
     if (hasSurface()) {
-      try { document.body.classList.add('app-booted'); } catch { /* ignore */ }
-      hideNativeSplash();
-      return;
+      complete();
+      return true;
     }
-    requestAnimationFrame(tick);
+    return false;
   };
-  requestAnimationFrame(tick);
+  if (tick()) return;
+  const root = document.getElementById("root");
+  if (!root) return;
+  const observer = new MutationObserver(() => {
+    if (!tick()) return;
+    observer.disconnect();
+  });
+  observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
+  window.setTimeout(() => {
+    observer.disconnect();
+    if (hasSurface()) complete();
+  }, 2500);
 };
 
 // Render app immediately
