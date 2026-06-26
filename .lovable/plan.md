@@ -1,4 +1,16 @@
 
+## Face Verification photo preview framing hotfix — 2026-06-26
+
+- Screenshot root cause: the uploaded photo was technically `object-contain`, but the portrait frame was too narrow/tall and the in-frame bottom badge covered the lower face/chin area, making the photo look still cut off and unprofessional.
+- Professional standard: identity/selfie verification flows keep the full uploaded/captured face visible inside a centered guide and run device-side quality checks before final capture; Smile ID SmartSelfie documents on-device checks for perfect selfies, and React Native selfie capture flows treat the selfie as the primary full-frame evidence.
+- Fix shipped: Step 2 preview now uses a wider 4:5 full-photo frame, strict `object-contain object-center`, centered oval guide, lighter overlay, and the “Face centered in frame” status is moved outside the image so it never covers the face.
+- APK rebuild: not required — this is WebView/React UI only.
+
+### Research citations
+- Smile ID Docs — SmartSelfie Capture (`https://docs.usesmileid.com/integration-options/mobile/android/smile-id-sdk/smartselfie-capture`): on-device checks are used to capture perfect selfies before submission.
+- Smile ID Docs — React Native Selfie and ID Capture (`https://docs.usesmileid.com/integration-options/mobile/react-native/selfie-and-id-card-capture`): selfie capture is a dedicated full-frame capture step returned to the app workflow.
+- Onfido Web SDK (`https://documentation.onfido.com/sdk/web/9.0.0/`): professional IDV flows use guided capture surfaces rather than covering the captured face with UI.
+
 ## লক্ষ্য
 
 ## Live start trigger hotfix — `record "new" has no field` blocker
