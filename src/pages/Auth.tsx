@@ -2378,7 +2378,15 @@ const Auth = () => {
                     placeholder="your@email.com"
                     className="h-14 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
+                    inputMode="email"
+                    autoComplete="email"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    enterKeyHint="send"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && email.trim() && !loading) { e.preventDefault(); handleSendEmailOtp(); } }}
                   />
+
                 </div>
               </div>
               
