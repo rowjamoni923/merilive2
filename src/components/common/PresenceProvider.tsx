@@ -85,7 +85,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // ============ ONLINE STATUS ============
-  const setOnlineStatus = useCallback(async (uid: string) => {
+  const setOnlineStatus = useCallback(async (uid: string, opts?: { force?: boolean }) => {
     // Only hosts can go manually offline; regular users are ALWAYS online
     if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true' && isHost) {
       if (import.meta.env.DEV) console.info('[Presence] 🔴 Host is manually offline, skipping heartbeat');
@@ -93,12 +93,14 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     const now = Date.now();
-    if (now - lastOnlineSet.current < 10000) return;
+    // Throttle normal heartbeats to 2s; force=true bypasses throttle for
+    // instant transitions (call end / back-to-home / live end).
+    if (!opts?.force && now - lastOnlineSet.current < 2000) return;
     lastOnlineSet.current = now;
 
     try {
       await supabase.rpc('sync_host_online_status', { p_user_id: uid, p_is_online: true });
-      if (import.meta.env.DEV) console.info('[Presence] 🟢 Set ONLINE for:', uid);
+      if (import.meta.env.DEV) console.info('[Presence] 🟢 Set ONLINE for:', uid, opts?.force ? '(forced)' : '');
     } catch (e) {
       console.error('[Presence] Failed to set online:', e);
     }
@@ -235,9 +237,8 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     if (import.meta.env.DEV) console.info('[Presence] Starting presence tracking for:', userId);
 
-    // Set online shortly after first paint; avoids stacking this RPC with auth,
-    // profile, route chunk and notification startup work on slow WebViews.
-    const onlineIdleId = idle(() => void setOnlineStatus(userId), 1200);
+    // Set online almost immediately — instant presence on app open / route enter.
+    const onlineIdleId = idle(() => void setOnlineStatus(userId, { force: true }), 200);
 
     // Phase-3 C7: after coming back online, check for missed calls that are
     // still pending/ringing within the timeout window and re-fire the incoming
@@ -313,6 +314,23 @@ export async function goOfflineManually(userId: string) {
     if (import.meta.env.DEV) console.info('[Presence] 🔴 Manual offline for:', userId);
   } catch (e) {
     console.error('[Presence] Manual offline failed:', e);
+  }
+}
+
+/**
+ * Force an instant online/heartbeat write, bypassing throttles.
+ * Call after: private call end, live stream end, party leave, back-to-home,
+ * back-to-live, or any transition that should immediately mark the host as
+ * available again on the homepage feed.
+ */
+export async function forceOnlineNow(userId: string) {
+  if (!userId) return;
+  if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true') return;
+  try {
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: true });
+    if (import.meta.env.DEV) console.info('[Presence] ⚡ Forced ONLINE for:', userId);
+  } catch (e) {
+    console.error('[Presence] forceOnlineNow failed:', e);
   }
 }
 

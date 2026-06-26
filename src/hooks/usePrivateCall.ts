@@ -1076,6 +1076,13 @@ export function usePrivateCall(userId: string | null) {
         }
       }, 100);
 
+      // ⚡ Instant presence restore — call ends → host/user immediately flips
+      // from BUSY back to ONLINE on the homepage feed (zero-second transition).
+      try {
+        const { forceOnlineNow } = await import('@/components/common/PresenceProvider');
+        if (userId) void forceOnlineNow(userId);
+      } catch { /* non-critical */ }
+
       return true;
     } catch (error: any) {
       console.error('Error ending call:', error);

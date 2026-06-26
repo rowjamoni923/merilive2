@@ -835,7 +835,14 @@ const Index = () => {
 
 
       {/* Main Content - ONLY this part scrolls */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          overscrollBehaviorY: 'contain',
+        } as React.CSSProperties}
+      >
       <NativePullToRefresh onRefresh={handlePullRefresh} className="min-h-full">
       <main className="px-2 py-2" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
 
