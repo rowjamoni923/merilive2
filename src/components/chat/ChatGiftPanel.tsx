@@ -9,6 +9,8 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { toast } from "sonner";
+import SmartGiftIcon from "@/components/shared/SmartGiftIcon";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
