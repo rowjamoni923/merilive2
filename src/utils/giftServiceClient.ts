@@ -61,6 +61,48 @@ function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
   };
 }
 
+/**
+ * Phase 4A — Confirm-by-idempotency.
+ *
+ * When the edge function aborts (12s timeout, transient 5xx, or network drop),
+ * the server may have already processed the transaction. Polling
+ * `gift_transactions` by idempotency_key lets us recover a silent success
+ * instead of showing a false "Gift failed" toast AND refunding coins that
+ * were actually spent. Read-only — never re-issues the charge.
+ */
+async function confirmGiftByIdempotencyKey(
+  key: string,
+  timeoutMs = 5000,
+): Promise<GiftServiceResponse | null> {
+  if (!key) return null;
+  const deadline = Date.now() + timeoutMs;
+  // Initial small delay so server has time to write the row.
+  await new Promise(r => setTimeout(r, 250));
+  while (Date.now() < deadline) {
+    try {
+      const { data, error } = await supabase
+        .from('gift_transactions')
+        .select('id, sender_id, coin_amount, receiver_beans, total_coins')
+        .eq('idempotency_key', key)
+        .maybeSingle();
+      if (!error && data) {
+        return {
+          success: true,
+          senderId: (data as any).sender_id,
+          transactionId: (data as any).id,
+          coinsSpent: Number((data as any).total_coins ?? (data as any).coin_amount ?? 0),
+          hostReceived: Number((data as any).receiver_beans ?? 0),
+          newBalance: null,
+          diamondBonus: 0,
+          isLucky: false,
+        };
+      }
+    } catch {}
+    await new Promise(r => setTimeout(r, 400));
+  }
+  return null;
+}
+
 async function callGiftRpcFallback(payload: GiftServicePayload): Promise<GiftServiceResponse> {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('No active session. Please sign in again.');
@@ -125,6 +167,20 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     ...payload,
     idempotencyKey: payload.idempotencyKey || generateIdempotencyKey(),
   };
+  const idemKey = stablePayload.idempotencyKey!;
+
+  // Phase 4A — silent recovery helper. Any "soft failure" path (timeout, 5xx,
+  // network drop, RPC fallback returning empty error) checks the DB before
+  // surfacing an error to the user, because the server may have committed.
+  const tryConfirm = async (fallback: GiftServiceResponse): Promise<GiftServiceResponse> => {
+    const confirmed = await confirmGiftByIdempotencyKey(idemKey);
+    return confirmed ?? fallback;
+  };
+  const tryConfirmOrThrow = async (err: Error): Promise<GiftServiceResponse> => {
+    const confirmed = await confirmGiftByIdempotencyKey(idemKey);
+    if (confirmed) return confirmed;
+    throw err;
+  };
 
   let accessToken = await getAccessToken(false);
   if (!accessToken) accessToken = await getAccessToken(true);
@@ -135,7 +191,13 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     response = await doRequest(accessToken, stablePayload);
   } catch (error) {
     console.warn('[GiftServiceClient] Edge fetch failed; falling back to RPC:', error);
-    return callGiftRpcFallback(stablePayload);
+    try {
+      const rpc = await callGiftRpcFallback(stablePayload);
+      if (!rpc.success) return tryConfirm(rpc);
+      return rpc;
+    } catch (e) {
+      return tryConfirmOrThrow(e as Error);
+    }
   }
 
   // Token may have been revoked server-side (single-device displacement,
@@ -147,7 +209,13 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
         response = await doRequest(refreshed, stablePayload);
       } catch (error) {
         console.warn('[GiftServiceClient] Edge retry fetch failed; falling back to RPC:', error);
-        return callGiftRpcFallback(stablePayload);
+        try {
+          const rpc = await callGiftRpcFallback(stablePayload);
+          if (!rpc.success) return tryConfirm(rpc);
+          return rpc;
+        } catch (e) {
+          return tryConfirmOrThrow(e as Error);
+        }
       }
     }
   }
@@ -157,14 +225,31 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   if (!response.ok) {
     if (response.status === 401) {
+      // Hard auth failure — DB poll won't help since the server never
+      // accepted the request.
       throw new Error("Your session expired. Please sign in again to send gifts.");
     }
     if (response.status === 502 || response.status === 503 || response.status === 504) {
       console.warn('[GiftServiceClient] Edge temporarily unavailable; falling back to RPC:', response.status);
-      return callGiftRpcFallback(stablePayload);
+      try {
+        const rpc = await callGiftRpcFallback(stablePayload);
+        if (!rpc.success) return tryConfirm(rpc);
+        return rpc;
+      } catch (e) {
+        return tryConfirmOrThrow(e as Error);
+      }
     }
-    throw new Error(data?.error || `Gift request failed (${response.status})`);
+    // Unknown error status — server MIGHT have processed before crashing.
+    // Silently confirm before throwing to the caller.
+    return tryConfirmOrThrow(new Error(data?.error || `Gift request failed (${response.status})`));
   }
 
-  return data ?? { success: false };
+  // Edge returned 200 but body says success:false (RPC inside reported
+  // failure). Confirm via DB before surfacing — covers the "Gift failed:
+  // Gift failed" empty-error path the user has been seeing.
+  if (data && data.success === false) {
+    return tryConfirm(data);
+  }
+
+  return data ?? tryConfirm({ success: false, error: 'Empty response' });
 }
