@@ -314,6 +314,21 @@ const Index = () => {
   const isDefaultView = subTab === "popular" && selectedCountry === "all";
   const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
+  const getHostCardImageUrl = useCallback((host: Partial<Profile> & { isLive?: boolean; liveThumbnailUrl?: string | null }) => {
+    const normalizedLiveThumb = normalizeProfileMediaUrl(host.liveThumbnailUrl) || host.liveThumbnailUrl;
+    if (host.isLive && normalizedLiveThumb) {
+      return enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 });
+    }
+
+    const avatar = resolveFeedAvatar(
+      host.id || "host",
+      host.avatar_url,
+      currentUserId,
+      (host.is_host || host.gender === 'female') ? 'female' : (host.gender === 'male' ? 'male' : 'female')
+    );
+    return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
+  }, [currentUserId]);
+
   // Pkg428 Phase-9 — native Glide prefetch for first-screen avatars + live
   // thumbnails. No-op on web/iOS or when flag is off. Drastically reduces
   // image jank when killed-cold scroll begins on Android.
@@ -323,11 +338,10 @@ const Index = () => {
       const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
       return displayHosts
         .slice(0, max)
-        .flatMap((h) => [h.avatar_url, h.liveThumbnailUrl])
-        .map((u) => (u ? normalizeProfileMediaUrl(u) || u : null))
+        .map((h) => getHostCardImageUrl(h))
         .filter((u): u is string => !!u);
     },
-    [displayHosts]
+    [displayHosts, getHostCardImageUrl]
   );
   useNativeImagePrefetch(nativePrefetchUrls);
 
@@ -361,7 +375,7 @@ const Index = () => {
     const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
     const warmableUrls = hosts
       .slice(0, warmImageLimit)
-      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
+      .map((host) => getHostCardImageUrl(host))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
     if (warmableUrls.length === 0 && liveIdsToWarm.length === 0) {
@@ -376,16 +390,22 @@ const Index = () => {
         warmLiveKitToken(`live_${liveId}`, "viewer_stream").catch(() => {});
       });
 
+      if (navigator.serviceWorker?.controller && warmableUrls.length > 0) {
+        navigator.serviceWorker.controller.postMessage({ type: 'WARM_IMAGES', urls: warmableUrls });
+      }
+
       warmableUrls.forEach((url) => {
         warmedHostImagesRef.current.add(url);
         const img = new Image();
+        try { (img as any).fetchPriority = "high"; } catch {}
         img.decoding = "async";
+        img.onload = () => { if (typeof img.decode === "function") img.decode().catch(() => {}); };
         img.src = url;
       });
     }, 40);
 
     return () => window.clearTimeout(timeoutId);
-  }, [hosts]);
+  }, [hosts, getHostCardImageUrl]);
 
   // Route-local safety net: keep the home host feed live for stream/call status changes.
   useEffect(() => {
@@ -506,11 +526,20 @@ const Index = () => {
       return '0 6px 16px -6px rgba(15,23,42,0.14), 0 2px 4px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.55)';
     };
 
+    const cardImageUrl = getHostCardImageUrl(user);
+    const [imageReady, setImageReady] = useState(false);
+
+    useEffect(() => {
+      setImageReady(false);
+    }, [cardImageUrl]);
+
     return (
       <div
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
+        data-prefetch={user.isLive ? "live" : "profile"}
+        data-stream-id={user.liveStreamId}
         className={cn(
-          "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97] transition-all duration-300 hover:-translate-y-0.5",
+          "relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90",
           "bg-card border",
           getBorderGlow()
         )}
@@ -520,30 +549,26 @@ const Index = () => {
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
-            src={(() => {
-              const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
-              if (user.isLive && normalizedLiveThumb) {
-                return enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 });
-              }
-              // Phase 3 Home audit (2026-06-09): industry-standard CDN-resize for
-              // non-live avatars too. Card renders ~180dp × 3.5dpr ≈ 630px, so
-              // width:400 (×2 retina = 800px) is plenty + cuts bandwidth ~70%.
-              // Avoids serving full-resolution 1080p uploaded avatars on G35.
-              const avatar = resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
-              return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
-            })()}
+            src={cardImageUrl}
             alt={user.display_name || 'User'}
             className={cn(
-              "w-full h-full object-cover bg-muted",
+              "w-full h-full object-cover bg-muted transition-opacity duration-75",
               // Pkg501 (Defect #7): Chamet/Bigo-style subtle Ken-Burns motion
               // on live cards so static thumbnails feel "live". Only applied
               // when host actually has a live thumbnail.
               user.isLive && user.liveThumbnailUrl && "live-card-kenburns",
+              imageReady ? "opacity-100" : "opacity-0"
             )}
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
             loading="eager"
-            {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}
-            decoding={index < 12 ? "sync" : "async"}
+            {...({ fetchpriority: index < 6 ? "high" : "auto" } as any)}
+            decoding="async"
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              const markReady = () => setImageReady(true);
+              if (typeof img.decode === "function") img.decode().then(markReady).catch(markReady);
+              else markReady();
+            }}
             onError={(e) => {
               const img = e.currentTarget;
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
@@ -562,6 +587,7 @@ const Index = () => {
               if (img.src !== fallback && !img.dataset.fellBack) {
                 img.dataset.fellBack = "1";
                 img.src = fallback;
+                setImageReady(true);
               }
 
             }}
@@ -709,7 +735,7 @@ const Index = () => {
         </div>
       </div>
     );
-  }), [handleUserClick, currentUserId, startCall]);
+  }), [handleUserClick, currentUserId, startCall, getHostCardImageUrl]);
 
   const getEmptyMessage = () => {
     switch (subTab) {
