@@ -195,30 +195,33 @@ export default function PreMatchPrep({
     return () => { mounted = false; window.clearInterval(t); };
   }, []);
 
-  // Cycle host avatars through the centre orb while searching — one-by-one
-  // preview of who could pick up. Freezes on `matchedAvatarUrl` once matched.
+  // Cycle host avatars through the centre orb — one-by-one preview of who could
+  // pick up. Runs in prep + searching whenever verified hosts are online; freezes
+  // on `matchedAvatarUrl` once matched.
   const [centreAvatarIdx, setCentreAvatarIdx] = useState(0);
   useEffect(() => {
-    if (phase !== "searching" || orbitAvatars.length === 0) return;
+    if (phase === "matched" || phase === "error") return;
+    if (orbitAvatars.length === 0) return;
     const t = window.setInterval(() => {
       setCentreAvatarIdx((i) => (i + 1) % orbitAvatars.length);
-    }, 650);
+    }, phase === "searching" ? 650 : 1400);
     return () => window.clearInterval(t);
   }, [phase, orbitAvatars.length]);
   const centreAvatar = phase === "matched"
     ? (matchedAvatarUrl || orbitAvatars[centreAvatarIdx] || null)
-    : phase === "searching"
+    : (phase === "searching" || phase === "prep")
       ? (orbitAvatars[centreAvatarIdx] || null)
       : null;
+  const showingHostPhoto = !!centreAvatar && (phase === "prep" || phase === "searching" || phase === "matched");
 
   // Pre-computed deterministic-ish positions inside the radar
   const orbitSlots = useMemo(() => {
-    // 12 slots placed on 3 rings around the centre
+    // 12 slots placed on 3 rings around the centre (larger orb -> wider rings)
     const slots: { x: number; y: number; size: number; ring: number }[] = [];
     const rings = [
-      { r: 60, count: 4, size: 28 },
-      { r: 100, count: 4, size: 32 },
-      { r: 138, count: 4, size: 26 },
+      { r: 100, count: 4, size: 26 },
+      { r: 135, count: 4, size: 30 },
+      { r: 168, count: 4, size: 24 },
     ];
     rings.forEach((ring, ri) => {
       for (let i = 0; i < ring.count; i++) {
@@ -305,49 +308,92 @@ export default function PreMatchPrep({
 
       {/* Radar centerpiece */}
       <div className="relative z-10 flex flex-col items-center justify-center pt-6 pb-8">
-        <div className="relative w-[280px] h-[280px] flex items-center justify-center">
+        <div className="relative w-[360px] h-[360px] flex items-center justify-center">
           {/* concentric rings, increasing scale + delay */}
           {[0, 0.6, 1.2, 1.8].map((delay, i) => (
             <motion.span
               key={i}
               className="absolute rounded-full border border-white/30"
-              style={{ width: 280, height: 280 }}
-              animate={{ scale: [0.4, 1], opacity: [0.6, 0] }}
+              style={{ width: 360, height: 360 }}
+              animate={{ scale: [0.45, 1], opacity: [0.55, 0] }}
               transition={{ duration: 2.4, repeat: Infinity, delay, ease: "easeOut" }}
             />
           ))}
           {/* static inner rings */}
-          <span className="absolute w-[200px] h-[200px] rounded-full border border-white/15" />
-          <span className="absolute w-[130px] h-[130px] rounded-full border border-white/20" />
-          <span className="absolute w-[80px] h-[80px] rounded-full bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)]" />
-          {/* Cycling host avatar inside the centre orb — freezes on match */}
-          {centreAvatar && (
+          <span className="absolute w-[270px] h-[270px] rounded-full border border-white/15" />
+          <span className="absolute w-[200px] h-[200px] rounded-full border border-white/20" />
+          {/* Centre orb — host photo fills it entirely when hosts are online */}
+          <div className="absolute w-[150px] h-[150px] rounded-full overflow-hidden bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)] grid place-items-center">
             <AnimatePresence mode="popLayout">
-              <motion.div
-                key={centreAvatar + (phase === "matched" ? "-matched" : "")}
-                className="absolute w-[72px] h-[72px] rounded-full overflow-hidden ring-2 ring-white/60 shadow-[0_8px_28px_-6px_rgba(0,0,0,0.55)] z-[1]"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{
-                  scale: phase === "matched" ? 1.05 : 1,
-                  opacity: 1,
-                  boxShadow: phase === "matched"
-                    ? "0 0 0 3px rgba(16,185,129,0.7), 0 10px 30px -6px rgba(16,185,129,0.4)"
-                    : undefined,
-                }}
-                exit={{ scale: 0.6, opacity: 0 }}
-                transition={{ duration: phase === "matched" ? 0.35 : 0.25, ease: "easeOut" }}
-              >
-                <img
+              {centreAvatar && (
+                <motion.img
+                  key={centreAvatar + (phase === "matched" ? "-matched" : "")}
                   src={centreAvatar}
                   alt=""
                   loading="eager"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  initial={{ scale: 1.08, opacity: 0 }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                    boxShadow: phase === "matched"
+                      ? "0 0 0 3px rgba(16,185,129,0.7), 0 10px 30px -6px rgba(16,185,129,0.4)"
+                      : undefined,
+                  }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
                   onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
                 />
-              </motion.div>
+              )}
             </AnimatePresence>
-          )}
+            {/* readable scrim only when photo is showing so count chip pops */}
+            {showingHostPhoto && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/10 pointer-events-none" />
+            )}
+
+            {/* Centre copy — sits inside the orb, never outside it */}
+            <div className="relative z-[2] w-full h-full flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+              {isSearching ? (
+                showingHostPhoto ? (
+                  <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center gap-0.5">
+                    <span className="text-[11px] font-semibold tabular-nums bg-black/55 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/15">
+                      {availableHostsCount} online
+                    </span>
+                    <span className="text-[10px] text-white/85 tabular-nums">{elapsedSeconds}s</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[13px] font-bold tracking-tight drop-shadow">Matching…</div>
+                    <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
+                    <div className="text-[10px] text-emerald-200/90 mt-0.5">{availableHostsCount} online</div>
+                  </>
+                )
+              ) : isMatched ? (
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                  <span className="text-[11px] font-semibold text-emerald-200 bg-black/55 backdrop-blur-sm px-2 py-0.5 rounded-full border border-emerald-300/40">
+                    Connected
+                  </span>
+                </div>
+              ) : isError ? (
+                <>
+                  <div className="text-[13px] font-bold tracking-tight text-rose-200 drop-shadow">Couldn't start</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">Tap retry below</div>
+                </>
+              ) : showingHostPhoto ? (
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                  <span className="text-[11px] font-semibold tabular-nums bg-black/55 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/15 shadow">
+                    {availableHostsCount} online
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-[14px] font-bold tracking-tight drop-shadow">Tap to Match</div>
+                  <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
+                </>
+              )}
+            </div>
+          </div>
 
           {/* Floating online host avatars (orbit) */}
           <AnimatePresence>
@@ -391,36 +437,13 @@ export default function PreMatchPrep({
           <button
             type="button"
             onClick={isSearching ? undefined : handleStart}
-              disabled={isSearching || isMatched}
+            disabled={isSearching || isMatched}
             aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
-            className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
-          >
-            <div className="text-center" style={{ transform: (isSearching || isMatched) && centreAvatar ? "translateY(78px)" : undefined }}>
-              {isSearching ? (
-                <>
-                  <div className="text-[13px] font-bold tracking-tight drop-shadow">Matching…</div>
-                  <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
-                  <div className="text-[10px] text-emerald-200/90 mt-0.5">{availableHostsCount} hosts online</div>
-                </>
-              ) : isMatched ? (
-                <>
-                  <div className="text-[13px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
-                  <div className="text-[10px] text-white/70 mt-0.5">opening call…</div>
-                </>
-              ) : isError ? (
-                <>
-                  <div className="text-[14px] font-bold tracking-tight text-rose-200 drop-shadow">Couldn't start</div>
-                  <div className="text-[10px] text-white/70 mt-0.5">Tap retry below</div>
-                </>
-              ) : (
-                <>
-                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Tap to Match</div>
-                  <div className="text-[10px] text-white/70 mt-0.5">{availableHostsCount} hosts online</div>
-                </>
-              )}
-            </div>
-          </button>
+            className="absolute w-[150px] h-[150px] rounded-full bg-transparent disabled:opacity-100"
+          />
         </div>
+
+
 
 
         {/* VIP discount card (right-side floating) */}
