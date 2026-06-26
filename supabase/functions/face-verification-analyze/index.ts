@@ -1041,24 +1041,6 @@ serve(async (req) => {
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
       ? finalGenderForDecision
       : rawG;
-    const strictGenderMismatch = Boolean(
-      expectedGender &&
-      (expectedGender === "male" || expectedGender === "female") &&
-      (detectedGenderForDecision === "male" || detectedGenderForDecision === "female") &&
-      detectedGenderForDecision !== expectedGender &&
-      genderConf >= 70 &&
-      !frontError
-    );
-    const hardGenderMismatch = Boolean(
-      expectedGender &&
-      (expectedGender === "male" || expectedGender === "female") &&
-      rawG !== "unknown" &&
-      rawG !== expectedGender &&
-      genderConf >= 90 &&
-      !frontError &&
-      !genderConflict
-    );
-
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
@@ -1231,9 +1213,7 @@ serve(async (req) => {
         ? "photo_video_live_evidence_missing"
         : !evidenceSamePerson
           ? "photo_video_live_identity_review"
-          : strictGenderMismatch
-        ? "gender_mismatch_manual_review"
-        : livenessFailed
+          : livenessFailed
             ? "liveness_failed_manual_review"
             : replaySuspected
               ? "replay_suspected_manual_review"
