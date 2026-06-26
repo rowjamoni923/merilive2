@@ -4070,7 +4070,7 @@ const FaceVerification = () => {
             <input 
               ref={videoInputRef}
               type="file" 
-              accept="video/*" 
+              accept="video/*,.mp4,.mov,.m4v,.webm,.mkv,.3gp,.hevc" 
               className="hidden" 
               onChange={handleVideoSelect}
             />
