@@ -16,7 +16,7 @@
  * =====================================================
  */
 
-import React, { memo, useRef } from "react";
+import React, { memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
@@ -25,6 +25,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 import { ScrollToBottomButton } from "@/components/chat/ScrollToBottomButton";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 import { 
   getLevelGradient, 
@@ -508,11 +509,16 @@ export const RoomChatOverlay = memo(({
   roomType,
   adminBannerRoomType,
 }: RoomChatOverlayProps) => {
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
   // Show all messages or limit if maxMessages is provided
   const displayLimit = maxMessages ?? 40;
   const displayMessages = messages.slice(-Math.min(displayLimit, 40));
+  const roomChatScroll = useStableChatScroll({
+    dependency: `${displayMessages.length}:${joinNotifications.length}:${adminBannerRoomType || ''}`,
+    resetKey: roomTitle || hostName || roomType || null,
+    reverse: true,
+    bottomThreshold: 72,
+    initialPinFrames: 4,
+  });
 
   // With flex-col-reverse, scroll position 0 is at bottom (newest)
   // No auto-scroll needed - newest messages naturally appear at bottom
@@ -528,7 +534,7 @@ export const RoomChatOverlay = memo(({
           (oldest), and as new joins/messages arrive it naturally scrolls
           upward out of view — Bigo/Chamet/Olamet behaviour. */}
       <div
-        ref={chatContainerRef}
+        ref={roomChatScroll.scrollRef}
         className={cn(
           "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
           "scrollbar-thin scrollbar-thumb-white/25 scrollbar-track-transparent",
@@ -572,7 +578,7 @@ export const RoomChatOverlay = memo(({
 
       {/* Scroll-to-bottom button — appears when user scrolls up */}
       <ScrollToBottomButton
-        scrollRef={chatContainerRef}
+        scrollRef={roomChatScroll.scrollRef}
         reverse
         className="bottom-2 left-1/2 -translate-x-1/2"
       />

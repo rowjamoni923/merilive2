@@ -28,6 +28,7 @@ import { ShieldAlert } from "lucide-react";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
@@ -192,10 +193,15 @@ const AdminSupportTickets = () => {
 
   // Refs for realtime callbacks (avoid stale closures)
   const selectedTicketRef = useRef<SupportTicket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const ticketsRef = useRef<SupportTicket[]>([]);
   const inFlightActionsRef = useRef<Set<string>>(new Set());
   const ticketRefreshTimerRef = useRef<number | null>(null);
+  const adminSupportScroll = useStableChatScroll({
+    dependency: messages.length,
+    resetKey: selectedTicket?.id ?? null,
+    bottomThreshold: 120,
+    initialPinFrames: 4,
+  });
 
   const startSingleFlight = (key: string) => {
     if (inFlightActionsRef.current.has(key)) return false;
@@ -285,13 +291,6 @@ const AdminSupportTickets = () => {
   useEffect(() => {
     ticketsRef.current = tickets;
   }, [tickets]);
-
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
 
   const fetchGlobalStats = useCallback(async () => {
     try {
@@ -1615,7 +1614,7 @@ const AdminSupportTickets = () => {
                 </div>
               )}
 
-              <ScrollArea className="flex-1 px-6 py-4">
+              <ScrollArea ref={adminSupportScroll.scrollRef} className="flex-1 px-6 py-4 chat-scroll-stable">
                 {loadingMessages ? (
                   <div className="flex-1 flex items-center justify-center py-12">
                     <div className="flex flex-col items-center gap-2">
@@ -1735,7 +1734,6 @@ const AdminSupportTickets = () => {
                         </div>
                       );
                     })}
-                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </ScrollArea>

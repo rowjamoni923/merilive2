@@ -14,6 +14,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { useToast } from "@/hooks/use-toast";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import { Send, Users, Crown, Loader2, MessageCircle, CheckCircle, Reply, Image, User, AlertCircle, Eye, Paperclip, X as XIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,13 @@ const AdminHelperMessaging = () => {
   const [priority, setPriority] = useState<string>("normal");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+
+  const adminHelperReplyScroll = useStableChatScroll({
+    dependency: messageReplies.length,
+    resetKey: selectedMessage?.id,
+    bottomThreshold: 72,
+    initialPinFrames: 3,
+  });
 
   useEffect(() => {
     loadHelpers();
@@ -642,7 +650,7 @@ const AdminHelperMessaging = () => {
             </div>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4">
+          <div ref={adminHelperReplyScroll.scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 chat-scroll-stable">
             <div className="space-y-4">
               {/* Original Message */}
               <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">

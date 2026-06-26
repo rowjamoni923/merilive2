@@ -5,6 +5,7 @@ import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { useAudioFocusAutoMute } from "@/hooks/useAudioFocusAutoMute";
 import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
@@ -124,7 +125,12 @@ export function ActiveCallScreen({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{id: string; senderId: string; senderName: string; message: string; timestamp: number}>>([]);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const callChatScroll = useStableChatScroll({
+    dependency: chatMessages.length,
+    resetKey: callId,
+    bottomThreshold: 72,
+    initialPinFrames: 4,
+  });
   const chatInputRef = useRef<HTMLInputElement>(null);
   const [nativeInCallOpen, setNativeInCallOpen] = useState(false);
   const nativeInCallOpenedForRef = useRef<string | null>(null);
@@ -930,15 +936,6 @@ export function ActiveCallScreen({
     };
   }, [callId, isOpen, userId, myDisplayName, myAvatarUrl, nativeInCallOpen, checkToxic]);
 
-  // Auto-scroll chat
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      if (chatScrollRef.current) {
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      }
-    });
-  }, [chatMessages]);
-
   // Pkg83 LiveKit-Purist: in-call chat via LiveKit DataPacket (Pkg79 chat
   // signaling, scope='call'). REPLACES `call-chat-${callId}` Supabase
   // broadcast channel — useLiveKitCall already registers the call Room
@@ -1420,7 +1417,7 @@ export function ActiveCallScreen({
       {/* ===== INLINE CHAT MESSAGES (positioned above bottom controls) ===== */}
       {chatMessages.length > 0 && !isInNativePip && (
         <div
-          ref={chatScrollRef}
+          ref={callChatScroll.scrollRef}
           className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
           style={{ bottom: 'calc(var(--kb-h, 0px) + 108px)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >

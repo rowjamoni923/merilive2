@@ -9,6 +9,7 @@ import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import ReactMarkdown from "react-markdown";
 import { Capacitor } from "@capacitor/core";
 import { useToast } from "@/hooks/use-toast";
+import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 interface Message {
   id: string;
@@ -188,7 +189,6 @@ const AISupportChat = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -203,6 +203,12 @@ const AISupportChat = ({
   const [userId, setUserId] = useState<string | null>(null);
   const [ticketStatus, setTicketStatus] = useState<string | null>(null); // open, pending, closed, resolved
   const ticketIdRef = useRef<string | null>(null);
+  const supportScroll = useStableChatScroll({
+    dependency: messages.length,
+    resetKey: liveChatTicketId || phase,
+    bottomThreshold: 96,
+    initialPinFrames: 4,
+  });
 
   // Voice recording
   const [isRecording, setIsRecording] = useState(false);
@@ -229,15 +235,6 @@ const AISupportChat = ({
       if (user) setUserId(user.id);
     });
   }, []);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
-    }
-  }, [messages]);
 
   useEffect(() => {
     if (!waitingForAdmin || !waitStartTime) return;
@@ -958,7 +955,7 @@ const AISupportChat = ({
 
       {/* Messages Area */}
       {phase !== "category" && (
-        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
+        <ScrollArea ref={supportScroll.scrollRef} className="flex-1 p-4 chat-scroll-stable" style={{ paddingBottom: 'calc(1rem + var(--kb-h, 0px))' }}>
           <div className="space-y-4">
             {messages.map((message) => {
               if (message.role === "system") {
