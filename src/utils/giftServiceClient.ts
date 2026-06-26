@@ -61,6 +61,48 @@ function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
   };
 }
 
+/**
+ * Phase 4A — Confirm-by-idempotency.
+ *
+ * When the edge function aborts (12s timeout, transient 5xx, or network drop),
+ * the server may have already processed the transaction. Polling
+ * `gift_transactions` by idempotency_key lets us recover a silent success
+ * instead of showing a false "Gift failed" toast AND refunding coins that
+ * were actually spent. Read-only — never re-issues the charge.
+ */
+async function confirmGiftByIdempotencyKey(
+  key: string,
+  timeoutMs = 5000,
+): Promise<GiftServiceResponse | null> {
+  if (!key) return null;
+  const deadline = Date.now() + timeoutMs;
+  // Initial small delay so server has time to write the row.
+  await new Promise(r => setTimeout(r, 250));
+  while (Date.now() < deadline) {
+    try {
+      const { data, error } = await supabase
+        .from('gift_transactions')
+        .select('id, sender_id, coin_amount, receiver_beans, total_coins')
+        .eq('idempotency_key', key)
+        .maybeSingle();
+      if (!error && data) {
+        return {
+          success: true,
+          senderId: (data as any).sender_id,
+          transactionId: (data as any).id,
+          coinsSpent: Number((data as any).total_coins ?? (data as any).coin_amount ?? 0),
+          hostReceived: Number((data as any).receiver_beans ?? 0),
+          newBalance: null,
+          diamondBonus: 0,
+          isLucky: false,
+        };
+      }
+    } catch {}
+    await new Promise(r => setTimeout(r, 400));
+  }
+  return null;
+}
+
 async function callGiftRpcFallback(payload: GiftServicePayload): Promise<GiftServiceResponse> {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('No active session. Please sign in again.');
