@@ -55,8 +55,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   }, [unreadCounts.total]);
 
   const currentPath = location.pathname;
-  const activeTab = externalActiveTab || currentPath;
-
   const handleNavClick = useCallback((item: NavItem) => {
     if (item.isCenter) {
       setShowActionMenu(prev => !prev);
