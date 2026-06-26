@@ -1553,10 +1553,28 @@ video::-webkit-media-controls-toggle-closed-captions-button {
      the median row in WhatsApp-style threads. `contain: content` isolates
      paint/layout so a single row's reflow can't invalidate its siblings. */
   .chat-msg-row {
+    /* `content-visibility: auto` skips off-screen paint — huge win — BUT
+       when the intrinsic placeholder underestimates real row height (gifts,
+       images, long bubbles can be 200-400px), every row that scrolls in
+       expands from 72px → real height and shoves the scroll position
+       downward = the "jumpy / lafalafi" feel.
+
+       Two fixes:
+        1. Bump intrinsic size to 96px (closer to median across text + gift
+           + image rows so the post-paint delta is small).
+        2. `contain: layout paint style` — drop `size` containment so the
+           browser uses the real measured height immediately after first
+           paint instead of locking to the intrinsic placeholder.
+       Result: skip-off-screen perf stays; downward jump on scroll-in
+       becomes invisible — matches WhatsApp / Messenger feel. */
     content-visibility: auto;
-    contain-intrinsic-size: auto 72px;
-    contain: content;
+    contain-intrinsic-size: auto 96px;
+    contain: layout paint style;
+    /* Anchor each row independently so a single row's image/gift loading
+       can't shove sibling rows the user is currently reading. */
+    overflow-anchor: auto;
   }
+
 
 
   /* Premium Gradients */
