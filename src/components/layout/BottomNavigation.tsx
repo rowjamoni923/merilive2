@@ -4,7 +4,6 @@ import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle, Vi
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { hapticFeedback } from "@/utils/nativeUtils";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
@@ -90,9 +89,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const activeTab = externalActiveTab || currentPath;
 
   const handleNavClick = useCallback((item: NavItem) => {
-    hapticFeedback('light');
     if (item.isCenter) {
-      hapticFeedback('medium');
       setShowActionMenu(prev => !prev);
     } else {
       void warmRouteForNavigation(item.path)?.catch(() => undefined);
@@ -118,8 +115,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   }, []);
 
   const handleActionClick = (path: string) => {
-    hapticFeedback('medium');
-
     const featureKey = path === '/create-party' ? 'create_party' : path === '/go-live' ? 'go_live' : null;
     if (featureKey) {
       if (featureLevelLoading || resolvedLevelLoading || !userProfile) {
@@ -351,8 +346,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                 aria-label={item.label}
               >
                 {isActive && (
-                  <motion.span
-                    layoutId="bottomnav-active-pill"
+                  <span
                     className="absolute inset-0 rounded-2xl -z-0"
                     style={{
                       background:
@@ -360,7 +354,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       boxShadow:
                         '0 4px 12px -4px rgba(236,72,153,0.30), inset 0 0 0 1px rgba(236,72,153,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
                     }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
                 <div className="relative">
