@@ -546,10 +546,10 @@ const FaceVerification = () => {
   }, [faceStream, nativeFaceCam, setNativeFaceCameraActive]);
 
   const scheduleProfileRedirect = useCallback(() => {
+    // Instant redirect — no delay. Profile page already shows "Under Review"
+    // immediately via the sessionStorage fallback + realtime subscription.
     if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
-    profileRedirectTimerRef.current = setTimeout(() => {
-      navigate('/profile', { replace: true });
-    }, 3000);
+    navigate('/profile', { replace: true });
   }, [navigate]);
 
   useEffect(() => {
