@@ -37,6 +37,8 @@ export interface InlineGiftRowProps {
   surface?: InlineGiftSurface;
   /** "You sent" instead of "{name} sent" when current user is the sender */
   isSelf?: boolean;
+  /** Even tighter padding for in-stream / list use */
+  compact?: boolean;
   /** Optional trailing meta rendered inside the bubble (e.g. time + read ticks) */
   footerSlot?: React.ReactNode;
 }
