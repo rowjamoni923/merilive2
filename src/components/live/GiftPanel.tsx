@@ -14,6 +14,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { toast } from "sonner";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -333,6 +334,10 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
     return counts;
   }, [gifts]);
+
+  // Phase 4B — panel-open prefetch (icons + top animations).
+  useGiftPanelPrefetch(isOpen, gifts);
+
 
   const availableCategories = useMemo(() => {
     return giftCategories.filter((cat) => cat.id === 'all' || (categoryGiftCountMap[cat.id] || 0) > 0);

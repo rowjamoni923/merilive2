@@ -9,6 +9,8 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache }
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { toast } from "sonner";
+import SmartGiftIcon from "@/components/shared/SmartGiftIcon";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
@@ -106,7 +108,7 @@ const GiftItem = memo(({
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
           ) : (
-            <img loading="lazy" decoding="async"
+            <SmartGiftIcon
               src={gift.icon_url}
               alt={gift.name}
               className="w-11 h-11 object-contain"
@@ -268,6 +270,10 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
     getCategoryGifts(activeCategory), 
     [getCategoryGifts, activeCategory]
   );
+
+  // Phase 4B — persistently cache visible icons + warm top animated payloads
+  useGiftPanelPrefetch(isOpen, currentGifts);
+
 
   // Available categories
   const availableCategories = useMemo(() => 

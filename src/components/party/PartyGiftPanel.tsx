@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { Gift, X, Coins, Diamond, Play, Sparkles } from "lucide-react";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import SmartGiftIcon from "@/components/shared/SmartGiftIcon";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -157,6 +159,11 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   const pages = Array.from({ length: totalPages }, (_, i) =>
     currentGifts.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
   );
+
+  // Phase 4B — panel-open prefetch (icons + top animations).
+  useGiftPanelPrefetch(isOpen, currentGifts);
+
+
 
   // Reset page + clear selection when category changes (Pkg4-pass4: stale gift selection leaked across tabs)
   useEffect(() => {
@@ -338,7 +345,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                     <video src={gift.icon_url} className="w-10 h-10 object-cover pointer-events-none" autoPlay loop muted playsInline controls={false} disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"/>
                                   )
                                 ) : (
-                                  <img loading="lazy" decoding="async" 
+                                  <SmartGiftIcon
                                     src={gift.icon_url}
                                     alt={gift.name}
                                     className="w-10 h-10 object-contain"
