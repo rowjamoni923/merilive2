@@ -452,6 +452,14 @@ const GlobalTapHapticsBridge = lazy(lazyRetry(() => import("./hooks/useGlobalTap
   return { default: Bridge };
 })));
 
+// Pillar 3 — global image defaults (loading=lazy + decoding=async on every
+// <img> via a single MutationObserver). Opt out per-img with data-eager="true".
+const GlobalImageDefaultsBridge = lazy(lazyRetry(() => import("./hooks/useGlobalImageDefaults").then(m => {
+  const Bridge = () => { m.useGlobalImageDefaults(); return null; };
+  return { default: Bridge };
+})));
+
+
 
 // Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
 const AppLockGate = lazy(lazyRetry(() => import("./components/security/AppLockGate")));
