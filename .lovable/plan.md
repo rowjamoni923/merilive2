@@ -363,3 +363,23 @@ Patch scope:
 - Force random-call prechecks to fetch the authoritative spendable diamond wallet (`max(profiles.coins, profiles.diamonds)`) before starting.
 - Edge random-call enqueue now selects only stable wallet/VIP columns, so optional profile-level schema drift can no longer make the server return balance `0` for a real diamond wallet.
 - Harden `useUserBalance` so signed-out `0` is not treated as a valid initialized logged-in balance, and stale/racing balance fetches cannot overwrite the latest real wallet.
+
+---
+
+# Phase 19 — Random-call verified host visibility fix (2026-06-26)
+
+Research / professional standard:
+- Chamet documents random/video-chat as a real-time host discovery flow; the caller surface must reflect hosts who can actually receive the ring, not stale room rows — https://www.ichamet.com/help/faq/how-to-start-video-chat-session
+- Supabase Realtime Postgres Changes should be used for live status tables/events instead of polling-only visibility refresh — https://supabase.com/docs/guides/realtime/postgres-changes
+- Chamet/Bigo-style random calls fan out to available verified hosts; the count/avatar preview and server fanout must use one shared eligibility source.
+
+Verified current gap:
+- Current DB check showed `host_match_availability` eligible count = 0, while `profiles` had 1 approved, face-verified online host with fresh `last_seen_at`.
+- `live_streams` had no truly active rows (`is_active=true` + no `ended_at`), and stale rows still had `status='active'`, so UI sources based on room rows could show either 0 or stale hosts.
+- `MatchCall` count and `PreMatchPrep` avatar orbit were not using the same source as `random-call-enqueue` fanout, so the screen could show 0 hosts even when a verified host was online.
+
+Patch scope:
+- `get_online_global_hosts` now reads approved, face-verified, currently online hosts directly from `profiles`, with suppression/cooldown/availability guards applied when present.
+- `get_random_pool_sample` now uses the same verified-online host pool for orbit avatars instead of random-call queue/availability-only rows.
+- `MatchCall` count now calls `get_online_global_hosts`, and listens to `profiles`, `host_match_availability`, `host_match_stats`, and `live_streams` realtime changes with a 10s safety refresh.
+- `PreMatchPrep` orbit avatars now call `get_random_pool_sample`, keeping avatar preview and count aligned with the actual fanout pool.

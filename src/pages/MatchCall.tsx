@@ -51,30 +51,41 @@ export default function MatchCall() {
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
-  // Active-host counter — counts distinct VERIFIED hosts currently live.
-  // Verified host = profiles.is_host AND profiles.is_face_verified. Female accounts
-  // that never passed face verification must NOT be counted.
+  // Active-host counter — use the same server-authoritative verified-online
+  // pool that random-call fanout uses, so the number never drifts from who can
+  // actually receive the ring.
   const refreshHostsCount = async () => {
     try {
-      const { count } = await supabase
-        .from("live_streams")
-        .select("host_id, profiles!inner(is_host, is_face_verified)", { count: "exact", head: true })
-        .eq("status", "active")
-        .eq("profiles.is_host", true)
-        .eq("profiles.is_face_verified", true);
-      setHostsCount(count || 0);
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user?.id) return;
+      const { data, error } = await supabase.rpc("get_online_global_hosts", {
+        p_caller_id: u.user.id,
+        p_limit: 1000,
+      });
+      if (error) throw error;
+      setHostsCount(((data as any[]) ?? []).length);
     } catch { /* ignore */ }
   };
 
-  // Keep the count fresh via Realtime + 15s safety poll so the number never lags.
+  // Keep the count fresh via Realtime + safety poll so the number never lags.
   useEffect(() => {
+    void refreshHostsCount();
     const ch = supabase
       .channel(`match-call-live-count-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+        void refreshHostsCount();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "host_match_availability" }, () => {
+        void refreshHostsCount();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "host_match_stats" }, () => {
+        void refreshHostsCount();
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "live_streams" }, () => {
         void refreshHostsCount();
       })
       .subscribe();
-    const t = window.setInterval(() => { void refreshHostsCount(); }, 15000);
+    const t = window.setInterval(() => { void refreshHostsCount(); }, 10000);
     return () => { supabase.removeChannel(ch); window.clearInterval(t); };
   }, []);
 
