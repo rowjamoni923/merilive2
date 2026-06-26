@@ -41,7 +41,7 @@ class LiveKitTokenCache {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
       if (!raw) return;
       const parsed = JSON.parse(raw) as CachedViewerToken;
-      if (!parsed?.token || !parsed?.expiresAtMs) return;
+      if (!parsed?.token || !parsed?.url || !parsed?.expiresAtMs) return;
       // Drop if already expired or about to expire within 1 min
       if (parsed.expiresAtMs - Date.now() < 60_000) {
         window.localStorage.removeItem(STORAGE_KEY);
@@ -71,6 +71,10 @@ class LiveKitTokenCache {
   getCached(): CachedViewerToken | null {
     const c = this.cached;
     if (!c) return null;
+    if (!c.token || !c.url || !/^wss?:\/\//i.test(c.url)) {
+      this.clear();
+      return null;
+    }
     const msLeft = c.expiresAtMs - Date.now();
     if (msLeft <= 0) {
       this.cached = null;
@@ -101,9 +105,7 @@ class LiveKitTokenCache {
           "livekit-viewer-wildcard-token",
           { body: { guest: !authed } }
         );
-        if (error || !data?.token) return null;
-
-        if (error || !data?.token) return null;
+        if (error || !data?.token || !data?.url || !/^wss?:\/\//i.test(String(data.url))) return null;
 
         const value: CachedViewerToken = {
           token: data.token,

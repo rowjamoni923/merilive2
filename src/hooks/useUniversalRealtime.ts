@@ -195,6 +195,76 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'violation_penalty_tiers',
 ]);
 
+// Must mirror the actual app-facing supabase_realtime publication guarded in
+// realtimeGuard.ts. The larger catalog above is kept as documentation of tables
+// that may be syncable through admin_broadcast/REST, but direct postgres_changes
+// binds to unpublished catalog tables (vip_tiers, shop_items, avatar_frames, etc.)
+// create blocked joins + console/network churn on every route.
+const APP_REALTIME_PUBLICATION_TABLES = new Set<string>([
+  'notifications',
+  'admin_broadcast',
+  'user_active_sessions',
+  'profiles',
+  'followers',
+  'gift_transactions',
+  'live_streams',
+  'private_calls',
+  'agencies',
+  'topup_helpers',
+  'face_verification_submissions',
+  'admin_notices',
+  'agency_withdrawals',
+  'conversations',
+  'group_messages',
+  'host_applications',
+  'stream_viewers',
+  'party_rooms',
+  'party_room_participants',
+  'party_room_messages',
+  'seat_requests',
+  'messages',
+  'app_settings',
+  'agency_performance',
+  'agency_hosts',
+  'agency_diamond_transactions',
+  'agency_earnings_transfers',
+  'agency_commission_history',
+  'coin_transactions',
+  'daily_login_claims',
+  'helper_notifications',
+  'helper_orders',
+  'helper_topup_requests',
+  'helper_upgrade_requests',
+  'helper_withdrawal_requests',
+  'live_bans',
+  'live_frame_alerts',
+  'live_game_bets',
+  'live_game_rounds',
+  'payroll_requests',
+  'rating_reward_claims',
+  'recharge_transactions',
+  'reel_comments',
+  'reel_likes',
+  'reel_shares',
+  'reels',
+  'stream_chat',
+  'user_task_progress',
+  'user_vip_subscriptions',
+  'user_parcels',
+  'payment_transactions',
+  'game_transactions',
+  'level_animations',
+  'level_privileges',
+  'user_level_tiers',
+  'trader_level_tiers',
+  'helper_country_payment_methods',
+  'pk_battles',
+  'pk_battle_gifts',
+  'pk_participants',
+  'groups',
+  'group_members',
+]);
+
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
@@ -202,7 +272,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
   subscribers.forEach((subscriber) => {
     subscriber.tables.forEach((table) => {
       if (!table || table === '*') return;
-      if (!REALTIME_PUBLICATION_TABLES.has(table)) return;
+      if (!REALTIME_PUBLICATION_TABLES.has(table) || !APP_REALTIME_PUBLICATION_TABLES.has(table)) return;
       tables.add(table);
     });
   });
