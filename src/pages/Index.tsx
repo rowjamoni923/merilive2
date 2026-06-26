@@ -527,11 +527,6 @@ const Index = () => {
     };
 
     const cardImageUrl = getHostCardImageUrl(user);
-    const [imageReady, setImageReady] = useState(false);
-
-    useEffect(() => {
-      setImageReady(false);
-    }, [cardImageUrl]);
 
     return (
       <div
@@ -549,6 +544,7 @@ const Index = () => {
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
+            key={cardImageUrl}
             src={cardImageUrl}
             alt={user.display_name || 'User'}
             className={cn(
@@ -556,16 +552,18 @@ const Index = () => {
               // Pkg501 (Defect #7): Chamet/Bigo-style subtle Ken-Burns motion
               // on live cards so static thumbnails feel "live". Only applied
               // when host actually has a live thumbnail.
-              user.isLive && user.liveThumbnailUrl && "live-card-kenburns",
-              imageReady ? "opacity-100" : "opacity-0"
+              user.isLive && user.liveThumbnailUrl && "live-card-kenburns opacity-0"
             )}
-            style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
+            style={{
+              filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined,
+              opacity: 0,
+            }}
             loading="eager"
             {...({ fetchpriority: index < 6 ? "high" : "auto" } as any)}
             decoding="async"
             onLoad={(e) => {
               const img = e.currentTarget;
-              const markReady = () => setImageReady(true);
+              const markReady = () => { img.style.opacity = "1"; };
               if (typeof img.decode === "function") img.decode().then(markReady).catch(markReady);
               else markReady();
             }}
@@ -587,7 +585,7 @@ const Index = () => {
               if (img.src !== fallback && !img.dataset.fellBack) {
                 img.dataset.fellBack = "1";
                 img.src = fallback;
-                setImageReady(true);
+                img.style.opacity = "1";
               }
 
             }}
