@@ -21292,16 +21292,6 @@ export type Database = {
         Args: { _call_id: string; _kind: string; _token: string }
         Returns: Json
       }
-      auto_approve_face_verification: {
-        Args: {
-          _detected_gender: string
-          _face_confidence?: number
-          _face_match?: number
-          _submission_id: string
-          _verification_type: string
-        }
-        Returns: Json
-      }
       auto_close_overdue_agencies: { Args: never; Returns: number }
       auto_close_room_from_livekit: {
         Args: { _room_name: string }
@@ -21311,17 +21301,27 @@ export type Database = {
         }[]
       }
       auto_distribute_leaderboard_rewards: { Args: never; Returns: string }
-      auto_finalize_face_verification: {
-        Args: {
-          _action: string
-          _approve_as?: string
-          _reason?: string
-          _set_gender?: string
-          _submission_id: string
-          _tags?: string[]
-        }
-        Returns: boolean
-      }
+      auto_finalize_face_verification:
+        | {
+            Args: {
+              _action: string
+              _approve_as?: string
+              _reason?: string
+              _set_gender?: string
+              _submission_id: string
+              _tags?: string[]
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_admin_id?: string
+              p_reason?: string
+              p_status: string
+              p_submission_id: string
+            }
+            Returns: Json
+          }
       auto_grant_helper_from_crypto_payment: {
         Args: {
           _contact_telegram?: string
