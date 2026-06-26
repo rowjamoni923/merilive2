@@ -78,9 +78,14 @@ export const Header = ({ coins, onRecharge, onSearch, onNotifications }: HeaderP
               type="button"
               aria-label="Leaderboard"
               onClick={() => navigate('/leaderboard')}
-              className="relative w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95 group"
+              className="leaderboard-trophy-btn relative w-11 h-11 flex items-center justify-center active:scale-95"
             >
-              <Trophy3D size={44} />
+              <img
+                src={new URL('@/assets/champion-trophy-3d.png', import.meta.url).href}
+                alt="Leaderboard"
+                className="leaderboard-trophy-img"
+                loading="eager"
+              />
             </button>
             
             <NotificationBell onClick={handleNotificationClick} />

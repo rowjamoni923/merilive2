@@ -795,16 +795,14 @@ const Index = () => {
             })}
           </div>
 
-          {/* Leaderboard Button - Right Side */}
+          {/* Leaderboard Button - compact premium 3D trophy, no disc chrome */}
           <button
             aria-label="Leaderboard"
             data-prefetch-path="/leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:opacity-90 touch-manipulation transition-opacity duration-75"
+            className="leaderboard-trophy-btn shrink-0 h-11 w-11 flex items-center justify-center active:scale-95 touch-manipulation"
           >
-            <span className="leaderboard-3d-orbit" aria-hidden="true" />
-            <span className="leaderboard-3d-face" aria-hidden="true" />
-            <img src={championTrophy3d} alt="Leaderboard" className="leaderboard-3d-trophy" loading="eager" />
+            <img src={championTrophy3d} alt="Leaderboard" className="leaderboard-trophy-img" loading="eager" />
           </button>
         </div>
 
