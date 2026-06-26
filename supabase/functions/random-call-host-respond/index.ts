@@ -47,33 +47,44 @@ Deno.serve(async (req) => {
         const result: any = claim ?? {};
 
         if (result.ok) {
-          // Tell caller a host was matched
-          try {
-            const callerCh = supabase.channel(`user-${result.caller_id}`);
-            await callerCh.send({
-              type: "broadcast",
-              event: "random_broadcast_matched",
-              payload: {
-                broadcast_id: broadcastId,
-                session_id: result.session_id,
-                room: result.room,
-                host_id: hostId,
-                coin_rate_per_min: result.coin_rate_per_min,
-                free_trial_seconds: result.free_trial_seconds,
-                min_billable_seconds: result.min_billable_seconds,
-              },
-            });
-          } catch (_) {}
+          // Helper: subscribe-then-send-then-cleanup so the server-side broadcast
+          // is not lost when the WS session has not finished joining the topic.
+          const sendBroadcast = async (topic: string, event: string, payload: any) => {
+            const ch = supabase.channel(topic, { config: { broadcast: { ack: true } } });
+            try {
+              await new Promise<void>((resolve, reject) => {
+                const t = setTimeout(() => reject(new Error("subscribe_timeout")), 3000);
+                ch.subscribe((status) => {
+                  if (status === "SUBSCRIBED") { clearTimeout(t); resolve(); }
+                  else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                    clearTimeout(t); reject(new Error(`subscribe_${status}`));
+                  }
+                });
+              });
+              await ch.send({ type: "broadcast", event, payload });
+            } catch (e) {
+              console.warn(`[host-respond] broadcast ${topic}/${event} failed`, e);
+            } finally {
+              try { await supabase.removeChannel(ch); } catch (_) {}
+            }
+          };
 
-          // Tell every host channel "this ring is taken" (loser dismissal)
-          try {
-            const ch = supabase.channel(`broadcast-${broadcastId}`);
-            await ch.send({
-              type: "broadcast",
-              event: "random_broadcast_taken",
-              payload: { broadcast_id: broadcastId, winner_id: hostId },
-            });
-          } catch (_) {}
+          // Tell caller a host was matched, and tell every host the ring is taken — in parallel.
+          await Promise.allSettled([
+            sendBroadcast(`user-${result.caller_id}`, "random_broadcast_matched", {
+              broadcast_id: broadcastId,
+              session_id: result.session_id,
+              room: result.room,
+              host_id: hostId,
+              coin_rate_per_min: result.coin_rate_per_min,
+              free_trial_seconds: result.free_trial_seconds,
+              min_billable_seconds: result.min_billable_seconds,
+            }),
+            sendBroadcast(`broadcast-${broadcastId}`, "random_broadcast_taken", {
+              broadcast_id: broadcastId,
+              winner_id: hostId,
+            }),
+          ]);
 
           return new Response(JSON.stringify({ ok: true, ...result }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
