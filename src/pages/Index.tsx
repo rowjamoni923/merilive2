@@ -431,13 +431,14 @@ const Index = () => {
       }, 600);
     };
 
-    // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms,
-    // Online/Offline via profiles (host_availability + is_online).
+    // Realtime push: LIVE via live_streams, Busy via private_calls + random_call_sessions,
+    // Party via party_rooms, Online/Offline via profiles (host_availability + is_online).
     const unsubscribeRooms = subscribeToTables(
       `home-hosts-${Date.now()}`,
-      ["live_streams", "private_calls", "party_rooms"],
+      ["live_streams", "private_calls", "random_call_sessions", "party_rooms"],
       queueHomeInvalidate
     );
+
     const unsubscribeProfiles = subscribeToTables(
       `home-hosts-profiles-${Date.now()}`,
       ["profiles"],
