@@ -21,7 +21,7 @@ import {
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
-import { CallContext, type CallContextType } from './CallContext';
+import { CallContext, setGlobalCallController, type CallContextType } from './CallContext';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
 // Do NOT kick off this import at module load. On Android WebView that creates
@@ -45,7 +45,7 @@ const GlobalNotificationsMount = () => {
 };
 
 interface CallProviderProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 // Store accepted call info to persist after incomingCall is cleared
