@@ -84,6 +84,10 @@ function getNotificationUrl(data) {
     return '/settings/customer-service?' + sp;
   }
 
+  // Verification
+  if (type === 'verification' || type === 'face_verification' || type === 'face_verification_rejected' || type === 'face_verification_retry') return '/face-verification';
+  if (type === 'face_verification_approved') return '/profile';
+
   // Custom link
   if (data.link_url) return data.link_url;
   if (data.action_url) return data.action_url;

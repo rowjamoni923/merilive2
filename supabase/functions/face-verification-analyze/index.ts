@@ -1096,6 +1096,35 @@ serve(async (req) => {
         })
         .eq("id", userId);
 
+      // In-app + push notification (English) with reason + deep link.
+      // push-on-notification fans out to FCM; tap routes to /face-verification.
+      try {
+        let publicMessage = "Your face verification was rejected.";
+        if (hardAutoReject === "duplicate_face") {
+          const dName = (duplicateBlock as any)?.previous_display_name || "another account";
+          const dUid = (duplicateBlock as any)?.previous_app_uid || "";
+          publicMessage = `This face is already registered with ${dName}${dUid ? ` (ID ${dUid})` : ""}. One face can only be used for one account. Tap to review or contact Support.`;
+        } else if (hardAutoReject === "banned_face") {
+          publicMessage = "This face is associated with a previously banned account. You cannot create a new account. Tap to contact Support if you believe this is an error.";
+        } else if (hardAutoReject === "gender_mismatch") {
+          publicMessage = `Verification rejected: detected gender does not match the required account type (expected ${expectedGender}). Tap to try again with the correct account type.`;
+        }
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_rejected",
+          title: "Face Verification Rejected",
+          message: publicMessage,
+          data: {
+            action_url: "/face-verification",
+            reason_code: hardAutoReject,
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] reject notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
+
       return new Response(
         JSON.stringify({
           ok: true,
@@ -1180,6 +1209,25 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
+
+      // In-app + push notification (English) — tap routes to /face-verification.
+      try {
+        const itemsList = failedEvidence.map((f) => f.human_name).join(", ");
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_retry",
+          title: "Verification Needs Retry",
+          message: `${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
+          data: {
+            action_url: "/face-verification",
+            steps: retryRequired.steps,
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
 
       return new Response(
         JSON.stringify({
@@ -1269,6 +1317,25 @@ serve(async (req) => {
       );
       autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
       if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    }
+
+    // Instant in-app + push notification on auto-approval (English).
+    if (autoResult?.success) {
+      try {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_approved",
+          title: "Face Verification Approved ✓",
+          message: "Congratulations! Your identity has been verified. You now have full access to the app.",
+          data: {
+            action_url: "/profile",
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] approve notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
     }
 
 
