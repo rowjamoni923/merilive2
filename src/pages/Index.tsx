@@ -562,17 +562,28 @@ const Index = () => {
       >
 
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
-          {/* Show live thumbnail when host is streaming, otherwise avatar */}
+          {/* Blurred fill behind the contained image so portrait/landscape
+              photos are shown in full (no cropping) without ugly letterbox. */}
+          <img
+            src={cardImageUrl}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-60"
+            loading="eager"
+            decoding="async"
+          />
+          {/* Show live thumbnail when host is streaming, otherwise avatar.
+              Live streams use object-cover (cinematic full-bleed). Static
+              avatar photos use object-contain so the entire photo is shown. */}
           <img 
             key={cardImageUrl}
             src={cardImageUrl}
             alt={user.display_name || 'User'}
             className={cn(
-              "w-full h-full object-cover bg-muted transition-opacity duration-75",
-              // Pkg501 (Defect #7): Chamet/Bigo-style subtle Ken-Burns motion
-              // on live cards so static thumbnails feel "live". Only applied
-              // when host actually has a live thumbnail.
-              user.isLive && user.liveThumbnailUrl && "live-card-kenburns opacity-0"
+              "relative w-full h-full transition-opacity duration-75",
+              user.isLive && user.liveThumbnailUrl
+                ? "object-cover live-card-kenburns opacity-0"
+                : "object-contain"
             )}
             style={{
               filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined,
@@ -610,6 +621,7 @@ const Index = () => {
 
             }}
           />
+
 
           {/* Lightweight gradient overlay - single layer */}
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
