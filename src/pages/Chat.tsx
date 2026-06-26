@@ -402,17 +402,8 @@ const Chat = () => {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartId, setGalleryStartId] = useState<string | null>(null);
 
-  // Persistent reactions (DB-backed, realtime synced)
-  const activeMessageIds = useMemo(() => {
-    const src = selectedGroup ? groupMessages : messages;
-    return src.map((m: any) => m.id).filter(Boolean);
-  }, [messages, groupMessages, selectedGroup]);
-  const reactionConvKey = selectedGroup?.id || selectedConversation?.id || null;
-  const { reactionsByMessage, toggleReaction } = useMessageReactions({
-    currentUserId,
-    conversationKey: reactionConvKey,
-    messageIds: activeMessageIds,
-  });
+  // (reactions hook is initialized below, after currentUserId is declared)
+
   
   
   // Message info dialog
