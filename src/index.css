@@ -1771,14 +1771,19 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   .profile-home-pill {
-    background: linear-gradient(135deg, hsl(0 0% 100% / 0.95) 0%, hsl(40 40% 98% / 0.95) 100%);
+    background: linear-gradient(135deg, hsl(0 0% 100% / 0.97) 0%, hsl(40 40% 98% / 0.97) 100%);
     border: 1px solid hsl(40 45% 85% / 0.7);
-    backdrop-filter: blur(8px);
+    /* backdrop-filter intentionally REMOVED — this pill is used as the day
+       separator inside the chat scroll list. backdrop-blur re-samples and
+       blurs every pixel behind it on every scroll frame, which is the
+       single biggest cause of jitter on long threads. The opaque 0.97
+       gradient visually matches the prior frosted look. */
     box-shadow:
       0 1px 0 hsl(0 0% 100%) inset,
       0 2px 6px -2px hsl(35 30% 30% / 0.08),
       0 8px 16px -10px hsl(35 30% 25% / 0.18);
   }
+
 
   .profile-home-icon-button {
     background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(40 40% 97%) 100%);
