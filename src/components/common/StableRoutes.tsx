@@ -119,7 +119,7 @@ function RouteStageSurface({
       ref={rootRef}
       data-stable-route-stage={stage.status}
       aria-hidden={!isCurrent}
-      inert={!isCurrent ? "" : undefined}
+      {...(!isCurrent ? ({ inert: "" } as Record<string, string>) : {})}
       style={
         isCurrent
           ? {
