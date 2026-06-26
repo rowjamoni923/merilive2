@@ -1,14 +1,13 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { MessageCircle, Search, Users, Crown } from "lucide-react";
+import { MessageCircle, Search, Users, Crown, Pin, BellOff, Trash2, CheckCheck, Bell, Archive } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
@@ -16,6 +15,10 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { pickDisplayLevel } from "@/utils/displayLevel";
+import { useConversationPrefs, type ConversationPref } from "@/hooks/useConversationPrefs";
+import { hapticFeedback } from "@/utils/nativeUtils";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { Conversation, Group } from "./chatTypes";
 
 interface ChatListViewProps {
@@ -30,6 +33,7 @@ interface ChatListViewProps {
   onSelectConversation: (conv: Conversation) => void;
   onSelectGroup: (group: Group) => void;
   onShowGroupActions: () => void;
+  currentUserId?: string | null;
 }
 
 const formatTime = (dateString: string) => {
@@ -39,7 +43,6 @@ const formatTime = (dateString: string) => {
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
   if (diffMins < 1) return "now";
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
@@ -47,92 +50,138 @@ const formatTime = (dateString: string) => {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
-// Pkg432 — virtualize when list grows past this threshold. Below it the
-// classic .map() render is cheaper than measuring rows; above it the
-// virtualized window keeps low-end Android at 60fps even with 500+
-// conversations.
 const VIRTUALIZE_THRESHOLD = 30;
 const CONV_ROW_HEIGHT = 76;
 const GROUP_ROW_HEIGHT = 76;
+const LONG_PRESS_MS = 480;
 
-// ------------------------- Conversation row (WhatsApp-style) ------------------------- //
-const ConversationRow: React.FC<{
+// ------------------------- Conversation row ------------------------- //
+interface ConversationRowProps {
   conv: Conversation;
+  pref?: ConversationPref;
   onSelect: (c: Conversation) => void;
-}> = React.memo(({ conv, onSelect }) => (
-  <button
-    onClick={() => onSelect(conv)}
-    className="w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150"
-  >
-    <div className="relative shrink-0 self-center">
-      {/*
-        🚨 Avatar load fix: pass the ORIGINAL avatar_url, not the weserv-proxied
-        thumbnail. The weserv CDN proxy was occasionally returning 404 / rate-
-        limiting / blocking inside the WebView, which caused <AvatarImage> to
-        fall through to <AvatarFallback> (the letter B/S/H shown in the user's
-        screenshot) even when the real avatar exists in storage. Native R2 /
-        Supabase storage URLs load directly and are already edge-cached.
-      */}
-      {conv.other_user?.id ? (
-        <AvatarWithFrame
-          userId={conv.other_user.id}
-          src={conv.other_user?.avatar_url || undefined}
-          name={conv.other_user?.display_name || "User"}
-          level={pickDisplayLevel(conv.other_user as any)}
-          size="md"
-          showAnimation={false}
-        />
-      ) : (
-        <Avatar className="w-14 h-14">
-          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-          <AvatarFallback className="bg-muted text-muted-foreground">
-            {conv.other_user?.display_name?.[0] || "?"}
-          </AvatarFallback>
-        </Avatar>
-      )}
-      {conv.other_user?.is_online && (
-        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
-      )}
-    </div>
-    <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
-      <div className="flex items-center gap-1.5">
-        <h3 className="font-medium text-[15.5px] truncate text-foreground">
-          {conv.other_user?.display_name || "User"}
-        </h3>
-        {conv.other_user?.country_flag && (
-          <span className="text-xs shrink-0">{conv.other_user.country_flag}</span>
+  onLongPress: (c: Conversation) => void;
+}
+
+const ConversationRow: React.FC<ConversationRowProps> = React.memo(
+  ({ conv, pref, onSelect, onLongPress }) => {
+    const pressTimer = useRef<number | null>(null);
+    const longPressed = useRef(false);
+    const isPinned = pref?.is_pinned ?? false;
+    const isMuted = pref?.is_muted ?? false;
+    const markedUnread = pref?.marked_unread ?? false;
+    const effectiveUnread = conv.unread_count > 0 || markedUnread;
+
+    const start = useCallback(() => {
+      longPressed.current = false;
+      pressTimer.current = window.setTimeout(() => {
+        longPressed.current = true;
+        hapticFeedback("medium");
+        onLongPress(conv);
+      }, LONG_PRESS_MS);
+    }, [conv, onLongPress]);
+
+    const cancel = useCallback(() => {
+      if (pressTimer.current) window.clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }, []);
+
+    const handleClick = useCallback(() => {
+      if (longPressed.current) {
+        longPressed.current = false;
+        return;
+      }
+      onSelect(conv);
+    }, [conv, onSelect]);
+
+    return (
+      <button
+        onClick={handleClick}
+        onTouchStart={start}
+        onTouchEnd={cancel}
+        onTouchMove={cancel}
+        onTouchCancel={cancel}
+        onMouseDown={start}
+        onMouseUp={cancel}
+        onMouseLeave={cancel}
+        onContextMenu={(e) => { e.preventDefault(); onLongPress(conv); }}
+        className={cn(
+          "w-full flex items-stretch gap-3 px-4 py-2.5 bg-transparent active:bg-muted/60 transition-colors duration-150",
+          isPinned && "bg-primary/[0.025]",
         )}
-        <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-        <span
-          className={cn(
-            "text-[11px] shrink-0 ml-auto",
-            conv.unread_count > 0 ? "text-emerald-600 font-semibold" : "text-muted-foreground",
+      >
+        <div className="relative shrink-0 self-center">
+          {conv.other_user?.id ? (
+            <AvatarWithFrame
+              userId={conv.other_user.id}
+              src={conv.other_user?.avatar_url || undefined}
+              name={conv.other_user?.display_name || "User"}
+              level={pickDisplayLevel(conv.other_user as any)}
+              size="md"
+              showAnimation={false}
+            />
+          ) : (
+            <Avatar className="w-14 h-14">
+              <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                {conv.other_user?.display_name?.[0] || "?"}
+              </AvatarFallback>
+            </Avatar>
           )}
-        >
-          {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
-        </span>
-      </div>
-      <div className="flex items-center justify-between gap-2 mt-0.5">
-        <p
-          className={cn(
-            "text-[13.5px] truncate",
-            conv.unread_count > 0 ? "text-foreground/90" : "text-muted-foreground",
+          {conv.other_user?.is_online && (
+            <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
           )}
-        >
-          {conv.last_message || "No messages yet"}
-        </p>
-        {conv.unread_count > 0 && (
-          <span className="min-w-[20px] h-5 px-1.5 bg-emerald-500 text-white text-[11px] font-semibold rounded-full flex items-center justify-center shrink-0">
-            {conv.unread_count > 99 ? "99+" : conv.unread_count}
-          </span>
-        )}
-      </div>
-    </div>
-  </button>
-));
+        </div>
+        <div className="flex-1 text-left min-w-0 flex flex-col justify-center border-b border-border/50">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-medium text-[15.5px] truncate text-foreground">
+              {conv.other_user?.display_name || "User"}
+            </h3>
+            {conv.other_user?.country_flag && (
+              <span className="text-xs shrink-0">{conv.other_user.country_flag}</span>
+            )}
+            <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
+            <span
+              className={cn(
+                "text-[11px] shrink-0 ml-auto",
+                effectiveUnread && !isMuted ? "text-emerald-600 font-semibold" : "text-muted-foreground",
+              )}
+            >
+              {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-2 mt-0.5">
+            <p
+              className={cn(
+                "text-[13.5px] truncate",
+                effectiveUnread && !isMuted ? "text-foreground/90" : "text-muted-foreground",
+              )}
+            >
+              {conv.last_message || "No messages yet"}
+            </p>
+            <div className="flex items-center gap-1 shrink-0">
+              {isMuted && <BellOff className="w-3.5 h-3.5 text-muted-foreground" />}
+              {isPinned && <Pin className="w-3.5 h-3.5 text-muted-foreground fill-muted-foreground/40" />}
+              {effectiveUnread && (
+                <span
+                  className={cn(
+                    "min-w-[20px] h-5 px-1.5 text-white text-[11px] font-semibold rounded-full flex items-center justify-center",
+                    isMuted ? "bg-muted-foreground/60" : "bg-emerald-500",
+                  )}
+                >
+                  {conv.unread_count > 99 ? "99+" : conv.unread_count > 0 ? conv.unread_count : "•"}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </button>
+    );
+  },
+);
 ConversationRow.displayName = "ConversationRow";
 
-// ------------------------- Group row (WhatsApp-style) ------------------------- //
+// ------------------------- Group row ------------------------- //
 const GroupRow: React.FC<{ group: Group; onSelect: (g: Group) => void }> = React.memo(
   ({ group, onSelect }) => (
     <button
@@ -163,8 +212,10 @@ GroupRow.displayName = "GroupRow";
 const VirtualConversations: React.FC<{
   scrollRef: React.RefObject<HTMLElement>;
   items: Conversation[];
+  prefs: Record<string, ConversationPref>;
   onSelect: (c: Conversation) => void;
-}> = ({ scrollRef, items, onSelect }) => {
+  onLongPress: (c: Conversation) => void;
+}> = ({ scrollRef, items, prefs, onSelect, onLongPress }) => {
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollRef.current,
@@ -187,13 +238,17 @@ const VirtualConversations: React.FC<{
             transform: `translateY(${vi.start}px)`,
           }}
         >
-          <ConversationRow conv={items[vi.index]} onSelect={onSelect} />
+          <ConversationRow
+            conv={items[vi.index]}
+            pref={prefs[items[vi.index].id]}
+            onSelect={onSelect}
+            onLongPress={onLongPress}
+          />
         </div>
       ))}
     </div>
   );
 };
-
 
 const VirtualGroups: React.FC<{
   scrollRef: React.RefObject<HTMLElement>;
@@ -241,9 +296,12 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
   onSelectConversation,
   onSelectGroup,
   onShowGroupActions,
+  currentUserId,
 }) => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLElement>(null);
+  const { prefs, update: updatePref } = useConversationPrefs(currentUserId ?? null);
+  const [actionTarget, setActionTarget] = useState<Conversation | null>(null);
 
   const filteredConversations = useMemo(
     () =>
@@ -252,14 +310,53 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
       ),
     [conversations, searchQuery],
   );
+
+  // Split pinned vs regular, sort pinned by pinned_at desc
+  const { pinned, regular } = useMemo(() => {
+    const pin: Conversation[] = [];
+    const reg: Conversation[] = [];
+    for (const c of filteredConversations) {
+      if (prefs[c.id]?.is_pinned) pin.push(c);
+      else reg.push(c);
+    }
+    pin.sort((a, b) => {
+      const ta = prefs[a.id]?.pinned_at ?? "";
+      const tb = prefs[b.id]?.pinned_at ?? "";
+      return tb.localeCompare(ta);
+    });
+    return { pinned: pin, regular: reg };
+  }, [filteredConversations, prefs]);
+
   const filteredGroups = useMemo(
     () => groups.filter((group) => group.name.toLowerCase().includes(searchQuery.toLowerCase())),
     [groups, searchQuery],
   );
 
+  const handleLongPress = useCallback((c: Conversation) => setActionTarget(c), []);
+
+  const activePref = actionTarget ? prefs[actionTarget.id] : undefined;
+
+  const handleDelete = useCallback(async () => {
+    if (!actionTarget || !currentUserId) return;
+    const id = actionTarget.id;
+    setActionTarget(null);
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("conversation_id", id);
+    if (error) {
+      toast({ title: "Could not delete chat", description: error.message, variant: "destructive" });
+      return;
+    }
+    await supabase.from("conversations").delete().eq("id", id);
+    toast({ title: "Chat deleted" });
+  }, [actionTarget, currentUserId]);
+
+  const totalConvCount = pinned.length + regular.length;
+
   return (
     <>
-      {/* Header - Premium 3D Glass */}
+      {/* Header */}
       <header
         className="flex-shrink-0 z-40 safe-area-top bg-card/85 backdrop-blur-xl border-b border-border/60"
         style={{ boxShadow: "0 8px 24px -16px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)" }}
@@ -293,7 +390,6 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
           </div>
         </div>
 
-        {/* Tabs - Sunken 3D Track */}
         <div className="px-4">
           <Tabs value={chatTab} onValueChange={onTabChange} className="w-full">
             <TabsList
@@ -391,7 +487,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
           ) : chatTab === "notifications" ? (
             <NotificationList />
           ) : chatTab === "messages" ? (
-            filteredConversations.length === 0 ? (
+            totalConvCount === 0 ? (
               <div className="text-center py-16 px-6">
                 <div
                   className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-gradient-to-br from-primary/15 via-primary/10 to-transparent border border-primary/25"
@@ -409,18 +505,60 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                   Find Hosts
                 </Button>
               </div>
-            ) : filteredConversations.length > VIRTUALIZE_THRESHOLD ? (
-              // Pkg432 — virtualized for 30+ conversations.
-              <VirtualConversations
-                scrollRef={scrollRef}
-                items={filteredConversations}
-                onSelect={onSelectConversation}
-              />
+            ) : regular.length > VIRTUALIZE_THRESHOLD ? (
+              <>
+                {pinned.length > 0 && (
+                  <div className="py-1">
+                    <div className="px-4 pt-1 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1">
+                      <Pin className="w-3 h-3" /> Pinned
+                    </div>
+                    {pinned.map((conv) => (
+                      <ConversationRow
+                        key={conv.id}
+                        conv={conv}
+                        pref={prefs[conv.id]}
+                        onSelect={onSelectConversation}
+                        onLongPress={handleLongPress}
+                      />
+                    ))}
+                    <div className="h-px bg-border/40 mx-4 my-1" />
+                  </div>
+                )}
+                <VirtualConversations
+                  scrollRef={scrollRef}
+                  items={regular}
+                  prefs={prefs}
+                  onSelect={onSelectConversation}
+                  onLongPress={handleLongPress}
+                />
+              </>
             ) : (
               <div className="py-1">
-
-                {filteredConversations.map((conv) => (
-                  <ConversationRow key={conv.id} conv={conv} onSelect={onSelectConversation} />
+                {pinned.length > 0 && (
+                  <>
+                    <div className="px-4 pt-1 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1">
+                      <Pin className="w-3 h-3" /> Pinned
+                    </div>
+                    {pinned.map((conv) => (
+                      <ConversationRow
+                        key={conv.id}
+                        conv={conv}
+                        pref={prefs[conv.id]}
+                        onSelect={onSelectConversation}
+                        onLongPress={handleLongPress}
+                      />
+                    ))}
+                    <div className="h-px bg-border/40 mx-4 my-1" />
+                  </>
+                )}
+                {regular.map((conv) => (
+                  <ConversationRow
+                    key={conv.id}
+                    conv={conv}
+                    pref={prefs[conv.id]}
+                    onSelect={onSelectConversation}
+                    onLongPress={handleLongPress}
+                  />
                 ))}
               </div>
             )
@@ -456,6 +594,82 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
           )}
         </main>
       </div>
+
+      {/* Long-press action sheet */}
+      <Sheet open={!!actionTarget} onOpenChange={(o) => !o && setActionTarget(null)}>
+        <SheetContent side="bottom" className="rounded-t-3xl border-t border-border/60 pb-[calc(env(safe-area-inset-bottom)+12px)] px-0">
+          {actionTarget && (
+            <div className="flex flex-col">
+              <div className="px-5 pt-1 pb-3 flex items-center gap-3 border-b border-border/40">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={actionTarget.other_user?.avatar_url || undefined} />
+                  <AvatarFallback>{actionTarget.other_user?.display_name?.[0] || "?"}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <div className="font-semibold text-[15px] truncate">{actionTarget.other_user?.display_name || "User"}</div>
+                  <div className="text-[12px] text-muted-foreground truncate">{actionTarget.last_message || "No messages yet"}</div>
+                </div>
+              </div>
+              <ActionItem
+                icon={<Pin className="w-5 h-5" />}
+                label={activePref?.is_pinned ? "Unpin chat" : "Pin chat"}
+                onClick={() => {
+                  updatePref(actionTarget.id, { is_pinned: !activePref?.is_pinned });
+                  setActionTarget(null);
+                }}
+              />
+              <ActionItem
+                icon={activePref?.is_muted ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                label={activePref?.is_muted ? "Unmute notifications" : "Mute notifications"}
+                onClick={() => {
+                  updatePref(actionTarget.id, { is_muted: !activePref?.is_muted });
+                  setActionTarget(null);
+                }}
+              />
+              <ActionItem
+                icon={<CheckCheck className="w-5 h-5" />}
+                label={activePref?.marked_unread ? "Mark as read" : "Mark as unread"}
+                onClick={() => {
+                  updatePref(actionTarget.id, { marked_unread: !activePref?.marked_unread });
+                  setActionTarget(null);
+                }}
+              />
+              <ActionItem
+                icon={<Archive className="w-5 h-5" />}
+                label={activePref?.is_archived ? "Unarchive" : "Archive"}
+                onClick={() => {
+                  updatePref(actionTarget.id, { is_archived: !activePref?.is_archived });
+                  setActionTarget(null);
+                }}
+              />
+              <ActionItem
+                icon={<Trash2 className="w-5 h-5" />}
+                label="Delete chat"
+                destructive
+                onClick={handleDelete}
+              />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
+
+const ActionItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  destructive?: boolean;
+  onClick: () => void;
+}> = ({ icon, label, destructive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "w-full flex items-center gap-4 px-5 py-3.5 text-left active:bg-muted/60 transition-colors",
+      destructive ? "text-destructive" : "text-foreground",
+    )}
+  >
+    <span className={cn(destructive ? "text-destructive" : "text-muted-foreground")}>{icon}</span>
+    <span className="font-medium text-[15px]">{label}</span>
+  </button>
+);
