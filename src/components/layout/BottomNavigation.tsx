@@ -5,9 +5,6 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
-import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
-import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
-import { useRealtimeProfile } from "@/hooks/useRealtimeData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
@@ -47,10 +44,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const { t } = useTranslation();
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
-  const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { profile: realtimeProfile, loading: profileLoading } = useRealtimeProfile(currentUserId);
-  const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
   const lowEnd = useMemo(() => isLowEndDevice(), []);
   const [lockModal, setLockModal] = useState<{ open: boolean; featureName: string; requiredLevel: number; currentLevel: number; isHost: boolean }>({
     open: false,
@@ -59,19 +52,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     currentLevel: 0,
     isHost: false,
   });
-
-  // Initialize currentUserId
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setCurrentUserId(session.user.id);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUserId(session?.user?.id ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // 🚀 Native Badge Sync: Push unread counts to native bottom bar
   useEffect(() => {
@@ -84,9 +64,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     }
   }, [unreadCounts.total]);
 
-  const userProfile = realtimeProfile;
-
-    
   const currentPath = location.pathname;
   const activeTab = externalActiveTab || currentPath;
 
@@ -116,37 +93,54 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     } catch {}
   }, []);
 
-  const handleActionClick = (path: string) => {
+  const handleActionClick = async (path: string) => {
     const featureKey = path === '/create-party' ? 'create_party' : path === '/go-live' ? 'go_live' : null;
     if (featureKey) {
-      if (featureLevelLoading || resolvedLevelLoading || !userProfile) {
-        toast.info('Loading your level, please try again.');
-        setShowActionMenu(false);
-        return;
-      }
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const [profileRes, reqRes] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('gender,is_host,host_status,user_level,host_level,max_user_level')
+              .eq('id', session.user.id)
+              .maybeSingle(),
+            supabase
+              .from('feature_level_requirements')
+              .select('feature_key,feature_name,min_level_user,min_level_host,min_level,min_vip_level,is_active')
+              .eq('feature_key', featureKey)
+              .eq('is_active', true)
+              .maybeSingle(),
+          ]);
+          const userProfile = profileRes.data as any;
+          const requirement = reqRes.data as any;
+          if (userProfile && requirement) {
+            const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
+            const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
+            const currentLevel = Math.max(
+              Number(userProfile.user_level) || 0,
+              Number(userProfile.host_level) || 0,
+              Number(userProfile.max_user_level) || 0,
+            );
+            const requiredLevel = isHost
+              ? Number(requirement.min_level_host ?? requirement.min_vip_level ?? 0)
+              : Number(requirement.min_level_user ?? requirement.min_level ?? 0);
 
-      const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
-      const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
-      // Use highest known level so we never block a user whose stored level is already sufficient
-      // (resolvedUserLevel can briefly read 1 from cache before the resolver completes).
-      const currentLevel = Math.max(
-        Number(resolvedUserLevel) || 0,
-        Number(userProfile.user_level) || 0,
-        Number(userProfile.host_level) || 0,
-        Number(userProfile.max_user_level) || 0,
-      );
-      const result = checkFeatureAccess(featureKey, currentLevel, isHost);
-
-      if (!result.canAccess) {
-        setLockModal({
-          open: true,
-          featureName: featureKey === 'go_live' ? 'Go Live' : 'Create Party',
-          requiredLevel: result.requiredLevel,
-          currentLevel,
-          isHost,
-        });
-        setShowActionMenu(false);
-        return;
+            if (currentLevel < requiredLevel) {
+              setLockModal({
+                open: true,
+                featureName: requirement.feature_name || (featureKey === 'go_live' ? 'Go Live' : 'Create Party'),
+                requiredLevel,
+                currentLevel,
+                isHost,
+              });
+              setShowActionMenu(false);
+              return;
+            }
+          }
+        }
+      } catch {
+        // Do not freeze navigation because the level gate failed to hydrate; deeper pages enforce access too.
       }
     }
     
