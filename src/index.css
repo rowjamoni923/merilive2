@@ -2490,7 +2490,7 @@ body[data-admin-active="true"] #root {
     overflow-x: hidden !important;
     overflow-y: auto !important;
     overscroll-behavior-y: auto !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
   body[data-admin-active="true"] {
@@ -2501,14 +2501,14 @@ body[data-admin-active="true"] #root {
     height: auto !important;
     min-height: 100dvh;
     position: static !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
   }
   body[data-admin-active="true"] #root {
     height: auto !important;
     min-height: 100dvh !important;
     overflow: visible !important;
     position: static !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
   }
   .admin-shell {
     position: static !important;
@@ -2518,7 +2518,7 @@ body[data-admin-active="true"] #root {
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
   }
   .admin-shell [data-admin-scroll-root="true"] {
     flex: 1 1 auto !important;
@@ -2526,7 +2526,7 @@ body[data-admin-active="true"] #root {
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
   /* Main content wrapper inside .admin-shell (the flex column with h-screen overflow-hidden) */
@@ -2534,12 +2534,12 @@ body[data-admin-active="true"] #root {
     height: auto !important;
     min-height: 100dvh !important;
     overflow: visible !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
   }
   .admin-content,
   .admin-content > * {
     overflow-anchor: auto;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
   }
 }
 
@@ -4256,11 +4256,13 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-body[data-admin-active="true"],
-body[data-admin-active="true"] #root,
-body[data-admin-active="true"] .admin-shell,
-body[data-admin-active="true"] .admin-content {
-  touch-action: pan-y pinch-zoom !important;
+@media (min-width: 1024px) {
+  body[data-admin-active="true"],
+  body[data-admin-active="true"] #root,
+  body[data-admin-active="true"] .admin-shell,
+  body[data-admin-active="true"] .admin-content {
+    touch-action: pan-y pinch-zoom !important;
+  }
 }
 a, img, button {
   -webkit-user-drag: none;
@@ -4373,7 +4375,7 @@ body:has([data-public-scroll="true"]) #root {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior-y: auto !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
 
@@ -4384,7 +4386,7 @@ body:has([data-public-scroll="true"]) #root {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior-y: auto !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
 
@@ -4405,7 +4407,7 @@ body:has([data-public-scroll="true"]) #root {
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
-    touch-action: pan-y pinch-zoom !important;
+    touch-action: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
 
