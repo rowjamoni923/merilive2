@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toSupabaseCdnUrl } from "@/lib/cdnImage";
+import { BulletproofImage } from "@/components/common/BulletproofImage";
 
 // Full-screen popup banner — usually shown at viewport size; ask CDN for ~1080w WebP.
 const popupCdn = (url: string | null | undefined) =>
