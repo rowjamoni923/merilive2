@@ -407,31 +407,51 @@ const Index = () => {
     return () => window.clearTimeout(timeoutId);
   }, [hosts, getHostCardImageUrl]);
 
-  // Route-local safety net: keep the home host feed live for stream/call status changes.
+  // Route-local safety net: keep the home host feed live for stream/call/presence changes.
   useEffect(() => {
     let invalidateTimer: ReturnType<typeof setTimeout> | null = null;
+    let profileInvalidateTimer: ReturnType<typeof setTimeout> | null = null;
 
     const queueHomeInvalidate = () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
-      // Pkg427: 300ms -> 150ms to match Bigo/Tango/Chamet perception threshold (<200ms).
+      // 150ms to match Bigo/Tango/Chamet perception threshold (<200ms) for live/call/party.
       invalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
         queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
       }, 150);
     };
 
-    // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms.
-    const unsubscribe = subscribeToTables(
+    // Profile heartbeats fire frequently (every ~2s per active user). Use a longer
+    // debounce so the presence flag (is_online / host_availability) still reorders
+    // the feed instantly without thrashing the RPC.
+    const queueProfileInvalidate = () => {
+      if (profileInvalidateTimer) clearTimeout(profileInvalidateTimer);
+      profileInvalidateTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
+      }, 600);
+    };
+
+    // Realtime push: LIVE via live_streams, Busy via private_calls, Party via party_rooms,
+    // Online/Offline via profiles (host_availability + is_online).
+    const unsubscribeRooms = subscribeToTables(
       `home-hosts-${Date.now()}`,
       ["live_streams", "private_calls", "party_rooms"],
       queueHomeInvalidate
     );
+    const unsubscribeProfiles = subscribeToTables(
+      `home-hosts-profiles-${Date.now()}`,
+      ["profiles"],
+      queueProfileInvalidate
+    );
 
     return () => {
       if (invalidateTimer) clearTimeout(invalidateTimer);
-      unsubscribe();
+      if (profileInvalidateTimer) clearTimeout(profileInvalidateTimer);
+      unsubscribeRooms();
+      unsubscribeProfiles();
     };
   }, [queryClient]);
+
 
   const handleTabChange = (path: string) => {
     setActiveTab(path);
