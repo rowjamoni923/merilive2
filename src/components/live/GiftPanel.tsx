@@ -14,6 +14,7 @@ import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { isLikelyVapCompositeSize, markVapCompositeHint } from "@/utils/vapDetection";
 import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { toast } from "sonner";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
