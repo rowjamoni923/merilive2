@@ -3539,7 +3539,7 @@ const FaceVerification = () => {
           <p className="text-slate-600 text-center px-6">
             {submitInProgress
               ? 'Your live scan is being uploaded securely. The camera is off and AI review will start automatically.'
-              : 'Your face verification has been submitted and is pending AI/admin review. Please wait for approval.'}
+              : 'Your face verification has been submitted and is now under AI/admin review. Please wait for approval.'}
           </p>
           {!submitInProgress && (
             <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
