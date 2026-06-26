@@ -1522,11 +1522,19 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 }
 
 @layer utilities {
-  /* Chat message rows: skip rendering off-screen rows (huge scroll win on long threads). */
+  /* Chat message rows: skip rendering off-screen rows (huge scroll win on
+     long threads). Intrinsic size MUST roughly match the average real row
+     height — when it's too small, every scrolled-in row exceeds its
+     placeholder and triggers a downward layout shift = visible jitter.
+     72px ≈ avatar (28px) + 2 lines of bubble text + cluster gap, which is
+     the median row in WhatsApp-style threads. `contain: content` isolates
+     paint/layout so a single row's reflow can't invalidate its siblings. */
   .chat-msg-row {
     content-visibility: auto;
-    contain-intrinsic-size: auto 56px;
+    contain-intrinsic-size: auto 72px;
+    contain: content;
   }
+
 
   /* Premium Gradients */
   .gradient-primary {
