@@ -1176,6 +1176,8 @@ const App = () => {
       <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
       <Suspense fallback={null}><GlobalTapHapticsBridge /></Suspense>
+      <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
+
 
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
