@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Upload,
   Loader2,
+  Camera,
   Languages,
   Calendar,
   RotateCcw,
@@ -135,6 +136,12 @@ const getLocalizedMessages = (_countryName?: string) => ({
   cancel: 'Cancel',
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
+
+const photoFrameClass = "relative mx-auto w-full max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden border border-white/70 bg-gradient-to-br from-white via-amber-50 to-pink-50 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
+const photoImageClass = "w-full h-full object-cover object-[50%_38%]";
+const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10";
+const photoGuideClass = "pointer-events-none absolute inset-[12%] rounded-[45%] border-2 border-white/80 shadow-[0_0_0_999px_rgba(15,23,42,0.10)]";
+const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
 
 // Capture the full camera sensor frame for AI analysis. The old object-cover
 // crop matched the preview box, but on close-up mobile selfies it cut off part
@@ -571,8 +578,8 @@ const FaceVerification = () => {
     const root = document.documentElement;
     root.style.setProperty('--face-aperture-x', `${Math.round(rect.left + rect.width * 0.5)}px`);
     root.style.setProperty('--face-aperture-y', `${Math.round(rect.top + rect.height * 0.45)}px`);
-    root.style.setProperty('--face-aperture-rx', `${Math.round(rect.width * 0.34)}px`);
-    root.style.setProperty('--face-aperture-ry', `${Math.round(rect.height * 0.42)}px`);
+    root.style.setProperty('--face-aperture-rx', `${Math.round(rect.width * 0.39)}px`);
+    root.style.setProperty('--face-aperture-ry', `${Math.round(rect.height * 0.45)}px`);
   }, []);
 
   useLayoutEffect(() => {
@@ -2580,9 +2587,9 @@ const FaceVerification = () => {
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : '#d4af37';
     const nativeApertureStyle: React.CSSProperties | undefined = usingNativeFaceCamera
       ? {
-          WebkitMaskImage: 'radial-gradient(ellipse 34% 42% at 50% 45%, transparent 0 98%, #000 100%)',
-          maskImage: 'radial-gradient(ellipse 34% 42% at 50% 45%, transparent 0 98%, #000 100%)',
-          background: 'rgba(7, 10, 18, 0.84)',
+          WebkitMaskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
+          maskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
+          background: 'radial-gradient(circle at 50% 18%, rgba(212,175,55,0.18), transparent 38%), linear-gradient(180deg, rgba(2,6,23,0.72), rgba(15,23,42,0.88))',
         }
       : undefined;
     const completeFromPartialScan = () => {
@@ -2641,8 +2648,8 @@ const FaceVerification = () => {
       
       {/* Video Container with Face Oval */}
       <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-sm mx-auto rounded-[28px] overflow-hidden mb-5 bg-slate-950 shadow-2xl shadow-slate-950/25 ring-1 ring-slate-900/10'
-        : `relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 ${faceCameraActive ? 'bg-black shadow-2xl' : 'bg-white/80 shadow-2xl'}`
+        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-slate-950 shadow-[0_28px_80px_-24px_rgba(2,6,23,0.75)] ring-1 ring-amber-200/35'
+        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/35 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-white/80 shadow-2xl'}`
       }>
         {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
           <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
@@ -2706,7 +2713,7 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="w-full h-full object-contain scale-x-[-1]"
+                className="w-full h-full object-cover object-[50%_42%] scale-x-[-1]"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
@@ -2727,14 +2734,14 @@ const FaceVerification = () => {
               {/* Dark overlay outside oval */}
               {!usingNativeFaceCamera && (
                 <div className="absolute inset-0" style={{
-                  background: 'radial-gradient(ellipse 55% 45% at 50% 45%, transparent 100%, rgba(0,0,0,0.7) 100%)',
+                  background: 'radial-gradient(ellipse 63% 52% at 50% 44%, transparent 94%, rgba(2,6,23,0.68) 100%), radial-gradient(circle at 50% 10%, rgba(212,175,55,0.18), transparent 36%)',
                 }} />
               )}
               
               {/* Animated hex face frame */}
               <motion.div 
                 className="relative"
-                style={{ width: '74%', height: '62%' }}
+                style={{ width: '82%', height: '70%' }}
               >
                 <svg viewBox="0 0 200 260" className="w-full h-full" style={{ filter: `drop-shadow(0 0 10px ${borderColor}40)` }}>
                   <polygon points="100,12 178,56 178,204 100,248 22,204 22,56" fill="none" 
@@ -2756,10 +2763,10 @@ const FaceVerification = () => {
               </motion.div>
 
               {/* Corner brackets */}
-              <div className="absolute top-[15%] left-[12%] w-6 h-6 border-t-2 border-l-2 rounded-tl-lg" style={{ borderColor }} />
-              <div className="absolute top-[15%] right-[12%] w-6 h-6 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor }} />
-              <div className="absolute bottom-[20%] left-[12%] w-6 h-6 border-b-2 border-l-2 rounded-bl-lg" style={{ borderColor }} />
-              <div className="absolute bottom-[20%] right-[12%] w-6 h-6 border-b-2 border-r-2 rounded-br-lg" style={{ borderColor }} />
+              <div className="absolute top-[13%] left-[10%] w-7 h-7 border-t-[3px] border-l-[3px] rounded-tl-xl shadow-[0_0_18px_rgba(212,175,55,0.35)]" style={{ borderColor }} />
+              <div className="absolute top-[13%] right-[10%] w-7 h-7 border-t-[3px] border-r-[3px] rounded-tr-xl shadow-[0_0_18px_rgba(212,175,55,0.35)]" style={{ borderColor }} />
+              <div className="absolute bottom-[18%] left-[10%] w-7 h-7 border-b-[3px] border-l-[3px] rounded-bl-xl shadow-[0_0_18px_rgba(212,175,55,0.35)]" style={{ borderColor }} />
+              <div className="absolute bottom-[18%] right-[10%] w-7 h-7 border-b-[3px] border-r-[3px] rounded-br-xl shadow-[0_0_18px_rgba(212,175,55,0.35)]" style={{ borderColor }} />
             </div>
             
             {/* Instruction overlay — top banner */}
@@ -3107,7 +3114,7 @@ const FaceVerification = () => {
       {!faceCameraActive && !faceVerified && (
         <div className="flex flex-col items-center justify-center py-6">
           <Button
-            className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-2xl text-base font-bold shadow-lg shadow-purple-900/20 text-white transition-all transform active:scale-95"
+              className="w-full h-14 bg-gradient-to-r from-[#d4af37] via-[#f5d76e] to-[#b88914] hover:from-[#f5d76e] hover:to-[#d4af37] rounded-2xl text-base font-bold shadow-xl shadow-amber-500/25 text-slate-950 transition-all transform active:scale-95"
             onClick={startFaceCamera}
           >
             <ScanFace className="w-6 h-6 mr-3" />
@@ -3174,7 +3181,7 @@ const FaceVerification = () => {
       
       {faceVerified && (
         <Button
-          className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20`}
+            className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400 rounded-2xl text-lg font-bold text-slate-950 shadow-xl shadow-emerald-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
           disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
@@ -3207,7 +3214,14 @@ const FaceVerification = () => {
 
   // Parse duplicate info if present in rejection reason
   const duplicateMatch = rejectionReason?.match(/\[duplicate_info:(.*?)\]/);
-  const duplicateInfo = duplicateMatch ? JSON.parse(duplicateMatch[1]) : null;
+  let duplicateInfo: any = null;
+  if (duplicateMatch) {
+    try {
+      duplicateInfo = JSON.parse(duplicateMatch[1]);
+    } catch {
+      duplicateInfo = null;
+    }
+  }
   const cleanRejectionReason = rejectionReason?.replace(/\[duplicate_info:.*?\]/, '').trim();
 
   // Contact Support is required for account-type mismatch or duplicate account.
@@ -3338,7 +3352,7 @@ const FaceVerification = () => {
                         <p className="font-semibold text-slate-900 text-sm">{f.human_name}</p>
                         <p className="text-xs text-slate-700 mt-1 leading-relaxed">{f.message}</p>
                         {typeof f.score === 'number' && (
-                          <p className="text-[11px] text-amber-700 mt-1.5 font-mono">Match similarity: {f.score.toFixed(1)}%  (need ≥ 85%)</p>
+                          <p className="text-[11px] text-amber-700 mt-1.5 font-mono">Match similarity: {f.score.toFixed(1)}%  (need ≥ 55%)</p>
                         )}
                       </div>
                     </div>
@@ -3525,7 +3539,7 @@ const FaceVerification = () => {
           <p className="text-slate-600 text-center px-6">
             {submitInProgress
               ? 'Your live scan is being uploaded securely. The camera is off and AI review will start automatically.'
-              : 'Your face verification has been submitted and is pending AI/admin review. Please wait for approval.'}
+              : 'Your face verification has been submitted and is now under AI/admin review. Please wait for approval.'}
           </p>
           {!submitInProgress && (
             <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
@@ -3708,9 +3722,14 @@ const FaceVerification = () => {
               <input ref={userPhotoInputRef} type="file" accept="image/*" onChange={handleUserPhotoSelect} className="hidden" />
               
               {userPhotoPreview ? (
-                <div className="space-y-4">
-                  <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden border-2 border-purple-500/50">
-                    <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                <div className="space-y-5">
+                  <div className={photoFrameClass}>
+                    <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className={photoImageClass} />
+                    <div className={photoOverlayClass} />
+                    <div className={photoGuideClass} />
+                    <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/90 px-3 py-2 text-center text-xs font-semibold text-slate-700 shadow-lg backdrop-blur">
+                      Face centered in frame
+                    </div>
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 border-amber-200/60 text-slate-800" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
@@ -3722,12 +3741,19 @@ const FaceVerification = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8" onClick={() => userPhotoInputRef.current?.click()}>
-                  <div className="w-24 h-24 mx-auto rounded-full bg-amber-50/70 flex items-center justify-center mb-4 cursor-pointer hover:bg-amber-50 transition-colors">
-                    <Upload className="w-10 h-10 text-purple-400" />
+                <div className="text-center py-4" onClick={() => userPhotoInputRef.current?.click()}>
+                  <div className={photoFrameClass + " cursor-pointer active:scale-[0.99] transition-transform"}>
+                    <div className={photoPlaceholderClass}>
+                      <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-xl shadow-purple-500/25">
+                        <Camera className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-slate-900 font-bold">Tap to upload your photo</p>
+                        <p className="text-slate-500 text-sm mt-1">Use a clear front-facing portrait</p>
+                      </div>
+                    </div>
+                    <div className={photoGuideClass} />
                   </div>
-                  <p className="text-slate-800 font-medium mb-1">Tap to upload your photo</p>
-                  <p className="text-slate-500 text-sm">Clear face photo required for verification</p>
                 </div>
               )}
             </div>
@@ -3847,15 +3873,22 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
+                className="relative w-28 h-36 sm:w-32 sm:h-40 rounded-[1.75rem] bg-purple-50 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-xl shadow-purple-500/10 touch-target-lg ring-1 ring-white"
                 onClick={() => photoInputRef.current?.click()}
                 role="button"
                 aria-label="Upload profile photo"
               >
                 {photoPreview ? (
-                  <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                  <>
+                    <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className={photoImageClass} />
+                    <div className={photoOverlayClass} />
+                    <div className="pointer-events-none absolute inset-[12%] rounded-[45%] border border-white/80" />
+                  </>
                 ) : (
-                  <ImagePlus className="w-10 h-10 text-purple-400 opacity-60" />
+                  <div className="flex flex-col items-center gap-2 text-center px-3">
+                    <Camera className="w-8 h-8 text-purple-400 opacity-70" />
+                    <span className="text-[11px] font-semibold text-purple-500">Add Portrait</span>
+                  </div>
                 )}
               </div>
               <input 
@@ -3957,7 +3990,7 @@ const FaceVerification = () => {
                     disableRemotePlayback
                     controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                     {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                    className="w-full h-full object-cover scale-x-[-1]"
+                    className="w-full h-full object-cover object-[50%_42%] scale-x-[-1]"
                     style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
@@ -4044,7 +4077,10 @@ const FaceVerification = () => {
                   aria-label={`Add photo ${index + 1}`}
                 >
                   {hostPhotosPreviews[index] ? (
-                    <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <>
+                      <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className={photoImageClass} />
+                      <div className={photoOverlayClass} />
+                    </>
                   ) : (
                     <ImagePlus className="w-7 h-7 sm:w-8 sm:h-8 text-slate-500" />
                   )}

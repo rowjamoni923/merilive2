@@ -19,6 +19,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Owner policy (2026-06-26): real photo/video/live evidence should pass at
+// 55%+ similarity to avoid rejecting genuine users under weak light, beauty
+// filters, compression, or different camera angles. Duplicate-account blocking
+// stays stricter because it is a fraud gate, not a same-submission quality gate.
+const SAME_PERSON_MIN_SIMILARITY = 55;
+const DUPLICATE_FACE_MIN_SIMILARITY = 85;
+const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
+const LEGACY_DUPLICATE_SCAN_LIMIT = 120;
+const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
+
 function getAmzDate(): { amzDate: string; dateStamp: string } {
   const now = new Date();
   const amzDate = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -554,12 +564,7 @@ serve(async (req) => {
                   AWS_SECRET_ACCESS_KEY,
                   AWS_REGION,
                 );
-                // F5 (industry-tuned, 2026-06-09): AWS Rekognition recommends 80%
-                // similarity floor for "same person". Chamet / Bigo / Holla treat
-                // <80% profile-vs-live as mismatch. Was 65 (too lenient — allowed
-                // sibling / cousin photos through). Raised 65 → 85 so only confident
-                // matches auto-pass; borderline 70-84% now goes to manual review.
-                profileMismatch = profileMatchScore < 85;
+                profileMismatch = profileMatchScore < SAME_PERSON_MIN_SIMILARITY;
               } catch (e) {
                 profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
               }
@@ -607,12 +612,7 @@ serve(async (req) => {
           );
           hostPhotoScores.push({ url: hp, score });
           if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
-          // F5 (industry-tuned, 2026-06-09): gallery photos are often filtered /
-          // beautified, so we allow a wider band than profile-vs-live. Pro apps
-          // (Chamet / Bigo / Holla) use ~72-80% for gallery cross-check. Was 60
-          // (too permissive — fake gallery slipped through). Raised 60 → 80 so
-          // host can't pair real face with a different person's gallery shots.
-          if (score < 80) hostPhotosMismatch = true;
+          if (score < SAME_PERSON_MIN_SIMILARITY) hostPhotosMismatch = true;
         } catch (e) {
           hostPhotoScores.push({
             url: hp,
@@ -759,10 +759,10 @@ serve(async (req) => {
         frontB64ForProvider = frontB64;
         const search = await providerSearchFace(faceProvider, {
           image_base64: frontB64,
-          // Duplicate search is intentionally lower than auto-approval match
-          // confidence so the second account is caught even with lighting,
-          // compression, or camera changes.
-          threshold: 88,
+          // Duplicate search is intentionally lower than the hard duplicate
+          // cutoff so the server can review likely second accounts even with
+          // lighting/compression/camera changes.
+          threshold: PROVIDER_DUPLICATE_SEARCH_THRESHOLD,
           max_matches: 5,
         });
         duplicateSearchCompleted = search !== null;
@@ -783,7 +783,7 @@ serve(async (req) => {
               .from("face_verification_submissions")
               .select("id", { count: "exact", head: true })
               .eq("user_id", top.external_user_id as string)
-              .in("status", ["approved", "auto_approved", "auto-approved", "verified", "passed"]);
+              .in("status", APPROVED_FACE_STATUSES);
             const prevName = (prevProfile?.display_name as string | null) || null;
             const prevUid = (prevProfile?.app_uid as string | null) || null;
             const prevAvatar = (prevProfile?.avatar_url as string | null) || null;
@@ -793,7 +793,8 @@ serve(async (req) => {
               String(prevProfile?.host_status || "").trim().toLowerCase() === "approved" ||
               (approvedSubmissionCount || 0) > 0
             );
-            if (previousApproved) {
+            const duplicateSimilarity = Number(top.similarity || 0);
+            if (previousApproved && duplicateSimilarity >= DUPLICATE_FACE_MIN_SIMILARITY) {
               duplicateFields = {
                 is_duplicate_face: true,
                 duplicate_face_user_id: top.external_user_id,
@@ -805,18 +806,18 @@ serve(async (req) => {
                 previous_user_id: top.external_user_id,
                 previous_display_name: prevName,
                 previous_app_uid: prevUid,
-                similarity: top.similarity,
+                similarity: duplicateSimilarity,
                 other_matches: others.length,
                 indexed_at: top.indexed_at,
                 previous_approved: true,
               };
-              duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+              duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${duplicateSimilarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
             } else {
               duplicateCandidateReview = {
                 previous_user_id: top.external_user_id,
                 previous_display_name: prevName,
                 previous_app_uid: prevUid,
-                similarity: top.similarity,
+                similarity: duplicateSimilarity,
                 other_matches: others.length,
                 indexed_at: top.indexed_at,
                 previous_approved: false,
@@ -829,6 +830,75 @@ serve(async (req) => {
         // This prevents rejected/pending attempts from poisoning duplicate search.
       } catch (e) {
         console.warn("[face-verification-analyze] duplicate check skipped:", e instanceof Error ? e.message : e);
+      }
+    }
+
+    // Provider indexes only faces that passed after the provider was enabled.
+    // For older already-verified accounts, run a bounded Rekognition fallback
+    // against approved profile avatars so the second account is still caught.
+    if (!duplicateBlock && !frontError) {
+      try {
+        const { data: approvedProfiles } = await supabaseAdmin
+          .from("profiles")
+          .select("id,display_name,app_uid,avatar_url,face_verification_image,is_face_verified,face_verification_status,host_status")
+          .neq("id", userId)
+          .or("is_face_verified.eq.true,face_verification_status.eq.approved,host_status.eq.approved")
+          .order("updated_at", { ascending: false })
+          .limit(LEGACY_DUPLICATE_SCAN_LIMIT);
+
+        let bestLegacyCandidate: Record<string, unknown> | null = null;
+        for (const candidate of approvedProfiles || []) {
+          const candidateUrl = ((candidate as any).face_verification_image as string | null) || (candidate.avatar_url as string | null) || null;
+          if (!candidateUrl) continue;
+          try {
+            const candidateBytes = await fetchImageBytes(candidateUrl, supabaseAdmin);
+            const candidateDet = await detectFaces(candidateBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const candidateFaceCount = ((candidateDet.FaceDetails as unknown[] | undefined) ?? []).length;
+            if (candidateFaceCount !== 1) continue;
+            const similarity = await compareFaces(candidateBytes, frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const previousBest = Number(bestLegacyCandidate?.similarity || 0);
+            if (similarity > previousBest) {
+              bestLegacyCandidate = {
+                previous_user_id: candidate.id,
+                previous_display_name: candidate.display_name || null,
+                previous_app_uid: candidate.app_uid || null,
+                previous_avatar: candidate.avatar_url || null,
+                previous_face_image: (candidate as any).face_verification_image || null,
+                similarity,
+                source: "rekognition_legacy_approved_profile_scan",
+                previous_approved: true,
+              };
+            }
+          } catch (_candidateErr) {
+            // Skip one bad historical avatar; never block the whole analysis.
+          }
+        }
+
+        if (bestLegacyCandidate && Number(bestLegacyCandidate.similarity || 0) >= DUPLICATE_FACE_MIN_SIMILARITY) {
+          duplicateFields = {
+            is_duplicate_face: true,
+            duplicate_face_user_id: bestLegacyCandidate.previous_user_id,
+            duplicate_face_name: bestLegacyCandidate.previous_display_name,
+            duplicate_face_uid: bestLegacyCandidate.previous_app_uid,
+            duplicate_face_avatar: bestLegacyCandidate.previous_avatar,
+          };
+          duplicateBlock = {
+            previous_user_id: bestLegacyCandidate.previous_user_id,
+            previous_display_name: bestLegacyCandidate.previous_display_name,
+            previous_app_uid: bestLegacyCandidate.previous_app_uid,
+            similarity: bestLegacyCandidate.similarity,
+            other_matches: 1,
+            indexed_at: null,
+            source: bestLegacyCandidate.source,
+            previous_approved: true,
+          };
+          const prevName = (bestLegacyCandidate.previous_display_name as string | null) || null;
+          const prevUid = (bestLegacyCandidate.previous_app_uid as string | null) || null;
+          duplicateNote = `Duplicate face detected by approved-account fallback — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${Number(bestLegacyCandidate.similarity).toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+          duplicateSearchCompleted = true;
+        }
+      } catch (e) {
+        console.warn("[face-verification-analyze] legacy duplicate scan skipped:", e instanceof Error ? e.message : e);
       }
     }
 
@@ -914,13 +984,12 @@ serve(async (req) => {
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
     // Three-way identity gate: profile photo + recorded video frame + live scan
-    // must all confidently resolve to the same person. Anything below the
-    // auto-pass threshold is treated as not-same-person and rejected; missing or
-    // unreadable evidence stays manual-review instead of approval.
-    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < 85) ||
+    // must resolve to the same person at the owner-approved 55% minimum. Hard
+    // fraud (duplicate/ban) is handled separately with stricter gates.
+    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY) ||
       (hostGalleryComplete && hostPhotosMismatch));
     const evidenceSamePerson = evidenceComplete &&
-      evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= 85) &&
+      evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= SAME_PERSON_MIN_SIMILARITY) &&
       (!hostGalleryComplete || !hostPhotosMismatch);
 
     rekognition.evidence_complete = evidenceComplete;
@@ -964,7 +1033,7 @@ serve(async (req) => {
     // POLICY (Updated F3 2026-06-26):
     //   User-visible auto-reject is allowed ONLY for hard fraud:
     //   1) the same face already belongs to another account, or
-    //   2) a highly confident account-gender mismatch.
+    //   2) the face/device/network is on the ban list.
     //   Liveness/replay/photo/profile/gallery quality problems block
     //   auto-approve and stay Pending for manual admin review.
     // ────────────────────────────────────────────────────────────────────
@@ -972,24 +1041,6 @@ serve(async (req) => {
     const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
       ? finalGenderForDecision
       : rawG;
-    const strictGenderMismatch = Boolean(
-      expectedGender &&
-      (expectedGender === "male" || expectedGender === "female") &&
-      (detectedGenderForDecision === "male" || detectedGenderForDecision === "female") &&
-      detectedGenderForDecision !== expectedGender &&
-      genderConf >= 70 &&
-      !frontError
-    );
-    const hardGenderMismatch = Boolean(
-      expectedGender &&
-      (expectedGender === "male" || expectedGender === "female") &&
-      rawG !== "unknown" &&
-      rawG !== expectedGender &&
-      genderConf >= 90 &&
-      !frontError &&
-      !genderConflict
-    );
-
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
@@ -1010,7 +1061,14 @@ serve(async (req) => {
       if (hardAutoReject === "duplicate_face") {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
-        rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
+        const dUserId = (duplicateBlock as any).previous_user_id || "";
+        const duplicatePayload = JSON.stringify({
+          user_id: dUserId,
+          name: dName,
+          uid: dUid,
+          avatar: (duplicateFields.duplicate_face_avatar as string) || "",
+        });
+        rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
       }
@@ -1069,7 +1127,7 @@ serve(async (req) => {
         intro_video: "intro_video",
       };
       const failedEvidence = evidenceChecks
-        .filter((c) => typeof c.score === "number" && (c.score as number) < 85)
+        .filter((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY)
         .map((c) => ({
           label: c.label,
           human_name: labelToHumanName[c.label] || c.label,
@@ -1139,7 +1197,7 @@ serve(async (req) => {
     // Other non-fraud soft signals (liveness/replay/profile/gallery/quality and
     // lower-confidence gender signals) are NOT user-visible instant rejects, but
     // they also must NOT be auto-approved. Keep the row Pending/Under Review so
-    // admin can decide. Hard fraud duplicate/gender cases already returned above.
+    // admin can decide. Hard fraud duplicate/banned-face cases already returned above.
     let autoResult: Record<string, unknown> | null = null;
     // ★ SECURITY GATE (P0 hardening 2026-06-18): Auto-approve is ONLY safe when
     //    BOTH AWS Rekognition (compare/detect) AND the external liveness +
@@ -1155,9 +1213,7 @@ serve(async (req) => {
         ? "photo_video_live_evidence_missing"
         : !evidenceSamePerson
           ? "photo_video_live_identity_review"
-          : strictGenderMismatch
-        ? "gender_mismatch_manual_review"
-        : livenessFailed
+          : livenessFailed
             ? "liveness_failed_manual_review"
             : replaySuspected
               ? "replay_suspected_manual_review"

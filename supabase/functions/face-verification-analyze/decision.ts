@@ -11,7 +11,7 @@
 //   SOFT RETRY (status=needs_retry, user can re-upload only failing items)
 //     - All required evidence (profile photo, face video frame, and for hosts
 //       intro video frame) was readable, but at least one CompareFaces score
-//       against the live front scan is < SIMILARITY_THRESHOLD (85%), OR the
+//       against the live front scan is < SIMILARITY_THRESHOLD (55%), OR the
 //       host gallery photos don't all match the live face.
 //   MANUAL REVIEW (status stays pending/submitted)
 //     - Liveness provider unavailable / unreachable
@@ -20,12 +20,11 @@
 //     - Pending duplicate candidate (not yet approved on the other account)
 //     - Required evidence missing/unreadable
 //   AUTO APPROVE
-//     - Host: profile photo + face video + intro video all >= 85% to live scan.
-//     - User: profile photo + face video all >= 85% to live scan.
+//     - Host: profile photo + face video + intro video all >= 55% to live scan.
+//     - User: profile photo + face video all >= 55% to live scan.
 //   Gender check is NO LONGER used for reject or manual review — owner rule.
 
-export const SIMILARITY_THRESHOLD = 85;
-export const HARD_GENDER_CONF = 90;
+export const SIMILARITY_THRESHOLD = 55;
 
 export type VerificationType = "host" | "user";
 

@@ -1830,14 +1830,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Star,
       label: "Host Registration",
       path: "/host-verification",
-      rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
+      rightText: faceVerificationUnderReview ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
       rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-pink-600",
       highlight: !faceVerificationUnderReview,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-display",
       show: canApplyForHost,
       onClick: faceVerificationUnderReview ? () => {
-        toast({ title: "Pending Review", description: "Your host application is being reviewed by our team. Please wait." });
+        toast({ title: "Under Review", description: "Your host application is being reviewed by our team. Please wait." });
       } : undefined,
     },
     // Face Verification — only for non-host-candidate users (males); females use Host Registration
@@ -1845,14 +1845,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: UserCheck,
       label: "Face Verification",
       path: faceVerificationUnderReview ? "" : "/face-verification",
-      rightText: faceVerificationUnderReview ? "Pending" : faceVerificationRejected ? "Rejected - Retry" : "Required",
+      rightText: faceVerificationUnderReview ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Required",
       rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full",
       highlight: !faceVerificationUnderReview,
       iconBg: faceVerificationUnderReview ? "bg-yellow-50 border border-yellow-200" : "bg-amber-100",
       iconColor: faceVerificationUnderReview ? "text-yellow-600" : "text-amber-500",
       show: isOwnProfile && !isFaceVerified && !canApplyForHost, // hidden for females (they see Host Registration)
       onClick: faceVerificationUnderReview ? () => {
-        toast({ title: "Pending Review", description: "Your face verification is being reviewed by our team. Please wait." });
+        toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
       } : undefined,
     },
     {
@@ -2231,7 +2231,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Verified Badge - Premium - Bottom Right Position */}
           {isOwnProfile && !isFaceVerified && faceVerificationUnderReview && (
             <div className="absolute -bottom-1 -right-1 z-40">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border-2 border-white flex items-center justify-center shadow-lg shadow-yellow-500/40" title="Face verification pending">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border-2 border-white flex items-center justify-center shadow-lg shadow-yellow-500/40" title="Face verification under review">
                 <Clock3 className="w-4 h-4 text-white" />
               </div>
             </div>
