@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCall } from './CallProvider';
+import { useCall } from './CallContext';
 import { toast as sonnerToast } from 'sonner';
 
 /**
