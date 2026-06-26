@@ -138,7 +138,7 @@ const getLocalizedMessages = (_countryName?: string) => ({
 });
 
 const photoFrameClass = "relative mx-auto w-full max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden border border-white/70 bg-gradient-to-br from-white via-amber-50 to-pink-50 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
-const photoImageClass = "w-full h-full object-cover object-[50%_38%]";
+const photoImageClass = "absolute inset-0 w-full h-full object-contain bg-slate-900";
 const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10";
 const photoGuideClass = "pointer-events-none absolute inset-[12%] rounded-[45%] border-2 border-white/80 shadow-[0_0_0_999px_rgba(15,23,42,0.10)]";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
