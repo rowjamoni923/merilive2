@@ -529,7 +529,7 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "border-danger/60";
+      if (user.isLive) return "border-brand/45";
       if (displayLevel >= 40) return "border-warning/55";
       if (displayLevel >= 20) return "border-brand/45";
       if (displayLevel >= 10) return "border-info/45";
@@ -538,7 +538,7 @@ const Index = () => {
 
     const getCardShadow = (): string => {
       if (user.isLive)
-        return '0 10px 24px -8px hsl(var(--danger) / 0.35), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
+        return '0 10px 24px -8px hsl(var(--brand) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
       if (displayLevel >= 40)
         return '0 10px 24px -8px hsl(var(--warning) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.6)';
       if (displayLevel >= 20)
