@@ -7,8 +7,9 @@
 - APK rebuild: not required — this is WebView/React UI only.
 
 ### Research citations
-- Smile ID Docs — SmartSelfie Capture: on-device checks are used to capture perfect selfies before submission.
-- Smile ID Docs — React Native Selfie Capture / Selfie and ID Capture: selfie capture is a dedicated full-frame capture step returned to the app workflow.
+- Smile ID Docs — SmartSelfie Capture (`https://docs.usesmileid.com/integration-options/mobile/android/smile-id-sdk/smartselfie-capture`): on-device checks are used to capture perfect selfies before submission.
+- Smile ID Docs — React Native Selfie and ID Capture (`https://docs.usesmileid.com/integration-options/mobile/react-native/selfie-and-id-card-capture`): selfie capture is a dedicated full-frame capture step returned to the app workflow.
+- Onfido Web SDK (`https://documentation.onfido.com/sdk/web/9.0.0/`): professional IDV flows use guided capture surfaces rather than covering the captured face with UI.
 
 ## লক্ষ্য
 
