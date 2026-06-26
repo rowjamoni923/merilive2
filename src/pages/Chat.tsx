@@ -490,8 +490,6 @@ const Chat = () => {
   const playedGiftMessageIdsRef = useRef<Set<string>>(new Set());
   const playedGiftStorageUserRef = useRef<string | null>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
-  const lastScrollConvIdRef = useRef<string | null>(null);
-  const initialScrollDoneRef = useRef(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadBelow, setUnreadBelow] = useState(0);
   const chatThreadKey = selectedConversation?.id || selectedGroup?.id || null;
@@ -1636,8 +1634,6 @@ const Chat = () => {
         .eq('id', otherUserId)
         .maybeSingle();
 
-      lastScrollConvIdRef.current = null;
-      initialScrollDoneRef.current = false;
       wasNearBottomRef.current = true;
       setMessages([]);
       setGroupMessages([]);
@@ -1679,8 +1675,6 @@ const Chat = () => {
         last_message: '',
         unread_count: 0
       });
-      lastScrollConvIdRef.current = null;
-      initialScrollDoneRef.current = false;
       wasNearBottomRef.current = true;
       setVisibleMessageCount(MESSAGES_PAGE_SIZE);
       setShowScrollToBottom(false);
@@ -2028,8 +2022,6 @@ const Chat = () => {
   };
 
   const handleSelectConversation = async (conv: Conversation) => {
-    lastScrollConvIdRef.current = null;
-    initialScrollDoneRef.current = false;
     wasNearBottomRef.current = true;
     setSelectedConversation(conv);
     setSelectedGroup(null);
@@ -2057,8 +2049,6 @@ const Chat = () => {
   };
 
   const handleSelectGroup = (group: Group) => {
-    lastScrollConvIdRef.current = null;
-    initialScrollDoneRef.current = false;
     wasNearBottomRef.current = true;
     setSelectedGroup(group);
     setSelectedConversation(null);
