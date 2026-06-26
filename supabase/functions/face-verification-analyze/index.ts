@@ -564,12 +564,7 @@ serve(async (req) => {
                   AWS_SECRET_ACCESS_KEY,
                   AWS_REGION,
                 );
-                // F5 (industry-tuned, 2026-06-09): AWS Rekognition recommends 80%
-                // similarity floor for "same person". Chamet / Bigo / Holla treat
-                // <80% profile-vs-live as mismatch. Was 65 (too lenient — allowed
-                // sibling / cousin photos through). Raised 65 → 85 so only confident
-                // matches auto-pass; borderline 70-84% now goes to manual review.
-                profileMismatch = profileMatchScore < 85;
+                profileMismatch = profileMatchScore < SAME_PERSON_MIN_SIMILARITY;
               } catch (e) {
                 profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
               }
@@ -617,12 +612,7 @@ serve(async (req) => {
           );
           hostPhotoScores.push({ url: hp, score });
           if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
-          // F5 (industry-tuned, 2026-06-09): gallery photos are often filtered /
-          // beautified, so we allow a wider band than profile-vs-live. Pro apps
-          // (Chamet / Bigo / Holla) use ~72-80% for gallery cross-check. Was 60
-          // (too permissive — fake gallery slipped through). Raised 60 → 80 so
-          // host can't pair real face with a different person's gallery shots.
-          if (score < 80) hostPhotosMismatch = true;
+          if (score < SAME_PERSON_MIN_SIMILARITY) hostPhotosMismatch = true;
         } catch (e) {
           hostPhotoScores.push({
             url: hp,
