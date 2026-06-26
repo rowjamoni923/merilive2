@@ -21597,6 +21597,10 @@ export type Database = {
         Args: { amount: number; recipient_uid: string }
         Returns: Json
       }
+      complete_face_verification_submission_uploads: {
+        Args: { _payload: Json; _submission_id: string }
+        Returns: boolean
+      }
       complete_gateway_helper_topup: {
         Args: {
           p_gateway: string
