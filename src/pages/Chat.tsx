@@ -24,6 +24,7 @@ import { SmartVideo } from "@/components/chat/SmartVideo";
 const EmojiPicker = lazy(() => import("@/components/chat/EmojiPicker").then(m => ({ default: m.EmojiPicker })));
 const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(m => ({ default: m.MediaUploader })));
 import { usePersistedCache } from "@/hooks/usePersistedCache";
+import { loadChatSnapshot, saveChatSnapshot } from "@/utils/chatSnapshots";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
 import { emitInboxTyping } from "@/hooks/useInboxTyping";
@@ -425,6 +426,22 @@ const Chat = () => {
       return sameMessageOrder(prev, next) ? prev : next;
     });
   }, [groupMessages]);
+
+  // Phase 7 — Instant Paint: keep the localStorage snapshot of the active
+  // thread in sync with subsequent realtime inserts / optimistic sends so the
+  // next reopen also paints in <16ms. Debounced via rAF + 400ms idle.
+  const snapshotConvIdRef = useRef<string | null>(null);
+  useEffect(() => { snapshotConvIdRef.current = selectedConversation?.id ?? null; });
+  useEffect(() => {
+    const convId = selectedConversation?.id;
+    if (!convId || !messages.length) return;
+    const t = setTimeout(() => {
+      if (snapshotConvIdRef.current === convId) {
+        try { saveChatSnapshot(convId, messages); } catch {}
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [messages, selectedConversation?.id]);
 
   useEffect(() => {
     const paths = [...messages, ...groupMessages]
@@ -2020,6 +2037,16 @@ const Chat = () => {
 
 
   const fetchMessages = async (conversationId: string) => {
+    // Phase 7 — Instant Paint. Synchronously hydrate from the localStorage
+    // snapshot of this thread BEFORE the network roundtrip so the UI shows
+    // the prior view in <16ms. Server data overwrites below once it lands.
+    try {
+      const snap = loadChatSnapshot(conversationId);
+      if (snap && snap.length) {
+        setMessages((prev) => (prev && prev.length ? prev : (snap as Message[])));
+      }
+    } catch {}
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -2043,7 +2070,10 @@ const Chat = () => {
           _optimistic: true,
         }) as any)
       : [];
-    setMessages(dedupeAndSortMessages([...serverMsgs, ...queued]));
+    const merged = dedupeAndSortMessages([...serverMsgs, ...queued]);
+    setMessages(merged);
+    // Phase 7 — persist the freshly-merged thread.
+    try { saveChatSnapshot(conversationId, merged); } catch {}
 
     // Fetch reply-to messages for quote rendering
     const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
