@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, Suspense, lazy, useCallbac
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
-import { detectAndProcessViolation } from "@/utils/contactDetection";
+import { detectAndProcessViolation, isContactRestrictedHost } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
@@ -478,7 +478,7 @@ const Chat = () => {
     conversationKey: reactionConvKey,
     messageIds: activeMessageIds,
   });
-  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean; is_agency_owner?: boolean | null } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -1501,7 +1501,7 @@ const Chat = () => {
       
       // Parallel fetch - coins + conversations + groups at once
       const [profileResult] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', user.id).single(),
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_agency_owner').eq('id', user.id).single(),
         fetchConversations(user.id),
         fetchGroups(user.id)
       ]);
@@ -1516,6 +1516,7 @@ const Chat = () => {
           max_user_level: (profileResult.data as any).max_user_level ?? null,
           gender: (profileResult.data as any).gender || null,
           is_host: profileResult.data.is_host === true,
+          is_agency_owner: (profileResult.data as any).is_agency_owner === true,
         });
       }
     } catch (error) {
@@ -2187,7 +2188,7 @@ const Chat = () => {
     // numbers / social handles. user↔user, user↔agency, agency↔agency, user→host,
     // agency→host all flow freely with no mask, no warning, no admin alert.
     let contentToSend = originalContent;
-    const senderIsHost = myProfile?.is_host === true;
+    const senderIsHost = isContactRestrictedHost(myProfile);
     if (senderIsHost) {
       const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
       const detection = detectContactInfo(originalContent);
@@ -3451,10 +3452,10 @@ const Chat = () => {
                     if (!pendingMedia) return;
                     if (!currentUserId) return;
                     try {
-                      // 🔍 Image OCR — only when at least one side is a verified host
-                      const imgRecipientIsHost = selectedConversation?.other_user?.is_host === true;
-                      const imgSenderIsHost = myProfile?.is_host === true;
-                      if (pendingMedia.type === 'image' && currentUserId && (imgSenderIsHost || imgRecipientIsHost)) {
+                      // 🔍 Image OCR — only when the sender is a real verified host.
+                      // Agencies/users may share payment/contact images freely.
+                      const imgSenderIsHost = isContactRestrictedHost(myProfile);
+                      if (pendingMedia.type === 'image' && currentUserId && imgSenderIsHost) {
                         const { checkImageFilename } = await import('@/utils/imageContactDetection');
                         const filename = pendingMedia.url.split('/').pop() || '';
                         if (checkImageFilename(filename)) {

@@ -23,7 +23,7 @@ import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
 import { useBeautyState } from "@/hooks/useBeautyState";
-import { detectAndProcessViolation } from "@/utils/contactDetection";
+import { detectAndProcessViolation, isContactRestrictedHost } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -271,6 +271,7 @@ const LiveStream = () => {
     id: string;
     coins: number;
     is_host?: boolean;
+    is_agency_owner?: boolean | null;
     display_name?: string;
     avatar_url?: string;
     user_level?: number;
@@ -1240,7 +1241,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, is_agency_owner, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -1257,6 +1258,7 @@ const LiveStream = () => {
           id: cachedUser!.id,
           coins: profileCoins,
           is_host: profile.is_host === true,
+          is_agency_owner: (profile as any).is_agency_owner === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: Number(profile.user_level ?? 0),
@@ -2684,7 +2686,7 @@ const LiveStream = () => {
     // 🔍 Contact info masking — ONLY when sender is a verified host.
     // Rule (owner-locked): viewers/users/agencies may share numbers freely in
     // live chat; only verified hosts are prohibited.
-    const senderIsHost = currentUser?.is_host === true;
+    const senderIsHost = isContactRestrictedHost(currentUser);
     const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
     const detection = senderIsHost ? detectContactInfo(messageText) : { hasViolation: false } as any;
 

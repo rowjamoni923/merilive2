@@ -290,3 +290,22 @@ Patch scope:
 - Dialog content now uses stable center positioning with no transform-based open/close animation on the centered element.
 - Incoming styles are merged without replacing the core centered transform / momentum-scroll / keyboard padding safeguards.
 - Shop preview modal gets a `100dvh - 32px` max-height and stable mobile width so entry/portrait previews scroll inside the modal while the modal itself remains in the visual middle.
+
+---
+
+# Phase 17 — Contact sharing role gate hardening (2026-06-26)
+
+Research / professional standard:
+- Chamet/Bigo/Poppo-style live apps restrict verified hosts from sharing phone/WhatsApp because it bypasses paid calls/gifts, while official agencies/top-up helpers need contact/payment numbers for local recharge support.
+- Practical rule translated to our LiveKit + Supabase app: gate by sender role only. Recipient being a host must not block a user/agency message.
+
+Verified current gap:
+- Text chat was mostly sender-gated, but image/media contact filename checks still blocked when the recipient was a host, so agency→user/agency and support-style flows could be blocked incorrectly.
+- Private-call audio detection could attribute the current user's spoken number to the remote host when the current user was not host.
+- The DB `process_contact_violation` RPC accepted any caller path and did not explicitly skip agency/helper support roles before deductions/logs.
+
+Patch scope:
+- Direct chat, group chat, live chat, and party-room chat now use the same `isContactRestrictedHost` client helper: `is_host === true` and not an agency owner.
+- Image/contact OCR runs only when the sender is a restricted host, never because the recipient is a host.
+- Edge functions `detect-phone-number`, `scan-image-contact`, and `admin-phone-alert` skip agency owners and verified top-up helpers.
+- `process_contact_violation` now returns a safe skipped result for non-hosts, agency owners, and verified top-up helpers; only real verified hosts can receive deductions/bans.

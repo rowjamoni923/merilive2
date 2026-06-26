@@ -342,6 +342,15 @@ export interface DetectionResult {
   allMatches: string[];
 }
 
+export interface ContactPolicyProfile {
+  is_host?: boolean | null;
+  is_agency_owner?: boolean | null;
+}
+
+export function isContactRestrictedHost(profile: ContactPolicyProfile | null | undefined): boolean {
+  return profile?.is_host === true && profile?.is_agency_owner !== true;
+}
+
 /**
  * Detects phone numbers, social media handles, links, and platform names in text
  */
@@ -558,23 +567,34 @@ export async function processHostViolation(
 }
 
 /**
- * Check if user is a host (is_host = true)
+ * Check if user is a real restricted host.
+ * Agency owners/helpers are support/payment roles and may share numbers.
  */
 export async function checkIsHost(userId: string): Promise<boolean> {
   try {
-    const { data, error } = await supabase
+    const [{ data, error }, { data: helper }] = await Promise.all([
+      supabase
       .from('profiles')
-      .select('is_host')
+        .select('is_host, is_agency_owner')
       .eq('id', userId)
-      .single();
+        .single(),
+      supabase
+        .from('topup_helpers')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('is_verified', true)
+        .maybeSingle(),
+    ]);
 
     if (error) {
       console.error('[ContactDetection] checkIsHost error:', error.message);
       return false;
     }
     if (!data) return false;
-    console.log('[ContactDetection] checkIsHost:', userId, '→', data.is_host);
-    return data.is_host === true;
+    const restricted = isContactRestrictedHost(data) && !helper;
+    console.log('[ContactDetection] checkIsHost:', userId, '→', restricted);
+    return restricted;
   } catch (err) {
     console.error('[ContactDetection] checkIsHost exception:', err);
     return false;
@@ -608,15 +628,25 @@ export async function detectAndProcessViolation(
     return { detected: false };
   }
 
-  // Resolve sender role — only verified hosts are subject to the rule.
+  // Resolve sender role — only real verified hosts are subject to the rule.
+  // Agency owners and verified top-up helpers are official support/payment roles.
   let senderIsHost = false;
   try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_host')
-      .eq('id', senderId)
-      .single();
-    senderIsHost = data?.is_host === true;
+    const [{ data }, { data: helper }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('is_host, is_agency_owner')
+        .eq('id', senderId)
+        .single(),
+      supabase
+        .from('topup_helpers')
+        .select('id')
+        .eq('user_id', senderId)
+        .eq('is_active', true)
+        .eq('is_verified', true)
+        .maybeSingle(),
+    ]);
+    senderIsHost = isContactRestrictedHost(data) && !helper;
   } catch {}
 
   if (!senderIsHost) {

@@ -342,7 +342,7 @@ serve(async (req) => {
     // user→host, agency→host all flow freely. Sender-is-host = block.
     const { data: userProfile } = await supabase
       .from('profiles')
-      .select('id, is_host, display_name, app_uid, beans_balance, phone_violation_count')
+      .select('id, is_host, is_agency_owner, display_name, app_uid, beans_balance, phone_violation_count')
       .eq('id', userId)
       .single();
 
@@ -354,10 +354,19 @@ serve(async (req) => {
       );
     }
 
-    // 🛡️ Hard gate — non-host senders may share contact info freely.
-    if (userProfile.is_host !== true) {
+    const { data: helperProfile } = await supabase
+      .from('topup_helpers')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .eq('is_verified', true)
+      .maybeSingle();
+
+    // 🛡️ Hard gate — only real verified hosts are restricted.
+    // Agency owners / verified top-up helpers are payment support roles.
+    if (userProfile.is_host !== true || userProfile.is_agency_owner === true || helperProfile) {
       return new Response(
-        JSON.stringify({ detected: false, reason: 'sender_not_host' }),
+        JSON.stringify({ detected: false, reason: userProfile.is_agency_owner === true ? 'sender_is_agency_owner' : helperProfile ? 'sender_is_helper' : 'sender_not_host' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

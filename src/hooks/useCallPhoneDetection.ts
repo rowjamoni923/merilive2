@@ -37,6 +37,9 @@ export function useCallPhoneDetection({
 
   // Send audio for transcription and check for phone numbers
   const processAudioChunk = useCallback(async (audioBlob: Blob) => {
+    // Owner-locked rule: only verified hosts are restricted from sharing
+    // phone/contact numbers. User/agency speech must never create a host alert.
+    if (!isHost) return;
     if (audioBlob.size < 1000) return; // Skip too small chunks
 
     try {
@@ -77,16 +80,16 @@ export function useCallPhoneDetection({
           setDetections(prev => [...prev, newDetection]);
 
           // Send alert to admin
-          const violatorId = isHost ? userId : remoteUserId;
+          const violatorId = userId;
           const { data: alertData } = await supabase.functions.invoke('admin-phone-alert', {
             body: {
               userId: violatorId,
               detectedContent: detection.matches.join(', '),
               contextType: 'video_call',
               callId,
-              hostId: isHost ? userId : remoteUserId,
-              callerName: isHost ? remoteUserName : 'You',
-              hostName: isHost ? 'You' : remoteUserName,
+              hostId: userId,
+              callerName: remoteUserName,
+              hostName: 'You',
             }
           });
 
