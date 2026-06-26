@@ -85,7 +85,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // ============ ONLINE STATUS ============
-  const setOnlineStatus = useCallback(async (uid: string) => {
+  const setOnlineStatus = useCallback(async (uid: string, opts?: { force?: boolean }) => {
     // Only hosts can go manually offline; regular users are ALWAYS online
     if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true' && isHost) {
       if (import.meta.env.DEV) console.info('[Presence] 🔴 Host is manually offline, skipping heartbeat');
@@ -93,12 +93,14 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     const now = Date.now();
-    if (now - lastOnlineSet.current < 10000) return;
+    // Throttle normal heartbeats to 2s; force=true bypasses throttle for
+    // instant transitions (call end / back-to-home / live end).
+    if (!opts?.force && now - lastOnlineSet.current < 2000) return;
     lastOnlineSet.current = now;
 
     try {
       await supabase.rpc('sync_host_online_status', { p_user_id: uid, p_is_online: true });
-      if (import.meta.env.DEV) console.info('[Presence] 🟢 Set ONLINE for:', uid);
+      if (import.meta.env.DEV) console.info('[Presence] 🟢 Set ONLINE for:', uid, opts?.force ? '(forced)' : '');
     } catch (e) {
       console.error('[Presence] Failed to set online:', e);
     }
