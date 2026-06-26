@@ -1,0 +1,1 @@
+SELECT cron.unschedule('sweep_pending_face_verifications');
