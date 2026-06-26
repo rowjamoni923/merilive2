@@ -61,11 +61,7 @@ export default function MatchCall() {
           .select("id, coins, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
         if (p) setProfile(p as any);
       }
-      const { count } = await supabase
-        .from("random_call_queue" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("role", "host").eq("status", "waiting");
-      setHostsCount(count || 0);
+      await refreshHostsCount();
     })();
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
