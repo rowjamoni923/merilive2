@@ -15,6 +15,7 @@ import { LevelLockModal } from "@/components/level/LevelLockModal";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
 import { warmRouteForNavigation } from "@/utils/routePrefetch";
+import { isLowEndDevice } from "@/utils/lowEndDevice";
 
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
@@ -50,6 +51,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { profile: realtimeProfile, loading: profileLoading } = useRealtimeProfile(currentUserId);
   const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
+  const lowEnd = useMemo(() => isLowEndDevice(), []);
   const [lockModal, setLockModal] = useState<{ open: boolean; featureName: string; requiredLevel: number; currentLevel: number; isHost: boolean }>({
     open: false,
     featureName: "",
@@ -246,13 +248,16 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         style={{
           zIndex: 9990,
           paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))',
-          background:
-            'linear-gradient(180deg, rgba(255,253,248,0.96) 0%, rgba(252,247,237,0.98) 100%)',
-          backdropFilter: 'saturate(160%) blur(18px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(18px)',
+          background: lowEnd
+            ? '#fffdf8'
+            : 'linear-gradient(180deg, rgba(255,253,248,0.96) 0%, rgba(252,247,237,0.98) 100%)',
+          backdropFilter: lowEnd ? 'none' : 'saturate(160%) blur(18px)',
+          WebkitBackdropFilter: lowEnd ? 'none' : 'saturate(160%) blur(18px)',
           borderTop: '1px solid rgba(201,168,76,0.18)',
-          boxShadow:
-            '0 -10px 28px -14px rgba(120,80,20,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+          boxShadow: lowEnd
+            ? '0 -1px 0 rgba(201,168,76,0.18)'
+            : '0 -10px 28px -14px rgba(120,80,20,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
+          willChange: 'opacity, transform',
         }}
       >
         {/* champagne sheen line on top edge */}
