@@ -2441,7 +2441,9 @@ body[data-admin-active="true"] {
 /* Admin can never coexist with a private-call overlay. If
    call-overlay-active leaked from a previous route, force #root visible so
    admin pages remain interactive and scrollable. */
+html[data-admin-active="true"] body.call-overlay-active #root,
 body[data-admin-active="true"].call-overlay-active #root,
+html[data-admin-active="true"] #root,
 body[data-admin-active="true"] #root {
   visibility: visible !important;
 }
@@ -2482,17 +2484,31 @@ body[data-admin-active="true"] #root {
 
 /* Mobile/Tablet: use NATURAL document scroll — most reliable on iOS/Capacitor */
 @media (max-width: 1023px) {
+  html[data-admin-active="true"] {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
   body[data-admin-active="true"] {
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior-y: auto;
     height: auto !important;
     min-height: 100dvh;
+    position: static !important;
+    touch-action: pan-y pinch-zoom !important;
   }
   body[data-admin-active="true"] #root {
     height: auto !important;
     min-height: 100dvh !important;
     overflow: visible !important;
+    position: static !important;
+    touch-action: pan-y pinch-zoom !important;
   }
   .admin-shell {
     position: static !important;
@@ -2502,6 +2518,7 @@ body[data-admin-active="true"] #root {
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
+    touch-action: pan-y pinch-zoom !important;
   }
   .admin-shell [data-admin-scroll-root="true"] {
     flex: 1 1 auto !important;
@@ -2509,14 +2526,20 @@ body[data-admin-active="true"] #root {
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
-    touch-action: auto !important;
-    -webkit-overflow-scrolling: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   /* Main content wrapper inside .admin-shell (the flex column with h-screen overflow-hidden) */
   .admin-shell > div[class*="flex-col"] {
     height: auto !important;
     min-height: 100dvh !important;
     overflow: visible !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  .admin-content,
+  .admin-content > * {
+    overflow-anchor: auto;
+    touch-action: pan-y pinch-zoom !important;
   }
 }
 
