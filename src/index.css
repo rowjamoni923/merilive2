@@ -5813,6 +5813,27 @@ input[type="reset"],
     opacity: 0.92;
     transition: opacity 60ms linear;
   }
+
+  button,
+  [role="button"],
+  a[href],
+  label,
+  summary,
+  .tap-target,
+  .tappable {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity !important;
+    transition-duration: 80ms !important;
+  }
+
+  button:hover,
+  [role="button"]:hover,
+  a[href]:hover,
+  label:hover,
+  summary:hover,
+  .tap-target:hover,
+  .tappable:hover {
+    transform: none !important;
+  }
 }
 
 /* PkgInstant: no layout-changing press effects. Native Android buttons should
