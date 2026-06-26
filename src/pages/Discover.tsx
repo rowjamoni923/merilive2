@@ -621,8 +621,9 @@ const Discover = () => {
       </div>
 
       {/* Scrollable Room List */}
-      <NativePullToRefresh onRefresh={async () => { await fetchRooms(); }} className="flex-1">
-      <main className="h-full overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+      <NativePullToRefresh onRefresh={async () => { await fetchRooms(); }} className="flex-1 min-h-0 flex flex-col">
+      <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+
         <div className="flex items-center justify-between mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
           <h2 className="font-semibold text-sm text-display flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-money" />
