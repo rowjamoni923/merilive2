@@ -4894,9 +4894,9 @@ a:focus-visible,
   animation: none !important;
 }
 
-.animate-spin,
 .ptr-spinner,
-[data-loading-indicator] .animate-spin,
+[data-loading-indicator="page"] .animate-spin,
+[data-loading-indicator="route"] .animate-spin,
 .premium-spinner,
 [role="status"] svg.animate-spin {
   display: none !important;
