@@ -742,7 +742,14 @@ export function CallProvider({ children }: CallProviderProps) {
 
   return (
     <CallContext.Provider value={{ startCall, endCall: handleEndCall, isInCall }}>
+      {/* Global persistent camera bridge — paints the warm MediaStream
+          during route swaps (GoLive → LiveStream, CreateParty → PartyRoom,
+          idle → ActiveCall) so users never see a camera off→on flicker.
+          Self-renders null when no camera is open. Native Android no-op. */}
+      <PersistentCameraSurface />
+
       {children}
+
 
       {/* Phase-3 C1: keep the global notifications realtime channel mounted
           inside the authenticated provider tree — no Suspense, no public-page

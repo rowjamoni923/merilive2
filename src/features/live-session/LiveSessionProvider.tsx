@@ -151,7 +151,9 @@ export function LiveSessionProvider({
 
   return (
     <LiveSessionContext.Provider value={value}>
-      <PersistentCameraSurface active={cameraHeld} />
+      {/* Global PersistentCameraSurface lives in CallProvider — see
+          src/components/media/PersistentCameraSurface.tsx. It bridges
+          every route swap (preview → broadcast → ended) without unmounting. */}
       {children}
     </LiveSessionContext.Provider>
   );

@@ -146,7 +146,9 @@ export function PartySessionProvider({
 
   return (
     <PartySessionContext.Provider value={value}>
-      <PersistentCameraSurface active={mode === 'video' || mode === 'game'} />
+      {/* Global PersistentCameraSurface lives in CallProvider — see
+          src/components/media/PersistentCameraSurface.tsx. It bridges
+          every route swap (create → in-room) without unmounting. */}
       {children}
     </PartySessionContext.Provider>
   );
