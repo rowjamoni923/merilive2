@@ -114,7 +114,8 @@ const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
   '/discover': () => import('@/pages/Discover'),
   '/live': () => import('@/pages/Live'),
   '/live-feed': () => import('@/pages/LiveStreamFeed'),
-  '/go-live': () => import('@/pages/GoLive'),
+  '/go-live': () => import('@/pages/LiveSessionPage'),
+  '/live-session': () => import('@/pages/LiveSessionPage'),
   '/profile': () => import('@/pages/Profile'),
   '/settings': () => import('@/pages/Settings'),
   '/settings/blacklist': () => import('@/pages/settings/Blacklist'),
@@ -168,7 +169,9 @@ const GENERIC_ROUTES: Record<string, () => Promise<unknown>> = {
   '/my-recordings': () => import('@/pages/MyRecordings'),
   '/tags': () => import('@/pages/Tags'),
   '/party-rooms': () => import('@/pages/PartyRooms'),
-  '/create-party': () => import('@/pages/CreateParty'),
+  '/create-party': () => import('@/pages/PartySessionPage'),
+  '/party-session': () => import('@/pages/PartySessionPage'),
+  '/match-call': () => import('@/pages/MatchCall'),
   '/reels': () => import('@/pages/Reels'),
   '/host-verification': () => import('@/pages/FaceVerification'),
   '/face-verification': () => import('@/pages/FaceVerification'),
@@ -214,10 +217,12 @@ export function installRoutePrefetch() {
   installed = true;
 
   const runAfterInput = (cb: () => void) => {
-    // Keep pointerdown under budget: never import chunks / walk route tables on
-    // the same critical input frame. Wait for the next paint, then run a
-    // macrotask so native tap feedback + pointerup/click stay responsive.
-    window.requestAnimationFrame(() => window.setTimeout(cb, 0));
+    // Start the network request before pointerup/click. Deferring to rAF made
+    // the click win the race, so lazy routes still showed a 3-4s wait on
+    // Android WebView. A microtask keeps the pointerdown handler tiny while
+    // giving the destination chunk a real head-start.
+    if (typeof window.queueMicrotask === 'function') window.queueMicrotask(cb);
+    else Promise.resolve().then(cb);
   };
 
   const handler = (ev: Event) => {
@@ -235,6 +240,16 @@ export function installRoutePrefetch() {
         else if (kind === 'party') prefetchPartyRoom(hinted.dataset.roomId || undefined);
         else if (kind === 'profile') prefetchProfileDetail();
         else if (kind === 'chat') prefetchChat();
+        else if (kind === 'route' && hinted.dataset.prefetchPath) warmRouteForNavigation(hinted.dataset.prefetchPath);
+        return;
+      }
+
+      // Explicit generic path for <button onClick={() => navigate('/x')}>.
+      // Buttons have no href, so without this hint they cannot warm chunks
+      // before React Router starts navigation.
+      const pathHinted = target.closest<HTMLElement>('[data-prefetch-path]');
+      if (pathHinted?.dataset.prefetchPath) {
+        warmRouteForNavigation(pathHinted.dataset.prefetchPath);
         return;
       }
 

@@ -329,6 +329,21 @@ img {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* Native tap response: press feedback must never run scale/translate transforms.
+   Those transforms force extra composition work and make taps feel 3-4s late on
+   Android WebView under load. Keep feedback opacity-only, like native apps. */
+[class*="active:scale"]:active,
+[class*="active\\:scale"]:active {
+  transform: none !important;
+}
+
+@media (hover: none) {
+  [class*="hover:-translate"]:hover,
+  [class*="hover\\:-translate"]:hover {
+    transform: none !important;
+  }
+}
+
 
 /* ============================================
    Pkg434 — Pass 4: Native Visual Feedback Polish
@@ -5941,6 +5956,12 @@ img[data-fade-in],
 @keyframes imgFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes routeLoadSlide {
+  0% { transform: translateX(-110%); }
+  50% { transform: translateX(55%); }
+  100% { transform: translateX(220%); }
 }
 
 /* Keyboard-open layout thrash guard. When `--kb-h` jumps from 0 to

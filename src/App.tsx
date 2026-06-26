@@ -406,6 +406,22 @@ import { BlankScreenGuard } from "@/components/common/BlankScreenGuard";
 const AdminChunkLoader = memo(() => null);
 AdminChunkLoader.displayName = "AdminChunkLoader";
 
+const RouteChunkFallback = memo(() => (
+  <div
+    className="fixed inset-0 z-[9997] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+14px)]"
+    style={{
+      background:
+        'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 34%), linear-gradient(180deg, #fffaf3 0%, #fff5fb 48%, #f8fafc 100%)',
+    }}
+    aria-label="Loading page"
+  >
+    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-primary/15 shadow-[0_6px_20px_-8px_hsl(var(--primary)/0.65)]">
+      <div className="h-full w-1/2 animate-[routeLoadSlide_0.72s_ease-in-out_infinite] rounded-full bg-gradient-primary" />
+    </div>
+  </div>
+));
+RouteChunkFallback.displayName = "RouteChunkFallback";
+
 // =============================================
 // MAIN APP COMPONENT
 // =============================================
@@ -1301,7 +1317,7 @@ const App = () => {
                     <TabKeepAliveHost />
                   )}
                   {/* No fake fallback UI: keep previous real screen via BlankScreenGuard. */}
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<RouteChunkFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share

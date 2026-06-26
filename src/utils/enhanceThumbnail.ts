@@ -3,7 +3,7 @@
  *
  * Routes Live/Premium card thumbnails through the free images.weserv.nl CDN
  * with luxurious tuning: high-quality re-encode, smart sharpen, mild contrast,
- * progressive (interlaced) WebP output. Result: photos look crisp, polished
+ * non-interlaced WebP output. Result: photos look crisp, polished
  * and professional — like an AI-upscaled magazine cover — without any per-view
  * AI cost or latency.
  *
@@ -46,7 +46,6 @@ export function enhanceThumbnail(
     w: String(width * 2),     // 2x for retina sharpness
     q: String(quality),
     output: "webp",           // smaller + better quality than jpg
-    il: "",                   // interlaced/progressive
     sharp: String(sharpen),   // smart sharpen
     af: "",                   // adaptive filter
     we: "",                   // without enlargement (don't upscale tiny images poorly)

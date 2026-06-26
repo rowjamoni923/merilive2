@@ -314,20 +314,34 @@ const Index = () => {
   const isDefaultView = subTab === "popular" && selectedCountry === "all";
   const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
+  const getHostCardImageUrl = useCallback((host: Partial<Profile> & { isLive?: boolean; liveThumbnailUrl?: string | null }) => {
+    const normalizedLiveThumb = normalizeProfileMediaUrl(host.liveThumbnailUrl) || host.liveThumbnailUrl;
+    if (host.isLive && normalizedLiveThumb) {
+      return enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 });
+    }
+
+    const avatar = resolveFeedAvatar(
+      host.id || "host",
+      host.avatar_url,
+      currentUserId,
+      (host.is_host || host.gender === 'female') ? 'female' : (host.gender === 'male' ? 'male' : 'female')
+    );
+    return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
+  }, [currentUserId]);
+
   // Pkg428 Phase-9 — native Glide prefetch for first-screen avatars + live
   // thumbnails. No-op on web/iOS or when flag is off. Drastically reduces
   // image jank when killed-cold scroll begins on Android.
   const nativePrefetchUrls = useMemo(
     () => {
       const tier = getConnectionTier();
-      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 8 : tier === "3g" ? 30 : 80;
       return displayHosts
         .slice(0, max)
-        .flatMap((h) => [h.avatar_url, h.liveThumbnailUrl])
-        .map((u) => (u ? normalizeProfileMediaUrl(u) || u : null))
+        .map((h) => getHostCardImageUrl(h))
         .filter((u): u is string => !!u);
     },
-    [displayHosts]
+    [displayHosts, getHostCardImageUrl]
   );
   useNativeImagePrefetch(nativePrefetchUrls);
 
@@ -358,10 +372,10 @@ const Index = () => {
     // Pre-warm avatar URLs + live thumbnail URLs for instant rendering,
     // without flooding weaker/data-saver networks.
     const tier = getConnectionTier();
-    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 8 : tier === "3g" ? 30 : 80;
     const warmableUrls = hosts
       .slice(0, warmImageLimit)
-      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
+      .map((host) => getHostCardImageUrl(host))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
     if (warmableUrls.length === 0 && liveIdsToWarm.length === 0) {
@@ -376,16 +390,22 @@ const Index = () => {
         warmLiveKitToken(`live_${liveId}`, "viewer_stream").catch(() => {});
       });
 
+      if (navigator.serviceWorker?.controller && warmableUrls.length > 0) {
+        navigator.serviceWorker.controller.postMessage({ type: 'WARM_IMAGES', urls: warmableUrls });
+      }
+
       warmableUrls.forEach((url) => {
         warmedHostImagesRef.current.add(url);
         const img = new Image();
+        try { (img as any).fetchPriority = "high"; } catch {}
         img.decoding = "async";
+        img.onload = () => { if (typeof img.decode === "function") img.decode().catch(() => {}); };
         img.src = url;
       });
     }, 40);
 
     return () => window.clearTimeout(timeoutId);
-  }, [hosts]);
+  }, [hosts, getHostCardImageUrl]);
 
   // Route-local safety net: keep the home host feed live for stream/call status changes.
   useEffect(() => {
@@ -506,11 +526,15 @@ const Index = () => {
       return '0 6px 16px -6px rgba(15,23,42,0.14), 0 2px 4px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.55)';
     };
 
+    const cardImageUrl = getHostCardImageUrl(user);
+
     return (
       <div
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
+        data-prefetch={user.isLive ? "live" : "profile"}
+        data-stream-id={user.liveStreamId}
         className={cn(
-          "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97] transition-all duration-300 hover:-translate-y-0.5",
+          "relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90",
           "bg-card border",
           getBorderGlow()
         )}
@@ -520,30 +544,29 @@ const Index = () => {
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
-            src={(() => {
-              const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
-              if (user.isLive && normalizedLiveThumb) {
-                return enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 });
-              }
-              // Phase 3 Home audit (2026-06-09): industry-standard CDN-resize for
-              // non-live avatars too. Card renders ~180dp × 3.5dpr ≈ 630px, so
-              // width:400 (×2 retina = 800px) is plenty + cuts bandwidth ~70%.
-              // Avoids serving full-resolution 1080p uploaded avatars on G35.
-              const avatar = resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
-              return enhanceThumbnail(avatar, { width: 400, quality: 85, sharpen: 1.0 });
-            })()}
+            key={cardImageUrl}
+            src={cardImageUrl}
             alt={user.display_name || 'User'}
             className={cn(
-              "w-full h-full object-cover bg-muted",
+              "w-full h-full object-cover bg-muted transition-opacity duration-75",
               // Pkg501 (Defect #7): Chamet/Bigo-style subtle Ken-Burns motion
               // on live cards so static thumbnails feel "live". Only applied
               // when host actually has a live thumbnail.
-              user.isLive && user.liveThumbnailUrl && "live-card-kenburns",
+              user.isLive && user.liveThumbnailUrl && "live-card-kenburns opacity-0"
             )}
-            style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
+            style={{
+              filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined,
+              opacity: 0,
+            }}
             loading="eager"
-            {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}
-            decoding={index < 12 ? "sync" : "async"}
+            {...({ fetchpriority: index < 6 ? "high" : "auto" } as any)}
+            decoding="async"
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              const markReady = () => { img.style.opacity = "1"; };
+              if (typeof img.decode === "function") img.decode().then(markReady).catch(markReady);
+              else markReady();
+            }}
             onError={(e) => {
               const img = e.currentTarget;
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
@@ -562,6 +585,7 @@ const Index = () => {
               if (img.src !== fallback && !img.dataset.fellBack) {
                 img.dataset.fellBack = "1";
                 img.src = fallback;
+                img.style.opacity = "1";
               }
 
             }}
@@ -709,7 +733,7 @@ const Index = () => {
         </div>
       </div>
     );
-  }), [handleUserClick, currentUserId, startCall]);
+  }), [handleUserClick, currentUserId, startCall, getHostCardImageUrl]);
 
   const getEmptyMessage = () => {
     switch (subTab) {
@@ -736,8 +760,9 @@ const Index = () => {
           {/* Search Button - Left Side */}
           <button
             aria-label="Search"
+            data-prefetch-path="/search"
             onClick={() => navigate('/search')}
-            className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-all duration-200 bg-card border border-border hover:-translate-y-0.5"
+            className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:opacity-90 touch-manipulation transition-opacity duration-75 bg-card border border-border"
             style={{ boxShadow: '0 4px 10px -3px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(15,23,42,0.04)' }}
           >
             <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
@@ -758,7 +783,7 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "flex-1 min-w-0 px-1.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-95 touch-manipulation flex items-center justify-center gap-1 whitespace-nowrap",
+                    "flex-1 min-w-0 px-1.5 py-1 rounded-full text-[11px] font-semibold transition-opacity duration-75 active:opacity-90 touch-manipulation flex items-center justify-center gap-1 whitespace-nowrap",
                     isActive ? "bg-gradient-primary text-on-dark" : "text-muted-pro hover:text-foreground"
                   )}
                   style={isActive ? { boxShadow: '0 4px 10px -2px hsl(var(--primary) / 0.45), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)' } : undefined}
@@ -773,8 +798,9 @@ const Index = () => {
           {/* Leaderboard Button - Right Side */}
           <button
             aria-label="Leaderboard"
+            data-prefetch-path="/leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform duration-200 hover:-translate-y-0.5"
+            className="leaderboard-3d-button shrink-0 h-[52px] w-[52px] rounded-full flex items-center justify-center active:opacity-90 touch-manipulation transition-opacity duration-75"
           >
             <span className="leaderboard-3d-orbit" aria-hidden="true" />
             <span className="leaderboard-3d-face" aria-hidden="true" />
@@ -790,10 +816,10 @@ const Index = () => {
                   key={country.code}
                   onClick={() => setSelectedCountry(country.code)}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap active:scale-95 touch-manipulation border",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-opacity duration-75 whitespace-nowrap active:opacity-90 touch-manipulation border",
                     selectedCountry === country.code
                       ? "bg-gradient-primary text-on-dark border-transparent"
-                      : "bg-card text-heading border-border hover:bg-muted hover:-translate-y-0.5"
+                      : "bg-card text-heading border-border hover:bg-muted"
                   )}
                   style={
                     selectedCountry === country.code
@@ -880,8 +906,9 @@ const Index = () => {
             {/* Primary action — Go Live for hosts, Discover for viewers */}
             <div className="flex flex-row items-stretch gap-2.5 w-full max-w-[340px]">
               <button
+                data-prefetch-path="/go-live"
                 onClick={() => navigate('/go-live')}
-                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-on-dark bg-gradient-primary active:opacity-90 transition-opacity duration-75 touch-manipulation flex items-center justify-center gap-2"
                 style={{
                   boxShadow:
                     '0 6px 18px -4px hsl(var(--primary) / 0.5), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)',
@@ -892,7 +919,7 @@ const Index = () => {
               </button>
               <button
                 onClick={handlePullRefresh}
-                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-heading bg-card border border-border active:scale-95 transition-transform touch-manipulation flex items-center justify-center gap-2"
+                className="flex-1 h-11 rounded-full px-5 font-semibold text-sm text-heading bg-card border border-border active:opacity-90 transition-opacity duration-75 touch-manipulation flex items-center justify-center gap-2"
                 style={{
                   boxShadow:
                     '0 3px 8px -2px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
