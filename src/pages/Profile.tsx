@@ -2185,7 +2185,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           size="icon"
           variant="ghost"
           aria-label="Back"
-          className="w-11 h-11 rounded-full profile-home-icon-button bg-white hover:bg-slate-50 active:scale-95 hover:-translate-y-0.5 transition-all"
+          className="w-11 h-11 rounded-full profile-home-icon-button bg-white hover:bg-slate-50 active:opacity-90 transition-opacity duration-75"
           style={{ boxShadow: '0 6px 16px -8px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           onClick={() => navigate(-1)}
         >
@@ -2330,7 +2330,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               variant={isFollowing ? "outline" : "default"}
               aria-label={isFollowing ? "Unfollow" : "Follow"}
               className={cn(
-                "h-11 min-w-[88px] text-xs px-4 rounded-full font-semibold transition-all shadow-lg active:scale-95",
+                "h-11 min-w-[88px] text-xs px-4 rounded-full font-semibold transition-opacity duration-75 active:opacity-90 shadow-lg",
                 isFollowing 
                   ? "border-purple-500/50 text-purple-600 hover:bg-purple-500/10" 
                   : "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30 hover:shadow-purple-500/50"
@@ -2345,7 +2345,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               <Button 
                 size="sm" 
                 aria-label="Call"
-                className="h-11 min-w-[88px] text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30 active:scale-95" 
+                className="h-11 min-w-[88px] text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30 transition-opacity duration-75 active:opacity-90" 
                 onClick={handleCall}
               >
                 <Phone className="w-4 h-4 mr-1" />
@@ -2356,7 +2356,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               size="sm" 
               variant="outline" 
               aria-label="Message"
-              className="h-11 min-w-[88px] text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold active:scale-95" 
+              className="h-11 min-w-[88px] text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold transition-opacity duration-75 active:opacity-90" 
               onClick={() => navigate(`/chat?user=${profileId}`)}
             >
               <MessageCircle className="w-4 h-4 mr-1" />
@@ -2377,7 +2377,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className="group relative"
             >
               <div className="absolute inset-0 bg-pink-500/10 rounded-xl translate-y-1 blur-md" />
-              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-all">
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden transition-opacity duration-75 group-active:opacity-90">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-400/60 to-purple-400/60" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-pink-500/15 rounded-full blur-2xl" />
 
@@ -2480,7 +2480,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className="group relative w-full text-left"
             >
               <div className="absolute inset-0 bg-amber-500/10 rounded-xl translate-y-1 blur-md" />
-              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-transform">
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden transition-opacity duration-75 group-active:opacity-90">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-amber-500/15 rounded-full blur-2xl" />
 
@@ -2525,7 +2525,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className="w-full group relative"
             >
               <div className="absolute inset-0 bg-emerald-500/10 rounded-xl translate-y-1 blur-md" />
-              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden transition-opacity duration-75 group-active:opacity-90">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-2xl" />
 
@@ -2561,7 +2561,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className="w-full group relative"
             >
               <div className="absolute inset-0 bg-fuchsia-500/10 rounded-xl translate-y-1 blur-md" />
-              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden transition-opacity duration-75 group-active:opacity-90">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-fuchsia-500/15 rounded-full blur-2xl" />
 
