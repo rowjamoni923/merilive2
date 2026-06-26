@@ -30,6 +30,7 @@ import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import AdminRouteGuard, { SubAdminDashboardGuard } from "./components/admin/AdminRouteGuard";
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
 import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
+import { RouteTransitionHost } from "./components/RouteTransitionHost";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
@@ -1283,9 +1284,10 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true }}>
               {!isStandalonePublicRoute && <ScrollToTop />}
-              {session && !isStandalonePublicRoute && <BlankScreenGuard />}
+              {!isStandalonePublicRoute && <RouteTransitionHost />}
+              {!isStandalonePublicRoute && <BlankScreenGuard />}
               {session && !isStandalonePublicRoute && <NativeLiveKitRouteSurvivor />}
               {!isStandalonePublicRoute && <Suspense fallback={null}><DeepLinkHandler /></Suspense>}
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}

@@ -198,3 +198,26 @@ Patch scope:
 - Propagate safe codes through `sendOtpEmail` and OTP edge functions without leaking provider internals or OTP secrets.
 - Auth/agency UI now maps those codes to professional English messages and returns from the OTP screen when delivery was never possible.
 - Delivery still requires the configured email domain to finish activation; code cannot bypass DNS verification.
+
+---
+
+# Phase 13 — 400-page no-white-screen navigation pass (2026-06-26)
+
+Research / professional standard:
+- React Suspense docs: if already-visible content suspends during an urgent update, the boundary can replace it with fallback; updates marked as transitions keep the previous UI visible while the next UI prepares — https://react.dev/reference/react/Suspense and https://react.dev/reference/react/useTransition
+- React Router 6.30 future flags include `v7_startTransition`, which wraps browser-router location updates in `React.startTransition` — https://reactrouter.com/6.30.3/upgrading/future
+- Native/social app pattern (Chamet/Bigo/TikTok/WhatsApp-style): tap changes route state immediately, but the old committed screen remains painted until the next screen can draw; no white/black/loading interstitial.
+
+Verified current gap:
+- Root route fallback had already been changed to `null`, but `BrowserRouter` route updates were still urgent. When a lazy page chunk suspended, React could hide the entire route subtree and render the `null` fallback, exposing the app/body background as a white/blank screen.
+- `RouteTransitionHost` existed but was not mounted, so route-change body tagging/transition coordination never ran for agency dashboard menu items, profile menus, profile details, reels, message, or admin routes.
+
+Patch scope:
+- Enable `<BrowserRouter future={{ v7_startTransition: true }}>` so every app/menu/admin/profile/message/reels navigation uses React transition semantics and keeps the previous real page visible while lazy chunks resolve.
+- Mount `RouteTransitionHost` once inside the router so every path change shares one global transition coordinator.
+- Keep all fallback UI as `null`; no spinner, skeleton, black screen, white screen, or fake loading surface is introduced.
+- Added a global `BlankScreenGuard` visual-hold layer. It stores the last meaningful committed page DOM and, during route changes or route-level data placeholders, keeps that real previous page painted until the next route has a meaningful surface. This covers pages that do not suspend but temporarily return `PageSkeleton`/`null` while fetching data.
+- The guard also watches same-route DOM swaps, so profile menu tabs, agency dashboard sub-panels, message/reels/profile detail reloads, and other internal sections that temporarily render placeholders keep the last real screen instead of exposing a blank body.
+- The visual-hold snapshot sanitizes media elements before display, so live/reels/video/camera surfaces are not duplicated or reopened while the transition cover is active.
+- Changed `PageSkeleton` into a transparent `data-route-placeholder` marker instead of painting white/gradient placeholders.
+- Removed admin access and admin route permission spinners so agency/admin menu movement never paints a verification/loading interstitial.
