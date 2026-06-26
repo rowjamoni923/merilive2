@@ -58,8 +58,8 @@ export default function PreMatchPrep({
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
 }: Props) {
   const navigate = useNavigate();
-  const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
-  const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
+  const { balance: liveBalance } = useUserBalance();
+  const effectiveBalance = Math.max(Number(diamondBalance || 0), Number(liveBalance || 0));
   const isSearching = phase === "searching";
   const isMatched = phase === "matched";
   const isError = phase === "error";
@@ -215,7 +215,7 @@ export default function PreMatchPrep({
 
   const requiredToStart = Math.max(Number(requiredBalance ?? hostRatePerMin), hostRatePerMin, 0);
   const handleStart = async () => {
-    const latestBalance = balanceReady ? effectiveBalance : await getBalanceWithFetch();
+    const latestBalance = Math.max(effectiveBalance, await getBalanceWithFetch(true));
     if (requiredToStart > 0 && latestBalance < requiredToStart) {
       stopStream();
       navigate("/recharge", { replace: true });
