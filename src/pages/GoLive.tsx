@@ -508,43 +508,51 @@ const GoLive = () => {
     };
   }, [isBanned, banEndTime]);
 
-  // Handle back button
-  const handleBack = async () => {
-    // Pkg-fix: if a native camera start is currently in-flight, wait briefly so
-    // we don't tear down state mid-init (which leaves CameraX in an inconsistent
-    // state and produces a white preview on re-entry).
-    if (nativePreviewStartInFlightRef.current) {
-      const deadline = Date.now() + 1500;
-      while (nativePreviewStartInFlightRef.current && Date.now() < deadline) {
-        await new Promise(r => setTimeout(r, 50));
-      }
-    }
-    clearPreparedHostPreviewStream();
-    await stopNativePreview();
-    if (streamRef.current) {
-      // Step 1b: on back, KEEP the web camera warm via persistentCameraSession
-      // so the next GoLive/LiveStream open is instant. Only release our ref;
-      // do not stop tracks. Force-dispose only happens on explicit End Live or
-      // a native-handoff path that needs /dev/video0 freed.
-      if (cameraHandleRef.current) {
-        cameraHandleRef.current.release();
-        cameraHandleRef.current = null;
-      } else {
-        // Stream was never adopted (legacy path / native fallback). Stop it.
-        streamRef.current.getTracks().forEach(track => track.stop());
-        releaseAndroidWebViewCamera('golive:back');
-      }
-      streamRef.current = null;
-    }
-    // Pkg-fix: null srcObject so the WebView doesn't keep painting the last
-    // (now-stopped) frame as a frozen native-controls overlay on re-entry.
+  // Handle back button — instant close. Tear down the visible native camera
+  // surface synchronously (so the user never sees a full-screen camera frame
+  // after tapping X), navigate immediately, and run async track cleanup in
+  // the background so the navigation isn't blocked by a `stopLocalPreview`
+  // round-trip to the native bridge.
+  const handleBack = () => {
+    // 1. Kill the visible surface FIRST so the WebView UI no longer reveals
+    //    the camera behind it for even a single frame.
+    try { clearNativeMediaSurface(); } catch { /* ignore */ }
+    try { applyNativePreviewTransparency(false); } catch { /* ignore */ }
+    setNativePreviewActive(false);
     if (videoRef.current) {
       try { videoRef.current.pause(); } catch { /* ignore */ }
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
+    // 2. Navigate immediately — no awaits between tap and route change.
     navigate(-1);
+    // 3. Release the camera in the background. Skipped tracks/handles get
+    //    cleaned up after navigation; persistentCameraSession keeps the web
+    //    stream warm for the next entry per existing policy.
+    void (async () => {
+      if (nativePreviewStartInFlightRef.current) {
+        const deadline = Date.now() + 1500;
+        while (nativePreviewStartInFlightRef.current && Date.now() < deadline) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+      }
+      try { clearPreparedHostPreviewStream(); } catch { /* ignore */ }
+      try { await nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
+      if (streamRef.current) {
+        if (cameraHandleRef.current) {
+          cameraHandleRef.current.release();
+          cameraHandleRef.current = null;
+        } else {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          releaseAndroidWebViewCamera('golive:back');
+        }
+        streamRef.current = null;
+      }
+    })().catch((error) => {
+      recordClientError({ label: "GoLive.handleBack", message: error instanceof Error ? error.message : String(error) });
+    });
   };
+
 
   // Pkg416/Pkg418: claim the single shared camera slot for streaming. If
   // Face Verification currently holds it, acquire() throws and we HARD
