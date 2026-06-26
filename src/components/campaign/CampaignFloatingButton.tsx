@@ -86,6 +86,18 @@ function formatCountdown(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function getCountdownA11yLabel(seconds: number): string {
+  const safe = Math.max(0, seconds);
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = safe % 60;
+  const parts: string[] = [];
+  if (h > 0) parts.push(`${h} hour${h === 1 ? '' : 's'}`);
+  if (m > 0) parts.push(`${m} minute${m === 1 ? '' : 's'}`);
+  if (s > 0 || parts.length === 0) parts.push(`${s} second${s === 1 ? '' : 's'}`);
+  return `Offer ends in ${parts.join(' ')}`;
+}
+
 const SESSION_KEY = 'campaign_session_start';
 const PURCHASED_KEY = 'campaign_purchased_';
 // Session-only dismiss key. Cleared when the app process / tab closes,
@@ -163,11 +175,12 @@ function CampaignFloatingButton() {
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-  // Profile page has wallet/beans cards stacked above bottom-nav — push the
-  // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
+  // Profile page has wallet/beans cards stacked above bottom-nav. Keep the
+  // badge above those controls without pushing it into the middle of the screen
+  // on compact Android WebViews.
   const isProfileRoute = location.pathname.startsWith('/profile');
   const bottomOffset = isProfileRoute
-    ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
+    ? 'clamp(148px, calc(var(--bottom-nav-height, 64px) + 18vh), 224px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
 
   const getFloatingDragBounds = useCallback(() => ({
@@ -389,14 +402,23 @@ function CampaignFloatingButton() {
 
   useEffect(() => {
     if (!campaign || remainingSeconds <= 0) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setRemainingSeconds(prev => {
-        if (prev <= 1) { setCampaign(null); return 0; }
+        if (prev <= 1) {
+          setCampaign(null);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [campaign, remainingSeconds]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+    };
+  }, [campaign?.id]);
 
   const fetchMatchedPackage = useCallback(async (activeCampaign: Campaign) => {
     const { data } = await supabase
@@ -595,6 +617,8 @@ function CampaignFloatingButton() {
   const recommendPreviewText = recommendedMethodNames.length > 0
     ? recommendedMethodNames.slice(0, 2).map(formatMethodLabel).join(', ')
     : 'Local Pay';
+  const floatingCountdownText = formatCountdown(remainingSeconds);
+  const floatingCountdownLabel = getCountdownA11yLabel(remainingSeconds);
 
   const convertToLocalCurrency = (usdAmount: number) => {
     if (userCountryCode === 'BD') return `Tk ${Math.round(usdAmount * 120)}`;
@@ -850,9 +874,8 @@ function CampaignFloatingButton() {
             onPointerCancel={finishFloatingPointerDrag}
             className="fixed z-[45] flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
           >
-            {/* Close (×) — tiny, transparent, top-left of the card.
-                No background pill — just a crisp white glyph with a soft
-                dark shadow so it stays readable on any backdrop. */}
+            {/* Close (×) — large enough for mobile fingers, visually light, and
+                separate from the timer so neither control overlaps the card. */}
             <button
               type="button"
               aria-label="Dismiss campaign"
@@ -867,29 +890,49 @@ function CampaignFloatingButton() {
                 setRemainingSeconds(0);
               }}
               onClick={(e) => { e.stopPropagation(); }}
-              className="absolute -top-2 -left-1 z-30 w-[18px] h-[18px] flex items-center justify-center bg-transparent border-0 p-0 active:scale-90 transition-transform"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.65))' }}
+              className="absolute -top-3 -left-2 z-30 flex h-7 w-7 items-center justify-center rounded-full border-0 p-0 active:scale-90 transition-transform"
+              style={{
+                background: 'linear-gradient(145deg, rgba(20,20,28,0.92), rgba(4,4,8,0.82))',
+                boxShadow: '0 6px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
+                border: '1px solid rgba(255,255,255,0.18)',
+              }}
             >
-              <X className="w-[12px] h-[12px] text-white" strokeWidth={3.5} />
+              <X className="h-3.5 w-3.5 text-white" strokeWidth={3.25} />
             </button>
 
 
-            {/* Compact countdown pill — top-right corner, professional red gradient */}
+            {/* Compact countdown pill — fixed dimensions so 28:35 / 1:28:35 never
+                jumps, clips, or covers the artwork on narrow Android WebViews. */}
             <motion.div
-              className="absolute -top-2 -right-1 z-20 px-1.5 py-[2px] rounded-full pointer-events-none"
+              className="absolute -top-3 -right-2 z-20 pointer-events-none"
               style={{
-                background: 'linear-gradient(135deg, #ff3b5c, #c2185b)',
-                boxShadow:
-                  '0 3px 8px rgba(194,24,91,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
-                border: '1px solid rgba(255,255,255,0.35)',
-                minWidth: '38px',
+                width: floatingCountdownText.length > 5 ? 72 : 58,
+                height: 24,
               }}
+              role="timer"
+              aria-label={floatingCountdownLabel}
               animate={{ y: [0, -1.5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <span className="block text-center text-[9px] font-bold text-white tabular-nums leading-none drop-shadow">
-                {formatCountdown(remainingSeconds)}
-              </span>
+              <div
+                className="flex h-full w-full items-center justify-center gap-1 rounded-full px-2"
+                style={{
+                  background: 'linear-gradient(135deg, #ff3158 0%, #d91248 48%, #871132 100%)',
+                  boxShadow: '0 7px 16px rgba(135,17,50,0.42), inset 0 1px 0 rgba(255,255,255,0.38)',
+                  border: '1px solid rgba(255,255,255,0.42)',
+                }}
+              >
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    background: 'rgba(255,244,170,0.98)',
+                    boxShadow: '0 0 7px rgba(255,244,170,0.9)',
+                  }}
+                />
+                <span className="block min-w-0 text-center text-[10px] font-black leading-none text-white tabular-nums drop-shadow-sm">
+                  {floatingCountdownText}
+                </span>
+              </div>
             </motion.div>
 
             {/* Float/breathe wrapper */}
@@ -1069,7 +1112,7 @@ function CampaignFloatingButton() {
                   <div className="flex items-center justify-center gap-2 mt-3 mx-6 py-2 rounded-xl" style={{ background: template.timerBg }}>
                     <span className="text-lg">⏰</span>
                     <span className="text-sm font-bold tabular-nums" style={{ color: template.timerText }}>
-                      {formatCountdown(remainingSeconds)} remaining
+                      {floatingCountdownText} remaining
                     </span>
                   </div>
 
@@ -1099,7 +1142,7 @@ function CampaignFloatingButton() {
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <span className="text-lg">⏰</span>
                     <span className="text-xs font-bold tabular-nums" style={{ color: template.timerText }}>
-                      {formatCountdown(remainingSeconds)} remaining
+                      {floatingCountdownText} remaining
                     </span>
                   </div>
 
