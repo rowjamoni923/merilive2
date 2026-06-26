@@ -882,7 +882,7 @@ const ProfileDetail = () => {
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="sync"
-                  {...({ fetchpriority: active ? 'high' : 'low' } as ImgHTMLAttributes<HTMLImageElement>)}
+                  fetchPriority={active ? 'high' : 'low'}
                 />
               )}
             </motion.div>
