@@ -217,6 +217,7 @@ Patch scope:
 - Mount `RouteTransitionHost` once inside the router so every path change shares one global transition coordinator.
 - Keep all fallback UI as `null`; no spinner, skeleton, black screen, white screen, or fake loading surface is introduced.
 - Removed the DOM-clone visual-hold approach. User-corrected standard: no fake snapshot/clone/loading cover; continuity must come from the actual previous React surface staying mounted by transition semantics and from persistent media surfaces.
+- Added `StableRoutes`: the previous route remains the real mounted React tree while the next route mounts hidden and prepares; once real content exists, that same mounted next tree is promoted visible. No screenshot, DOM clone, spinner, or loading surface is used.
 - Upgraded the web `PersistentCameraSurface` bridge from timer polling to an event-driven `persistentCameraSession` subscription, so live/party/private-call preview camera continuity updates instantly without reopening the camera and without visibility-refresh/polling hacks.
 - Changed `PageSkeleton` into a transparent `data-route-placeholder` marker instead of painting white/gradient placeholders.
 - Removed admin access and admin route permission spinners so agency/admin menu movement never paints a verification/loading interstitial.

@@ -1,4 +1,4 @@
-import { memo, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, Suspense, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import { Routes, useLocation } from "react-router-dom";
 import type { Location } from "react-router-dom";
