@@ -571,15 +571,15 @@ const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
 const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</StandalonePublicShell>;
 
 const CallProviderGate = ({ enabled, children }: { enabled: boolean; children: ReactNode }) => {
-  if (!enabled) return <>{children}</>;
-
-  // Never block the visible route while the call/camera stack downloads.
-  // The current screen stays painted; once loaded, private-call overlays/context
-  // become available without a fake loader or blank frame.
   return (
-    <Suspense fallback={<>{children}</>}>
-      <CallProvider>{children}</CallProvider>
-    </Suspense>
+    <>
+      {children}
+      {enabled ? (
+        <Suspense fallback={null}>
+          <CallProvider />
+        </Suspense>
+      ) : null}
+    </>
   );
 };
 
