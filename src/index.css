@@ -5801,3 +5801,51 @@ input:focus, textarea:focus, select:focus {
 /* Disable text-size adjust on rotation — keeps typography stable. */
 html { -webkit-text-size-adjust: 100%; }
 
+
+/* ============================================================
+   Pillar 3 — No-lag rendering (app-wide, additive)
+   ============================================================ */
+
+/* GPU-accelerated route transitions. Every routed page root gets
+   a compositor layer + will-change hint during transitions so
+   React's fade/slide between routes never repaints the world. */
+[data-route-root],
+main[data-route],
+.route-root {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Skip rendering work for off-screen heavy sections (long lists,
+   leaderboard rows, gift grids). Add `lazy-section` to the wrapper
+   plus a `contain-intrinsic-size` matching the expected row height
+   so the scrollbar doesn't jump. */
+.lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+
+/* Compositor-only properties for in-flight image fades — avoids the
+   layout/paint cost of width/height transitions on huge avatars/banners. */
+img[data-fade-in],
+.img-fade-in {
+  animation: imgFadeIn 180ms ease-out both;
+}
+@keyframes imgFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Keyboard-open layout thrash guard. When `--kb-h` jumps from 0 to
+   ~320px, the browser can re-layout the whole tree. Promoting fixed
+   bottom bars / chat composers / dialogs to their own layer keeps
+   that work compositor-only. */
+[data-kb-aware],
+[data-bottom-bar],
+.composer-root {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+
