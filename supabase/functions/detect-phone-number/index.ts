@@ -337,7 +337,9 @@ serve(async (req) => {
       );
     }
 
-    // Check user profile (for ALL users, not just hosts)
+    // Check user profile — rule: ONLY verified hosts are blocked from sharing
+    // phone numbers / social handles. user↔user, user↔agency, agency↔agency,
+    // user→host, agency→host all flow freely. Sender-is-host = block.
     const { data: userProfile } = await supabase
       .from('profiles')
       .select('id, is_host, display_name, app_uid, beans_balance, phone_violation_count')
@@ -352,7 +354,15 @@ serve(async (req) => {
       );
     }
 
-    // Detect phone numbers with comprehensive patterns (for ALL users)
+    // 🛡️ Hard gate — non-host senders may share contact info freely.
+    if (userProfile.is_host !== true) {
+      return new Response(
+        JSON.stringify({ detected: false, reason: 'sender_not_host' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Detect phone numbers with comprehensive patterns (host senders only)
     const result = detectPhoneNumber(message);
 
     // ── Supplemental external scan (phone-specific provider key) ───────────

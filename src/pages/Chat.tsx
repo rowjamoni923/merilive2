@@ -2182,27 +2182,23 @@ const Chat = () => {
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
     
-    // 🔍 BLOCKING: Run contact detection when AT LEAST ONE side is a verified host.
-    // user↔user / user↔agency / agency↔agency: freely allowed, no detection.
-    // host→anyone OR anyone→host: mask peer-visible content + show warning.
-    // Host sender → 2,000 beans deducted by server RPC. Non-host sender → warning only.
+    // 🔍 BLOCKING: Run contact detection ONLY when the sender is a verified host.
+    // Rule (owner-locked): only verified hosts are prohibited from sharing phone
+    // numbers / social handles. user↔user, user↔agency, agency↔agency, user→host,
+    // agency→host all flow freely with no mask, no warning, no admin alert.
     let contentToSend = originalContent;
     const senderIsHost = myProfile?.is_host === true;
-    const recipientIsHost = selectedConversation?.other_user?.is_host === true;
-    if (senderIsHost || recipientIsHost) {
+    if (senderIsHost) {
       const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
       const detection = detectContactInfo(originalContent);
       if (detection.hasViolation) {
         contentToSend = maskContactContent(originalContent, detection);
-        console.log('[ContactDetection] BLOCKED content, masked:', contentToSend);
+        console.log('[ContactDetection] Host sender BLOCKED, masked:', contentToSend);
 
         const sourceId = selectedConversation?.id || selectedGroup?.id;
-        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId, recipientIsHost)
+        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId, false)
           .then(res => {
-            console.log('[ContactDetection] Chat result:', res);
-            if (res.detected && !res.warningOnly && res.violationNumber) {
-              numberWarning.showGenericWarning();
-            } else if (res.detected) {
+            if (res.detected && res.violationNumber) {
               numberWarning.showGenericWarning();
             }
           })
@@ -2250,13 +2246,15 @@ const Chat = () => {
           }).catch(err => console.log('[Push] Message notification background:', err));
         }
 
-        // 🔍 Phone number check in BACKGROUND (non-blocking)
-        // Skip detection for helper/payroll helper conversations
-        isHelperConversation().then(isHelper => {
-          if (!isHelper) {
-            checkPhoneNumber(originalContent, selectedConversation.id, undefined).catch(() => {});
-          }
-        }).catch(() => {});
+        // 🔍 Phone number check in BACKGROUND (non-blocking) — host senders only.
+        // Skip detection for helper/payroll helper conversations.
+        if (senderIsHost) {
+          isHelperConversation().then(isHelper => {
+            if (!isHelper) {
+              checkPhoneNumber(originalContent, selectedConversation.id, undefined).catch(() => {});
+            }
+          }).catch(() => {});
+        }
         checkToxic(originalContent, { contextType: 'chat', conversationId: selectedConversation.id }).catch(() => {});
         // AI Auto-Reply in background
         const otherUser = selectedConversation.other_user;
@@ -2288,7 +2286,7 @@ const Chat = () => {
           
         // Track + background phone check
         trackTaskProgress('messages_sent', { increment: 1 });
-        checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
+        if (senderIsHost) checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
         checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
       }
     } catch (error: any) {

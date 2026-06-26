@@ -670,7 +670,7 @@ export function UnifiedPartyRoom({
       return out.length === prev.length ? prev : out;
     });
   }, [premiumMessages]);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null } | null>(null);
   useEffect(() => {
     const node = bottomControlsRef.current;
     if (!node || typeof window === 'undefined') return;
@@ -768,7 +768,7 @@ export function UnifiedPartyRoom({
     }
     supabase
       .from('profiles_public')
-      .select('display_name, avatar_url, user_level')
+      .select('display_name, avatar_url, user_level, is_host')
       .eq('id', currentUserId)
       .maybeSingle()
       .then(({ data }) => {
@@ -1250,18 +1250,25 @@ export function UnifiedPartyRoom({
     const trimmedMessage = message.trim();
     const tempId = `temp-${Date.now()}-${Math.random()}`;
 
-    // 🔍 Mask contact info BEFORE persist/broadcast so peers see masked text.
+    // 🔍 Mask contact info BEFORE persist/broadcast — ONLY when sender is a
+    // verified host. Rule (owner-locked): users / agencies may share numbers
+    // freely in party chat; only verified hosts are prohibited.
+    const senderIsHost = currentUserProfile?.is_host === true;
     let outboundMessage = trimmedMessage;
-    try {
-      const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
-      const detection = detectContactInfo(trimmedMessage);
-      if (detection.hasViolation) {
-        outboundMessage = maskContactContent(trimmedMessage, detection);
+    let hostViolationDetected = false;
+    if (senderIsHost) {
+      try {
+        const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+        const detection = detectContactInfo(trimmedMessage);
+        if (detection.hasViolation) {
+          outboundMessage = maskContactContent(trimmedMessage, detection);
+          hostViolationDetected = true;
+        }
+      } catch (e) {
+        console.warn('[ContactDetection] PartyRoom mask error:', e);
       }
-    } catch (e) {
-      console.warn('[ContactDetection] PartyRoom mask error:', e);
     }
-    
+
     // Mark this message content as pending (to skip when real-time confirms)
     const msgKey = `${sendingUserId}-${outboundMessage}`;
     pendingMessagesRef.current.add(msgKey);
@@ -1289,19 +1296,15 @@ export function UnifiedPartyRoom({
 
     // Add to local state immediately (instant feedback)
     setPremiumMessages(prev => [...prev, optimisticMessage]);
-    
-    // Party room chat is public to all seats including any host owner → gate always on.
-    // Host sender → 2,000 beans deduction. Non-host sender → popup warning only.
-    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId, true)
-      .then(res => {
-        console.log('[ContactDetection] PartyRoom result:', res);
-        if (res.detected && !res.warningOnly && res.violationNumber) {
-          numberWarning.showGenericWarning();
-        } else if (res.detected) {
-          numberWarning.showGenericWarning();
-        }
-      })
-       .catch(err => console.error('[ContactDetection] PartyRoom error:', err));
+
+    // Host sender + detected violation → server-side deduction + warning
+    if (hostViolationDetected) {
+      detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId, false)
+        .then(res => {
+          if (res.detected) numberWarning.showGenericWarning();
+        })
+        .catch(err => console.error('[ContactDetection] PartyRoom error:', err));
+    }
 
     // 🔥 AWS Comprehend toxic content moderation (background)
     checkToxic(trimmedMessage, { contextType: 'party_room', roomId: sendingRoomId }).catch(() => {});

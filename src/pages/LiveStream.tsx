@@ -2681,26 +2681,21 @@ const LiveStream = () => {
     const messageText = message.trim();
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
-    // 🔍 BLOCKING: Detect contact info BEFORE sending — applies to ALL users
-    // (Pkg-audit C2: previously gated on `is_host === true`; viewers could
-    // bypass mask. Industry standard = mask everyone, log violations for all.)
+    // 🔍 Contact info masking — ONLY when sender is a verified host.
+    // Rule (owner-locked): viewers/users/agencies may share numbers freely in
+    // live chat; only verified hosts are prohibited.
+    const senderIsHost = currentUser?.is_host === true;
     const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
-    const detection = detectContactInfo(messageText);
+    const detection = senderIsHost ? detectContactInfo(messageText) : { hasViolation: false } as any;
 
     let contentToSend = messageText;
-    if (detection.hasViolation) {
+    if (senderIsHost && detection.hasViolation) {
       contentToSend = maskContactContent(messageText, detection);
-      console.log('[ContactDetection] LiveStream BLOCKED, masked:', contentToSend);
+      console.log('[ContactDetection] LiveStream host BLOCKED, masked:', contentToSend);
 
-      // Live room broadcaster is always a host → recipientIncludesHost = true.
-      // Host sender → 2,000 beans deduction. Non-host sender → popup warning only.
-      detectAndProcessViolation(currentUserId, messageText, 'live_stream', id, true)
+      detectAndProcessViolation(currentUserId, messageText, 'live_stream', id, false)
         .then(res => {
-          if (res.detected && !res.warningOnly && res.violationNumber) {
-            numberWarning.showGenericWarning();
-          } else if (res.detected) {
-            numberWarning.showGenericWarning();
-          }
+          if (res.detected) numberWarning.showGenericWarning();
         })
         .catch(err => console.error('[ContactDetection] LiveStream error:', err));
     }
