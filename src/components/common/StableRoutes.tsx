@@ -1,4 +1,5 @@
-import { memo, ReactNode, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 import { Routes, useLocation } from "react-router-dom";
 import type { Location } from "react-router-dom";
 
@@ -51,7 +52,7 @@ function hasRealRouteSurface(container: HTMLElement | null) {
   });
 }
 
-function PendingReadyProbe({ rootRef, onReady }: { rootRef: React.RefObject<HTMLDivElement>; onReady: () => void }) {
+function PendingReadyProbe({ rootRef, onReady }: { rootRef: RefObject<HTMLDivElement | null>; onReady: () => void }) {
   useLayoutEffect(() => {
     let done = false;
     let raf = 0;
