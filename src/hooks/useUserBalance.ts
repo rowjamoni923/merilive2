@@ -122,9 +122,11 @@ export function isBalanceCacheInitialized(): boolean {
 /**
  * Get balance with fetch if needed
  */
-export async function getBalanceWithFetch(): Promise<number> {
+export async function getBalanceWithFetch(forceRefresh = false): Promise<number> {
   if (
+    !forceRefresh &&
     balanceCache.initialized &&
+    balanceCache.userId &&
     Date.now() - balanceCache.timestamp < CACHE_DURATION
   ) {
     return balanceCache.balance;
