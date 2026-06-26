@@ -1080,7 +1080,13 @@ serve(async (req) => {
         const dName = (duplicateBlock as any).previous_display_name || "Existing Account";
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         const dUserId = (duplicateBlock as any).previous_user_id || "";
-        rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:{"user_id":"${dUserId}","name":"${dName}","uid":"${dUid}","avatar":"${(duplicateFields.duplicate_face_avatar as string) || ""}"}]`;
+        const duplicatePayload = JSON.stringify({
+          user_id: dUserId,
+          name: dName,
+          uid: dUid,
+          avatar: (duplicateFields.duplicate_face_avatar as string) || "",
+        });
+        rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
       }
