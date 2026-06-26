@@ -1658,9 +1658,10 @@ const AdminSupportTickets = () => {
                             <div className={cn(
                               "max-w-[72%] px-3.5 py-2 text-[13px] leading-[1.5] break-words shadow-sm",
                               isAdmin
-                                ? "bg-gradient-to-br from-purple-600/90 to-violet-700/90 text-white rounded-2xl rounded-br-sm border border-purple-500/15"
-                                : "bg-muted/40 text-foreground rounded-2xl rounded-bl-sm border border-border/20"
+                                ? "bg-gradient-to-br from-purple-600 to-violet-700 text-primary-foreground rounded-2xl rounded-br-sm border border-purple-500/30"
+                                : "bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm border border-border"
                             )}>
+
                               {/* Image attachment */}
                               {(msg as any).attachment_url && (msg as any).attachment_type === 'image' && (() => {
                                 const resolvedUrl = signedAttachmentUrls[msg.id] || (msg as any).attachment_url;
