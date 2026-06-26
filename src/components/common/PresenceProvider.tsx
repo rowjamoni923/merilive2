@@ -318,6 +318,23 @@ export async function goOfflineManually(userId: string) {
 }
 
 /**
+ * Force an instant online/heartbeat write, bypassing throttles.
+ * Call after: private call end, live stream end, party leave, back-to-home,
+ * back-to-live, or any transition that should immediately mark the host as
+ * available again on the homepage feed.
+ */
+export async function forceOnlineNow(userId: string) {
+  if (!userId) return;
+  if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true') return;
+  try {
+    await supabase.rpc('sync_host_online_status', { p_user_id: userId, p_is_online: true });
+    if (import.meta.env.DEV) console.info('[Presence] ⚡ Forced ONLINE for:', userId);
+  } catch (e) {
+    console.error('[Presence] forceOnlineNow failed:', e);
+  }
+}
+
+/**
  * Go online manually — called when user reopens app after manual offline
  */
 export async function goOnlineManually(userId: string) {
