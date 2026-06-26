@@ -983,13 +983,12 @@ serve(async (req) => {
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
     // Three-way identity gate: profile photo + recorded video frame + live scan
-    // must all confidently resolve to the same person. Anything below the
-    // auto-pass threshold is treated as not-same-person and rejected; missing or
-    // unreadable evidence stays manual-review instead of approval.
-    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < 85) ||
+    // must resolve to the same person at the owner-approved 55% minimum. Hard
+    // fraud (duplicate/ban) is handled separately with stricter gates.
+    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY) ||
       (hostGalleryComplete && hostPhotosMismatch));
     const evidenceSamePerson = evidenceComplete &&
-      evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= 85) &&
+      evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= SAME_PERSON_MIN_SIMILARITY) &&
       (!hostGalleryComplete || !hostPhotosMismatch);
 
     rekognition.evidence_complete = evidenceComplete;
@@ -1138,7 +1137,7 @@ serve(async (req) => {
         intro_video: "intro_video",
       };
       const failedEvidence = evidenceChecks
-        .filter((c) => typeof c.score === "number" && (c.score as number) < 85)
+        .filter((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY)
         .map((c) => ({
           label: c.label,
           human_name: labelToHumanName[c.label] || c.label,
