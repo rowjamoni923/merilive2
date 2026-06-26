@@ -2221,6 +2221,16 @@ const AgencyWithdrawal = () => {
         console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
       }
 
+      // Local (payroll-helper / bKash / Nagad / UPI) single % fee — admin-controlled.
+      if (agencyWdFeeValue) {
+        const af: any = typeof agencyWdFeeValue === 'string' ? JSON.parse(agencyWdFeeValue) : agencyWdFeeValue;
+        const rate = typeof af?.rate === 'number' ? af.rate : Number(af?.rate);
+        if (Number.isFinite(rate)) {
+          setLocalWithdrawalFeePercent(rate);
+          console.log('[AgencyWithdrawal] Local withdrawal fee % from DB:', rate);
+        }
+      }
+
 
       // Fetch agency with beans_balance
       const { data: agencyData, error: agencyError } = await supabase
