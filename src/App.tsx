@@ -466,6 +466,14 @@ const RouteStatusBarBridge = lazy(lazyRetry(() => import("./hooks/useRouteStatus
   return { default: Bridge };
 })));
 
+// Tags <body data-route-group> so CSS can scope native-feel polish
+// (tap feedback, momentum scroll, page-enter motion) to agency/host pages.
+const RouteGroupAttributeBridge = lazy(lazyRetry(() => import("./hooks/useRouteGroupAttribute").then(m => {
+  const Bridge = () => { m.useRouteGroupAttribute(); return null; };
+  return { default: Bridge };
+})));
+
+
 
 
 // Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
@@ -1215,6 +1223,8 @@ const App = () => {
               {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
+              <Suspense fallback={null}><RouteGroupAttributeBridge /></Suspense>
+
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
