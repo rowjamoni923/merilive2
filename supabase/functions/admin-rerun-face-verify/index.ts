@@ -107,13 +107,10 @@ async function fetchImageBytes(url: string, supabaseAdmin: ReturnType<typeof cre
   return new Uint8Array(await r.arrayBuffer());
 }
 
-// BUG-05 fix: align with face-verification-analyze canonical threshold (85%).
-// Previously 76% — a 9-point spread meant the same submission could auto-approve
-// via admin rerun but be rejected on first analyze pass. Profile↔selfie compare
-// must use ONE number across every pipeline; pose-loop cross-angle compare
-// (server_auto_finalize 72%) is a separate, intentionally lower threshold
-// because it compares the user's own front/left/right to each other.
-const MIN_FACE_MATCH_PERCENTAGE = 85;
+// Owner policy (2026-06-26): same-submission photo/video/live comparisons pass
+// at 55%+ to avoid false rejection of genuine real users under weak lighting,
+// beauty filters, compression, or camera-angle differences.
+const MIN_FACE_MATCH_PERCENTAGE = 55;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -303,7 +300,7 @@ serve(async (req) => {
       age_range_high: face?.AgeRange?.High ?? null,
       face_occluded_confidence: face?.FaceOccluded?.Value === true ? Number(face?.FaceOccluded?.Confidence || 0) : 0,
       profile_match_score: finalReferenceUrl ? matchPct : null,
-      profile_mismatch: finalReferenceUrl ? matchPct < 80 : false,
+      profile_mismatch: finalReferenceUrl ? matchPct < MIN_FACE_MATCH_PERCENTAGE : false,
       replay_suspected: false,
       liveness_failed: false,
     };
