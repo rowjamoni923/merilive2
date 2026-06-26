@@ -105,8 +105,10 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
     } catch (e) {
       console.error('[UserBalance] Failed:', e);
     } finally {
-      balanceCache.loading = false;
-      balanceFetchPromise = null;
+      if (requestSeq === balanceRequestSeq) {
+        balanceCache.loading = false;
+        balanceFetchPromise = null;
+      }
     }
 
     return balanceCache.balance;
