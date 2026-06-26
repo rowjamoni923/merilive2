@@ -63,11 +63,34 @@ export default function AdminPushBroadcast() {
   const [addDialog, setAddDialog] = useState(false);
   const [addCategory, setAddCategory] = useState("push_host");
   const [addForm, setAddForm] = useState({ title: "", body: "", description: "" });
+  const [newCategoryMode, setNewCategoryMode] = useState(false);
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+
+  // All available categories = defaults + any already present in DB
+  const allCategoryKeys = Array.from(
+    new Set([...Object.keys(PUSH_CATEGORIES), ...Object.keys(grouped)])
+  );
 
   const openEditDialog = (t: BroadcastTemplate) => {
     setEditingTemplate(t);
     setEditForm({ title: t.title_template, body: t.message_template, description: t.description || "" });
     setEditDialog(true);
+  };
+
+  const openAddDialog = (category?: string) => {
+    setNewCategoryMode(false);
+    setNewCategoryLabel("");
+    setAddCategory(category || allCategoryKeys[0] || "push_host");
+    setAddForm({ title: "", body: "", description: "" });
+    setAddDialog(true);
+  };
+
+  const openNewCategoryDialog = () => {
+    setNewCategoryMode(true);
+    setNewCategoryLabel("");
+    setAddCategory("");
+    setAddForm({ title: "", body: "", description: "" });
+    setAddDialog(true);
   };
 
   const handleSaveEdit = async () => {
@@ -85,17 +108,26 @@ export default function AdminPushBroadcast() {
       toast.error("Title and body are required");
       return;
     }
-    const key = `${addCategory}_${Date.now()}`;
+    let category = addCategory;
+    if (newCategoryMode) {
+      const slug = newCategoryLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+      if (!slug) { toast.error("Enter a category name"); return; }
+      category = slug.startsWith("push_") ? slug : `push_${slug}`;
+    }
+    const key = `${category}_${Date.now()}`;
     await addTemplate({
       template_key: key,
       title_template: addForm.title,
       message_template: addForm.body,
       description: addForm.description,
-      category: addCategory,
+      category,
     });
     setAddDialog(false);
     setAddForm({ title: "", body: "", description: "" });
+    setNewCategoryMode(false);
+    setExpandedPreset(category);
   };
+
 
   const handleDeleteTemplate = async (t: BroadcastTemplate) => {
     if (!window.confirm(`Delete template "${t.title_template}"?`)) return;
