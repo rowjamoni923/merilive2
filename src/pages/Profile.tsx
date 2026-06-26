@@ -2231,7 +2231,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Verified Badge - Premium - Bottom Right Position */}
           {isOwnProfile && !isFaceVerified && faceVerificationUnderReview && (
             <div className="absolute -bottom-1 -right-1 z-40">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border-2 border-white flex items-center justify-center shadow-lg shadow-yellow-500/40" title="Face verification pending">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border-2 border-white flex items-center justify-center shadow-lg shadow-yellow-500/40" title="Face verification under review">
                 <Clock3 className="w-4 h-4 text-white" />
               </div>
             </div>
