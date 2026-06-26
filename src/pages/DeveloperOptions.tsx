@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageSkeleton } from "@/components/common/PageSkeleton";
+
 import { ArrowLeft, Wrench, RotateCcw, ShieldAlert } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -48,12 +50,9 @@ export default function DeveloperOptions() {
   }, [loading, hasAccess, navigate]);
 
   if (loading) {
-    return (
-      <div className="mobile-page bg-background flex items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading…</div>
-      </div>
-    );
+    return <PageSkeleton className="mobile-page bg-background" rows={4} />;
   }
+
 
   if (!hasAccess) {
     // useEffect above will redirect; render nothing in the meantime.
