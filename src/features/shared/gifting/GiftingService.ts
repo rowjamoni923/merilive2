@@ -194,7 +194,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       const cachedGift = requestGift || await getGiftById(giftId); // caller metadata = zero network wait
       const unitCoins = cachedGift?.coins || 0;
       const hintedFormat = getProfessionalGiftFormat(cachedGift);
-      optimisticPublishPromise = publishGiftSent(liveKitScope, liveKitId, {
+      const optimisticPayload = {
         senderId,
         senderName: 'Someone',
         receiverId,
@@ -210,7 +210,29 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         totalCoins: unitCoins * quantity,
         receiverBeans: 0, // unknown until RPC settles — receiver beans counter reconciles via own-beans-updated
         timestamp: Date.now(),
-      }).then((ok) => {
+      };
+
+      // Phase 6 — Sender-local zero-ms paint. LiveKit does NOT echo data
+      // packets back to the publisher, so without this the sender would only
+      // see their own flying gift / chat row AFTER the RPC settles
+      // (300-650ms). Fire a synthetic `livekit-gift-sent` event locally so
+      // every UI surface that already listens (LiveStream, PartyRoom,
+      // ActiveCallScreen, in-room chat) paints in <16ms.
+      if (typeof window !== 'undefined') {
+        try {
+          window.dispatchEvent(new CustomEvent('livekit-gift-sent', {
+            detail: {
+              ...optimisticPayload,
+              scope: liveKitScope,
+              id: liveKitId,
+              sender: senderId,
+              __selfOptimistic: true,
+            },
+          }));
+        } catch {}
+      }
+
+      optimisticPublishPromise = publishGiftSent(liveKitScope, liveKitId, optimisticPayload).then((ok) => {
         optimisticPublished = !!ok;
         return optimisticPublished;
       })
