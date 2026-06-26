@@ -4108,7 +4108,7 @@ const FaceVerification = () => {
             <input 
               ref={hostPhotosInputRef}
               type="file" 
-              accept="image/*" 
+              accept="image/*,.heic,.heif,.avif,.bmp" 
               multiple
               className="hidden" 
               onChange={handleHostPhotosSelect}
