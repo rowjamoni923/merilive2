@@ -2181,7 +2181,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
-          verification_type: 'face',
+          verification_type: 'user',
           status: 'under_review',
           full_name: fullName.trim(),
           age: parseInt(age, 10),
