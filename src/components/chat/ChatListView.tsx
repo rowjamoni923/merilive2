@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Search, Users, Crown, Pin, BellOff, Trash2, CheckCheck, Bell, Archive } from "lucide-react";
+import { useInboxTyping } from "@/hooks/useInboxTyping";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
