@@ -335,6 +335,10 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     return counts;
   }, [gifts]);
 
+  // Phase 4B — panel-open prefetch (icons + top animations).
+  useGiftPanelPrefetch(isOpen, gifts);
+
+
   const availableCategories = useMemo(() => {
     return giftCategories.filter((cat) => cat.id === 'all' || (categoryGiftCountMap[cat.id] || 0) > 0);
   }, [categoryGiftCountMap]);
