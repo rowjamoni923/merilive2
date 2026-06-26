@@ -63,8 +63,46 @@ export function useInboxTyping(currentUserId?: string | null) {
 }
 
 /**
+ * Sender-side channel cache: one cached broadcast channel per peer user.
+ * Reused across typing pings so we don't spawn/teardown a channel each ping.
+ * Auto-evict after 60s of inactivity to keep the realtime quota tiny.
+ */
+const senderCache = new Map<
+  string,
+  { channel: ReturnType<typeof supabase.channel>; lastUsed: number; ready: Promise<void> }
+>();
+
+function getSenderChannel(toUserId: string) {
+  const now = Date.now();
+  // Evict stale (>60s idle) entries first.
+  for (const [k, v] of senderCache) {
+    if (now - v.lastUsed > 60_000) {
+      try { supabase.removeChannel(v.channel); } catch { /* noop */ }
+      senderCache.delete(k);
+    }
+  }
+  const hit = senderCache.get(toUserId);
+  if (hit) {
+    hit.lastUsed = now;
+    return hit;
+  }
+  const channel = supabase.channel(`inbox-typing:${toUserId}`, {
+    config: { broadcast: { self: false, ack: false } },
+  });
+  const ready = new Promise<void>((resolve) => {
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") resolve();
+    });
+    window.setTimeout(resolve, 400);
+  });
+  const entry = { channel, lastUsed: now, ready };
+  senderCache.set(toUserId, entry);
+  return entry;
+}
+
+/**
  * Emit a typing ping to a peer's inbox channel. Call this alongside the
- * existing per-thread typing broadcast — once per ~1.5s while typing.
+ * existing per-thread typing broadcast — throttle to ~once per 1.5s while typing.
  */
 export async function emitInboxTyping(params: {
   toUserId: string;
@@ -72,16 +110,9 @@ export async function emitInboxTyping(params: {
   conversationId: string;
 }) {
   try {
-    const ch = supabase.channel(`inbox-typing:${params.toUserId}`, {
-      config: { broadcast: { self: false, ack: false } },
-    });
-    await new Promise<void>((resolve) => {
-      ch.subscribe((status) => {
-        if (status === "SUBSCRIBED") resolve();
-      });
-      window.setTimeout(resolve, 250);
-    });
-    await ch.send({
+    const entry = getSenderChannel(params.toUserId);
+    await entry.ready;
+    await entry.channel.send({
       type: "broadcast",
       event: "typing",
       payload: {
@@ -89,10 +120,6 @@ export async function emitInboxTyping(params: {
         fromUserId: params.fromUserId,
       },
     });
-    // Tear down ephemeral sender channel after a tick to avoid leaking.
-    window.setTimeout(() => {
-      supabase.removeChannel(ch);
-    }, 400);
   } catch {
     /* noop */
   }
