@@ -713,8 +713,16 @@ const Index = () => {
           )}
 
 
-          {/* Bottom Info */}
-          <div className="absolute bottom-0 left-0 right-0 p-2.5">
+          {/* Bottom Info — luxurious gradient bar */}
+          <div
+            className="absolute bottom-0 left-0 right-0 px-2.5 pt-4 pb-2.5"
+            style={{
+              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,10,35,0.55) 35%, rgba(60,20,90,0.85) 75%, rgba(90,30,130,0.95) 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(255,215,140,0.25), inset 0 -1px 0 rgba(255,200,120,0.35)',
+              borderTop: '1px solid rgba(255,200,120,0.18)',
+            }}
+          >
+
             <div className="flex items-center gap-2">
               <div className="relative flex-shrink-0">
                 <div className="ring-1 ring-primary-foreground/30 rounded-full">
