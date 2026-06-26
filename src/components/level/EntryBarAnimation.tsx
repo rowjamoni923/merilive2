@@ -176,7 +176,12 @@ const DefaultEntryBar = ({ user }: { user: UserInfo }) => {
 const VIPEntryBar = ({ user, animationUrl }: { user: UserInfo; animationUrl?: string }) => {
   // Check if animation URL exists
   const hasAnimation = animationUrl && animationUrl.startsWith('http');
-  
+  // SVGA can engrave avatar/name INSIDE the timeline. Detect so we can hide
+  // the HTML overlay and rely on the in-animation slots — that's what makes
+  // the name look "carved into" the animation (Chamet/BIGO parity).
+  const isSvgaTemplate = !!hasAnimation && /\.svga(?:$|[?#])/i.test(animationUrl || '');
+  const [animReady, setAnimReady] = useState(false);
+
   return (
     <motion.div
       initial={{ scale: 0.5, opacity: 0 }}
@@ -185,7 +190,9 @@ const VIPEntryBar = ({ user, animationUrl }: { user: UserInfo; animationUrl?: st
       transition={{ type: "spring", damping: 15 }}
       className="relative w-full"
     >
-      {/* Background animation layer - supports all formats via UniversalAnimationPlayer */}
+      {/* Background animation layer — supports all formats via EntryAnimationFrame.
+          For SVGA templates we inject the user's avatar/name/level INSIDE
+          the timeline so the HTML overlay is not needed. */}
       {hasAnimation && (
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl">
           <EntryAnimationFrame
@@ -194,17 +201,28 @@ const VIPEntryBar = ({ user, animationUrl }: { user: UserInfo; animationUrl?: st
             className="object-cover"
             loop
             center={false}
+            onLoad={() => setAnimReady(true)}
+            dynamicAvatarUrl={user.avatarUrl ?? null}
+            dynamicUserName={user.displayName ?? null}
+            dynamicUserLevel={user.level ?? null}
           />
         </div>
       )}
 
-      {/* Overlay content */}
+      {/* HTML overlay — only shown when the animation has NO engraved slots
+          (non-SVGA templates) or while the SVGA is still loading. For SVGA
+          we wait for `onLoad` and then fade the HTML overlay OUT so the
+          engraved version takes over without a flash of duplicate text. */}
       <motion.div
         className={`relative flex items-center gap-4 px-6 py-4 rounded-2xl border-2 shadow-[0_0_40px_rgba(251,191,36,0.5)] ${
-          hasAnimation 
-            ? 'bg-gradient-to-r from-amber-500/70 via-yellow-400/70 to-orange-500/70 border-yellow-300/50' 
+          hasAnimation
+            ? 'bg-gradient-to-r from-amber-500/70 via-yellow-400/70 to-orange-500/70 border-yellow-300/50'
             : 'bg-gradient-to-r from-amber-500/90 via-yellow-400/90 to-orange-500/90 border-yellow-300'
         }`}
+        initial={{ opacity: isSvgaTemplate ? 0 : 1 }}
+        animate={{ opacity: isSvgaTemplate ? (animReady ? 0 : 0) : 1 }}
+        transition={{ duration: 0.25 }}
+        style={{ pointerEvents: 'none' }}
       >
         {/* Crown icon */}
         <motion.div
@@ -231,7 +249,7 @@ const VIPEntryBar = ({ user, animationUrl }: { user: UserInfo; animationUrl?: st
               {user.displayName}
             </span>
           </div>
-          <motion.span 
+          <motion.span
             className="text-amber-800 text-sm font-semibold"
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 1, repeat: Infinity }}
