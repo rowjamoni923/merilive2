@@ -704,9 +704,10 @@ const Shop = () => {
         <DialogContent
           className={`border-0 shadow-2xl ${
             selectedItem && isEntryAnimationCategory(selectedItem.category)
-              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
-              : 'max-w-sm'
+              ? 'w-[calc(100vw-24px)] max-w-lg max-h-[calc(100dvh-32px)] overflow-y-auto'
+              : 'max-w-sm max-h-[calc(100dvh-32px)] overflow-y-auto'
           }`}
+          data-shop-preview-dialog="true"
           style={{
             background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
             border: '1px solid rgba(217,182,107,0.35)',
@@ -726,7 +727,7 @@ const Shop = () => {
                 <div
                   className={`${
                     isEntryAnimationCategory(selectedItem.category)
-                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
+                      ? 'aspect-[9/16] min-h-[260px] max-h-[50dvh]'
                       : 'aspect-square'
                   } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
                   style={{

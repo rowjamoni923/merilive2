@@ -31,7 +31,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => {
+>(({ className, children, style, ...props }, ref) => {
   const contentProps = {
     "aria-describedby": undefined,
     ...props,
@@ -45,18 +45,19 @@ const DialogContent = React.forwardRef<
       data-meri-dialog-content="true"
       onOpenAutoFocus={(e) => e.preventDefault()}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-24px)] max-w-lg max-h-[88dvh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain touch-pan-y border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-2xl sm:rounded-lg [&_.flex-1.overflow-y-auto]:touch-pan-y [&_.flex-1.overflow-y-auto]:overscroll-contain",
+        "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-24px)] max-w-lg max-h-[calc(100dvh-32px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain touch-pan-y border bg-background p-6 shadow-lg opacity-100 transition-opacity duration-100 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 rounded-2xl sm:rounded-lg [&_.flex-1.overflow-y-auto]:touch-pan-y [&_.flex-1.overflow-y-auto]:overscroll-contain",
         className,
       )}
-      // Keep dialog truly centered. When the on-screen keyboard opens,
-      // `padding-bottom: var(--kb-h)` inside the scrollable content lifts
-      // inputs above the keyboard without dragging the entire dialog off-
-      // center (the previous calc(50% - kb/2) trick caused the modal to
-      // appear anchored to the viewport bottom on some Android webviews
-      // where --kb-h was briefly reported as a large positive number).
       style={{
+        ...style,
+        // Keep dialog truly centered. Transform-based enter/exit animations
+        // must not run on this same element, or they can override the
+        // translate(-50%, -50%) centering and leave the dialog stuck below the
+        // visual center on Android WebView / preview shells.
+        transform: "translate3d(-50%, -50%, 0)",
+        transformOrigin: "center center",
         WebkitOverflowScrolling: "touch",
-        paddingBottom: "calc(1.5rem + var(--kb-h, 0px))",
+        paddingBottom: "calc(1.5rem + min(var(--kb-h, 0px), 40dvh))",
       }}
       {...contentProps}
     >
