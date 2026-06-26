@@ -21301,27 +21301,17 @@ export type Database = {
         }[]
       }
       auto_distribute_leaderboard_rewards: { Args: never; Returns: string }
-      auto_finalize_face_verification:
-        | {
-            Args: {
-              _action: string
-              _approve_as?: string
-              _reason?: string
-              _set_gender?: string
-              _submission_id: string
-              _tags?: string[]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_admin_id?: string
-              p_reason?: string
-              p_status: string
-              p_submission_id: string
-            }
-            Returns: Json
-          }
+      auto_finalize_face_verification: {
+        Args: {
+          _action: string
+          _approve_as?: string
+          _reason?: string
+          _set_gender?: string
+          _submission_id: string
+          _tags?: string[]
+        }
+        Returns: boolean
+      }
       auto_grant_helper_from_crypto_payment: {
         Args: {
           _contact_telegram?: string
