@@ -18,85 +18,17 @@ type StableRoutesProps = {
 const routeStageId = (location: Location) =>
   `${location.key || "default"}:${location.pathname}${location.search}${location.hash}`;
 
-const CONTENT_SELECTOR = [
-  "[data-page]:not([data-route-placeholder='true'])",
-  "[data-page-root]:not([data-route-placeholder='true'])",
-  "main:not([data-route-placeholder='true'])",
-  "[role='main']:not([data-route-placeholder='true'])",
-  ".mobile-page",
-  ".profile-home-shell",
-  "video",
-  "canvas",
-  "img",
-  "button",
-  "a[href]",
-  "input",
-  "textarea",
-  "[role='button']",
-].join(",");
-
-function hasRealRouteSurface(container: HTMLElement | null) {
-  if (!container) return false;
-  if (container.querySelector("[data-route-placeholder='true']") && !container.querySelector(CONTENT_SELECTOR)) {
-    return false;
-  }
-
-  const text = container.textContent?.replace(/\s+/g, " ").trim() ?? "";
-  if (text.length > 2) return true;
-
-  return Array.from(container.querySelectorAll<HTMLElement>(CONTENT_SELECTOR)).some((node) => {
-    if (node.closest("[data-route-placeholder='true']")) return false;
-    if (node.tagName === "VIDEO") return true;
-    const rect = node.getBoundingClientRect();
-    return rect.width > 1 && rect.height > 1;
-  });
-}
 
 function PendingReadyProbe({ rootRef, onReady }: { rootRef: RefObject<HTMLDivElement | null>; onReady: () => void }) {
   useLayoutEffect(() => {
-    let done = false;
-    let raf = 0;
-    let timeout = 0;
-    let observer: MutationObserver | null = null;
-
-    const finish = () => {
-      if (done) return;
-      done = true;
-      if (raf) window.cancelAnimationFrame(raf);
-      if (timeout) window.clearTimeout(timeout);
-      observer?.disconnect();
-      onReady();
-    };
-
-    const check = () => {
-      if (done) return;
-      raf = window.requestAnimationFrame(() => {
-        if (hasRealRouteSurface(rootRef.current)) finish();
-      });
-    };
-
-    check();
-    if (rootRef.current) {
-      observer = new MutationObserver(check);
-      observer.observe(rootRef.current, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["class", "style", "data-page", "data-page-root", "data-route-placeholder"],
-      });
-    }
-
-    // If a legitimate empty page exists, do not trap navigation forever. This
-    // still keeps the previous real screen during the preparation window and
-    // never paints a loading/snapshot cover.
-    timeout = window.setTimeout(finish, 8000);
-
-    return () => {
-      done = true;
-      if (raf) window.cancelAnimationFrame(raf);
-      if (timeout) window.clearTimeout(timeout);
-      observer?.disconnect();
-    };
+    // Promote the pending stage on the very next animation frame so taps feel
+    // instant (Chamet/TikTok-class). The previous route stays mounted for that
+    // single frame so persistent surfaces (camera, video) can hand off without
+    // an off→on gap, but the user perceives zero delay between tap and the
+    // destination becoming interactive.
+    void rootRef;
+    const raf = window.requestAnimationFrame(() => onReady());
+    return () => window.cancelAnimationFrame(raf);
   }, [onReady, rootRef]);
 
   return null;
