@@ -18833,6 +18833,7 @@ export type Database = {
           face_verified_at: string | null
           frame_id: string | null
           gender: string | null
+          hide_gift_senders: boolean | null
           hide_location: boolean | null
           host_availability: string | null
           host_level: number | null
@@ -18890,6 +18891,7 @@ export type Database = {
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          hide_gift_senders?: never
           hide_location?: boolean | null
           host_availability?: string | null
           host_level?: number | null
@@ -18947,6 +18949,7 @@ export type Database = {
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
+          hide_gift_senders?: never
           hide_location?: boolean | null
           host_availability?: string | null
           host_level?: number | null
