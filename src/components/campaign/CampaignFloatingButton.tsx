@@ -891,18 +891,18 @@ function CampaignFloatingButton() {
                 setRemainingSeconds(0);
               }}
               onClick={(e) => { e.stopPropagation(); }}
-              className="absolute -top-3 -left-2 z-30 flex h-6 w-6 items-center justify-center rounded-full p-0 active:scale-90 transition-transform"
+              className="absolute -top-2 -left-1.5 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full p-0 active:scale-90 transition-transform"
               style={{
                 background:
-                  'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(238,238,244,0.88))',
+                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(232,232,240,0.92))',
                 boxShadow:
-                  '0 6px 14px rgba(15,15,25,0.28), 0 1px 2px rgba(15,15,25,0.18), inset 0 1px 0 rgba(255,255,255,0.9)',
-                border: '1px solid rgba(217,18,72,0.35)',
+                  '0 3px 8px rgba(15,15,25,0.32), 0 1px 1px rgba(15,15,25,0.18), inset 0 1px 0 rgba(255,255,255,0.95)',
+                border: '0.5px solid rgba(135,17,50,0.45)',
                 backdropFilter: 'blur(6px)',
                 WebkitBackdropFilter: 'blur(6px)',
               }}
             >
-              <X className="h-3 w-3" strokeWidth={3} style={{ color: '#871132' }} />
+              <X style={{ width: 9, height: 9, color: '#871132' }} strokeWidth={3} />
             </button>
 
 
