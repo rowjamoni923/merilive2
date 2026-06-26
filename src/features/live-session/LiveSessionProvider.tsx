@@ -31,6 +31,7 @@ import {
   acquireCameraSession,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
+import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 
 export type LiveSessionPhase = 'preview' | 'broadcast' | 'ended';
 
@@ -144,6 +145,7 @@ export function LiveSessionProvider({
 
   return (
     <LiveSessionContext.Provider value={value}>
+      <PersistentCameraSurface active={cameraHeld} />
       {children}
     </LiveSessionContext.Provider>
   );

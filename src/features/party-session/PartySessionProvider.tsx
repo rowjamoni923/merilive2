@@ -34,6 +34,7 @@ import {
   acquireCameraSession,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
+import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 
 export type PartySessionPhase = 'create' | 'inRoom' | 'ended';
 export type PartyMode = 'audio' | 'video' | 'game';
@@ -140,6 +141,7 @@ export function PartySessionProvider({
 
   return (
     <PartySessionContext.Provider value={value}>
+      <PersistentCameraSurface active={mode === 'video' || mode === 'game'} />
       {children}
     </PartySessionContext.Provider>
   );

@@ -1,19 +1,13 @@
 /**
  * InRoomPhase — wraps the existing PartyRoom page.
  *
- * PartyRoom reads its roomId from usePartySessionOptional() first and
- * falls back to useParams when rendered standalone (deep-link / invite
- * push). End-of-session callbacks route to `goToEnded()` instead of
- * navigating away, keeping the Provider mounted for the EndedPhase.
+ * Eager-imported (no lazy/Suspense) so the create→inRoom swap never
+ * inserts a `null` fallback. PartyRoom reads roomId from
+ * usePartySessionOptional() first and falls back to useParams when
+ * rendered standalone (deep-link / invite push).
  */
-import { lazy, Suspense } from 'react';
-
-const PartyRoom = lazy(() => import('@/pages/PartyRoom'));
+import PartyRoom from '@/pages/PartyRoom';
 
 export default function InRoomPhase() {
-  return (
-    <Suspense fallback={null}>
-      <PartyRoom />
-    </Suspense>
-  );
+  return <PartyRoom />;
 }
