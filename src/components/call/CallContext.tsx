@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useSyncExternalStore } from 'react';
 
 export interface CallContextType {
   startCall: (hostId: string, streamId?: string) => Promise<string | null>;
@@ -8,16 +8,30 @@ export interface CallContextType {
 
 export const CallContext = createContext<CallContextType | null>(null);
 
+const fallbackCall: CallContextType = {
+  startCall: async () => null,
+  endCall: async () => {},
+  isInCall: false,
+};
+
+let globalCallState: CallContextType = fallbackCall;
+const listeners = new Set<() => void>();
+
+export function setGlobalCallController(next: CallContextType | null) {
+  globalCallState = next ?? fallbackCall;
+  listeners.forEach((listener) => listener());
+}
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+
+const getSnapshot = () => globalCallState;
+const getServerSnapshot = () => fallbackCall;
+
 export function useCall() {
   const context = useContext(CallContext);
-  if (!context) {
-    // Lightweight fallback while the call provider chunk is still loading or
-    // on public/auth pages where calls are not mounted.
-    return {
-      startCall: async () => null as string | null,
-      endCall: async () => {},
-      isInCall: false,
-    };
-  }
-  return context;
+  const external = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return context ?? external;
 }
