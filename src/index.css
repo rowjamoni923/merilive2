@@ -5715,4 +5715,89 @@ a:focus-visible,
 }
 
 
+/* ============================================================
+   Pillar 2 — Native touch & scroll feel (app-wide, additive)
+   Goal: make every interaction indistinguishable from a real
+   Android app. Buttons respond instantly, scrolling has native
+   momentum, images can't be dragged, UI chrome can't be
+   accidentally selected, but inputs/messages stay copyable.
+   ============================================================ */
+
+/* Momentum scrolling on every scroll container (iOS WebView).
+   Android Chromium already has native momentum, so this is a no-op there. */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* All interactive controls: instant tap, no grey/blue flash, no callout. */
+button,
+[role="button"],
+a,
+label,
+summary,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+.tap-target {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+/* Subtle press feedback — only on touch devices, only when not disabled.
+   Mirrors Android's ripple "press scale" timing. */
+@media (hover: none) and (pointer: coarse) {
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  a:active,
+  .tap-target:active {
+    transform: scale(0.97);
+    transition: transform 80ms ease-out;
+  }
+}
+
+/* Prevent the long-press "save image / open in new tab" sheet on UI imagery.
+   Avatars, gift icons, banners, thumbnails — they're UI, not content downloads.
+   User-uploaded media inside chat/reels/profile is opted back in below. */
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Opt user content back in for save / share via long-press. */
+img[data-user-content="true"],
+[data-user-content="true"] img,
+.user-content img,
+.message-bubble img,
+.reel-media img,
+.story-media img {
+  -webkit-touch-callout: default;
+  -webkit-user-drag: auto;
+  user-select: auto;
+}
+
+/* UI chrome text: not selectable (prevents accidental selection on long-press). */
+button, [role="button"], nav, header, footer,
+.tab-bar, .app-bar, .nav-bar, [data-ui-chrome] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* But everything writable / readable stays fully selectable. */
+input, textarea, [contenteditable="true"],
+.message-bubble, .selectable-text, [data-selectable] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* Kill the iOS focus-ring zoom on inputs (font-size>=16px already prevents
+   auto-zoom; this just removes the dotted outline that looks weird on mobile). */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+/* Disable text-size adjust on rotation — keeps typography stable. */
+html { -webkit-text-size-adjust: 100%; }
 

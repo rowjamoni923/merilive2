@@ -444,6 +444,15 @@ const NativeMessageActionsBridge = lazy(lazyRetry(() => import("./hooks/useNativ
   return { default: Bridge };
 })));
 
+// Pillar 2 — global tap haptics: fires Haptics.impact(Light) on every real
+// touch on a button/role=button/link. Single delegated listener, no
+// per-call-site change needed.
+const GlobalTapHapticsBridge = lazy(lazyRetry(() => import("./hooks/useGlobalTapHaptics").then(m => {
+  const Bridge = () => { m.useGlobalTapHaptics(); return null; };
+  return { default: Bridge };
+})));
+
+
 // Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
 const AppLockGate = lazy(lazyRetry(() => import("./components/security/AppLockGate")));
 const ScreenshotDetectionBridge = lazy(lazyRetry(() => import("./components/security/ScreenshotDetectionBridge")));
@@ -1158,6 +1167,8 @@ const App = () => {
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
       <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
+      <Suspense fallback={null}><GlobalTapHapticsBridge /></Suspense>
+
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
