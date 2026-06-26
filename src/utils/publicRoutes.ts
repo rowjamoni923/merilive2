@@ -1,4 +1,7 @@
 const STANDALONE_PUBLIC_PREFIXES = [
+  '/auth',
+  '/reset-password',
+  '/~oauth',
   '/agency-policy',
   '/policies-benefits',
   '/helper-policy',
