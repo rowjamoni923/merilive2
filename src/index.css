@@ -41,10 +41,12 @@
   display: none !important;
 }
 
-/* User mandate: no visible spinning loaders anywhere in the app chrome.
-   Buttons may still disable to prevent duplicate submits; they just won't spin. */
-.animate-spin,
-[class*="animate-[spin_"] {
+/* Full-page/route spinners stay hidden, but local button/action loaders are
+   allowed so taps show immediate feedback instead of feeling frozen. */
+[data-loading-indicator="page"] .animate-spin,
+[data-loading-indicator="route"] .animate-spin,
+.animate-spin[data-loading-indicator="page"],
+.animate-spin[data-loading-indicator="route"] {
   animation: none !important;
 }
 
