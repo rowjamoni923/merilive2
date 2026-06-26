@@ -2527,7 +2527,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus autoComplete="name" autoCapitalize="words" enterKeyHint="next" />
                 </div>
               </div>
 
@@ -2535,7 +2535,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" autoComplete="new-password" enterKeyHint="next" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -2546,7 +2546,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoComplete="new-password" enterKeyHint="go" />
                 </div>
               </div>
               
@@ -2897,7 +2897,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-green-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus autoComplete="name" autoCapitalize="words" enterKeyHint="next" />
                 </div>
               </div>
 
@@ -2905,7 +2905,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" autoComplete="new-password" enterKeyHint="next" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -2916,7 +2916,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoComplete="new-password" enterKeyHint="go" />
                 </div>
               </div>
 
