@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useState, useRef, lazy, Suspense, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePrivateCall } from '@/hooks/usePrivateCall';
 import { useNativeCallBillingSync } from '@/hooks/useNativeCallBillingSync';
@@ -716,8 +716,19 @@ export function CallProvider({ children }: CallProviderProps) {
     />
   );
 
+  const contextValue = useMemo<CallContextType>(() => ({
+    startCall,
+    endCall: handleEndCall,
+    isInCall,
+  }), [startCall, handleEndCall, isInCall]);
+
+  useEffect(() => {
+    setGlobalCallController(contextValue);
+    return () => setGlobalCallController(null);
+  }, [contextValue]);
+
   return (
-    <CallContext.Provider value={{ startCall, endCall: handleEndCall, isInCall }}>
+    <CallContext.Provider value={contextValue}>
       {/* Global persistent camera bridge — paints the warm MediaStream
           during route swaps (GoLive → LiveStream, CreateParty → PartyRoom,
           idle → ActiveCall) so users never see a camera off→on flicker.
