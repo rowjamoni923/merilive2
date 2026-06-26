@@ -139,10 +139,10 @@ const getLocalizedMessages = (_countryName?: string) => ({
 
 const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
 const photoImageClass = "absolute inset-0 h-full w-full object-contain object-center bg-slate-950";
-const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-b from-white/8 via-transparent to-black/10";
-const photoGuideClass = "pointer-events-none absolute left-1/2 top-1/2 h-[74%] w-[68%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-white/75 shadow-[0_0_0_999px_rgba(15,23,42,0.08)]";
+const photoOverlayClass = "hidden";
+const photoGuideClass = "hidden";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
-const photoFrameStatusClass = "mx-auto mt-3 w-full max-w-[320px] rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-xs font-semibold text-emerald-800 shadow-sm";
+const photoFrameStatusClass = "hidden";
 
 // Capture the full camera sensor frame for AI analysis. The old object-cover
 // crop matched the preview box, but on close-up mobile selfies it cut off part
