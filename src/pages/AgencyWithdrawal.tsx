@@ -1862,51 +1862,31 @@ const AgencyWithdrawal = () => {
     return autoWithdrawalFee.enabled && autoWithdrawalFee.methods.includes(m);
   };
 
-  // Get withdrawal fee in USD based on tiered fee from DB (withdrawal_settings)
-  // Fee is calculated based on beans amount, matched against tiered ranges.
-  // EXCEPTION: when paymentMethod is an auto method (ePay/USDT/Binance/Crypto) and
-  // admin enabled auto_withdrawal_fee, return that flat USD fee instead of the tiered fee.
+  // Get withdrawal fee in USD — strict admin-panel single-source-of-truth:
+  //   • Auto methods (USDT / Binance / Crypto Auto) → app_settings.auto_withdrawal_fee
+  //     (flat USD + percent). Configured in Admin → Pricing Hub → "Auto Withdrawal Fee (Foreign Agencies)".
+  //   • Local methods (bKash / Nagad / UPI / payroll helper) → app_settings.agency_withdrawal_fee.rate
+  //     (single percent). Configured in Admin → Pricing Hub → "Agency Withdrawal Fee".
+  // NEVER fall back to hardcoded numbers or the legacy tiered `withdrawal_settings.fees`.
   const getWithdrawalFeeUsd = (localAmountOverride?: number) => {
     const localAmount = localAmountOverride !== undefined ? localAmountOverride : parseFloat(amount || '0');
-    const beansAmount = localToBeans(localAmount);
+    if (!localAmount || localAmount <= 0) return 0;
+    const usdAmount = localToUsd(localAmount);
 
     // Auto method override (admin-controlled: flat USD + percent of USD)
     if (isAutoMethod()) {
-      const usdAmount = localToUsd(localAmount);
       const flat = Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
       const pct = Math.max(0, Number(autoWithdrawalFee.percent) || 0);
       return flat + (usdAmount * pct) / 100;
     }
 
-    // Below free limit = no fee
-    if (beansAmount <= freeWithdrawalLimit) return 0;
-
-    
-    // Find matching tier from DB
-    for (const tier of withdrawalFees) {
-      if (beansAmount >= tier.min_amount && beansAmount <= tier.max_amount) {
-        if (tier.fee_type === 'percent') {
-          const usdAmount = localToUsd(localAmount);
-          return usdAmount * (tier.fee_value / 100);
-        } else {
-          // flat fee in USD
-          return tier.fee_value;
-        }
-      }
+    // Local / payroll-helper methods → single admin %
+    if (localWithdrawalFeePercent === null) {
+      // Admin config not loaded yet → don't guess. Show 0 to avoid misleading the user.
+      return 0;
     }
-    
-    // If no tier matched but fees exist, use last tier
-    if (withdrawalFees.length > 0) {
-      const lastTier = withdrawalFees[withdrawalFees.length - 1];
-      if (lastTier.fee_type === 'percent') {
-        const usdAmount = localToUsd(localAmount);
-        return usdAmount * (lastTier.fee_value / 100);
-      }
-      return lastTier.fee_value;
-    }
-    
-    // Default fallback: $5 flat
-    return 5;
+    const pct = Math.max(0, localWithdrawalFeePercent);
+    return (usdAmount * pct) / 100;
   };
 
   // Get withdrawal fee in beans
