@@ -142,7 +142,7 @@ class NativeLiveKitController {
       // camera leaks after an explicit end/exit.
       const active = await NativeLiveKit.getActiveSession().catch(() => null);
       if (active?.active) {
-        const activeScope = this.activeFeature ?? this.inferScopeFromCallType(active.callType);
+        const activeScope = this.activeFeature ?? ((active.roomScope as NativeRoomScope | string | undefined) || null) as NativeRoomScope | null ?? this.inferScopeFromCallType(active.callType);
         if (requestedFeature && activeScope && activeScope !== requestedFeature) {
           throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
         }
