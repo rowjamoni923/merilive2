@@ -131,3 +131,26 @@ Patch scope:
 - Phone OTP now commits to the OTP sheet immediately while WhatsApp send/abuse checks run in the background.
 - Auth route gets a scoped native modal style: near-transparent overlay, no backdrop blur/zoom animation, opacity-only tap feedback.
 - `/auth`, `/reset-password`, and OAuth callback routes are now classified as public boot surfaces so LiveKit token pre-mint / connection-pool warmup cannot create a login-screen network storm.
+
+---
+
+# Phase 10 — Global 400-page instant response pass (2026-06-26)
+
+Research / professional standard:
+- Native live/social apps keep tap handlers under one frame: visual state changes immediately; prefetch/realtime/maintenance work runs after paint or on realtime events.
+- React 18 transitions are useful for non-urgent updates, but primary tab/page commits in a mobile app must not be deferred behind background rendering.
+
+Verified current gap:
+- `RouteScopedBackgroundHooks` reset `backgroundReady` and remounted heavy hooks on every pathname change, so every page navigation could restart non-visual services.
+- Bottom navigation used `startTransition` around primary `navigate(...)`, delaying the route commit on busy WebViews.
+- Global `<Button>` had a guarded click wrapper and timer, adding overhead to every button press.
+- `useExpiredItemsRestorer` ran immediately and every minute from Profile/VIP, repeatedly hitting DB and logging in the foreground.
+- Presence heartbeat/logging woke every 30s and matched the user's console spam during lag reports.
+
+Patch scope:
+- Keep background hooks mounted once after first app surface; route change no longer resets them.
+- Route-change video lifecycle pause is idle-deferred so it cannot block navigation paint.
+- Bottom tabs/action menu navigate synchronously; route warming remains background-only.
+- Global button guard removed; CSS `touch-action: manipulation` enforced for tappables.
+- Expired item restore changed to one idle maintenance pass per user / 6h, no minute polling.
+- Presence heartbeat relaxed to 120s and logs gated to dev-only.
