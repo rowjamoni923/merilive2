@@ -1033,7 +1033,7 @@ serve(async (req) => {
     // POLICY (Updated F3 2026-06-26):
     //   User-visible auto-reject is allowed ONLY for hard fraud:
     //   1) the same face already belongs to another account, or
-    //   2) a highly confident account-gender mismatch.
+    //   2) the face/device/network is on the ban list.
     //   Liveness/replay/photo/profile/gallery quality problems block
     //   auto-approve and stay Pending for manual admin review.
     // ────────────────────────────────────────────────────────────────────
@@ -1215,7 +1215,7 @@ serve(async (req) => {
     // Other non-fraud soft signals (liveness/replay/profile/gallery/quality and
     // lower-confidence gender signals) are NOT user-visible instant rejects, but
     // they also must NOT be auto-approved. Keep the row Pending/Under Review so
-    // admin can decide. Hard fraud duplicate/gender cases already returned above.
+    // admin can decide. Hard fraud duplicate/banned-face cases already returned above.
     let autoResult: Record<string, unknown> | null = null;
     // ★ SECURITY GATE (P0 hardening 2026-06-18): Auto-approve is ONLY safe when
     //    BOTH AWS Rekognition (compare/detect) AND the external liveness +
