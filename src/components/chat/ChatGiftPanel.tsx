@@ -271,6 +271,10 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
     [getCategoryGifts, activeCategory]
   );
 
+  // Phase 4B — persistently cache visible icons + warm top animated payloads
+  useGiftPanelPrefetch(isOpen, currentGifts);
+
+
   // Available categories
   const availableCategories = useMemo(() => 
     defaultCategories.filter((cat) => getCategoryGifts(cat.id).length > 0), 
