@@ -2618,6 +2618,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   onPointerDown={() => item.path && prefetchByHref(item.path)}
                   onTouchStart={() => item.path && prefetchByHref(item.path)}
                   data-instant-path={!(item as any).onClick && !(item as any).action && item.path ? item.path : undefined}
+                  data-no-instant-nav={(item as any).onClick || (item as any).action ? "true" : undefined}
                   data-prefetch-path={item.path || undefined}
                   onClick={() => {
                     if ((item as any).onClick) {
