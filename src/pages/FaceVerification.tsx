@@ -3737,7 +3737,7 @@ const FaceVerification = () => {
             </div>
 
             <div className="bg-white/80 rounded-3xl p-6 border border-amber-200/60">
-              <input ref={userPhotoInputRef} type="file" accept="image/*" onChange={handleUserPhotoSelect} className="hidden" />
+              <input ref={userPhotoInputRef} type="file" accept="image/*,.heic,.heif,.avif,.bmp" onChange={handleUserPhotoSelect} className="hidden" />
               
               {userPhotoPreview ? (
                 <div className="space-y-5">
