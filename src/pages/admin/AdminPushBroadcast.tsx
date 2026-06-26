@@ -24,6 +24,31 @@ const PUSH_CATEGORIES: Record<string, { label: string; color: string }> = {
   push_live: { label: "⏰ 5-Hour Live Rewards", color: "from-amber-600/80 to-orange-600/80" },
 };
 
+const DYNAMIC_COLORS = [
+  "from-emerald-600/80 to-teal-600/80",
+  "from-rose-600/80 to-red-600/80",
+  "from-indigo-600/80 to-violet-600/80",
+  "from-yellow-600/80 to-amber-600/80",
+  "from-fuchsia-600/80 to-purple-600/80",
+  "from-sky-600/80 to-blue-600/80",
+  "from-lime-600/80 to-green-600/80",
+];
+
+const hashCategoryColor = (key: string) => {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return DYNAMIC_COLORS[h % DYNAMIC_COLORS.length];
+};
+
+const prettifyCategoryLabel = (key: string) => {
+  const base = key.replace(/^push_/, "").replace(/_/g, " ").trim();
+  if (!base) return "Custom";
+  return "✨ " + base.replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const getCategoryInfo = (key: string) =>
+  PUSH_CATEGORIES[key] || { label: prettifyCategoryLabel(key), color: hashCategoryColor(key) };
+
 export default function AdminPushBroadcast() {
   const [title, setTitle] = useState("");
   const [expandedPreset, setExpandedPreset] = useState<string | null>(null);
@@ -38,11 +63,34 @@ export default function AdminPushBroadcast() {
   const [addDialog, setAddDialog] = useState(false);
   const [addCategory, setAddCategory] = useState("push_host");
   const [addForm, setAddForm] = useState({ title: "", body: "", description: "" });
+  const [newCategoryMode, setNewCategoryMode] = useState(false);
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+
+  // All available categories = defaults + any already present in DB
+  const allCategoryKeys = Array.from(
+    new Set([...Object.keys(PUSH_CATEGORIES), ...Object.keys(grouped)])
+  );
 
   const openEditDialog = (t: BroadcastTemplate) => {
     setEditingTemplate(t);
     setEditForm({ title: t.title_template, body: t.message_template, description: t.description || "" });
     setEditDialog(true);
+  };
+
+  const openAddDialog = (category?: string) => {
+    setNewCategoryMode(false);
+    setNewCategoryLabel("");
+    setAddCategory(category || allCategoryKeys[0] || "push_host");
+    setAddForm({ title: "", body: "", description: "" });
+    setAddDialog(true);
+  };
+
+  const openNewCategoryDialog = () => {
+    setNewCategoryMode(true);
+    setNewCategoryLabel("");
+    setAddCategory("");
+    setAddForm({ title: "", body: "", description: "" });
+    setAddDialog(true);
   };
 
   const handleSaveEdit = async () => {
@@ -60,17 +108,26 @@ export default function AdminPushBroadcast() {
       toast.error("Title and body are required");
       return;
     }
-    const key = `${addCategory}_${Date.now()}`;
+    let category = addCategory;
+    if (newCategoryMode) {
+      const slug = newCategoryLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+      if (!slug) { toast.error("Enter a category name"); return; }
+      category = slug.startsWith("push_") ? slug : `push_${slug}`;
+    }
+    const key = `${category}_${Date.now()}`;
     await addTemplate({
       template_key: key,
       title_template: addForm.title,
       message_template: addForm.body,
       description: addForm.description,
-      category: addCategory,
+      category,
     });
     setAddDialog(false);
     setAddForm({ title: "", body: "", description: "" });
+    setNewCategoryMode(false);
+    setExpandedPreset(category);
   };
+
 
   const handleDeleteTemplate = async (t: BroadcastTemplate) => {
     if (!window.confirm(`Delete template "${t.title_template}"?`)) return;
@@ -210,36 +267,57 @@ export default function AdminPushBroadcast() {
       {/* Quick Templates (from DB) */}
       <Card className="bg-gray-900/50 border-gray-800">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-white flex items-center gap-2 text-lg">
               <Zap className="w-5 h-5 text-yellow-400" />
               Quick Templates — Click to Use
             </CardTitle>
-            <Button size="sm" variant="outline" onClick={() => { setAddCategory("push_host"); setAddDialog(true); }} className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
-              <Plus className="w-4 h-4 mr-1" /> Add
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={openNewCategoryDialog} className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
+                <Plus className="w-4 h-4 mr-1" /> New Category
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openAddDialog()} className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
+                <Plus className="w-4 h-4 mr-1" /> Add Template
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {templatesLoading ? (
             <div className="flex items-center justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-purple-400" /></div>
-          ) : Object.keys(PUSH_CATEGORIES).map((catKey) => {
-            const info = PUSH_CATEGORIES[catKey];
+          ) : allCategoryKeys.length === 0 ? (
+            <p className="text-gray-500 text-sm py-4 text-center">No categories yet. Click "New Category" to create one.</p>
+          ) : allCategoryKeys.map((catKey) => {
+            const info = getCategoryInfo(catKey);
             const catTemplates = grouped[catKey] || [];
             const isExpanded = expandedPreset === catKey;
             return (
               <div key={catKey}>
-                <button
-                  onClick={() => setExpandedPreset(isExpanded ? null : catKey)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r ${info.color} text-white font-semibold transition-all hover:opacity-90`}
-                >
-                  <span>{info.label} ({catTemplates.length})</span>
-                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
+                <div className={`w-full flex items-center gap-2 rounded-xl bg-gradient-to-r ${info.color} text-white font-semibold transition-all hover:opacity-90`}>
+                  <button
+                    onClick={() => setExpandedPreset(isExpanded ? null : catKey)}
+                    className="flex-1 flex items-center justify-between p-3 text-left"
+                  >
+                    <span>{info.label} ({catTemplates.length})</span>
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openAddDialog(catKey); setExpandedPreset(catKey); }}
+                    title="Add template to this category"
+                    className="p-3 hover:bg-white/10 rounded-r-xl"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 {isExpanded && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2 space-y-2 pl-2">
                     {catTemplates.length === 0 ? (
-                      <p className="text-gray-500 text-sm py-2 pl-2">No templates yet. Click "Add" to create one.</p>
+                      <button
+                        onClick={() => openAddDialog(catKey)}
+                        className="w-full text-gray-400 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-gray-700 hover:border-purple-500/50 rounded-lg transition-all"
+                      >
+                        + Add first template to {info.label}
+                      </button>
                     ) : catTemplates.map((template, idx) => (
                       <motion.div
                         key={template.id}
@@ -449,21 +527,41 @@ export default function AdminPushBroadcast() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Plus className="w-5 h-5 text-green-400" />
-              Add New Template
+              {newCategoryMode ? "Create New Category" : "Add New Template"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div>
-              <Label className="text-sm font-medium text-white/80">Category</Label>
-              <Select value={addCategory} onValueChange={setAddCategory}>
-                <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PUSH_CATEGORIES).map(([key, val]) => (
-                    <SelectItem key={key} value={key}>{val.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {newCategoryMode ? (
+              <div>
+                <Label className="text-sm font-medium text-white/80">Category Name *</Label>
+                <Input
+                  value={newCategoryLabel}
+                  onChange={(e) => setNewCategoryLabel(e.target.value)}
+                  className="mt-1.5 bg-white/5 border-white/10 text-white"
+                  placeholder="e.g. Daily Reminders, VIP Promo..."
+                />
+                <p className="text-xs text-gray-500 mt-1">A new category will be created and the first template added to it.</p>
+              </div>
+            ) : (
+              <div>
+                <Label className="text-sm font-medium text-white/80">Category</Label>
+                <Select value={addCategory} onValueChange={setAddCategory}>
+                  <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allCategoryKeys.map((key) => (
+                      <SelectItem key={key} value={key}>{getCategoryInfo(key).label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <button
+                  type="button"
+                  onClick={() => { setNewCategoryMode(true); setNewCategoryLabel(""); }}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 mt-1.5"
+                >
+                  + Create a new category instead
+                </button>
+              </div>
+            )}
             <div>
               <Label className="text-sm font-medium text-white/80">Title *</Label>
               <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Notification title..." />
