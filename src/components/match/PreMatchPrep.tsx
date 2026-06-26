@@ -58,6 +58,7 @@ export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, requiredBalance, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip, onStart,
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
+  matchedAvatarUrl = null,
 }: Props) {
   const navigate = useNavigate();
   const { balance: liveBalance } = useUserBalance();
