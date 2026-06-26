@@ -3088,13 +3088,9 @@ const Chat = () => {
                           <span className="font-medium text-sm">Reply</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          setMessageReactions(prev => {
-                            const current = prev[msg.id] || [];
-                            const next = current.includes('❤️') ? current.filter(e => e !== '❤️') : [...current, '❤️'];
-                            return { ...prev, [msg.id]: next };
-                          });
-                          toast.success('Reacted ❤️');
+                          setReactionPickerMsgId(msg.id);
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+
                           <SmilePlus className="w-4 h-4 text-warning-600" />
                           <span className="font-medium text-sm">React</span>
                         </DropdownMenuItem>
