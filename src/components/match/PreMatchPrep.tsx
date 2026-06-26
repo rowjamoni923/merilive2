@@ -400,6 +400,7 @@ export default function PreMatchPrep({
                 <>
                   <div className="text-[13px] font-bold tracking-tight drop-shadow">Matching…</div>
                   <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
+                  <div className="text-[10px] text-emerald-200/90 mt-0.5">{availableHostsCount} hosts online</div>
                 </>
               ) : isMatched ? (
                 <>
