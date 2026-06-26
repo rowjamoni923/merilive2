@@ -833,6 +833,74 @@ serve(async (req) => {
       }
     }
 
+    // Provider indexes only faces that passed after the provider was enabled.
+    // For older already-verified accounts, run a bounded Rekognition fallback
+    // against approved profile avatars so the second account is still caught.
+    if (!duplicateBlock && !frontError) {
+      try {
+        const { data: approvedProfiles } = await supabaseAdmin
+          .from("profiles")
+          .select("id,display_name,app_uid,avatar_url,is_face_verified,face_verification_status,host_status")
+          .neq("id", userId)
+          .or("is_face_verified.eq.true,face_verification_status.eq.approved,host_status.eq.approved")
+          .not("avatar_url", "is", null)
+          .limit(LEGACY_DUPLICATE_SCAN_LIMIT);
+
+        let bestLegacyCandidate: Record<string, unknown> | null = null;
+        for (const candidate of approvedProfiles || []) {
+          const candidateUrl = (candidate.avatar_url as string | null) || null;
+          if (!candidateUrl) continue;
+          try {
+            const candidateBytes = await fetchImageBytes(candidateUrl, supabaseAdmin);
+            const candidateDet = await detectFaces(candidateBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const candidateFaceCount = ((candidateDet.FaceDetails as unknown[] | undefined) ?? []).length;
+            if (candidateFaceCount !== 1) continue;
+            const similarity = await compareFaces(candidateBytes, frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const previousBest = Number(bestLegacyCandidate?.similarity || 0);
+            if (similarity > previousBest) {
+              bestLegacyCandidate = {
+                previous_user_id: candidate.id,
+                previous_display_name: candidate.display_name || null,
+                previous_app_uid: candidate.app_uid || null,
+                previous_avatar: candidate.avatar_url || null,
+                similarity,
+                source: "rekognition_legacy_approved_profile_scan",
+                previous_approved: true,
+              };
+            }
+          } catch (_candidateErr) {
+            // Skip one bad historical avatar; never block the whole analysis.
+          }
+        }
+
+        if (bestLegacyCandidate && Number(bestLegacyCandidate.similarity || 0) >= DUPLICATE_FACE_MIN_SIMILARITY) {
+          duplicateFields = {
+            is_duplicate_face: true,
+            duplicate_face_user_id: bestLegacyCandidate.previous_user_id,
+            duplicate_face_name: bestLegacyCandidate.previous_display_name,
+            duplicate_face_uid: bestLegacyCandidate.previous_app_uid,
+            duplicate_face_avatar: bestLegacyCandidate.previous_avatar,
+          };
+          duplicateBlock = {
+            previous_user_id: bestLegacyCandidate.previous_user_id,
+            previous_display_name: bestLegacyCandidate.previous_display_name,
+            previous_app_uid: bestLegacyCandidate.previous_app_uid,
+            similarity: bestLegacyCandidate.similarity,
+            other_matches: 1,
+            indexed_at: null,
+            source: bestLegacyCandidate.source,
+            previous_approved: true,
+          };
+          const prevName = (bestLegacyCandidate.previous_display_name as string | null) || null;
+          const prevUid = (bestLegacyCandidate.previous_app_uid as string | null) || null;
+          duplicateNote = `Duplicate face detected by approved-account fallback — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${Number(bestLegacyCandidate.similarity).toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+          duplicateSearchCompleted = true;
+        }
+      } catch (e) {
+        console.warn("[face-verification-analyze] legacy duplicate scan skipped:", e instanceof Error ? e.message : e);
+      }
+    }
+
     // F3 (2026-06-09): Cross-check the duplicate match against banned_face_hashes
     // AND the matched account's `profiles.is_blocked` state. If the face is
     // already on the ban list, this is a hard auto-reject (not just a manual
