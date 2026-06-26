@@ -2025,7 +2025,7 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   .btn-gold {
-    @apply font-bold rounded-2xl transition-all duration-300;
+    @apply font-bold rounded-2xl transition-colors duration-100;
     background: var(--gradient-gold);
     box-shadow: var(--shadow-gold);
     color: hsl(20 14% 4%);
@@ -5830,6 +5830,13 @@ a[href],
   content: none !important;
   animation: none !important;
   transition: none !important;
+}
+button:active,
+[role="button"]:active,
+a[href]:active,
+.tap-target:active,
+.tappable:active {
+  transform: none !important;
 }
 
 /* Prevent the long-press "save image / open in new tab" sheet on UI imagery.
