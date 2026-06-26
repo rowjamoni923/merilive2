@@ -162,11 +162,11 @@ const GiftItem = memo(({
             <Play className="w-5 h-5 text-white/80" fill="currentColor" />
           </div>
         ) : url ? (
-          <img loading="lazy" decoding="async" 
-            src={url} 
-            alt={gift.name} 
+          <SmartGiftIcon
+            src={url}
+            alt={gift.name}
             className="w-10 h-10 object-contain"
- />
+          />
         ) : (
           <div className="w-10 h-10 rounded-lg bg-white/5" />
         )}
