@@ -2156,11 +2156,12 @@ const AgencyWithdrawal = () => {
 
       // Pkg D pass-2: fetch all 4 app_settings keys in parallel through the
       // shared cache (was 4 sequential roundtrips, ~600ms on slow links).
-      const [beansRateValue, commissionFallbackValue, wsValue, awfValue] = await Promise.all([
+      const [beansRateValue, commissionFallbackValue, wsValue, awfValue, agencyWdFeeValue] = await Promise.all([
         getAppSetting<unknown>('beans_to_usd_rate'),
         getAppSetting<unknown>('agency_commission'),
         getAppSetting<unknown>('withdrawal_settings'),
         getAppSetting<unknown>('auto_withdrawal_fee'),
+        getAppSetting<unknown>('agency_withdrawal_fee'),
       ]);
 
       // Beans→USD rate (primary)
