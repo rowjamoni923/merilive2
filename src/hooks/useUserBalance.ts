@@ -33,17 +33,19 @@ const balanceCache: BalanceCache = {
 const CACHE_DURATION = 15 * 1000; // 15 seconds - faster refresh for real-time feel
 const listeners: Set<(balance: number) => void> = new Set();
 let balanceFetchPromise: Promise<number> | null = null;
+let balanceRequestSeq = 0;
 
 /**
  * Fetch user balance and update cache
  */
-async function fetchBalance(userIdOverride?: string | null): Promise<number> {
+async function fetchBalance(userIdOverride?: string | null, forceRefresh = false): Promise<number> {
   // Prevent duplicate fetches
-  if (balanceCache.loading) {
+  if (balanceCache.loading && !forceRefresh) {
     return balanceFetchPromise ?? Promise.resolve(balanceCache.balance);
   }
 
   balanceCache.loading = true;
+  const requestSeq = ++balanceRequestSeq;
 
   balanceFetchPromise = (async () => {
     try {
@@ -55,10 +57,12 @@ async function fetchBalance(userIdOverride?: string | null): Promise<number> {
       }
 
       if (!userId) {
-        balanceCache.balance = 0;
-        balanceCache.userId = null;
-        balanceCache.timestamp = Date.now();
-        balanceCache.initialized = true;
+        if (requestSeq === balanceRequestSeq) {
+          balanceCache.balance = 0;
+          balanceCache.userId = null;
+          balanceCache.timestamp = Date.now();
+          balanceCache.initialized = false;
+        }
         balanceCache.loading = false;
         return 0;
       }
@@ -67,6 +71,7 @@ async function fetchBalance(userIdOverride?: string | null): Promise<number> {
       if (
         balanceCache.userId === userId &&
         balanceCache.initialized &&
+        !forceRefresh &&
         Date.now() - balanceCache.timestamp < CACHE_DURATION
       ) {
         balanceCache.loading = false;
@@ -86,13 +91,15 @@ async function fetchBalance(userIdOverride?: string | null): Promise<number> {
       }
 
       const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
-      balanceCache.balance = newBalance;
-      balanceCache.userId = userId;
-      balanceCache.timestamp = Date.now();
-      balanceCache.initialized = true;
+      if (requestSeq === balanceRequestSeq) {
+        balanceCache.balance = newBalance;
+        balanceCache.userId = userId;
+        balanceCache.timestamp = Date.now();
+        balanceCache.initialized = true;
 
-      // Notify all listeners
-      listeners.forEach(cb => cb(newBalance));
+        // Notify all listeners
+        listeners.forEach(cb => cb(newBalance));
+      }
 
       console.log(`[UserBalance] ✅ Cached balance: ${newBalance}`);
     } catch (e) {
@@ -131,7 +138,7 @@ export async function getBalanceWithFetch(forceRefresh = false): Promise<number>
   ) {
     return balanceCache.balance;
   }
-  return fetchBalance();
+  return fetchBalance(null, forceRefresh);
 }
 
 /**
