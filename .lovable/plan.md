@@ -1,6 +1,18 @@
 
 ## লক্ষ্য
 
+## Live start trigger hotfix — `record "new" has no field` blocker
+
+- Root cause found in database: `trg_random_match_on_live_start` runs `public.random_match_on_live_start()` after inserting `live_streams`, but the function reads `NEW.is_live`. The actual `live_streams` table has `is_active` and `status`, not `is_live`; PostgreSQL therefore raises `record "new" has no field "is_live"` during Go Live.
+- Professional standard: live session start must be server-authoritative and fail-closed only for real eligibility/moderation issues, not schema drift. Agora live-stream apps authenticate users through a token server before channel join, and the LiveKit equivalent is server-issued room/token + DB session state; our app keeps that pattern via `start_live_stream` RPC + self-hosted LiveKit.
+- Fix plan: replace `NEW.is_live` with existing `NEW.is_active`, and accept both current `status='starting'` from `start_live_stream` and legacy `status='live'` as active starts. Keep the random-call auto-availability behavior, but make it null-safe and schema-correct.
+- Validation: inspect trigger/table/function definitions, apply DB migration, then call `start_live_stream` as an authenticated owner session or report honestly if APK/native verification is required.
+
+### Research citations
+- Agora Docs — Interactive Live Streaming token authentication: clients fetch a token from a token server before joining, so channel/session authorization stays backend-controlled.
+- LiveKit Docs — Room management / Room Service API: rooms are server-managed realtime sessions; app backend should own session metadata and token issuance.
+- PostgreSQL Docs — PL/pgSQL trigger functions: `NEW` is the row record for the triggering table, so trigger functions must reference only fields that exist on that table.
+
 ## Support live chat hotfix — 100% two-way delivery
 
 - Root cause: `support_messages` insert succeeds path was blocked after insert because `tg_touch_support_ticket_on_user_message()` updates `support_tickets.status = 'open'`, then `tg_guard_support_tickets_update()` rejects ordinary-user status changes with `Only subject and category can be changed on your own ticket`.
