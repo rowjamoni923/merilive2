@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ConnectionState } from "livekit-client";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
 import { GiftComboTracker } from "@/components/live/GiftComboTracker";
-import { detectAndProcessViolation } from "@/utils/contactDetection";
+import { detectAndProcessViolation, isContactRestrictedHost } from "@/utils/contactDetection";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
@@ -670,7 +670,7 @@ export function UnifiedPartyRoom({
       return out.length === prev.length ? prev : out;
     });
   }, [premiumMessages]);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null; is_agency_owner?: boolean | null; is_topup_helper?: boolean | null } | null>(null);
   useEffect(() => {
     const node = bottomControlsRef.current;
     if (!node || typeof window === 'undefined') return;
@@ -766,13 +766,22 @@ export function UnifiedPartyRoom({
       setCurrentUserProfile(null);
       return;
     }
-    supabase
-      .from('profiles_public')
-      .select('display_name, avatar_url, user_level, is_host')
-      .eq('id', currentUserId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setCurrentUserProfile(data || null);
+    Promise.all([
+      supabase
+        .from('profiles_public')
+        .select('display_name, avatar_url, user_level, is_host, is_agency_owner')
+        .eq('id', currentUserId)
+        .maybeSingle(),
+      supabase
+        .from('topup_helpers')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .eq('is_active', true)
+        .eq('is_verified', true)
+        .maybeSingle(),
+    ])
+      .then(([profileRes, helperRes]) => {
+        if (!cancelled) setCurrentUserProfile(profileRes.data ? { ...profileRes.data, is_topup_helper: !!helperRes.data } : null);
       });
     return () => {
       cancelled = true;
@@ -1253,7 +1262,7 @@ export function UnifiedPartyRoom({
     // 🔍 Mask contact info BEFORE persist/broadcast — ONLY when sender is a
     // verified host. Rule (owner-locked): users / agencies may share numbers
     // freely in party chat; only verified hosts are prohibited.
-    const senderIsHost = currentUserProfile?.is_host === true;
+    const senderIsHost = isContactRestrictedHost(currentUserProfile);
     let outboundMessage = trimmedMessage;
     let hostViolationDetected = false;
     if (senderIsHost) {

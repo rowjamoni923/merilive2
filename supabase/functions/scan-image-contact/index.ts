@@ -255,16 +255,24 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if sender is a host
+    // Check if sender is a real restricted host
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_host')
+      .select('is_host, is_agency_owner')
       .eq('id', senderId)
       .single();
 
-    const isHost = profile?.is_host === true;
+    const { data: helperProfile } = await supabase
+      .from('topup_helpers')
+      .select('id')
+      .eq('user_id', senderId)
+      .eq('is_active', true)
+      .eq('is_verified', true)
+      .maybeSingle();
 
-    // Non-hosts (user / agency / L1–L5 helper) can share images freely — no scan, no penalty.
+    const isHost = profile?.is_host === true && profile?.is_agency_owner !== true && !helperProfile;
+
+    // Non-hosts, agencies, and verified top-up helpers can share images freely — no scan, no penalty.
     if (!isHost) {
       console.log(`[scan-image-contact] Sender ${senderId} is not a host — skipping scan entirely`);
       return new Response(

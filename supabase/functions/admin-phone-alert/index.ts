@@ -55,20 +55,32 @@ serve(async (req) => {
       return jsonResponse({ error: 'Forbidden userId' }, 403);
     }
 
-    // Check if user is a host
+    // Check if user is a real restricted host
     const { data: userProfile } = await supabase
       .from('profiles')
-      .select('id, is_host, display_name, app_uid')
+      .select('id, is_host, is_agency_owner, display_name, app_uid')
       .eq('id', userId)
       .maybeSingle();
 
-    const isHost = userProfile?.is_host === true;
+    const { data: helperProfile } = await supabase
+      .from('topup_helpers')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .eq('is_verified', true)
+      .maybeSingle();
+
+    const isHost = userProfile?.is_host === true && userProfile?.is_agency_owner !== true && !helperProfile;
     if (!userProfile) {
       console.log(`[AdminPhoneAlert] User ${userId} not found`);
       return new Response(
         JSON.stringify({ success: false, reason: 'User not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (!isHost) {
+      return jsonResponse({ success: true, skipped: true, reason: userProfile.is_agency_owner === true ? 'sender_is_agency_owner' : helperProfile ? 'sender_is_helper' : 'sender_not_host' });
     }
 
     console.log(`[AdminPhoneAlert] Phone detected from ${isHost ? 'HOST' : 'USER'} ${userId} (${userProfile.display_name}): ${detectedContent}`);
