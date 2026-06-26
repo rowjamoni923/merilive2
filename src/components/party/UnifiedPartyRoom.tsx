@@ -670,7 +670,7 @@ export function UnifiedPartyRoom({
       return out.length === prev.length ? prev : out;
     });
   }, [premiumMessages]);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null } | null>(null);
   useEffect(() => {
     const node = bottomControlsRef.current;
     if (!node || typeof window === 'undefined') return;
