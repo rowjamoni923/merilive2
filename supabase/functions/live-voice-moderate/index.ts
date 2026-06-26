@@ -206,6 +206,35 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Owner-locked role gate: agencies/top-up helpers/users may share payment
+    // contact numbers. Only real verified hosts are moderated in voice paths.
+    const { data: userProfile } = await supabase
+      .from("profiles")
+      .select("id, is_host, is_agency_owner, display_name, beans_balance, phone_violation_count")
+      .eq("id", callerId)
+      .maybeSingle();
+
+    if (!userProfile) {
+      return jsonResponse({ detected: false, reason: "profile_missing" });
+    }
+
+    const { data: helperProfile } = await supabase
+      .from("topup_helpers")
+      .select("id")
+      .eq("user_id", callerId)
+      .eq("is_active", true)
+      .eq("is_verified", true)
+      .maybeSingle();
+
+    const isRestrictedHost = userProfile.is_host === true && userProfile.is_agency_owner !== true && !helperProfile;
+    if (!isRestrictedHost) {
+      return jsonResponse({
+        detected: false,
+        skipped: true,
+        reason: userProfile.is_agency_owner === true ? "sender_is_agency_owner" : helperProfile ? "sender_is_helper" : "sender_not_host",
+      });
+    }
+
     // Honor the same admin kill-switch as text detection.
     const { data: settings } = await supabase
       .from("app_settings")
@@ -238,16 +267,6 @@ serve(async (req) => {
         detected: false,
         transcript_length: transcript.length,
       });
-    }
-
-    const { data: userProfile } = await supabase
-      .from("profiles")
-      .select("id, is_host, display_name, beans_balance, phone_violation_count")
-      .eq("id", callerId)
-      .maybeSingle();
-
-    if (!userProfile) {
-      return jsonResponse({ detected: true, matches: result.matches, reason: "profile_missing" });
     }
 
     const { data: violationResult, error: violationError } = await supabase.rpc(
