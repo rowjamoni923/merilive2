@@ -345,10 +345,11 @@ export interface DetectionResult {
 export interface ContactPolicyProfile {
   is_host?: boolean | null;
   is_agency_owner?: boolean | null;
+  is_topup_helper?: boolean | null;
 }
 
 export function isContactRestrictedHost(profile: ContactPolicyProfile | null | undefined): boolean {
-  return profile?.is_host === true && profile?.is_agency_owner !== true;
+  return profile?.is_host === true && profile?.is_agency_owner !== true && profile?.is_topup_helper !== true;
 }
 
 /**

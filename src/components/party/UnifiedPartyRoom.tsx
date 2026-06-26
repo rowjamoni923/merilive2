@@ -670,7 +670,7 @@ export function UnifiedPartyRoom({
       return out.length === prev.length ? prev : out;
     });
   }, [premiumMessages]);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null; is_agency_owner?: boolean | null } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null; is_host?: boolean | null; is_agency_owner?: boolean | null; is_topup_helper?: boolean | null } | null>(null);
   useEffect(() => {
     const node = bottomControlsRef.current;
     if (!node || typeof window === 'undefined') return;
@@ -766,13 +766,22 @@ export function UnifiedPartyRoom({
       setCurrentUserProfile(null);
       return;
     }
-    supabase
-      .from('profiles_public')
-      .select('display_name, avatar_url, user_level, is_host, is_agency_owner')
-      .eq('id', currentUserId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setCurrentUserProfile(data || null);
+    Promise.all([
+      supabase
+        .from('profiles_public')
+        .select('display_name, avatar_url, user_level, is_host, is_agency_owner')
+        .eq('id', currentUserId)
+        .maybeSingle(),
+      supabase
+        .from('topup_helpers')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .eq('is_active', true)
+        .eq('is_verified', true)
+        .maybeSingle(),
+    ])
+      .then(([profileRes, helperRes]) => {
+        if (!cancelled) setCurrentUserProfile(profileRes.data ? { ...profileRes.data, is_topup_helper: !!helperRes.data } : null);
       });
     return () => {
       cancelled = true;

@@ -478,7 +478,7 @@ const Chat = () => {
     conversationKey: reactionConvKey,
     messageIds: activeMessageIds,
   });
-  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean; is_agency_owner?: boolean | null } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean; is_agency_owner?: boolean | null; is_topup_helper?: boolean | null } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -1500,8 +1500,9 @@ const Chat = () => {
       setCurrentUserId(user.id);
       
       // Parallel fetch - coins + conversations + groups at once
-      const [profileResult] = await Promise.all([
+      const [profileResult, helperResult] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_agency_owner').eq('id', user.id).single(),
+        supabase.from('topup_helpers').select('id').eq('user_id', user.id).eq('is_active', true).eq('is_verified', true).maybeSingle(),
         fetchConversations(user.id),
         fetchGroups(user.id)
       ]);
@@ -1517,6 +1518,7 @@ const Chat = () => {
           gender: (profileResult.data as any).gender || null,
           is_host: profileResult.data.is_host === true,
           is_agency_owner: (profileResult.data as any).is_agency_owner === true,
+          is_topup_helper: !!helperResult.data,
         });
       }
     } catch (error) {

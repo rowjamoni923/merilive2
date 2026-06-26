@@ -272,6 +272,7 @@ const LiveStream = () => {
     coins: number;
     is_host?: boolean;
     is_agency_owner?: boolean | null;
+    is_topup_helper?: boolean | null;
     display_name?: string;
     avatar_url?: string;
     user_level?: number;
@@ -1239,13 +1240,14 @@ const LiveStream = () => {
       // PARALLEL BATCH: user profile + session gifts + self profile (all independent)
       const isActualHost = currentUserId !== null && stream?.host_id === currentUserId;
       
-      const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
+      const [userProfileRes, sessionGiftsRes, selfProfileRes, helperProfileRes] = await Promise.all([
         // User profile
         cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, is_agency_owner, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+        cachedUser ? supabase.from("topup_helpers").select("id").eq("user_id", cachedUser.id).eq("is_active", true).eq("is_verified", true).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       if (cancelled || !mountedRef.current) return;
       
@@ -1259,6 +1261,7 @@ const LiveStream = () => {
           coins: profileCoins,
           is_host: profile.is_host === true,
           is_agency_owner: (profile as any).is_agency_owner === true,
+          is_topup_helper: !!helperProfileRes.data,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: Number(profile.user_level ?? 0),
