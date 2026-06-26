@@ -13,12 +13,16 @@ interface MediaUploaderProps {
 }
 
 const ALLOWED_TYPES = [
-  // Images
-  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
-  // Videos
+  // Images (incl. modern Samsung/Pixel formats)
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+  'image/heic', 'image/heif', 'image/avif', 'image/bmp',
+  // Videos (incl. HEVC/H.265, 3GP, MKV, M4V common on Samsung One UI)
   'video/mp4', 'video/quicktime', 'video/webm', 'video/mov', 'video/avi', 'video/mkv',
+  'video/x-matroska', 'video/3gpp', 'video/3gpp2', 'video/x-m4v',
+  'video/hevc', 'video/h265', 'video/h264',
   // Audio
-  'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a', 'audio/webm',
+  'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/ogg',
+  'audio/aac', 'audio/m4a', 'audio/mp4', 'audio/x-m4a', 'audio/webm', 'audio/amr', 'audio/3gpp',
   // Documents
   'application/pdf',
   'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -26,6 +30,19 @@ const ALLOWED_TYPES = [
   'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain',
 ];
+
+const EXT_TO_TYPE: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', heic: 'image/heic', heif: 'image/heif', avif: 'image/avif', bmp: 'image/bmp',
+  mp4: 'video/mp4', mov: 'video/quicktime', m4v: 'video/x-m4v', webm: 'video/webm',
+  mkv: 'video/x-matroska', avi: 'video/avi', '3gp': 'video/3gpp', '3g2': 'video/3gpp2', hevc: 'video/hevc',
+  mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', aac: 'audio/aac',
+  m4a: 'audio/m4a', amr: 'audio/amr',
+  pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  txt: 'text/plain',
+};
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -42,6 +59,12 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
 
   if (!isOpen) return null;
 
+  const resolveMime = (file: File): string => {
+    if (file.type && file.type !== 'application/octet-stream') return file.type.toLowerCase();
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    return EXT_TO_TYPE[ext] || '';
+  };
+
   const getFriendlyType = (mime: string) => {
     if (mime.startsWith('image/')) return 'image';
     if (mime.startsWith('video/')) return 'video';
@@ -56,9 +79,12 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
       return;
     }
 
+    // Many Samsung/Android pickers return empty file.type — resolve via extension.
+    const resolvedType = resolveMime(file);
+
     // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error(`"${file.name}" — file type not allowed. Allowed: images (JPG, PNG, GIF, WEBP), videos (MP4, MOV, WEBM), audio (MP3, WAV, M4A), and documents (PDF, DOC, XLS, PPT, TXT).`);
+    if (!resolvedType || !ALLOWED_TYPES.includes(resolvedType)) {
+      toast.error(`"${file.name}" — file type not supported. Allowed: images (JPG, PNG, GIF, WEBP, HEIC, AVIF), videos (MP4, MOV, MKV, 3GP, WEBM), audio (MP3, M4A, WAV, AAC), and documents (PDF, DOC, XLS, PPT, TXT).`);
       onClose();
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -101,7 +127,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
         throw uploadError;
       }
 
-      const mediaType = getFriendlyType(file.type);
+      const mediaType = getFriendlyType(resolvedType);
       const previewUrl = mediaType === 'image' || mediaType === 'video' || mediaType === 'audio'
         ? URL.createObjectURL(file)
         : undefined;
@@ -129,7 +155,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
           type="file"
           className="hidden"
           onChange={handleFileSelect}
-          accept="image/*,video/*,audio/*"
+          accept="image/*,video/*,audio/*,.heic,.heif,.avif,.mkv,.3gp,.m4v,.m4a,.amr"
         />
         {uploading && (
           <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
