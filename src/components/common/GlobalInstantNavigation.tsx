@@ -39,6 +39,7 @@ export function GlobalInstantNavigation() {
   }, [location.pathname, location.search, location.hash]);
 
   useEffect(() => {
+    const supportsPointerEvents = typeof window !== "undefined" && "PointerEvent" in window;
     const commitNavigation = (armed: ArmedTap, x: number, y: number) => {
       const dx = Math.abs(x - armed.x);
       const dy = Math.abs(y - armed.y);
@@ -73,12 +74,13 @@ export function GlobalInstantNavigation() {
 
     const onPointerUp = (event: PointerEvent) => {
       const armed = armedRef.current;
-      armedRef.current = null;
       if (!armed || armed.mode !== "pointer" || armed.pointerId !== event.pointerId || event.defaultPrevented) return;
+      armedRef.current = null;
       commitNavigation(armed, event.clientX, event.clientY);
     };
 
     const onTouchStart = (event: TouchEvent) => {
+      if (supportsPointerEvents) return;
       if (event.defaultPrevented || event.touches.length !== 1) return;
       const path = getInstantPath(event.target);
       const touch = event.touches[0];
@@ -87,6 +89,7 @@ export function GlobalInstantNavigation() {
     };
 
     const onTouchEnd = (event: TouchEvent) => {
+      if (supportsPointerEvents) return;
       const armed = armedRef.current;
       if (!armed || armed.mode !== "touch" || event.defaultPrevented) return;
       const touch = Array.from(event.changedTouches).find((t) => t.identifier === armed.pointerId);
@@ -96,6 +99,7 @@ export function GlobalInstantNavigation() {
     };
 
     const onMouseDown = (event: MouseEvent) => {
+      if (supportsPointerEvents) return;
       if (event.button !== 0 || event.defaultPrevented) return;
       const path = getInstantPath(event.target);
       if (!path) return;
@@ -103,9 +107,10 @@ export function GlobalInstantNavigation() {
     };
 
     const onMouseUp = (event: MouseEvent) => {
+      if (supportsPointerEvents) return;
       const armed = armedRef.current;
-      armedRef.current = null;
       if (!armed || armed.mode !== "mouse" || event.button !== 0 || event.defaultPrevented) return;
+      armedRef.current = null;
       commitNavigation(armed, event.clientX, event.clientY);
     };
 
