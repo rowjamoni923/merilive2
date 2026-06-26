@@ -2,7 +2,10 @@ import { useState, useEffect, useMemo, useCallback, useRef, memo, lazy, Suspense
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
-const FullScreenPromoBanners = lazy(() => import("@/components/home/FullScreenPromoBanners").then(m => ({ default: m.FullScreenPromoBanners })));
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { lazyRetry } from "@/utils/lazyRetry";
+
+const FullScreenPromoBanners = lazy(lazyRetry(() => import("@/components/home/FullScreenPromoBanners").then(m => ({ default: m.FullScreenPromoBanners }))));
 const FloatingRandomMatchPill = lazy(() => import("@/components/match/FloatingRandomMatchPill"));
 
 
@@ -919,9 +922,11 @@ const Index = () => {
 
 
       {/* Full-Screen Promo Banners on Entry */}
-      <Suspense fallback={null}>
-        <FullScreenPromoBanners />
-      </Suspense>
+      <ErrorBoundary componentName="FullScreenPromoBanners" fallback={null}>
+        <Suspense fallback={null}>
+          <FullScreenPromoBanners />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Notification Sheet */}
       <Sheet open={showNotifications} onOpenChange={setShowNotifications}>

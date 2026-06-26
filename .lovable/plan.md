@@ -1,4 +1,15 @@
 
+## FullScreenPromoBanners dynamic import hotfix — 2026-06-26
+
+- Root cause: `Index.tsx` loaded `FullScreenPromoBanners` with raw `React.lazy`, unlike the rest of the app's route/overlay chunks. When the WebView/preview had a stale or transient module graph, the failed dynamic import bubbled as an uncaught runtime error.
+- Professional standard: Vite stale lazy chunks after deploy are a known failure mode; common production mitigation is bounded retry and safe refresh/recovery instead of leaving users on a broken screen.
+- Fix shipped: Home promo banner now uses the app's `lazyRetry` stale-chunk recovery and is wrapped in a silent `ErrorBoundary` fallback so a promotional overlay can never break the home screen.
+- APK rebuild: not required for Lovable web preview; Android APK needs rebuild only if you want this exact WebView bundle inside a production APK.
+
+### Research citations
+- Vite issue #11804 (`https://github.com/vitejs/vite/issues/11804`): cached app shells can request old lazy chunks after deployment, producing “Failed to fetch dynamically imported module”.
+- Sentry Answers (`https://sentry.io/answers/failed-to-fetch-dynamically-imported-module-in-react/`): React lazy-loaded modules can fail during deployment/network mismatch and should be handled with retry/reload recovery.
+
 ## Face Verification photo preview framing hotfix — 2026-06-26
 
 - Screenshot root cause: the uploaded photo was technically `object-contain`, but the portrait frame was too narrow/tall and the in-frame bottom badge covered the lower face/chin area, making the photo look still cut off and unprofessional.
