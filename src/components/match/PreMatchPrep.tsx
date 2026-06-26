@@ -318,6 +318,34 @@ export default function PreMatchPrep({
           <span className="absolute w-[200px] h-[200px] rounded-full border border-white/15" />
           <span className="absolute w-[130px] h-[130px] rounded-full border border-white/20" />
           <span className="absolute w-[80px] h-[80px] rounded-full bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)]" />
+          {/* Cycling host avatar inside the centre orb — freezes on match */}
+          {centreAvatar && (
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={centreAvatar + (phase === "matched" ? "-matched" : "")}
+                className="absolute w-[72px] h-[72px] rounded-full overflow-hidden ring-2 ring-white/60 shadow-[0_8px_28px_-6px_rgba(0,0,0,0.55)] z-[1]"
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{
+                  scale: phase === "matched" ? 1.05 : 1,
+                  opacity: 1,
+                  boxShadow: phase === "matched"
+                    ? "0 0 0 3px rgba(16,185,129,0.7), 0 10px 30px -6px rgba(16,185,129,0.4)"
+                    : undefined,
+                }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                transition={{ duration: phase === "matched" ? 0.35 : 0.25, ease: "easeOut" }}
+              >
+                <img
+                  src={centreAvatar}
+                  alt=""
+                  loading="eager"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           {/* Floating online host avatars (orbit) */}
           <AnimatePresence>
