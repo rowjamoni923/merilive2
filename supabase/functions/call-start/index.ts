@@ -152,9 +152,11 @@ serve(async (req) => {
     const minRequired = viewerRate * MIN_PREPAY_MINUTES;
 
     // Check balance
+    // Check balance — Pillar C: spend authority spans coins OR diamonds
+    // (whichever is higher), matching random-call-enqueue and billing-tick.
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("coins")
+      .select("coins, diamonds")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -165,7 +167,7 @@ serve(async (req) => {
       });
     }
 
-    const balance = Number(profile.coins ?? 0);
+    const balance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
     if (balance < minRequired) {
       return new Response(JSON.stringify({
         ok: false,
