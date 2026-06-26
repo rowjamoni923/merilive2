@@ -3352,8 +3352,10 @@ const FaceVerification = () => {
     const handleUserPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
-        if (file.size > 10 * 1024 * 1024) {
-          toast({ title: "Error", description: "Image size cannot exceed 10MB", variant: "destructive" });
+        // Match host-side cap — modern flagship cameras (S24/S25 Ultra 200MP,
+        // Pixel Pro HEIC) routinely exceed 10MB. 30MB matches MAX_PHOTO_BYTES.
+        if (file.size > 30 * 1024 * 1024) {
+          toast({ title: "Error", description: "Image size cannot exceed 30MB", variant: "destructive" });
           return;
         }
         setUserPhotoFile(file);
