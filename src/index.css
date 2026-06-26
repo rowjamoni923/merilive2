@@ -982,14 +982,14 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   body.native-face-camera-active .face-native-page-mask {
     -webkit-mask-image: radial-gradient(
-      ellipse var(--face-aperture-rx, 112px) var(--face-aperture-ry, 190px)
-      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 42vh),
+      ellipse var(--face-aperture-rx, 122px) var(--face-aperture-ry, 198px)
+      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 41vh),
       transparent 0 98%,
       #000 100%
     );
     mask-image: radial-gradient(
-      ellipse var(--face-aperture-rx, 112px) var(--face-aperture-ry, 190px)
-      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 42vh),
+      ellipse var(--face-aperture-rx, 122px) var(--face-aperture-ry, 198px)
+      at var(--face-aperture-x, 50vw) var(--face-aperture-y, 41vh),
       transparent 0 98%,
       #000 100%
     );

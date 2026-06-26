@@ -843,7 +843,7 @@ serve(async (req) => {
           .select("id,display_name,app_uid,avatar_url,face_verification_image,is_face_verified,face_verification_status,host_status")
           .neq("id", userId)
           .or("is_face_verified.eq.true,face_verification_status.eq.approved,host_status.eq.approved")
-          .not("avatar_url", "is", null)
+          .order("updated_at", { ascending: false })
           .limit(LEGACY_DUPLICATE_SCAN_LIMIT);
 
         let bestLegacyCandidate: Record<string, unknown> | null = null;
