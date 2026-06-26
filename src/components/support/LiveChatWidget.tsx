@@ -183,6 +183,44 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
 
       // 🔥 AWS Comprehend toxic content moderation (background)
       checkToxic(text, { contextType: 'support' }).catch(() => {});
+
+      // Auto-reply when live chat is offline — let the user know the support hours in English.
+      if (!isLiveChatOnline()) {
+        try {
+          const { startStr, endStr } = getSupportHoursLocal();
+          const autoReply =
+            `🕒 Our Live Chat support is currently offline.\n\n` +
+            `Our live agents are available every day from ${startStr} to ${endStr} (your local time). ` +
+            `Please come back during these hours to chat with us directly.\n\n` +
+            `Your message has been saved — an agent will review it as soon as we are back online.`;
+
+          // Avoid spamming: only insert if the last admin message isn't already an offline auto-reply within the last 10 min.
+          const { data: lastAdmin } = await supabase
+            .from("support_messages")
+            .select("content, created_at, sender_type")
+            .eq("ticket_id", ticketId)
+            .order("created_at", { ascending: false })
+            .limit(5);
+          const recentAuto = (lastAdmin || []).find(
+            (m: any) =>
+              m.sender_type === "admin" &&
+              typeof m.content === "string" &&
+              m.content.includes("Live Chat support is currently offline") &&
+              Date.now() - new Date(m.created_at).getTime() < 10 * 60 * 1000,
+          );
+          if (!recentAuto) {
+            await supabase.from("support_messages").insert({
+              ticket_id: ticketId,
+              sender_id: userId, // RLS-safe; sender_type marks it as admin auto-reply
+              sender_type: "admin",
+              content: autoReply,
+            });
+            await loadMessages(ticketId);
+          }
+        } catch (e) {
+          console.warn("Offline auto-reply skipped:", e);
+        }
+      }
     } catch (error: any) {
       console.error("Send error:", error);
       setMessages(prev => prev.map(msg => msg.id === tempId ? { ...msg, content: `${msg.content}  ⚠️` } : msg));
