@@ -2769,7 +2769,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell h-screen min-h-0 w-full max-w-full bg-[#06060a]" style={{ height: '100dvh' }}>
+    <div className="admin-shell min-h-screen min-h-0 w-full max-w-full bg-[#06060a]">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -2983,7 +2983,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 h-screen min-h-0 min-w-0 max-w-full flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ height: '100dvh' }}>
+      <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
