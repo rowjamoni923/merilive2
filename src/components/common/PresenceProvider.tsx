@@ -10,7 +10,7 @@ const HEARTBEAT_INTERVAL = 120_000;
 
 // Cleanup RPC guard
 const CLEANUP_STORAGE_KEY = 'presence_cleanup_last_run_at';
-const CLEANUP_COOLDOWN_MS = 2 * 60 * 1000;
+const CLEANUP_COOLDOWN_MS = 30 * 60 * 1000;
 
 // Manual offline key
 const MANUAL_OFFLINE_KEY = 'meri_manual_offline';
@@ -106,6 +106,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // ============ CLEANUP STALE SESSIONS ============
   const runCleanupIfDue = useCallback(async () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
     const now = Date.now();
     try {
       const lastRun = Number(localStorage.getItem(CLEANUP_STORAGE_KEY) || 0);
