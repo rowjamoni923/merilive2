@@ -1,45 +1,50 @@
 /**
- * PersistentCameraSurface
- * -----------------------
- * Renders a single hidden-behind-UI <video> element bound to the warm
- * MediaStream held by persistentCameraSession. It exists only to keep a
- * live camera frame painted to the screen during the brief moments
- * between phase swaps (preview → broadcast, create → inRoom, etc.),
- * where the page's own <video> ref unmounts and the next page hasn't
- * yet attached its own.
+ * PersistentCameraSurface (Global, self-driven)
+ * --------------------------------------------
+ * A single hidden <video> element bound to the warm MediaStream held by
+ * `persistentCameraSession`. Mounted ONCE at the top of the authenticated
+ * provider tree (inside CallProvider) so it survives every React Router
+ * navigation — GoLive → LiveStream, CreateParty → PartyRoom, idle → ActiveCall.
  *
- * Without this surface, even though the underlying MediaStream is
- * preserved in persistentCameraSession, the user sees a black flash
- * during the React unmount→mount window and perceives the camera as
- * "re-opening". With it, the camera frame is continuously visible.
+ * Why this exists
+ * ---------------
+ * The underlying MediaStream is preserved in `persistentCameraSession`, but
+ * the per-page <video> element unmounts and the next page's <video> hasn't
+ * yet attached. Without a persistent paint surface bridging that React
+ * unmount → mount window, users see a black flash and perceive the camera
+ * as "re-opening" — even though the camera was never released.
  *
- * Sits at z-0 (below all phase content). Object-cover, muted, autoplay,
- * playsInline. No native Android coupling — that path uses its own
- * Camera2 surface handoff via LiveKitPlugin.
+ * Behaviour
+ * ---------
+ * - Self-driven: polls `peekCameraSession()` and renders ONLY when there is
+ *   a live video track. On Home/Profile/Auth/etc. there is no camera open,
+ *   so this component returns null and is completely inert.
+ * - Render order: fixed inset-0 at z-index 0 — sits behind every page's
+ *   opaque background and chrome (no visible effect on normal pages),
+ *   but stays painted during the brief route swap when the foreground
+ *   page is mid-mount.
+ * - Native Android no-op: the Camera2 / LiveKitPlugin surface handoff
+ *   handles continuity natively — a hidden WebView <video> would fight
+ *   for camera ownership.
  */
 import { useEffect, useRef, useState } from 'react';
 import { peekCameraSession } from '@/lib/persistentCameraSession';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
-type Props = {
-  /** When false, the surface is unmounted entirely (saves a video element). */
-  active?: boolean;
-};
+const hasLiveVideo = (s: MediaStream | null) =>
+  !!s && s.getVideoTracks().some((t) => t.readyState === 'live');
 
-export default function PersistentCameraSurface({ active = true }: Props) {
+export default function PersistentCameraSurface() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(() => peekCameraSession());
 
-  // Native Android owns the camera surface via the plugin renderer, so this
-  // web surface would be redundant and could fight with Camera2 ownership.
   const isNative = isNativeAndroidApp();
 
-  // Re-poll the global session every 500ms — the warm session may appear
-  // after this component mounts (e.g. GoLive opens the camera on user
-  // gesture). Cheap and avoids tight coupling to the session module's
-  // internals (it doesn't expose a subscribe API).
+  // Re-poll the global session. The warm session may appear/disappear at
+  // any time (GoLive opens it, End Live disposes it). Cheap polling avoids
+  // a tight subscribe coupling.
   useEffect(() => {
-    if (!active || isNative) return;
+    if (isNative) return;
     let cancelled = false;
     const tick = () => {
       if (cancelled) return;
@@ -47,12 +52,12 @@ export default function PersistentCameraSurface({ active = true }: Props) {
       setStream((prev) => (prev === next ? prev : next));
     };
     tick();
-    const id = window.setInterval(tick, 500);
+    const id = window.setInterval(tick, 400);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [active, isNative]);
+  }, [isNative]);
 
   // Bind / unbind the stream to the <video> element.
   useEffect(() => {
@@ -71,20 +76,13 @@ export default function PersistentCameraSurface({ active = true }: Props) {
         /* ignore */
       }
     } else if (!stream && el.srcObject) {
-      try {
-        el.pause();
-      } catch {
-        /* ignore */
-      }
-      try {
-        el.srcObject = null;
-      } catch {
-        /* ignore */
-      }
+      try { el.pause(); } catch { /* ignore */ }
+      try { el.srcObject = null; } catch { /* ignore */ }
     }
   }, [stream]);
 
-  if (!active || isNative) return null;
+  // No camera open → render nothing. Zero overhead on normal pages.
+  if (isNative || !hasLiveVideo(stream)) return null;
 
   return (
     <video
@@ -94,12 +92,13 @@ export default function PersistentCameraSurface({ active = true }: Props) {
       playsInline
       aria-hidden
       tabIndex={-1}
+      data-persistent-camera-surface=""
       className="pointer-events-none fixed inset-0 h-full w-full object-cover"
       style={{
         zIndex: 0,
-        // Mirror to match selfie-preview convention used by GoLive / CreateParty.
+        // Selfie-mirror to match GoLive / CreateParty / ActiveCall preview.
         transform: 'scaleX(-1)',
-        backgroundColor: '#000',
+        backgroundColor: 'transparent',
       }}
     />
   );
