@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { Gift, X, Coins, Diamond, Play, Sparkles } from "lucide-react";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import SmartGiftIcon from "@/components/shared/SmartGiftIcon";
+import { useGiftPanelPrefetch } from "@/hooks/useGiftPanelPrefetch";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
