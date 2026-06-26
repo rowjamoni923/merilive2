@@ -221,6 +221,24 @@ Patch scope:
 
 ---
 
+# Phase 14 — Random-call 402 no-blank-screen fix (2026-06-26)
+
+Research / professional standard:
+- web.dev INP guidance: user interactions must get fast visual feedback and should not be blocked by long tasks or unresolved network/error work — https://web.dev/articles/optimize-inp and https://web.dev/articles/optimize-input-delay
+- React guidance: unnecessary effect dependencies can make effects run too often or create infinite loops; effects should only depend on stable reactive values they actually need — https://react.dev/learn/removing-effect-dependencies and https://react.dev/reference/react/useEffect
+- Chamet/Bigo-style paid call UX expectation: insufficient balance is a recoverable wallet state, not a crash state; the caller should remain on the real call-prep surface with a recharge action.
+
+Verified current gap:
+- `random-call-enqueue` correctly returns `402 { error: "insufficient_coins", required, balance }`, but the client still had fallback paths that could promote it into the generic error surface.
+- `PostCallRatingSheet` depended on the inline `onClose` function from `MatchCall`; each render changed the dependency, the effect called `setStars(0)` / `setTags([])` while closed, and React reported Maximum update depth, producing the blank screen.
+
+Patch scope:
+- Add shared edge-function payload extraction that handles cloned `Response`, consumed body fallback, and JSON embedded in error messages.
+- Treat `insufficient_coins` in both the invoke branch and catch branch as a recoverable wallet state: stop timers, show Recharge toast, and return to prep.
+- Stabilize the rating-sheet auto-dismiss effect with an `onCloseRef` and remove the changing callback from dependencies.
+
+---
+
 # Phase 14 — Agency dashboard realtime crash fix (2026-06-26)
 
 Research / professional standard:
