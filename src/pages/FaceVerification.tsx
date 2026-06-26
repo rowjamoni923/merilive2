@@ -2050,14 +2050,55 @@ const FaceVerification = () => {
         return;
       }
 
-      const blocker = String((data as any)?.blocker || '').trim();
-      if (!blocker) return;
+      const payload: any = data || {};
+      const blocker = String(payload?.blocker || '').trim();
+      const retryRequiredPayload = payload?.retry_required || null;
+      const autoFinalize = payload?.autoFinalize || {};
+      const approved = autoFinalize?.success === true;
 
-      // The edge function has already written the terminal status. Mirror it
-      // locally so the current screen never waits on a delayed Realtime event.
+      // The edge function has already written the terminal status to DB.
+      // Mirror it locally INSTANTLY (don't wait for Realtime) so user sees
+      // approve / reject / retry the moment AWS pipeline returns.
       setSubmitInProgress(false);
-      setVerificationStatus('rejected');
-      setRejectionReason(String((data as any)?.rejection_reason || (data as any)?.autoFinalize?.reason || blocker));
+
+      if (approved) {
+        try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
+        setVerificationStatus('verified');
+        setRejectionReason(null);
+        setRetryRequired(null);
+        toast({ title: '✅ Face verification approved', description: 'You are verified. Redirecting…' });
+        if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
+        setTimeout(() => navigate('/profile', { replace: true }), 700);
+        return;
+      }
+
+      if (blocker) {
+        try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
+        if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
+        postSubmitLockedRef.current = false;
+        setVerificationStatus('rejected');
+        setRejectionReason(String(payload?.rejection_reason || autoFinalize?.reason || blocker));
+        setRetryRequired(null);
+        // Keep user here so they can read the reason (duplicate info, gender, etc.).
+        navigate('/face-verification', { replace: true });
+        return;
+      }
+
+      if (retryRequiredPayload) {
+        try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
+        if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
+        postSubmitLockedRef.current = false;
+        setVerificationStatus('needs_retry');
+        setRetryRequired(retryRequiredPayload);
+        setRejectionReason(null);
+        toast({
+          title: 'Re-upload required',
+          description: retryRequiredPayload?.headline || 'Your photo, video and live scan do not match. Please retry.',
+          variant: 'destructive',
+        });
+        navigate('/face-verification', { replace: true });
+      }
+      // else: manual review — leave Under Review badge as-is, admin will decide.
     }).catch((err) => {
       console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
     });
