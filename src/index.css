@@ -239,9 +239,25 @@ a[href]:active,
    anchoring the scroll container to a random child and keeps bottom bars on the
    compositor while they lift above the keyboard. */
 .chat-scroll-stable {
-  overflow-anchor: none;
-  scroll-behavior: smooth;
+  /* Anchor: let the browser keep the user's reading position when content
+     mutates above/below the viewport. WhatsApp/Messenger rely on this. */
+  overflow-anchor: auto;
+  /* CRITICAL: `smooth` on the container makes every micro programmatic
+     scrollTop adjust (new msg, image load, reflow) animate and fight the
+     user's finger → visible jitter. Native chat apps use `auto` and only
+     animate via explicit element.scrollIntoView({behavior:'smooth'}). */
+  scroll-behavior: auto;
+  /* Compositor-only scroll + native momentum (iOS + Android WebView). */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Snap scroll to whole pixels — kills 1px sub-pixel shimmer during
+     fast flings on high-DPI Android panels. */
+  -webkit-font-smoothing: antialiased;
 }
+
 
 .chat-composer-stable {
   transform: translateZ(0);
