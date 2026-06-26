@@ -395,8 +395,12 @@ const Chat = () => {
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string; messageType?: string | null } | null>(null);
   const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string; message_type?: string | null }>>({});
   
-  // Message reactions (client-side only until DB table exists)
-  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
+  // Reaction picker target message id
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState<string | null>(null);
+
+  // Media gallery viewer
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStartId, setGalleryStartId] = useState<string | null>(null);
   
   // Message info dialog
   const [showMessageInfo, setShowMessageInfo] = useState(false);
