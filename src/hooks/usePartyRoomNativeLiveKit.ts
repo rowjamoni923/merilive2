@@ -436,13 +436,7 @@ export function usePartyRoomNativeLiveKit(
             warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
             const tokenPromise = getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
             const previewPromise = shouldOpenVideo
-              ? nativeLiveKitController.startLocalPreview({
-                  lens: 'front',
-                  resolution: '1080p',
-                  mirror: true,
-                  roomScope: 'party',
-                  boundedOnly: true,
-                }).catch((e) => {
+              ? ensureNativePartyPreview().catch((e) => {
                   console.warn('[PartyLiveKit/Native] party preview prewarm failed:', e);
                   return false;
                 })
@@ -1148,15 +1142,7 @@ export function usePartyRoomNativeLiveKit(
               // owned by the session Room. Calling startLocalPreview here used
               // to spin up a fresh CameraX pipeline and caused the 10–20s
               // black flash on seat-up. Just toggle the camera publish flag.
-              if (!nativeLiveKitController.isConnected()) {
-                await nativeLiveKitController.startLocalPreview({
-                  lens: 'front',
-                  resolution: '720p',
-                  mirror: true,
-                  roomScope: 'party',
-                  boundedOnly: true,
-                }).catch(() => false);
-              }
+              if (!nativeLiveKitController.isConnected()) await ensureNativePartyPreview().catch(() => false);
               await nativeLiveKitController.setCameraEnabled(true);
             }
             if (!cancelled) setState((prev) => ({ ...prev, isAudioEnabled: true, isVideoEnabled: isVideoPartyType(roomType) }));
