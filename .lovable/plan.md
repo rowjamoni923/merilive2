@@ -221,6 +221,22 @@ Patch scope:
 
 ---
 
+# Phase 14 — Agency dashboard realtime crash fix (2026-06-26)
+
+Research / professional standard:
+- Supabase Realtime Postgres Changes requires all callbacks to be registered before `.subscribe()` and uses a channel topic for the joined realtime socket — https://supabase.com/docs/guides/realtime/postgres-changes
+- Chamet/Bigo-style agency dashboards should keep realtime status/earnings fresh, but route transitions must never reuse an already-subscribed socket object during hidden/visible screen handoff.
+
+Verified current gap:
+- `AgencyDashboard.tsx` used the static channel topic `agency-dashboard-realtime`. With StrictMode or StableRoutes double-mount/rapid remount, the app could hit Supabase's guard: `cannot add postgres_changes callbacks for realtime:agency-dashboard-realtime after subscribe()`.
+
+Patch scope:
+- Keep all existing realtime tables and UI unchanged.
+- Add a per-mount unique suffix to the Agency Dashboard channel topic, matching the already-applied Face Verification fix pattern.
+- Cleanup remains `supabase.removeChannel(channel)`; no polling, fake loading, or design change introduced.
+
+---
+
 # Phase 14 — Face verification CTA flow fix (2026-06-26)
 
 Research / professional standard:
