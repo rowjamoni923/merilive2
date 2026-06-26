@@ -443,8 +443,7 @@ export default function PreMatchPrep({
           />
         </div>
 
-          </button>
-        </div>
+
 
 
         {/* VIP discount card (right-side floating) */}
