@@ -7,6 +7,7 @@ import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep
 import MatchCallOverlay from "@/components/match/MatchCallOverlay";
 import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
 import { extractEdgeFnErrorPayload } from "@/utils/edgeFnError";
+import { getBalanceWithFetch } from "@/hooks/useUserBalance";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
@@ -230,7 +231,9 @@ export default function MatchCall() {
     const maxRateForHold = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
     const preauthMinutes = Number(settings?.preauth_minutes_hold ?? 0);
     const requiredBalance = Math.max(0, maxRateForHold * preauthMinutes);
-    const currentBalance = Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0));
+    const currentBalance = profile
+      ? Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0))
+      : await getBalanceWithFetch();
     if (requiredBalance > 0 && profile && currentBalance < requiredBalance) {
       navigate("/recharge", {
         state: { reason: "random_call_low_balance", required: requiredBalance, balance: currentBalance },
