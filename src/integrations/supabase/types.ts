@@ -5155,7 +5155,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           right_url: string | null
-          selfie_url: string
+          selfie_url: string | null
           status: string | null
           updated_at: string
           user_id: string
@@ -5201,7 +5201,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           right_url?: string | null
-          selfie_url: string
+          selfie_url?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -5247,7 +5247,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           right_url?: string | null
-          selfie_url?: string
+          selfie_url?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string
