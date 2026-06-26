@@ -215,9 +215,9 @@ export function installRoutePrefetch() {
 
   const runAfterInput = (cb: () => void) => {
     // Keep pointerdown under budget: never import chunks / walk route tables on
-    // the same critical input frame. A 0ms macrotask still normally runs before
-    // mobile click/navigation, but it lets the native tap feedback paint first.
-    window.setTimeout(cb, 0);
+    // the same critical input frame. Wait for the next paint, then run a
+    // macrotask so native tap feedback + pointerup/click stay responsive.
+    window.requestAnimationFrame(() => window.setTimeout(cb, 0));
   };
 
   const handler = (ev: Event) => {
