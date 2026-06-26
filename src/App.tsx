@@ -618,7 +618,14 @@ const App = () => {
       },
       staleTime: 1000 * 60 * 2,
     });
+
+    // Phase 5 — idle-deferred, network-aware boot warmup for gift catalog,
+    // top icons (IDB) and top animation payloads (Cache API). Runs ONCE per
+    // session, skips on saveData / 2g. Makes the first panel open & first
+    // gift tap of the session hit local caches instead of the network.
+    void import('@/utils/bootWarmup').then((m) => m.startBootWarmup()).catch(() => {});
   }, [isAuthenticated, session?.user?.id]);
+
   
   // 🔐 SINGLE DEVICE SESSION & APP RESUME - Deferred via lazy component
   const hostname = window.location.hostname;
