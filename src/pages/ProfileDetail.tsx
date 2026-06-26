@@ -912,7 +912,7 @@ const ProfileDetail = () => {
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
               decoding="sync"
-              {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}
+              fetchPriority="high"
             />
           );
         })()}
