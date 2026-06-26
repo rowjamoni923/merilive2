@@ -228,12 +228,13 @@ export const useGlobalUnreadCount = () => {
 
     const w = window as any;
     const init = () => { void fetchSharedCounts(); };
-    const idleId = typeof w.requestIdleCallback === 'function'
+    const usesIdle = typeof w.requestIdleCallback === 'function';
+    const idleId = usesIdle
       ? w.requestIdleCallback(init, { timeout: 2500 })
       : window.setTimeout(init, 1800);
 
     return () => {
-      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(idleId);
+      if (usesIdle && typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(idleId);
       else window.clearTimeout(idleId);
       listeners.delete(setCounts);
       cleanupRealtimeSubscriptionIfUnused();
