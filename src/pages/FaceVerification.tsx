@@ -2409,66 +2409,10 @@ const FaceVerification = () => {
     await teardownFaceCameraPreview();
     
     try {
-      // Generate face hash and check for existing account
-      const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
-        ? await sha256String(capturedAnglesRef.current.center)
-        : await generateFaceHash(faceVerificationVideo);
-      
-      // CRITICAL: Check for duplicate face - BLOCK if found
-      let duplicateFaceUserId: string | null = null;
-      let duplicateFaceName: string | null = null;
-      let duplicateFaceUid: string | null = null;
-      let duplicateFaceAvatar: string | null = null;
-      let isDuplicateFace = false;
-      
-      try {
-        const { data: faceData } = await supabase.rpc('find_account_by_face', {
-          face_hash_param: faceHash
-        });
-        
-        if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
-          isDuplicateFace = true;
-          duplicateFaceUserId = faceData[0].user_id;
-          duplicateFaceName = faceData[0].display_name || 'Unknown';
-          duplicateFaceUid = (faceData[0] as any).app_uid || null;
-          duplicateFaceAvatar = faceData[0].avatar_url || null;
-          console.log('[FaceVerification] Duplicate-face advisory for HOST; continuing submission for server review. Existing account:', duplicateFaceUserId);
-          
-          toast({
-            title: "Additional Review Needed",
-            description: `This face may match another account (${duplicateFaceName}). Your application will be reviewed securely.`,
-            variant: "destructive",
-          });
-          await enforceDuplicateFaceBan(faceData[0]);
-        }
-      } catch (err) {
-        console.error('Face duplicate check error:', err);
-        recordClientError({ label: "FaceVerification.faceHash", message: err instanceof Error ? err.message : String(err) });
-      }
-      
-      const profilePhotoUrl = photoFile ? await uploadFile(photoFile, 'photos') : null;
-      const introVideoUrl = videoFile ? await uploadFile(videoFile, 'videos') : null;
-      const faceVideoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
-      const introVideoFrameUrl = videoFile ? await uploadVideoEvidenceFrame(videoFile, 'video-frames/intro') : null;
-      const faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face');
-      
-      const photoUrls: string[] = [];
-      for (const photo of hostPhotos) {
-        const url = await uploadFile(photo, 'host-photos');
-        if (url) photoUrls.push(url);
-      }
-
-      if (!profilePhotoUrl || !introVideoUrl || !faceVideoUrl || !introVideoFrameUrl || !faceVideoFrameUrl || photoUrls.length !== 3) {
-        throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
-      }
-      
-      // Save face hash + Basic Information (name/age/language) on profile immediately.
-      // Profile photo, 3 host gallery photos, and intro video are intentionally NOT
-      // written here — they only appear on the host's profile after approval,
-      // gated server-side by sync_profile_on_face_verification trigger.
+      // Save only basic profile info immediately; all heavy media uploads continue
+      // in the background after the under_review row is created.
       {
         const hostProfilePatch: Record<string, unknown> = {
-          face_hash: faceHash,
           display_name: fullName.trim(),
           age: parseInt(age, 10),
           language: language,
@@ -2479,8 +2423,7 @@ const FaceVerification = () => {
           .eq('id', userId);
         if (hostProfUpdErr) console.warn('[FaceVerification] host profile basic-info update failed', hostProfUpdErr);
       }
-      
-      // CRITICAL: Check for existing pending submission before inserting
+
       const { data: existingSubmission } = await supabase
         .from('face_verification_submissions')
         .select('id, status')
@@ -2489,71 +2432,124 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (existingSubmission) {
-        lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…');
+        lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
-      
-      // Upload passive live scan stills for photo/video/live face comparison
-      const angleUrls = await uploadCapturedAngles();
 
-      // Insert submission with submitted status (auto-approve pipeline)
       const { data: submissionData, error: submissionError } = await supabase
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
           verification_type: 'host',
-          status: 'under_review', // ★ instant under_review
-          // ★ Pkg358: do NOT pre-flag manual_review_required — let analyze pipeline decide.
-          admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+          status: 'under_review',
+          full_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language,
+          admin_notes: 'Upload is completing securely in the background. AI review will start automatically.',
           ai_analysis: {
             ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
             scan_mode: 'passive_photo_video_live',
+            upload_pending: true,
             evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
-            evidence_urls: {
-              profile_photo_url: profilePhotoUrl,
-              intro_video_frame_url: introVideoFrameUrl,
-              face_video_frame_url: faceVideoFrameUrl,
-              live_face_scan_url: angleUrls.front_url || null,
-              host_photo_urls: photoUrls,
-            },
             visible_pose_prompts: false,
             challenge_sequence: faceInstructions.map(i => i.id),
             challenge_randomized: false,
           },
-          full_name: fullName,
-          age: parseInt(age),
-          language: language,
-          profile_photo_url: profilePhotoUrl,
-          video_url: introVideoUrl,
-          host_photos: photoUrls,
-          face_image_url: faceVideoUrl,
-          // BUG-14 fix: see same fix in user-path insert above.
-          selfie_url: (() => {
-            const url = angleUrls.front_url || faceVideoUrl;
-            if (!url) throw new Error('Upload failed: no face image could be saved. Please check your connection and try again.');
-            return url;
-          })(),
-          front_url: angleUrls.front_url ?? null,
-          left_url: angleUrls.left_url ?? null,
-          right_url: angleUrls.right_url ?? null,
-          is_duplicate_face: isDuplicateFace,
-          duplicate_face_user_id: duplicateFaceUserId,
-          duplicate_face_name: duplicateFaceName,
-          duplicate_face_uid: duplicateFaceUid,
-          duplicate_face_avatar: duplicateFaceAvatar,
         })
         .select('id')
         .single();
 
       if (submissionError) throw submissionError;
+      const submissionId = submissionData.id as string;
+      lockUnderReviewAndReturn('Your host application is now under review. Returning to profile…', submissionId);
 
-      setVerificationStatus('submitted');
-      setRejectionReason(null);
-      if (submissionData?.id) {
-        invokeFaceVerificationAnalyze(submissionData.id);
-      }
+      void (async () => {
+        try {
+          const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
+            ? await sha256String(capturedAnglesRef.current.center)
+            : await generateFaceHash(faceVerificationVideo);
 
-      lockUnderReviewAndReturn('Your host application is now under admin review. Returning to profile…');
+          let duplicateFaceUserId: string | null = null;
+          let duplicateFaceName: string | null = null;
+          let duplicateFaceUid: string | null = null;
+          let duplicateFaceAvatar: string | null = null;
+          let isDuplicateFace = false;
+
+          try {
+            const { data: faceData } = await supabase.rpc('find_account_by_face', { face_hash_param: faceHash });
+            if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
+              isDuplicateFace = true;
+              duplicateFaceUserId = faceData[0].user_id;
+              duplicateFaceName = faceData[0].display_name || 'Unknown';
+              duplicateFaceUid = (faceData[0] as any).app_uid || null;
+              duplicateFaceAvatar = faceData[0].avatar_url || null;
+              console.log('[FaceVerification] Duplicate-face advisory for HOST; server review will decide.', duplicateFaceUserId);
+              await enforceDuplicateFaceBan(faceData[0]);
+            }
+          } catch (err) {
+            console.error('Face duplicate check error:', err);
+            recordClientError({ label: "FaceVerification.faceHash", message: err instanceof Error ? err.message : String(err) });
+          }
+
+          const profilePhotoUrl = photoFile ? await uploadFile(photoFile, 'photos') : null;
+          const introVideoUrl = videoFile ? await uploadFile(videoFile, 'videos') : null;
+          const faceVideoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
+          const introVideoFrameUrl = videoFile ? await uploadVideoEvidenceFrame(videoFile, 'video-frames/intro') : null;
+          const faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face');
+          const photoUrls: string[] = [];
+          for (const photo of hostPhotos) {
+            const url = await uploadFile(photo, 'host-photos');
+            if (url) photoUrls.push(url);
+          }
+          if (!profilePhotoUrl || !introVideoUrl || !faceVideoUrl || !introVideoFrameUrl || !faceVideoFrameUrl || photoUrls.length !== 3) {
+            throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
+          }
+          const angleUrls = await uploadCapturedAngles();
+          const selfieUrl = angleUrls.front_url || faceVideoUrl;
+          if (!selfieUrl) throw new Error('Upload failed: no face image could be saved. Please check your connection and try again.');
+
+          await supabase.from('profiles').update({ face_hash: faceHash }).eq('id', userId);
+
+          await completeSubmissionUploadsViaRpc(submissionId, {
+            status: 'under_review',
+            profile_photo_url: profilePhotoUrl,
+            video_url: introVideoUrl,
+            host_photos: photoUrls,
+            face_image_url: faceVideoUrl,
+            selfie_url: selfieUrl,
+            front_url: angleUrls.front_url ?? null,
+            left_url: angleUrls.left_url ?? null,
+            right_url: angleUrls.right_url ?? null,
+            is_duplicate_face: isDuplicateFace,
+            duplicate_face_user_id: duplicateFaceUserId,
+            duplicate_face_name: duplicateFaceName,
+            duplicate_face_uid: duplicateFaceUid,
+            duplicate_face_avatar: duplicateFaceAvatar,
+            admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+            ai_analysis: {
+              ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+              scan_mode: 'passive_photo_video_live',
+              upload_pending: false,
+              evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
+              evidence_urls: {
+                profile_photo_url: profilePhotoUrl,
+                intro_video_frame_url: introVideoFrameUrl,
+                face_video_frame_url: faceVideoFrameUrl,
+                live_face_scan_url: angleUrls.front_url || null,
+                host_photo_urls: photoUrls,
+              },
+              visible_pose_prompts: false,
+              challenge_sequence: faceInstructions.map(i => i.id),
+              challenge_randomized: false,
+            },
+          });
+          invokeFaceVerificationAnalyze(submissionId);
+        } catch (bgError: any) {
+          console.error('[FaceVerification] host background upload failed', bgError);
+          recordClientError({ label: 'FaceVerification.hostBackgroundUpload', message: bgError?.message || String(bgError) });
+        }
+      })();
+
       return;
 
     } catch (error: any) {
