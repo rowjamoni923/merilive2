@@ -3866,15 +3866,22 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
+                className="relative w-28 h-36 sm:w-32 sm:h-40 rounded-[1.75rem] bg-purple-50 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-xl shadow-purple-500/10 touch-target-lg ring-1 ring-white"
                 onClick={() => photoInputRef.current?.click()}
                 role="button"
                 aria-label="Upload profile photo"
               >
                 {photoPreview ? (
-                  <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                  <>
+                    <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className={photoImageClass} />
+                    <div className={photoOverlayClass} />
+                    <div className="pointer-events-none absolute inset-[12%] rounded-[45%] border border-white/80" />
+                  </>
                 ) : (
-                  <ImagePlus className="w-10 h-10 text-purple-400 opacity-60" />
+                  <div className="flex flex-col items-center gap-2 text-center px-3">
+                    <Camera className="w-8 h-8 text-purple-400 opacity-70" />
+                    <span className="text-[11px] font-semibold text-purple-500">Add Portrait</span>
+                  </div>
                 )}
               </div>
               <input 
@@ -4063,7 +4070,10 @@ const FaceVerification = () => {
                   aria-label={`Add photo ${index + 1}`}
                 >
                   {hostPhotosPreviews[index] ? (
-                    <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <>
+                      <img loading="lazy" decoding="async" src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className={photoImageClass} />
+                      <div className={photoOverlayClass} />
+                    </>
                   ) : (
                     <ImagePlus className="w-7 h-7 sm:w-8 sm:h-8 text-slate-500" />
                   )}
