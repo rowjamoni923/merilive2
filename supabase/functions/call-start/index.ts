@@ -91,6 +91,26 @@ serve(async (req) => {
       });
     }
 
+    // Verified-host gate: private calls may only target real verified hosts.
+    // Female-gender accounts that signed up as hosts but never passed face verification are NOT eligible.
+    const { data: hostProfile, error: hostProfErr } = await admin
+      .from("profiles")
+      .select("id, is_host, is_face_verified")
+      .eq("id", call.host_id)
+      .maybeSingle();
+
+    if (hostProfErr) {
+      console.error("[call-start] host profile fetch err", hostProfErr);
+      return new Response(JSON.stringify({ ok: false, reason: "db_error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!hostProfile || hostProfile.is_host !== true || hostProfile.is_face_verified !== true) {
+      return new Response(JSON.stringify({ ok: false, reason: "host_not_verified" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Resolve viewer rate (frozen if already set, else from call.coins_per_minute / app_settings default)
     let viewerRate: number = Number(call.viewer_rate_per_min ?? 0);
     let hostRate: number = Number(call.host_rate_per_min ?? 0);
