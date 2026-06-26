@@ -267,36 +267,57 @@ export default function AdminPushBroadcast() {
       {/* Quick Templates (from DB) */}
       <Card className="bg-gray-900/50 border-gray-800">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-white flex items-center gap-2 text-lg">
               <Zap className="w-5 h-5 text-yellow-400" />
               Quick Templates — Click to Use
             </CardTitle>
-            <Button size="sm" variant="outline" onClick={() => { setAddCategory("push_host"); setAddDialog(true); }} className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
-              <Plus className="w-4 h-4 mr-1" /> Add
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={openNewCategoryDialog} className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10">
+                <Plus className="w-4 h-4 mr-1" /> New Category
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openAddDialog()} className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
+                <Plus className="w-4 h-4 mr-1" /> Add Template
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {templatesLoading ? (
             <div className="flex items-center justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-purple-400" /></div>
-          ) : Object.keys(PUSH_CATEGORIES).map((catKey) => {
-            const info = PUSH_CATEGORIES[catKey];
+          ) : allCategoryKeys.length === 0 ? (
+            <p className="text-gray-500 text-sm py-4 text-center">No categories yet. Click "New Category" to create one.</p>
+          ) : allCategoryKeys.map((catKey) => {
+            const info = getCategoryInfo(catKey);
             const catTemplates = grouped[catKey] || [];
             const isExpanded = expandedPreset === catKey;
             return (
               <div key={catKey}>
-                <button
-                  onClick={() => setExpandedPreset(isExpanded ? null : catKey)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r ${info.color} text-white font-semibold transition-all hover:opacity-90`}
-                >
-                  <span>{info.label} ({catTemplates.length})</span>
-                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
+                <div className={`w-full flex items-center gap-2 rounded-xl bg-gradient-to-r ${info.color} text-white font-semibold transition-all hover:opacity-90`}>
+                  <button
+                    onClick={() => setExpandedPreset(isExpanded ? null : catKey)}
+                    className="flex-1 flex items-center justify-between p-3 text-left"
+                  >
+                    <span>{info.label} ({catTemplates.length})</span>
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openAddDialog(catKey); setExpandedPreset(catKey); }}
+                    title="Add template to this category"
+                    className="p-3 hover:bg-white/10 rounded-r-xl"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 {isExpanded && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2 space-y-2 pl-2">
                     {catTemplates.length === 0 ? (
-                      <p className="text-gray-500 text-sm py-2 pl-2">No templates yet. Click "Add" to create one.</p>
+                      <button
+                        onClick={() => openAddDialog(catKey)}
+                        className="w-full text-gray-400 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-gray-700 hover:border-purple-500/50 rounded-lg transition-all"
+                      >
+                        + Add first template to {info.label}
+                      </button>
                     ) : catTemplates.map((template, idx) => (
                       <motion.div
                         key={template.id}
