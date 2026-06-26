@@ -1388,6 +1388,7 @@ export default function AdminLayout() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.setAttribute('data-admin-active', 'true');
+    document.documentElement.setAttribute('data-admin-active', 'true');
     // NOTE: global MutationObserver-based media auto-resolver removed (Pkg42).
     // It was scanning every DOM mutation across the entire admin app and
     // caused major Chrome lag. All admin media now flows through
@@ -1409,13 +1410,26 @@ export default function AdminLayout() {
       document.body.classList.remove(cls);
       document.documentElement.classList.remove(cls);
     });
-    // Some modal libraries set inline overflow:hidden on body and forget to
-    // clear it on unmount. Force scroll back on while admin is mounted.
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    // Some modal/camera libraries set inline scroll locks and forget to clear
+    // them on unmount. Admin must always start with a clean scroll surface.
+    const unlockScrollSurface = (node: HTMLElement) => {
+      node.style.overflow = '';
+      node.style.overflowY = '';
+      node.style.position = '';
+      node.style.top = '';
+      node.style.left = '';
+      node.style.right = '';
+      node.style.width = '';
+      node.style.height = '';
+      node.style.touchAction = '';
+      node.removeAttribute('data-scroll-locked');
+    };
+    unlockScrollSurface(document.body);
+    unlockScrollSurface(document.documentElement);
 
     return () => {
       document.body.removeAttribute('data-admin-active');
+      document.documentElement.removeAttribute('data-admin-active');
     };
   }, []);
 
@@ -2423,6 +2437,8 @@ export default function AdminLayout() {
     const root = adminScrollRootRef.current;
     if (!root) return;
 
+    const isDesktopInternalScroll = () => window.matchMedia('(min-width: 1024px)').matches;
+
     const isEditableTarget = (target: EventTarget | null) => {
       const el = target instanceof Element ? target : null;
       return Boolean(el?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"], [data-admin-allow-inner-scroll="true"]'));
@@ -2450,6 +2466,7 @@ export default function AdminLayout() {
     };
 
     const onWheel = (event: WheelEvent) => {
+      if (!isDesktopInternalScroll()) return;
       if (isEditableTarget(event.target) || Math.abs(event.deltaY) <= Math.abs(event.deltaX) || !shouldBridge(event.target)) return;
       if (canAncestorScrollVertically(event.target, event.deltaY)) return;
       root.scrollTop += event.deltaY;
@@ -2457,11 +2474,16 @@ export default function AdminLayout() {
     };
 
     const onTouchStart = (event: TouchEvent) => {
+      if (!isDesktopInternalScroll()) {
+        adminTouchStartRef.current = null;
+        return;
+      }
       const touch = event.touches[0];
       adminTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
     };
 
     const onTouchMove = (event: TouchEvent) => {
+      if (!isDesktopInternalScroll()) return;
       const start = adminTouchStartRef.current;
       const touch = event.touches[0];
       if (!start || !touch || isEditableTarget(event.target) || !shouldBridge(event.target)) return;
@@ -2747,7 +2769,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell h-screen min-h-0 w-full max-w-full bg-[#06060a]" style={{ height: '100dvh' }}>
+    <div className="admin-shell min-h-screen lg:min-h-0 w-full max-w-full bg-[#06060a]">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -2961,7 +2983,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 h-screen min-h-0 min-w-0 max-w-full flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ height: '100dvh' }}>
+      <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-visible lg:overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
@@ -3141,7 +3163,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
+        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-visible lg:overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-auto lg:overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh] w-full flex items-center justify-center">
               <PremiumSpinner size="lg" labelClassName="text-slate-400" />

@@ -59,6 +59,12 @@ export function ScrollSafetyNet() {
     // cleanly. CSS in index.css restores natural scroll behavior afterwards.
     if (body.style.overflow === "hidden") body.style.overflow = "";
     if (html.style.overflow === "hidden") html.style.overflow = "";
+    if (body.style.overflowY === "hidden") body.style.overflowY = "";
+    if (html.style.overflowY === "hidden") html.style.overflowY = "";
+    if (body.style.touchAction === "none") body.style.touchAction = "";
+    if (html.style.touchAction === "none") html.style.touchAction = "";
+    if (body.style.position === "fixed") body.style.position = "";
+    if (html.style.position === "fixed") html.style.position = "";
     if (body.hasAttribute("data-scroll-locked")) {
       body.removeAttribute("data-scroll-locked");
     }

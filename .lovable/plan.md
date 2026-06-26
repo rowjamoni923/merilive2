@@ -383,3 +383,22 @@ Patch scope:
 - `get_random_pool_sample` now uses the same verified-online host pool for orbit avatars instead of random-call queue/availability-only rows.
 - `MatchCall` count now calls `get_online_global_hosts`, and listens to `profiles`, `host_match_availability`, `host_match_stats`, and `live_streams` realtime changes with a 10s safety refresh.
 - `PreMatchPrep` orbit avatars now call `get_random_pool_sample`, keeping avatar preview and count aligned with the actual fanout pool.
+
+---
+
+# Phase 20 — Admin mobile scroll unlock (2026-06-26)
+
+Research / professional standard:
+- MDN overscroll guidance: nested scroll areas must not trap parent scrolling at their boundary; scroll chaining should be controlled deliberately, not by blanket `preventDefault` — https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_overscroll_behavior
+- web.dev viewport-unit guidance: mobile screens need dynamic viewport handling (`dvh`/natural flow) because fixed `100vh` layouts can fight browser/WebView UI and break scrolling — https://web.dev/blog/viewport-units
+- Professional mobile admin/backoffice pattern for live apps: desktop can use an internal pane scroller, but mobile/tablet should prefer natural document scroll so long forms/tables remain reachable with normal pan gestures.
+
+Verified current gap:
+- `AdminLayout` correctly switched mobile/tablet CSS to natural body scroll, but the old admin table touch bridge still ran on mobile.
+- When a finger started over a table/`overflow-auto`/Radix scroll area, that bridge called `preventDefault()` and tried to move the old internal `<main>` scroller; on mobile that `<main>` is intentionally `overflow: visible`, so body scrolling was blocked.
+- Admin mount cleared only `overflow:hidden`; leaked modal/camera scroll locks can also leave `position: fixed`, `top`, `width`, `touch-action`, or `data-scroll-locked` on body/html.
+
+Patch scope:
+- Limit the admin scroll bridge to desktop/internal-scroll mode only; mobile/tablet touch gestures are never intercepted, so the document scrolls naturally across every admin page.
+- Mark both `body` and `html` as admin-active while mounted and clear leaked inline scroll-lock styles/attributes from body/html.
+- Strengthen admin mobile CSS so `.admin-shell`, root wrappers, and admin content stay in normal document flow with `touch-action: pan-y` and momentum scrolling.
