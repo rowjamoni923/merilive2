@@ -451,6 +451,7 @@ export default function MatchCall() {
         onStart={(filters) => startSearch(filters, { broadcast: true })}
         onBack={exitMatchCall}
         onHistory={openCallHistory}
+        matchedAvatarUrl={matchedAvatarUrl}
       />
       <PostCallRatingSheet
         open={!!ratingSession}
