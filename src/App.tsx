@@ -459,6 +459,13 @@ const GlobalImageDefaultsBridge = lazy(lazyRetry(() => import("./hooks/useGlobal
   return { default: Bridge };
 })));
 
+// Pillar 4 — per-route status-bar + <meta theme-color> sync. Mounts INSIDE
+// BrowserRouter because it relies on useLocation().
+const RouteStatusBarBridge = lazy(lazyRetry(() => import("./hooks/useRouteStatusBar").then(m => {
+  const Bridge = () => { m.useRouteStatusBar(); return null; };
+  return { default: Bridge };
+})));
+
 
 
 // Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
@@ -1200,6 +1207,7 @@ const App = () => {
               {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
               {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
+              <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
