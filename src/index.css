@@ -5869,3 +5869,64 @@ img[data-fade-in],
 }
 
 
+/* ============================================================
+   Agency / Host / Country-admin native-feel parity
+   ------------------------------------------------------------
+   Main app shells already got tap-feedback, momentum scroll
+   and a subtle page-enter motion. Agency surface uses its own
+   `fixed inset-0` shells that bypassed those polish layers.
+   The block below scopes the same feel to every page inside
+   the `agency` route group via <body data-route-group>,
+   without touching any agency component code.
+   ============================================================ */
+
+@keyframes agencyPageEnter {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+body[data-route-group="agency"] [data-page],
+body[data-route-group="agency"] [data-page-root]:not([data-page-root="instant-ready-shell"]),
+body[data-route-group="agency"] > #root > .fixed.inset-0 {
+  animation: agencyPageEnter 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-route-group="agency"] [data-page],
+  body[data-route-group="agency"] [data-page-root]:not([data-page-root="instant-ready-shell"]),
+  body[data-route-group="agency"] > #root > .fixed.inset-0 {
+    animation: none !important;
+  }
+}
+
+/* Momentum scroll + overscroll containment for inner agency scrollers. */
+body[data-route-group="agency"] .overflow-y-auto,
+body[data-route-group="agency"] .overflow-auto,
+body[data-route-group="agency"] .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Tap-feedback parity — buttons/links/role=button get a 120ms
+   compositor-only press-in scale. Opt out with data-no-tap-feedback. */
+body[data-route-group="agency"] button:not([data-no-tap-feedback]):not(:disabled),
+body[data-route-group="agency"] [role="button"]:not([data-no-tap-feedback]),
+body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]) {
+  transition: transform 120ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+body[data-route-group="agency"] button:not([data-no-tap-feedback]):not(:disabled):active,
+body[data-route-group="agency"] [role="button"]:not([data-no-tap-feedback]):active,
+body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-route-group="agency"] button:active,
+  body[data-route-group="agency"] [role="button"]:active,
+  body[data-route-group="agency"] a[href]:active {
+    transform: none;
+  }
+}
+
+
+
