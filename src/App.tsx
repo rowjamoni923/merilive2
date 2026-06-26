@@ -503,6 +503,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       setBackgroundReady(false);
       return;
     }
+    if (backgroundReady) return;
     const w = window as any;
     const id = typeof w.requestIdleCallback === 'function'
       ? w.requestIdleCallback(() => setBackgroundReady(true), { timeout: 3500 })
@@ -511,7 +512,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
       else clearTimeout(id);
     };
-  }, [isPublicPage, location.pathname]);
+  }, [isPublicPage, backgroundReady]);
 
   useEffect(() => {
     if (!hasSeenFirstRouteRef.current) {
@@ -519,9 +520,19 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       return;
     }
 
-    import('@/utils/globalVideoLifecycle')
-      .then((m) => m.pauseAllVideosNow())
-      .catch(() => {});
+    const w = window as any;
+    const run = () => {
+      import('@/utils/globalVideoLifecycle')
+        .then((m) => m.pauseAllVideosNow())
+        .catch(() => {});
+    };
+    const id = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(run, { timeout: 1200 })
+      : window.setTimeout(run, 250);
+    return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
   }, [location.pathname]);
 
   return (
