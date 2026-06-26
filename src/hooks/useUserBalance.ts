@@ -165,17 +165,18 @@ export function clearBalanceCache(): void {
  * Call this in App.tsx to pre-warm cache
  */
 export function useUserBalancePrefetch(userId?: string | null): void {
-  const prefetched = useRef(false);
+  const prefetchedUserId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     if (typeof window !== 'undefined' && isStandalonePublicLocation()) return;
-    if (prefetched.current) return;
-    prefetched.current = true;
+    if (prefetchedUserId.current === userId) return;
+    prefetchedUserId.current = userId;
 
     // Prefetch on idle so auth/home first paint does not compete with this DB read.
     const w = window as any;
-    const timer = typeof w.requestIdleCallback === 'function'
+    const usesIdle = typeof w.requestIdleCallback === 'function';
+    const timer = usesIdle
       ? w.requestIdleCallback(() => {
         fetchBalance(userId);
       }, { timeout: 3500 })
@@ -191,9 +192,7 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       if (detail?.topic !== 'profiles') return;
 
       const payload = detail.payload || {};
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      if (!userId || (payload.profile_id && payload.profile_id !== userId)) return;
+      if (payload.profile_id && payload.profile_id !== userId) return;
 
       const coins = payload.coins;
       const diamonds = payload.diamonds;
@@ -217,7 +216,7 @@ export function useUserBalancePrefetch(userId?: string | null): void {
     });
 
     return () => {
-      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(timer);
+      if (usesIdle && typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(timer);
       else clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
       authListener.subscription.unsubscribe();
