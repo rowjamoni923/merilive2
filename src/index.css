@@ -1985,12 +1985,11 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
   /* Card Hover Effects */
   .card-hover {
-    @apply transition-all duration-300;
+    @apply transition-colors duration-100;
   }
 
   .card-hover:hover {
     @apply shadow-elevated;
-    transform: translateY(-4px) scale(1.02);
   }
 
   .card-premium {
