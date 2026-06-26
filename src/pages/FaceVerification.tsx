@@ -1913,24 +1913,53 @@ const FaceVerification = () => {
   }, [verificationStatus, teardownFaceCameraPreview]);
 
   // Upload file to storage
+  // Samsung One UI / many Android pickers return empty file.type or
+  // application/octet-stream — fall back to file-name extension so HEIC,
+  // HEIF, AVIF, HEVC, MKV, 3GP, M4V uploads from S25 Ultra / Pixel / OnePlus
+  // are accepted and stored with the correct contentType.
+  const EXT_TO_MIME: Record<string, string> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+    gif: 'image/gif', heic: 'image/heic', heif: 'image/heif', avif: 'image/avif', bmp: 'image/bmp',
+    mp4: 'video/mp4', mov: 'video/quicktime', m4v: 'video/x-m4v', webm: 'video/webm',
+    mkv: 'video/x-matroska', '3gp': 'video/3gpp', '3g2': 'video/3gpp2', hevc: 'video/hevc',
+    avi: 'video/avi',
+  };
+  const resolveFileMime = (file: File | Blob): string => {
+    const raw = (file.type || '').split(';')[0].toLowerCase();
+    if (raw && raw !== 'application/octet-stream') return raw;
+    if (file instanceof File) {
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      return EXT_TO_MIME[ext] || '';
+    }
+    return '';
+  };
   const storageExtensionFor = (file: File | Blob) => {
-    const type = (file.type || '').split(';')[0].toLowerCase();
+    const type = resolveFileMime(file);
     if (type === 'image/jpeg') return 'jpg';
     if (type === 'image/png') return 'png';
     if (type === 'image/webp') return 'webp';
+    if (type === 'image/heic') return 'heic';
+    if (type === 'image/heif') return 'heif';
+    if (type === 'image/avif') return 'avif';
     if (type === 'video/mp4') return 'mp4';
     if (type === 'video/webm') return 'webm';
-    if (file instanceof File) return file.name.split('.').pop() || 'bin';
+    if (type === 'video/quicktime') return 'mov';
+    if (type === 'video/x-m4v') return 'm4v';
+    if (type === 'video/x-matroska') return 'mkv';
+    if (type === 'video/3gpp') return '3gp';
+    if (type === 'video/hevc') return 'mp4';
+    if (file instanceof File) return file.name.split('.').pop()?.toLowerCase() || 'bin';
     return 'bin';
   };
 
   const uploadFile = async (file: File | Blob, folder: string): Promise<string | null> => {
     if (!userId) return null;
     if (!file.size) throw new Error(`Upload blocked: ${folder} file is empty.`);
-    
+
     const fileExt = storageExtensionFor(file);
     const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
-    const contentType = file.type || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
+    const resolvedMime = resolveFileMime(file);
+    const contentType = resolvedMime || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
     
     const { data, error } = await supabase.storage
       .from('face-verification')
