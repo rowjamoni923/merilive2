@@ -171,25 +171,34 @@ export default function PreMatchPrep({
     return () => window.clearInterval(t);
   }, []);
 
-  // Live orbit avatars — fetch online verified hosts and rotate the set every few seconds
+  // Live orbit avatars — source from hosts that are CURRENTLY LIVE (status='active').
+  // Deterministic ordering (by host_id) so the set never shuffles randomly between refreshes.
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
-        const { data } = await supabase.rpc("get_random_pool_sample", { _limit: 18 });
+        const { data } = await supabase
+          .from("live_streams")
+          .select("host_id, profiles:host_id(avatar_url)")
+          .eq("status", "active")
+          .order("host_id", { ascending: true })
+          .limit(24);
         if (!mounted) return;
-        const urls = (data as any[] | null)?.map((r) => r.avatar_url).filter(Boolean) as string[] | undefined;
-        if (urls && urls.length) {
-          // shuffle to randomize each refresh
-          const shuffled = [...urls].sort(() => Math.random() - 0.5).slice(0, 12);
-          setOrbitAvatars(shuffled);
-        } else {
-          setOrbitAvatars([]);
+        const seen = new Set<string>();
+        const urls: string[] = [];
+        for (const row of (data as any[] | null) ?? []) {
+          const url = row?.profiles?.avatar_url as string | undefined;
+          const hid = row?.host_id as string | undefined;
+          if (!url || !hid || seen.has(hid)) continue;
+          seen.add(hid);
+          urls.push(url);
+          if (urls.length >= 12) break;
         }
+        setOrbitAvatars(urls);
       } catch (_) { /* ignore */ }
     };
     load();
-    const t = window.setInterval(load, 6000);
+    const t = window.setInterval(load, 8000);
     return () => { mounted = false; window.clearInterval(t); };
   }, []);
 
