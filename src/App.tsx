@@ -644,6 +644,17 @@ const App = () => {
     }
   };
 
+  const scheduleLegacyProfileSync = (userId: string) => {
+    if (!userId || typeof window === 'undefined') return;
+    const w = window as any;
+    const run = () => void runLegacyProfileSync(userId);
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(run, { timeout: 45000 });
+      return;
+    }
+    window.setTimeout(run, 18000);
+  };
+
   // 🚀 INSTANT PREFETCH — warm only tiny user-specific caches on auth.
   // Heavy gifts/assets/routes are deferred to idle so first screen data can win.
   const isAuthenticated = !!session?.user;
@@ -875,8 +886,7 @@ const App = () => {
             setSession(session);
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
           }
-          const syncId = window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
-          void syncId;
+          scheduleLegacyProfileSync(session.user.id);
           return;
         }
 
@@ -901,7 +911,7 @@ const App = () => {
                   expires_at: refreshed.session.expires_at,
                 });
               }
-              window.setTimeout(() => void runLegacyProfileSync(refreshed.session.user.id), 2500);
+              scheduleLegacyProfileSync(refreshed.session.user.id);
               return;
             }
           } catch (e) {
@@ -924,7 +934,7 @@ const App = () => {
                     setSession(restored.session);
                     setCachedUser({ id: restored.session.user.id, email: restored.session.user.email ?? undefined });
                   }
-                  window.setTimeout(() => void runLegacyProfileSync(restored.session.user.id), 2500);
+                  scheduleLegacyProfileSync(restored.session.user.id);
                   return;
                 }
               }
@@ -989,7 +999,7 @@ const App = () => {
               expires_at: session.expires_at,
             });
           }
-          window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
+          scheduleLegacyProfileSync(session.user.id);
           // Prime own avatar+frame in persistent cache so they render
           // instantly on every cold launch, even offline.
           import('@/utils/frameCache').then(({ primeOwnAvatarCache }) => {
