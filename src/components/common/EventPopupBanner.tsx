@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toSupabaseCdnUrl } from "@/lib/cdnImage";
+import { BulletproofImage } from "@/components/common/BulletproofImage";
 
 // Full-screen popup banner — usually shown at viewport size; ask CDN for ~1080w WebP.
 const popupCdn = (url: string | null | undefined) =>
@@ -167,17 +168,14 @@ const EventPopupBanner = () => {
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
-            <img
+            <BulletproofImage
               src={mediaUrl}
+              fallbacks={[banner.image_url]}
               alt={banner.title}
               width={1080}
               height={1920}
-              loading="eager"
-              decoding="async"
-              {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+              priority="high"
               className="absolute inset-0 h-full w-full object-cover"
-              draggable={false}
-              onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
             />
           )}
 
