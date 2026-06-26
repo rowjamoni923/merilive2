@@ -137,8 +137,8 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-const photoFrameClass = "relative mx-auto w-full max-w-[260px] aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/70 bg-gradient-to-br from-white via-amber-50 to-pink-50 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
-const photoImageClass = "w-full h-full object-cover object-center";
+const photoFrameClass = "relative mx-auto w-full max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden border border-white/70 bg-gradient-to-br from-white via-amber-50 to-pink-50 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
+const photoImageClass = "w-full h-full object-cover object-[50%_38%]";
 const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10";
 const photoGuideClass = "pointer-events-none absolute inset-[12%] rounded-[45%] border-2 border-white/80 shadow-[0_0_0_999px_rgba(15,23,42,0.10)]";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
@@ -2587,9 +2587,9 @@ const FaceVerification = () => {
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : '#d4af37';
     const nativeApertureStyle: React.CSSProperties | undefined = usingNativeFaceCamera
       ? {
-          WebkitMaskImage: 'radial-gradient(ellipse 39% 45% at 50% 45%, transparent 0 98%, #000 100%)',
-          maskImage: 'radial-gradient(ellipse 39% 45% at 50% 45%, transparent 0 98%, #000 100%)',
-          background: 'linear-gradient(180deg, rgba(2,6,23,0.78), rgba(15,23,42,0.86))',
+          WebkitMaskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
+          maskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
+          background: 'radial-gradient(circle at 50% 18%, rgba(212,175,55,0.18), transparent 38%), linear-gradient(180deg, rgba(2,6,23,0.72), rgba(15,23,42,0.88))',
         }
       : undefined;
     const completeFromPartialScan = () => {
@@ -2648,8 +2648,8 @@ const FaceVerification = () => {
       
       {/* Video Container with Face Oval */}
       <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-[360px] mx-auto rounded-[32px] overflow-hidden mb-5 bg-slate-950 shadow-2xl shadow-slate-950/30 ring-1 ring-white/20'
-        : `relative aspect-[3/4] w-full max-w-[360px] mx-auto rounded-[32px] overflow-hidden mb-5 ring-1 ring-white/30 ${faceCameraActive ? 'bg-black shadow-2xl shadow-slate-950/25' : 'bg-white/80 shadow-2xl'}`
+        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-slate-950 shadow-[0_28px_80px_-24px_rgba(2,6,23,0.75)] ring-1 ring-amber-200/35'
+        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/35 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-white/80 shadow-2xl'}`
       }>
         {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
           <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
@@ -2713,7 +2713,7 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="w-full h-full object-cover object-center scale-x-[-1]"
+                className="w-full h-full object-cover object-[50%_42%] scale-x-[-1]"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
@@ -2734,14 +2734,14 @@ const FaceVerification = () => {
               {/* Dark overlay outside oval */}
               {!usingNativeFaceCamera && (
                 <div className="absolute inset-0" style={{
-                  background: 'radial-gradient(ellipse 60% 50% at 50% 45%, transparent 96%, rgba(2,6,23,0.70) 100%)',
+                  background: 'radial-gradient(ellipse 63% 52% at 50% 44%, transparent 94%, rgba(2,6,23,0.68) 100%), radial-gradient(circle at 50% 10%, rgba(212,175,55,0.18), transparent 36%)',
                 }} />
               )}
               
               {/* Animated hex face frame */}
               <motion.div 
                 className="relative"
-                style={{ width: '78%', height: '66%' }}
+                style={{ width: '82%', height: '70%' }}
               >
                 <svg viewBox="0 0 200 260" className="w-full h-full" style={{ filter: `drop-shadow(0 0 10px ${borderColor}40)` }}>
                   <polygon points="100,12 178,56 178,204 100,248 22,204 22,56" fill="none" 
@@ -3114,7 +3114,7 @@ const FaceVerification = () => {
       {!faceCameraActive && !faceVerified && (
         <div className="flex flex-col items-center justify-center py-6">
           <Button
-            className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-2xl text-base font-bold shadow-lg shadow-purple-900/20 text-white transition-all transform active:scale-95"
+              className="w-full h-14 bg-gradient-to-r from-[#d4af37] via-[#f5d76e] to-[#b88914] hover:from-[#f5d76e] hover:to-[#d4af37] rounded-2xl text-base font-bold shadow-xl shadow-amber-500/25 text-slate-950 transition-all transform active:scale-95"
             onClick={startFaceCamera}
           >
             <ScanFace className="w-6 h-6 mr-3" />
@@ -3181,7 +3181,7 @@ const FaceVerification = () => {
       
       {faceVerified && (
         <Button
-          className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-lg font-bold shadow-lg shadow-green-500/20`}
+            className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400 rounded-2xl text-lg font-bold text-slate-950 shadow-xl shadow-emerald-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
           disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
@@ -3990,7 +3990,7 @@ const FaceVerification = () => {
                     disableRemotePlayback
                     controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                     {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                    className="w-full h-full object-cover scale-x-[-1]"
+                    className="w-full h-full object-cover object-[50%_42%] scale-x-[-1]"
                     style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
