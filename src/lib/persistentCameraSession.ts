@@ -39,6 +39,30 @@ type Session = {
 
 let active: Session | null = null;
 let pending: Promise<Session> | null = null;
+const listeners = new Set<(stream: MediaStream | null) => void>();
+
+function emitCameraSessionChange() {
+  const stream = peekCameraSession();
+  listeners.forEach((listener) => {
+    try {
+      listener(stream);
+    } catch {
+      /* listener errors must never break camera lifecycle */
+    }
+  });
+}
+
+export function subscribeCameraSession(listener: (stream: MediaStream | null) => void): () => void {
+  listeners.add(listener);
+  try {
+    listener(peekCameraSession());
+  } catch {
+    /* ignore */
+  }
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints => {
   const video =
@@ -72,6 +96,7 @@ export async function acquireCameraSession(
   if (active && active.constraintsKey !== wantKey) {
     hardStop(active);
     active = null;
+    emitCameraSessionChange();
   }
 
   if (pending) {
@@ -89,6 +114,7 @@ export async function acquireCameraSession(
       createdAt: Date.now(),
     };
     active = session;
+    emitCameraSessionChange();
     return session;
   })();
 
@@ -117,6 +143,7 @@ export function adoptCameraSession(
   if (active && active.stream !== stream) {
     hardStop(active);
     active = null;
+    emitCameraSessionChange();
   }
   if (!active) {
     active = { stream, refCount: 1, constraintsKey: wantKey, createdAt: Date.now() };
@@ -124,6 +151,7 @@ export function adoptCameraSession(
     active.refCount += 1;
     active.constraintsKey = wantKey;
   }
+  emitCameraSessionChange();
   return toHandle(active);
 }
 
@@ -167,6 +195,7 @@ export function disposeCameraSessionIfIdle(): boolean {
   if (active.refCount > 0) return false;
   hardStop(active);
   active = null;
+  emitCameraSessionChange();
   return true;
 }
 
@@ -175,6 +204,7 @@ export function forceDisposeCameraSession(): void {
   if (!active) return;
   hardStop(active);
   active = null;
+  emitCameraSessionChange();
 }
 
 /** Debug helper. */

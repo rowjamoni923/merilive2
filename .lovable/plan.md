@@ -216,8 +216,7 @@ Patch scope:
 - Enable `<BrowserRouter future={{ v7_startTransition: true }}>` so every app/menu/admin/profile/message/reels navigation uses React transition semantics and keeps the previous real page visible while lazy chunks resolve.
 - Mount `RouteTransitionHost` once inside the router so every path change shares one global transition coordinator.
 - Keep all fallback UI as `null`; no spinner, skeleton, black screen, white screen, or fake loading surface is introduced.
-- Added a global `BlankScreenGuard` visual-hold layer. It stores the last meaningful committed page DOM and, during route changes or route-level data placeholders, keeps that real previous page painted until the next route has a meaningful surface. This covers pages that do not suspend but temporarily return `PageSkeleton`/`null` while fetching data.
-- The guard also watches same-route DOM swaps, so profile menu tabs, agency dashboard sub-panels, message/reels/profile detail reloads, and other internal sections that temporarily render placeholders keep the last real screen instead of exposing a blank body.
-- The visual-hold snapshot sanitizes media elements before display, so live/reels/video/camera surfaces are not duplicated or reopened while the transition cover is active.
+- Removed the DOM-clone visual-hold approach. User-corrected standard: no fake snapshot/clone/loading cover; continuity must come from the actual previous React surface staying mounted by transition semantics and from persistent media surfaces.
+- Upgraded the web `PersistentCameraSurface` bridge from timer polling to an event-driven `persistentCameraSession` subscription, so live/party/private-call preview camera continuity updates instantly without reopening the camera and without visibility-refresh/polling hacks.
 - Changed `PageSkeleton` into a transparent `data-route-placeholder` marker instead of painting white/gradient placeholders.
 - Removed admin access and admin route permission spinners so agency/admin menu movement never paints a verification/loading interstitial.

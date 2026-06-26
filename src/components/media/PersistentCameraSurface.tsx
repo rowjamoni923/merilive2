@@ -16,7 +16,7 @@
  *
  * Behaviour
  * ---------
- * - Self-driven: polls `peekCameraSession()` and renders ONLY when there is
+ * - Event-driven: subscribes to `persistentCameraSession` and renders ONLY when there is
  *   a live video track. On Home/Profile/Auth/etc. there is no camera open,
  *   so this component returns null and is completely inert.
  * - Render order: fixed inset-0 at z-index 0 — sits behind every page's
@@ -28,7 +28,7 @@
  *   for camera ownership.
  */
 import { useEffect, useRef, useState } from 'react';
-import { peekCameraSession } from '@/lib/persistentCameraSession';
+import { peekCameraSession, subscribeCameraSession } from '@/lib/persistentCameraSession';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 const hasLiveVideo = (s: MediaStream | null) =>
@@ -40,24 +40,24 @@ export default function PersistentCameraSurface() {
 
   const isNative = isNativeAndroidApp();
 
-  // Re-poll the global session. The warm session may appear/disappear at
-  // any time (GoLive opens it, End Live disposes it). Cheap polling avoids
-  // a tight subscribe coupling.
+  // Event-driven bridge. The warm session may appear/disappear at any time
+  // (GoLive opens it, End Live disposes it), and the paint surface updates
+  // immediately without timer polling or visibility refresh hacks.
   useEffect(() => {
     if (isNative) return;
-    let cancelled = false;
-    const tick = () => {
-      if (cancelled) return;
-      const next = peekCameraSession();
+    return subscribeCameraSession((next) => {
       setStream((prev) => (prev === next ? prev : next));
-    };
-    tick();
-    const id = window.setInterval(tick, 400);
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
+    });
   }, [isNative]);
+
+  useEffect(() => {
+    if (!stream) return;
+    const sync = () => setStream(peekCameraSession());
+    stream.getTracks().forEach((track) => track.addEventListener('ended', sync));
+    return () => {
+      stream.getTracks().forEach((track) => track.removeEventListener('ended', sync));
+    };
+  }, [stream]);
 
   // Bind / unbind the stream to the <video> element.
   useEffect(() => {

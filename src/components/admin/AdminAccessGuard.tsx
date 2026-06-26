@@ -264,8 +264,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     };
   }, [location.pathname, location.search, hasFreshAccessToken]);
 
-  // Native-feel rule: never paint an admin verification interstitial. The
-  // global BlankScreenGuard keeps the previous real screen visible until auth
+  // Native-feel rule: never paint an admin verification interstitial. React
+  // transition semantics keep the previous real screen visible until auth
   // validation settles, avoiding white/black/spinner flashes in every menu.
   if (isAuthorized === null) {
     return null;

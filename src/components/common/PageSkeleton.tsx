@@ -13,8 +13,8 @@ interface PageSkeletonProps {
 /**
  * User mandate: no fake loading UI and no white/blank loading screen.
  * Kept as a compatibility component for 400+ surfaces, but it deliberately
- * renders only a transparent marker. The previous real screen is retained by
- * BlankScreenGuard instead of painting an alternate placeholder.
+ * renders only a transparent marker so React transitions can keep the previous
+ * real screen visible instead of painting an alternate placeholder.
  */
 export function PageSkeleton(_props: PageSkeletonProps) {
   const { className, style } = _props;
