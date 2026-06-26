@@ -395,6 +395,38 @@ const Level5HelperDashboard = () => {
     }
   }, Boolean(helperData?.id));
 
+  // 📨 Reliability layer for helper inbox (mirrors LiveChatWidget). The
+  // helper_admin_messages / helper_message_replies tables are NOT in the
+  // supabase_realtime publication, so on top of app_sync we add:
+  //   • 6s polling of the inbox list while the dashboard is mounted
+  //   • 3s polling of the currently-open conversation
+  //   • Window focus refresh — guarantees zero missed admin replies
+  useEffect(() => {
+    if (!helperData?.id) return;
+    const poll = window.setInterval(() => {
+      loadAdminMessages(helperData.id);
+    }, 6000);
+    const onFocus = () => loadAdminMessages(helperData.id);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [helperData?.id]);
+
+  useEffect(() => {
+    if (!selectedMessage?.id) return;
+    const poll = window.setInterval(() => {
+      loadMessageReplies(selectedMessage.id);
+    }, 3000);
+    const onFocus = () => loadMessageReplies(selectedMessage.id);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [selectedMessage?.id]);
+
   useEffect(() => {
     const onAdminTableUpdate = (event: Event) => {
       const table = (event as CustomEvent<{ table?: string }>).detail?.table;
