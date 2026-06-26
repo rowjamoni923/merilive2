@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import useAdminAccess from "@/hooks/useAdminAccess";
-import { PremiumSpinner } from "@/components/ui/premium-spinner";
 
 // First accessible path map for sub-admins based on hub keys
 const HUB_FIRST_PATH: Record<string, string> = {
@@ -207,13 +206,10 @@ interface AdminRouteGuardProps {
 export default function AdminRouteGuard({ children, routeSegment }: AdminRouteGuardProps) {
   const { isOwner, hasHubAccess, isLoading } = useAdminAccess();
 
-  // While permissions are loading, show premium loader (instead of blank outlet)
+  // While permissions are loading, do not paint an intermediate loader. The
+  // global visual hold keeps the previous committed admin page visible.
   if (isLoading) {
-    return (
-      <div className="min-h-[40vh] w-full flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading admin page access">
-        <PremiumSpinner size="lg" />
-      </div>
-    );
+    return null;
   }
   // Owners can access everything
   if (isOwner) return <>{children}</>;
@@ -254,11 +250,7 @@ export function SubAdminDashboardGuard({ children }: { children: ReactNode }) {
   const { isOwner, accessibleHubs, isLoading } = useAdminAccess();
 
   if (isLoading) {
-    return (
-      <div className="min-h-[40vh] w-full flex items-center justify-center">
-        <PremiumSpinner size="lg" />
-      </div>
-    );
+    return null;
   }
 
   if (isOwner) return <>{children}</>;

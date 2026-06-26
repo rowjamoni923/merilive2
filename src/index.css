@@ -58,6 +58,12 @@
   animation: none !important;
 }
 
+[data-route-visual-hold] * {
+  animation: none !important;
+  transition: none !important;
+  caret-color: transparent !important;
+}
+
 
 /* ============================================
    Global mobile behavior
@@ -4830,6 +4836,13 @@ html, body {
    before switching, so this layer should never appear as a black loading screen. */
 html, body, #root {
   background-color: hsl(var(--background));
+}
+
+body:not(.app-booted),
+body:not(.app-booted) #root,
+body[data-route-visual-hold-active],
+body[data-route-visual-hold-active] #root {
+  background-color: transparent !important;
 }
 
 button, a, [role="button"], .tappable {

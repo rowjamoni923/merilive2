@@ -13,11 +13,19 @@ interface PageSkeletonProps {
 /**
  * User mandate: no fake loading UI and no white/blank loading screen.
  * Kept as a compatibility component for 400+ surfaces, but it deliberately
- * renders nothing. The previous real screen is retained by BlankScreenGuard
- * during navigation instead of painting an alternate placeholder.
+ * renders only a transparent marker. The previous real screen is retained by
+ * BlankScreenGuard instead of painting an alternate placeholder.
  */
 export function PageSkeleton(_props: PageSkeletonProps) {
-  return null;
+  const { className, style } = _props;
+  return (
+    <div
+      aria-hidden="true"
+      data-route-placeholder="true"
+      className={className}
+      style={style ? { ...style, background: "transparent", pointerEvents: "none" } : { background: "transparent", pointerEvents: "none" }}
+    />
+  );
 }
 
 export default PageSkeleton;

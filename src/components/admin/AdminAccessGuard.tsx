@@ -1,5 +1,4 @@
 import { useState, useEffect, ReactNode, lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
 import { Navigate, useLocation } from "react-router-dom";
 
 const BlogPage = lazy(() => import("@/pages/BlogPage"));
@@ -265,20 +264,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     };
   }, [location.pathname, location.search, hasFreshAccessToken]);
 
-  // Loading state — only reachable when there's NO fresh access token
-  // (fresh tokens always optimistically render the admin shell).
+  // Native-feel rule: never paint an admin verification interstitial. The
+  // global BlankScreenGuard keeps the previous real screen visible until auth
+  // validation settles, avoiding white/black/spinner flashes in every menu.
   if (isAuthorized === null) {
-    // Fresh secret links and already-issued server admin sessions both verify
-    // inside the admin experience. Do not show the public BlogPage as an
-    // intermediate state during admin navigation.
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-violet-500 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm">Verifying access...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Authorized: render admin panel / login page
