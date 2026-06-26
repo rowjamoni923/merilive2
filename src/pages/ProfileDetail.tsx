@@ -872,9 +872,13 @@ const ProfileDetail = () => {
                   preload="auto"
                 />
               ) : (
-                <img
-                  src={enhanceThumbnail(url, { width: 750, quality: 85 })}
+                <SafePhoto
+                  src={url}
                   alt=""
+                  width={750}
+                  quality={85}
+                  fallbackSeed={profile?.id || url}
+                  fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="sync"
