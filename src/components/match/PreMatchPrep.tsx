@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserBalance } from "@/hooks/useUserBalance";
+import { getBalanceWithFetch, useUserBalance } from "@/hooks/useUserBalance";
 
 export type MatchFilters = {
   preferred_host_gender: "male" | "female" | "any";
@@ -58,8 +58,8 @@ export default function PreMatchPrep({
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
 }: Props) {
   const navigate = useNavigate();
-  const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
-  const effectiveBalance = balanceReady ? liveBalance : diamondBalance;
+  const { balance: liveBalance } = useUserBalance();
+  const effectiveBalance = Math.max(Number(diamondBalance || 0), Number(liveBalance || 0));
   const isSearching = phase === "searching";
   const isMatched = phase === "matched";
   const isError = phase === "error";
@@ -214,14 +214,11 @@ export default function PreMatchPrep({
   }, []);
 
   const requiredToStart = Math.max(Number(requiredBalance ?? hostRatePerMin), hostRatePerMin, 0);
-  const balanceKnown = balanceReady || diamondBalance > 0;
-  const insufficient = balanceKnown && effectiveBalance < requiredToStart;
-  const handleStart = () => {
-    if (insufficient) {
+  const handleStart = async () => {
+    const latestBalance = Math.max(effectiveBalance, await getBalanceWithFetch(true));
+    if (requiredToStart > 0 && latestBalance < requiredToStart) {
       stopStream();
-      navigate("/recharge", {
-        state: { reason: "random_call_low_balance", required: requiredToStart, balance: effectiveBalance },
-      });
+      navigate("/recharge", { replace: true });
       return;
     }
     stopStream();
@@ -448,7 +445,7 @@ export default function PreMatchPrep({
               onClick={handleStart}
               className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
             >
-              <Phone className="w-5 h-5 mr-2" /> {insufficient ? "Top Up" : "Start"}
+              <Phone className="w-5 h-5 mr-2" /> Start
             </Button>
           </motion.div>
         )}
@@ -463,12 +460,6 @@ export default function PreMatchPrep({
               </div>
               <div className="opacity-70 text-[11px]">After 1 min · host's private-call rate</div>
             </div>
-            {insufficient && (
-              <button onClick={() => navigate("/recharge")}
-                className="mt-3 mx-auto block px-4 h-9 rounded-full bg-amber-400 text-black text-xs font-bold">
-                Recharge — need {requiredToStart.toLocaleString()} diamonds
-              </button>
-            )}
           </>
         )}
         {isSearching && (

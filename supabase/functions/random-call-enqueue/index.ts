@@ -74,12 +74,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Profile lookup (gender, VIP, balance, level). Use only deployed columns:
-    // `level` / `is_vip` do not exist on this schema, and selecting them makes
+    // Profile lookup (gender, VIP, balance). Use only core wallet columns:
+    // optional level / is_vip fields can drift between deployments, and selecting them makes
     // Supabase return null data, which falsely blocks paid calls as balance 0.
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("id, gender, coins, diamonds, user_level, host_level, vip_tier, current_vip_tier_id")
+      .select("id, gender, coins, diamonds, vip_tier, current_vip_tier_id")
       .eq("id", userId)
       .single();
 
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     const holdAmount = callerRateForHold * settings.preauth_minutes_hold;
     const callerBalance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
     const callerIsVip = Number(profile.vip_tier ?? 0) > 0 || !!profile.current_vip_tier_id;
-    const callerLevel = Math.max(Number(profile.user_level ?? 0), Number(profile.host_level ?? 0));
+    const callerLevel = 1;
 
     if (callerBalance < holdAmount) {
       return new Response(

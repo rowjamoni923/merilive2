@@ -231,13 +231,9 @@ export default function MatchCall() {
     const maxRateForHold = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
     const preauthMinutes = Number(settings?.preauth_minutes_hold ?? 0);
     const requiredBalance = Math.max(0, maxRateForHold * preauthMinutes);
-    const currentBalance = profile
-      ? Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0))
-      : await getBalanceWithFetch();
+    const currentBalance = await getBalanceWithFetch(true);
     if (requiredBalance > 0 && currentBalance < requiredBalance) {
-      navigate("/recharge", {
-        state: { reason: "random_call_low_balance", required: requiredBalance, balance: currentBalance },
-      });
+      navigate("/recharge", { replace: true });
       return;
     }
 
@@ -282,12 +278,8 @@ export default function MatchCall() {
       }
       if (errPayload?.error === "insufficient_coins") {
         if (timerRef.current) window.clearInterval(timerRef.current);
-        const need = Number(errPayload.required ?? 0);
-        const bal = Number(errPayload.balance ?? 0);
         setPhase("prep");
-        navigate("/recharge", {
-          state: { reason: "random_call_low_balance", required: need, balance: bal },
-        });
+        navigate("/recharge", { replace: true });
         return;
       }
       if (error) throw error;
@@ -374,12 +366,8 @@ export default function MatchCall() {
       if (timerRef.current) window.clearInterval(timerRef.current);
       const payload = await extractEdgeFnErrorPayload(e);
       if (payload?.error === "insufficient_coins") {
-        const need = Number(payload.required ?? 0);
-        const bal = Number(payload.balance ?? 0);
         setPhase("prep");
-        navigate("/recharge", {
-          state: { reason: "random_call_low_balance", required: need, balance: bal },
-        });
+        navigate("/recharge", { replace: true });
         return;
       }
       const msg = String(e?.message ?? e);
