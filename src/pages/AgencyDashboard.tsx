@@ -610,9 +610,12 @@ const AgencyDashboard = () => {
       refetchTimer = setTimeout(() => fetchData(), 500);
     };
 
-    // Real-time subscriptions for instant updates
+    // Real-time subscriptions for instant updates. The unique topic prevents
+    // StrictMode/StableRoutes remount races from reusing a still-subscribed
+    // Supabase channel and throwing "cannot add postgres_changes callbacks".
+    const channelNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const channel = supabase
-      .channel('agency-dashboard-realtime')
+      .channel(`agency-dashboard-realtime-${channelNonce}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agencies' },
