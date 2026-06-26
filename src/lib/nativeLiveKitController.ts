@@ -136,13 +136,13 @@ class NativeLiveKitController {
       // LocalVideoTrack inside connectInternal() when previewRoom/previewTrack
       // exist, so Live / video party / game party / private call reuse the
       // already-open camera instead of closing and reopening it.
-      // Never adopt a surviving Room for live / party / private call media.
-      // Professional Android apps keep exactly one visible native SDK media
-      // owner; stale adoption is what creates "already live" and background
-      // camera leaks after an explicit end/exit.
+      // If native already completed the same-scope promotion while JS is still
+      // resolving (rapid taps / phase remount), adopt it instead of tearing the
+      // camera down. Different-scope sessions are still rejected below.
       const active = await NativeLiveKit.getActiveSession().catch(() => null);
       if (active?.active) {
-        const activeScope = this.activeFeature ?? ((active.roomScope as NativeRoomScope | string | undefined) || null) as NativeRoomScope | null ?? this.inferScopeFromCallType(active.callType);
+        const sessionScope = (active.roomScope || this.inferScopeFromCallType(active.callType) || null) as NativeRoomScope | null;
+        const activeScope = this.activeFeature ?? sessionScope;
         if (requestedFeature && activeScope && activeScope !== requestedFeature) {
           throw new Error(`NativeLiveKit active ${activeScope} session; refusing ${requestedFeature} takeover`);
         }
