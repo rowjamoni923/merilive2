@@ -1465,41 +1465,68 @@ const ProfileDetail = () => {
           </div>
           )}
 
-          {/* Stats Row — owner only (Friends/Following/Followers are private to the profile owner) */}
-          {isOwnProfile && (
+          {/* Stats Row — Following count is owner-only (private). Friends/Followers/Level stay visible to visitors. */}
           <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl profile-home-section">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onPointerDown={() => prefetchByHref('/following')}
-              onTouchStart={() => prefetchByHref('/following')}
-              onClick={() => navigate(`/following?type=friends&user=${userId}`)}
-              className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{formatCompactCount(friendsCount)}</p>
-              <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onPointerDown={() => prefetchByHref('/following')}
-              onTouchStart={() => prefetchByHref('/following')}
-              onClick={() => navigate(`/following?type=following&user=${userId}`)}
-              className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
-            >
-              <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{formatCompactCount(followingCount)}</p>
-              <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Following</p>
-            </motion.button>
+            {isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchByHref('/following')}
+                onTouchStart={() => prefetchByHref('/following')}
+                onClick={() => navigate(`/following?type=friends&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{formatCompactCount(friendsCount)}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
+              </motion.button>
+            )}
+            {isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchByHref('/following')}
+                onTouchStart={() => prefetchByHref('/following')}
+                onClick={() => navigate(`/following?type=following&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{formatCompactCount(followingCount)}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Following</p>
+              </motion.button>
+            )}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onPointerDown={() => prefetchByHref('/following')}
               onTouchStart={() => prefetchByHref('/following')}
               onClick={() => navigate(`/following?type=followers&user=${userId}`)}
-              className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className={`text-center py-3 rounded-xl hover:bg-slate-50 transition-colors ${isOwnProfile ? '' : 'border-r border-slate-100'}`}
             >
               <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{formatCompactCount(followersCount)}</p>
               <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Followers</p>
             </motion.button>
+            {!isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchByHref('/following')}
+                onTouchStart={() => prefetchByHref('/following')}
+                onClick={() => navigate(`/following?type=followers&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Lv{level}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Level</p>
+              </motion.button>
+            )}
+            {!isOwnProfile && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onPointerDown={() => prefetchByHref('/following')}
+                onTouchStart={() => prefetchByHref('/following')}
+                onClick={() => navigate(`/following?type=friends&user=${userId}`)}
+                className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{formatCompactCount(friendsCount)}</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
+              </motion.button>
+            )}
           </div>
-          )}
+
 
 
 
