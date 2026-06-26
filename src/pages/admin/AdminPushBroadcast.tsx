@@ -284,6 +284,7 @@ export default function AdminPushBroadcast() {
         label: "AdminPushBroadcast.UploadImage",
         message: err?.message || "Failed to upload image",
         detail: JSON.stringify(err || {}).slice(0, 1000),
+        silent: true,
       });
       toast.error(err?.message || "Failed to upload image");
       return null;
@@ -335,6 +336,7 @@ export default function AdminPushBroadcast() {
         label: "AdminPushBroadcast.SendNotification",
         message: error?.message || "Failed to send notification",
         detail: error?.stack?.slice(0, 1000),
+        silent: true,
       });
       toast.error(error.message || "Failed to send notification");
     } finally {
