@@ -18,39 +18,6 @@ type StableRoutesProps = {
 const routeStageId = (location: Location) =>
   `${location.key || "default"}:${location.pathname}${location.search}${location.hash}`;
 
-const CONTENT_SELECTOR = [
-  "[data-page]:not([data-route-placeholder='true'])",
-  "[data-page-root]:not([data-route-placeholder='true'])",
-  "main:not([data-route-placeholder='true'])",
-  "[role='main']:not([data-route-placeholder='true'])",
-  ".mobile-page",
-  ".profile-home-shell",
-  "video",
-  "canvas",
-  "img",
-  "button",
-  "a[href]",
-  "input",
-  "textarea",
-  "[role='button']",
-].join(",");
-
-function hasRealRouteSurface(container: HTMLElement | null) {
-  if (!container) return false;
-  if (container.querySelector("[data-route-placeholder='true']") && !container.querySelector(CONTENT_SELECTOR)) {
-    return false;
-  }
-
-  const text = container.textContent?.replace(/\s+/g, " ").trim() ?? "";
-  if (text.length > 2) return true;
-
-  return Array.from(container.querySelectorAll<HTMLElement>(CONTENT_SELECTOR)).some((node) => {
-    if (node.closest("[data-route-placeholder='true']")) return false;
-    if (node.tagName === "VIDEO") return true;
-    const rect = node.getBoundingClientRect();
-    return rect.width > 1 && rect.height > 1;
-  });
-}
 
 function PendingReadyProbe({ rootRef, onReady }: { rootRef: RefObject<HTMLDivElement | null>; onReady: () => void }) {
   useLayoutEffect(() => {
