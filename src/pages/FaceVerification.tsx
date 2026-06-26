@@ -3214,7 +3214,14 @@ const FaceVerification = () => {
 
   // Parse duplicate info if present in rejection reason
   const duplicateMatch = rejectionReason?.match(/\[duplicate_info:(.*?)\]/);
-  const duplicateInfo = duplicateMatch ? JSON.parse(duplicateMatch[1]) : null;
+  let duplicateInfo: any = null;
+  if (duplicateMatch) {
+    try {
+      duplicateInfo = JSON.parse(duplicateMatch[1]);
+    } catch {
+      duplicateInfo = null;
+    }
+  }
   const cleanRejectionReason = rejectionReason?.replace(/\[duplicate_info:.*?\]/, '').trim();
 
   // Contact Support is required for account-type mismatch or duplicate account.
