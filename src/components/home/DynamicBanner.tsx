@@ -23,19 +23,23 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const [popupTitle, setPopupTitle] = useState("");
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
 
-  // Preload every banner image into the browser cache so the swap is instant
-  // and the user never sees a half-rendered / progressively painted image.
+  // Preload + decode every banner image into memory so the on-screen <img>
+  // only paints after the full bitmap is ready — no half/progressive chunks.
   useEffect(() => {
     allBanners.forEach((b) => {
       if (!b.image_url || loadedImages[b.id]) return;
       const img = new Image();
       try { (img as any).fetchPriority = 'high'; } catch {}
       img.decoding = 'async';
-      img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.onload = () => {
+        const markReady = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+        if (typeof img.decode === 'function') img.decode().then(markReady).catch(markReady);
+        else markReady();
+      };
       img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
       img.src = bannerCdn(b.image_url);
     });
-  }, [allBanners]);
+  }, [allBanners, loadedImages]);
 
   // Filter banners by date range
   const activeBanners = allBanners.filter((banner) => {
@@ -228,29 +232,39 @@ function BannerCarousel({ banners, isAboveFold, onBannerClick, loadedImages, set
               className={cn(
                 "rounded-2xl overflow-hidden",
                 !banner.image_url && "p-4",
-                banner.link_url && "cursor-pointer active:scale-[0.98] transition-transform"
+                banner.link_url && "cursor-pointer transition-opacity duration-75 active:opacity-90"
               )}
               style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
               role={banner.link_url ? 'button' : undefined}
               aria-label={banner.link_url ? banner.title : undefined}
             >
               {banner.image_url ? (
-                <img
-                  loading={isAboveFold ? 'eager' : 'lazy'}
-                  decoding={isAboveFold ? 'sync' : 'async'}
-                  src={bannerCdn(banner.image_url)}
-                  alt={banner.title}
-                  // @ts-expect-error – fetchpriority is a standard HTML hint
-                  fetchpriority={isAboveFold ? 'high' : 'low'}
-                  className="block w-full h-auto rounded-2xl select-none"
-                  draggable={false}
-                  onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
-                  onError={(e) => {
-                    const t = e.currentTarget;
-                    if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
-                    (t.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
-                  }}
-                />
+                <div className="relative aspect-[2.4/1] w-full overflow-hidden rounded-2xl bg-muted/30">
+                  <img
+                    loading={isAboveFold ? 'eager' : 'lazy'}
+                    decoding="async"
+                    src={bannerCdn(banner.image_url)}
+                    alt={banner.title}
+                    // @ts-expect-error – fetchpriority is a standard HTML hint
+                    fetchpriority={isAboveFold ? 'high' : 'low'}
+                    className={cn(
+                      "block h-full w-full rounded-2xl object-cover select-none transition-opacity duration-75",
+                      loadedImages[banner.id] ? "opacity-100" : "opacity-0"
+                    )}
+                    draggable={false}
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      const markReady = () => setLoadedImages((s) => ({ ...s, [banner.id]: true }));
+                      if (typeof img.decode === 'function') img.decode().then(markReady).catch(markReady);
+                      else markReady();
+                    }}
+                    onError={(e) => {
+                      const t = e.currentTarget;
+                      if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
+                      setLoadedImages((s) => ({ ...s, [banner.id]: true }));
+                    }}
+                  />
+                </div>
               ) : (
                 <div className="flex items-center justify-between">
                   <div>
