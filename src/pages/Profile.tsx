@@ -3259,41 +3259,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </>
                 )}
 
-                {/* Earning Summary - Show beans and diamond rate */}
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-500/30">
-                  {(() => {
-                    // Calculate current diamond rate and beans
-                    let currentDiamondRate = callRate;
-                    if (currentDiamondRate <= 0) {
-                      const levelRates = callRateSettings?.level_rates || [];
-                      const levelRate = levelRates.find((lr: any) => lr.level === displayLevel);
-                      currentDiamondRate = levelRate?.rate || callRateSettings?.default_rate || 2000;
-                    }
-                    const currentBeans = Math.floor(currentDiamondRate * commissionPercent / 100);
-                    
-                    return (
-                      <>
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="text-emerald-700 text-xs mb-1">You will earn</p>
-                            <div className="flex items-center gap-1">
-                              <BeansIcon size={24} />
-                              <span className="text-xl font-bold text-emerald-600">{currentBeans} Beans/min</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-cyan-200 text-xs mb-1">User pays</p>
-                            <div className="flex items-center gap-1 justify-end">
-                              <span className="text-2xl">💎</span>
-                              <span className="text-xl font-bold text-cyan-600">{currentDiamondRate}/min</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                      </>
-                    );
-                  })()}
-                </div>
 
  {canCustomize ? (
                   <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
