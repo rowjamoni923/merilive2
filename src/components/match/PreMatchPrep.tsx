@@ -45,6 +45,8 @@ interface Props {
   onRetry?: () => void;
   onBack?: () => void;
   onHistory?: () => void;
+  /** Avatar of the matched host to freeze in the centre during `matched` phase. */
+  matchedAvatarUrl?: string | null;
 }
 
 /**
