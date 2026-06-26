@@ -91,3 +91,59 @@ All new labels, toasts, placeholders, errors → English. Bangla শুধু �
 
 ## Approval needed
 Confirm phase order (suggest Phase 1 → 2 → 3 — instant media gives biggest perceived "professional" jump first). Reply "start phase 1" and আমি Phase 1 research → implement একসাথে শুরু করব।
+
+---
+
+## Phase 4 — Gift Performance (VAP latency + Panel asset loading)
+**Trigger:** User screenshot 2026-06-26 — "Gift failed: Gift failed" toast + full-screen VAP arrives 10-15s late + gift panel images load broken/slow.
+
+### Research summary (sub_xhdkw29q, verified vs Tencent VAP, YYEVA, LiveKit, Supabase 2025)
+Pro target: tap → first VAP frame ≤500ms (cached <100ms). Our current cold path stacks: edge cold-start (0.8-3s) + sequential RPC awaits (200-800ms) + on-demand MP4 download (1-5s on 4G) + WebView H.264 re-decode under memory pressure = **6-15s** — matches user report exactly.
+
+### Diagnosed root causes in our code
+1. **"Gift failed: Gift failed" toast** — `giftServiceClient.ts:166` & `gift-service/index.ts:114` return literal "Gift failed" when RPC returns `{success:false}` with empty error string. Actual transaction succeeded in DB (verified via `gift_transactions` query — sender 1134…0ec6 has every gift row). Likely: 12s `GIFT_EDGE_TIMEOUT_MS` abort → RPC fallback path → stale response shape. Sender saw error but server charged + delivered.
+2. **VAP late** — `warmupSelectedVapUrls` runs on gift-panel mount, but `process_gift_transaction` RPC then re-blocks for ~800ms (sequential profile FOR UPDATE locks on sender+receiver + lucky-roll + holds). Animation is gated behind RPC response in some paths (LiveStream/PartyRoom — Chat is optimistic but receiver still waits on Realtime postgres_changes).
+3. **No LiveKit DataChannel for gift triggers** — we use Supabase Realtime broadcast (`directMessageChannelRef.send`) which adds 200-400ms hop vs LiveKit DC sub-50ms. Already-open room channel is unused.
+4. **Gift panel broken/slow** — `<img src={icon_url}>` direct CDN fetch, no IndexedDB, no sprite atlas, no `fetchpriority`, no preconnect. 100+ parallel TCP+TLS handshakes on first open.
+5. **No manifest pre-warm on app launch** — top-20 gifts only warm after user opens panel.
+
+### What we ship (3 sub-phases, design untouched, only data/perf)
+
+**Phase 4A — Kill the false-fail toast + decouple animation from server (frontend only, 0 schema)**
+- `giftServiceClient.ts`: when fetch aborts via timeout, treat as in-flight (don't refund / don't toast); poll `gift_transactions` by idempotency_key for 5s before declaring fail. Same key already stable.
+- `Chat.tsx` / `LiveStream.tsx` / `PartyRoom.tsx`: refund + toast ONLY on hard error (non-network 4xx), NOT on timeout/abort. Animation already fires optimistically.
+- Server-success silent-retry: if RPC eventually returns success, no toast.
+
+**Phase 4B — Instant tap → instant frame (warmup pipeline upgrade)**
+- New `src/utils/giftManifestWarmup.ts`: on app launch + on every room/chat-open, fetch top-20 popular gift IDs (already in `gifts` table — order by `usage_count DESC` view we add), warm their VAP+config+sound+icon into persistent Cache API. Budget 32MB, LRU.
+- New `useGiftPrefetchOnPanelOpen` hook: when gift sheet opens, parallel warm visible+next-tier icons (HTTP/2 multiplex, `fetchpriority="high"` on first 12).
+- Tap path: animation starts from cache (already does) — add `console.time('gift-tap-to-frame')` instrumentation so we can verify <300ms in prod.
+
+**Phase 4C — Gift panel grid: IndexedDB persistent thumbnail cache + progressive render**
+- New `src/utils/giftIconCache.ts`: IndexedDB store keyed by `gift_id:version`. First open = HTTP fetch + store; second open = blob URL from IDB (zero network).
+- `GiftCard`/`GiftGrid` components: 
+  - Inline 4×4 base64 blurred placeholder while loading (no broken-icon flash)
+  - `loading="lazy"` + IntersectionObserver
+  - `fetchpriority="high"` on first 12 visible, `low` on rest
+  - Opacity 0→1 transition over 100ms on load
+- Add `<link rel="preconnect" href="https://ayjdlvuurscxucatbbah.supabase.co" crossorigin>` to `index.html` (already same-origin? verify).
+
+**Deferred (needs APK rebuild / VPS — NOT this pass per memory rule):**
+- LiveKit DataChannel for gift triggers (replaces Supabase Realtime broadcast hop)
+- Native VAP plugin Phase B JS dispatcher (already coded as Pkg438 Phase A, awaiting wiring)
+- Edge function cold-start keep-alive ping
+
+### Files touched (Phase 4A + 4B + 4C)
+- edit `src/utils/giftServiceClient.ts` — timeout = retry-poll, not fail
+- edit `src/pages/Chat.tsx`, `src/pages/LiveStream.tsx`, `src/pages/PartyRoom.tsx` — guard refund on hard-error only
+- new `src/utils/giftManifestWarmup.ts`
+- new `src/utils/giftIconCache.ts`
+- new `src/hooks/useGiftPrefetchOnPanelOpen.ts`
+- edit `src/components/.../GiftSheet*.tsx` / `GiftCard*.tsx` — IDB-cached blob URL + progressive render
+- edit `index.html` — `preconnect` to Supabase
+
+### Owner-account test plan (smdollarex923@gmail.com)
+1. Open chat with another user, open gift panel → measure panel paint time, verify no broken tiles
+2. Send 1 gift → verify no false-fail toast, animation <500ms after tap
+3. Reload app, re-send same gift → verify second send is <100ms (IDB + Cache API hit)
+4. Send during forced network throttle → verify timeout path retries-then-confirms instead of fake-fail
