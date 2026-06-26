@@ -160,6 +160,11 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
     currentGifts.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
   );
 
+  // Phase 4B — panel-open prefetch (icons + top animations).
+  useGiftPanelPrefetch(isOpen, currentGifts);
+
+
+
   // Reset page + clear selection when category changes (Pkg4-pass4: stale gift selection leaked across tabs)
   useEffect(() => {
     setCurrentPage(0);
