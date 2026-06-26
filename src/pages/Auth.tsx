@@ -1,5 +1,5 @@
 import { useState, useEffect, type ImgHTMLAttributes } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search, Loader2 } from "lucide-react";
  import { Rocket3DIcon } from "@/components/ui/Rocket3DIcon";
@@ -249,6 +249,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Helper to navigate after successful auth
   const navigateAfterAuth = () => {
@@ -273,9 +274,12 @@ const Auth = () => {
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
   useEffect(() => {
-    document.body.classList.add('auth-native-route');
-    return () => document.body.classList.remove('auth-native-route');
-  }, []);
+    const isActiveAuthRoute = location.pathname.startsWith('/auth');
+    document.body.classList.toggle('auth-native-route', isActiveAuthRoute);
+    return () => {
+      if (isActiveAuthRoute) document.body.classList.remove('auth-native-route');
+    };
+  }, [location.pathname]);
   useEffect(() => {
     if (!pendingBtn) return;
     // Clear spinner as soon as we leave the landing buttons or after a safety timeout
