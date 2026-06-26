@@ -2622,47 +2622,9 @@ const FaceVerification = () => {
 
     return (
     <div data-face-verification-scan className={`${usingNativeFaceCamera ? 'relative z-10 bg-transparent border-0 shadow-none rounded-none p-0' : 'bg-white border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)] rounded-3xl p-5 border'}`}>
-      {/* Header */}
-      <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} flex items-center gap-3 mb-5`}>
-        <div className="relative">
-          <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
-            <ScanFace className="w-5 h-5 text-white" />
-          </div>
-          {verificationRecording && (
-            <motion.div
-              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-white"
-              animate={{ scale: [1, 1.25, 1], opacity: [1, 0.7, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            />
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Live Face Scan</h2>
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">Secure</span>
-          </div>
-          <p className="text-slate-500 text-xs">
-            {verificationRecording ? 'Passive live scan in progress' : 'AI-powered identity verification'}
-          </p>
-        </div>
-      </div>
+      {/* Header and progress bar intentionally removed — step dots inside the
+          camera frame are the single source of progress feedback. */}
 
-      {/* Progress Bar */}
-      {verificationRecording && (
-        <div className={`${usingNativeFaceCamera ? 'rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 shadow-sm' : ''} mb-4`}>
-          <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-            <span className="font-medium">Identity Scan</span>
-            <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
-          </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.4 }}
-            />
-          </div>
-        </div>
-      )}
 
       
       {/* Video Container with Face Oval */}
@@ -2788,310 +2750,33 @@ const FaceVerification = () => {
               <div className="absolute bottom-[18%] right-[10%] w-7 h-7 border-b-[3px] border-r-[3px] rounded-br-xl shadow-[0_0_18px_rgba(212,175,55,0.35)]" style={{ borderColor }} />
             </div>
             
-            {/* Instruction overlay — top banner */}
-            {verificationRecording && (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentInstruction}
-                  initial={{ opacity: 0, y: -20, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                  className="absolute top-3 left-3 right-3 z-[3]"
-                >
-                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl px-4 py-3 border border-amber-200/60">
-                    <div className="flex items-center gap-3">
-                      <motion.div 
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          scanningStatus === 'pass' ? 'bg-green-500' : 
-                          scanningStatus === 'fail' ? 'bg-red-500' : 
-                          'bg-gradient-to-br from-cyan-500 to-purple-500'
-                        }`}
-                        animate={scanningStatus === 'scanning' ? { rotate: [0, 5, -5, 0] } : {}}
-                        transition={{ duration: 0.5, repeat: Infinity }}
-                      >
-                        {scanningStatus === 'pass' ? (
-                          <CheckCircle2 className="w-5 h-5 text-slate-800" />
-                        ) : (() => {
-                          const Icon = faceInstructions[currentInstruction]?.icon || ScanFace;
-                          return <Icon className="w-5 h-5 text-slate-800" />;
-                        })()}
-                      </motion.div>
-                      <div className="flex-1">
-                        <p className="text-slate-800 font-bold">
-                          {currentInstruction === 0 ? 'Hold Still for a Moment' : 'Verifying'}
-                        </p>
-                        <p className="text-slate-500 text-xs">
-                          {faceInstructions[currentInstruction]?.description}
-                        </p>
-                      </div>
-                      {scanningStatus === 'scanning' && (
-                        <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            )}
-            
-            {/* Live diagnostics panel — tells the user EXACTLY why the
-                current step is not passing yet (face presence, eyes, angle). */}
-            {verificationRecording && liveDiag && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-24 z-[3] pointer-events-auto max-h-[22%] overflow-y-auto"
-              >
-                <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
-                  liveDiag.severity === 'ok'
-                    ? 'bg-emerald-50/95 border-emerald-300'
-                    : liveDiag.severity === 'error'
-                      ? 'bg-rose-50/95 border-rose-300'
-                      : 'bg-white/95 border-amber-200'
-                }`}>
-                  {/* Hint line */}
-                  <div className="flex items-center gap-2">
-                    {liveDiag.severity === 'ok' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    ) : liveDiag.severity === 'error' ? (
-                      <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                    ) : (
-                      <Loader2 className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
-                    )}
-                    <p className={`text-[13px] font-semibold leading-snug ${
-                      liveDiag.severity === 'ok' ? 'text-emerald-800'
-                      : liveDiag.severity === 'error' ? 'text-rose-800'
-                      : 'text-slate-800'
-                    }`}>
-                      {liveDiag.severity === 'ok' ? 'Verifying your face…' : liveDiag.hint}
-                    </p>
-                  </div>
-
-                  {/* Alignment meter */}
-                  <div className="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-                    <motion.div
-                      className={`h-full rounded-full ${
-                        liveDiag.severity === 'ok' ? 'bg-emerald-500'
-                        : liveDiag.severity === 'error' ? 'bg-rose-500'
-                        : 'bg-gradient-to-r from-amber-400 to-amber-600'
-                      }`}
-                      animate={{ width: `${Math.round(liveDiag.progress * 100)}%` }}
-                      transition={{ duration: 0.25 }}
-                    />
-                  </div>
-
-                  {/* Live signal chips */}
-                  <div className="mt-2 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-medium">
-                    <span className={`px-2 py-0.5 rounded-full border ${
-                      liveDiag.faceDetected
-                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                        : 'bg-rose-100 text-rose-700 border-rose-300'
-                    }`}>
-                      Face {liveDiag.faceDetected ? '✓' : '✗'}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full border ${
-                      liveDiag.eyesOpen
-                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                        : 'bg-amber-100 text-amber-700 border-amber-300'
-                    }`}>
-                      Eyes {liveDiag.eyesOpen ? 'open' : 'closed'}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
-                      Yaw {liveDiag.yaw >= 0 ? '+' : ''}{liveDiag.yaw.toFixed(0)}°
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
-                      Pitch {liveDiag.pitch >= 0 ? '+' : ''}{liveDiag.pitch.toFixed(0)}°
-                    </span>
-                    {!calibrating && calibrationRef.current.capturedAt > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-300" title={`Baseline yaw ${calibrationRef.current.baselineYaw.toFixed(0)}° / pitch ${calibrationRef.current.baselinePitch.toFixed(0)}° · noise ${(calibrationRef.current.noiseYaw + calibrationRef.current.noisePitch).toFixed(1)}°`}>
-                        Calibrated ✓
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Toggle for detailed troubleshooting checklist */}
-                  <button
-                    type="button"
-                    onClick={() => setTroubleshootOpen(v => !v)}
-                    className="mt-1 w-full hidden sm:flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 py-1 rounded-md hover:bg-slate-100/60"
-                    aria-expanded={troubleshootOpen}
-                  >
-                    {troubleshootOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    {troubleshootOpen ? 'Hide details' : 'Show troubleshooting'}
-                  </button>
-
-                  {/* Step-specific live troubleshooting checklist */}
-                  {troubleshootOpen && (() => {
-                    const stepId = (faceInstructions[currentInstruction]?.id ?? 'center') as string;
-                    const hint = (liveDiag.hint || '').toLowerCase();
-                    const c = calibrationRef.current;
-                    const dy = liveDiag.yaw - c.baselineYaw;
-                    const dp = liveDiag.pitch - c.baselinePitch;
-                    const ady = Math.abs(dy);
-                    const adp = Math.abs(dp);
-
-                    const lighting: 'ok' | 'warn' | 'error' = !liveDiag.faceDetected
-                      ? (consecutiveFailsRef.current >= 3 ? 'error' : 'warn')
-                      : 'ok';
-
-                    const distance: 'ok' | 'warn' | 'error' = !liveDiag.faceDetected
-                      ? 'warn'
-                      : (ady > 35 || adp > 35) ? 'warn' : 'ok';
-
-                    const alignmentMatters =
-                      stepId === 'center' ||
-                      hint.includes('face the camera') ||
-                      hint.includes('level your head');
-                    const alignment: 'ok' | 'warn' | 'error' = !liveDiag.faceDetected
-                      ? 'warn'
-                      : alignmentMatters
-                        ? (ady < c.centerYaw && adp < c.centerPitch ? 'ok' : 'warn')
-                        : 'ok';
-
-                    let headAngle: 'ok' | 'warn' | 'error' = 'ok';
-                    let headTip = 'Hold the requested angle';
-                    if (!liveDiag.faceDetected) {
-                      headAngle = 'warn';
-                      headTip = 'Cannot read head angle without face';
-                    } else {
-                      switch (stepId) {
-                        case 'left':
-                          headAngle = dy > c.turnYaw ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Left angle reached' : `Turn ~${Math.round(Math.max(c.turnYaw - dy, 0) + 4)}° more left`;
-                          break;
-                        case 'right':
-                          headAngle = dy < -c.turnYaw ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Right angle reached' : `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more right`;
-                          break;
-                        default:
-                          headAngle = (ady < c.centerYaw && adp < c.centerPitch) ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Looking straight' : 'Face the camera straight';
-                      }
-                    }
-
-                    type FixAction = { label: string; run: () => void } | null;
-                    const stepIdxOf = (id: string) => faceInstructions.findIndex(i => i.id === id);
-                    const lightingFix: FixAction = lighting === 'ok' ? null : {
-                      label: 'How to fix',
-                      run: () => toast({
-                        title: 'Improve lighting',
-                        description: 'Face a window or lamp. Avoid backlight (no bright light behind you). Remove shadows on one side of your face.',
-                      }),
-                    };
-                    const distanceFix: FixAction = distance === 'ok' ? null : {
-                      label: 'How to fix',
-                      run: () => toast({
-                        title: 'Adjust distance',
-                        description: 'Hold the phone ~30–40 cm (about an arm-bend) away. Your whole face should comfortably fit inside the oval.',
-                      }),
-                    };
-                    const alignmentFix: FixAction = alignment === 'ok' ? null : {
-                      label: 'Go to Center step',
-                      run: () => {
-                        const idx = stepIdxOf('center');
-                        if (idx >= 0) setCurrentInstruction(idx);
-                        toast({ title: 'Centering', description: 'Face the camera straight and hold still.' });
-                      },
-                    };
-                    const headFix: FixAction = headAngle === 'ok' ? null : (
-                      stepId === 'center'
-                        ? { label: 'Recalibrate baseline', run: () => { runNeutralCalibration(); } }
-                        : { label: `Go to ${stepId} step`, run: () => {
-                            const idx = stepIdxOf(stepId);
-                            if (idx >= 0) setCurrentInstruction(idx);
-                          } }
-                    );
-
-                    const items: Array<{ key: string; label: string; status: 'ok' | 'warn' | 'error'; tip: string; fix: FixAction }> = [
-                      { key: 'lighting', label: 'Lighting', status: lighting,
-                        tip: lighting === 'ok' ? 'Looks bright enough' : 'Move to brighter, even light — avoid backlight',
-                        fix: lightingFix },
-                      { key: 'distance', label: 'Distance', status: distance,
-                        tip: distance === 'ok' ? 'Good framing' : 'Hold phone ~30–40 cm away, fit face in oval',
-                        fix: distanceFix },
-                      { key: 'alignment', label: 'Alignment', status: alignment,
-                        tip: alignment === 'ok' ? 'Centered' : 'Center your face in the oval',
-                        fix: alignmentFix },
-                      { key: 'head', label: 'Head angle', status: headAngle, tip: headTip, fix: headFix },
-                    ];
-
-                    return (
-                      <ul className="mt-2 space-y-1" aria-label="Troubleshooting checklist">
-                        {items.map(it => {
-                          const dot = it.status === 'ok' ? 'bg-emerald-500'
-                                    : it.status === 'error' ? 'bg-rose-500'
-                                    : 'bg-amber-500';
-                          const text = it.status === 'ok' ? 'text-slate-500' : 'text-slate-800';
-                          const btnTone = it.status === 'error'
-                            ? 'border-rose-300 text-rose-700 hover:bg-rose-50'
-                            : 'border-amber-300 text-amber-700 hover:bg-amber-50';
-                          return (
-                            <li key={it.key} className="flex items-start gap-2 text-[11px] leading-5">
-                              <span className={`mt-1 inline-block w-2 h-2 rounded-full shrink-0 ${dot}`} aria-hidden />
-                              <span className={`font-semibold ${text} w-[68px] shrink-0`}>{it.label}</span>
-                              <span className={`${text} flex-1`}>{it.tip}</span>
-                              {it.fix && (
-                                <button
-                                  type="button"
-                                  onClick={it.fix.run}
-                                  className={`shrink-0 px-2 py-0.5 rounded-md border text-[10px] font-semibold leading-4 bg-white/80 ${btnTone}`}
-                                  aria-label={`Quick fix for ${it.label}: ${it.fix.label}`}
-                                >
-                                  {it.fix.label}
-                                </button>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    );
-                  })()}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Bottom: Timer + Step indicators */}
+            {/* Bottom: Step indicators only (no text banners over face) */}
             {verificationRecording && (
               <div className="absolute bottom-3 left-3 right-3 z-[3]">
-                {/* Step dots — show pending/active/done with icon for active */}
-                <div className="flex justify-center gap-2 mb-2">
+                <div className="flex justify-center gap-2">
                   {faceInstructions.map((instr, idx) => {
                     const completed = instructionsCompleted[idx];
                     const isActive = idx === currentInstruction && !completed;
-                    const Icon = instr.icon;
                     return (
                       <motion.div
                         key={instr.id}
                         title={instr.direction}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${
+                        className={`w-3.5 h-3.5 rounded-full border ${
                           completed
-                            ? 'bg-green-500 border-green-400'
+                            ? 'bg-green-500 border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.7)]'
                             : isActive
-                              ? 'border-cyan-400 bg-cyan-500/20'
-                              : 'border-amber-200/80 bg-white/80'
+                              ? 'border-white/60'
+                              : 'bg-white/20 border-white/40'
                         }`}
-                        animate={completed ? { scale: [1, 1.15, 1] } : isActive ? { borderColor: ['#22d3ee', '#a855f7', '#22d3ee'] } : {}}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        {completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-white" />
-                        ) : isActive ? (
-                          <Icon className="w-4 h-4 text-cyan-700" />
-                        ) : (
-                          <span className="text-slate-500 text-xs font-bold">{idx + 1}</span>
-                        )}
-                      </motion.div>
+                        animate={
+                          isActive
+                            ? { backgroundColor: ['#ef4444', '#3b82f6', '#ef4444'] }
+                            : {}
+                        }
+                        transition={{ duration: 1, repeat: Infinity }}
+                      />
                     );
                   })}
-                </div>
-                
-                {/* Timer bar */}
-                <div className="bg-white/80 backdrop-blur-md rounded-full px-4 py-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-slate-500 text-xs">{localizedMsg.recording}</span>
-                      <span className="text-slate-700 text-xs font-semibold">· Hold Still for a Moment</span>
-                  </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(75, Math.max(35, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
               </div>
             )}
