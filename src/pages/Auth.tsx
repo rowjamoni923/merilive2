@@ -264,6 +264,13 @@ const Auth = () => {
   const { toast } = useToast();
   const { checkBeforeLogin, recordAttempt, lockoutInfo } = useBruteForceProtection();
   const [loading, setLoading] = useState(false);
+  const [pendingBtn, setPendingBtn] = useState<null | 'start' | 'phone' | 'email'>(null);
+  useEffect(() => {
+    // Auto-clear button spinner once a dialog/step opens or after a short timeout
+    if (!pendingBtn) return;
+    const t = setTimeout(() => setPendingBtn(null), 3500);
+    return () => clearTimeout(t);
+  }, [pendingBtn, authStep, loading]);
   const [agreed, setAgreed] = useState(false);
   const [authStep, setAuthStep] = useState<AuthStep>(null);
   const [selectedGender, setSelectedGender] = useState<Gender>(null);
