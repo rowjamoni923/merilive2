@@ -1,7 +1,7 @@
 import { useState, useEffect, type ImgHTMLAttributes } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
-import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search } from "lucide-react";
+import { Mail, User, X, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search, Loader2 } from "lucide-react";
  import { Rocket3DIcon } from "@/components/ui/Rocket3DIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -264,12 +264,20 @@ const Auth = () => {
   const { toast } = useToast();
   const { checkBeforeLogin, recordAttempt, lockoutInfo } = useBruteForceProtection();
   const [loading, setLoading] = useState(false);
+  const [pendingBtn, setPendingBtn] = useState<null | 'start' | 'phone' | 'email'>(null);
   const [agreed, setAgreed] = useState(false);
   const [authStep, setAuthStep] = useState<AuthStep>(null);
   const [selectedGender, setSelectedGender] = useState<Gender>(null);
   const [lastUser, setLastUser] = useState<LastUser | null>(null);
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
+  useEffect(() => {
+    if (!pendingBtn) return;
+    // Clear spinner as soon as we leave the landing buttons or after a safety timeout
+    if (authStep !== null) { setPendingBtn(null); return; }
+    const t = setTimeout(() => setPendingBtn(null), 3500);
+    return () => clearTimeout(t);
+  }, [pendingBtn, authStep]);
   
   // Email auth state
   const [email, setEmail] = useState("");
@@ -2107,12 +2115,16 @@ const Auth = () => {
 
           {/* Start Button - Premium Mobile Design */}
           <Button
-            onClick={handleStartClick}
+            onClick={() => { setPendingBtn('start'); handleStartClick(); }}
   className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
             <span className="flex items-center gap-2">
-              <Rocket3DIcon className="w-5 h-5" />
+              {pendingBtn === 'start' ? (
+                <Loader2 className="w-5 h-5 animate-spin text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+              ) : (
+                <Rocket3DIcon className="w-5 h-5" />
+              )}
               <span className="drop-shadow-lg tracking-wide">Get Started</span>
             </span>
           </Button>
@@ -2128,13 +2140,18 @@ const Auth = () => {
                 });
                 return;
               }
+              setPendingBtn('phone');
               setPhoneNumber("");
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
   className="w-full h-10 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
-            <Phone className="w-5 h-5 mr-2" />
+            {pendingBtn === 'phone' ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+            ) : (
+              <Phone className="w-5 h-5 mr-2" />
+            )}
             <span>Continue with Phone</span>
           </Button>
 
@@ -2149,6 +2166,7 @@ const Auth = () => {
                 });
                 return;
               }
+              setPendingBtn('email');
               // Start new email flow - first step is email input
               setIsEmailFlow(true);
               setEmail("");
@@ -2156,9 +2174,14 @@ const Auth = () => {
             }}
   className="w-full h-10 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
-            <Mail className="w-5 h-5 mr-2 text-white" />
+            {pendingBtn === 'email' ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+            ) : (
+              <Mail className="w-5 h-5 mr-2 text-white" />
+            )}
             <span className="drop-shadow-md tracking-wide">Continue with Email</span>
           </Button>
+
 
           {/* Terms agreement */}
           <button
