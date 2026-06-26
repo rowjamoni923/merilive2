@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 import { normalizePublicMediaUrl } from "@/lib/cdnImage";
+import { BulletproofImage } from "@/components/common/BulletproofImage";
 
 import bannerRatingRewardV2 from "@/assets/banners/banner-rating-reward-v2.jpg";
 import bannerRatingRewardV3 from "@/assets/banners/banner-rating-reward-v3.jpg";
