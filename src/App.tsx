@@ -1263,20 +1263,20 @@ const App = () => {
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               {!isStandalonePublicRoute && <AndroidBackButtonHandler />}
               {session && !isAdminRoute && !isStandalonePublicRoute ? <MandatoryPermissionsGate /> : null}
-              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
-              {!isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
-              {!isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <Suspense fallback={null}><AppLockGate /></Suspense>}
+              {session && !isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
               <Suspense fallback={null}><RouteGroupAttributeBridge /></Suspense>
 
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
-              <AudioUnlockOverlay />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <AudioUnlockOverlay />}
               {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
-              <DisconnectReasonToaster />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <DisconnectReasonToaster />}
               {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
-              <LuckyGiftHost />
+              {session && !isAdminRoute && !isStandalonePublicRoute && <LuckyGiftHost />}
               <CallProviderGate enabled={!!session && !isAdminRoute && !isStandalonePublicRoute}>
                   {/* Tab keep-alive is explicit opt-in only; default route owner stays single to prevent duplicate UI. */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
