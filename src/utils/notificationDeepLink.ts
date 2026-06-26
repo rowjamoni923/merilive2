@@ -127,7 +127,13 @@ export function getNotificationPath(data: NotificationData | null | undefined): 
   if (type === "support_ticket") return "/settings/customer-service";
 
   // Verification
-  if (type === "verification" || type === "face_verification") return "/face-verification";
+  if (
+    type === "verification" ||
+    type === "face_verification" ||
+    type === "face_verification_rejected" ||
+    type === "face_verification_retry"
+  ) return "/face-verification";
+  if (type === "face_verification_approved") return "/profile";
 
   // Explicit deep-link payloads
   if (data.link_url) return str(data.link_url);
