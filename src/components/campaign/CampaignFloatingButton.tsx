@@ -175,11 +175,12 @@ function CampaignFloatingButton() {
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-  // Profile page has wallet/beans cards stacked above bottom-nav — push the
-  // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
+  // Profile page has wallet/beans cards stacked above bottom-nav. Keep the
+  // badge above those controls without pushing it into the middle of the screen
+  // on compact Android WebViews.
   const isProfileRoute = location.pathname.startsWith('/profile');
   const bottomOffset = isProfileRoute
-    ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
+    ? 'clamp(148px, calc(var(--bottom-nav-height, 64px) + 18vh), 224px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
 
   const getFloatingDragBounds = useCallback(() => ({
