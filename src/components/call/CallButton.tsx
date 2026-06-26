@@ -69,15 +69,7 @@ export function CallButton({
           aria-hidden
           className="absolute inset-0 rounded-full border-2 border-white/35"
         />
-        {/* Sweep shine */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/2 rotate-12 animate-[giftSendShine_2.8s_ease-in-out_infinite]"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)',
-          }}
-        />
+        {/* Static glossy finish — no infinite animation on scroll lists. */}
         <Phone
           className={`${iconSizes[size]} relative`}
           style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }}
