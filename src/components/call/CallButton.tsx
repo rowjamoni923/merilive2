@@ -1,5 +1,4 @@
 import { Phone, Diamond } from "lucide-react";
-import { motion } from "framer-motion";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
 
 interface CallButtonProps {
@@ -45,11 +44,9 @@ export function CallButton({
 
   return (
     <div className={`flex flex-col items-center gap-1 ${className}`}>
-      <motion.button
-        whileHover={{ scale: 1.06, y: -2 }}
-        whileTap={{ scale: 0.94, y: 0 }}
+      <button
         onClick={onClick}
-        className={`${sizeClasses[size]} rounded-full text-white flex items-center justify-center relative overflow-hidden`}
+        className={`${sizeClasses[size]} rounded-full text-white flex items-center justify-center relative overflow-hidden transition-opacity active:opacity-80`}
         style={{
           background:
             'radial-gradient(120% 120% at 30% 20%, #fb923c 0%, #ec4899 45%, #a855f7 100%)',
@@ -68,11 +65,9 @@ export function CallButton({
           }}
         />
         {/* Pulse ring */}
-        <motion.span
+        <span
           aria-hidden
-          className="absolute inset-0 rounded-full border-2 border-white/50"
-          animate={{ scale: [1, 1.45, 1], opacity: [0.55, 0, 0.55] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+          className="absolute inset-0 rounded-full border-2 border-white/35"
         />
         {/* Sweep shine */}
         <span
@@ -87,13 +82,11 @@ export function CallButton({
           className={`${iconSizes[size]} relative`}
           style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.45))' }}
         />
-      </motion.button>
+      </button>
 
       {/* Rate Display */}
       {showRate && callRate && callRate > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="flex items-center gap-0.5 px-2 py-0.5 rounded-full -mt-2 relative z-10 border border-white/40"
           style={{
             background:
@@ -113,7 +106,7 @@ export function CallButton({
             {preloadedRate !== undefined ? formatRate(callRate) : (loading ? "..." : formatRate(callRate))}
           </span>
           <span className="text-[8px] text-white/85 font-semibold">/min</span>
-        </motion.div>
+        </div>
       )}
     </div>
   );
