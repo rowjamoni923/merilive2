@@ -21,6 +21,7 @@ const MediaUploader = lazy(() => import("@/components/chat/MediaUploader").then(
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNativeAudioRecorder } from "@/hooks/useNativeAudioRecorder";
 import { useNativeChatUI } from "@/hooks/useNativeChatUI";
+import { emitInboxTyping } from "@/hooks/useInboxTyping";
 import type { NativeChatMessage } from "@/plugins/NativeChatUI";
 
 type CreateGroupResult = {
