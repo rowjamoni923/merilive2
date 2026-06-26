@@ -95,6 +95,20 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
               sender_type: "user",
               content: "Started a live chat session",
             });
+            // If offline, immediately greet with English hours notice
+            if (!isLiveChatOnline()) {
+              const { startStr, endStr } = getSupportHoursLocal();
+              await supabase.from("support_messages").insert({
+                ticket_id: ticket.id,
+                sender_id: user.id,
+                sender_type: "admin",
+                content:
+                  `🕒 Our Live Chat support is currently offline.\n\n` +
+                  `Our live agents are available every day from ${startStr} to ${endStr} (your local time). ` +
+                  `Please come back during these hours to chat with us directly.\n\n` +
+                  `You can still leave a message here and an agent will reply as soon as we are back online.`,
+              });
+            }
             await loadMessages(ticket.id);
           }
         }
