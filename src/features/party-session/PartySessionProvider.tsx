@@ -35,6 +35,7 @@ import {
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 export type PartySessionPhase = 'create' | 'inRoom' | 'ended';
 export type PartyMode = 'audio' | 'video' | 'game';
@@ -70,6 +71,10 @@ export function PartySessionProvider({
   const cameraHandleRef = useRef<CameraSessionHandle | null>(null);
 
   useEffect(() => {
+    // Native Android party/video/game handoff is owned by LiveKitPlugin's
+    // Camera2 preview promotion. Never open a parallel WebView camera here.
+    if (isNativeAndroidApp()) return;
+
     const needsCamera = phase === 'inRoom' && (mode === 'video' || mode === 'game');
     if (!needsCamera) {
       // Release any held handle when leaving inRoom or when mode is audio.
