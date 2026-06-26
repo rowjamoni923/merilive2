@@ -4366,14 +4366,34 @@ body:has([data-public-scroll="true"]) #root {
 /* Admin mobile emergency scroll unlock — must stay after global native locks.
    Desktop keeps the fixed-pane model above; phones/tablets use document scroll. */
 @media (max-width: 1023px) {
+  html[data-admin-active="true"] {
+    position: static !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   body[data-admin-active="true"] {
-    position: relative !important;
+    position: static !important;
     height: auto !important;
     min-height: 100dvh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior-y: auto !important;
+    touch-action: pan-y pinch-zoom !important;
     -webkit-overflow-scrolling: touch !important;
+  }
+
+  body[data-admin-active="true"][data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: static !important;
   }
 
   body[data-admin-active="true"] #root,
@@ -4385,6 +4405,8 @@ body:has([data-public-scroll="true"]) #root {
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
+    touch-action: pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   body[data-admin-active="true"] .admin-shell {
