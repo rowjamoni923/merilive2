@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     // Supabase return null data, which falsely blocks paid calls as balance 0.
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("id, gender, coins, diamonds, vip_tier, current_vip_tier_id")
+      .select("id, gender, coins, diamonds, vip_tier, current_vip_tier_id, username")
       .eq("id", userId)
       .single();
 
