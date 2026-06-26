@@ -10,6 +10,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
 import { warmRouteForNavigation } from "@/utils/routePrefetch";
 import { isLowEndDevice } from "@/utils/lowEndDevice";
+import { supabase } from "@/integrations/supabase/client";
+
+
 
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
