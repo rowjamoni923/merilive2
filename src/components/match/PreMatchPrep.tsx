@@ -171,28 +171,19 @@ export default function PreMatchPrep({
     return () => window.clearInterval(t);
   }, []);
 
-  // Live orbit avatars — source from hosts that are CURRENTLY LIVE (status='active').
-  // Deterministic ordering (by host_id) so the set never shuffles randomly between refreshes.
+  // Orbit avatars use the same verified-online pool as the Random Call fanout.
+  // Deterministic order is enforced server-side so the set never shuffles randomly.
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
-        const { data } = await supabase
-          .from("host_match_availability")
-          .select("host_id, profiles!inner(avatar_url, is_host, is_face_verified)")
-          .eq("is_available", true)
-          .eq("profiles.is_host", true)
-          .eq("profiles.is_face_verified", true)
-          .order("host_id", { ascending: true })
-          .limit(24);
+        const { data, error } = await supabase.rpc("get_random_pool_sample", { _limit: 24 });
+        if (error) throw error;
         if (!mounted) return;
-        const seen = new Set<string>();
         const urls: string[] = [];
         for (const row of (data as any[] | null) ?? []) {
-          const url = row?.profiles?.avatar_url as string | undefined;
-          const hid = row?.host_id as string | undefined;
-          if (!url || !hid || seen.has(hid)) continue;
-          seen.add(hid);
+          const url = row?.avatar_url as string | undefined;
+          if (!url || urls.includes(url)) continue;
           urls.push(url);
           if (urls.length >= 12) break;
         }
