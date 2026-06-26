@@ -24,6 +24,31 @@ const PUSH_CATEGORIES: Record<string, { label: string; color: string }> = {
   push_live: { label: "⏰ 5-Hour Live Rewards", color: "from-amber-600/80 to-orange-600/80" },
 };
 
+const DYNAMIC_COLORS = [
+  "from-emerald-600/80 to-teal-600/80",
+  "from-rose-600/80 to-red-600/80",
+  "from-indigo-600/80 to-violet-600/80",
+  "from-yellow-600/80 to-amber-600/80",
+  "from-fuchsia-600/80 to-purple-600/80",
+  "from-sky-600/80 to-blue-600/80",
+  "from-lime-600/80 to-green-600/80",
+];
+
+const hashCategoryColor = (key: string) => {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return DYNAMIC_COLORS[h % DYNAMIC_COLORS.length];
+};
+
+const prettifyCategoryLabel = (key: string) => {
+  const base = key.replace(/^push_/, "").replace(/_/g, " ").trim();
+  if (!base) return "Custom";
+  return "✨ " + base.replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const getCategoryInfo = (key: string) =>
+  PUSH_CATEGORIES[key] || { label: prettifyCategoryLabel(key), color: hashCategoryColor(key) };
+
 export default function AdminPushBroadcast() {
   const [title, setTitle] = useState("");
   const [expandedPreset, setExpandedPreset] = useState<string | null>(null);
