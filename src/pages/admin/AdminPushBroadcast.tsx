@@ -527,21 +527,41 @@ export default function AdminPushBroadcast() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Plus className="w-5 h-5 text-green-400" />
-              Add New Template
+              {newCategoryMode ? "Create New Category" : "Add New Template"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div>
-              <Label className="text-sm font-medium text-white/80">Category</Label>
-              <Select value={addCategory} onValueChange={setAddCategory}>
-                <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PUSH_CATEGORIES).map(([key, val]) => (
-                    <SelectItem key={key} value={key}>{val.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {newCategoryMode ? (
+              <div>
+                <Label className="text-sm font-medium text-white/80">Category Name *</Label>
+                <Input
+                  value={newCategoryLabel}
+                  onChange={(e) => setNewCategoryLabel(e.target.value)}
+                  className="mt-1.5 bg-white/5 border-white/10 text-white"
+                  placeholder="e.g. Daily Reminders, VIP Promo..."
+                />
+                <p className="text-xs text-gray-500 mt-1">A new category will be created and the first template added to it.</p>
+              </div>
+            ) : (
+              <div>
+                <Label className="text-sm font-medium text-white/80">Category</Label>
+                <Select value={addCategory} onValueChange={setAddCategory}>
+                  <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allCategoryKeys.map((key) => (
+                      <SelectItem key={key} value={key}>{getCategoryInfo(key).label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <button
+                  type="button"
+                  onClick={() => { setNewCategoryMode(true); setNewCategoryLabel(""); }}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 mt-1.5"
+                >
+                  + Create a new category instead
+                </button>
+              </div>
+            )}
             <div>
               <Label className="text-sm font-medium text-white/80">Title *</Label>
               <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Notification title..." />
