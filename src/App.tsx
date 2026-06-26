@@ -1266,8 +1266,21 @@ const App = () => {
       <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
 
 
-      <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
-        <PresenceProvider>
+      {session && !isAdminRoute && !isStandalonePublicRoute ? (
+        <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
+          <PresenceProvider>
+            <AppShell />
+          </PresenceProvider>
+        </RealtimeProvider>
+      ) : (
+        <AppShell />
+      )}
+    </PersistQueryClientProvider>
+  );
+
+  function AppShell() {
+    return (
+      <>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
               tells every <motion.*> in the app to skip transform/opacity transitions
               and snap to final values. Falls back to `"user"` (honour OS setting) on
@@ -1668,10 +1681,9 @@ const App = () => {
             </BrowserRouter>
           </TooltipProvider>
           </MotionConfig>
-        </PresenceProvider>
-      </RealtimeProvider>
-    </PersistQueryClientProvider>
-  );
+      </>
+    );
+  }
 };
 
 export default App;
