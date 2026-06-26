@@ -408,7 +408,11 @@ AdminChunkLoader.displayName = "AdminChunkLoader";
 
 const RouteChunkFallback = memo(() => (
   <div
-    className="fixed inset-0 z-[9997] flex items-start justify-center bg-background/96 pt-[calc(env(safe-area-inset-top,0px)+14px)]"
+    className="fixed inset-0 z-[9997] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+14px)]"
+    style={{
+      background:
+        'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 34%), linear-gradient(180deg, #fffaf3 0%, #fff5fb 48%, #f8fafc 100%)',
+    }}
     aria-label="Loading page"
   >
     <div className="h-1.5 w-24 overflow-hidden rounded-full bg-primary/15 shadow-[0_6px_20px_-8px_hsl(var(--primary)/0.65)]">
