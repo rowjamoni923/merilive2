@@ -227,6 +227,7 @@ Deno.serve(async (req) => {
           broadcast_id: bc.id,
           room: livekitRoom,
           fanout: hostIds.length,
+          fcm_sent: fcmSent,
           ring_timeout_seconds: ringTimeout,
           min_billable_seconds: settings.min_billable_seconds,
         }),
