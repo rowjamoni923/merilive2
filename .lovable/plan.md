@@ -130,3 +130,4 @@ Patch scope:
 - Start now opens the gender/name sheet immediately; device/session recovery continues in the background and navigates only if a valid session is recovered.
 - Phone OTP now commits to the OTP sheet immediately while WhatsApp send/abuse checks run in the background.
 - Auth route gets a scoped native modal style: near-transparent overlay, no backdrop blur/zoom animation, opacity-only tap feedback.
+- `/auth`, `/reset-password`, and OAuth callback routes are now classified as public boot surfaces so LiveKit token pre-mint / connection-pool warmup cannot create a login-screen network storm.
