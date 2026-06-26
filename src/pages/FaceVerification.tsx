@@ -710,8 +710,9 @@ const FaceVerification = () => {
   // and face_verification_submissions (status change) for the active user.
   useEffect(() => {
     if (!userId) return;
+    const channelName = `face-verify-instant-${userId}-${Math.random().toString(36).slice(2, 10)}`;
     const channel = supabase
-      .channel(`face-verify-instant-${userId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
