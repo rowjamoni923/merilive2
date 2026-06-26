@@ -42,6 +42,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
@@ -102,6 +104,7 @@ class LiveKitPlugin : Plugin() {
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val mediaOpMutex = Mutex()
 
     // The ONE room. Created lazily either by startLocalPreview() (preview-only,
     // never connected) or by connect() (connected session). On preview→publish
@@ -225,44 +228,46 @@ class LiveKitPlugin : Plugin() {
         val mirror = call.getBoolean("mirror", lens == "front") ?: (lens == "front")
         val boundedOnly = call.getBoolean("boundedOnly", false) ?: false
         scope.launch {
-            try {
-                boundedMode = boundedOnly
-                if (previewTrack != null) {
-                    Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
-                    if (!boundedOnly) ensureRendererAttached(mirror)
-                    call.resolve(JSObject().put("started", true).put("reused", true))
-                    return@launch
-                }
-                val r = room ?: withContext(Dispatchers.IO) {
-                    LiveKit.create(
-                        appContext = context.applicationContext,
-                        options = RoomOptions(adaptiveStream = true, dynacast = true),
+            mediaOpMutex.withLock {
+                try {
+                    boundedMode = boundedOnly
+                    if (previewTrack != null) {
+                        Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
+                        if (!boundedOnly) ensureRendererAttached(mirror)
+                        call.resolve(JSObject().put("started", true).put("reused", true))
+                        return@withLock
+                    }
+                    val r = room ?: withContext(Dispatchers.IO) {
+                        LiveKit.create(
+                            appContext = context.applicationContext,
+                            options = RoomOptions(adaptiveStream = true, dynacast = true),
+                        )
+                    }
+                    room = r
+
+                    val opts = LocalVideoTrackOptions(
+                        position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
                     )
+                    val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
+                    track.startCapture()
+                    previewTrack = track
+
+                    if (!boundedOnly) {
+                        ensureRendererAttached(mirror)
+                        track.addRenderer(previewRenderer!!)
+                    } else {
+                        // Bounded mode — push to any already-registered seat slots
+                        // that match the local identity once we know it.
+                        Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
+                    }
+                    rebindSeatSlotsForLocalTrack(track)
+
+                    call.resolve(JSObject().put("started", true).put("reused", false))
+                } catch (t: Throwable) {
+                    Log.e(TAG, "startLocalPreview failed", t)
+                    safeStopPreviewInternals()
+                    call.reject("startLocalPreview: ${t.message}", t)
                 }
-                room = r
-
-                val opts = LocalVideoTrackOptions(
-                    position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
-                )
-                val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
-                track.startCapture()
-                previewTrack = track
-
-                if (!boundedOnly) {
-                    ensureRendererAttached(mirror)
-                    track.addRenderer(previewRenderer!!)
-                } else {
-                    // Bounded mode — push to any already-registered seat slots
-                    // that match the local identity once we know it.
-                    Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
-                }
-                rebindSeatSlotsForLocalTrack(track)
-
-                call.resolve(JSObject().put("started", true).put("reused", false))
-            } catch (t: Throwable) {
-                Log.e(TAG, "startLocalPreview failed", t)
-                safeStopPreviewInternals()
-                call.reject("startLocalPreview: ${t.message}", t)
             }
         }
     }
@@ -396,22 +401,24 @@ class LiveKitPlugin : Plugin() {
         )
 
         scope.launch {
-            try {
-                promotePreviewToSession(args)
-                lastConnectArgs = args
-                activeRoomScope = args.roomScope
-                activeIsHost = args.isHost
-                val r = room!!
-                call.resolve(
-                    JSObject()
-                        .put("connected", true)
-                        .put("sid", r.localParticipant.sid?.value ?: "")
-                )
-            } catch (t: Throwable) {
-                Log.e(TAG, "connect failed", t)
-                isConnected = false
-                teardownAll()
-                call.reject("connect failed: ${t.message}", t)
+            mediaOpMutex.withLock {
+                try {
+                    promotePreviewToSession(args)
+                    lastConnectArgs = args
+                    activeRoomScope = args.roomScope
+                    activeIsHost = args.isHost
+                    val r = room!!
+                    call.resolve(
+                        JSObject()
+                            .put("connected", true)
+                            .put("sid", r.localParticipant.sid?.value ?: "")
+                    )
+                } catch (t: Throwable) {
+                    Log.e(TAG, "connect failed", t)
+                    isConnected = false
+                    teardownAll()
+                    call.reject("connect failed: ${t.message}", t)
+                }
             }
         }
     }
