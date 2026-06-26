@@ -6,6 +6,7 @@ import { useCall } from "@/components/call/CallContext";
 import PreMatchPrep, { type MatchFilters } from "@/components/match/PreMatchPrep";
 import MatchCallOverlay from "@/components/match/MatchCallOverlay";
 import PostCallRatingSheet from "@/components/match/PostCallRatingSheet";
+import { extractEdgeFnErrorPayload } from "@/utils/edgeFnError";
 
 /**
  * MatchCall — Random 1-on-1 video matching.
@@ -32,6 +33,7 @@ export default function MatchCall() {
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
+  const closeRatingSheet = () => setRatingSession(null);
   // Authoritative active-session state (no longer derived from sessionStorage during settle).
   const [activeSession, setActiveSession] = useState<{
     session_id: string; host_id: string; started_at: number; ended_by?: string;
@@ -242,24 +244,8 @@ export default function MatchCall() {
           device_id: deviceId,
         },
       });
-      // Server may return a structured 429 error (skip cooldown / daily cap)
-      let errPayload: any = (data as any)?.error ? data : null;
-      if (!errPayload && error) {
-        const ctx: any = (error as any).context;
-        try {
-          if (ctx && typeof ctx.clone === "function") {
-            const txt = await ctx.clone().text();
-            try { errPayload = JSON.parse(txt); } catch (_) {}
-          } else if (ctx && typeof ctx.json === "function") {
-            try { errPayload = await ctx.json(); } catch (_) {}
-          }
-        } catch (_) {}
-        if (!errPayload) {
-          const m = String((error as any)?.message ?? "");
-          const match = m.match(/\{[\s\S]*\}$/);
-          if (match) { try { errPayload = JSON.parse(match[0]); } catch (_) {} }
-        }
-      }
+      // Server may return structured non-2xx payloads (402/429).
+      const errPayload: any = (data as any)?.error ? data : await extractEdgeFnErrorPayload(error);
       if (errPayload?.error === "skip_cooldown") {
         if (timerRef.current) window.clearInterval(timerRef.current);
         const secs = errPayload.cooldown_seconds_remaining ?? 0;
@@ -365,8 +351,18 @@ export default function MatchCall() {
       }
     } catch (e: any) {
       if (timerRef.current) window.clearInterval(timerRef.current);
+      const payload = await extractEdgeFnErrorPayload(e);
+      if (payload?.error === "insufficient_coins") {
+        const need = Number(payload.required ?? 0);
+        const bal = Number(payload.balance ?? 0);
+        toast.error(`Not enough coins. Need ${need}, balance ${bal}.`, {
+          action: { label: "Recharge", onClick: () => navigate("/wallet") },
+        });
+        setPhase("prep");
+        return;
+      }
       const msg = String(e?.message ?? e);
-      setErrorMsg(msg.includes("insufficient_coins") ? "Not enough coins. Please recharge." : msg);
+      setErrorMsg(msg);
       setPhase("error");
     }
   };
@@ -423,7 +419,7 @@ export default function MatchCall() {
       <PostCallRatingSheet
         open={!!ratingSession}
         sessionId={ratingSession}
-        onClose={() => setRatingSession(null)}
+        onClose={closeRatingSheet}
       />
     </>
   );

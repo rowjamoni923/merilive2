@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Flag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,14 +36,26 @@ export default function PostCallRatingSheet({ open, sessionId, rateeName, onClos
   const [stars, setStars] = useState(0);
   const [tags, setTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (open) return;
+    setStars((prev) => (prev === 0 ? prev : 0));
+    setTags((prev) => (prev.length === 0 ? prev : []));
+    setSubmitting(false);
+  }, [open]);
 
   // Auto-dismiss after 8s of inactivity. Resets whenever the user interacts
   // with the sheet (stars or tags) so we never close mid-decision.
   useEffect(() => {
-    if (!open) { setStars(0); setTags([]); return; }
-    const t = window.setTimeout(() => onClose(), 8000);
+    if (!open) return;
+    const t = window.setTimeout(() => onCloseRef.current(), 8000);
     return () => window.clearTimeout(t);
-  }, [open, onClose, stars, tags]);
+  }, [open, stars, tags]);
 
   const submit = async () => {
     if (!sessionId || !stars || submitting) return;
