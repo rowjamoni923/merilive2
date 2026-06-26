@@ -1310,7 +1310,7 @@ const App = () => {
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (
                     <TabKeepAliveHost />
                   )}
-                  {/* No fake fallback UI: React transition keeps the previous real screen visible. */}
+                  {/* No fake fallback UI: StableRoutes keeps the previous real route mounted while the next route prepares hidden. */}
                   <Suspense fallback={<RouteChunkFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
