@@ -216,12 +216,12 @@ export default function PreMatchPrep({
 
   // Pre-computed deterministic-ish positions inside the radar
   const orbitSlots = useMemo(() => {
-    // 12 slots placed on 3 rings around the centre
+    // 12 slots placed on 3 rings around the centre (larger orb -> wider rings)
     const slots: { x: number; y: number; size: number; ring: number }[] = [];
     const rings = [
-      { r: 60, count: 4, size: 28 },
-      { r: 100, count: 4, size: 32 },
-      { r: 138, count: 4, size: 26 },
+      { r: 100, count: 4, size: 26 },
+      { r: 135, count: 4, size: 30 },
+      { r: 168, count: 4, size: 24 },
     ];
     rings.forEach((ring, ri) => {
       for (let i = 0; i < ring.count; i++) {
