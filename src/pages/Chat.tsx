@@ -3122,8 +3122,7 @@ const Chat = () => {
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                  </div>
+                  </MessageRowShell>
                 </React.Fragment>
               );
             })
