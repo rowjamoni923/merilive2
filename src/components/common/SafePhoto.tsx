@@ -3,7 +3,7 @@ import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getPlaceholderAvatar } from "@/utils/placeholderAvatar";
 
-type SafePhotoProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> & {
+type SafePhotoProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "width" | "height"> & {
   /** Primary source (any URL, possibly empty). */
   src?: string | null;
   /** Used to compute a deterministic placeholder when everything fails. */
