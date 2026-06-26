@@ -395,6 +395,38 @@ const Level5HelperDashboard = () => {
     }
   }, Boolean(helperData?.id));
 
+  // 📨 Reliability layer for helper inbox (mirrors LiveChatWidget). The
+  // helper_admin_messages / helper_message_replies tables are NOT in the
+  // supabase_realtime publication, so on top of app_sync we add:
+  //   • 6s polling of the inbox list while the dashboard is mounted
+  //   • 3s polling of the currently-open conversation
+  //   • Window focus refresh — guarantees zero missed admin replies
+  useEffect(() => {
+    if (!helperData?.id) return;
+    const poll = window.setInterval(() => {
+      loadAdminMessages(helperData.id);
+    }, 6000);
+    const onFocus = () => loadAdminMessages(helperData.id);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [helperData?.id]);
+
+  useEffect(() => {
+    if (!selectedMessage?.id) return;
+    const poll = window.setInterval(() => {
+      loadMessageReplies(selectedMessage.id);
+    }, 3000);
+    const onFocus = () => loadMessageReplies(selectedMessage.id);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [selectedMessage?.id]);
+
   useEffect(() => {
     const onAdminTableUpdate = (event: Event) => {
       const table = (event as CustomEvent<{ table?: string }>).detail?.table;
@@ -780,25 +812,27 @@ const Level5HelperDashboard = () => {
     }
   };
 
-  // Send reply to admin message
+  // Send reply to admin message (with 3-attempt retry + optimistic UI, mirrors LiveChatWidget reliability)
   const handleSendReply = async () => {
     if (!selectedMessage || !replyContent.trim()) {
       toast({ title: "Error", description: "Please enter a reply message", variant: "destructive" });
       return;
     }
 
+    const text = replyContent.trim();
+    const tempId = `temp-${Date.now()}`;
     setSendingReply(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let screenshotUrl = null;
+      let screenshotUrl: string | null = null;
 
       // Upload screenshot if provided
       if (replyScreenshot) {
         const fileExt = replyScreenshot.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('helper-screenshots')
           .upload(fileName, replyScreenshot);
@@ -808,34 +842,59 @@ const Level5HelperDashboard = () => {
         const { data: urlData } = supabase.storage
           .from('helper-screenshots')
           .getPublicUrl(fileName);
-        
+
         screenshotUrl = urlData.publicUrl;
       }
 
-      // Insert reply
-      const { error } = await supabase
-        .from('helper_message_replies')
-        .insert({
-          message_id: selectedMessage.id,
-          sender_id: user.id,
-          sender_type: 'helper',
-          content: replyContent.trim(),
-          screenshot_url: screenshotUrl
-        });
-
-      if (error) throw error;
-
-      toast({ title: "✅ Reply Sent", description: "Your reply has been sent to admin" });
+      // Optimistic UI — show the reply immediately
+      setMessageReplies(prev => [...prev, {
+        id: tempId,
+        message_id: selectedMessage.id,
+        sender_id: user.id,
+        sender_type: 'helper',
+        content: text,
+        screenshot_url: screenshotUrl,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      } as any]);
       setReplyContent("");
       setReplyScreenshot(null);
+
+      // 3-attempt retry to survive transient RLS/network blips
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error } = await supabase
+          .from('helper_message_replies')
+          .insert({
+            message_id: selectedMessage.id,
+            sender_id: user.id,
+            sender_type: 'helper',
+            content: text,
+            screenshot_url: screenshotUrl,
+          });
+        if (!error) { lastError = null; break; }
+        lastError = error;
+        await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+      }
+      if (lastError) throw lastError;
+
+      toast({ title: "✅ Reply Sent", description: "Your reply has been sent to admin" });
       loadMessageReplies(selectedMessage.id);
-      
+
       // Update the message in the list to show it has replies
-      setAdminMessages(prev => prev.map(m => 
+      setAdminMessages(prev => prev.map(m =>
         m.id === selectedMessage.id ? { ...m, has_replies: true, last_reply_at: new Date().toISOString() } : m
       ));
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      // Flag the optimistic message as failed
+      setMessageReplies(prev => prev.map(r =>
+        r.id === tempId ? { ...r, content: `${r.content}  ⚠️` } as any : r
+      ));
+      toast({
+        title: "Message failed",
+        description: error?.message || "Could not deliver your reply. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSendingReply(false);
     }
