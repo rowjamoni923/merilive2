@@ -2756,7 +2756,13 @@ const Auth = () => {
                       placeholder="1XXXXXXXXX"
                       className="h-14 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                       autoFocus={!showCountryPicker}
+                      inputMode="tel"
+                      autoComplete="tel-national"
+                      pattern="[0-9 ]*"
+                      enterKeyHint="send"
+                      onKeyDown={(e) => { if (e.key === 'Enter' && phoneNumber.trim() && !loading) { e.preventDefault(); handleSendPhoneOtp(); } }}
                     />
+
                   </div>
                 </div>
               </div>
