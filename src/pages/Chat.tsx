@@ -2813,7 +2813,7 @@ const Chat = () => {
                 <React.Fragment key={msg.id}>
                   {showDaySeparator && (
                     <div className="flex items-center justify-center my-2">
-                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-muted-foreground profile-home-pill shadow-sm backdrop-blur-sm">
+                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-muted-foreground profile-home-pill shadow-sm">
                         {formatDayLabel(msg.created_at)}
                       </span>
                     </div>
