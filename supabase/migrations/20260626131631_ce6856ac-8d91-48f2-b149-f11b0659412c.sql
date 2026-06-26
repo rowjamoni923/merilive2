@@ -1,0 +1,1 @@
+ALTER TABLE public.face_verification_submissions ALTER COLUMN selfie_url DROP NOT NULL;
