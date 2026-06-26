@@ -238,3 +238,21 @@ Patch scope:
 - Upgraded the web `PersistentCameraSurface` bridge from timer polling to an event-driven `persistentCameraSession` subscription, so live/party/private-call preview camera continuity updates instantly without reopening the camera and without visibility-refresh/polling hacks.
 - Changed `PageSkeleton` into a transparent `data-route-placeholder` marker instead of painting white/gradient placeholders.
 - Removed admin access and admin route permission spinners so agency/admin menu movement never paints a verification/loading interstitial.
+
+---
+
+# Phase 15 — Match-call header controls hardening (2026-06-26)
+
+Research / professional standard:
+- Chamet documents random/video-chat matching as a core user journey; exit/history controls on that surface must be first-class and reliable — https://www.ichamet.com/help/faq/how-to-start-video-chat-session
+- Google/web.dev INP guidance: input response should be committed in the interaction frame, with cleanup/network work moved behind the visible action — https://web.dev/articles/optimize-inp
+
+Verified current gap:
+- The match prep Back control depended on browser-level history behavior, which can be unreliable inside preview/WebView shells and can make `navigate(-1)` appear to do nothing.
+- Back and Call History relied only on normal `click`; if the self-camera surface or global instant-navigation layer won the touch race, the header control felt dead.
+
+Patch scope:
+- Add explicit `onBack` / `onHistory` hooks from `MatchCall` into `PreMatchPrep`.
+- Header buttons now commit on pointer/touch end, stop propagation, dedupe the following click, stop the local preview stream immediately, and navigate synchronously.
+- Back uses React Router history index with `/` fallback; History routes directly to `/call-history`.
+- Queue/broadcast cancellation is kept, but it runs in the background so the tap is never blocked by Supabase/native cleanup.
