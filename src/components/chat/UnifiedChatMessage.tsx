@@ -268,7 +268,8 @@ export const DirectChatBubble = memo(function DirectChatBubble({
   children,
 }: DirectChatBubbleProps) {
   const time = formatTime(createdAt);
-  const metaReserveClass = status ? "w-[58px]" : "w-[38px]";
+  const showStatus = Boolean(status && isMine);
+  const metaReserveClass = showStatus ? "w-[58px]" : "w-[38px]";
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -295,7 +296,7 @@ export const DirectChatBubble = memo(function DirectChatBubble({
           )}
         >
           {time}
-          {status && (
+          {showStatus && status && (
             <MessageStatusIndicator
               status={status}
               isMine={isMine}
