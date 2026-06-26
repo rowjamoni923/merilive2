@@ -146,8 +146,14 @@ const EntryAnimationFrame: React.FC<EntryAnimationFrameProps> = ({
     : type && KNOWN_TYPES.has(type) && !explicitMismatch
     ? type
     : detected;
-  const useAudioPlayer = safeType === 'svga' && detected === 'svga' && !muted;
+  // Industry-standard (Chamet/BIGO): ALL SVGA goes through SVGAPlayerWithAudio
+  // so dynamic avatar/frame/name/level are injected INSIDE the SVGA timeline
+  // (engraved) instead of sitting as a separate HTML overlay on top. The
+  // player respects `volume=0` for muted playback, so the audio branch is safe
+  // for both muted and unmuted entry templates.
+  const useAudioPlayer = safeType === 'svga' && detected === 'svga';
   const safeMuted = safeType === 'static' ? true : muted;
+  const audioPlayerVolume = useAudioPlayer && muted ? 0 : volume;
 
   const debugActive = debug ?? isAnimationDebugEnabled();
   const mountTimeRef = useRef<number>(Date.now());
@@ -215,7 +221,7 @@ const EntryAnimationFrame: React.FC<EntryAnimationFrameProps> = ({
             className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
-            volume={volume}
+            volume={audioPlayerVolume}
             onLoad={onLoad}
             onComplete={onComplete}
             onCompleteDebug={handleDebugComplete}
