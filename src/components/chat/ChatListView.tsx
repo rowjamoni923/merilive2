@@ -512,6 +512,24 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
   );
 
   const handleLongPress = useCallback((c: Conversation) => setActionTarget(c), []);
+  const typingSet = useInboxTyping(currentUserId ?? null);
+
+  const handleTogglePin = useCallback(
+    (c: Conversation) => {
+      const cur = prefs[c.id]?.is_pinned ?? false;
+      updatePref(c.id, { is_pinned: !cur });
+      toast({ title: !cur ? "Pinned" : "Unpinned", duration: 1200 });
+    },
+    [prefs, updatePref],
+  );
+  const handleToggleMute = useCallback(
+    (c: Conversation) => {
+      const cur = prefs[c.id]?.is_muted ?? false;
+      updatePref(c.id, { is_muted: !cur });
+      toast({ title: !cur ? "Muted" : "Unmuted", duration: 1200 });
+    },
+    [prefs, updatePref],
+  );
 
   const activePref = actionTarget ? prefs[actionTarget.id] : undefined;
 
