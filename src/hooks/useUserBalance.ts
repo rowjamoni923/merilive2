@@ -168,7 +168,10 @@ export function useUserBalancePrefetch(userId?: string | null): void {
   const prefetchedUserId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      prefetchedUserId.current = null;
+      return;
+    }
     if (typeof window !== 'undefined' && isStandalonePublicLocation()) return;
     if (prefetchedUserId.current === userId) return;
     prefetchedUserId.current = userId;
