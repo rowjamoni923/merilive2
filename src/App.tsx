@@ -631,7 +631,14 @@ const App = () => {
         console.error('[App] Maintenance check failed:', e);
       }
     };
-    checkMaintenance();
+    const w = window as any;
+    const id = typeof w.requestIdleCallback === 'function'
+      ? w.requestIdleCallback(checkMaintenance, { timeout: 8000 })
+      : window.setTimeout(checkMaintenance, 5000);
+    return () => {
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
   }, []);
 
   const runLegacyProfileSync = async (userId: string) => {
