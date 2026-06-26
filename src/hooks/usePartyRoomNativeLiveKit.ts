@@ -135,6 +135,7 @@ export function usePartyRoomNativeLiveKit(
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
   const usingNativeRef = useRef(false);
+  const nativePartyPreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
 
   const refreshNativeParticipants = useCallback(async () => {
     if (!usingNativeRef.current) return;
@@ -151,6 +152,28 @@ export function usePartyRoomNativeLiveKit(
     });
     setState((prev) => ({ ...prev, nativeParticipants: next }));
     nativeLiveKitController.attachAllRemotes().catch(() => {});
+  }, []);
+
+  const ensureNativePartyPreview = useCallback(async () => {
+    const previewScope = nativeLiveKitController.getPreviewScope();
+    const activeScope = nativeLiveKitController.getActiveScope();
+    if (previewScope === 'party' || activeScope === 'party' || nativeLiveKitController.isConnected()) {
+      return true;
+    }
+    if (!nativePartyPreviewStartPromiseRef.current) {
+      nativePartyPreviewStartPromiseRef.current = nativeLiveKitController
+        .startLocalPreview({
+          lens: 'front',
+          resolution: '1080p',
+          mirror: true,
+          roomScope: 'party',
+          boundedOnly: true,
+        })
+        .finally(() => {
+          nativePartyPreviewStartPromiseRef.current = null;
+        });
+    }
+    return nativePartyPreviewStartPromiseRef.current;
   }, []);
 
   useNativeLiveKitEvents(state.isNativeMediaActive, {
