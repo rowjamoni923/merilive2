@@ -45,6 +45,8 @@ interface Props {
   onRetry?: () => void;
   onBack?: () => void;
   onHistory?: () => void;
+  /** Avatar of the matched host to freeze in the centre during `matched` phase. */
+  matchedAvatarUrl?: string | null;
 }
 
 /**
@@ -56,6 +58,7 @@ export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, requiredBalance, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip, onStart,
   phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
+  matchedAvatarUrl = null,
 }: Props) {
   const navigate = useNavigate();
   const { balance: liveBalance } = useUserBalance();
@@ -190,6 +193,22 @@ export default function PreMatchPrep({
     return () => { mounted = false; window.clearInterval(t); };
   }, []);
 
+  // Cycle host avatars through the centre orb while searching — one-by-one
+  // preview of who could pick up. Freezes on `matchedAvatarUrl` once matched.
+  const [centreAvatarIdx, setCentreAvatarIdx] = useState(0);
+  useEffect(() => {
+    if (phase !== "searching" || orbitAvatars.length === 0) return;
+    const t = window.setInterval(() => {
+      setCentreAvatarIdx((i) => (i + 1) % orbitAvatars.length);
+    }, 650);
+    return () => window.clearInterval(t);
+  }, [phase, orbitAvatars.length]);
+  const centreAvatar = phase === "matched"
+    ? (matchedAvatarUrl || orbitAvatars[centreAvatarIdx] || null)
+    : phase === "searching"
+      ? (orbitAvatars[centreAvatarIdx] || null)
+      : null;
+
   // Pre-computed deterministic-ish positions inside the radar
   const orbitSlots = useMemo(() => {
     // 12 slots placed on 3 rings around the centre
@@ -299,6 +318,34 @@ export default function PreMatchPrep({
           <span className="absolute w-[200px] h-[200px] rounded-full border border-white/15" />
           <span className="absolute w-[130px] h-[130px] rounded-full border border-white/20" />
           <span className="absolute w-[80px] h-[80px] rounded-full bg-gradient-to-br from-fuchsia-500/30 to-indigo-500/30 backdrop-blur-md border border-white/25 shadow-[inset_0_0_24px_rgba(255,255,255,0.12)]" />
+          {/* Cycling host avatar inside the centre orb — freezes on match */}
+          {centreAvatar && (
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={centreAvatar + (phase === "matched" ? "-matched" : "")}
+                className="absolute w-[72px] h-[72px] rounded-full overflow-hidden ring-2 ring-white/60 shadow-[0_8px_28px_-6px_rgba(0,0,0,0.55)] z-[1]"
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{
+                  scale: phase === "matched" ? 1.05 : 1,
+                  opacity: 1,
+                  boxShadow: phase === "matched"
+                    ? "0 0 0 3px rgba(16,185,129,0.7), 0 10px 30px -6px rgba(16,185,129,0.4)"
+                    : undefined,
+                }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                transition={{ duration: phase === "matched" ? 0.35 : 0.25, ease: "easeOut" }}
+              >
+                <img
+                  src={centreAvatar}
+                  alt=""
+                  loading="eager"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           {/* Floating online host avatars (orbit) */}
           <AnimatePresence>
@@ -346,15 +393,15 @@ export default function PreMatchPrep({
             aria-label={isSearching ? "Matching" : isMatched ? "Connected" : "Tap to Match"}
             className="absolute inset-0 rounded-full grid place-items-center bg-transparent disabled:opacity-100"
           >
-            <div className="text-center">
+            <div className="text-center" style={{ transform: (isSearching || isMatched) && centreAvatar ? "translateY(78px)" : undefined }}>
               {isSearching ? (
                 <>
-                  <div className="text-[15px] font-bold tracking-tight drop-shadow">Matching…</div>
+                  <div className="text-[13px] font-bold tracking-tight drop-shadow">Matching…</div>
                   <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">{elapsedSeconds}s</div>
                 </>
               ) : isMatched ? (
                 <>
-                  <div className="text-[15px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
+                  <div className="text-[13px] font-bold tracking-tight text-emerald-200 drop-shadow">Connected</div>
                   <div className="text-[10px] text-white/70 mt-0.5">opening call…</div>
                 </>
               ) : isError ? (
