@@ -2770,22 +2770,48 @@ const AgencyWithdrawal = () => {
                       <span className="font-semibold text-danger-600 ml-1">-{formatLocalCurrency(getWithdrawalFeeLocal())}</span>
                     </div>
                   </div>
-                  
-                  {/* Show fee tiers */}
-                  {WITHDRAWAL_FEE_CONFIG[selectedCountry]?.tiers && (
+
+                  {/* Show fee tiers — sourced from admin panel (withdrawal_settings / auto_withdrawal_fee).
+                      Single-source-of-truth: NEVER show hardcoded tiers. */}
+                  {isAutoMethod(paymentMethod) ? (
                     <div className="mt-2 text-xs text-gray-700 bg-white rounded-lg p-2">
-                      <p className="font-medium mb-1">Fee Tiers ({countryConfig.currency}):</p>
-                      <div className="grid grid-cols-2 gap-1">
-                        {WITHDRAWAL_FEE_CONFIG[selectedCountry].tiers?.slice(0, 4).map((tier, idx) => (
-                          <span key={idx} className={`${localAmount <= tier.maxLocal && (idx === 0 || localAmount > (WITHDRAWAL_FEE_CONFIG[selectedCountry].tiers?.[idx-1]?.maxLocal || 0)) ? 'font-bold text-gray-900' : ''}`}>
-                            {tier.maxLocal === Infinity 
-                              ? `Above: $${tier.feeUsd}` 
-                              : `≤${countryConfig.currencySymbol}${formatNumber(tier.maxLocal)}: $${tier.feeUsd}`}
-                          </span>
-                        ))}
+                      <p className="font-medium mb-1">MeriCash / USDT Auto-Credit Fee:</p>
+                      <div className="text-gray-800">
+                        {autoWithdrawalFee.flat_usd > 0 && (
+                          <span>${autoWithdrawalFee.flat_usd.toFixed(2)} flat</span>
+                        )}
+                        {autoWithdrawalFee.flat_usd > 0 && autoWithdrawalFee.percent > 0 && <span> + </span>}
+                        {autoWithdrawalFee.percent > 0 && (
+                          <span className="font-bold">{autoWithdrawalFee.percent}% of withdrawal</span>
+                        )}
                       </div>
                     </div>
-                  )}
+                  ) : withdrawalFees.length > 0 ? (
+                    <div className="mt-2 text-xs text-gray-700 bg-white rounded-lg p-2">
+                      <p className="font-medium mb-1">Fee Tiers (set by admin):</p>
+                      <div className="space-y-0.5">
+                        <div className="text-success-700">
+                          ≤ {formatNumber(freeWithdrawalLimit)} Beans: <span className="font-bold">Free</span>
+                        </div>
+                        {withdrawalFees.map((tier, idx) => {
+                          const beansAmt = localToBeans(localAmount);
+                          const active = beansAmt >= tier.min_amount && beansAmt <= tier.max_amount;
+                          const label = tier.max_amount >= 999999999
+                            ? `> ${formatNumber(tier.min_amount)} Beans`
+                            : `${formatNumber(tier.min_amount)} – ${formatNumber(tier.max_amount)} Beans`;
+                          const feeLabel = tier.fee_type === 'percent'
+                            ? `${tier.fee_value}%`
+                            : `$${tier.fee_value} flat`;
+                          return (
+                            <div key={idx} className={active ? 'font-bold text-gray-900' : 'text-gray-600'}>
+                              {label}: <span>{feeLabel}</span>{active && ' ← current'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
                   
                   {/* Net Payout Calculation */}
                   {amount && parseFloat(amount) > 0 && (
