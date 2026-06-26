@@ -4414,6 +4414,11 @@ body:has([data-public-scroll="true"]) #root {
   body[data-admin-active="true"] .admin-shell {
     min-height: 100dvh !important;
   }
+
+  body[data-admin-active="true"] .admin-content,
+  body[data-admin-active="true"] .admin-content * {
+    touch-action: auto !important;
+  }
 }
 
 /* ============================================================
