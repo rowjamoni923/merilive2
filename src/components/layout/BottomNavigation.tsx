@@ -81,6 +81,23 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
     } catch {}
   }, []);
 
+  // 🚀 Eagerly warm ALL bottom-nav route chunks on mount so the first tab tap
+  // never hits an empty Suspense (white-screen flash). Done in an idle window
+  // so it never competes with first paint.
+  useEffect(() => {
+    const warmAll = () => {
+      ['/', '/discover', '/reels', '/profile', '/go-live', '/create-party']
+        .forEach((p) => prefetchRoute(p));
+    };
+    const ric = (window as any).requestIdleCallback;
+    const handle = ric ? ric(warmAll, { timeout: 1500 }) : setTimeout(warmAll, 400);
+    return () => {
+      const cic = (window as any).cancelIdleCallback;
+      if (ric && cic) cic(handle); else clearTimeout(handle as any);
+    };
+  }, [prefetchRoute]);
+
+
   const handleActionClick = (path: string) => {
     setShowActionMenu(false);
     void warmRouteForNavigation(path)?.catch(() => undefined);

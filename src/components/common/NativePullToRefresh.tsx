@@ -99,7 +99,7 @@ export function NativePullToRefresh({
   }, [pullDistance, threshold, isRefreshing, onRefresh]);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative flex flex-col min-h-0 ${className}`}>
       {/* Pull indicator */}
       <motion.div
         className="absolute left-1/2 -translate-x-1/2 z-50 pointer-events-none"
@@ -117,6 +117,7 @@ export function NativePullToRefresh({
       {/* Content */}
       <div
         ref={containerRef}
+        className="flex-1 min-h-0 flex flex-col"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -125,6 +126,7 @@ export function NativePullToRefresh({
       </div>
     </div>
   );
+
 }
 
 export default NativePullToRefresh;
