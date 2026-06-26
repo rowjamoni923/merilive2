@@ -2021,6 +2021,16 @@ const Chat = () => {
 
 
   const fetchMessages = async (conversationId: string) => {
+    // Phase 7 — Instant Paint. Synchronously hydrate from the localStorage
+    // snapshot of this thread BEFORE the network roundtrip so the UI shows
+    // the prior view in <16ms. Server data overwrites below once it lands.
+    try {
+      const snap = loadChatSnapshot(conversationId);
+      if (snap && snap.length) {
+        setMessages((prev) => (prev && prev.length ? prev : (snap as Message[])));
+      }
+    } catch {}
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -2044,7 +2054,10 @@ const Chat = () => {
           _optimistic: true,
         }) as any)
       : [];
-    setMessages(dedupeAndSortMessages([...serverMsgs, ...queued]));
+    const merged = dedupeAndSortMessages([...serverMsgs, ...queued]);
+    setMessages(merged);
+    // Phase 7 — persist the freshly-merged thread.
+    try { saveChatSnapshot(conversationId, merged); } catch {}
 
     // Fetch reply-to messages for quote rendering
     const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
