@@ -91,7 +91,17 @@ export default function MatchCall() {
       if (heartbeatRef.current) { window.clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
       return;
     }
-    const ping = () => { supabase.functions.invoke("random-call-heartbeat", { body: {} }).catch(() => {}); };
+    const ping = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) return; // no session → skip; avoids 401 noise
+        await supabase.functions.invoke("random-call-heartbeat", {
+          body: {},
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch { /* swallow */ }
+    };
     ping();
     heartbeatRef.current = window.setInterval(ping, 15000);
     return () => {
