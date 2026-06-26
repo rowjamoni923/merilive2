@@ -2462,7 +2462,12 @@ const Auth = () => {
                     maxLength={6}
                     className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]*"
+                    enterKeyHint="done"
                   />
+
                 </div>
               </div>
               
