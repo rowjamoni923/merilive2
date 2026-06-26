@@ -15,7 +15,7 @@ const getInstantPath = (target: EventTarget | null): string | null => {
   const el = target instanceof Element ? target : null;
   if (!el) return null;
 
-  const explicit = el.closest<HTMLElement>('[data-instant-path]');
+  const explicit = el.closest<HTMLElement>('[data-instant-path],[data-prefetch-path]');
   const path = explicit?.dataset.instantPath || explicit?.dataset.prefetchPath || null;
   if (!path || !path.startsWith('/')) return null;
 
