@@ -256,7 +256,6 @@ export default function PreMatchPrep({
           <button
             type="button"
             {...bindInstantHeaderAction("history", goHistory)}
-            data-instant-path="/call-history"
             aria-label="Call history"
             className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/15 grid place-items-center active:scale-95 transition relative z-40 touch-manipulation">
             <History className="w-4 h-4" />
