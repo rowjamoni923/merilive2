@@ -38,21 +38,26 @@ export function startIdleRoutePrefetch() {
     });
   };
 
-  // TIER 1 — only the most likely next taps. Keep this tiny so login/home does
-  // not compete with 15+ route chunk downloads on Android WebView.
+  // TIER 1 — the real next taps users complain about: bottom tabs, profile
+  // actions and verification entry. Warm these right after auth so the first
+  // tap never waits for a lazy chunk.
   const tier1: Array<() => Promise<unknown>> = [
     () => import('@/pages/Index'),
     () => import('@/pages/Discover'),
+    () => import('@/pages/Profile'),
+    () => import('@/pages/Chat'),
+    () => import('@/pages/Settings'),
+    () => import('@/pages/Reels'),
+    () => import('@/pages/LiveSessionPage'),
+    () => import('@/pages/PartySessionPage'),
+    () => import('@/pages/MatchCall'),
+    () => import('@/pages/FaceVerification'),
   ];
 
   // TIER 2 — drawer + profile/search/settings/party/reels secondary screens
   const tier2: Array<() => Promise<unknown>> = [
-    () => import('@/pages/Reels'),
     () => import('@/pages/Live'),
-    () => import('@/pages/Settings'),
     () => import('@/pages/GoLive'),
-    () => import('@/pages/Chat'),
-    () => import('@/pages/Profile'),
     () => import('@/pages/ProfileDetail'),
     () => import('@/pages/LiveStream'),
     () => import('@/pages/LiveStreamFeed'),
@@ -82,7 +87,6 @@ export function startIdleRoutePrefetch() {
     () => import('@/pages/Tags'),
     () => import('@/pages/Parcels'),
     () => import('@/pages/RatingProofHistory'),
-    () => import('@/pages/FaceVerification'),
     () => import('@/pages/settings/Blacklist'),
     () => import('@/pages/settings/ContentPage'),
     () => import('@/pages/settings/CustomerService'),
@@ -118,11 +122,11 @@ export function startIdleRoutePrefetch() {
   ];
 
   ric(() => {
-    warmSequentially(tier1, isNative ? 450 : 240);
-    window.setTimeout(() => warmSequentially(tier2, isNative ? 750 : 360), isNative ? 8000 : 4500);
+    warmSequentially(tier1, isNative ? 160 : 90);
+    window.setTimeout(() => warmSequentially(tier2, isNative ? 520 : 240), isNative ? 3500 : 1800);
     window.setTimeout(
       () => warmSequentially(tier3, isNative ? 1100 : 520),
       isNative ? 26000 : 14000,
     );
-  }, isNative ? 6000 : 4000);
+  }, isNative ? 1200 : 700);
 }
