@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
@@ -33,6 +42,8 @@ interface Props {
   errorMsg?: string;
   onCancel?: () => void;
   onRetry?: () => void;
+  onBack?: () => void;
+  onHistory?: () => void;
 }
 
 /**
@@ -43,7 +54,7 @@ interface Props {
 export default function PreMatchPrep({
   diamondBalance, hostRatePerMin, freeTrialSeconds, minBillableSeconds,
   availableHostsCount, estimatedWaitSeconds, isVip, onStart,
-  phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry,
+  phase = "prep", elapsedSeconds = 0, errorMsg = "", onCancel, onRetry, onBack, onHistory,
 }: Props) {
   const navigate = useNavigate();
   const { balance: liveBalance, initialized: balanceReady } = useUserBalance();
@@ -60,6 +71,7 @@ export default function PreMatchPrep({
   const [permError, setPermError] = useState<string | null>(null);
   const [vipCountdown, setVipCountdown] = useState(60 * 60 - 10); // 59:50 visual
   const [orbitAvatars, setOrbitAvatars] = useState<string[]>([]);
+  const headerActionLockRef = useRef<{ key: "back" | "history"; at: number } | null>(null);
   
 
   const startStream = async () => {
@@ -75,6 +87,53 @@ export default function PreMatchPrep({
     } catch (e: any) { setPermError(e?.message || "Camera/mic access denied"); }
   };
   const stopStream = () => { streamRef.current?.getTracks().forEach((t) => t.stop()); streamRef.current = null; };
+
+  const runHeaderAction = useCallback((key: "back" | "history", action: () => void) => {
+    const now = performance.now();
+    const last = headerActionLockRef.current;
+    if (last?.key === key && now - last.at < 500) return;
+    headerActionLockRef.current = { key, at: now };
+    stopStream();
+    action();
+  }, []);
+
+  const goBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    const canGoBack = Number(window.history.state?.idx ?? 0) > 0;
+    if (canGoBack) navigate(-1);
+    else navigate("/", { replace: true });
+  }, [navigate, onBack]);
+
+  const goHistory = useCallback(() => {
+    if (onHistory) {
+      onHistory();
+      return;
+    }
+    navigate("/call-history");
+  }, [navigate, onHistory]);
+
+  const bindInstantHeaderAction = (key: "back" | "history", action: () => void) => ({
+    onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      runHeaderAction(key, action);
+    },
+    onTouchEnd: (event: ReactTouchEvent<HTMLButtonElement>) => {
+      if (typeof window !== "undefined" && "PointerEvent" in window) return;
+      event.preventDefault();
+      event.stopPropagation();
+      runHeaderAction(key, action);
+    },
+    onClick: (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      runHeaderAction(key, action);
+    },
+  });
 
   useEffect(() => { if (camOn || micOn) startStream(); return () => stopStream();
     // eslint-disable-next-line react-hooks/exhaustive-deps
