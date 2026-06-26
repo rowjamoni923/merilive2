@@ -1245,42 +1245,8 @@ const App = () => {
     );
   }
 
-  return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: queryPersister as any,
-        maxAge: 1000 * 60 * 60 * 6,
-        buster: 'merilive-v2-lean',
-        dehydrateOptions: {
-          shouldDehydrateQuery: (query: any) => {
-            const root = String(query?.queryKey?.[0] ?? '');
-            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
-          },
-        },
-      }}
-    >
-      <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
-      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
-      <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
-      <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
-
-
-      {session && !isAdminRoute && !isStandalonePublicRoute ? (
-        <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
-          <PresenceProvider>
-            <AppShell />
-          </PresenceProvider>
-        </RealtimeProvider>
-      ) : (
-        <AppShell />
-      )}
-    </PersistQueryClientProvider>
-  );
-
-  function AppShell() {
-    return (
-      <>
+  const appShell = (
+    <>
           {/* Phase 6 — Throttle framer-motion on low-end Android. `reducedMotion="always"`
               tells every <motion.*> in the app to skip transform/opacity transitions
               and snap to final values. Falls back to `"user"` (honour OS setting) on
@@ -1682,8 +1648,40 @@ const App = () => {
           </TooltipProvider>
           </MotionConfig>
       </>
-    );
-  }
+  );
+
+  return (
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister as any,
+        maxAge: 1000 * 60 * 60 * 6,
+        buster: 'merilive-v2-lean',
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query: any) => {
+            const root = String(query?.queryKey?.[0] ?? '');
+            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
+          },
+        },
+      }}
+    >
+      <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
+      <Suspense fallback={null}><KeyboardInsetsBridge /></Suspense>
+      <Suspense fallback={null}><GlobalKeyboardScrollBridge /></Suspense>
+      <Suspense fallback={null}><GlobalImageDefaultsBridge /></Suspense>
+
+
+      {session && !isAdminRoute && !isStandalonePublicRoute ? (
+        <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
+          <PresenceProvider>
+            {appShell}
+          </PresenceProvider>
+        </RealtimeProvider>
+      ) : (
+        appShell
+      )}
+    </PersistQueryClientProvider>
+  );
 };
 
 export default App;
