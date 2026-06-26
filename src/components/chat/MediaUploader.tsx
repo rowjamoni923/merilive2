@@ -155,7 +155,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
           type="file"
           className="hidden"
           onChange={handleFileSelect}
-          accept="image/*,video/*,audio/*"
+          accept="image/*,video/*,audio/*,.heic,.heif,.avif,.mkv,.3gp,.m4v,.m4a,.amr"
         />
         {uploading && (
           <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
