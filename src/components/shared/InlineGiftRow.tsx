@@ -37,8 +37,8 @@ export interface InlineGiftRowProps {
   surface?: InlineGiftSurface;
   /** "You sent" instead of "{name} sent" when current user is the sender */
   isSelf?: boolean;
-  /** Even tighter padding for in-stream / list use */
-  compact?: boolean;
+  /** Optional trailing meta rendered inside the bubble (e.g. time + read ticks) */
+  footerSlot?: React.ReactNode;
 }
 
 const InlineGiftRowInner = ({
@@ -53,6 +53,7 @@ const InlineGiftRowInner = ({
   surface = "chat",
   isSelf = false,
   compact = false,
+  footerSlot,
 }: InlineGiftRowProps) => {
   // Subtle accent color for "xN" — keeps the bubble itself neutral
   // while still indicating gift tier the same way pro apps do.
@@ -75,9 +76,9 @@ const InlineGiftRowInner = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", damping: 22, stiffness: 320 }}
         className={cn(
-          "flex items-center gap-2.5 rounded-2xl w-full max-w-[260px]",
+          "relative inline-flex items-center gap-2.5 rounded-2xl w-fit max-w-[260px]",
           "bg-card border border-border/70 shadow-sm",
-          compact ? "px-3 py-2" : "px-3.5 py-2.5",
+          compact ? "pl-3 pr-3 pt-2 pb-3" : "pl-3.5 pr-3.5 pt-2.5 pb-3.5",
           className
         )}
       >
@@ -121,6 +122,13 @@ const InlineGiftRowInner = ({
         >
           x {count}
         </span>
+
+        {/* Time + status — pinned bottom-right INSIDE the bubble (WhatsApp-style) */}
+        {footerSlot && (
+          <span className="absolute bottom-1 right-2.5 text-[9px] leading-none text-muted-foreground/70 flex items-center gap-0.5 pointer-events-none">
+            {footerSlot}
+          </span>
+        )}
       </motion.div>
     );
   }
