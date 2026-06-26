@@ -177,3 +177,4 @@ Patch scope:
 - Analytics uses local `getSession()` instead of network `getUser()`; maintenance check runs on idle.
 - Realtime polling relaxed to 30s and presence cleanup to 30min/foreground-only.
 - Route-change video lifecycle scan now runs only when leaving media routes, not on every page transition.
+- User balance prefetch now receives the App session userId directly, so it does not perform an extra auth-session lookup while the route is painting.
