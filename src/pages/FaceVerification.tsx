@@ -1040,14 +1040,19 @@ const FaceVerification = () => {
     !!userId
   );
 
+  // Photo size cap — Samsung S24/S25 Ultra (200MP), Pixel 8 Pro, OnePlus 12
+  // and iPhone Pro HEIC/HEIF shots routinely land in the 15-28MB range. 30MB
+  // gives headroom without inviting absurd uploads.
+  const MAX_PHOTO_BYTES = 30 * 1024 * 1024;
+
   // Handle photo selection (Step 1)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > MAX_PHOTO_BYTES) {
         toast({
           title: "Error",
-          description: "Image size cannot exceed 10MB",
+          description: "Image size cannot exceed 30MB",
           variant: "destructive",
         });
         return;
@@ -1065,9 +1070,10 @@ const FaceVerification = () => {
     if (files) {
       const newPhotos: File[] = [];
       const newPreviews: string[] = [];
-      
+      let rejected = 0;
+
       Array.from(files).slice(0, 3).forEach(file => {
-        if (file.size <= 10 * 1024 * 1024) {
+        if (file.size <= MAX_PHOTO_BYTES) {
           newPhotos.push(file);
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -1077,9 +1083,19 @@ const FaceVerification = () => {
             }
           };
           reader.readAsDataURL(file);
+        } else {
+          rejected += 1;
         }
       });
-      
+
+      if (rejected > 0) {
+        toast({
+          title: "Some photos skipped",
+          description: `${rejected} photo${rejected > 1 ? 's were' : ' was'} larger than 30MB and skipped.`,
+          variant: "destructive",
+        });
+      }
+
       setHostPhotos(prev => [...prev, ...newPhotos].slice(0, 3));
     }
   };
