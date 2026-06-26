@@ -2292,8 +2292,10 @@ const Chat = () => {
         checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
       }
     } catch (error: any) {
-      // Pkg367: recipient toggled themselves offline — don't queue, surface friendly toast
+      console.error('[Chat.handleSend] error:', error);
       const errMsg = String(error?.message || '').toLowerCase();
+
+      // Pkg367: recipient toggled themselves offline — don't queue, surface friendly toast
       if (errMsg.includes('recipient_offline')) {
         toast.error("This user is offline right now and cannot receive messages.");
         setMessage(originalContent);
@@ -2301,6 +2303,25 @@ const Chat = () => {
         setSending(false);
         return;
       }
+
+      // Group send error mapping — surface the real reason instead of generic toast.
+      if (selectedGroup && !selectedConversation) {
+        let groupErrText = "Failed to send message";
+        if (errMsg.includes('not_group_member')) groupErrText = "You're no longer a member of this group";
+        else if (errMsg.includes('sender_mismatch') || errMsg.includes('auth_required')) groupErrText = "Please sign in again to send messages";
+        else if (errMsg.includes('sender_blocked')) groupErrText = "Your account is restricted";
+        else if (errMsg.includes('empty_message')) groupErrText = "Message cannot be empty";
+        else if (errMsg.includes('message_too_long')) groupErrText = "Message is too long (max 4000 characters)";
+        else if (errMsg.includes('invalid_message_type')) groupErrText = "This message type is not allowed";
+        else if (errMsg.includes('group_inactive')) groupErrText = "This group is no longer active";
+        else if (errMsg.includes('row-level security') || errMsg.includes('rls')) groupErrText = "You're no longer a member of this group";
+        else if (errMsg.includes('failed to fetch') || errMsg.includes('network')) groupErrText = "You're offline — please check your connection";
+        toast.error(groupErrText);
+        setMessage(originalContent);
+        setSending(false);
+        return;
+      }
+
       // Pkg212 — instead of dropping the message, enqueue it to the
       // persistent outbox. The drain hook below auto-retries on
       // reconnect / app resume / 30 s tick.
@@ -2325,7 +2346,7 @@ const Chat = () => {
           setMessages(prev => prev.filter(m => m.id !== optimisticId));
         }
       } else {
-        toast.error("Failed to send message");
+        toast.error(error?.message ? `Failed to send: ${error.message}` : "Failed to send message");
         setMessage(originalContent);
         setMessages(prev => prev.filter(m => m.id !== optimisticId));
       }
