@@ -335,7 +335,7 @@ const Index = () => {
   const nativePrefetchUrls = useMemo(
     () => {
       const tier = getConnectionTier();
-      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+      const max = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 8 : tier === "3g" ? 30 : 80;
       return displayHosts
         .slice(0, max)
         .map((h) => getHostCardImageUrl(h))
@@ -372,7 +372,7 @@ const Index = () => {
     // Pre-warm avatar URLs + live thumbnail URLs for instant rendering,
     // without flooding weaker/data-saver networks.
     const tier = getConnectionTier();
-    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 6 : tier === "3g" ? 12 : 24;
+    const warmImageLimit = tier === "offline" || tier === "slow-2g" || tier === "2g" ? 8 : tier === "3g" ? 30 : 80;
     const warmableUrls = hosts
       .slice(0, warmImageLimit)
       .map((host) => getHostCardImageUrl(host))
