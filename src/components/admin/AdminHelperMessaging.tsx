@@ -255,21 +255,42 @@ const AdminHelperMessaging = () => {
       return;
     }
 
+    const text = replyContent.trim();
+    const tempId = `temp-${Date.now()}`;
     setSendingReply(true);
     try {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from('helper_message_replies')
-        .insert({
-          message_id: selectedMessage.id,
-          sender_id: user.id,
-          sender_type: 'admin',
-          reply_text: replyContent.trim()
-        } as any);
+      // Optimistic UI — show reply immediately
+      setMessageReplies(prev => [...prev, {
+        id: tempId,
+        message_id: selectedMessage.id,
+        sender_id: user.id,
+        sender_type: 'admin',
+        content: text,
+        screenshot_url: null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      } as MessageReply]);
+      setReplyContent("");
 
-      if (error) throw error;
+      // 3-attempt retry to absorb transient network/RLS blips
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error } = await supabase
+          .from('helper_message_replies')
+          .insert({
+            message_id: selectedMessage.id,
+            sender_id: user.id,
+            sender_type: 'admin',
+            reply_text: text,
+          } as any);
+        if (!error) { lastError = null; break; }
+        lastError = error;
+        await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+      }
+      if (lastError) throw lastError;
 
       // Send notification to helper
       if (selectedMessage.helper?.user_id) {
@@ -283,10 +304,16 @@ const AdminHelperMessaging = () => {
       }
 
       toast({ title: "✅ Reply Sent" });
-      setReplyContent("");
       loadMessageReplies(selectedMessage.id);
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setMessageReplies(prev => prev.map(r =>
+        r.id === tempId ? { ...r, content: `${r.content}  ⚠️` } as MessageReply : r
+      ));
+      toast({
+        title: "Message failed",
+        description: error?.message || "Could not deliver your reply. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSendingReply(false);
     }
