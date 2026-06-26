@@ -34,7 +34,6 @@ import {
   acquireCameraSession,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
-import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 export type PartySessionPhase = 'create' | 'inRoom' | 'ended';
