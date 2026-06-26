@@ -5350,9 +5350,24 @@ const LiveStream = () => {
       <HostCallReturnModal
         open={showHostReturnModal && isHost}
         hostName={hostInfo?.name}
-        onBackToLive={() => setShowHostReturnModal(false)}
+        onBackToLive={() => {
+          setShowHostReturnModal(false);
+          // ⚡ Host resumed live broadcast → instant presence refresh so the
+          // homepage feed flips back to LIVE without waiting for heartbeat.
+          if (currentUserId) {
+            import('@/components/common/PresenceProvider')
+              .then(({ forceOnlineNow }) => forceOnlineNow(currentUserId))
+              .catch(() => {});
+          }
+        }}
         onBackToHome={() => {
           setShowHostReturnModal(false);
+          // ⚡ Host ending stream → instant ONLINE so they don't linger as BUSY.
+          if (currentUserId) {
+            import('@/components/common/PresenceProvider')
+              .then(({ forceOnlineNow }) => forceOnlineNow(currentUserId))
+              .catch(() => {});
+          }
           handleLeaveStream();
         }}
       />
