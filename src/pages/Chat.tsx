@@ -3005,7 +3005,7 @@ const Chat = () => {
                                 width={360}
                                 quality={78}
                                 className="w-[220px] h-[260px]"
-                                onClick={() => imageViewer.openImage(displayUrl)}
+                                onClick={() => { setGalleryStartId(msg.id); setGalleryOpen(true); }}
                               />
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
