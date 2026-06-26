@@ -4000,7 +4000,9 @@ const Chat = () => {
         onSelectConversation={handleSelectConversation}
         onSelectGroup={handleSelectGroup}
         onShowGroupActions={() => setShowGroupActions(true)}
+        currentUserId={currentUserId}
       />
+
 
       <ChatDialogs
         showGroupActions={showGroupActions}
