@@ -55,11 +55,11 @@ function baseUser(overrides: Partial<DecisionInput> = {}): DecisionInput {
 // ──────────────────────────────────────────────────────────────────────
 // HAPPY PATH
 // ──────────────────────────────────────────────────────────────────────
-Deno.test("auto_approve: host with all evidence >=85% and clean gates", () => {
+Deno.test("auto_approve: host with all evidence >=55% and clean gates", () => {
   assertEquals(decideFaceVerificationOutcome(baseHost()).kind, "auto_approve");
 });
 
-Deno.test("auto_approve: user with two-evidence >=85%", () => {
+Deno.test("auto_approve: user with two-evidence >=55%", () => {
   assertEquals(decideFaceVerificationOutcome(baseUser()).kind, "auto_approve");
 });
 
@@ -75,7 +75,7 @@ Deno.test("auto_approve: scores exactly at threshold", () => {
 });
 
 // ──────────────────────────────────────────────────────────────────────
-// HARD REJECT — banned / duplicate / gender
+// HARD REJECT — banned / duplicate only
 // ──────────────────────────────────────────────────────────────────────
 Deno.test("reject: banned face wins over everything", () => {
   const d = decideFaceVerificationOutcome(baseHost({
@@ -91,25 +91,25 @@ Deno.test("reject: duplicate APPROVED face is hard reject", () => {
   assertEquals(d, { kind: "reject", reason: "duplicate_face" });
 });
 
-Deno.test("reject: female account + detected male @ 99% (>=90)", () => {
+Deno.test("auto_approve: gender mismatch alone is not a reject", () => {
   const d = decideFaceVerificationOutcome(baseHost({
     expectedGender: "female", detectedGender: "male", genderConf: 99,
   }));
-  assertEquals(d, { kind: "reject", reason: "gender_mismatch" });
+  assertEquals(d.kind, "auto_approve");
 });
 
-Deno.test("reject: male user account + detected female @ 95%", () => {
+Deno.test("auto_approve: male user account + detected female stays clean if all gates pass", () => {
   const d = decideFaceVerificationOutcome(baseUser({
     expectedGender: "male", detectedGender: "female", genderConf: 95,
   }));
-  assertEquals(d, { kind: "reject", reason: "gender_mismatch" });
+  assertEquals(d.kind, "auto_approve");
 });
 
-Deno.test("manual_review (NOT reject): gender mismatch only 80% confident", () => {
+Deno.test("auto_approve: gender mismatch only 80% confident is ignored", () => {
   const d = decideFaceVerificationOutcome(baseHost({
     expectedGender: "female", detectedGender: "male", genderConf: 80,
   }));
-  assertEquals(d.kind, "manual_review");
+  assertEquals(d.kind, "auto_approve");
 });
 
 Deno.test("manual_review: gender conflict across evidence at 95% → not hard reject", () => {
@@ -121,9 +121,9 @@ Deno.test("manual_review: gender conflict across evidence at 95% → not hard re
   assertEquals(d.kind, "auto_approve");
 });
 
-Deno.test("reject: explicit declaration mismatch flag is hard reject regardless of confidence", () => {
+Deno.test("auto_approve: explicit declaration mismatch flag is ignored by owner policy", () => {
   const d = decideFaceVerificationOutcome(baseHost({ genderDeclarationMismatch: true }));
-  assertEquals(d, { kind: "reject", reason: "gender_mismatch" });
+  assertEquals(d.kind, "auto_approve");
 });
 
 // ──────────────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ Deno.test("manual_review: profile mismatch soft flag", () => {
 // PRIORITY ORDERING
 // ──────────────────────────────────────────────────────────────────────
 Deno.test("priority: hard reject beats needs_retry beats manual_review", () => {
-  // banned > duplicate > gender > retry > manual
+  // banned > duplicate > retry > manual
   assertEquals(decideFaceVerificationOutcome(baseHost({
     isBannedFace: true, isDuplicateApproved: true, genderDeclarationMismatch: true,
     hostPhotosMismatch: true, livenessProviderAvailable: false,
@@ -251,9 +251,6 @@ Deno.test("priority: hard reject beats needs_retry beats manual_review", () => {
   assertEquals(decideFaceVerificationOutcome(baseHost({
     isDuplicateApproved: true, genderDeclarationMismatch: true, hostPhotosMismatch: true,
   })), { kind: "reject", reason: "duplicate_face" });
-  assertEquals(decideFaceVerificationOutcome(baseHost({
-    genderDeclarationMismatch: true, hostPhotosMismatch: true,
-  })), { kind: "reject", reason: "gender_mismatch" });
   // No hard, but retry conditions present → retry beats manual gates.
   assertEquals(decideFaceVerificationOutcome(baseHost({
     hostPhotosMismatch: true, livenessProviderAvailable: false,
