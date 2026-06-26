@@ -195,21 +195,24 @@ export default function PreMatchPrep({
     return () => { mounted = false; window.clearInterval(t); };
   }, []);
 
-  // Cycle host avatars through the centre orb while searching — one-by-one
-  // preview of who could pick up. Freezes on `matchedAvatarUrl` once matched.
+  // Cycle host avatars through the centre orb — one-by-one preview of who could
+  // pick up. Runs in prep + searching whenever verified hosts are online; freezes
+  // on `matchedAvatarUrl` once matched.
   const [centreAvatarIdx, setCentreAvatarIdx] = useState(0);
   useEffect(() => {
-    if (phase !== "searching" || orbitAvatars.length === 0) return;
+    if (phase === "matched" || phase === "error") return;
+    if (orbitAvatars.length === 0) return;
     const t = window.setInterval(() => {
       setCentreAvatarIdx((i) => (i + 1) % orbitAvatars.length);
-    }, 650);
+    }, phase === "searching" ? 650 : 1400);
     return () => window.clearInterval(t);
   }, [phase, orbitAvatars.length]);
   const centreAvatar = phase === "matched"
     ? (matchedAvatarUrl || orbitAvatars[centreAvatarIdx] || null)
-    : phase === "searching"
+    : (phase === "searching" || phase === "prep")
       ? (orbitAvatars[centreAvatarIdx] || null)
       : null;
+  const showingHostPhoto = !!centreAvatar && (phase === "prep" || phase === "searching" || phase === "matched");
 
   // Pre-computed deterministic-ish positions inside the radar
   const orbitSlots = useMemo(() => {
