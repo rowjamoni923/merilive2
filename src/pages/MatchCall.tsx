@@ -69,6 +69,7 @@ export default function MatchCall() {
 
   // Keep the count fresh via Realtime + safety poll so the number never lags.
   useEffect(() => {
+    void refreshHostsCount();
     const ch = supabase
       .channel(`match-call-live-count-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
