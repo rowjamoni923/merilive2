@@ -1313,7 +1313,7 @@ const App = () => {
                     <TabKeepAliveHost />
                   )}
                   {/* No fake fallback UI: keep previous real screen via BlankScreenGuard. */}
-                  <Suspense fallback={null}>
+                  <Suspense fallback={<RouteChunkFallback />}>
                   <ErrorBoundary componentName="AppRoutes">
                   {isLandingDomain ? (
                     // merilive.top is landing-only for app routes, but public/legal/share
