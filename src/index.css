@@ -5958,6 +5958,12 @@ img[data-fade-in],
   to   { opacity: 1; }
 }
 
+@keyframes routeLoadSlide {
+  0% { transform: translateX(-110%); }
+  50% { transform: translateX(55%); }
+  100% { transform: translateX(220%); }
+}
+
 /* Keyboard-open layout thrash guard. When `--kb-h` jumps from 0 to
    ~320px, the browser can re-layout the whole tree. Promoting fixed
    bottom bars / chat composers / dialogs to their own layer keeps
