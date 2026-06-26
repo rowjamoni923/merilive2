@@ -578,8 +578,8 @@ const FaceVerification = () => {
     const root = document.documentElement;
     root.style.setProperty('--face-aperture-x', `${Math.round(rect.left + rect.width * 0.5)}px`);
     root.style.setProperty('--face-aperture-y', `${Math.round(rect.top + rect.height * 0.45)}px`);
-    root.style.setProperty('--face-aperture-rx', `${Math.round(rect.width * 0.34)}px`);
-    root.style.setProperty('--face-aperture-ry', `${Math.round(rect.height * 0.42)}px`);
+    root.style.setProperty('--face-aperture-rx', `${Math.round(rect.width * 0.39)}px`);
+    root.style.setProperty('--face-aperture-ry', `${Math.round(rect.height * 0.45)}px`);
   }, []);
 
   useLayoutEffect(() => {
