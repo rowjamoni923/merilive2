@@ -39,6 +39,7 @@ export default function MatchCall() {
   } | null>(null);
   const [hostsCount, setHostsCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [matchedAvatarUrl, setMatchedAvatarUrl] = useState<string | null>(null);
   const [ratingSession, setRatingSession] = useState<string | null>(null);
   const closeRatingSheet = () => setRatingSession(null);
   // Authoritative active-session state (no longer derived from sessionStorage during settle).
