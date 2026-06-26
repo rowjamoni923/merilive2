@@ -2,6 +2,21 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { clearFrameCache } from '@/components/common/AvatarWithFrame';
 
+const RESTORE_CHECK_KEY_PREFIX = 'meri_expired_items_checked_at:';
+const RESTORE_CHECK_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+
+const scheduleIdle = (cb: () => void, timeout = 8000) => {
+  const w = window as any;
+  if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+  return window.setTimeout(cb, timeout);
+};
+
+const cancelIdle = (id: number) => {
+  const w = window as any;
+  if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+  else clearTimeout(id);
+};
+
 /**
  * Hook to check and restore expired VIP items
  * Automatically restores previous items when purchased items or VIP membership expire
@@ -9,6 +24,13 @@ import { clearFrameCache } from '@/components/common/AvatarWithFrame';
 export const useExpiredItemsRestorer = (userId: string | null) => {
   useEffect(() => {
     if (!userId) return;
+
+    const checkKey = `${RESTORE_CHECK_KEY_PREFIX}${userId}`;
+    try {
+      const lastCheckedAt = Number(localStorage.getItem(checkKey) || 0);
+      if (Date.now() - lastCheckedAt < RESTORE_CHECK_COOLDOWN_MS) return;
+      localStorage.setItem(checkKey, String(Date.now()));
+    } catch { /* ignore */ }
 
     const checkAndRestoreExpiredItems = async () => {
       try {
@@ -38,7 +60,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
         // PART 1: Check VIP Subscription Expiration
         // ============================================
         if (profile.vip_expires_at && new Date(profile.vip_expires_at) < new Date()) {
-          console.log('[ExpiredItemsRestorer] VIP membership expired, restoring previous items');
+          if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] VIP membership expired, restoring previous items');
           
           const vipTierId = profile.current_vip_tier_id;
           
@@ -48,7 +70,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
               updateData.equipped_frame_id = profile.previous_frame_id;
               updateData.previous_frame_id = null;
               frameRestored = true;
-              console.log('[ExpiredItemsRestorer] VIP frame expired, restoring:', profile.previous_frame_id);
+              if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] VIP frame expired, restoring:', profile.previous_frame_id);
             } else if (profile.equipped_frame_id === vipTierId) {
               updateData.equipped_frame_id = null;
             }
@@ -57,7 +79,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
             if (profile.equipped_entrance_id === vipTierId && profile.previous_entrance_id) {
               updateData.equipped_entrance_id = profile.previous_entrance_id;
               updateData.previous_entrance_id = null;
-              console.log('[ExpiredItemsRestorer] VIP entrance expired, restoring:', profile.previous_entrance_id);
+              if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] VIP entrance expired, restoring:', profile.previous_entrance_id);
             } else if (profile.equipped_entrance_id === vipTierId) {
               updateData.equipped_entrance_id = null;
             }
@@ -94,7 +116,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
         const expiredIds: string[] = [];
 
         if (expiredPurchases && expiredPurchases.length > 0) {
-          console.log('[ExpiredItemsRestorer] Found expired purchases:', expiredPurchases.length);
+          if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] Found expired purchases:', expiredPurchases.length);
 
           // Fetch categories from shop_items for the expired item IDs
           const itemIds = [...new Set(expiredPurchases.map(p => p.item_id).filter(Boolean))];
@@ -123,7 +145,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
                   updateData.equipped_frame_id = profile.previous_frame_id || null;
                   updateData.previous_frame_id = null;
                   frameRestored = true;
-                  console.log('[ExpiredItemsRestorer] Restoring previous frame:', profile.previous_frame_id);
+                  if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] Restoring previous frame:', profile.previous_frame_id);
                 }
                 break;
 
@@ -132,7 +154,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
                 if (profile.equipped_entrance_id === purchase.item_id) {
                   updateData.equipped_entrance_id = profile.previous_entrance_id || null;
                   updateData.previous_entrance_id = null;
-                  console.log('[ExpiredItemsRestorer] Restoring previous entrance:', profile.previous_entrance_id);
+                  if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] Restoring previous entrance:', profile.previous_entrance_id);
                 }
                 break;
 
@@ -195,7 +217,7 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
           if (updateError) {
             console.error('[ExpiredItemsRestorer] Error updating profile:', updateError);
           } else {
-            console.log('[ExpiredItemsRestorer] Profile restored successfully:', updateData);
+            if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] Profile restored successfully:', updateData);
             
             if (frameRestored) {
               clearFrameCache();
@@ -210,20 +232,16 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
             .update({ is_active: false })
             .in('id', expiredIds);
 
-          console.log('[ExpiredItemsRestorer] Marked expired purchases as unequipped:', expiredIds);
+          if (import.meta.env.DEV) console.info('[ExpiredItemsRestorer] Marked expired purchases as unequipped:', expiredIds);
         }
       } catch (err) {
         console.error('[ExpiredItemsRestorer] Unexpected error:', err);
       }
     };
 
-    // Run immediately on mount
-    checkAndRestoreExpiredItems();
+    const idleId = scheduleIdle(() => void checkAndRestoreExpiredItems(), 9000);
 
-    // Also run periodically every minute
-    const interval = setInterval(checkAndRestoreExpiredItems, 60000);
-
-    return () => clearInterval(interval);
+    return () => cancelIdle(idleId);
   }, [userId]);
 };
 

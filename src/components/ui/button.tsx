@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm leading-5 font-semibold ring-offset-background transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 disabled:saturate-[0.6] disabled:shadow-none disabled:brightness-95 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm leading-5 font-semibold ring-offset-background transition-colors duration-75 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 disabled:saturate-[0.6] disabled:shadow-none disabled:brightness-95 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -58,29 +58,8 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    const clickGuardRef = React.useRef(false);
 
-    const guardedOnClick = React.useMemo(() => {
-      if (!onClick || asChild) return onClick;
-      return (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (clickGuardRef.current) return;
-        clickGuardRef.current = true;
-        try {
-          const result = onClick(e) as unknown;
-          const unlock = () => { clickGuardRef.current = false; };
-          window.setTimeout(unlock, 180);
-          if (result && typeof result === 'object' && typeof (result as Promise<unknown>).finally === 'function') {
-            (result as Promise<unknown>).finally(unlock);
-          } else {
-            window.setTimeout(unlock, 0);
-          }
-        } catch {
-          clickGuardRef.current = false;
-        }
-      };
-    }, [onClick, asChild]);
-
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} onClick={guardedOnClick} {...props} />;
+    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} onClick={onClick} {...props} />;
   },
 );
 Button.displayName = "Button";

@@ -1,4 +1,4 @@
-import { useState, useTransition, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,6 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const navigate = useNavigate();
   const location = useLocation();
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [, startTransition] = useTransition();
   const { t } = useTranslation();
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
@@ -97,11 +96,11 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
       setShowActionMenu(prev => !prev);
     } else {
       void warmRouteForNavigation(item.path)?.catch(() => undefined);
-      startTransition(() => { navigate(item.path); });
+      navigate(item.path);
       onTabChange?.(item.path);
       setShowActionMenu(false);
     }
-  }, [navigate, onTabChange, startTransition]);
+  }, [navigate, onTabChange]);
 
   // 🚀 INSTANT NAV: warm up the route chunk on touch-start / hover so the
   // tap itself navigates with zero perceived delay.
@@ -156,7 +155,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     
     setShowActionMenu(false);
     void warmRouteForNavigation(path)?.catch(() => undefined);
-    startTransition(() => { navigate(path); });
+    navigate(path);
     onTabChange?.(path);
   };
 
