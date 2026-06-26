@@ -45,6 +45,33 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
   const lowEnd = useMemo(() => isLowEndDevice(), []);
+  const [isHostAccount, setIsHostAccount] = useState(false);
+
+  // Determine if current account is a host (female / approved host).
+  // Match Call (random 1-on-1) is initiated by users/agencies only;
+  // hosts only RECEIVE calls, so the launcher button must be hidden for them.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_host, gender, host_level")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        const host =
+          data.is_host === true ||
+          (data.host_level ?? 0) > 0 ||
+          (typeof data.gender === "string" && data.gender.toLowerCase() === "female");
+        setIsHostAccount(host);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   // 🚀 Native Badge Sync: Push unread counts to native bottom bar
   useEffect(() => {
