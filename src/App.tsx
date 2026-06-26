@@ -1277,7 +1277,7 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <ConnectionStatus />
-            <BrowserRouter future={{ v7_startTransition: true }}>
+            <BrowserRouter>
               <ScrollToTop />
               <BlankScreenGuard />
               <NativeLiveKitRouteSurvivor />
