@@ -234,7 +234,7 @@ export default function MatchCall() {
     const currentBalance = profile
       ? Math.max(Number(profile?.coins ?? 0), Number(profile?.diamonds ?? 0))
       : await getBalanceWithFetch();
-    if (requiredBalance > 0 && profile && currentBalance < requiredBalance) {
+    if (requiredBalance > 0 && currentBalance < requiredBalance) {
       navigate("/recharge", {
         state: { reason: "random_call_low_balance", required: requiredBalance, balance: currentBalance },
       });
