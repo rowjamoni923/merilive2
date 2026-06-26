@@ -226,11 +226,8 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                   <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
                 </motion.button>
               )}
-
-                </div>
-                <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
-              </motion.button>
             </div>
+
           </motion.div>
         )}
       </AnimatePresence>
