@@ -51,6 +51,29 @@ export default function MatchCall() {
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
+  // Active-host counter — counts distinct hosts currently live (deterministic, no randomness).
+  const refreshHostsCount = async () => {
+    try {
+      const { count } = await supabase
+        .from("live_streams")
+        .select("host_id", { count: "exact", head: true })
+        .eq("status", "active");
+      setHostsCount(count || 0);
+    } catch { /* ignore */ }
+  };
+
+  // Keep the count fresh via Realtime + 15s safety poll so the number never lags.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`match-call-live-count-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "live_streams" }, () => {
+        void refreshHostsCount();
+      })
+      .subscribe();
+    const t = window.setInterval(() => { void refreshHostsCount(); }, 15000);
+    return () => { supabase.removeChannel(ch); window.clearInterval(t); };
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase.from("random_call_settings" as any).select("*").eq("id", 1).maybeSingle();
@@ -61,11 +84,7 @@ export default function MatchCall() {
           .select("id, coins, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
         if (p) setProfile(p as any);
       }
-      const { count } = await supabase
-        .from("random_call_queue" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("role", "host").eq("status", "waiting");
-      setHostsCount(count || 0);
+      await refreshHostsCount();
     })();
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
