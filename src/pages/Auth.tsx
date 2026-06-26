@@ -271,6 +271,13 @@ const Auth = () => {
   const [lastUser, setLastUser] = useState<LastUser | null>(null);
   const [deviceAccount, setDeviceAccount] = useState<DeviceAccount | null>(null);
   const [isEmailFlow, setIsEmailFlow] = useState(false);
+  useEffect(() => {
+    if (!pendingBtn) return;
+    // Clear spinner as soon as we leave the landing buttons or after a safety timeout
+    if (authStep !== null) { setPendingBtn(null); return; }
+    const t = setTimeout(() => setPendingBtn(null), 3500);
+    return () => clearTimeout(t);
+  }, [pendingBtn, authStep]);
   
   // Email auth state
   const [email, setEmail] = useState("");
