@@ -51,13 +51,17 @@ export default function MatchCall() {
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
-  // Active-host counter — counts distinct hosts currently live (deterministic, no randomness).
+  // Active-host counter — counts distinct VERIFIED hosts currently live.
+  // Verified host = profiles.is_host AND profiles.is_face_verified. Female accounts
+  // that never passed face verification must NOT be counted.
   const refreshHostsCount = async () => {
     try {
       const { count } = await supabase
         .from("live_streams")
-        .select("host_id", { count: "exact", head: true })
-        .eq("status", "active");
+        .select("host_id, profiles!inner(is_host, is_face_verified)", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("profiles.is_host", true)
+        .eq("profiles.is_face_verified", true);
       setHostsCount(count || 0);
     } catch { /* ignore */ }
   };
