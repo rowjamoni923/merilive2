@@ -26,7 +26,7 @@ const corsHeaders = {
 const SAME_PERSON_MIN_SIMILARITY = 55;
 const DUPLICATE_FACE_MIN_SIMILARITY = 85;
 const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
-const LEGACY_DUPLICATE_SCAN_LIMIT = 120;
+const LEGACY_DUPLICATE_SCAN_LIMIT = 1000;
 const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
 
 function getAmzDate(): { amzDate: string; dateStamp: string } {
@@ -1044,7 +1044,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | "gender_mismatch" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1052,9 +1052,9 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    // Gender mismatch is intentionally NOT a hard reject (owner policy 2026-06-26).
-    // Only duplicate_face and banned_face (and the pre-AWS role_mismatch_existing_host)
-    // can auto-reject. Everything else → soft retry or manual review.
+    else if (genderDeclarationMismatch) hardAutoReject = "gender_mismatch";
+    // Owner policy (2026-06-26): duplicate account and confident gender mismatch
+    // are hard rejects; photo/video/live mismatch remains retry/manual.
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -1071,6 +1071,8 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "gender_mismatch") {
+        rReason = `Verification rejected because the detected gender (${detectedGenderForDecision}) does not match the required account type (${expectedGender}). Please contact Support Chat if you believe this is an error.`;
       }
 
       await supabaseAdmin
@@ -1079,7 +1081,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `gender mismatch: expected ${expectedGender}, detected ${detectedGenderForDecision}` : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
