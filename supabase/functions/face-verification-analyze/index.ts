@@ -19,6 +19,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Owner policy (2026-06-26): real photo/video/live evidence should pass at
+// 55%+ similarity to avoid rejecting genuine users under weak light, beauty
+// filters, compression, or different camera angles. Duplicate-account blocking
+// stays stricter because it is a fraud gate, not a same-submission quality gate.
+const SAME_PERSON_MIN_SIMILARITY = 55;
+const DUPLICATE_FACE_MIN_SIMILARITY = 85;
+const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
+const LEGACY_DUPLICATE_SCAN_LIMIT = 120;
+const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
+
 function getAmzDate(): { amzDate: string; dateStamp: string } {
   const now = new Date();
   const amzDate = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
