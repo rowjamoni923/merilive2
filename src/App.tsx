@@ -427,6 +427,15 @@ const KeyboardInsetsBridge = lazy(lazyRetry(() => import("./hooks/useKeyboardIns
   return { default: Bridge };
 })));
 
+// Global focus-into-view: when any input/textarea/contenteditable receives
+// focus while the on-screen keyboard is open, smoothly scroll it above the
+// keyboard. Essential because Capacitor uses Keyboard.resize:'none' (camera
+// stability) so the WebView viewport doesn't shrink automatically.
+const GlobalKeyboardScrollBridge = lazy(lazyRetry(() => import("./hooks/useGlobalKeyboardScrollIntoView").then(m => {
+  const Bridge = () => { m.useGlobalKeyboardScrollIntoView(); return null; };
+  return { default: Bridge };
+})));
+
 // Pkg209 — drains queued inline-reply / mark-as-read actions captured
 // from the DM notification shade and runs them through Supabase under
 // the user's own JWT (RLS-safe).
