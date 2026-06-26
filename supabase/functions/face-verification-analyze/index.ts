@@ -759,10 +759,10 @@ serve(async (req) => {
         frontB64ForProvider = frontB64;
         const search = await providerSearchFace(faceProvider, {
           image_base64: frontB64,
-          // Duplicate search is intentionally lower than auto-approval match
-          // confidence so the second account is caught even with lighting,
-          // compression, or camera changes.
-          threshold: 88,
+          // Duplicate search is intentionally lower than the hard duplicate
+          // cutoff so the server can review likely second accounts even with
+          // lighting/compression/camera changes.
+          threshold: PROVIDER_DUPLICATE_SEARCH_THRESHOLD,
           max_matches: 5,
         });
         duplicateSearchCompleted = search !== null;
@@ -783,7 +783,7 @@ serve(async (req) => {
               .from("face_verification_submissions")
               .select("id", { count: "exact", head: true })
               .eq("user_id", top.external_user_id as string)
-              .in("status", ["approved", "auto_approved", "auto-approved", "verified", "passed"]);
+              .in("status", APPROVED_FACE_STATUSES);
             const prevName = (prevProfile?.display_name as string | null) || null;
             const prevUid = (prevProfile?.app_uid as string | null) || null;
             const prevAvatar = (prevProfile?.avatar_url as string | null) || null;
@@ -793,7 +793,8 @@ serve(async (req) => {
               String(prevProfile?.host_status || "").trim().toLowerCase() === "approved" ||
               (approvedSubmissionCount || 0) > 0
             );
-            if (previousApproved) {
+            const duplicateSimilarity = Number(top.similarity || 0);
+            if (previousApproved && duplicateSimilarity >= DUPLICATE_FACE_MIN_SIMILARITY) {
               duplicateFields = {
                 is_duplicate_face: true,
                 duplicate_face_user_id: top.external_user_id,
@@ -805,18 +806,18 @@ serve(async (req) => {
                 previous_user_id: top.external_user_id,
                 previous_display_name: prevName,
                 previous_app_uid: prevUid,
-                similarity: top.similarity,
+                similarity: duplicateSimilarity,
                 other_matches: others.length,
                 indexed_at: top.indexed_at,
                 previous_approved: true,
               };
-              duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
+              duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${duplicateSimilarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
             } else {
               duplicateCandidateReview = {
                 previous_user_id: top.external_user_id,
                 previous_display_name: prevName,
                 previous_app_uid: prevUid,
-                similarity: top.similarity,
+                similarity: duplicateSimilarity,
                 other_matches: others.length,
                 indexed_at: top.indexed_at,
                 previous_approved: false,
