@@ -39,6 +39,7 @@ type Session = {
 
 let active: Session | null = null;
 let pending: Promise<Session> | null = null;
+let pendingKey: string | null = null;
 const listeners = new Set<(stream: MediaStream | null) => void>();
 
 function emitCameraSessionChange() {
@@ -99,7 +100,7 @@ export async function acquireCameraSession(
     emitCameraSessionChange();
   }
 
-  if (pending) {
+  if (pending && pendingKey === wantKey) {
     const s = await pending;
     s.refCount += 1;
     return toHandle(s);
@@ -109,7 +110,7 @@ export async function acquireCameraSession(
     const stream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
     const session: Session = {
       stream,
-      refCount: 1,
+      refCount: 0,
       constraintsKey: wantKey,
       createdAt: Date.now(),
     };
@@ -117,12 +118,15 @@ export async function acquireCameraSession(
     emitCameraSessionChange();
     return session;
   })();
+  pendingKey = wantKey;
 
   try {
     const session = await pending;
+    session.refCount += 1;
     return toHandle(session);
   } finally {
     pending = null;
+    pendingKey = null;
   }
 }
 
