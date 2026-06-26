@@ -137,11 +137,12 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-const photoFrameClass = "relative mx-auto w-full max-w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden border border-white/70 bg-gradient-to-br from-white via-amber-50 to-pink-50 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
-const photoImageClass = "absolute inset-0 w-full h-full object-contain bg-slate-900";
-const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10";
-const photoGuideClass = "pointer-events-none absolute inset-[12%] rounded-[45%] border-2 border-white/80 shadow-[0_0_0_999px_rgba(15,23,42,0.10)]";
+const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
+const photoImageClass = "absolute inset-0 h-full w-full object-contain object-center bg-slate-950";
+const photoOverlayClass = "pointer-events-none absolute inset-0 bg-gradient-to-b from-white/8 via-transparent to-black/10";
+const photoGuideClass = "pointer-events-none absolute left-1/2 top-1/2 h-[74%] w-[68%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-2 border-white/75 shadow-[0_0_0_999px_rgba(15,23,42,0.08)]";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
+const photoFrameStatusClass = "mx-auto mt-3 w-full max-w-[320px] rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-xs font-semibold text-emerald-800 shadow-sm";
 
 // Capture the full camera sensor frame for AI analysis. The old object-cover
 // crop matched the preview box, but on close-up mobile selfies it cut off part
@@ -3741,13 +3742,13 @@ const FaceVerification = () => {
               
               {userPhotoPreview ? (
                 <div className="space-y-5">
-                  <div className={photoFrameClass}>
-                    <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className={photoImageClass} />
-                    <div className={photoOverlayClass} />
-                    <div className={photoGuideClass} />
-                    <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/90 px-3 py-2 text-center text-xs font-semibold text-slate-700 shadow-lg backdrop-blur">
-                      Face centered in frame
+                  <div>
+                    <div className={photoFrameClass}>
+                      <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className={photoImageClass} />
+                      <div className={photoOverlayClass} />
+                      <div className={photoGuideClass} />
                     </div>
+                    <div className={photoFrameStatusClass}>Face centered in frame</div>
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 border-amber-200/60 text-slate-800" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
@@ -3891,7 +3892,7 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="relative w-28 h-36 sm:w-32 sm:h-40 rounded-[1.75rem] bg-purple-50 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-xl shadow-purple-500/10 touch-target-lg ring-1 ring-white"
+                className="relative w-32 h-40 sm:w-36 sm:h-44 rounded-[1.75rem] bg-slate-950 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-xl shadow-purple-500/10 touch-target-lg ring-1 ring-white"
                 onClick={() => photoInputRef.current?.click()}
                 role="button"
                 aria-label="Upload profile photo"
@@ -3900,7 +3901,7 @@ const FaceVerification = () => {
                   <>
                     <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className={photoImageClass} />
                     <div className={photoOverlayClass} />
-                    <div className="pointer-events-none absolute inset-[12%] rounded-[45%] border border-white/80" />
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 h-[74%] w-[68%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/80" />
                   </>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-center px-3">
@@ -4089,7 +4090,7 @@ const FaceVerification = () => {
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="aspect-square rounded-xl sm:rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
+                  className="relative aspect-square rounded-xl sm:rounded-2xl bg-slate-950 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
                   role="button"
                   aria-label={`Add photo ${index + 1}`}
