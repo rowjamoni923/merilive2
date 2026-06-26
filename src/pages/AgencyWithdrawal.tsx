@@ -1787,8 +1787,12 @@ const AgencyWithdrawal = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
-  const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(50000); // beans below this = no fee
+  const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(0); // beans below this = no fee (admin-controlled)
   const [minWithdrawalBeans, setMinWithdrawalBeans] = useState(100000);
+  // Admin-configured single % for LOCAL (payroll helper / bKash / Nagad / UPI etc.) withdrawals.
+  // Source: app_settings.agency_withdrawal_fee = { rate: N }. Single source of truth.
+  // `null` until loaded — guards against showing wrong fee from stale tiered config.
+  const [localWithdrawalFeePercent, setLocalWithdrawalFeePercent] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
@@ -1858,51 +1862,31 @@ const AgencyWithdrawal = () => {
     return autoWithdrawalFee.enabled && autoWithdrawalFee.methods.includes(m);
   };
 
-  // Get withdrawal fee in USD based on tiered fee from DB (withdrawal_settings)
-  // Fee is calculated based on beans amount, matched against tiered ranges.
-  // EXCEPTION: when paymentMethod is an auto method (ePay/USDT/Binance/Crypto) and
-  // admin enabled auto_withdrawal_fee, return that flat USD fee instead of the tiered fee.
+  // Get withdrawal fee in USD — strict admin-panel single-source-of-truth:
+  //   • Auto methods (USDT / Binance / Crypto Auto) → app_settings.auto_withdrawal_fee
+  //     (flat USD + percent). Configured in Admin → Pricing Hub → "Auto Withdrawal Fee (Foreign Agencies)".
+  //   • Local methods (bKash / Nagad / UPI / payroll helper) → app_settings.agency_withdrawal_fee.rate
+  //     (single percent). Configured in Admin → Pricing Hub → "Agency Withdrawal Fee".
+  // NEVER fall back to hardcoded numbers or the legacy tiered `withdrawal_settings.fees`.
   const getWithdrawalFeeUsd = (localAmountOverride?: number) => {
     const localAmount = localAmountOverride !== undefined ? localAmountOverride : parseFloat(amount || '0');
-    const beansAmount = localToBeans(localAmount);
+    if (!localAmount || localAmount <= 0) return 0;
+    const usdAmount = localToUsd(localAmount);
 
     // Auto method override (admin-controlled: flat USD + percent of USD)
     if (isAutoMethod()) {
-      const usdAmount = localToUsd(localAmount);
       const flat = Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
       const pct = Math.max(0, Number(autoWithdrawalFee.percent) || 0);
       return flat + (usdAmount * pct) / 100;
     }
 
-    // Below free limit = no fee
-    if (beansAmount <= freeWithdrawalLimit) return 0;
-
-    
-    // Find matching tier from DB
-    for (const tier of withdrawalFees) {
-      if (beansAmount >= tier.min_amount && beansAmount <= tier.max_amount) {
-        if (tier.fee_type === 'percent') {
-          const usdAmount = localToUsd(localAmount);
-          return usdAmount * (tier.fee_value / 100);
-        } else {
-          // flat fee in USD
-          return tier.fee_value;
-        }
-      }
+    // Local / payroll-helper methods → single admin %
+    if (localWithdrawalFeePercent === null) {
+      // Admin config not loaded yet → don't guess. Show 0 to avoid misleading the user.
+      return 0;
     }
-    
-    // If no tier matched but fees exist, use last tier
-    if (withdrawalFees.length > 0) {
-      const lastTier = withdrawalFees[withdrawalFees.length - 1];
-      if (lastTier.fee_type === 'percent') {
-        const usdAmount = localToUsd(localAmount);
-        return usdAmount * (lastTier.fee_value / 100);
-      }
-      return lastTier.fee_value;
-    }
-    
-    // Default fallback: $5 flat
-    return 5;
+    const pct = Math.max(0, localWithdrawalFeePercent);
+    return (usdAmount * pct) / 100;
   };
 
   // Get withdrawal fee in beans
@@ -2172,11 +2156,12 @@ const AgencyWithdrawal = () => {
 
       // Pkg D pass-2: fetch all 4 app_settings keys in parallel through the
       // shared cache (was 4 sequential roundtrips, ~600ms on slow links).
-      const [beansRateValue, commissionFallbackValue, wsValue, awfValue] = await Promise.all([
+      const [beansRateValue, commissionFallbackValue, wsValue, awfValue, agencyWdFeeValue] = await Promise.all([
         getAppSetting<unknown>('beans_to_usd_rate'),
         getAppSetting<unknown>('agency_commission'),
         getAppSetting<unknown>('withdrawal_settings'),
         getAppSetting<unknown>('auto_withdrawal_fee'),
+        getAppSetting<unknown>('agency_withdrawal_fee'),
       ]);
 
       // Beans→USD rate (primary)
@@ -2234,6 +2219,16 @@ const AgencyWithdrawal = () => {
             : ['usdt', 'crypto_auto'],
         });
         console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
+      }
+
+      // Local (payroll-helper / bKash / Nagad / UPI) single % fee — admin-controlled.
+      if (agencyWdFeeValue) {
+        const af: any = typeof agencyWdFeeValue === 'string' ? JSON.parse(agencyWdFeeValue) : agencyWdFeeValue;
+        const rate = typeof af?.rate === 'number' ? af.rate : Number(af?.rate);
+        if (Number.isFinite(rate)) {
+          setLocalWithdrawalFeePercent(rate);
+          console.log('[AgencyWithdrawal] Local withdrawal fee % from DB:', rate);
+        }
       }
 
 
@@ -2786,31 +2781,18 @@ const AgencyWithdrawal = () => {
                         )}
                       </div>
                     </div>
-                  ) : withdrawalFees.length > 0 ? (
+                  ) : localWithdrawalFeePercent !== null ? (
                     <div className="mt-2 text-xs text-gray-700 bg-white rounded-lg p-2">
-                      <p className="font-medium mb-1">Fee Tiers (set by admin):</p>
-                      <div className="space-y-0.5">
-                        <div className="text-success-700">
-                          ≤ {formatNumber(freeWithdrawalLimit)} Beans: <span className="font-bold">Free</span>
-                        </div>
-                        {withdrawalFees.map((tier, idx) => {
-                          const beansAmt = localToBeans(localAmount);
-                          const active = beansAmt >= tier.min_amount && beansAmt <= tier.max_amount;
-                          const label = tier.max_amount >= 999999999
-                            ? `> ${formatNumber(tier.min_amount)} Beans`
-                            : `${formatNumber(tier.min_amount)} – ${formatNumber(tier.max_amount)} Beans`;
-                          const feeLabel = tier.fee_type === 'percent'
-                            ? `${tier.fee_value}%`
-                            : `$${tier.fee_value} flat`;
-                          return (
-                            <div key={idx} className={active ? 'font-bold text-gray-900' : 'text-gray-600'}>
-                              {label}: <span>{feeLabel}</span>{active && ' ← current'}
-                            </div>
-                          );
-                        })}
+                      <p className="font-medium mb-1">Local Payment Withdrawal Fee (set by admin):</p>
+                      <div className="text-gray-800">
+                        <span className="font-bold">{localWithdrawalFeePercent}%</span> of withdrawal amount
                       </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="mt-2 text-xs text-gray-600 bg-white rounded-lg p-2">
+                      Fee not configured by admin.
+                    </div>
+                  )}
 
                   
                   {/* Net Payout Calculation */}
