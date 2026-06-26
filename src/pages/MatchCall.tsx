@@ -142,6 +142,44 @@ export default function MatchCall() {
     setElapsed(0);
   };
 
+  const cancelQueueInBackground = () => {
+    const body: any = {};
+    if (queueId) body.queue_id = queueId;
+    if (broadcastIdRef.current) body.broadcast_id = broadcastIdRef.current;
+
+    if (broadcastChannelRef.current) {
+      try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {}
+      broadcastChannelRef.current = null;
+    }
+    broadcastIdRef.current = null;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (heartbeatRef.current) {
+      window.clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+    setQueueId(null);
+    setElapsed(0);
+
+    if (body.queue_id || body.broadcast_id) {
+      void supabase.functions.invoke("random-call-cancel", { body }).catch(() => {});
+    }
+  };
+
+  const exitMatchCall = () => {
+    cancelQueueInBackground();
+    const canGoBack = Number(window.history.state?.idx ?? 0) > 0;
+    if (canGoBack) navigate(-1);
+    else navigate("/", { replace: true });
+  };
+
+  const openCallHistory = () => {
+    cancelQueueInBackground();
+    navigate("/call-history");
+  };
+
   // Chamet-style "Next": end current call, server applies free-window rule
   // (zero charge if duration < random_window_seconds), then auto re-enqueue.
   const handleNext = async () => {
@@ -356,6 +394,8 @@ export default function MatchCall() {
           );
         }}
         onStart={(filters) => startSearch(filters, { broadcast: true })}
+        onBack={exitMatchCall}
+        onHistory={openCallHistory}
       />
       <PostCallRatingSheet
         open={!!ratingSession}
