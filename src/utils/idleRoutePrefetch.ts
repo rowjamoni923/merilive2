@@ -38,10 +38,15 @@ export function startIdleRoutePrefetch() {
     });
   };
 
-  // TIER 1 — bottom nav + most-tapped (warm immediately, both web & native)
+  // TIER 1 — only the most likely next taps. Keep this tiny so login/home does
+  // not compete with 15+ route chunk downloads on Android WebView.
   const tier1: Array<() => Promise<unknown>> = [
     () => import('@/pages/Index'),
     () => import('@/pages/Discover'),
+  ];
+
+  // TIER 2 — drawer + profile/search/settings/party/reels secondary screens
+  const tier2: Array<() => Promise<unknown>> = [
     () => import('@/pages/Reels'),
     () => import('@/pages/Live'),
     () => import('@/pages/Settings'),
@@ -57,10 +62,6 @@ export function startIdleRoutePrefetch() {
     () => import('@/pages/Recharge'),
     () => import('@/pages/Tasks'),
     () => import('@/pages/Level'),
-  ];
-
-  // TIER 2 — drawer + profile/search/settings/party/reels secondary screens
-  const tier2: Array<() => Promise<unknown>> = [
     () => import('@/pages/Leaderboard'),
     () => import('@/pages/CreateParty'),
     () => import('@/pages/CallHistory'),
@@ -117,11 +118,11 @@ export function startIdleRoutePrefetch() {
   ];
 
   ric(() => {
-    warmSequentially(tier1, isNative ? 120 : 70);
-    window.setTimeout(() => warmSequentially(tier2, isNative ? 180 : 90), tier1.length * (isNative ? 120 : 70) + 150);
+    warmSequentially(tier1, isNative ? 450 : 240);
+    window.setTimeout(() => warmSequentially(tier2, isNative ? 750 : 360), isNative ? 8000 : 4500);
     window.setTimeout(
-      () => warmSequentially(tier3, isNative ? 240 : 120),
-      tier1.length * (isNative ? 120 : 70) + tier2.length * (isNative ? 180 : 90) + 350,
+      () => warmSequentially(tier3, isNative ? 1100 : 520),
+      isNative ? 26000 : 14000,
     );
-  }, 650);
+  }, isNative ? 6000 : 4000);
 }
