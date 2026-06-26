@@ -218,6 +218,23 @@ Patch scope:
 - Keep all fallback UI as `null`; no spinner, skeleton, black screen, white screen, or fake loading surface is introduced.
 - Removed the DOM-clone visual-hold approach. User-corrected standard: no fake snapshot/clone/loading cover; continuity must come from the actual previous React surface staying mounted by transition semantics and from persistent media surfaces.
 - Added `StableRoutes`: the previous route remains the real mounted React tree while the next route mounts hidden and prepares; once real content exists, that same mounted next tree is promoted visible. No screenshot, DOM clone, spinner, or loading surface is used.
+
+---
+
+# Phase 14 — Face verification CTA flow fix (2026-06-26)
+
+Research / professional standard:
+- Apple HIG and Material accessibility keep primary touch targets at 44pt / 48dp minimum; this page keeps the CTA at 56px — https://developer.apple.com/design/human-interface-guidelines/buttons and https://m3.material.io/foundations/accessible-design/accessibility-basics
+- Android/Capacitor keyboard guidance favors resize/scroll-safe layouts over fixed overlays that cover inputs — https://developer.android.com/develop/ui/views/layout/sw-keyboard and https://capacitorjs.com/docs/apis/keyboard
+- Native onboarding/profile setup pattern: short forms place the primary CTA in the actual form flow with 16–20px spacing after the final field; sticky/fixed footer is only acceptable if full CTA height + safe-area is reserved.
+
+Verified current gap:
+- Host face-verification Step 1 used `.sticky-cta-bar`, so the `Next` button stayed fixed inside the scrollport while the form moved behind it.
+- The face-verification scroll container also added global bottom-nav padding, creating extra blank space on this fullscreen onboarding surface.
+
+Patch scope:
+- Convert face-verification CTA bars to in-flow `flow-cta-bar` so `Next`, `Back/Next`, and `Go Back` scroll naturally with the step content.
+- Keep keyboard safety by using only safe-area bottom padding on this fullscreen page; no sticky overlay remains above inputs.
 - Upgraded the web `PersistentCameraSurface` bridge from timer polling to an event-driven `persistentCameraSession` subscription, so live/party/private-call preview camera continuity updates instantly without reopening the camera and without visibility-refresh/polling hacks.
 - Changed `PageSkeleton` into a transparent `data-route-placeholder` marker instead of painting white/gradient placeholders.
 - Removed admin access and admin route permission spinners so agency/admin menu movement never paints a verification/loading interstitial.

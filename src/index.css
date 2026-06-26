@@ -4995,6 +4995,15 @@ a:focus-visible,
     -webkit-backdrop-filter: blur(8px);
     z-index: 20;
   }
+  .flow-cta-bar {
+    position: relative;
+    padding-top: 1rem;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    z-index: auto;
+  }
   .fixed-cta-bar {
     position: fixed;
     left: 0; right: 0; bottom: 0;
