@@ -392,14 +392,12 @@ export function FullScreenPromoBanners() {
             }}
           />
 
-          <img
+          <BulletproofImage
             src={currentBanner.image}
             alt={currentBanner.alt}
             width={1080}
             height={1920}
-            loading="eager"
-            decoding="async"
-            {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+            priority="high"
             className="absolute inset-0 h-full w-full object-cover"
           />
 
