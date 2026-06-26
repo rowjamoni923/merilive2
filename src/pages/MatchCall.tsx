@@ -260,6 +260,16 @@ export default function MatchCall() {
         setPhase("prep");
         return;
       }
+      if (errPayload?.error === "insufficient_coins") {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        const need = Number(errPayload.required ?? 0);
+        const bal = Number(errPayload.balance ?? 0);
+        toast.error(`Not enough coins. Need ${need}, balance ${bal}.`, {
+          action: { label: "Recharge", onClick: () => navigate("/wallet") },
+        });
+        setPhase("prep");
+        return;
+      }
       if (error) throw error;
 
       const handoff = async (sessionId: string, hostId: string) => {
