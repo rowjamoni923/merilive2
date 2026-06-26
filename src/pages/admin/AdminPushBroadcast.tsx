@@ -269,14 +269,23 @@ export default function AdminPushBroadcast() {
     if (!imageFile) return null;
     setIsUploading(true);
     try {
-      const ext = imageFile.name.split('.').pop() || 'jpg';
-      const filePath = `broadcast/${Date.now()}.${ext}`;
+      const rawExt = imageFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const ext = ['jpg', 'jpeg', 'png', 'webp'].includes(rawExt) ? rawExt : 'jpg';
+      const filePath = `broadcast/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from('assets').upload(filePath, imageFile, { contentType: imageFile.type, cacheControl: '31536000' });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('assets').getPublicUrl(filePath);
+      const publicReady = await waitForPublicImage(urlData.publicUrl);
+      if (!publicReady) throw new Error("Uploaded image is not publicly readable yet. Please try again.");
       return urlData.publicUrl;
     } catch (err: any) {
-      toast.error("Failed to upload image");
+      recordAdminError({
+        kind: "rest",
+        label: "AdminPushBroadcast.UploadImage",
+        message: err?.message || "Failed to upload image",
+        detail: JSON.stringify(err || {}).slice(0, 1000),
+      });
+      toast.error(err?.message || "Failed to upload image");
       return null;
     } finally {
       setIsUploading(false);
@@ -289,21 +298,44 @@ export default function AdminPushBroadcast() {
     try {
       let imageUrl: string | null = null;
       if (imageFile) imageUrl = await uploadImage();
+      if (imageFile && !imageUrl) {
+        toast.error("Image upload failed. Notification was not sent.");
+        return;
+      }
       const adminToken = getAdminSessionToken();
       if (!adminToken) { toast.error("Admin session expired. Please sign in again."); setIsSending(false); return; }
-      const { data, error } = await supabase.functions.invoke('send-push-notification', {
-        headers: { 'x-admin-token': adminToken },
-        body: {
-          title: title.trim(), body: message.trim(), target: targetAudience,
-          imageUrl: imageUrl || undefined,
-          data: { type: 'broadcast', timestamp: new Date().toISOString(), ...(linkUrl.trim() ? { link_url: linkUrl.trim() } : {}), ...(imageUrl ? { image_url: imageUrl } : {}) }
+      const requestId = createBroadcastRequestId();
+      const data = await invokePushBroadcastWithFallback({
+        title: title.trim(),
+        body: message.trim(),
+        target: targetAudience,
+        type: 'broadcast',
+        imageUrl: imageUrl || undefined,
+        data: {
+          type: 'broadcast',
+          broadcast_id: requestId,
+          persist_fallback: false,
+          timestamp: new Date().toISOString(),
+          ...(linkUrl.trim() ? { link_url: linkUrl.trim() } : {}),
+          ...(imageUrl ? { image_url: imageUrl } : {})
         }
-      });
-      if (error) throw error;
-      toast.success(`Push notification sent to ${data?.sent || 0} devices!`);
-      setSentHistory(prev => [{ id: Date.now(), title, message, target: targetAudience, linkUrl: linkUrl.trim() || null, imageUrl, sentAt: new Date().toISOString(), sentCount: data?.sent || 0 }, ...prev]);
+      }, adminToken, requestId);
+
+      if (!data?.success && !data?.accepted) {
+        throw new Error(data?.error || data?.message || "Push notification failed");
+      }
+      const sentCount = Number(data?.sent || 0);
+      const failedCount = Number(data?.failed || 0);
+      toast.success(data?.accepted ? "Broadcast is already processing — please wait." : `Push notification sent to ${sentCount} devices${failedCount ? ` (${failedCount} failed)` : ''}!`);
+      setSentHistory(prev => [{ id: Date.now(), title, message, target: targetAudience, linkUrl: linkUrl.trim() || null, imageUrl, sentAt: new Date().toISOString(), sentCount }, ...prev]);
       setTitle(""); setMessage(""); setLinkUrl(""); removeImage();
     } catch (error: any) {
+      recordAdminError({
+        kind: "edge",
+        label: "AdminPushBroadcast.SendNotification",
+        message: error?.message || "Failed to send notification",
+        detail: error?.stack?.slice(0, 1000),
+      });
       toast.error(error.message || "Failed to send notification");
     } finally {
       setIsSending(false);
