@@ -714,8 +714,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                         key={conv.id}
                         conv={conv}
                         pref={prefs[conv.id]}
+                        isTyping={typingSet.has(conv.id)}
                         onSelect={onSelectConversation}
                         onLongPress={handleLongPress}
+                        onTogglePin={handleTogglePin}
+                        onToggleMute={handleToggleMute}
                       />
                     ))}
                     <div className="h-px bg-border/40 mx-4 my-1" />
@@ -725,8 +728,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                   scrollRef={scrollRef}
                   items={regular}
                   prefs={prefs}
+                  typingSet={typingSet}
                   onSelect={onSelectConversation}
                   onLongPress={handleLongPress}
+                  onTogglePin={handleTogglePin}
+                  onToggleMute={handleToggleMute}
                 />
               </>
             ) : (
@@ -741,8 +747,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                         key={conv.id}
                         conv={conv}
                         pref={prefs[conv.id]}
+                        isTyping={typingSet.has(conv.id)}
                         onSelect={onSelectConversation}
                         onLongPress={handleLongPress}
+                        onTogglePin={handleTogglePin}
+                        onToggleMute={handleToggleMute}
                       />
                     ))}
                     <div className="h-px bg-border/40 mx-4 my-1" />
@@ -753,8 +762,11 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                     key={conv.id}
                     conv={conv}
                     pref={prefs[conv.id]}
+                    isTyping={typingSet.has(conv.id)}
                     onSelect={onSelectConversation}
                     onLongPress={handleLongPress}
+                    onTogglePin={handleTogglePin}
+                    onToggleMute={handleToggleMute}
                   />
                 ))}
               </div>
