@@ -34,23 +34,25 @@ export function AudioUnlockOverlay() {
       const detail = (e as CustomEvent<AudioPlaybackEventDetail>).detail;
       if (detail && detail.canPlaybackAudio === true) setBlocked(false);
     };
-    // Defense-in-depth: any global user gesture proactively unlocks audio,
-    // so a missed `AudioPlaybackStatusChanged` event never leaves a visitor
-    // permanently silent on Safari/iOS.
-    const onGlobalGesture = () => {
-      unlockAllAudioPlayback().catch(() => {});
-    };
     window.addEventListener(AUDIO_PLAYBACK_BLOCKED_EVENT, onBlocked);
     window.addEventListener(AUDIO_PLAYBACK_OK_EVENT, onOk);
-    window.addEventListener('pointerdown', onGlobalGesture, { passive: true, capture: true });
-    window.addEventListener('touchend', onGlobalGesture, { passive: true, capture: true });
     return () => {
       window.removeEventListener(AUDIO_PLAYBACK_BLOCKED_EVENT, onBlocked);
       window.removeEventListener(AUDIO_PLAYBACK_OK_EVENT, onOk);
-      window.removeEventListener('pointerdown', onGlobalGesture, true);
-      window.removeEventListener('touchend', onGlobalGesture, true);
     };
   }, []);
+
+  useEffect(() => {
+    if (!blocked) return;
+    // Only listen globally while audio is actually blocked. Keeping these
+    // capture listeners alive on every app tap was stealing frames from normal
+    // navigation buttons.
+    const onGlobalGesture = () => {
+      unlockAllAudioPlayback().catch(() => {});
+    };
+    window.addEventListener('pointerup', onGlobalGesture, { passive: true, capture: true });
+    return () => window.removeEventListener('pointerup', onGlobalGesture, true);
+  }, [blocked]);
 
   const handleUnlock = async () => {
     if (busy) return;
