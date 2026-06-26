@@ -768,7 +768,7 @@ export function UnifiedPartyRoom({
     }
     supabase
       .from('profiles_public')
-      .select('display_name, avatar_url, user_level')
+      .select('display_name, avatar_url, user_level, is_host')
       .eq('id', currentUserId)
       .maybeSingle()
       .then(({ data }) => {
