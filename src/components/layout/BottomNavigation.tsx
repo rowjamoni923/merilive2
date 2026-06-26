@@ -10,6 +10,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { NativeRouterShell, isNativeRouterShellAvailable } from "@/plugins/NativeRouterShell";
 import { warmRouteForNavigation } from "@/utils/routePrefetch";
 import { isLowEndDevice } from "@/utils/lowEndDevice";
+import { supabase } from "@/integrations/supabase/client";
+
+
 
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
@@ -42,6 +45,33 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
   const navItems = getNavItems(t);
   const unreadCounts = useGlobalUnreadCount();
   const lowEnd = useMemo(() => isLowEndDevice(), []);
+  const [isHostAccount, setIsHostAccount] = useState(false);
+
+  // Determine if current account is a host (female / approved host).
+  // Match Call (random 1-on-1) is initiated by users/agencies only;
+  // hosts only RECEIVE calls, so the launcher button must be hidden for them.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_host, gender, host_level")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        const host =
+          data.is_host === true ||
+          (data.host_level ?? 0) > 0 ||
+          (typeof data.gender === "string" && data.gender.toLowerCase() === "female");
+        setIsHostAccount(host);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   // 🚀 Native Badge Sync: Push unread counts to native bottom bar
   useEffect(() => {
@@ -175,26 +205,29 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                 <Users className="w-4 h-4 text-white/70 flex-shrink-0" />
               </motion.button>
 
-              <motion.button
-                initial={{ opacity: 0, x: 0 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.06 }}
-                onClick={() => handleActionClick('/match-call')}
-                data-instant-path="/match-call"
-                data-prefetch-path="/match-call"
-                className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <Video className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left flex-1 min-w-0">
-                  <p className="text-white font-bold text-sm">Match Call</p>
-                  <p className="text-white/80 text-xs">Random 1-on-1 video</p>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
-              </motion.button>
+              {!isHostAccount && (
+                <motion.button
+                  initial={{ opacity: 0, x: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.06 }}
+                  onClick={() => handleActionClick('/match-call')}
+                  data-instant-path="/match-call"
+                  data-prefetch-path="/match-call"
+                  className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 rounded-2xl shadow-2xl shadow-cyan-500/50 transition-opacity duration-75 active:opacity-90 border border-white/20"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <Video className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="text-white font-bold text-sm">Random Call</p>
+                    <p className="text-white/80 text-xs">Random 1-on-1 video</p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+                </motion.button>
+              )}
             </div>
+
           </motion.div>
         )}
       </AnimatePresence>
