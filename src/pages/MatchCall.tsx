@@ -244,8 +244,21 @@ export default function MatchCall() {
       });
       // Server may return a structured 429 error (skip cooldown / daily cap)
       let errPayload: any = (data as any)?.error ? data : null;
-      if (!errPayload && error && (error as any).context?.json) {
-        try { errPayload = await (error as any).context.json(); } catch (_) {}
+      if (!errPayload && error) {
+        const ctx: any = (error as any).context;
+        try {
+          if (ctx && typeof ctx.clone === "function") {
+            const txt = await ctx.clone().text();
+            try { errPayload = JSON.parse(txt); } catch (_) {}
+          } else if (ctx && typeof ctx.json === "function") {
+            try { errPayload = await ctx.json(); } catch (_) {}
+          }
+        } catch (_) {}
+        if (!errPayload) {
+          const m = String((error as any)?.message ?? "");
+          const match = m.match(/\{[\s\S]*\}$/);
+          if (match) { try { errPayload = JSON.parse(match[0]); } catch (_) {} }
+        }
       }
       if (errPayload?.error === "skip_cooldown") {
         if (timerRef.current) window.clearInterval(timerRef.current);
