@@ -528,7 +528,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         style={{ ...containerStyle, overflow: 'hidden', borderRadius: '9999px' }}>
         <Avatar className={cn('border-2 border-white/30', avatarClassName)}
           style={{ width: sizeConfig.container, height: sizeConfig.container }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('w-full h-full object-cover object-center', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
 
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold shadow-inner', sizeConfig.text)}>
             {displayName}
