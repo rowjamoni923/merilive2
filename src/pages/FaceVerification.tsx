@@ -4193,7 +4193,7 @@ const FaceVerification = () => {
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);
-                    setFaceVerificationVideo(null);
+                    setFaceVerificationVideoSafe(null);
                     resetVerification();
                   }}
                 >
