@@ -23760,6 +23760,10 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: Json
       }
+      service_heal_stuck_face_verifications: {
+        Args: { _max_age_seconds?: number }
+        Returns: number
+      }
       service_set_admin_password: {
         Args: { _admin_user_id: string; _new_password: string }
         Returns: Json

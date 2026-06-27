@@ -12,6 +12,13 @@ import {
   providerIndexFace,
   providerVerifyFace,
 } from "../_shared/externalVerify.ts";
+import { decode as decodeImage, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+
+// Rekognition hard limit is 5 MiB on Image.Bytes (base64 over the wire is
+// ~33% larger, but the limit is on raw bytes). Stay safely under so multiple
+// images held in memory don't trip the 256MB function memory cap either.
+const MAX_REK_BYTES = 4_500_000;
+const MAX_REK_DIMENSION = 1600;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -188,17 +195,66 @@ async function fetchImageBytes(
   url: string,
   supabaseAdmin: ReturnType<typeof createClient>,
 ): Promise<Uint8Array> {
-  // Prefer service-role storage download when this is a Supabase storage URL
-  // (the face-verification bucket is private — public fetch would 400).
   const parsed = parseStorageUrl(url);
+  let bytes: Uint8Array;
   if (parsed) {
     const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
     if (error || !data) throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    bytes = new Uint8Array(await data.arrayBuffer());
+  } else {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`fetch image ${res.status}`);
+    bytes = new Uint8Array(await res.arrayBuffer());
   }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`fetch image ${res.status}`);
-  return new Uint8Array(await res.arrayBuffer());
+  // Always normalize: downscale + re-encode JPEG so Rekognition never sees
+  // >5 MiB payloads or HEIC/WebP that it rejects as InvalidImageFormat.
+  return await normalizeImageBytes(bytes);
+}
+
+/**
+ * Decode any common image format, downscale if larger than MAX_REK_DIMENSION,
+ * and re-encode as JPEG so the resulting bytes always fit Rekognition's
+ * 5 MiB cap and are always a supported format. Falls back to the original
+ * bytes if they are already small + decodable as JPEG/PNG (cheapest path).
+ */
+async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  // Fast path: small JPEG/PNG, ship as-is.
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+  if ((isJpeg || isPng) && bytes.length <= MAX_REK_BYTES) {
+    return bytes;
+  }
+  try {
+    const img = await decodeImage(bytes);
+    if (!(img instanceof Image)) {
+      throw new Error("decoded_non_image");
+    }
+    const longest = Math.max(img.width, img.height);
+    if (longest > MAX_REK_DIMENSION) {
+      const scale = MAX_REK_DIMENSION / longest;
+      img.resize(Math.max(1, Math.round(img.width * scale)), Math.max(1, Math.round(img.height * scale)));
+    }
+    // Step down quality until under cap.
+    for (const q of [85, 75, 65, 55, 45]) {
+      const out = await img.encodeJPEG(q);
+      if (out.length <= MAX_REK_BYTES) return new Uint8Array(out);
+    }
+    // Last resort: shrink further then encode at 40.
+    img.resize(Math.max(1, Math.round(img.width / 2)), Math.max(1, Math.round(img.height / 2)));
+    const out = await img.encodeJPEG(40);
+    if (out.length > MAX_REK_BYTES) {
+      throw new Error("image_too_large_after_compression");
+    }
+    return new Uint8Array(out);
+  } catch (decodeErr) {
+    // If we cannot decode it AND it is already too large or unsupported,
+    // surface a typed error so the caller marks the submission needs_retry
+    // with a precise English notification instead of crashing the function.
+    if (bytes.length > MAX_REK_BYTES) {
+      throw new Error(`image_too_large:${bytes.length}`);
+    }
+    throw new Error(`image_unreadable:${decodeErr instanceof Error ? decodeErr.message : "decode_failed"}`);
+  }
 }
 
 serve(async (req) => {
@@ -206,6 +262,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Tracked across the try so the outer catch can heal the row (so a
+  // crashed analyze never leaves a submission frozen in `under_review`).
+  let activeSubmissionId: string | null = null;
+  let activeUserId: string | null = null;
+  let activeAdmin: ReturnType<typeof createClient> | null = null;
   try {
     const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
     const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
@@ -222,6 +283,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    activeAdmin = supabaseAdmin;
 
     // Validate internal/cron secret against EITHER env var OR app_settings row.
     // app_settings path lets the DB trigger/cron sync with edge fn without manual env juggling.
@@ -282,6 +344,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    activeSubmissionId = submissionId;
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
@@ -295,6 +358,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    activeUserId = row.user_id as string | null;
     // Internal/cron calls operate on behalf of the row owner.
     if (isInternalCall) {
       userId = row.user_id;
@@ -510,11 +574,70 @@ serve(async (req) => {
       catch (e) { console.warn("[face-verification-analyze] right image fetch skipped:", e instanceof Error ? e.message : e); }
     }
 
-    const [det, leftDet, rightDet] = await Promise.all([
-      detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
-      leftBytes ? detectFaces(leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
-      rightBytes ? detectFaces(rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
-    ]);
+    // Run detections sequentially to keep peak memory below the 256MB cap
+    // (large base64 payloads were exploding when ran in parallel). Each one
+    // is tolerant: a failure on a side angle should not abort the front pass.
+    const safeDetect = async (b: Uint8Array | null) => {
+      if (!b) return { FaceDetails: [] } as Record<string, unknown>;
+      try {
+        return await detectFaces(b, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+      } catch (e) {
+        console.warn("[face-verification-analyze] detectFaces side error:", e instanceof Error ? e.message : e);
+        return { FaceDetails: [], _detect_error: e instanceof Error ? e.message : String(e) } as Record<string, unknown>;
+      }
+    };
+    let det: Record<string, unknown>;
+    try {
+      det = await detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+    } catch (frontErr) {
+      const msg = frontErr instanceof Error ? frontErr.message : "detect_failed";
+      console.error("[face-verification-analyze] front detect failed:", msg);
+      const { data: existingRow } = await supabaseAdmin
+        .from("face_verification_submissions")
+        .select("ai_analysis")
+        .eq("id", submissionId)
+        .maybeSingle();
+      const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: {
+            ...existingAnalysis,
+            rekognition: { version: 1, front_detect_error: msg },
+            requires_resubmit: true,
+            retry_required: {
+              kind: "evidence_quality",
+              verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
+              failed_evidence: [{ label: "live_face_scan", human_name: "Live Face Scan", step: "live_face_scan", score: null, message: "Our scanner could not read your live face image. Please retake the live face scan in good light, holding still, with only your face in frame." }],
+              steps: ["live_face_scan"],
+              headline: "Live face scan unreadable",
+              summary: "Your account is NOT rejected. Please retake the live face scan in better lighting with a steady camera.",
+            },
+          },
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `[needs_retry] front detect failed: ${msg}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+      try {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: row.user_id,
+          type: "face_verification_retry",
+          title: "Face Verification — Please Retry",
+          message: "We could not read your live face scan. Please retake it in good light, holding the phone steady, with only your face in frame.",
+          data: { route: "/face-verification", reason: "live_scan_unreadable" },
+        });
+      } catch (_e) { /* best-effort */ }
+      return new Response(JSON.stringify({ ok: true, autoFinalize: { success: false, reason: "live_scan_unreadable" }, retry_required: true, error: msg }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const leftDet = await safeDetect(leftBytes);
+    const rightDet = await safeDetect(rightBytes);
     const details = (det.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
     const leftDetails = (leftDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
     const rightDetails = (rightDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
@@ -1649,6 +1772,35 @@ serve(async (req) => {
   } catch (e) {
     console.error("[face-verification-analyze]", e);
     const msg = e instanceof Error ? e.message : "Unknown error";
+    // Self-heal: never leave the submission frozen in `under_review` /
+    // `pending` because the function crashed. Mark it `needs_retry` with a
+    // clear English notification so the user can re-shoot immediately.
+    if (activeAdmin && activeSubmissionId) {
+      try {
+        await activeAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "needs_retry",
+            rejection_reason: null,
+            reviewed_at: null,
+            admin_notes: `[needs_retry] analyzer crashed: ${msg}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", activeSubmissionId)
+          .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+        if (activeUserId) {
+          await activeAdmin.from("notifications").insert({
+            user_id: activeUserId,
+            type: "face_verification_retry",
+            title: "Face Verification — Please Retry",
+            message: "We could not process your face verification this time. Please retake your photo, live face scan and intro video in good light and submit again.",
+            data: { route: "/face-verification", reason: "analyzer_error" },
+          });
+        }
+      } catch (healErr) {
+        console.error("[face-verification-analyze] self-heal failed:", healErr instanceof Error ? healErr.message : healErr);
+      }
+    }
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
