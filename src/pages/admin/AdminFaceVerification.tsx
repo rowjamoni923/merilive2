@@ -1238,7 +1238,7 @@ const AdminFaceVerification = () => {
                         const url = photo;
                         return (
                           <div key={index} className="relative group">
-                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-square rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-[3/4] rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={() => setExpandedPhoto(url)} />
                             <span className="absolute top-1.5 left-1.5 bg-gradient-to-br from-amber-400 to-amber-600 text-black text-[10px] px-2 py-0.5 rounded-full font-bold shadow-md">{index + 1}</span>
                           </div>
                         );
