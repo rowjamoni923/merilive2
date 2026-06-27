@@ -2872,7 +2872,7 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="absolute inset-0 w-full h-full object-cover object-[50%_28%] scale-x-[-1]"
+                className="absolute inset-0 w-full h-full object-cover object-center"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
