@@ -313,7 +313,10 @@ const AdminFaceVerification = () => {
     }
   };
 
-  useAdminRealtime(['face_verification_submissions'], fetchSubmissions);
+  useAdminRealtime(['face_verification_submissions'], () => {
+    invalidateStatusCountsCache('face_verification_submissions');
+    fetchSubmissions();
+  });
 
   useEffect(() => {
     if (!didRunFilterFetchRef.current) {
