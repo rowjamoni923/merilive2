@@ -69,6 +69,25 @@ function uint8ToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+const VIDEO_URL_RE = /(?:^|\/)(?:face-videos|videos)\/|\.(?:webm|mp4|m4v|mov|qt|mkv|3gp|3gpp|avi|ogg|ogv)(?:[?#]|$)/i;
+
+function isLikelyVideoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return VIDEO_URL_RE.test(decodeURIComponent(parsed.pathname));
+  } catch {
+    return VIDEO_URL_RE.test(url.split("?")[0] || url);
+  }
+}
+
+function firstUsableStillUrl(...urls: Array<string | null | undefined>): string | null {
+  for (const url of urls) {
+    if (typeof url === "string" && url.trim() && !isLikelyVideoUrl(url)) return url;
+  }
+  return null;
+}
+
 async function sha256Hash(message: string): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(message));
   return toHex(new Uint8Array(hash));
@@ -266,7 +285,7 @@ serve(async (req) => {
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url")
+      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url,ai_analysis")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -386,7 +405,17 @@ serve(async (req) => {
     }
 
 
-    const frontUrl = row.front_url || row.face_image_url || row.selfie_url;
+    const initialAnalysis = ((row as Record<string, unknown>).ai_analysis ?? {}) as Record<string, unknown>;
+    const initialEvidenceUrls = ((initialAnalysis.evidence_urls && typeof initialAnalysis.evidence_urls === "object")
+      ? initialAnalysis.evidence_urls
+      : {}) as Record<string, unknown>;
+    const frontUrl = firstUsableStillUrl(
+      row.front_url as string | null,
+      row.selfie_url as string | null,
+      row.face_image_url as string | null,
+      initialEvidenceUrls.live_face_scan_url as string | undefined,
+      initialEvidenceUrls.face_video_frame_url as string | undefined,
+    );
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;
     if (!frontUrl) {
@@ -958,7 +987,7 @@ serve(async (req) => {
     // forever in manual review. Use the live front frame as a conservative fallback
     // for the video evidence slot; profile/live/duplicate/liveness/host-gallery
     // gates still have to pass before auto-finalize can run.
-    const faceVideoEvidenceUrl = faceVideoFrameUrl || ((row.face_image_url || row.selfie_url) ? frontUrl : null);
+    const faceVideoEvidenceUrl = faceVideoFrameUrl || firstUsableStillUrl(frontUrl);
     const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
@@ -1054,7 +1083,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "duplicate_face" | "banned_face" | "gender_mismatch" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1062,9 +1091,9 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch) hardAutoReject = "gender_mismatch";
-    // Owner policy (2026-06-26): duplicate account and confident gender mismatch
-    // are hard rejects; photo/video/live mismatch remains retry/manual.
+    // Owner policy (2026-06-26/27): only duplicate/banned identity are hard
+    // rejects. Gender signals are retained in ai_analysis for admin context but
+    // must never auto-reject or block a genuine photo/video/live same-person pass.
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -1081,8 +1110,6 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
-      } else if (hardAutoReject === "gender_mismatch") {
-        rReason = `Verification rejected because the detected gender (${detectedGenderForDecision}) does not match the required account type (${expectedGender}). Please contact Support Chat if you believe this is an error.`;
       }
 
       await supabaseAdmin
@@ -1091,7 +1118,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `gender mismatch: expected ${expectedGender}, detected ${detectedGenderForDecision}` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -1116,8 +1143,6 @@ serve(async (req) => {
           publicMessage = `This face is already registered with ${dName}${dUid ? ` (ID ${dUid})` : ""}. One face can only be used for one account. Tap to review or contact Support.`;
         } else if (hardAutoReject === "banned_face") {
           publicMessage = "This face is associated with a previously banned account. You cannot create a new account. Tap to contact Support if you believe this is an error.";
-        } else if (hardAutoReject === "gender_mismatch") {
-          publicMessage = `Verification rejected: detected gender does not match the required account type (expected ${expectedGender}). Tap to try again with the correct account type.`;
         }
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
@@ -1317,7 +1342,7 @@ serve(async (req) => {
     } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
-    } else if (!duplicateSearchCompleted && !frontError) {
+    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "duplicate_search_unverified" };
       console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
     } else {
