@@ -1220,7 +1220,7 @@ const AdminFaceVerification = () => {
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {([selectedSubmission.front_url, selectedSubmission.left_url, selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
-                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)]" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-[3/4] rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)] flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
                   </div>
