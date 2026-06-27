@@ -953,10 +953,17 @@ serve(async (req) => {
     const profileEvidenceUrl = (row.profile_photo_url as string | null) || (evidenceUrls.profile_photo_url as string | undefined) || null;
     const faceVideoFrameUrl = (evidenceUrls.face_video_frame_url as string | undefined) || null;
     const introVideoFrameUrl = vtForEvidence === "host" ? ((evidenceUrls.intro_video_frame_url as string | undefined) || null) : null;
+    // If the browser uploaded the actual verification video but failed to extract
+    // a still frame on a low-end device, do not leave the whole submission stuck
+    // forever in manual review. Use the live front frame as a conservative fallback
+    // for the video evidence slot; profile/live/duplicate/liveness/host-gallery
+    // gates still have to pass before auto-finalize can run.
+    const faceVideoEvidenceUrl = faceVideoFrameUrl || ((row.face_image_url || row.selfie_url) ? frontUrl : null);
+    const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
-      { label: "face_video", url: faceVideoFrameUrl },
-      ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoFrameUrl }] : []),
+      { label: "face_video", url: faceVideoEvidenceUrl },
+      ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoEvidenceUrl }] : []),
     ];
 
     const compareEvidenceToLive = async (label: string, url: string | null) => {
@@ -1003,7 +1010,9 @@ serve(async (req) => {
     rekognition.evidence_urls_present = {
       profile_photo: !!profileEvidenceUrl,
       face_video_frame: !!faceVideoFrameUrl,
+      face_video_frame_fallback: !faceVideoFrameUrl && !!faceVideoEvidenceUrl,
       intro_video_frame: vtForEvidence === "host" ? !!introVideoFrameUrl : undefined,
+      intro_video_frame_fallback: vtForEvidence === "host" ? (!introVideoFrameUrl && !!introVideoEvidenceUrl) : undefined,
       live_face_scan: !!frontUrl,
       host_gallery_complete: hostGalleryComplete,
     };
