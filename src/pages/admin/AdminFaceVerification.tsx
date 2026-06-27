@@ -31,6 +31,7 @@ import { formatAdminError } from "@/utils/formatAdminError";
 import { cn } from "@/lib/utils";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 import { CopyableUid } from "@/components/admin/CopyableUid";
+import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
 
 /**
  * Premium Approve/Reject action bar.
@@ -48,12 +49,16 @@ function RoleApproveBar({
   processing,
   onApprove,
   onReject,
+  approvalDisabled = false,
+  disabledReason,
   className,
 }: {
   defaultRole?: 'host' | 'user';
   processing: boolean;
   onApprove: (role: 'host' | 'user') => void;
   onReject?: () => void;
+  approvalDisabled?: boolean;
+  disabledReason?: string;
   className?: string;
 }) {
   const [role, setRole] = useState<'host' | 'user'>(defaultRole);
@@ -102,9 +107,10 @@ function RoleApproveBar({
         <Button
           variant="luxury"
           size="default"
-          disabled={processing}
+          disabled={processing || approvalDisabled}
           onClick={() => onApprove(role)}
           className="w-full"
+          title={disabledReason}
         >
           <CheckCircle2 className="h-4 w-4 mr-2" />
           Approve {role === 'host' ? 'as Host' : 'as User'}
@@ -122,6 +128,11 @@ function RoleApproveBar({
           </Button>
         )}
       </div>
+      {approvalDisabled && disabledReason && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
+          ⚠ Approval locked: {disabledReason}
+        </div>
+      )}
     </div>
   );
 }
@@ -166,6 +177,7 @@ interface Submission {
   front_url?: string | null;
   left_url?: string | null;
   right_url?: string | null;
+  ai_analysis?: Record<string, unknown> | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   status_bucket?: 'pending' | 'approved' | 'rejected';
@@ -333,6 +345,13 @@ const AdminFaceVerification = () => {
     closeModals = true,
   }: SubmissionActionParams) => {
     if (processing || actionInFlightRef.current) return;
+    if (action === 'approve') {
+      const readiness = getFaceSubmissionMediaReadiness(submission);
+      if (!readiness.ready) {
+        toast({ title: 'Cannot approve yet', description: readiness.missing.join(', '), variant: 'destructive' });
+        return;
+      }
+    }
 
     actionInFlightRef.current = true;
     setProcessing(true);
@@ -818,6 +837,7 @@ const AdminFaceVerification = () => {
                 const { completed, total, percentage } = getCompletionData(submission);
                 const faceMatch = extractFaceMatchPercentage(submission.admin_notes);
                 const mediaStatus = getSubmissionMediaStatus(submission);
+                const mediaReadiness = getFaceSubmissionMediaReadiness(submission);
 
                 return (
                   <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
@@ -980,6 +1000,8 @@ const AdminFaceVerification = () => {
                       <RoleApproveBar
                         defaultRole={submission.verification_type === 'host' ? 'host' : 'user'}
                         processing={processing}
+                        approvalDisabled={!mediaReadiness.ready}
+                        disabledReason={mediaReadiness.missing.join(', ')}
                         onApprove={(role) => approveSubmissionAs(submission, role)}
                         onReject={() => processSubmissionAction({ submission, action: 'reject' })}
                       />
@@ -1006,6 +1028,7 @@ const AdminFaceVerification = () => {
           {selectedSubmission && (() => {
             const { steps, completed, total, percentage } = getCompletionData(selectedSubmission);
             const colors = getPercentageColor(percentage);
+            const mediaReadiness = getFaceSubmissionMediaReadiness(selectedSubmission);
 
             return (
               <div className="space-y-5">
@@ -1014,6 +1037,8 @@ const AdminFaceVerification = () => {
                     <RoleApproveBar
                       defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
                       processing={processing}
+                      approvalDisabled={!mediaReadiness.ready}
+                      disabledReason={mediaReadiness.missing.join(', ')}
                       onApprove={(role) => approveSubmissionAs(selectedSubmission, role)}
                       onReject={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
                     />
@@ -1232,7 +1257,7 @@ const AdminFaceVerification = () => {
                     <div className="flex gap-3">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        disabled={processing}
+                        disabled={processing || !mediaReadiness.ready}
                         onClick={() => {
                           processSubmissionAction({
                             submission: selectedSubmission,
@@ -1500,6 +1525,8 @@ const AdminFaceVerification = () => {
                   <RoleApproveBar
                     defaultRole={selectedSubmission?.verification_type === 'host' ? 'host' : 'user'}
                     processing={processing}
+                    approvalDisabled={selectedSubmission ? !getFaceSubmissionMediaReadiness(selectedSubmission).ready : true}
+                    disabledReason={selectedSubmission ? getFaceSubmissionMediaReadiness(selectedSubmission).missing.join(', ') : 'No submission selected'}
                     onApprove={(role) => {
                       if (!selectedSubmission) return;
                       processSubmissionAction({

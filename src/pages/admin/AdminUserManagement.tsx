@@ -95,6 +95,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 import { CopyableUid } from "@/components/admin/CopyableUid";
+import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
   if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
@@ -269,6 +270,7 @@ interface FaceVerificationSubmission {
   front_url?: string | null;
   left_url?: string | null;
   right_url?: string | null;
+  ai_analysis?: Record<string, unknown> | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   status_bucket?: 'pending' | 'approved' | 'rejected';
@@ -1008,6 +1010,13 @@ export default function AdminUserManagement() {
     if (!selectedFaceSubmission || actionLoading) return;
 
     const submission = selectedFaceSubmission;
+    if (faceActionType === 'approve') {
+      const readiness = getFaceSubmissionMediaReadiness(submission);
+      if (!readiness.ready) {
+        toast.error(`Cannot approve yet: ${readiness.missing.join(', ')}`);
+        return;
+      }
+    }
     const actionKey = `face-action-${submission.id}-${faceActionType}`;
     if (!startSingleFlight(actionKey)) return;
 
@@ -1065,6 +1074,13 @@ export default function AdminUserManagement() {
     reason?: string,
   ) => {
     if (actionLoading) return;
+    if (action === 'approve') {
+      const readiness = getFaceSubmissionMediaReadiness(submission);
+      if (!readiness.ready) {
+        toast.error(`Cannot approve yet: ${readiness.missing.join(', ')}`);
+        return;
+      }
+    }
     const actionKey = `face-direct-${submission.id}-${action}-${approveAs}`;
     if (!startSingleFlight(actionKey)) return;
 
@@ -2607,7 +2623,9 @@ export default function AdminUserManagement() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredFaceSubmissions.map((submission, index) => (
+                  {filteredFaceSubmissions.map((submission, index) => {
+                    const mediaReadiness = getFaceSubmissionMediaReadiness(submission);
+                    return (
                     <Card 
                       key={submission.id}
                       className="bg-white border-slate-200 overflow-hidden"
@@ -2684,13 +2702,19 @@ export default function AdminUserManagement() {
 
                         <FaceSubmissionMediaBlocks submission={submission} priority={index < 6} />
 
+                        {!mediaReadiness.ready && (
+                          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                            ⚠ Approval locked until evidence is complete: {mediaReadiness.missing.join(', ')}
+                          </div>
+                        )}
+
 
                         {/* Inline Approve/Reject Buttons */}
                         {isFacePendingBucket(submission) && (
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <Button 
                               className="bg-green-500 hover:bg-green-600 text-white"
-                              disabled={actionLoading}
+                              disabled={actionLoading || !mediaReadiness.ready}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 processFaceSubmission(submission, 'approve', submission.verification_type === 'host' ? 'host' : 'user');
@@ -2702,7 +2726,7 @@ export default function AdminUserManagement() {
                             <Button
                               variant="outline"
                               className="border-pink-200 text-pink-600 hover:bg-pink-50"
-                              disabled={actionLoading}
+                              disabled={actionLoading || !mediaReadiness.ready}
                               onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'host'); }}
                             >
                               <Crown className="w-4 h-4 mr-2" />
@@ -2711,7 +2735,7 @@ export default function AdminUserManagement() {
                             <Button
                               variant="outline"
                               className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                              disabled={actionLoading}
+                              disabled={actionLoading || !mediaReadiness.ready}
                               onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'user'); }}
                             >
                               <UserCheck className="w-4 h-4 mr-2" />
@@ -2734,7 +2758,8 @@ export default function AdminUserManagement() {
                         )}
                       </CardContent>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
@@ -3509,6 +3534,14 @@ export default function AdminUserManagement() {
           </DialogHeader>
           {selectedFaceSubmission && (
             <div className="space-y-4">
+              {(() => {
+                const mediaReadiness = getFaceSubmissionMediaReadiness(selectedFaceSubmission);
+                return !mediaReadiness.ready ? (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+                    ⚠ Approval locked until evidence is complete: {mediaReadiness.missing.join(', ')}
+                  </div>
+                ) : null;
+              })()}
               <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/30">
                   <UserAvatarImage gender={((selectedFaceSubmission.profile) as any)?.gender} seed={selectedFaceSubmission.user_id ?? selectedFaceSubmission.id} src={selectedFaceSubmission.profile?.avatar_url} />
@@ -3537,15 +3570,15 @@ export default function AdminUserManagement() {
 
               {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <Button className="bg-green-500 hover:bg-green-600" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
+                  <Button className="bg-green-500 hover:bg-green-600" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
-                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
+                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
                     <Crown className="w-4 h-4 mr-2" />
                     Host
                   </Button>
-                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
+                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
                     <UserCheck className="w-4 h-4 mr-2" />
                     User
                   </Button>
@@ -3596,7 +3629,7 @@ export default function AdminUserManagement() {
             <Button
               className={faceActionType === 'approve' ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}
               onClick={handleFaceAction}
-              disabled={actionLoading}
+              disabled={actionLoading || (faceActionType === 'approve' && selectedFaceSubmission ? !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready : false)}
             >
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : faceActionType === 'approve' ? 'Approve' : 'Reject'}
             </Button>
