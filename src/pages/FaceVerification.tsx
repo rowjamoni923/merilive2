@@ -2295,9 +2295,7 @@ const FaceVerification = () => {
       void (async () => {
         let profilePhotoUrl: string | null = null;
         let videoUrl: string | null = null;
-        let angleUrls: { front_url: string | null; left_url: string | null; right_url: string | null } = {
-          front_url: null, left_url: null, right_url: null,
-        };
+        let angleUrls: { front_url?: string; left_url?: string; right_url?: string } = {};
         let faceVideoFrameUrl: string | null = null;
 
         // 1) Profile photo — independent, must not block other uploads.
