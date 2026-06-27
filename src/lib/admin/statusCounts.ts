@@ -47,7 +47,50 @@ export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
   "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
   "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
+  "needs_retry", "retry_required", "upload_failed", "upload_incomplete",
 ]);
+
+const RETRY_STATUSES = ["needs_retry", "retry_required", "upload_failed", "upload_incomplete"];
+const RETRY_NOTE_MARKERS = ["orphan_media_missing", "orphan submission", "upload incomplete", "upload-incomplete", "upload was incomplete"];
+
+const truthyAnalysisValue = (value: unknown): boolean =>
+  value === true || String(value ?? "").trim().toLowerCase() === "true";
+
+const hasRenderableMedia = (value: unknown): boolean => {
+  const url = String(value || "").trim();
+  return Boolean(url) && !url.startsWith("admin-approved://") && !url.startsWith("pending://");
+};
+
+export function isFaceRetryRequiredRow(
+  row: unknown,
+  status?: string | null,
+  adminNotes?: string | null,
+): boolean {
+  const r = (typeof row === "object" && row !== null ? row : {}) as Record<string, unknown>;
+  const normalized = String(status ?? r.status ?? "").trim().toLowerCase();
+  const notes = String(adminNotes ?? r.admin_notes ?? "").toLowerCase();
+  const analysis = (typeof r.ai_analysis === "object" && r.ai_analysis !== null ? r.ai_analysis : {}) as Record<string, unknown>;
+
+  if (RETRY_STATUSES.includes(normalized)) return true;
+  if (truthyAnalysisValue(analysis.requires_resubmit) || truthyAnalysisValue(analysis.orphan_media)) return true;
+  if (typeof analysis.retry_required === "object" && analysis.retry_required !== null) return true;
+  if (RETRY_NOTE_MARKERS.some((marker) => notes.includes(marker))) return true;
+
+  // Safety net for old rows that were marked rejected before retry metadata was
+  // written: if no evidence exists at all, this is an incomplete upload state,
+  // not a fraud/admin rejection.
+  const hostPhotos = Array.isArray(r.host_photos) ? r.host_photos : [];
+  const allMediaMissing = !hasRenderableMedia(r.profile_photo_url)
+    && !hasRenderableMedia(r.video_url)
+    && !hasRenderableMedia(r.face_image_url)
+    && !hasRenderableMedia(r.front_url)
+    && !hasRenderableMedia(r.selfie_url)
+    && !hostPhotos.some(hasRenderableMedia);
+
+  return bucketOfStatus(normalized) !== "approved"
+    && allMediaMissing
+    && !truthyAnalysisValue(analysis.upload_pending);
+}
 
 /** True when the raw status is a value the bucketing logic explicitly recognizes. */
 export function isKnownStatus(status: string | null | undefined): boolean {
@@ -87,6 +130,8 @@ export function isAutoFaceReview(status: string | null | undefined, adminNotes: 
   const bucket = bucketOfStatus(status);
   const normalized = String(status || "").trim().toLowerCase();
   const notes = String(adminNotes || "").toLowerCase();
+  if (RETRY_STATUSES.includes(normalized)) return false;
+  if (RETRY_NOTE_MARKERS.some((marker) => notes.includes(marker))) return false;
   if (["auto_approved", "auto-approved", "auto_verified", "auto-verified", "auto_rejected", "auto-rejected"].includes(normalized)) {
     return true;
   }
@@ -127,13 +172,14 @@ export function countFaceReviewBuckets<T>(
 
   for (const row of rows) {
     const status = getStatus(row);
-    const bucket = bucketOfStatus(status);
+    const retryRequired = isFaceRetryRequiredRow(row, status, getAdminNotes(row));
+    const bucket = retryRequired ? "pending" : bucketOfStatus(status);
     const explicitAuto = typeof row === "object" && row !== null
       ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
         || String((row as { review_source?: string | null }).review_source || "").toLowerCase() === "auto"
         || String((row as { verification_method?: string | null }).verification_method || "").toLowerCase().startsWith("auto")
       : false;
-    const auto = explicitAuto || isAutoFaceReview(status, getAdminNotes(row));
+    const auto = !retryRequired && (explicitAuto || isAutoFaceReview(status, getAdminNotes(row)));
     const role = typeof row === "object" && row !== null
       ? String((row as { verification_type?: string | null }).verification_type || "").toLowerCase() === "host"
         || Boolean((row as { profile?: { is_host?: boolean | null; gender?: string | null } | null }).profile?.is_host)
