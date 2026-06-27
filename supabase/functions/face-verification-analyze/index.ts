@@ -1244,7 +1244,12 @@ serve(async (req) => {
     const evidenceErrors = Object.fromEntries(evidenceChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
     const optionalEvidenceErrors = Object.fromEntries(optionalChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
     const requiredUrlsPresent = requiredEvidence.every((item) => !!item.url);
-    const hostGalleryComplete = vtForEvidence !== "host" || (
+    const hostGalleryRequired = vtForEvidence === "host";
+    const hostGalleryMissing = hostGalleryRequired && hostPhotos.length < 3;
+    const hostGalleryUnreadable = hostGalleryRequired && hostPhotos.length >= 3 && (
+      hostPhotoScores.length !== 3 || hostPhotoScores.some((s) => typeof s.score !== "number")
+    );
+    const hostGalleryComplete = !hostGalleryRequired || (
       hostPhotos.length === 3 && hostPhotoScores.length === 3 && hostPhotoScores.every((s) => typeof s.score === "number")
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
@@ -1274,6 +1279,8 @@ serve(async (req) => {
       intro_video_frame_fallback: vtForEvidence === "host" ? (!introVideoFrameUrl && !!introVideoEvidenceUrl) : undefined,
       live_face_scan: !!frontUrl,
       host_gallery_complete: hostGalleryComplete,
+      host_gallery_missing: hostGalleryMissing,
+      host_gallery_unreadable: hostGalleryUnreadable,
     };
 
     const evidenceSummary = `, evidence photo/live=${typeof evidenceScores.profile_photo === "number" ? (evidenceScores.profile_photo as number).toFixed(1) + "%" : "n/a"}` +
