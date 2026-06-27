@@ -221,6 +221,27 @@ Patch scope:
 
 ---
 
+# Phase 14 — Face verification auto approve/reject integrity (2026-06-27)
+
+Research / professional standard:
+- Chamet host face verification requires the host to complete live face verification before withdrawal/access; failure patterns include multi-account detection and liveness problems — https://chametagency.id/how-to-complete-chamet-live-face-verification/ and https://news.bittopup.com/news/chamet-face-verification-failed-complete-fix-guide-2026
+- BIGO host verification is identity/admin-review based; submitted media is visible only to admins for review — https://peakentertainmentph.com/how-to-upload-my-id-for-host-verification-in-bigo/
+- AWS Rekognition recommends using liveness/face quality thresholds and choosing confidence thresholds based on risk tolerance; incomplete/low-quality evidence must not be silently approved — https://docs.aws.amazon.com/rekognition/latest/dg/recommendations-liveness.html
+
+Verified current gap:
+- `face_verification_submissions` has no physical `upload_pending` column; upload state lives in `ai_analysis.upload_pending`. Recent rows prove two blank orphan rows were correctly marked, but one row was later `approved` while `ai_analysis.upload_pending=true` and all media columns were NULL.
+- Root cause: `sync_face_submission_from_profile_status()` blindly converts every pending submission to `approved` whenever `profiles.is_face_verified=true` or `face_verification_status in ('approved','verified')`, even if the submission is still upload-pending and has no photo/video/live-test URLs.
+- Secondary gap: `face-verification-analyze` still has an outdated `gender_mismatch` hard auto-reject path even though the owner-approved DB finalizer removed gender mismatch as a reject/hold reason.
+- Trigger/RPC auto-analysis depends on completed upload URLs; blank rows cannot be reconstructed after the browser upload is killed, so the professional behavior is to require resubmission, not fake approval.
+
+Patch scope:
+- Add DB guard so pending submissions cannot become approved unless uploads are complete and at least one real evidence URL exists.
+- Narrow profile→submission sync so it never approves upload-pending/blank submissions.
+- Keep hard auto-reject only for duplicate face / banned identity. Photo-video-live mismatch remains `needs_retry`; missing/unreadable evidence remains manual/resubmit.
+- Preserve admin media visibility by forcing URL persistence before analyzer and by preventing blank approved rows.
+
+---
+
 # Phase 14 — Random-call 402 no-blank-screen fix (2026-06-26)
 
 Research / professional standard:
