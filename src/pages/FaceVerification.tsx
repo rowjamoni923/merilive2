@@ -3512,7 +3512,7 @@ const FaceVerification = () => {
               </Button>
             )}
             
-            {!duplicateInfo && (
+            {!duplicateInfo && !isContactSupportRequired && (
               <Button 
                 variant="outline" 
                 className="w-full border-slate-200 text-slate-600 rounded-2xl py-6 font-semibold bg-white active:scale-95 transition-transform"
