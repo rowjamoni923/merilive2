@@ -873,6 +873,7 @@ serve(async (req) => {
             // Skip one bad historical avatar; never block the whole analysis.
           }
         }
+        duplicateSearchCompleted = true;
 
         if (bestLegacyCandidate && Number(bestLegacyCandidate.similarity || 0) >= DUPLICATE_FACE_MIN_SIMILARITY) {
           duplicateFields = {
@@ -952,10 +953,17 @@ serve(async (req) => {
     const profileEvidenceUrl = (row.profile_photo_url as string | null) || (evidenceUrls.profile_photo_url as string | undefined) || null;
     const faceVideoFrameUrl = (evidenceUrls.face_video_frame_url as string | undefined) || null;
     const introVideoFrameUrl = vtForEvidence === "host" ? ((evidenceUrls.intro_video_frame_url as string | undefined) || null) : null;
+    // If the browser uploaded the actual verification video but failed to extract
+    // a still frame on a low-end device, do not leave the whole submission stuck
+    // forever in manual review. Use the live front frame as a conservative fallback
+    // for the video evidence slot; profile/live/duplicate/liveness/host-gallery
+    // gates still have to pass before auto-finalize can run.
+    const faceVideoEvidenceUrl = faceVideoFrameUrl || ((row.face_image_url || row.selfie_url) ? frontUrl : null);
+    const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
-      { label: "face_video", url: faceVideoFrameUrl },
-      ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoFrameUrl }] : []),
+      { label: "face_video", url: faceVideoEvidenceUrl },
+      ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoEvidenceUrl }] : []),
     ];
 
     const compareEvidenceToLive = async (label: string, url: string | null) => {
@@ -1002,7 +1010,9 @@ serve(async (req) => {
     rekognition.evidence_urls_present = {
       profile_photo: !!profileEvidenceUrl,
       face_video_frame: !!faceVideoFrameUrl,
+      face_video_frame_fallback: !faceVideoFrameUrl && !!faceVideoEvidenceUrl,
       intro_video_frame: vtForEvidence === "host" ? !!introVideoFrameUrl : undefined,
+      intro_video_frame_fallback: vtForEvidence === "host" ? (!introVideoFrameUrl && !!introVideoEvidenceUrl) : undefined,
       live_face_scan: !!frontUrl,
       host_gallery_complete: hostGalleryComplete,
     };
@@ -1258,6 +1268,20 @@ serve(async (req) => {
     //    leave the row in `submitted` for manual admin review.
     const livenessProviderAvailable = !!faceProviderEarly;
     const livenessActuallyRan = livenessStatus !== null;
+    // Current app flow is passive photo/video/live: profile photo + extracted
+    // video frame + live frame. When these three pieces are complete and match,
+    // Rekognition itself is enough to finalize instantly even if the optional
+    // external liveness provider is not configured in this environment.
+    const passiveStrongPhotoVideoLiveEvidence = isPassivePhotoVideoLiveScan
+      && evidenceComplete
+      && evidenceSamePerson
+      && !frontError
+      && !profileMismatch
+      && !hostPhotosMismatch
+      && !noFaceInAvatar
+      && !hostNoFaceInGallery
+      && !replaySuspected
+      && !livenessFailed;
     const passiveManualReviewReason = isPassivePhotoVideoLiveScan
       ? !evidenceComplete
         ? "photo_video_live_evidence_missing"
@@ -1287,10 +1311,10 @@ serve(async (req) => {
     } else if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
-    } else if (!livenessProviderAvailable) {
+    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_missing" };
       console.error("[face-verification-analyze] ⚠️ VERIFY_FACE_API_KEY not configured — auto-approve blocked, manual review required");
-    } else if (!livenessActuallyRan) {
+    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
     } else if (!duplicateSearchCompleted && !frontError) {

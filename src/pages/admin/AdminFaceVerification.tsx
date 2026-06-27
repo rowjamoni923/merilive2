@@ -1502,9 +1502,13 @@ const AdminFaceVerification = () => {
                     processing={processing}
                     onApprove={(role) => {
                       if (!selectedSubmission) return;
-                      setApproveAs(role);
-                      setApproveGender(role === 'host' ? 'female' : 'male');
-                      handleAction();
+                      processSubmissionAction({
+                        submission: selectedSubmission,
+                        action: 'approve',
+                        approveAs: role,
+                        setGender: role === 'host' ? 'female' : 'male',
+                        reason: actionReason,
+                      });
                     }}
                   />
                   <button

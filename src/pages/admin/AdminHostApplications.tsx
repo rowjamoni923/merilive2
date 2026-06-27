@@ -118,7 +118,7 @@ export default function AdminHostApplications() {
     fetchPendingHostsWithoutSubmission();
   }, [currentPage, filterStatus, debouncedSearch]);
 
-  useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
+  useAdminRealtime(['face_verification_submissions', 'profiles', 'host_applications'], () => {
     invalidateStatusCountsCache('face_verification_submissions');
     fetchApplications();
     fetchStatusCounts(true);

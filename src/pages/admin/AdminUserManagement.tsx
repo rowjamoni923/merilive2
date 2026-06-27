@@ -265,6 +265,10 @@ interface FaceVerificationSubmission {
   video_url: string | null;
   host_photos: string[] | null;
   face_image_url: string | null;
+  selfie_url?: string | null;
+  front_url?: string | null;
+  left_url?: string | null;
+  right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   status_bucket?: 'pending' | 'approved' | 'rejected';
@@ -869,8 +873,9 @@ export default function AdminUserManagement() {
 
   const handleApproveApplication = async () => {
     if (!selectedApplication || actionLoading) return;
+    const applicationId = selectedApplication.id;
 
-    const actionKey = `approve-app-${selectedApplication.id}`;
+    const actionKey = `approve-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
     setActionLoading(true);
@@ -886,6 +891,7 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application approval failed');
 
       toast.success("Application approved!");
+      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
       setShowAppDetailDialog(false);
       setAdminNotes("");
       fetchApplications();
@@ -903,8 +909,9 @@ export default function AdminUserManagement() {
       if (!rejectionReason.trim()) toast.error("Please enter rejection reason");
       return;
     }
+    const applicationId = selectedApplication.id;
 
-    const actionKey = `reject-app-${selectedApplication.id}`;
+    const actionKey = `reject-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
     setActionLoading(true);
@@ -920,6 +927,7 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application rejection failed');
 
       toast.success("Application rejected");
+      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
       setShowRejectDialog(false);
       setShowAppDetailDialog(false);
       setRejectionReason("");

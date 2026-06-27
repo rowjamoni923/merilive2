@@ -779,30 +779,46 @@ const FaceVerification = () => {
   const captureFrameFromVideo = (videoBlob: Blob, size = 640): Promise<string> => {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
+      let settled = false;
+      const cleanup = () => URL.revokeObjectURL(video.src);
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        try {
+          const canvas = document.createElement('canvas');
+          const aspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 1;
+          canvas.width = size;
+          canvas.height = Math.round(size / aspect);
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          cleanup();
+          resolve(dataUrl.split(',')[1]);
+        } catch (err) {
+          cleanup();
+          reject(err);
+        }
+      };
       video.src = URL.createObjectURL(videoBlob);
       video.muted = true;
+      video.playsInline = true;
       
-      video.onloadeddata = () => {
-        video.currentTime = 1; // Get frame at 1 second
+      video.onloadedmetadata = () => {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const targetTime = duration > 0 ? Math.min(1, Math.max(0, duration * 0.45)) : 0;
+        try {
+          video.currentTime = targetTime;
+          window.setTimeout(finish, 900);
+        } catch {
+          finish();
+        }
       };
       
-      video.onseeked = () => {
-        const canvas = document.createElement('canvas');
-        const aspect = video.videoWidth / video.videoHeight;
-        canvas.width = size;
-        canvas.height = Math.round(size / aspect);
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Get base64 without the data:image prefix
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        const base64 = dataUrl.split(',')[1];
-        URL.revokeObjectURL(video.src);
-        resolve(base64);
-      };
+      video.onseeked = finish;
+      video.onloadeddata = () => { if (!Number.isFinite(video.duration) || video.duration <= 0) finish(); };
       
       video.onerror = () => {
-        URL.revokeObjectURL(video.src);
+        cleanup();
         reject(new Error('Failed to load video for frame capture'));
       };
       
@@ -2009,7 +2025,7 @@ const FaceVerification = () => {
     return signed.signedUrl;
   };
 
-  const lockUnderReviewAndReturn = (description: string, submissionId?: string) => {
+  const lockUnderReviewAndReturn = (description: string, submissionId?: string, redirect = true) => {
     postSubmitLockedRef.current = true;
     try {
       sessionStorage.setItem('meri_face_verification_recent_submission', JSON.stringify({
@@ -2027,7 +2043,7 @@ const FaceVerification = () => {
       title: '✅ Under Review',
       description,
     });
-    scheduleProfileRedirect();
+    if (redirect) scheduleProfileRedirect();
   };
 
   const completeSubmissionUploadsViaRpc = async (submissionId: string, payload: Record<string, unknown>) => {
@@ -2035,7 +2051,24 @@ const FaceVerification = () => {
       _submission_id: submissionId,
       _payload: payload,
     });
-    if (error) throw error;
+    if (!error) return;
+
+    // Safety fallback: if the RPC/schema cache is temporarily stale, never leave
+    // admin panels blank or the auto-review sweeper blocked on upload_pending=true.
+    const patch: Record<string, unknown> = {
+      ...payload,
+      ai_analysis: {
+        ...((payload.ai_analysis as Record<string, unknown> | undefined) || {}),
+        upload_pending: false,
+      },
+      updated_at: new Date().toISOString(),
+    };
+    const { error: updateError } = await supabase
+      .from('face_verification_submissions')
+      .update(patch)
+      .eq('id', submissionId)
+      .eq('user_id', userId);
+    if (updateError) throw error;
   };
 
   const recoverPendingSubmissionAfterError = async () => {
@@ -2058,13 +2091,14 @@ const FaceVerification = () => {
     }
   };
 
-  const invokeFaceVerificationAnalyze = (submissionId: string) => {
-    void supabase.functions.invoke('face-verification-analyze', {
-      body: { submissionId },
-    }).then(({ data, error }) => {
+  const invokeFaceVerificationAnalyze = async (submissionId: string): Promise<'approved' | 'rejected' | 'retry' | 'manual' | 'error'> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
+        body: { submissionId },
+      });
       if (error) {
         console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', error);
-        return;
+        return 'error';
       }
 
       const payload: any = data || {};
@@ -2077,6 +2111,7 @@ const FaceVerification = () => {
       // Mirror it locally INSTANTLY (don't wait for Realtime) so user sees
       // approve / reject / retry the moment AWS pipeline returns.
       setSubmitInProgress(false);
+      setLoading(false);
 
       if (approved) {
         try { sessionStorage.removeItem('meri_face_verification_recent_submission'); } catch {}
@@ -2086,7 +2121,7 @@ const FaceVerification = () => {
         toast({ title: '✅ Face verification approved', description: 'You are verified. Redirecting…' });
         if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
         setTimeout(() => navigate('/profile', { replace: true }), 700);
-        return;
+        return 'approved';
       }
 
       if (blocker) {
@@ -2098,7 +2133,7 @@ const FaceVerification = () => {
         setRetryRequired(null);
         // Keep user here so they can read the reason (duplicate info, gender, etc.).
         navigate('/face-verification', { replace: true });
-        return;
+        return 'rejected';
       }
 
       if (retryRequiredPayload) {
@@ -2114,11 +2149,14 @@ const FaceVerification = () => {
           variant: 'destructive',
         });
         navigate('/face-verification', { replace: true });
+        return 'retry';
       }
       // else: manual review — leave Under Review badge as-is, admin will decide.
-    }).catch((err) => {
+      return 'manual';
+    } catch (err) {
       console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
-    });
+      return 'error';
+    }
   };
 
   // Convert dataURL → Blob for storage upload
@@ -2241,8 +2279,8 @@ const FaceVerification = () => {
     void teardownFaceCameraPreview().catch((e) => console.warn('[FaceVerification] camera teardown after submit failed', e));
     
     try {
-      // Save Basic Information immediately; media is uploaded in the background after
-      // the under_review row is created, so the user returns to Profile at once.
+      // Save Basic Information immediately; keep this screen alive until core media is uploaded
+      // and the AI approve/reject/retry result returns, so admin pages never receive empty media.
       {
         const profilePatch: Record<string, unknown> = {
           display_name: fullName.trim(),
@@ -2290,9 +2328,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
       const submissionId = submissionData.id as string;
-      lockUnderReviewAndReturn('Your verification is now under review. Returning to profile…', submissionId);
+      lockUnderReviewAndReturn('Your verification is being checked now…', submissionId, false);
 
-      void (async () => {
+      await (async () => {
         let profilePhotoUrl: string | null = null;
         let videoUrl: string | null = null;
         let angleUrls: { front_url?: string; left_url?: string; right_url?: string } = {};
@@ -2392,10 +2430,12 @@ const FaceVerification = () => {
           recordClientError({ label: 'FaceVerification.completeUploadsRpc', message: rpcErr?.message || String(rpcErr) });
         }
 
-        // Only kick AI analyze when the core media is present.
+        // Run AI before leaving this screen so approve/reject/retry is instant.
         if (videoUrl && (angleUrls.front_url || selfieUrl)) {
-          invokeFaceVerificationAnalyze(submissionId);
+          const result = await invokeFaceVerificationAnalyze(submissionId);
+          if (result !== 'manual' && result !== 'error') return;
         }
+        scheduleProfileRedirect();
       })();
 
       return;
@@ -2581,9 +2621,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
       const submissionId = submissionData.id as string;
-      lockUnderReviewAndReturn('Your host application is now under review. Returning to profile…', submissionId);
+      lockUnderReviewAndReturn('Your host application is being checked now…', submissionId, false);
 
-      void (async () => {
+      await (async () => {
         let profilePhotoUrl: string | null = null;
         let introVideoUrl: string | null = null;
         let faceVideoUrl: string | null = null;
@@ -2703,10 +2743,12 @@ const FaceVerification = () => {
           recordClientError({ label: 'FaceVerification.hostCompleteUploadsRpc', message: rpcErr?.message || String(rpcErr) });
         }
 
-        // Trigger AI only if at least face video + one live-scan/face source is present.
+        // Run AI before leaving this screen so approve/reject/retry is instant.
         if (faceVideoUrl && (angleUrls.front_url || selfieUrl)) {
-          invokeFaceVerificationAnalyze(submissionId);
+          const result = await invokeFaceVerificationAnalyze(submissionId);
+          if (result !== 'manual' && result !== 'error') return;
         }
+        scheduleProfileRedirect();
       })();
 
       return;
