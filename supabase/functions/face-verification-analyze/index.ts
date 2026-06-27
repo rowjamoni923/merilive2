@@ -1486,7 +1486,7 @@ serve(async (req) => {
         .from("profiles")
         .update({
           is_face_verified: false,
-          face_verification_status: "pending_face",
+          face_verification_status: "needs_retry",
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -1705,7 +1705,7 @@ serve(async (req) => {
         .from("profiles")
         .update({
           is_face_verified: false,
-          face_verification_status: "pending_face",
+          face_verification_status: "needs_retry",
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
