@@ -12,6 +12,13 @@ import {
   providerIndexFace,
   providerVerifyFace,
 } from "../_shared/externalVerify.ts";
+import { decode as decodeImage, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+
+// Rekognition hard limit is 5 MiB on Image.Bytes (base64 over the wire is
+// ~33% larger, but the limit is on raw bytes). Stay safely under so multiple
+// images held in memory don't trip the 256MB function memory cap either.
+const MAX_REK_BYTES = 4_500_000;
+const MAX_REK_DIMENSION = 1600;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
