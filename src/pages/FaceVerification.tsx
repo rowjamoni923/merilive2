@@ -139,7 +139,9 @@ const getLocalizedMessages = (_countryName?: string) => ({
 });
 
 const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
+const photoPreviewFrameClass = "relative mx-auto w-full max-w-[320px] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
 const photoImageClass = "absolute inset-0 h-full w-full object-contain object-center bg-slate-950";
+const photoPreviewImageClass = "block w-full h-auto max-h-[70vh] object-contain bg-slate-950";
 const photoOverlayClass = "hidden";
 const photoGuideClass = "hidden";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
@@ -3758,10 +3760,8 @@ const FaceVerification = () => {
               {userPhotoPreview ? (
                 <div className="space-y-5">
                   <div>
-                    <div className={photoFrameClass}>
-                      <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className={photoImageClass} />
-                      <div className={photoOverlayClass} />
-                      <div className={photoGuideClass} />
+                    <div className={photoPreviewFrameClass}>
+                      <img loading="lazy" decoding="async" src={userPhotoPreview} alt="Profile" className={photoPreviewImageClass} />
                     </div>
                     <div className={photoFrameStatusClass}>Face centered in frame</div>
                   </div>
