@@ -471,8 +471,16 @@ serve(async (req) => {
     // (see migration 20260625075339). 'submitted' and 'pending' are kept
     // for legacy/admin-rerun paths. All three are "ready for AI analysis".
     if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry") {
-      return new Response(JSON.stringify({ error: "Submission not analyzable", status: row.status }), {
-        status: 400,
+      // Row already finalized (approved/rejected/expired) — treat re-invocations
+      // (realtime fallback, admin reruns, double-submits) as a successful no-op
+      // instead of a 400 that surfaces as a runtime error in the client.
+      return new Response(JSON.stringify({
+        ok: true,
+        already_finalized: true,
+        status: row.status,
+        decision: row.status,
+      }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
