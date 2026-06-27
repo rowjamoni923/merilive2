@@ -165,62 +165,88 @@ GRANT EXECUTE ON FUNCTION public.face_verification_is_auto_reviewed(text,text,te
 GRANT EXECUTE ON FUNCTION public.tg_sync_profile_on_face_verification_status() TO service_role;
 GRANT EXECUTE ON FUNCTION public.sync_face_submission_from_profile_status() TO anon, authenticated, service_role;
 
-SELECT set_config('app.bypass_terminal_status_guard', 'true', true);
-SELECT set_config('app.bypass_profile_protection', 'true', true);
+CREATE OR REPLACE FUNCTION public.repair_incomplete_face_upload_rejections()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_count integer := 0;
+BEGIN
+  PERFORM set_config('app.bypass_terminal_status_guard', 'true', true);
+  PERFORM set_config('app.bypass_profile_protection', 'true', true);
 
-WITH repaired AS (
-  UPDATE public.face_verification_submissions s
-     SET status = 'needs_retry',
-         reviewed_at = NULL,
-         rejection_reason = NULL,
-         admin_notes = concat_ws(E'\n', NULLIF(trim(coalesce(s.admin_notes, '')), ''), '[system-fix 20260627061500] Upload incomplete; retry required, not rejected.'),
-         ai_analysis = jsonb_strip_nulls(
-           COALESCE(s.ai_analysis, '{}'::jsonb)
-           || jsonb_build_object(
-                'upload_pending', false,
-                'orphan_media', true,
-                'requires_resubmit', true,
-                'status_corrected_from_rejected', true,
-                'retry_required', jsonb_build_object(
-                  'kind', 'upload_incomplete',
-                  'headline', 'Upload incomplete',
-                  'summary', 'Photo/video/live scan did not finish uploading. User must submit again.',
-                  'steps', jsonb_build_array('Profile photo', 'Verification video', 'Live face scan')
+  CREATE TEMP TABLE IF NOT EXISTS pg_temp.repaired_incomplete_face_upload_users(user_id uuid PRIMARY KEY) ON COMMIT DROP;
+  TRUNCATE pg_temp.repaired_incomplete_face_upload_users;
+
+  WITH repaired AS (
+    UPDATE public.face_verification_submissions s
+       SET status = 'needs_retry',
+           reviewed_at = NULL,
+           rejection_reason = NULL,
+           admin_notes = concat_ws(E'\n', NULLIF(trim(coalesce(s.admin_notes, '')), ''), '[system-fix 20260627061500] Upload incomplete; retry required, not rejected.'),
+           ai_analysis = jsonb_strip_nulls(
+             (COALESCE(s.ai_analysis, '{}'::jsonb) - 'auto_rejected_reason')
+             || jsonb_build_object(
+                  'upload_pending', false,
+                  'orphan_media', true,
+                  'requires_resubmit', true,
+                  'status_corrected_from_rejected', true,
+                  'retry_required', jsonb_build_object(
+                    'kind', 'upload_incomplete',
+                    'headline', 'Upload incomplete',
+                    'summary', 'Photo/video/live scan did not finish uploading. User must submit again.',
+                    'steps', jsonb_build_array('Profile photo', 'Verification video', 'Live face scan')
+                  )
                 )
-              )
-           - 'auto_rejected_reason'
-         ),
+           ),
+           updated_at = now()
+     WHERE lower(trim(coalesce(s.status, ''))) = 'rejected'
+       AND (
+         COALESCE(s.ai_analysis->>'auto_rejected_reason', '') = 'orphan_media_missing'
+         OR COALESCE((s.ai_analysis->>'orphan_media')::boolean, false) = true
+         OR COALESCE((s.ai_analysis->>'requires_resubmit')::boolean, false) = true
+         OR lower(coalesce(s.rejection_reason, '')) LIKE '%upload was incomplete%'
+         OR lower(coalesce(s.admin_notes, '')) LIKE '%orphan submission%'
+         OR lower(coalesce(s.admin_notes, '')) LIKE '%upload-incomplete%'
+       )
+       AND (
+         s.profile_photo_url IS NULL
+         AND s.video_url IS NULL
+         AND s.face_image_url IS NULL
+         AND s.front_url IS NULL
+         AND s.selfie_url IS NULL
+         AND COALESCE(array_length(s.host_photos, 1), 0) = 0
+       )
+     RETURNING s.user_id
+  )
+  INSERT INTO pg_temp.repaired_incomplete_face_upload_users(user_id)
+  SELECT DISTINCT user_id FROM repaired
+  ON CONFLICT DO NOTHING;
+
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+
+  UPDATE public.profiles p
+     SET is_face_verified = false,
+         face_verification_status = 'needs_retry',
+         face_verification_image = NULL,
+         face_verified_at = NULL,
          updated_at = now()
-   WHERE lower(trim(coalesce(s.status, ''))) = 'rejected'
-     AND (
-       COALESCE(s.ai_analysis->>'auto_rejected_reason', '') = 'orphan_media_missing'
-       OR COALESCE((s.ai_analysis->>'orphan_media')::boolean, false) = true
-       OR COALESCE((s.ai_analysis->>'requires_resubmit')::boolean, false) = true
-       OR lower(coalesce(s.rejection_reason, '')) LIKE '%upload was incomplete%'
-       OR lower(coalesce(s.admin_notes, '')) LIKE '%orphan submission%'
-       OR lower(coalesce(s.admin_notes, '')) LIKE '%upload-incomplete%'
-     )
-     AND (
-       s.profile_photo_url IS NULL
-       AND s.video_url IS NULL
-       AND s.face_image_url IS NULL
-       AND s.front_url IS NULL
-       AND s.selfie_url IS NULL
-       AND COALESCE(array_length(s.host_photos, 1), 0) = 0
-     )
-   RETURNING s.user_id
-)
-UPDATE public.profiles p
-   SET is_face_verified = false,
-       face_verification_status = 'needs_retry',
-       face_verification_image = NULL,
-       face_verified_at = NULL,
-       updated_at = now()
-  FROM repaired r
- WHERE p.id = r.user_id
-   AND NOT EXISTS (
-     SELECT 1
-     FROM public.face_verification_submissions ok
-     WHERE ok.user_id = p.id
-       AND public.face_verification_status_bucket(ok.status) = 'approved'
-   );
+    FROM pg_temp.repaired_incomplete_face_upload_users r
+   WHERE p.id = r.user_id
+     AND NOT EXISTS (
+       SELECT 1
+       FROM public.face_verification_submissions ok
+       WHERE ok.user_id = p.id
+         AND public.face_verification_status_bucket(ok.status) = 'approved'
+     );
+
+  RETURN v_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.repair_incomplete_face_upload_rejections() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.repair_incomplete_face_upload_rejections() TO service_role;
+
+SELECT public.repair_incomplete_face_upload_rejections();
