@@ -242,6 +242,25 @@ Patch scope:
 
 ---
 
+# Phase 16 — Face verification under-review auto-finalize unblock (2026-06-27)
+
+Research / professional standard:
+- AWS Rekognition Face Liveness guidance says users must capture in good lighting and apps should select confidence thresholds based on risk; unreadable/blank evidence should become a retry, not stay pending forever — https://docs.aws.amazon.com/rekognition/latest/dg/recommendations-liveness.html
+- AWS Rekognition Face Liveness verifies the user is physically present and detects spoof attacks from a short video selfie with prompts — https://docs.aws.amazon.com/rekognition/latest/dg/face-liveness.html
+- Professional live/social/KYC flows finalize every submission into one of three visible states: approved, rejected for hard fraud/account mismatch, or retry for unreadable/missing evidence. They do not leave a new user indefinitely under review after media is uploaded.
+
+Verified current gap:
+- `pg_net` background calls to `face-verification-analyze` were returning 401 before reaching function logs because the DB enqueue request did not include a Bearer Authorization header and the function config had no explicit `verify_jwt=false` entry.
+- One current `under_review` row has `upload_pending=true` and no media URLs. That cannot be auto-approved or analyzed; it must be converted to a clear retry so the user is not stuck.
+- Rows with media and `upload_pending=false` need immediate re-enqueue; rows without media need immediate retry notification.
+
+Patch scope:
+- Mark `face-verification-analyze` as an internal-auth edge function (`verify_jwt=false`) while preserving in-code JWT/cron-secret validation.
+- Harden `_enqueue_face_analyze` to include both `apikey` and `Authorization: Bearer <anon>` plus `x-cron-secret`, so DB-triggered analysis reaches the function reliably.
+- Upgrade stuck-submission healing: media-complete rows are re-analyzed; blank/upload-pending rows become `needs_retry` with English in-app notification instead of staying under review.
+
+---
+
 # Phase 14 — Random-call 402 no-blank-screen fix (2026-06-26)
 
 Research / professional standard:

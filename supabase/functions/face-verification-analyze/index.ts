@@ -1868,8 +1868,12 @@ serve(async (req) => {
           metadata: { submission_id: submissionId, source: "merilive_main_app", indexed_after_gates_passed: true },
         });
         if (!faceIndexedForFutureDuplicate) {
-          autoResult = { success: false, reason: "face_index_failed" };
-          console.error("[face-verification-analyze] ⚠️ face index failed — auto-approve blocked so future duplicate detection remains safe");
+          // Never keep a clean, new verification stuck in Under Review only
+          // because the future duplicate-index write failed. The current
+          // submission has already passed the duplicate/gender/evidence gates;
+          // indexing is a background protection for future accounts, not a
+          // blocker for this valid user.
+          console.error("[face-verification-analyze] ⚠️ face index failed — continuing auto-finalize; future sweeps can re-index this approved face");
         }
       }
     }
@@ -1904,8 +1908,11 @@ serve(async (req) => {
     }
 
 
-    // If auto-approve cannot safely fire for a non-fraud reason, leave the row
-    // in Pending/Under Review so admin sees it and reviews manually.
+    // If auto-approve cannot safely fire for a non-fraud reason, never leave
+    // the user frozen in Pending/Under Review. Owner policy: valid new faces
+    // auto-approve instantly; duplicate/gender mismatch hard-reject instantly;
+    // blurry/multiple-face/missing/uncertain evidence gets a clear English
+    // retry notification instantly.
     const autoReason = String(autoResult?.reason || "");
     if (!autoResult?.success) {
       const softFlags: string[] = [];
@@ -1952,15 +1959,66 @@ serve(async (req) => {
 
 
       const flagsLine = softFlags.length ? `\n[soft-flags] ${softFlags.join(", ")}` : "";
+      const retrySteps = Array.from(new Set([
+        (!evidenceComplete || frontError || details.length !== 1 || autoReason === "invalid_face_count") ? "live_face_scan" : null,
+        (profileMismatch || noFaceInAvatar || autoReason === "profile_face_mismatch" || autoReason === "photo_video_live_identity_review") ? "photo" : null,
+        (hostPhotosMismatch || hostNoFaceInGallery || autoReason === "host_photos_mismatch") ? "host_gallery" : null,
+      ].filter(Boolean))) as string[];
+      const normalizedRetrySteps = retrySteps.length ? retrySteps : ["photo", "live_face_scan"];
+      const retryRequired = {
+        kind: "auto_review_retry" as const,
+        verification_type: vtForEvidence,
+        reason: autoReason || "ai_uncertain",
+        steps: normalizedRetrySteps,
+        headline: "Please retry face verification.",
+        summary: "Your account is NOT rejected. We could not safely approve this scan automatically, so please retake the required photo/live scan in good light with only your face visible.",
+        failed_evidence: normalizedRetrySteps.map((step) => ({
+          label: step,
+          human_name: step === "host_gallery" ? "Host Profile Photos" : step === "photo" ? "Profile Photo" : "Live Face Scan",
+          step,
+          score: null,
+          message: step === "host_gallery"
+            ? "Please upload 3 clear host profile photos where your face is visible."
+            : step === "photo"
+              ? "Please upload a clear profile photo that shows only your face."
+              : "Please retake the live face scan in good light with only your face in the frame.",
+        })),
+      };
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          // status stays pending/submitted — admin Pending tab will show it.
-          admin_notes: `${summary}${evidenceSummary}\n[manual-review] ${reviewReason}${flagsLine}`,
+          status: "needs_retry",
+          rejection_reason: null,
+          reviewed_at: null,
+          ai_analysis: duplicateBlock
+            ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+            : { ...existingAnalysis, rekognition, retry_required: retryRequired },
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] ${reviewReason}${flagsLine}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .in("status", ["submitted", "pending", "under_review"]);
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      const alreadyApprovedForFallbackRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
+      try {
+        if (!alreadyApprovedForFallbackRetry) {
+          await supabaseAdmin.from("notifications").insert({
+            user_id: userId,
+            type: "face_verification_retry",
+            title: "Verification Needs Retry",
+            message: "We could not safely approve this scan automatically. Please retry with a clear photo and live face scan in good light.",
+            data: {
+              action_url: "/face-verification",
+              reason: autoReason || "ai_uncertain",
+              steps: normalizedRetrySteps,
+              submission_id: submissionId,
+            },
+            is_read: false,
+          });
+        }
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] fallback retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
     }
 
     return new Response(
