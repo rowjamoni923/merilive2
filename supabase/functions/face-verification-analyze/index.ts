@@ -566,11 +566,70 @@ serve(async (req) => {
       catch (e) { console.warn("[face-verification-analyze] right image fetch skipped:", e instanceof Error ? e.message : e); }
     }
 
-    const [det, leftDet, rightDet] = await Promise.all([
-      detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
-      leftBytes ? detectFaces(leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
-      rightBytes ? detectFaces(rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
-    ]);
+    // Run detections sequentially to keep peak memory below the 256MB cap
+    // (large base64 payloads were exploding when ran in parallel). Each one
+    // is tolerant: a failure on a side angle should not abort the front pass.
+    const safeDetect = async (b: Uint8Array | null) => {
+      if (!b) return { FaceDetails: [] } as Record<string, unknown>;
+      try {
+        return await detectFaces(b, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+      } catch (e) {
+        console.warn("[face-verification-analyze] detectFaces side error:", e instanceof Error ? e.message : e);
+        return { FaceDetails: [], _detect_error: e instanceof Error ? e.message : String(e) } as Record<string, unknown>;
+      }
+    };
+    let det: Record<string, unknown>;
+    try {
+      det = await detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+    } catch (frontErr) {
+      const msg = frontErr instanceof Error ? frontErr.message : "detect_failed";
+      console.error("[face-verification-analyze] front detect failed:", msg);
+      const { data: existingRow } = await supabaseAdmin
+        .from("face_verification_submissions")
+        .select("ai_analysis")
+        .eq("id", submissionId)
+        .maybeSingle();
+      const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: {
+            ...existingAnalysis,
+            rekognition: { version: 1, front_detect_error: msg },
+            requires_resubmit: true,
+            retry_required: {
+              kind: "evidence_quality",
+              verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
+              failed_evidence: [{ label: "live_face_scan", human_name: "Live Face Scan", step: "live_face_scan", score: null, message: "Our scanner could not read your live face image. Please retake the live face scan in good light, holding still, with only your face in frame." }],
+              steps: ["live_face_scan"],
+              headline: "Live face scan unreadable",
+              summary: "Your account is NOT rejected. Please retake the live face scan in better lighting with a steady camera.",
+            },
+          },
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `[needs_retry] front detect failed: ${msg}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+      try {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: row.user_id,
+          type: "face_verification_retry",
+          title: "Face Verification — Please Retry",
+          body: "We could not read your live face scan. Please retake it in good light, holding the phone steady, with only your face in frame.",
+          data: { route: "/face-verification", reason: "live_scan_unreadable" },
+        });
+      } catch (_e) { /* best-effort */ }
+      return new Response(JSON.stringify({ ok: true, autoFinalize: { success: false, reason: "live_scan_unreadable" }, retry_required: true, error: msg }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const leftDet = await safeDetect(leftBytes);
+    const rightDet = await safeDetect(rightBytes);
     const details = (det.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
     const leftDetails = (leftDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
     const rightDetails = (rightDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
