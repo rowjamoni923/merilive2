@@ -31,21 +31,32 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
     setSaving(true);
     try {
       const deviceId = localStorage.getItem("meri_device_id");
-      
-      const updateData: Record<string, unknown> = { 
-        display_name: displayName.trim(),
-        gender: selectedGender,
-        ...(deviceId && { device_id: deviceId }),
-      };
-      
+
+      // Update profile basics first (no device_id here — the trigger blocks
+      // direct device_id writes once a value is present elsewhere).
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({
+          display_name: displayName.trim(),
+          gender: selectedGender,
+        })
         .eq('id', userId);
 
       if (error) {
         console.error('[GenderSelection] update error:', error);
         throw error;
+      }
+
+      // Claim the current device_id via SECURITY DEFINER RPC. This atomically
+      // releases the device from any other (stale) profile and assigns it to
+      // the current user, avoiding the unique-constraint collision.
+      if (deviceId) {
+        const { error: claimError } = await supabase.rpc('claim_device_id', {
+          p_device_id: deviceId,
+        });
+        if (claimError) {
+          console.warn('[GenderSelection] claim_device_id failed (non-fatal):', claimError);
+        }
       }
 
       localStorage.setItem(`gender_selected_${userId}`, 'true');
