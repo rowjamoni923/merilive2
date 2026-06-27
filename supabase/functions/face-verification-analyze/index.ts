@@ -198,6 +198,27 @@ async function fetchImageBytes(
   const parsed = parseStorageUrl(url);
   let bytes: Uint8Array;
   if (parsed) {
+    // PRIMARY PATH (zero edge-function CPU): use Supabase Storage's image
+    // transformation pipeline to downscale + re-encode JPEG server-side.
+    // This is what was causing the "CPU Time exceeded" errors that left
+    // submissions stuck on "under_review" — imagescript decode/encode in
+    // Deno blew the per-request CPU budget. Storage transforms run on
+    // Supabase's image proxy at no cost to us.
+    try {
+      const { data, error } = await supabaseAdmin.storage
+        .from(parsed.bucket)
+        .download(parsed.path, {
+          transform: { width: 1280, quality: 80, resize: "contain" },
+        });
+      if (!error && data) {
+        const transformed = new Uint8Array(await data.arrayBuffer());
+        if (transformed.length > 0 && transformed.length <= MAX_REK_BYTES) {
+          return transformed;
+        }
+      }
+    } catch (_transformErr) {
+      // fall through to raw download + local normalize
+    }
     const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
     if (error || !data) throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
     bytes = new Uint8Array(await data.arrayBuffer());
@@ -206,8 +227,12 @@ async function fetchImageBytes(
     if (!res.ok) throw new Error(`fetch image ${res.status}`);
     bytes = new Uint8Array(await res.arrayBuffer());
   }
-  // Always normalize: downscale + re-encode JPEG so Rekognition never sees
-  // >5 MiB payloads or HEIC/WebP that it rejects as InvalidImageFormat.
+  // Fallback: small JPEG/PNG ship as-is; otherwise local normalize.
+  if (bytes.length <= MAX_REK_BYTES) {
+    const isJpeg = bytes.length >= 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+    const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+    if (isJpeg || isPng) return bytes;
+  }
   return await normalizeImageBytes(bytes);
 }
 
