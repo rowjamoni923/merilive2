@@ -296,6 +296,7 @@ const FaceVerification = () => {
   const faceCameraFrameRef = useRef<HTMLDivElement>(null);
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
+  const faceVerificationVideoRef = useRef<Blob | null>(null);
   const usingNativeFaceCameraRef = useRef(false);
   const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
@@ -303,6 +304,11 @@ const FaceVerification = () => {
   const verifyInProgressRef = useRef(false);
   const postSubmitLockedRef = useRef(false);
   const profileRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setFaceVerificationVideoSafe = useCallback((blob: Blob | null) => {
+    faceVerificationVideoRef.current = blob;
+    setFaceVerificationVideo(blob);
+  }, []);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
