@@ -1161,6 +1161,10 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "gender_mismatch") {
+        const expectedLabel = expectedGender === "female" ? "Host (female)" : "User (male)";
+        const detectedLabel = rawG === "female" ? "female" : rawG === "male" ? "male" : "unknown";
+        rReason = `Your account type is ${expectedLabel} but our AI detected a ${detectedLabel} face (confidence ${genderConf.toFixed(1)}%). Please create the correct account type or contact Support Chat if you believe this is an error.`;
       }
 
       await supabaseAdmin
