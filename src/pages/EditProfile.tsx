@@ -315,8 +315,10 @@ const EditProfile = () => {
     } catch (error) {
       console.error("Upload error:", error);
       recordClientError({ label: "EditProfile.fileName", message: error instanceof Error ? error.message : String(error) });
-      sonnerToast.error("Upload failed");
+      const msg = error instanceof Error ? error.message : String(error);
+      sonnerToast.error(msg ? `Upload failed: ${msg}` : "Upload failed");
     } finally {
+
       setUploading(false);
     }
   };
