@@ -195,20 +195,67 @@ async function fetchImageBytes(
   url: string,
   supabaseAdmin: ReturnType<typeof createClient>,
 ): Promise<Uint8Array> {
-  // Prefer service-role storage download when this is a Supabase storage URL
-  // (the face-verification bucket is private — public fetch would 400).
   const parsed = parseStorageUrl(url);
+  let bytes: Uint8Array;
   if (parsed) {
     const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
     if (error || !data) throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    bytes = new Uint8Array(await data.arrayBuffer());
+  } else {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`fetch image ${res.status}`);
+    bytes = new Uint8Array(await res.arrayBuffer());
   }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`fetch image ${res.status}`);
-  return new Uint8Array(await res.arrayBuffer());
+  // Always normalize: downscale + re-encode JPEG so Rekognition never sees
+  // >5 MiB payloads or HEIC/WebP that it rejects as InvalidImageFormat.
+  return await normalizeImageBytes(bytes);
 }
 
-serve(async (req) => {
+/**
+ * Decode any common image format, downscale if larger than MAX_REK_DIMENSION,
+ * and re-encode as JPEG so the resulting bytes always fit Rekognition's
+ * 5 MiB cap and are always a supported format. Falls back to the original
+ * bytes if they are already small + decodable as JPEG/PNG (cheapest path).
+ */
+async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  // Fast path: small JPEG/PNG, ship as-is.
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+  if ((isJpeg || isPng) && bytes.length <= MAX_REK_BYTES) {
+    return bytes;
+  }
+  try {
+    const img = await decodeImage(bytes);
+    if (!(img instanceof Image)) {
+      throw new Error("decoded_non_image");
+    }
+    const longest = Math.max(img.width, img.height);
+    if (longest > MAX_REK_DIMENSION) {
+      const scale = MAX_REK_DIMENSION / longest;
+      img.resize(Math.max(1, Math.round(img.width * scale)), Math.max(1, Math.round(img.height * scale)));
+    }
+    // Step down quality until under cap.
+    for (const q of [85, 75, 65, 55, 45]) {
+      const out = await img.encodeJPEG(q);
+      if (out.length <= MAX_REK_BYTES) return new Uint8Array(out);
+    }
+    // Last resort: shrink further then encode at 40.
+    img.resize(Math.max(1, Math.round(img.width / 2)), Math.max(1, Math.round(img.height / 2)));
+    const out = await img.encodeJPEG(40);
+    if (out.length > MAX_REK_BYTES) {
+      throw new Error("image_too_large_after_compression");
+    }
+    return new Uint8Array(out);
+  } catch (decodeErr) {
+    // If we cannot decode it AND it is already too large or unsupported,
+    // surface a typed error so the caller marks the submission needs_retry
+    // with a precise English notification instead of crashing the function.
+    if (bytes.length > MAX_REK_BYTES) {
+      throw new Error(`image_too_large:${bytes.length}`);
+    }
+    throw new Error(`image_unreadable:${decodeErr instanceof Error ? decodeErr.message : "decode_failed"}`);
+  }
+}
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
