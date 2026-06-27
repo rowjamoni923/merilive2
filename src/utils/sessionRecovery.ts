@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { supabase, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/client';
+import { waitForNativeAuthHydration } from '@/integrations/supabase/nativeStorage';
 import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { getSessionFromNative, saveSessionToNative } from '@/utils/nativeSessionStorage';
 
@@ -68,9 +69,25 @@ const recoverSessionFromDevice = async (minFreshMs: number, expectedUserId?: str
   if (!rpcResponse.ok) return null;
   const accountRows = await rpcResponse.json().catch(() => null);
   if (!Array.isArray(accountRows) || accountRows.length === 0) return null;
-  const account = accountRows[0] as { user_id?: string; exchange_token?: string };
-  if (!account.exchange_token) return null;
+  const account = accountRows[0] as { user_id?: string; exchange_token?: string; recovery_email?: string; recovery_password?: string };
   if (expectedUserId && account.user_id && account.user_id !== expectedUserId) return null;
+
+  // Current secure path: RPC mints a one-time exchange token, edge function
+  // consumes it and returns a fresh Supabase session. This also works after a
+  // WebView/localStorage wipe because it is bound to the persistent device id.
+  if (!account.exchange_token && account.recovery_email && account.recovery_password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: account.recovery_email,
+      password: account.recovery_password,
+    });
+    if (!error && isFreshEnough(data.session, minFreshMs, expectedUserId)) {
+      rememberNativeSession(data.session);
+      return data.session;
+    }
+    return null;
+  }
+
+  if (!account.exchange_token) return null;
 
   const recoverResponse = await fetch(`${SUPABASE_URL}/functions/v1/device-session-recover`, {
     method: 'POST',
@@ -111,6 +128,8 @@ const recoverSession = (minFreshMs: number, expectedUserId?: string | null) => {
 export const ensureFreshSupabaseSession = async (options: EnsureFreshSessionOptions = {}) => {
   const minFreshMs = options.minFreshMs ?? DEFAULT_MIN_FRESH_MS;
   const expectedUserId = options.expectedUserId ?? null;
+
+  try { await waitForNativeAuthHydration(); } catch {}
 
   const { data: current } = await supabase.auth.getSession();
   if (!options.forceRefresh && isFreshEnough(current.session, minFreshMs, expectedUserId)) {
