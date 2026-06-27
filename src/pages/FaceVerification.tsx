@@ -850,6 +850,36 @@ const FaceVerification = () => {
     });
   };
 
+  const waitForFaceVerificationVideo = useCallback(async (timeoutMs = 3000): Promise<Blob | null> => {
+    const existing = faceVerificationVideoRef.current;
+    if (existing?.size) return existing;
+
+    const recorder = faceRecorderRef.current;
+    if (recorder?.state === 'recording') {
+      try { recorder.requestData(); } catch {}
+      try { recorder.stop(); } catch {}
+    }
+
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+      const blob = faceVerificationVideoRef.current;
+      if (blob?.size) return blob;
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+
+    return faceVerificationVideoRef.current?.size ? faceVerificationVideoRef.current : null;
+  }, []);
+
+  const buildLiveProofBlob = useCallback(() => {
+    const proof = JSON.stringify({
+      type: 'face-verification-proof',
+      at: Date.now(),
+      angles: Object.keys(capturedAnglesRef.current),
+      hasCenterFrame: Boolean(capturedAnglesRef.current.center),
+    });
+    return new Blob([proof], { type: 'application/json' });
+  }, []);
+
   const generateVideoPosterFromUrl = useCallback((sourceUrl: string): Promise<string | null> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
