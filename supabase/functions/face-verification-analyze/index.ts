@@ -1054,7 +1054,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "duplicate_face" | "banned_face" | "gender_mismatch" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1062,9 +1062,9 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    else if (genderDeclarationMismatch) hardAutoReject = "gender_mismatch";
-    // Owner policy (2026-06-26): duplicate account and confident gender mismatch
-    // are hard rejects; photo/video/live mismatch remains retry/manual.
+    // Owner policy (2026-06-26/27): only duplicate/banned identity are hard
+    // rejects. Gender signals are retained in ai_analysis for admin context but
+    // must never auto-reject or block a genuine photo/video/live same-person pass.
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -1081,8 +1081,6 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
-      } else if (hardAutoReject === "gender_mismatch") {
-        rReason = `Verification rejected because the detected gender (${detectedGenderForDecision}) does not match the required account type (${expectedGender}). Please contact Support Chat if you believe this is an error.`;
       }
 
       await supabaseAdmin
@@ -1091,7 +1089,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `gender mismatch: expected ${expectedGender}, detected ${detectedGenderForDecision}` : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -1116,8 +1114,6 @@ serve(async (req) => {
           publicMessage = `This face is already registered with ${dName}${dUid ? ` (ID ${dUid})` : ""}. One face can only be used for one account. Tap to review or contact Support.`;
         } else if (hardAutoReject === "banned_face") {
           publicMessage = "This face is associated with a previously banned account. You cannot create a new account. Tap to contact Support if you believe this is an error.";
-        } else if (hardAutoReject === "gender_mismatch") {
-          publicMessage = `Verification rejected: detected gender does not match the required account type (expected ${expectedGender}). Tap to try again with the correct account type.`;
         }
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
