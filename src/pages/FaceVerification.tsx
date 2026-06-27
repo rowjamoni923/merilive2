@@ -2375,16 +2375,28 @@ const FaceVerification = () => {
       let faceVideoFrameUrl: string | null = null;
 
       // 1) Profile photo — independent, must not block other uploads.
+      //    Refresh auth first so the avatar upload doesn't get RLS-rejected
+      //    against `avatars` bucket because of a stale token.
+      await ensureFreshFaceSession();
       try {
         const ext = (userPhotoFile.type || '').includes('png') ? 'png'
           : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
         const avatarKey = `${userId}/${Date.now()}.${ext}`;
-        const up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
+        let up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
           upsert: true,
           contentType: userPhotoFile.type || 'image/jpeg',
         });
+        if (up.error && /row-level security|jwt|401|403|unauthor/i.test((up.error as any)?.message || '')) {
+          try { await supabase.auth.refreshSession(); } catch {}
+          up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
+            upsert: true,
+            contentType: userPhotoFile.type || 'image/jpeg',
+          });
+        }
         if (!up.error) {
           profilePhotoUrl = supabase.storage.from('avatars').getPublicUrl(avatarKey).data.publicUrl;
+        } else {
+          console.warn('[FaceVerification] avatars upload error', up.error);
         }
       } catch (e) {
         console.warn('[FaceVerification] public avatar upload failed, falling back', e);
