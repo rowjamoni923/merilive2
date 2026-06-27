@@ -3475,7 +3475,7 @@ const FaceVerification = () => {
           
           <div className="mx-6 mb-6">
             <p className="text-red-700 bg-red-50 border border-red-200 rounded-2xl px-5 py-4 text-center text-sm font-medium leading-relaxed shadow-sm">
-              {cleanRejectionReason || "Your verification was rejected. Please ensure you are the same person as in your photos."}
+              {displayRejectionMessage}
             </p>
           </div>
 
