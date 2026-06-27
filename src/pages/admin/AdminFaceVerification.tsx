@@ -68,7 +68,7 @@ function RoleApproveBar({
       <div
         role="tablist"
         aria-label="Approve as"
-        className="relative grid grid-cols-2 gap-1 rounded-xl border border-amber-500/25 bg-gradient-to-b from-background/80 to-background/40 p-1 shadow-inner backdrop-blur"
+        className="relative grid grid-cols-2 gap-1 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] p-1"
       >
         <button
           type="button"
@@ -77,10 +77,10 @@ function RoleApproveBar({
           disabled={processing}
           onClick={() => setRole('user')}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:opacity-50",
             role === 'user'
-              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
-              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+              ? "bg-white text-[#0F172A] shadow-sm"
+              : "text-slate-500 hover:text-[#0F172A]"
           )}
         >
           <User className="h-3.5 w-3.5" /> User
@@ -92,10 +92,10 @@ function RoleApproveBar({
           disabled={processing}
           onClick={() => setRole('host')}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:opacity-50",
             role === 'host'
-              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
-              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+              ? "bg-white text-[#0F172A] shadow-sm"
+              : "text-slate-500 hover:text-[#0F172A]"
           )}
         >
           <Mic className="h-3.5 w-3.5" /> Host
@@ -105,11 +105,10 @@ function RoleApproveBar({
       {/* Main actions */}
       <div className="grid grid-cols-2 gap-2">
         <Button
-          variant="luxury"
-          size="default"
+          size="sm"
           disabled={processing || approvalDisabled}
           onClick={() => onApprove(role)}
-          className="w-full"
+          className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-semibold shadow-sm"
           title={disabledReason}
         >
           <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -117,11 +116,11 @@ function RoleApproveBar({
         </Button>
         {onReject && (
           <Button
-            variant="destructive"
-            size="default"
+            variant="outline"
+            size="sm"
             disabled={processing}
             onClick={onReject}
-            className="w-full"
+            className="w-full border-[#E2E8F0] text-slate-700 hover:bg-slate-50 font-semibold"
           >
             <XCircle className="h-4 w-4 mr-2" />
             Reject
@@ -129,7 +128,7 @@ function RoleApproveBar({
         )}
       </div>
       {approvalDisabled && disabledReason && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
           ⚠ Approval locked: {disabledReason}
         </div>
       )}
@@ -684,90 +683,85 @@ const AdminFaceVerification = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8" style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ScanFace className="w-7 h-7 text-purple-500" />
+          <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] flex items-center gap-2">
+            <ScanFace className="w-6 h-6 text-[#2563EB]" />
             Face Verification
           </h1>
-          <p className="text-muted-foreground">Manage face verification requests</p>
+          <p className="text-sm text-slate-500 mt-1">Review and verify user identity submissions</p>
         </div>
-        <Button onClick={handleRefresh} disabled={refreshing} variant="outline">
+        <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="border-[#E2E8F0] bg-white text-slate-700 hover:bg-slate-50">
           <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         {[
-          { label: 'Pending', count: pendingCount, icon: Clock, bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', iconBg: 'rgba(245,158,11,0.3)', iconColor: '#fbbf24', textColor: '#fcd34d', subColor: 'rgba(251,191,36,0.8)' },
-          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, bg: 'rgba(6,182,212,0.15)', border: 'rgba(6,182,212,0.3)', iconBg: 'rgba(6,182,212,0.3)', iconColor: '#22d3ee', textColor: '#67e8f9', subColor: 'rgba(34,211,238,0.8)' },
-          { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
-          { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
-          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.3)', iconBg: 'rgba(249,115,22,0.3)', iconColor: '#fb923c', textColor: '#fdba74', subColor: 'rgba(251,146,60,0.8)' },
-          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
-        ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
-          <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold" style={{ color: textColor }}>{count}</p>
-                <p className="text-sm" style={{ color: subColor }}>{label}</p>
-              </div>
+          { label: 'Pending', count: pendingCount, icon: Clock, accent: '#F59E0B' },
+          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4' },
+          { label: 'Approved', count: approvedCount, icon: CheckCircle2, accent: '#10B981' },
+          { label: 'Rejected', count: rejectedCount, icon: XCircle, accent: '#EF4444' },
+          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316' },
+          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, accent: '#8B5CF6' },
+        ].map(({ label, count, icon: Icon, accent }) => (
+          <div key={label} className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
+              <Icon className="w-4 h-4" style={{ color: accent }} />
             </div>
+            <p className="text-2xl font-bold text-[#0F172A]">{count}</p>
           </div>
         ))}
       </div>
 
-      {/* Status legend — premium admin card */}
-      <div className="relative overflow-hidden rounded-2xl border border-amber-500/15 bg-gradient-to-br from-card via-card to-card/60 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
-        <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-        <div className="relative p-5">
+      {/* Status legend — light professional card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="p-5">
           <div className="flex items-center gap-2.5 mb-4">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/25 shadow-inner">
-              <ScanFace className="w-4 h-4 text-amber-300" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 border border-[#E2E8F0]">
+              <ScanFace className="w-4 h-4 text-slate-600" />
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground tracking-tight">Status Legend</span>
-              <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">How submissions are bucketed</span>
+              <span className="text-sm font-semibold text-[#0F172A] tracking-tight">Status Legend</span>
+              <span className="text-[11px] uppercase tracking-[0.14em] text-slate-500 font-medium">How submissions are bucketed</span>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="group rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-3.5 transition-colors hover:border-amber-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                   <Clock className="w-3 h-3" /> Pending
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Submitted but not yet reviewed. Anything not Approved or Rejected lives here.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Submitted but not yet reviewed. Anything not Approved or Rejected lives here.</p>
             </div>
-            <div className="group rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5 transition-colors hover:border-emerald-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                   <CheckCircle2 className="w-3 h-3" /> Approved
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Accepted manually or by auto-approval. Host gains <code className="rounded bg-emerald-500/10 px-1 text-[10px] text-emerald-200">is_host=true</code> and can go live.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Accepted manually or by auto-approval. Host gains <code className="rounded bg-emerald-50 px-1 text-[10px] text-emerald-700">is_host=true</code> and can go live.</p>
             </div>
-            <div className="group rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-3.5 transition-colors hover:border-rose-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-semibold text-rose-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
                   <XCircle className="w-3 h-3" /> Rejected
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Declined with a reason. Host stays a regular user and must resubmit to re-enter Pending.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Declined with a reason. Host stays a regular user and must resubmit to re-enter Pending.</p>
             </div>
           </div>
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-            <p className="text-[11px] leading-relaxed text-muted-foreground/90">
-              <span className="text-foreground/80 font-medium">Auto Approved</span> is a sub-view of Approved (when <code className="text-amber-200/80">admin_notes</code> contains <span className="text-amber-200/80">"auto"</span>). Search and tab counters always reflect what is visible in the list.
+          <div className="mt-3 flex items-start gap-2 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2">
+            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <p className="text-[11px] leading-relaxed text-slate-600">
+              <span className="text-[#0F172A] font-medium">Auto Approved</span> is a sub-view of Approved (when <code className="text-slate-700">admin_notes</code> contains <span className="text-slate-700">"auto"</span>). Search and tab counters always reflect what is visible in the list.
             </p>
           </div>
         </div>
@@ -777,26 +771,27 @@ const AdminFaceVerification = () => {
       {/* Search + Mismatch filter */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-white border-[#E2E8F0] text-[#0F172A] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 focus-visible:border-[#2563EB]" />
         </div>
         <button
           type="button"
           data-testid="mismatch-only-toggle"
           aria-pressed={mismatchOnly}
           onClick={() => setMismatchOnly((v) => !v)}
-          className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors ${
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
             mismatchOnly
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-200'
-              : 'bg-card/40 border-border/50 text-muted-foreground hover:text-foreground'
+              ? 'bg-amber-50 border-amber-300 text-amber-800'
+              : 'bg-white border-[#E2E8F0] text-slate-600 hover:text-[#0F172A]'
           }`}
           title="Show only submissions with an unknown/mismatched status"
         >
           <AlertTriangle className="w-4 h-4" />
           Mismatch only
-          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-100 text-[10px] font-bold">{mismatchCount}</span>
+          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">{mismatchCount}</span>
         </button>
       </div>
+
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -846,7 +841,7 @@ const AdminFaceVerification = () => {
                 const mediaReadiness = getFaceSubmissionMediaReadiness(submission);
 
                 return (
-                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
+                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-white border border-[#E2E8F0] hover:border-slate-300 transition-colors rounded-xl p-4 space-y-3 shadow-sm">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10 border border-border">
                         <UserAvatarImage gender={((submission.profile) as any)?.gender} seed={submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
@@ -884,25 +879,26 @@ const AdminFaceVerification = () => {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Completion</p>
-                        <p className="text-sm font-semibold">{completed}/{total} ({percentage}%)</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Completion</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{completed}/{total} ({percentage}%)</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Face Match</p>
-                        <p className={`text-sm font-semibold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Face Match</p>
+                        <p className={`text-sm font-semibold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {typeof faceMatch === 'number' ? `${faceMatch.toFixed(1)}%` : 'N/A'}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Profile Photo</p>
-                        <p className="text-sm font-semibold">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Profile Photo</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">{mediaStatus.videoLabel}</p>
-                        <p className="text-sm font-semibold">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{mediaStatus.videoLabel}</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
                       </div>
                     </div>
+
 
                     {(() => {
                       // Inline media strip — admin sees every photo/video right in the list
@@ -1026,7 +1022,7 @@ const AdminFaceVerification = () => {
 
       {/* Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-xl overflow-y-auto bg-white border-[#E2E8F0] text-[#0F172A]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ScanFace className="w-5 h-5 text-purple-500" />
@@ -1043,7 +1039,7 @@ const AdminFaceVerification = () => {
             return (
               <div className="space-y-5">
                 {isPendingBucket(selectedSubmission) && (
-                  <div className="sticky top-0 z-20 rounded-2xl border border-amber-500/25 bg-background/95 p-3 shadow-xl backdrop-blur">
+                  <div className="sticky top-0 z-20 rounded-xl border border-[#E2E8F0] bg-white/95 p-3 shadow-sm backdrop-blur">
                     <RoleApproveBar
                       defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
                       processing={processing}
@@ -1172,11 +1168,11 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (() => {
                   const url = selectedSubmission.face_image_url;
                   return (
-                    <div className="space-y-3 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-purple-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
-                        <ScanFace className="w-5 h-5 text-amber-300" /> Face Verification
+                    <div className="space-y-3 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#0F172A]">
+                        <ScanFace className="w-5 h-5 text-[#2563EB]" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-lg border border-[#E2E8F0] bg-slate-50 max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -1186,9 +1182,9 @@ const AdminFaceVerification = () => {
                   && !selectedSubmission.video_url
                   && (!selectedSubmission.host_photos || selectedSubmission.host_photos.length === 0)
                   && (!selectedSubmission.face_image_url || selectedSubmission.face_image_url.startsWith('admin-approved://')) && (
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-                    <p className="text-amber-300 font-medium text-sm">⚠ No media submitted by user</p>
-                    <p className="text-amber-200/70 text-xs mt-1">Legacy or admin-approved record — no photo/video attached.</p>
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+                    <p className="text-amber-800 font-medium text-sm">⚠ No media submitted by user</p>
+                    <p className="text-amber-700/80 text-xs mt-1">Legacy or admin-approved record — no photo/video attached.</p>
                   </div>
                 )}
 
@@ -1196,11 +1192,11 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.profile_photo_url && (() => {
                   const url = selectedSubmission.profile_photo_url;
                   return (
-                    <div className="space-y-3 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
-                        <Camera className="w-5 h-5 text-purple-300" /> Profile Photo
+                    <div className="space-y-3 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#0F172A]">
+                        <Camera className="w-5 h-5 text-[#2563EB]" /> Profile Photo
                       </h4>
-                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-full max-w-sm rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] bg-black/40" mediaClassName="w-full max-h-[60vh] object-contain" onOpen={() => setExpandedPhoto(url)} />
+                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-full max-w-sm rounded-lg border border-[#E2E8F0] bg-slate-50" mediaClassName="w-full max-h-[60vh] object-contain" onOpen={() => setExpandedPhoto(url)} />
                     </div>
                   );
                 })()}
@@ -1209,24 +1205,24 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.video_url && selectedSubmission.video_url !== selectedSubmission.face_image_url && (() => {
                   const url = selectedSubmission.video_url;
                   return (
-                    <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/8 via-purple-500/5 to-transparent p-4 shadow-[0_10px_40px_-12px_rgba(251,191,36,0.35)]">
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
-                        <Camera className="w-5 h-5 text-amber-300" /> Verification Video
-                        <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">10s Intro</span>
+                    <div className="space-y-3 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#0F172A]">
+                        <Camera className="w-5 h-5 text-[#2563EB]" /> Verification Video
+                        <span className="ml-auto rounded-full border border-[#E2E8F0] bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 normal-case tracking-normal">10s Intro</span>
                       </h4>
-                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" />
+                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-lg border border-[#E2E8F0] bg-black max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" />
                     </div>
                   );
                 })()}
 
                 {([selectedSubmission.front_url, selectedSubmission.left_url, selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
-                  <div className="space-y-3 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
-                      <Camera className="w-5 h-5 text-purple-300" /> Manual Face Angles
+                  <div className="space-y-3 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#0F172A]">
+                      <Camera className="w-5 h-5 text-[#2563EB]" /> Manual Face Angles
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {([selectedSubmission.front_url, selectedSubmission.left_url, selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
-                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-[3/4] rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)] flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-[3/4] rounded-lg border border-[#E2E8F0] bg-slate-50 flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
                   </div>
@@ -1234,18 +1230,18 @@ const AdminFaceVerification = () => {
 
                 {/* Host Photos */}
                 {selectedSubmission.host_photos && selectedSubmission.host_photos.length > 0 && (
-                  <div className="space-y-3 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-purple-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(251,191,36,0.3)]">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
-                      <ImagePlus className="w-5 h-5 text-amber-300" /> Host Photos
-                      <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">{selectedSubmission.host_photos.length}</span>
+                  <div className="space-y-3 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#0F172A]">
+                      <ImagePlus className="w-5 h-5 text-[#2563EB]" /> Host Photos
+                      <span className="ml-auto rounded-full border border-[#E2E8F0] bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 normal-case tracking-normal">{selectedSubmission.host_photos.length}</span>
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedSubmission.host_photos.map((photo, index) => {
                         const url = photo;
                         return (
                           <div key={index} className="relative group">
-                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-[3/4] rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={() => setExpandedPhoto(url)} />
-                            <span className="absolute top-1.5 left-1.5 bg-gradient-to-br from-amber-400 to-amber-600 text-black text-[10px] px-2 py-0.5 rounded-full font-bold shadow-md">{index + 1}</span>
+                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-[3/4] rounded-lg border border-[#E2E8F0] bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={() => setExpandedPhoto(url)} />
+                            <span className="absolute top-1.5 left-1.5 bg-[#2563EB] text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">{index + 1}</span>
                           </div>
                         );
                       })}
@@ -1255,11 +1251,12 @@ const AdminFaceVerification = () => {
 
                 {/* Rejection Reason */}
                 {isRejected(selectedSubmission) && selectedSubmission.rejection_reason && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-                    <p className="text-sm text-red-400 font-medium mb-1">Rejection Reason:</p>
-                    <p className="text-red-300">{selectedSubmission.rejection_reason}</p>
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 font-semibold mb-1">Rejection Reason:</p>
+                    <p className="text-red-800">{selectedSubmission.rejection_reason}</p>
                   </div>
                 )}
+
 
                 {/* Action Buttons */}
                 {isPendingBucket(selectedSubmission) && (
@@ -1476,12 +1473,12 @@ const AdminFaceVerification = () => {
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-[#E2E8F0] text-[#0F172A] max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-lg">
-              {actionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
+            <DialogTitle className="text-[#0F172A] text-lg font-bold tracking-tight">
+              {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription className="text-slate-500">
               {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
             </DialogDescription>
           </DialogHeader>
@@ -1490,17 +1487,13 @@ const AdminFaceVerification = () => {
               <>
                 {/* Gender Selection */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Select Gender</Label>
+                  <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Select Gender</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <button onClick={() => setApproveGender('female')}
-                      className={`relative overflow-hidden rounded-xl p-3.5 transition-all duration-300 ${approveGender === 'female' ? 'ring-2 ring-pink-500 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-                      style={{
-                        background: approveGender === 'female' ? 'linear-gradient(135deg, rgba(236,72,153,0.25), rgba(219,39,119,0.15))' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${approveGender === 'female' ? 'rgba(236,72,153,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`relative overflow-hidden rounded-lg p-3.5 transition-all duration-150 border ${approveGender === 'female' ? 'border-pink-400 bg-pink-50 ring-2 ring-pink-200' : 'border-[#E2E8F0] bg-white hover:bg-slate-50'}`}>
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-2xl">👩</span>
-                        <span className={`font-bold ${approveGender === 'female' ? 'text-pink-300' : 'text-white/50'}`}>Female</span>
+                        <span className={`font-semibold ${approveGender === 'female' ? 'text-pink-700' : 'text-slate-600'}`}>Female</span>
                       </div>
                       {approveGender === 'female' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center">
@@ -1509,14 +1502,10 @@ const AdminFaceVerification = () => {
                       )}
                     </button>
                     <button onClick={() => setApproveGender('male')}
-                      className={`relative overflow-hidden rounded-xl p-3.5 transition-all duration-300 ${approveGender === 'male' ? 'ring-2 ring-blue-500 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-                      style={{
-                        background: approveGender === 'male' ? 'linear-gradient(135deg, rgba(59,130,246,0.25), rgba(37,99,235,0.15))' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${approveGender === 'male' ? 'rgba(59,130,246,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`relative overflow-hidden rounded-lg p-3.5 transition-all duration-150 border ${approveGender === 'male' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : 'border-[#E2E8F0] bg-white hover:bg-slate-50'}`}>
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-2xl">👨</span>
-                        <span className={`font-bold ${approveGender === 'male' ? 'text-blue-300' : 'text-white/50'}`}>Male</span>
+                        <span className={`font-semibold ${approveGender === 'male' ? 'text-blue-700' : 'text-slate-600'}`}>Male</span>
                       </div>
                       {approveGender === 'male' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -1528,9 +1517,9 @@ const AdminFaceVerification = () => {
                 </div>
 
                 {/* Pkg382: single combined Approve bar + Convert-to-User (re-verify) */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10 space-y-3">
-                  <p className="text-[10px] text-white/40 font-semibold text-center uppercase tracking-widest">
-                    ⚡ Select role then Approve
+                <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                  <p className="text-[10px] text-slate-500 font-semibold text-center uppercase tracking-widest">
+                    Select role then Approve
                   </p>
                   <RoleApproveBar
                     defaultRole={selectedSubmission?.verification_type === 'host' ? 'host' : 'user'}
@@ -1575,12 +1564,12 @@ const AdminFaceVerification = () => {
                         toast({ title: 'Error', description: error.message || 'Failed to convert', variant: 'destructive' });
                       } finally { setProcessing(false); actionInFlightRef.current = false; }
                     }}
-                    className="w-full rounded-2xl p-3 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none border-2 border-amber-500/40 bg-amber-500/10 text-amber-200 font-semibold text-sm"
+                    className="w-full rounded-lg p-3 transition-colors disabled:opacity-50 disabled:pointer-events-none border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold text-sm"
                   >
                     {processing ? <Loader2 className="w-4 h-4 mr-2 inline animate-spin" /> : null}
-                    🔄 Convert to User (allow re-verify)
+                    Convert to User (allow re-verify)
                   </button>
-                  <p className="text-[10px] text-white/40 text-center leading-snug">
+                  <p className="text-[10px] text-slate-500 text-center leading-snug">
                     "Convert to User" removes host status &amp; face-verified flag, detaches from agency, and lets the user submit face verification again.
                   </p>
                 </div>
@@ -1590,13 +1579,14 @@ const AdminFaceVerification = () => {
             {/* Rejection UI */}
             {actionType === 'reject' && (
               <div>
-                <Label className="text-white/70">Rejection Reason</Label>
-                <Textarea placeholder="Enter reason for rejection..." value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-white/25" rows={3} />
+                <Label className="text-slate-700 font-medium">Rejection Reason</Label>
+                <Textarea placeholder="Enter reason for rejection..." value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="mt-2 bg-white border-[#E2E8F0] text-[#0F172A] placeholder:text-slate-400" rows={3} />
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowActionModal(false)} className="bg-white/5 border-white/10 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowActionModal(false)} className="bg-white border-[#E2E8F0] text-slate-700 hover:bg-slate-50">Cancel</Button>
+
             {actionType === 'reject' && (
               <Button onClick={handleAction} disabled={processing} className="bg-red-600 hover:bg-red-500 text-white">
                 {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
@@ -1606,6 +1596,7 @@ const AdminFaceVerification = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 };
