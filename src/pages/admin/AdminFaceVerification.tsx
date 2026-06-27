@@ -918,7 +918,7 @@ const AdminFaceVerification = () => {
                       const tiles: { src: string; label: string; kind: 'image' | 'video' | 'auto' }[] = [];
                       if (profilePhoto) tiles.push({ src: profilePhoto, label: 'Profile', kind: 'image' });
                       if (faceShot) tiles.push({ src: faceShot, label: 'Face', kind: 'auto' });
-                      if (faceRecording && faceRecording !== faceShot) tiles.push({ src: faceRecording, label: 'Face Video', kind: 'video' });
+                      if (faceRecording && faceRecording !== faceShot) tiles.push({ src: faceRecording, label: 'Face Video', kind: 'auto' });
                       if (video && video !== faceRecording) tiles.push({ src: video, label: 'Intro Video', kind: 'video' });
                       hostPhotos.forEach((src, i) => tiles.push({ src, label: `Host ${i + 1}`, kind: 'image' }));
                       angles.forEach((src, i) => tiles.push({ src, label: i === 0 ? 'Left' : 'Right', kind: 'auto' }));
