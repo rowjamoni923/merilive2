@@ -1503,7 +1503,7 @@ export default function AdminUserManagement() {
   const autoUserFaceCount = faceCounts.auto_user ?? autoApprovedFaceSubmissions.filter((s) => !isResolvedHostSubmission(s)).length;
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-slate-900/80 via-purple-900/40 to-slate-900/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

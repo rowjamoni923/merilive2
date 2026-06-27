@@ -424,7 +424,7 @@ export default function AdminHostApplications() {
   const sel = selectedApplication;
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600" />

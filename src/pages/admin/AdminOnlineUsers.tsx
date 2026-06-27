@@ -81,7 +81,7 @@ export default function AdminOnlineUsers() {
   const regular = useMemo(() => users.filter(u => !u.is_host), [users]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">

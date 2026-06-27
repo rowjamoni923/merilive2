@@ -55,7 +55,7 @@ const AdminUserHub = () => {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Premium Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
