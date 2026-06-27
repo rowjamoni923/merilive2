@@ -1036,7 +1036,7 @@ serve(async (req) => {
     // forever in manual review. Use the live front frame as a conservative fallback
     // for the video evidence slot; profile/live/duplicate/liveness/host-gallery
     // gates still have to pass before auto-finalize can run.
-    const faceVideoEvidenceUrl = faceVideoFrameUrl || firstUsableStillUrl(frontUrl);
+    const faceVideoEvidenceUrl = faceVideoFrameUrl || firstUsableStillUrl(row.face_image_url as string | null, frontUrl);
     const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
