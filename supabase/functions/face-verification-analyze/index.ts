@@ -262,6 +262,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Tracked across the try so the outer catch can heal the row (so a
+  // crashed analyze never leaves a submission frozen in `under_review`).
+  let activeSubmissionId: string | null = null;
+  let activeUserId: string | null = null;
+  let activeAdmin: ReturnType<typeof createClient> | null = null;
   try {
     const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
     const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
