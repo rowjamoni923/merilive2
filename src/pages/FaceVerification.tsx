@@ -637,6 +637,11 @@ const FaceVerification = () => {
       .limit(1)
       .maybeSingle();
 
+    // An orphan submission (no media reached storage and the DB sweeper flagged
+    // it) must NOT lock the user on "Under Review" — let them resubmit instead.
+    const ai = (latestSubmission as any)?.ai_analysis || {};
+    const isOrphanResubmit = !!(ai.requires_resubmit || ai.orphan_media || ai.auto_rejected_reason === 'orphan_media_missing');
+
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
@@ -646,6 +651,12 @@ const FaceVerification = () => {
       setRetryRequired(rr);
       setVerificationStatus('needs_retry');
       setRejectionReason(null);
+    } else if (isOrphanResubmit) {
+      // Treat orphan rows (rejected or still pending with no media) as a
+      // retryable rejection so the verification form re-renders.
+      setVerificationStatus('rejected');
+      setRejectionReason('Upload was incomplete — please retry your photo, video and live scan.');
+      setRetryRequired(null);
     } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted' || latestSubmission?.status === 'under_review') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
@@ -2293,12 +2304,22 @@ const FaceVerification = () => {
 
       const { data: existingSubmission } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, ai_analysis, profile_photo_url, video_url, face_image_url, front_url, selfie_url')
         .eq('user_id', userId)
         .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
-      if (existingSubmission) {
+      const existingAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingIsOrphan = !!(existingAi.requires_resubmit || existingAi.orphan_media)
+        || (!!existingSubmission
+            && !existingSubmission.profile_photo_url
+            && !existingSubmission.video_url
+            && !existingSubmission.face_image_url
+            && !existingSubmission.front_url
+            && !existingSubmission.selfie_url);
+
+      if (existingSubmission && !existingIsOrphan) {
         lockUnderReviewAndReturn('Your verification is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
@@ -2593,12 +2614,23 @@ const FaceVerification = () => {
 
       const { data: existingSubmission } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, ai_analysis, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos')
         .eq('user_id', userId)
         .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
-      if (existingSubmission) {
+      const existingHostAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingHostIsOrphan = !!(existingHostAi.requires_resubmit || existingHostAi.orphan_media)
+        || (!!existingSubmission
+            && !existingSubmission.profile_photo_url
+            && !existingSubmission.video_url
+            && !existingSubmission.face_image_url
+            && !existingSubmission.front_url
+            && !existingSubmission.selfie_url
+            && !(existingSubmission.host_photos && existingSubmission.host_photos.length));
+
+      if (existingSubmission && !existingHostIsOrphan) {
         lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
