@@ -3314,13 +3314,15 @@ const FaceVerification = () => {
 
   // Rejected - allow re-verification or contact support
   // Header component (no logo)
-  const renderHeader = (title: string, subtitle?: string) => (
+  const renderHeader = (title: string, subtitle?: string, hideBack = false) => (
     <div className="relative mb-6" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-500/10 to-transparent blur-3xl -z-10" />
       <div className="flex items-center gap-3 mb-2 min-w-0">
-        <Button size="icon" variant="ghost" className="shrink-0 w-10 h-10 rounded-xl bg-amber-50/70 hover:bg-amber-50 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5 text-slate-800" />
-        </Button>
+        {!hideBack && (
+          <Button size="icon" variant="ghost" className="shrink-0 w-10 h-10 rounded-xl bg-amber-50/70 hover:bg-amber-50 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5 text-slate-800" />
+          </Button>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className="text-lg sm:text-xl font-black tracking-tight bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent truncate">{title}</h1>
           {subtitle && <p className="text-slate-600 text-xs sm:text-sm truncate">{subtitle}</p>}
@@ -3598,7 +3600,7 @@ const FaceVerification = () => {
       <div data-face-verification-shell className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden">
         <div data-face-verification-scroll className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
 
-        {renderHeader("Face Verification", "Identity check required")}
+        {renderHeader("Face Verification", "Identity check required", submitInProgress)}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
