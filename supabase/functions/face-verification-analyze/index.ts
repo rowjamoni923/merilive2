@@ -1878,6 +1878,7 @@ serve(async (req) => {
     // Instant in-app + push notification on auto-approval (English).
     if (autoResult?.success) {
       try {
+        await clearStaleFaceRetryNotifications(supabaseAdmin, userId);
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
           type: "face_verification_approved",
