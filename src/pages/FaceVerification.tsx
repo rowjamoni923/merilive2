@@ -285,7 +285,7 @@ const FaceVerification = () => {
   const chunksRef = useRef<Blob[]>([]);
   
   // Face Verification Video States
-  const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
+  const [, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
   const [faceCameraStarting, setFaceCameraStarting] = useState(false);
   const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
