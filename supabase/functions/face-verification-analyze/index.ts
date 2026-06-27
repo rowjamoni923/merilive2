@@ -1772,6 +1772,35 @@ serve(async (req) => {
   } catch (e) {
     console.error("[face-verification-analyze]", e);
     const msg = e instanceof Error ? e.message : "Unknown error";
+    // Self-heal: never leave the submission frozen in `under_review` /
+    // `pending` because the function crashed. Mark it `needs_retry` with a
+    // clear English notification so the user can re-shoot immediately.
+    if (activeAdmin && activeSubmissionId) {
+      try {
+        await activeAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "needs_retry",
+            rejection_reason: null,
+            reviewed_at: null,
+            admin_notes: `[needs_retry] analyzer crashed: ${msg}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", activeSubmissionId)
+          .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+        if (activeUserId) {
+          await activeAdmin.from("notifications").insert({
+            user_id: activeUserId,
+            type: "face_verification_retry",
+            title: "Face Verification — Please Retry",
+            body: "We could not process your face verification this time. Please retake your photo, live face scan and intro video in good light and submit again.",
+            data: { route: "/face-verification", reason: "analyzer_error" },
+          });
+        }
+      } catch (healErr) {
+        console.error("[face-verification-analyze] self-heal failed:", healErr instanceof Error ? healErr.message : healErr);
+      }
+    }
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
