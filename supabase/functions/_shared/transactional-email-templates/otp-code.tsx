@@ -106,12 +106,12 @@ const OtpEmail = ({ otp = '------', purpose = 'verify', expiryMinutes = 5, displ
 
               {/* Expiry */}
               <Text style={expiryText}>
-                ⏱ This code expires in <strong style={expiryStrong}>{expiryMinutes} minutes</strong>
+                This code expires in <strong style={expiryStrong}>{expiryMinutes} minutes</strong>.
               </Text>
 
               {/* Security note */}
               <Section style={securityBox}>
-                <Text style={securityTitle}>🔒 Security Notice</Text>
+                <Text style={securityTitle}>Security Notice</Text>
                 <Text style={securityText}>
                   MeriLive staff will <strong>never</strong> ask for this code. If you didn't request this verification, you can safely ignore this email — your account remains secure.
                 </Text>
@@ -121,7 +121,8 @@ const OtpEmail = ({ otp = '------', purpose = 'verify', expiryMinutes = 5, displ
             {/* Footer */}
             <Section style={footerSection}>
               <Text style={footerBrand}>MERI<span style={brandGold}>LIVE</span></Text>
-              <Text style={footerText}>This is an automated security email from MeriLive.</Text>
+              <Text style={footerText}>This is an automated security message from MeriLive. You received it because a verification was requested for this email address.</Text>
+              <Text style={footerSmall}>MeriLive · merilive.top · Dhaka, Bangladesh</Text>
               <Text style={footerSmall}>© {new Date().getFullYear()} MeriLive · All Rights Reserved</Text>
             </Section>
           </Section>
@@ -134,9 +135,8 @@ const OtpEmail = ({ otp = '------', purpose = 'verify', expiryMinutes = 5, displ
 export const template = {
   component: OtpEmail,
   subject: (data: Record<string, any>) => {
-    const code = String(data?.otp ?? '').trim()
     const lbl = purposeLabel(data?.purpose)
-    return code ? `${code} — Your MeriLive ${lbl} Code` : `Your MeriLive ${lbl} Code`
+    return `Your MeriLive ${lbl} code`
   },
   displayName: 'OTP / Verification Code',
   previewData: { otp: '482917', purpose: 'login', expiryMinutes: 5, displayName: 'Sazzad' },
