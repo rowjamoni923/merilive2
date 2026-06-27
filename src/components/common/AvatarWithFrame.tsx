@@ -586,7 +586,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
             width: sizeConfig.avatar, height: sizeConfig.avatar,
             border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('w-full h-full object-cover object-center', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>
