@@ -3022,7 +3022,7 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-contain object-center"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
@@ -4024,7 +4024,7 @@ const FaceVerification = () => {
                     disableRemotePlayback
                     controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                     {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                    className="absolute inset-0 w-full h-full object-cover object-[50%_30%] scale-x-[-1]"
+                    className="absolute inset-0 w-full h-full object-contain object-center scale-x-[-1]"
                     style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
