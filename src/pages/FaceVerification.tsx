@@ -2078,7 +2078,7 @@ const FaceVerification = () => {
 
     const attemptUpload = () => supabase.storage
       .from('face-verification')
-      .upload(fileName, file, { upsert: true, contentType });
+      .upload(fileName, file, { contentType });
 
     let { data, error } = await attemptUpload();
     if (error && isAuthSessionFailure(error)) {
@@ -2427,14 +2427,12 @@ const FaceVerification = () => {
           : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
         const avatarKey = `${freshUid}/${Date.now()}.${ext}`;
         let up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
-          upsert: true,
           contentType: userPhotoFile.type || 'image/jpeg',
         });
         if (up.error && isAuthSessionFailure(up.error)) {
           const recovered = await ensureFreshSupabaseSession({ expectedUserId: freshUid, minFreshMs: 5 * 60_000, forceRefresh: true });
           if (!recovered) throw new Error(sessionExpiredUploadMessage);
           up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
-            upsert: true,
             contentType: userPhotoFile.type || 'image/jpeg',
           });
         }

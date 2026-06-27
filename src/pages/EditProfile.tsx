@@ -296,12 +296,15 @@ const EditProfile = () => {
       // RLS policy checks. Falling back to profile.id (which is the same in
       // practice) would still be safe, but reading auth.uid directly guards
       // against any stale `profile` state in this component.
-      const fileName = `${authUid}/${Date.now()}.jpg`;
+      const uploadId = (() => {
+        try { return crypto.randomUUID(); }
+        catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+      })();
+      const fileName = `${authUid}/${Date.now()}-${uploadId}.jpg`;
 
       const doUpload = () => supabase.storage
         .from("avatars")
         .upload(fileName, croppedImage, {
-          upsert: true,
           contentType: "image/jpeg",
         });
 
