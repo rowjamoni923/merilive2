@@ -2051,7 +2051,24 @@ const FaceVerification = () => {
       _submission_id: submissionId,
       _payload: payload,
     });
-    if (error) throw error;
+    if (!error) return;
+
+    // Safety fallback: if the RPC/schema cache is temporarily stale, never leave
+    // admin panels blank or the auto-review sweeper blocked on upload_pending=true.
+    const patch: Record<string, unknown> = {
+      ...payload,
+      ai_analysis: {
+        ...((payload.ai_analysis as Record<string, unknown> | undefined) || {}),
+        upload_pending: false,
+      },
+      updated_at: new Date().toISOString(),
+    };
+    const { error: updateError } = await supabase
+      .from('face_verification_submissions')
+      .update(patch)
+      .eq('id', submissionId)
+      .eq('user_id', userId);
+    if (updateError) throw error;
   };
 
   const recoverPendingSubmissionAfterError = async () => {
