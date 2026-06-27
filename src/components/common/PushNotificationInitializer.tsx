@@ -15,10 +15,15 @@ export const PushNotificationInitializer = forwardRef<unknown, object>(function 
   useImperativeHandle(ref, () => ({}), []);
 
   useEffect(() => {
-    // Auto-register if permission was previously granted
-    if (isSupported && permissionStatus === 'granted' && !isRegistered) {
-      console.log('[PushInit] Auto-registering for push notifications...');
-      registerForPush();
+    // WhatsApp/Imo-parity auto-registration:
+    //   - granted → register silently
+    //   - prompt  → trigger OS permission dialog automatically (no user tap)
+    // After a fresh APK install, the host's token registers on first launch
+    // without them having to visit Settings.
+    if (!isSupported || isRegistered) return;
+    if (permissionStatus === 'granted' || permissionStatus === 'prompt') {
+      console.log('[PushInit] Auto-registering for push notifications (status:', permissionStatus, ')');
+      void registerForPush();
     }
   }, [isSupported, permissionStatus, isRegistered, registerForPush]);
 
