@@ -3276,7 +3276,7 @@ const FaceVerification = () => {
         setHostPhotos([]); setHostPhotosPreviews([]);
       }
       if (needsLive) {
-        setFaceVerificationVideo(null);
+        setFaceVerificationVideoSafe(null);
         setFaceVerified(false);
         setVerificationStarted(false);
         setCurrentInstruction(0);
@@ -3437,7 +3437,7 @@ const FaceVerification = () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   postSubmitLockedRef.current = false; setSubmitInProgress(false); setUserInfoStepComplete(false);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
-                  setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
+                  setFaceVerificationVideoSafe(null); setFaceVerified(false); setVerificationStarted(false);
                   setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
                   setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false); setFaceManualReviewRequired(false);
                   setCameraReady(false); setCurrentStep(1); setFullName(""); setAge(""); setLanguage("");
