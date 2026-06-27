@@ -779,30 +779,46 @@ const FaceVerification = () => {
   const captureFrameFromVideo = (videoBlob: Blob, size = 640): Promise<string> => {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
+      let settled = false;
+      const cleanup = () => URL.revokeObjectURL(video.src);
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        try {
+          const canvas = document.createElement('canvas');
+          const aspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 1;
+          canvas.width = size;
+          canvas.height = Math.round(size / aspect);
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          cleanup();
+          resolve(dataUrl.split(',')[1]);
+        } catch (err) {
+          cleanup();
+          reject(err);
+        }
+      };
       video.src = URL.createObjectURL(videoBlob);
       video.muted = true;
+      video.playsInline = true;
       
-      video.onloadeddata = () => {
-        video.currentTime = 1; // Get frame at 1 second
+      video.onloadedmetadata = () => {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const targetTime = duration > 0 ? Math.min(1, Math.max(0, duration * 0.45)) : 0;
+        try {
+          video.currentTime = targetTime;
+          window.setTimeout(finish, 900);
+        } catch {
+          finish();
+        }
       };
       
-      video.onseeked = () => {
-        const canvas = document.createElement('canvas');
-        const aspect = video.videoWidth / video.videoHeight;
-        canvas.width = size;
-        canvas.height = Math.round(size / aspect);
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Get base64 without the data:image prefix
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        const base64 = dataUrl.split(',')[1];
-        URL.revokeObjectURL(video.src);
-        resolve(base64);
-      };
+      video.onseeked = finish;
+      video.onloadeddata = () => { if (!Number.isFinite(video.duration) || video.duration <= 0) finish(); };
       
       video.onerror = () => {
-        URL.revokeObjectURL(video.src);
+        cleanup();
         reject(new Error('Failed to load video for frame capture'));
       };
       
