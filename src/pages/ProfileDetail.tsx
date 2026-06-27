@@ -864,7 +864,7 @@ const ProfileDetail = () => {
               {isV ? (
                 <video
                   src={url}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   autoPlay={active}
                   muted
                   loop
@@ -875,11 +875,11 @@ const ProfileDetail = () => {
                 <SafePhoto
                   src={url}
                   alt=""
-                  width={750}
-                  quality={85}
+                  width={1080}
+                  quality={92}
                   fallbackSeed={profile?.id || url}
                   fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   loading="eager"
                   decoding="sync"
                   fetchPriority={active ? 'high' : 'low'}
@@ -894,7 +894,7 @@ const ProfileDetail = () => {
           return coverIsVideo ? (
             <video
               src={coverSrc}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover object-top"
               autoPlay
               muted
               loop
@@ -905,11 +905,11 @@ const ProfileDetail = () => {
             <SafePhoto
               src={coverSrc}
               alt=""
-              width={750}
-              quality={85}
+              width={1080}
+              quality={92}
               fallbackSeed={profile?.id || coverSrc}
               fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover object-top"
               loading="eager"
               decoding="sync"
               fetchPriority="high"
