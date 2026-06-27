@@ -2156,7 +2156,7 @@ const FaceVerification = () => {
     try {
       const { data } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos, ai_analysis')
         .eq('user_id', userId)
         .in('status', ['pending', 'submitted', 'under_review'])
         .order('created_at', { ascending: false })
@@ -2164,6 +2164,16 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (!data) return false;
+      const hasMedia = Boolean(
+        (data as any).profile_photo_url ||
+        (data as any).video_url ||
+        (data as any).face_image_url ||
+        (data as any).front_url ||
+        (data as any).selfie_url ||
+        (Array.isArray((data as any).host_photos) && (data as any).host_photos.length > 0)
+      );
+      const ai = ((data as any).ai_analysis || {}) as Record<string, unknown>;
+      if (!hasMedia || ai.requires_resubmit || ai.orphan_media) return false;
       lockUnderReviewAndReturn('Your verification was received and is now under review. Returning to profile…');
       return true;
     } catch {
