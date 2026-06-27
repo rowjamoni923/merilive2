@@ -88,24 +88,36 @@ serve(async (req: Request): Promise<Response> => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // ── Internal trigger path: server-authoritative ring fan-out.
+    // pg_net trigger on `private_calls` insert calls us with x-internal-secret
+    // so the host still rings even if the initiating client crashes between
+    // creating the call row and invoking this function.
+    const internalSecret = req.headers.get("x-internal-secret");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const isInternal = !!(internalSecret && cronSecret && internalSecret === cronSecret);
 
-    const token = authHeader.replace("Bearer ", "");
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
-    if (userErr || !userData?.user?.id) {
-      return new Response(JSON.stringify({ error: "Invalid session" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    let authedCallerId: string | null = null;
+    if (!isInternal) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+      if (userErr || !userData?.user?.id) {
+        return new Response(JSON.stringify({ error: "Invalid session" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      authedCallerId = userData.user.id;
     }
 
     const body = await req.json() as {
@@ -127,12 +139,13 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    if (userData.user.id !== callerId) {
+    if (!isInternal && authedCallerId !== callerId) {
       return new Response(JSON.stringify({ error: "caller mismatch" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const admin = createClient(supabaseUrl, serviceKey);
 
