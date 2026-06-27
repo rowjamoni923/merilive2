@@ -155,6 +155,89 @@ const isPosterVideo = (poster?: Pick<PosterImage, "image_url" | "media_type"> | 
   return poster.media_type === "video" || /\.(mp4|webm|mov|m4v|ogg)(?:$|[?#])/i.test(poster.image_url || "");
 };
 
+const getProfileHeroObjectPosition = (gender?: string | null) => {
+  return gender === "male" || gender === "Male" ? "50% 22%" : "50% 18%";
+};
+
+interface ProfileHeroMediaProps {
+  src: string;
+  isVideo: boolean;
+  active?: boolean;
+  profileId?: string | null;
+  gender?: string | null;
+  isHost?: boolean | null;
+  fetchPriority?: "high" | "low" | "auto";
+}
+
+const ProfileHeroMedia = memo(({ src, isVideo, active = true, profileId, gender, isHost, fetchPriority = "high" }: ProfileHeroMediaProps) => {
+  const fallbackGender = isHost || gender === "female" || gender === "Female"
+    ? "female"
+    : (gender === "male" || gender === "Male" ? "male" : "female");
+  const objectPosition = getProfileHeroObjectPosition(gender);
+
+  if (isVideo) {
+    return (
+      <>
+        <video
+          src={src}
+          className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-95 saturate-110"
+          style={{ objectPosition }}
+          autoPlay={active}
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+        />
+        <video
+          src={src}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ objectPosition }}
+          autoPlay={active}
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <SafePhoto
+        src={src}
+        alt=""
+        width={720}
+        quality={86}
+        fallbackSeed={profileId || src}
+        fallbackGender={fallbackGender}
+        className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-95 saturate-110"
+        style={{ objectPosition }}
+        loading="eager"
+        decoding="async"
+        fetchPriority="low"
+        aria-hidden="true"
+      />
+      <SafePhoto
+        src={src}
+        alt=""
+        width={1080}
+        quality={94}
+        fallbackSeed={profileId || src}
+        fallbackGender={fallbackGender}
+        className="absolute inset-0 h-full w-full object-contain"
+        style={{ objectPosition }}
+        loading="eager"
+        decoding="sync"
+        fetchPriority={fetchPriority}
+      />
+    </>
+  );
+});
+
+ProfileHeroMedia.displayName = "ProfileHeroMedia";
+
 interface GiftSent {
   id: string;
   name: string;
@@ -861,57 +944,28 @@ const ProfileDetail = () => {
               className="absolute inset-0"
               style={{ pointerEvents: active ? 'auto' : 'none' }}
             >
-              {isV ? (
-                <video
-                  src={url}
-                  className="w-full h-full object-cover object-top"
-                  autoPlay={active}
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
-                />
-              ) : (
-                <SafePhoto
-                  src={url}
-                  alt=""
-                  width={1080}
-                  quality={92}
-                  fallbackSeed={profile?.id || url}
-                  fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
-                  className="w-full h-full object-cover object-top"
-                  loading="eager"
-                  decoding="sync"
-                  fetchPriority={active ? 'high' : 'low'}
-                />
-              )}
+              <ProfileHeroMedia
+                src={url}
+                isVideo={isV}
+                active={active}
+                profileId={profile?.id}
+                gender={profile?.gender}
+                isHost={(profile as any)?.is_host}
+                fetchPriority={active ? "high" : "low"}
+              />
             </motion.div>
           );
         })}
         {posterImages.length === 0 && (() => {
           const coverSrc = getCurrentCoverImage();
           const coverIsVideo = !!coverSrc?.match(/\.(mp4|webm|mov|m4v)(?:$|[?#])/i);
-          return coverIsVideo ? (
-            <video
+          return (
+            <ProfileHeroMedia
               src={coverSrc}
-              className="absolute inset-0 w-full h-full object-cover object-top"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-            />
-          ) : (
-            <SafePhoto
-              src={coverSrc}
-              alt=""
-              width={1080}
-              quality={92}
-              fallbackSeed={profile?.id || coverSrc}
-              fallbackGender={(profile as any)?.is_host || profile?.gender === 'female' ? 'female' : (profile?.gender === 'male' ? 'male' : 'female')}
-              className="absolute inset-0 w-full h-full object-cover object-top"
-              loading="eager"
-              decoding="sync"
+              isVideo={coverIsVideo}
+              profileId={profile?.id}
+              gender={profile?.gender}
+              isHost={(profile as any)?.is_host}
               fetchPriority="high"
             />
           );
