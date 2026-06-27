@@ -1747,29 +1747,24 @@ serve(async (req) => {
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
 
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          is_face_verified: false,
-          face_verification_status: "needs_retry",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
+      const alreadyApprovedForQualityRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
 
       try {
-        const itemsList = failingSteps.map((f) => f.human_name).join(", ");
-        await supabaseAdmin.from("notifications").insert({
-          user_id: userId,
-          type: "face_verification_retry",
-          title: "Verification Needs Retry",
-          message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
-          data: {
-            action_url: "/face-verification",
-            steps: retryRequired.steps,
-            submission_id: submissionId,
-          },
-          is_read: false,
-        });
+        if (!alreadyApprovedForQualityRetry) {
+          const itemsList = failingSteps.map((f) => f.human_name).join(", ");
+          await supabaseAdmin.from("notifications").insert({
+            user_id: userId,
+            type: "face_verification_retry",
+            title: "Verification Needs Retry",
+            message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
+            data: {
+              action_url: "/face-verification",
+              steps: retryRequired.steps,
+              submission_id: submissionId,
+            },
+            is_read: false,
+          });
+        }
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] quality retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
