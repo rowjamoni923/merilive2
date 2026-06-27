@@ -1987,7 +1987,7 @@ serve(async (req) => {
           })
           .eq("id", activeSubmissionId)
           .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
-        if (activeUserId) {
+        if (activeUserId && !(await hasApprovedFaceState(activeAdmin, activeUserId))) {
           await activeAdmin.from("notifications").insert({
             user_id: activeUserId,
             type: "face_verification_retry",
