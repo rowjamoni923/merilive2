@@ -285,7 +285,6 @@ const GoLive = () => {
       if (!blob) return null;
       const objectPath = `${hostId}/live-thumbnails/${Date.now()}.jpg`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(objectPath, blob, {
-        upsert: true,
         contentType: 'image/jpeg',
         cacheControl: '300',
       });

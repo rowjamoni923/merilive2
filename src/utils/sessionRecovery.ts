@@ -158,7 +158,11 @@ export const isAuthSessionFailure = (error: unknown) => {
     ? error
     : String((error as { message?: string; code?: string; statusCode?: string | number; status?: string | number } | null)?.message ?? error ?? '');
   const fingerprint = raw.toLowerCase();
-  return /row-level security|jwt|token|auth|unauthorized|forbidden|permission|401|403|session/i.test(fingerprint);
+  // Keep this intentionally strict. Supabase Storage can return HTTP 403 for
+  // real RLS/policy problems; those are not expired sessions and must not be
+  // shown to users as “please sign in again”. Only retry/recover for genuine
+  // JWT/session-expiry signals.
+  return /jwt expired|invalid jwt|jwt invalid|malformed jwt|token expired|refresh token|not authenticated|auth session missing|auth session not found|no session found|session.*expired|session.*not.*found|\b401\b/i.test(fingerprint);
 };
 
 export const sessionExpiredUploadMessage = 'Your session expired. Please sign in again and retry.';
