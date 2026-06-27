@@ -1208,7 +1208,7 @@ const AdminFaceVerification = () => {
                         <Camera className="w-5 h-5 text-amber-300" /> Verification Video
                         <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">10s Intro</span>
                       </h4>
-                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)]" mediaClassName="max-h-96" />
+                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" />
                     </div>
                   );
                 })()}
