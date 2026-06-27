@@ -627,7 +627,7 @@ serve(async (req) => {
           user_id: row.user_id,
           type: "face_verification_retry",
           title: "Face Verification — Please Retry",
-          body: "We could not read your live face scan. Please retake it in good light, holding the phone steady, with only your face in frame.",
+          message: "We could not read your live face scan. Please retake it in good light, holding the phone steady, with only your face in frame.",
           data: { route: "/face-verification", reason: "live_scan_unreadable" },
         });
       } catch (_e) { /* best-effort */ }
