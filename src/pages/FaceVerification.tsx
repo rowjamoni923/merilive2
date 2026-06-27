@@ -1216,12 +1216,25 @@ const FaceVerification = () => {
       }
       
       videoStreamRef.current = stream;
-      
-      if (liveVideoRef.current) {
-        liveVideoRef.current.srcObject = stream;
-        await liveVideoRef.current.play().catch(console.error);
-      }
-      
+
+      // Mount the live <video> element FIRST so liveVideoRef exists, then attach
+      // the stream on the next animation frame. Without this, srcObject is set
+      // on a null ref (element only renders after isRecording flips true) and
+      // the preview stays black.
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      const attachLivePreview = () => {
+        const el = liveVideoRef.current;
+        if (!el) return;
+        try { el.srcObject = stream; } catch (err) { console.warn('[FaceVerify] srcObject set failed', err); }
+        el.muted = true;
+        el.playsInline = true;
+        el.play().catch((err) => console.warn('[FaceVerify] live preview play failed', err));
+      };
+      // Two rAFs guarantees React committed the new DOM node before we touch it.
+      requestAnimationFrame(() => requestAnimationFrame(attachLivePreview));
+
       const mimeType = MediaRecorder.isTypeSupported('video/mp4')
         ? 'video/mp4'
         : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
@@ -1248,8 +1261,6 @@ const FaceVerification = () => {
       };
       
       mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
       
       const timer = setInterval(() => {
         setRecordingTime(prev => {
@@ -4067,8 +4078,8 @@ const FaceVerification = () => {
                     disableRemotePlayback
                     controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                     {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                    className="absolute inset-0 w-full h-full object-contain object-center scale-x-[-1]"
-                    style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                    className="absolute inset-0 w-full h-full object-cover object-center scale-x-[-1]"
+                    style={{ backgroundColor: '#0b0b0f', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
                     <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
