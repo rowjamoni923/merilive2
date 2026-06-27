@@ -12,7 +12,19 @@ import {
   providerIndexFace,
   providerVerifyFace,
 } from "../_shared/externalVerify.ts";
-import { decode as decodeImage, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+// imagescript is HEAVY (large WASM init) and was eating the per-request CPU
+// budget at module-load time, leaving every submission stuck on
+// "under_review" with "CPU Time exceeded". Load it lazily, only when the
+// Supabase storage image-transform proxy (primary path) fails and we
+// genuinely have to decode locally.
+type ImagescriptModule = typeof import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+let _imagescriptPromise: Promise<ImagescriptModule> | null = null;
+function loadImagescript(): Promise<ImagescriptModule> {
+  if (!_imagescriptPromise) {
+    _imagescriptPromise = import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+  }
+  return _imagescriptPromise;
+}
 
 // Rekognition hard limit is 5 MiB on Image.Bytes (base64 over the wire is
 // ~33% larger, but the limit is on raw bytes). Stay safely under so multiple
