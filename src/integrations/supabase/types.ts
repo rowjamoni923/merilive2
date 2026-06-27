@@ -19636,10 +19636,9 @@ export type Database = {
         Returns: undefined
       }
       admin_entry_effects_stats: { Args: never; Returns: Json }
-      admin_face_verification_stats: {
-        Args: { _search?: string }
-        Returns: Json
-      }
+      admin_face_verification_stats:
+        | { Args: never; Returns: Json }
+        | { Args: { _search?: string }; Returns: Json }
       admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
         Args: {
@@ -22260,6 +22259,10 @@ export type Database = {
       expire_noble_subscriptions: { Args: never; Returns: number }
       expire_stale_pk_invites: { Args: never; Returns: number }
       expire_stale_swift_pay_topups: { Args: never; Returns: number }
+      face_verification_has_renderable_media: {
+        Args: { _url: string }
+        Returns: boolean
+      }
       face_verification_is_auto_reviewed:
         | { Args: { _admin_notes: string; _status: string }; Returns: boolean }
         | {
@@ -22270,6 +22273,20 @@ export type Database = {
             }
             Returns: boolean
           }
+      face_verification_is_retry_required: {
+        Args: {
+          _admin_notes: string
+          _ai_analysis: Json
+          _face_image_url: string
+          _front_url: string
+          _host_photos: string[]
+          _profile_photo_url: string
+          _selfie_url: string
+          _status: string
+          _video_url: string
+        }
+        Returns: boolean
+      }
       face_verification_status_bucket: {
         Args: { _status: string }
         Returns: string
@@ -23564,6 +23581,10 @@ export type Database = {
       remove_group_member: {
         Args: { p_group_id: string; p_user_id: string }
         Returns: undefined
+      }
+      repair_face_incomplete_upload_rejections_v2: {
+        Args: never
+        Returns: number
       }
       report_live_face_event: {
         Args: {
