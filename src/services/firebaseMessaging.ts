@@ -154,10 +154,16 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
 
-    // Do not auto-prompt on app start. Permission must be enabled from Settings by user action.
-    const permResult = await PushNotifications.checkPermissions();
+    // Auto-prompt: WhatsApp/Imo-parity. On first launch after install the OS
+    // permission dialog appears automatically so the FCM token registers
+    // without requiring the host to dig into Settings.
+    let permResult = await PushNotifications.checkPermissions();
+    if (permResult.receive === 'prompt' || permResult.receive === 'prompt-with-rationale') {
+      console.log('[FCM Native] Auto-requesting notification permission');
+      permResult = await PushNotifications.requestPermissions();
+    }
     if (permResult.receive !== 'granted') {
-      console.warn('[FCM Native] Waiting for user-initiated notification permission request');
+      console.warn('[FCM Native] Notification permission not granted:', permResult.receive);
       return null;
     }
 
