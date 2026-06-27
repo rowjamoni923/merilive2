@@ -1170,7 +1170,7 @@ const AdminFaceVerification = () => {
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
                         <ScanFace className="w-5 h-5 text-amber-300" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)]" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -1194,7 +1194,7 @@ const AdminFaceVerification = () => {
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
                         <Camera className="w-5 h-5 text-purple-300" /> Profile Photo
                       </h4>
-                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-44 h-44 rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] hover:scale-105 transition-transform" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-full max-w-sm rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] bg-black/40" mediaClassName="w-full max-h-[60vh] object-contain" onOpen={() => setExpandedPhoto(url)} />
                     </div>
                   );
                 })()}
@@ -1208,7 +1208,7 @@ const AdminFaceVerification = () => {
                         <Camera className="w-5 h-5 text-amber-300" /> Verification Video
                         <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">10s Intro</span>
                       </h4>
-                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)]" mediaClassName="max-h-96" />
+                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" />
                     </div>
                   );
                 })()}
@@ -1220,7 +1220,7 @@ const AdminFaceVerification = () => {
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {([selectedSubmission.front_url, selectedSubmission.left_url, selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
-                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)]" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-[3/4] rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)] flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
                   </div>
@@ -1238,7 +1238,7 @@ const AdminFaceVerification = () => {
                         const url = photo;
                         return (
                           <div key={index} className="relative group">
-                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-square rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-[3/4] rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={() => setExpandedPhoto(url)} />
                             <span className="absolute top-1.5 left-1.5 bg-gradient-to-br from-amber-400 to-amber-600 text-black text-[10px] px-2 py-0.5 rounded-full font-bold shadow-md">{index + 1}</span>
                           </div>
                         );
