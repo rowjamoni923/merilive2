@@ -14,6 +14,9 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const isEmailSetupPendingCode = (code?: string) =>
+  code === "EMAIL_DOMAIN_NOT_VERIFIED" || code === "EMAIL_SENDER_DOMAIN_NOT_READY";
+
 function generateOTP(): string {
   const arr = new Uint8Array(6);
   crypto.getRandomValues(arr);
@@ -79,11 +82,21 @@ Deno.serve(async (req) => {
     if (!result.success) {
       console.error("[send-email-otp] Email delivery failed:", result.error);
       await supabase.from("email_otps").update({ is_used: true }).eq("email", email).eq("otp_code", otp).eq("is_used", false);
+
+      // Sender-domain activation is an expected temporary setup state. Return a
+      // normal function response so the app can show a professional inline error
+      // instead of Supabase surfacing it as an Edge Function runtime failure.
+      const responseStatus = isEmailSetupPendingCode(result.code)
+        ? 200
+        : result.status && result.status >= 400
+          ? result.status
+          : 500;
+
       return json({
         success: false,
         error: result.error || "Failed to send verification email. Please try again.",
         code: result.code || "EMAIL_DELIVERY_FAILED",
-      }, result.status && result.status >= 400 ? result.status : 500);
+      }, responseStatus);
     }
 
     console.log(`[send-email-otp] OTP queued for ${email} (${purpose}) via Lovable Email`);

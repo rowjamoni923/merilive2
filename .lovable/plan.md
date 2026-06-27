@@ -460,3 +460,21 @@ Verified current gap:
 Patch scope:
 - Align app OTP/app-email and auth-email sender config to `notify.otp.merilive.top` with visible From domain `otp.merilive.top`.
 - Redeploy affected email functions and validate `send-email-otp` against the verified sender.
+
+---
+
+# Phase 22 — OTP activation-state runtime hardening (2026-06-27)
+
+Research / professional standard:
+- Mailgun/Lovable-style sender domains can be DNS-verified while project-level sending is still activating; sender calls may temporarily return provider `domain_not_verified` until activation completes.
+- OTP flows in native social apps must never blank/crash on delivery setup failures; expected provider setup states should return a controlled business response and let the UI show an English retry message.
+
+Verified current gap:
+- `notify.mail.merilive.top` DNS is verified, but project email setup still reports “Setting up — Setting up emails for your project”.
+- Recent `send-transactional-email` logs show provider `domain_not_verified`, which `send-email-otp` propagated as HTTP 503.
+- Supabase surfaced that 503 as `Edge function returned 503` / runtime error, causing a blank-screen report instead of a normal OTP error message.
+
+Patch scope:
+- Keep sender domain as `notify.mail.merilive.top` / visible From domain `mail.merilive.top`.
+- Convert temporary sender activation errors from `send-email-otp` into a normal `{ success:false, code }` response so UI handles it without a runtime crash.
+- Actual OTP delivery will start automatically once Cloud → Emails finishes project activation.
