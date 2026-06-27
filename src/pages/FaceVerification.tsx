@@ -3911,7 +3911,7 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="relative w-32 h-40 sm:w-36 sm:h-44 rounded-[1.75rem] bg-slate-950 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 active:scale-95 transition overflow-hidden shadow-xl shadow-purple-500/10 touch-target-lg ring-1 ring-white"
+                className="relative w-32 h-40 sm:w-36 sm:h-44 rounded-[1.75rem] bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-100/40 active:scale-95 transition overflow-hidden shadow-lg shadow-amber-200/30 touch-target-lg ring-1 ring-amber-100"
                 onClick={() => photoInputRef.current?.click()}
                 role="button"
                 aria-label="Upload profile photo"
@@ -4012,7 +4012,7 @@ const FaceVerification = () => {
                   disablePictureInPicture
                   disableRemotePlayback
                   controlsList="nodownload noremoteplayback noplaybackrate"
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-contain bg-white"
                   onLoadedData={(event) => event.currentTarget.play().catch(() => {})}
                 />
               ) : isRecording ? (
@@ -4109,7 +4109,7 @@ const FaceVerification = () => {
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="relative aspect-square rounded-xl sm:rounded-2xl bg-slate-950 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
+                  className="relative aspect-square rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-100/40 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
                   role="button"
                   aria-label={`Add photo ${index + 1}`}
