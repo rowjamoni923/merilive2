@@ -23060,6 +23060,10 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: number
       }
+      mark_incomplete_face_uploads_retry_required: {
+        Args: never
+        Returns: number
+      }
       mark_live_stream_live:
         | { Args: { _identity: string; _room_name: string }; Returns: boolean }
         | { Args: { p_stream_id: string }; Returns: Json }
