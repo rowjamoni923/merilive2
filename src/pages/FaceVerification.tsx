@@ -3074,12 +3074,9 @@ const FaceVerification = () => {
             
             {/* Face oval guide with dynamic border color */}
             <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
-              {/* Dark overlay outside oval */}
-              {!usingNativeFaceCamera && (
-                <div className="absolute inset-0" style={{
-                  background: 'radial-gradient(ellipse 63% 52% at 50% 44%, transparent 94%, rgba(2,6,23,0.68) 100%), radial-gradient(circle at 50% 10%, rgba(212,175,55,0.18), transparent 36%)',
-                }} />
-              )}
+              {/* (dark vignette overlay removed — camera is now hex-clipped and
+                  the surrounding area is filled by the animated lighting layer) */}
+
               
               {/* Animated hex face frame */}
               <motion.div 
