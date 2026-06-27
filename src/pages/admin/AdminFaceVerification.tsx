@@ -1473,12 +1473,12 @@ const AdminFaceVerification = () => {
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-[#E2E8F0] text-[#0F172A] max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-lg">
-              {actionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
+            <DialogTitle className="text-[#0F172A] text-lg font-bold tracking-tight">
+              {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription className="text-slate-500">
               {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
             </DialogDescription>
           </DialogHeader>
@@ -1487,17 +1487,13 @@ const AdminFaceVerification = () => {
               <>
                 {/* Gender Selection */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Select Gender</Label>
+                  <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Select Gender</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <button onClick={() => setApproveGender('female')}
-                      className={`relative overflow-hidden rounded-xl p-3.5 transition-all duration-300 ${approveGender === 'female' ? 'ring-2 ring-pink-500 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-                      style={{
-                        background: approveGender === 'female' ? 'linear-gradient(135deg, rgba(236,72,153,0.25), rgba(219,39,119,0.15))' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${approveGender === 'female' ? 'rgba(236,72,153,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`relative overflow-hidden rounded-lg p-3.5 transition-all duration-150 border ${approveGender === 'female' ? 'border-pink-400 bg-pink-50 ring-2 ring-pink-200' : 'border-[#E2E8F0] bg-white hover:bg-slate-50'}`}>
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-2xl">👩</span>
-                        <span className={`font-bold ${approveGender === 'female' ? 'text-pink-300' : 'text-white/50'}`}>Female</span>
+                        <span className={`font-semibold ${approveGender === 'female' ? 'text-pink-700' : 'text-slate-600'}`}>Female</span>
                       </div>
                       {approveGender === 'female' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center">
@@ -1506,14 +1502,10 @@ const AdminFaceVerification = () => {
                       )}
                     </button>
                     <button onClick={() => setApproveGender('male')}
-                      className={`relative overflow-hidden rounded-xl p-3.5 transition-all duration-300 ${approveGender === 'male' ? 'ring-2 ring-blue-500 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-                      style={{
-                        background: approveGender === 'male' ? 'linear-gradient(135deg, rgba(59,130,246,0.25), rgba(37,99,235,0.15))' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${approveGender === 'male' ? 'rgba(59,130,246,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`relative overflow-hidden rounded-lg p-3.5 transition-all duration-150 border ${approveGender === 'male' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : 'border-[#E2E8F0] bg-white hover:bg-slate-50'}`}>
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-2xl">👨</span>
-                        <span className={`font-bold ${approveGender === 'male' ? 'text-blue-300' : 'text-white/50'}`}>Male</span>
+                        <span className={`font-semibold ${approveGender === 'male' ? 'text-blue-700' : 'text-slate-600'}`}>Male</span>
                       </div>
                       {approveGender === 'male' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -1525,9 +1517,9 @@ const AdminFaceVerification = () => {
                 </div>
 
                 {/* Pkg382: single combined Approve bar + Convert-to-User (re-verify) */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10 space-y-3">
-                  <p className="text-[10px] text-white/40 font-semibold text-center uppercase tracking-widest">
-                    ⚡ Select role then Approve
+                <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                  <p className="text-[10px] text-slate-500 font-semibold text-center uppercase tracking-widest">
+                    Select role then Approve
                   </p>
                   <RoleApproveBar
                     defaultRole={selectedSubmission?.verification_type === 'host' ? 'host' : 'user'}
@@ -1572,12 +1564,12 @@ const AdminFaceVerification = () => {
                         toast({ title: 'Error', description: error.message || 'Failed to convert', variant: 'destructive' });
                       } finally { setProcessing(false); actionInFlightRef.current = false; }
                     }}
-                    className="w-full rounded-2xl p-3 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none border-2 border-amber-500/40 bg-amber-500/10 text-amber-200 font-semibold text-sm"
+                    className="w-full rounded-lg p-3 transition-colors disabled:opacity-50 disabled:pointer-events-none border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold text-sm"
                   >
                     {processing ? <Loader2 className="w-4 h-4 mr-2 inline animate-spin" /> : null}
-                    🔄 Convert to User (allow re-verify)
+                    Convert to User (allow re-verify)
                   </button>
-                  <p className="text-[10px] text-white/40 text-center leading-snug">
+                  <p className="text-[10px] text-slate-500 text-center leading-snug">
                     "Convert to User" removes host status &amp; face-verified flag, detaches from agency, and lets the user submit face verification again.
                   </p>
                 </div>
@@ -1587,13 +1579,14 @@ const AdminFaceVerification = () => {
             {/* Rejection UI */}
             {actionType === 'reject' && (
               <div>
-                <Label className="text-white/70">Rejection Reason</Label>
-                <Textarea placeholder="Enter reason for rejection..." value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-white/25" rows={3} />
+                <Label className="text-slate-700 font-medium">Rejection Reason</Label>
+                <Textarea placeholder="Enter reason for rejection..." value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="mt-2 bg-white border-[#E2E8F0] text-[#0F172A] placeholder:text-slate-400" rows={3} />
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowActionModal(false)} className="bg-white/5 border-white/10 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowActionModal(false)} className="bg-white border-[#E2E8F0] text-slate-700 hover:bg-slate-50">Cancel</Button>
+
             {actionType === 'reject' && (
               <Button onClick={handleAction} disabled={processing} className="bg-red-600 hover:bg-red-500 text-white">
                 {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
