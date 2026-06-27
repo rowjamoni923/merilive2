@@ -1,11 +1,9 @@
 import type { Session } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/client';
 import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { getSessionFromNative, saveSessionToNative } from '@/utils/nativeSessionStorage';
 
-const SUPABASE_URL = 'https://ayjdlvuurscxucatbbah.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc';
 const DEFAULT_MIN_FRESH_MS = 2 * 60_000;
 
 type EnsureFreshSessionOptions = {
