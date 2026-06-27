@@ -841,7 +841,7 @@ const AdminFaceVerification = () => {
                 const mediaReadiness = getFaceSubmissionMediaReadiness(submission);
 
                 return (
-                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
+                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-white border border-[#E2E8F0] hover:border-slate-300 transition-colors rounded-xl p-4 space-y-3 shadow-sm">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10 border border-border">
                         <UserAvatarImage gender={((submission.profile) as any)?.gender} seed={submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
