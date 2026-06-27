@@ -2493,7 +2493,15 @@ const Auth = () => {
                 <br />
                 <span className="text-slate-900 font-medium">{email}</span>
               </DialogDescription>
-            </DialogHeader>
+             </DialogHeader>
+
+             {/* Spam folder notice */}
+             <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-amber-600 mt-0.5 shrink-0"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+               <p className="text-[12px] leading-snug text-amber-900">
+                 Can't find the email? Please check your <span className="font-semibold">Spam</span> or <span className="font-semibold">Promotions</span> folder and mark it as <span className="font-semibold">"Not spam"</span>.
+               </p>
+             </div>
 
             <div className="pt-7 space-y-5">
               {/* OTP Input — separated slots */}
@@ -2633,6 +2641,14 @@ const Auth = () => {
  <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
             </DialogHeader>
+
+            {/* Spam folder notice */}
+            <div className="relative z-10 mt-4 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-amber-600 mt-0.5 shrink-0"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              <p className="text-[12px] leading-snug text-amber-900">
+                Can't find the email? Please check your <span className="font-semibold">Spam</span> or <span className="font-semibold">Promotions</span> folder and mark it as <span className="font-semibold">"Not spam"</span>.
+              </p>
+            </div>
             
             <div className="py-5 space-y-6 relative z-10">
               <div className="flex justify-center">
