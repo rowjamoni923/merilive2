@@ -4109,7 +4109,7 @@ const FaceVerification = () => {
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="relative aspect-square rounded-xl sm:rounded-2xl bg-slate-950 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
+                  className="relative aspect-square rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-100/40 active:scale-95 transition overflow-hidden shadow-md touch-target-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
                   role="button"
                   aria-label={`Add photo ${index + 1}`}
