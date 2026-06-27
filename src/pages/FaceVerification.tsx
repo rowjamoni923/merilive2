@@ -2331,35 +2331,10 @@ const FaceVerification = () => {
         return;
       }
 
-      const { data: submissionData, error: submissionError } = await supabase
-        .from('face_verification_submissions')
-        .insert({
-          user_id: userId,
-          verification_type: 'user',
-          status: 'under_review',
-          full_name: fullName.trim(),
-          age: parseInt(age, 10),
-          language,
-          admin_notes: 'Upload is completing securely in the background. AI review will start automatically.',
-          ai_analysis: {
-            ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
-            scan_mode: 'passive_photo_video_live',
-            upload_pending: true,
-            evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
-            visible_pose_prompts: false,
-            challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: false,
-          },
-        })
-        .select('id')
-        .single();
-
-      if (submissionError) throw submissionError;
-      const submissionId = submissionData.id as string;
-
-      // CRITICAL: Do NOT lock the screen yet. We must keep the page mounted
-      // (and the network alive) until media URLs are persisted via RPC,
-      // otherwise admin panels stay empty and AI analyze has nothing to score.
+      // PKG-ORPHAN-FIX: Upload ALL media FIRST, then INSERT the row with URLs
+      // already populated. This eliminates the orphan-row class of bug — if any
+      // upload fails or the user navigates away, no DB row is ever created with
+      // NULL URLs. Admin panel + AI now always see media on every row.
       let profilePhotoUrl: string | null = null;
       let videoUrl: string | null = null;
       let angleUrls: { front_url?: string; left_url?: string; right_url?: string } = {};
@@ -2417,17 +2392,25 @@ const FaceVerification = () => {
 
       const selfieUrl = angleUrls.front_url || videoUrl || null;
 
-      // ALWAYS persist whatever we have so admin panel can render the media,
-      // even if one of the uploads (frame / one angle) failed. Retry once on
-      // transient failure so a single network blip doesn't leave the row blank.
-      const userPayload = {
-        status: 'under_review',
+      // ★ Guard: at least one live-evidence asset must have uploaded; otherwise
+      //   creating a row would leave admin + AI blind (the very bug we're fixing).
+      if (!videoUrl && !angleUrls.front_url && !selfieUrl) {
+        throw new Error('Upload failed — please check your connection and try again.');
+      }
+
+      const fullInsertPayload = {
+        user_id: userId,
+        verification_type: 'user' as const,
+        status: 'under_review' as const,
+        full_name: fullName.trim(),
+        age: parseInt(age, 10),
+        language,
+        profile_photo_url: profilePhotoUrl,
         face_image_url: videoUrl,
         selfie_url: selfieUrl,
         front_url: angleUrls.front_url ?? null,
         left_url: angleUrls.left_url ?? null,
         right_url: angleUrls.right_url ?? null,
-        profile_photo_url: profilePhotoUrl,
         admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
         ai_analysis: {
           ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
@@ -2452,14 +2435,37 @@ const FaceVerification = () => {
           challenge_randomized: false,
         },
       };
-      try {
-        await completeSubmissionUploadsViaRpc(submissionId, userPayload);
-      } catch (rpcErr: any) {
-        console.error('[FaceVerification] complete uploads RPC failed, retrying once', rpcErr);
-        try { await completeSubmissionUploadsViaRpc(submissionId, userPayload); }
-        catch (rpcErr2: any) {
-          recordClientError({ label: 'FaceVerification.completeUploadsRpc', message: rpcErr2?.message || String(rpcErr2) });
+
+      // Re-check for an existing pending row right before insert (in case a parallel
+      // tab created one or an earlier orphan exists). Heal-in-place rather than dup.
+      const { data: existingOrphanRow } = await supabase
+        .from('face_verification_submissions')
+        .select('id, status, profile_photo_url, video_url, face_image_url, front_url, selfie_url')
+        .eq('user_id', userId)
+        .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+
+      let submissionId: string;
+      if (existingOrphanRow) {
+        submissionId = existingOrphanRow.id as string;
+        try {
+          await completeSubmissionUploadsViaRpc(submissionId, fullInsertPayload);
+        } catch (rpcErr: any) {
+          console.error('[FaceVerification] heal existing submission RPC failed, retrying', rpcErr);
+          try { await completeSubmissionUploadsViaRpc(submissionId, fullInsertPayload); }
+          catch (rpcErr2: any) {
+            recordClientError({ label: 'FaceVerification.healExistingRpc', message: rpcErr2?.message || String(rpcErr2) });
+          }
         }
+      } else {
+        const { data: submissionData, error: submissionError } = await supabase
+          .from('face_verification_submissions')
+          .insert(fullInsertPayload)
+          .select('id')
+          .single();
+        if (submissionError) throw submissionError;
+        submissionId = submissionData.id as string;
       }
 
       // NOW it is safe to lock the screen — URLs are in the DB and admin sees media.
@@ -2642,35 +2648,8 @@ const FaceVerification = () => {
         return;
       }
 
-      const { data: submissionData, error: submissionError } = await supabase
-        .from('face_verification_submissions')
-        .insert({
-          user_id: userId,
-          verification_type: 'host',
-          status: 'under_review',
-          full_name: fullName.trim(),
-          age: parseInt(age, 10),
-          language,
-          admin_notes: 'Upload is completing securely in the background. AI review will start automatically.',
-          ai_analysis: {
-            ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
-            scan_mode: 'passive_photo_video_live',
-            upload_pending: true,
-            evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
-            visible_pose_prompts: false,
-            challenge_sequence: faceInstructions.map(i => i.id),
-            challenge_randomized: false,
-          },
-        })
-        .select('id')
-        .single();
-
-      if (submissionError) throw submissionError;
-      const submissionId = submissionData.id as string;
-
-      // CRITICAL: Do NOT lock the screen yet — keep this page mounted so the
-      // network stays alive until the URL-persisting RPC lands. Otherwise admin
-      // panels stay empty and the AI pipeline has nothing to score.
+      // PKG-ORPHAN-FIX (host): Upload ALL media FIRST, then INSERT the row with
+      // URLs populated. Eliminates orphan-row class of bug for host applications.
       let profilePhotoUrl: string | null = null;
       let introVideoUrl: string | null = null;
       let faceVideoUrl: string | null = null;
@@ -2735,8 +2714,18 @@ const FaceVerification = () => {
 
       const selfieUrl = angleUrls.front_url || faceVideoUrl || null;
 
-      const hostPayload = {
-        status: 'under_review',
+      // ★ Guard: must have at least live evidence — otherwise admin + AI are blind.
+      if (!faceVideoUrl && !angleUrls.front_url && !selfieUrl) {
+        throw new Error('Upload failed — please check your connection and try again.');
+      }
+
+      const fullHostInsertPayload = {
+        user_id: userId,
+        verification_type: 'host' as const,
+        status: 'under_review' as const,
+        full_name: fullName.trim(),
+        age: parseInt(age, 10),
+        language,
         profile_photo_url: profilePhotoUrl,
         video_url: introVideoUrl,
         host_photos: photoUrls,
@@ -2777,14 +2766,36 @@ const FaceVerification = () => {
           challenge_randomized: false,
         },
       };
-      try {
-        await completeSubmissionUploadsViaRpc(submissionId, hostPayload);
-      } catch (rpcErr: any) {
-        console.error('[FaceVerification] host complete uploads RPC failed, retrying once', rpcErr);
-        try { await completeSubmissionUploadsViaRpc(submissionId, hostPayload); }
-        catch (rpcErr2: any) {
-          recordClientError({ label: 'FaceVerification.hostCompleteUploadsRpc', message: rpcErr2?.message || String(rpcErr2) });
+
+      // Heal-in-place if a prior orphan row exists; else INSERT fresh.
+      const { data: existingHostOrphan } = await supabase
+        .from('face_verification_submissions')
+        .select('id, status')
+        .eq('user_id', userId)
+        .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+
+      let submissionId: string;
+      if (existingHostOrphan) {
+        submissionId = existingHostOrphan.id as string;
+        try {
+          await completeSubmissionUploadsViaRpc(submissionId, fullHostInsertPayload);
+        } catch (rpcErr: any) {
+          console.error('[FaceVerification] host heal RPC failed, retrying once', rpcErr);
+          try { await completeSubmissionUploadsViaRpc(submissionId, fullHostInsertPayload); }
+          catch (rpcErr2: any) {
+            recordClientError({ label: 'FaceVerification.hostHealRpc', message: rpcErr2?.message || String(rpcErr2) });
+          }
         }
+      } else {
+        const { data: submissionData, error: submissionError } = await supabase
+          .from('face_verification_submissions')
+          .insert(fullHostInsertPayload)
+          .select('id')
+          .single();
+        if (submissionError) throw submissionError;
+        submissionId = submissionData.id as string;
       }
 
       // NOW it is safe to lock the screen — media URLs are in the DB.
