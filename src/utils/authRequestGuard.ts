@@ -4,7 +4,8 @@ type GetUserResult = Awaited<ReturnType<typeof supabase.auth.getUser>>;
 type GetSessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
 
 const USER_CACHE_TTL_MS = 10 * 60_000;          // 10 min hot cache
-const SESSION_CACHE_TTL_MS = 10 * 60_000;       // 10 min hot cache
+const SESSION_CACHE_TTL_MS = 10 * 60_000;       // 10 min hot cache, but never serve near-expired JWTs
+const SESSION_MIN_FRESH_MS = 2 * 60_000;        // Storage/RLS calls need a safely fresh token
 const TRANSIENT_ERROR_COOLDOWN_MS = 10 * 60_000; // 10 min cooldown on transient errors
 const AUTH_SERVICE_BACKOFF_MS = 15 * 60_000;    // 15 min auth circuit-breaker
 const MAX_STALE_RESULT_AGE_MS = 60 * 60 * 1000; // 60 min stale fallback — keep app alive during outages
@@ -61,6 +62,14 @@ const canServeStale = (lastAt: number) => {
   return lastAt > 0 && Date.now() - lastAt < MAX_STALE_RESULT_AGE_MS;
 };
 
+const sessionResultHasFreshToken = (sessionResult: GetSessionResult | null) => {
+  const session = sessionResult?.data?.session;
+  if (!session) return true;
+  if (!session.access_token) return false;
+  const expiresAtMs = session.expires_at ? session.expires_at * 1000 : 0;
+  return !expiresAtMs || expiresAtMs - Date.now() > SESSION_MIN_FRESH_MS;
+};
+
 const toUserResultFromSession = (sessionResult: GetSessionResult): GetUserResult => {
   return ({
     data: { user: sessionResult.data.session?.user ?? null },
@@ -115,7 +124,7 @@ export const installAuthRequestGuard = () => {
         return Promise.resolve(derivedFromSession);
       }
 
-      if (lastSessionResult && now - lastSessionAt < SESSION_CACHE_TTL_MS) {
+      if (lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && now - lastSessionAt < SESSION_CACHE_TTL_MS) {
         const derivedFromSession = toUserResultFromSession(lastSessionResult);
         lastUserResult = derivedFromSession;
         lastUserAt = now;
@@ -205,19 +214,19 @@ export const installAuthRequestGuard = () => {
     const now = Date.now();
 
     if (canUseSharedCache) {
-      if (now < authServiceBackoffUntil && lastSessionResult && canServeStale(lastSessionAt)) {
+      if (now < authServiceBackoffUntil && lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && canServeStale(lastSessionAt)) {
         return Promise.resolve(lastSessionResult);
       }
-      if (now < sessionCooldownUntil && lastSessionResult && canServeStale(lastSessionAt)) {
+      if (now < sessionCooldownUntil && lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && canServeStale(lastSessionAt)) {
         return Promise.resolve(lastSessionResult);
       }
       if (sessionInFlight) return sessionInFlight;
-      if (lastSessionResult && now - lastSessionAt < SESSION_CACHE_TTL_MS) {
+      if (lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && now - lastSessionAt < SESSION_CACHE_TTL_MS) {
         return Promise.resolve(lastSessionResult);
       }
 
       // Prefer stale session snapshot (up to MAX_STALE_RESULT_AGE_MS) over extra backend calls.
-      if (lastSessionResult && canServeStale(lastSessionAt)) {
+      if (lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && canServeStale(lastSessionAt)) {
         return Promise.resolve(lastSessionResult);
       }
     }
@@ -225,7 +234,7 @@ export const installAuthRequestGuard = () => {
     const request = originalGetSession(...args)
       .then((result) => {
         if (canUseSharedCache) {
-          if (result?.error && isTransientAuthFailure(result.error) && lastSessionResult && canServeStale(lastSessionAt)) {
+          if (result?.error && isTransientAuthFailure(result.error) && lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && canServeStale(lastSessionAt)) {
             sessionCooldownUntil = Date.now() + TRANSIENT_ERROR_COOLDOWN_MS;
             authServiceBackoffUntil = Date.now() + AUTH_SERVICE_BACKOFF_MS;
             console.warn('[AuthGuard] getSession transient backend error, serving cached snapshot');
@@ -241,7 +250,7 @@ export const installAuthRequestGuard = () => {
       })
       .catch((error) => {
         if (canUseSharedCache && (isAbortError(error) || isTransientAuthFailure(error))) {
-          if (lastSessionResult && canServeStale(lastSessionAt)) {
+          if (lastSessionResult && sessionResultHasFreshToken(lastSessionResult) && canServeStale(lastSessionAt)) {
             sessionCooldownUntil = Date.now() + TRANSIENT_ERROR_COOLDOWN_MS;
             authServiceBackoffUntil = Date.now() + AUTH_SERVICE_BACKOFF_MS;
             console.warn('[AuthGuard] getSession request failed, serving cached snapshot');

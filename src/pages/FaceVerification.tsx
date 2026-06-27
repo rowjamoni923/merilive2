@@ -41,6 +41,7 @@ import { useUniversalRealtime } from "@/hooks/useUniversalRealtime";
 import { useNativeAndroidFaceCamera } from "@/hooks/useNativeAndroidFaceCamera";
 import { useProCamera } from "@/camera/useProCamera";
 import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
+import { ensureFreshSupabaseSession, isAuthSessionFailure, sessionExpiredUploadMessage } from "@/utils/sessionRecovery";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -2048,15 +2049,8 @@ const FaceVerification = () => {
 
   const ensureFreshFaceSession = async (): Promise<string | null> => {
     try {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
-      if (!session) return null;
-      const expiresAt = (session.expires_at ?? 0) * 1000;
-      if (expiresAt && expiresAt - Date.now() < 5 * 60_000) {
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        return refreshed?.session?.user?.id || session.user?.id || null;
-      }
-      return session.user?.id || null;
+      const session = await ensureFreshSupabaseSession({ expectedUserId: userId, minFreshMs: 5 * 60_000 });
+      return session?.user?.id || null;
     } catch {
       return null;
     }
@@ -2087,14 +2081,12 @@ const FaceVerification = () => {
       .upload(fileName, file, { upsert: true, contentType });
 
     let { data, error } = await attemptUpload();
-    if (error) {
-      const msg = (error as any)?.message || String(error);
-      if (/row-level security|jwt|JWT|401|403|unauthor/i.test(msg)) {
-        try { await supabase.auth.refreshSession(); } catch {}
+    if (error && isAuthSessionFailure(error)) {
+        const recovered = await ensureFreshSupabaseSession({ expectedUserId: ownerUid, minFreshMs: 5 * 60_000, forceRefresh: true });
+        if (!recovered) throw new Error(sessionExpiredUploadMessage);
         const retry = await attemptUpload();
         data = retry.data;
         error = retry.error;
-      }
     }
 
     if (error) {
@@ -2433,13 +2425,14 @@ const FaceVerification = () => {
       try {
         const ext = (userPhotoFile.type || '').includes('png') ? 'png'
           : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
-        const avatarKey = `${userId}/${Date.now()}.${ext}`;
+        const avatarKey = `${freshUid}/${Date.now()}.${ext}`;
         let up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
           upsert: true,
           contentType: userPhotoFile.type || 'image/jpeg',
         });
-        if (up.error && /row-level security|jwt|401|403|unauthor/i.test((up.error as any)?.message || '')) {
-          try { await supabase.auth.refreshSession(); } catch {}
+        if (up.error && isAuthSessionFailure(up.error)) {
+          const recovered = await ensureFreshSupabaseSession({ expectedUserId: freshUid, minFreshMs: 5 * 60_000, forceRefresh: true });
+          if (!recovered) throw new Error(sessionExpiredUploadMessage);
           up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
             upsert: true,
             contentType: userPhotoFile.type || 'image/jpeg',
