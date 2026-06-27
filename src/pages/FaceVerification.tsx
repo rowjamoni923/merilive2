@@ -637,6 +637,11 @@ const FaceVerification = () => {
       .limit(1)
       .maybeSingle();
 
+    // An orphan submission (no media reached storage and the DB sweeper flagged
+    // it) must NOT lock the user on "Under Review" — let them resubmit instead.
+    const ai = (latestSubmission as any)?.ai_analysis || {};
+    const isOrphanResubmit = !!(ai.requires_resubmit || ai.orphan_media || ai.auto_rejected_reason === 'orphan_media_missing');
+
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
@@ -646,6 +651,12 @@ const FaceVerification = () => {
       setRetryRequired(rr);
       setVerificationStatus('needs_retry');
       setRejectionReason(null);
+    } else if (isOrphanResubmit) {
+      // Treat orphan rows (rejected or still pending with no media) as a
+      // retryable rejection so the verification form re-renders.
+      setVerificationStatus('rejected');
+      setRejectionReason('Upload was incomplete — please retry your photo, video and live scan.');
+      setRetryRequired(null);
     } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted' || latestSubmission?.status === 'under_review') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
