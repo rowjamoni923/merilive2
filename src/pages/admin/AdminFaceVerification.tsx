@@ -1194,7 +1194,7 @@ const AdminFaceVerification = () => {
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
                         <Camera className="w-5 h-5 text-purple-300" /> Profile Photo
                       </h4>
-                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-44 h-44 rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] hover:scale-105 transition-transform" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-full max-w-sm rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] bg-black/40" mediaClassName="w-full max-h-[60vh] object-contain" onOpen={() => setExpandedPhoto(url)} />
                     </div>
                   );
                 })()}
