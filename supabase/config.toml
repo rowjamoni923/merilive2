@@ -16,6 +16,8 @@ project_id = "ayjdlvuurscxucatbbah"
 
   [functions.admin-sign-storage-url]
     verify_jwt = false
+  [functions.face-verification-analyze]
+    verify_jwt = false
   [functions.ai-moderator]
     verify_jwt = false
   [functions.auth-email-hook]
