@@ -1912,8 +1912,8 @@ const FaceVerification = () => {
       if (nativeVideo?.blob?.size) {
         setFaceVerificationVideoSafe(nativeVideo.blob);
       } else if (success) {
-        const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-        setFaceVerificationVideoSafe(new Blob([proof], { type: 'application/json' }));
+        const proofBlob = await buildLiveProofBlob();
+        if (proofBlob) setFaceVerificationVideoSafe(proofBlob);
         effectiveManualReviewRequired = true;
         pushDebug({ kind: 'recorder_skip', message: 'native_recording_empty_or_missing' });
       }
@@ -1921,9 +1921,9 @@ const FaceVerification = () => {
       faceRecorderRef.current.stop();
     } else if (success) {
       // If MediaRecorder is unavailable on the device/browser, still let a real
-      // liveness pass be submitted with the captured angle stills for admin/AI review.
-      const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-      setFaceVerificationVideoSafe(new Blob([proof], { type: 'application/json' }));
+      // liveness pass be submitted with a real captured JPEG still for admin/AI review.
+      const proofBlob = await buildLiveProofBlob();
+      if (proofBlob) setFaceVerificationVideoSafe(proofBlob);
       effectiveManualReviewRequired = true;
       pushDebug({ kind: 'recorder_fallback_proof_blob', angles: Object.keys(capturedAnglesRef.current) });
     }
