@@ -138,10 +138,10 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
-const photoPreviewFrameClass = "relative mx-auto w-full max-w-[320px] rounded-[1.75rem] overflow-hidden border border-white/80 bg-slate-950 shadow-2xl shadow-purple-500/10 ring-1 ring-purple-100";
-const photoImageClass = "absolute inset-0 h-full w-full object-contain object-center bg-slate-950";
-const photoPreviewImageClass = "block w-full h-auto max-h-[70vh] object-contain bg-slate-950";
+const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-amber-200/60 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30 ring-1 ring-amber-100";
+const photoPreviewFrameClass = "relative mx-auto w-full max-w-[320px] rounded-[1.75rem] overflow-hidden border border-amber-200/60 bg-white shadow-xl shadow-amber-200/30 ring-1 ring-amber-100";
+const photoImageClass = "absolute inset-0 h-full w-full object-contain object-center bg-white";
+const photoPreviewImageClass = "block w-full h-auto max-h-[70vh] object-contain bg-white";
 const photoOverlayClass = "hidden";
 const photoGuideClass = "hidden";
 const photoPlaceholderClass = "flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center";
