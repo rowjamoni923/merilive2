@@ -2649,8 +2649,10 @@ const FaceVerification = () => {
   // Host Step 3: Complete verification
   const completeHostVerification = async () => {
     if (postSubmitLockedRef.current) return;
+    const effectiveFaceVideo = await waitForFaceVerificationVideo();
+    const faceVideoForUpload = effectiveFaceVideo || (capturedAnglesRef.current.center ? buildLiveProofBlob() : null);
     const missingRequirements = getMissingHostRequirements();
-    if (missingRequirements.length > 0) {
+    if (missingRequirements.filter((item) => item !== 'face_video').length > 0 || !faceVideoForUpload) {
       toast({
         title: "❌ Requirements Incomplete",
         description: "Please complete all required host fields (profile, age, language, intro video, 3 photos, and face verification) before submitting.",
@@ -2660,7 +2662,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate all media files have actual content
-    if (!faceManualReviewRequired && faceVerificationVideo && faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type !== 'application/json' && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Face Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2749,7 +2751,7 @@ const FaceVerification = () => {
       try {
         const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
           ? await sha256String(capturedAnglesRef.current.center)
-          : await generateFaceHash(faceVerificationVideo);
+            : await generateFaceHash(faceVideoForUpload);
         try {
           const { data: faceData } = await supabase.rpc('find_account_by_face', { face_hash_param: faceHash });
           if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
@@ -2782,10 +2784,12 @@ const FaceVerification = () => {
         try { introVideoFrameUrl = await uploadVideoEvidenceFrame(videoFile, 'video-frames/intro'); }
         catch (e) { console.warn('[FaceVerification] host intro frame failed', e); }
       }
-      try { faceVideoUrl = await uploadFile(faceVerificationVideo, 'face-videos'); }
+      try { faceVideoUrl = await uploadFile(faceVideoForUpload, 'face-videos'); }
       catch (e) { console.warn('[FaceVerification] host face video failed', e); }
-      try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face'); }
-      catch (e) { console.warn('[FaceVerification] host face frame failed', e); }
+      if (faceVideoForUpload.type !== 'application/json') {
+        try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
+        catch (e) { console.warn('[FaceVerification] host face frame failed', e); }
+      }
 
       for (const photo of hostPhotos) {
         try {
