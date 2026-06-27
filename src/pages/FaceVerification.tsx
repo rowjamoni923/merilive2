@@ -655,14 +655,22 @@ const FaceVerification = () => {
       setVerificationStatus('verified');
       setRejectionReason(null);
       setRetryRequired(null);
+    } else if (latestSubmission?.status === 'rejected') {
+      // Real verdicts (duplicate face, gender mismatch, account-type mismatch,
+      // etc.) MUST win over the generic orphan-resubmit fallback so the
+      // "Contact Support" UI + duplicate-account details render correctly.
+      setVerificationStatus('rejected');
+      setRejectionReason((latestSubmission as any).rejection_reason || null);
+      setRetryRequired(null);
     } else if (latestSubmission?.status === 'needs_retry') {
       const rr = (latestSubmission as any)?.ai_analysis?.retry_required || null;
       setRetryRequired(rr);
       setVerificationStatus('needs_retry');
       setRejectionReason(null);
     } else if (isOrphanResubmit) {
-      // Treat orphan rows (rejected or still pending with no media) as a
-      // retryable rejection so the verification form re-renders.
+      // Treat orphan rows (no media reached storage, sweeper-flagged) as a
+      // retryable rejection so the verification form re-renders. Only reached
+      // when status is NOT already a real verdict above.
       setVerificationStatus('rejected');
       setRejectionReason('Upload was incomplete — please retry your photo, video and live scan.');
       setRetryRequired(null);
@@ -670,15 +678,12 @@ const FaceVerification = () => {
       setVerificationStatus('submitted');
       setRejectionReason(null);
       setRetryRequired(null);
-    } else if (latestSubmission?.status === 'rejected') {
-      setVerificationStatus('rejected');
-      setRejectionReason((latestSubmission as any).rejection_reason || null);
-      setRetryRequired(null);
     } else {
       setVerificationStatus('unverified');
       setRejectionReason(null);
       setRetryRequired(null);
     }
+
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
