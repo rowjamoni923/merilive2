@@ -421,6 +421,25 @@ Verified current gap:
 
 Patch scope:
 - Limit the admin scroll bridge to desktop/internal-scroll mode only; mobile/tablet touch gestures are never intercepted, so the document scrolls naturally across every admin page.
+
+---
+
+# Phase 21 — Profile media expired-session upload fix (2026-06-27)
+
+Research / professional standard:
+- Supabase Auth sessions include expiring JWT access tokens and refresh tokens; protected calls must refresh/restore the session before using Auth-dependent APIs — https://supabase.com/docs/reference/javascript/auth-refreshsession
+- Supabase Storage access control is enforced through Storage RLS and `auth.uid()` folder checks; an expired/missing token makes owner uploads arrive as unauthenticated/forbidden — https://supabase.com/docs/guides/storage/security/access-control
+- Native/social media upload UX should silently refresh credentials and retry the exact failed upload once; only true unrecoverable auth loss should ask the user to sign in again.
+
+Verified current gap:
+- User screenshot shows `Upload failed: Your session expired. Please sign in again and retry.` on Profile avatar upload.
+- `EditProfile.handleCropComplete` refreshed once but kept the stale session if refresh failed, so the retry still used an expired JWT and hit Storage RLS again.
+- `MyPoster` and reusable `AvatarUpload` uploaded directly without a fresh-session gate, so photo/video/poster uploads could fail after long WebView/preview sessions even while the profile screen still had cached user data.
+
+Patch scope:
+- Add one shared session recovery helper: fresh JWT check, forced refresh, native-session restore, then device-token recovery through the existing secure device-session flow.
+- Use the authenticated `session.user.id` folder for avatar/poster paths so Storage RLS and database owner rows stay aligned.
+- Retry avatar/poster Storage and profile/poster DB writes once after forced recovery; if recovery is impossible, show the existing English sign-in message.
 - Mark both `body` and `html` as admin-active while mounted and clear leaked inline scroll-lock styles/attributes from body/html.
 - Strengthen admin mobile CSS so `.admin-shell`, root wrappers, and admin content stay in normal document flow with `touch-action: pan-y` and momentum scrolling.
 

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ensureFreshSupabaseSession, isAuthSessionFailure, sessionExpiredUploadMessage } from "@/utils/sessionRecovery";
 
 interface AvatarUploadProps {
   userId: string;
@@ -57,12 +58,30 @@ export const AvatarUpload = ({
     // Upload to Supabase Storage
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const session = await ensureFreshSupabaseSession({ expectedUserId: userId });
+      const authUid = session?.user?.id;
+      if (!authUid) {
+        toast({
+          title: "Upload Failed",
+          description: "Please sign in again to upload your photo",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const { error: uploadError } = await supabase.storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${authUid}/${Date.now()}.${fileExt}`;
+
+      const uploadAvatar = () => supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
+
+      let { error: uploadError } = await uploadAvatar();
+      if (uploadError && isAuthSessionFailure(uploadError)) {
+        const recovered = await ensureFreshSupabaseSession({ expectedUserId: authUid, forceRefresh: true });
+        if (!recovered) throw new Error(sessionExpiredUploadMessage);
+        ({ error: uploadError } = await uploadAvatar());
+      }
 
       if (uploadError) throw uploadError;
 
@@ -72,10 +91,17 @@ export const AvatarUpload = ({
         .getPublicUrl(fileName);
 
       // Update profile
-      const { error: updateError } = await supabase
+      const updateProfile = () => supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq("id", userId);
+        .eq("id", authUid);
+
+      let { error: updateError } = await updateProfile();
+      if (updateError && isAuthSessionFailure(updateError)) {
+        const recovered = await ensureFreshSupabaseSession({ expectedUserId: authUid, forceRefresh: true });
+        if (!recovered) throw new Error(sessionExpiredUploadMessage);
+        ({ error: updateError } = await updateProfile());
+      }
 
       if (updateError) throw updateError;
 
@@ -88,7 +114,7 @@ export const AvatarUpload = ({
       console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload image",
+        description: isAuthSessionFailure(error) ? sessionExpiredUploadMessage : error.message || "Failed to upload image",
         variant: "destructive",
       });
       setPreviewUrl(null);

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { ensureFreshSupabaseSession, isAuthSessionFailure, sessionExpiredUploadMessage } from "@/utils/sessionRecovery";
 
 interface PosterImage {
   id: string;
@@ -79,13 +80,28 @@ const MyPoster = () => {
     setUploading(true);
 
     try {
+      const session = await ensureFreshSupabaseSession({ expectedUserId: userId });
+      const authUid = session?.user?.id;
+      if (!authUid) {
+        toast({ title: "Please sign in again to upload", variant: "destructive" });
+        navigate("/auth");
+        return;
+      }
+
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const fileName = `${userId}/${Date.now()}-${safeName}`;
+      const fileName = `${authUid}/${Date.now()}-${safeName}`;
 
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const uploadPoster = () => supabase.storage
         .from("posters")
         .upload(fileName, file, { upsert: true, contentType: file.type });
+
+      let { error: uploadError } = await uploadPoster();
+      if (uploadError && isAuthSessionFailure(uploadError)) {
+        const recovered = await ensureFreshSupabaseSession({ expectedUserId: authUid, forceRefresh: true });
+        if (!recovered) throw new Error(sessionExpiredUploadMessage);
+        ({ error: uploadError } = await uploadPoster());
+      }
 
       if (uploadError) throw uploadError;
 
@@ -95,10 +111,10 @@ const MyPoster = () => {
         .getPublicUrl(fileName);
 
       // Save to database
-      const { data: newImage, error: dbError } = await supabase
+      const insertPoster = () => supabase
         .from("poster_images")
         .insert({
-          user_id: userId,
+          user_id: authUid,
           image_url: publicUrl,
           display_order: images.length,
           is_primary: images.length === 0,
@@ -107,6 +123,13 @@ const MyPoster = () => {
         .select()
         .single();
 
+      let { data: newImage, error: dbError } = await insertPoster();
+      if (dbError && isAuthSessionFailure(dbError)) {
+        const recovered = await ensureFreshSupabaseSession({ expectedUserId: authUid, forceRefresh: true });
+        if (!recovered) throw new Error(sessionExpiredUploadMessage);
+        ({ data: newImage, error: dbError } = await insertPoster());
+      }
+
       if (dbError) throw dbError;
 
       setImages([...images, newImage as PosterImage]);
@@ -114,7 +137,8 @@ const MyPoster = () => {
     } catch (error) {
       console.error("Upload error:", error);
       recordClientError({ label: "MyPoster.fileName", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: "Upload failed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+      const message = isAuthSessionFailure(error) ? sessionExpiredUploadMessage : error instanceof Error ? error.message : undefined;
+      toast({ title: "Upload failed", description: message, variant: "destructive" });
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
