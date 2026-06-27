@@ -69,6 +69,25 @@ function uint8ToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+const VIDEO_URL_RE = /(?:^|\/)(?:face-videos|videos)\/|\.(?:webm|mp4|m4v|mov|qt|mkv|3gp|3gpp|avi|ogg|ogv)(?:[?#]|$)/i;
+
+function isLikelyVideoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return VIDEO_URL_RE.test(decodeURIComponent(parsed.pathname));
+  } catch {
+    return VIDEO_URL_RE.test(url.split("?")[0] || url);
+  }
+}
+
+function firstUsableStillUrl(...urls: Array<string | null | undefined>): string | null {
+  for (const url of urls) {
+    if (typeof url === "string" && url.trim() && !isLikelyVideoUrl(url)) return url;
+  }
+  return null;
+}
+
 async function sha256Hash(message: string): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(message));
   return toHex(new Uint8Array(hash));
@@ -266,7 +285,7 @@ serve(async (req) => {
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url")
+      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url,ai_analysis")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -386,7 +405,17 @@ serve(async (req) => {
     }
 
 
-    const frontUrl = row.front_url || row.face_image_url || row.selfie_url;
+    const initialAnalysis = ((row as Record<string, unknown>).ai_analysis ?? {}) as Record<string, unknown>;
+    const initialEvidenceUrls = ((initialAnalysis.evidence_urls && typeof initialAnalysis.evidence_urls === "object")
+      ? initialAnalysis.evidence_urls
+      : {}) as Record<string, unknown>;
+    const frontUrl = firstUsableStillUrl(
+      row.front_url as string | null,
+      row.selfie_url as string | null,
+      row.face_image_url as string | null,
+      initialEvidenceUrls.live_face_scan_url as string | undefined,
+      initialEvidenceUrls.face_video_frame_url as string | undefined,
+    );
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;
     if (!frontUrl) {
@@ -958,7 +987,7 @@ serve(async (req) => {
     // forever in manual review. Use the live front frame as a conservative fallback
     // for the video evidence slot; profile/live/duplicate/liveness/host-gallery
     // gates still have to pass before auto-finalize can run.
-    const faceVideoEvidenceUrl = faceVideoFrameUrl || ((row.face_image_url || row.selfie_url) ? frontUrl : null);
+    const faceVideoEvidenceUrl = faceVideoFrameUrl || firstUsableStillUrl(frontUrl);
     const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
@@ -1313,7 +1342,7 @@ serve(async (req) => {
     } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
-    } else if (!duplicateSearchCompleted && !frontError) {
+    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "duplicate_search_unverified" };
       console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
     } else {
