@@ -262,6 +262,7 @@ async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
     return bytes;
   }
   try {
+    const { decode: decodeImage, Image } = await loadImagescript();
     const img = await decodeImage(bytes);
     if (!(img instanceof Image)) {
       throw new Error("decoded_non_image");
