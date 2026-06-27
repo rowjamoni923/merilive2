@@ -5,7 +5,7 @@ import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { getSessionFromNative, saveSessionToNative } from '@/utils/nativeSessionStorage';
 
 const SUPABASE_URL = 'https://ayjdlvuurscxucatbbah.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJheWpkbHZ1dXJzY3h1Y2F0YmJhaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc1MjY0MTIzLCJleHAiOjIwOTA4NDAxMjN9.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc';
+const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc';
 const DEFAULT_MIN_FRESH_MS = 2 * 60_000;
 
 type EnsureFreshSessionOptions = {
