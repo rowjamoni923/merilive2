@@ -2004,25 +2004,59 @@ const FaceVerification = () => {
     return 'bin';
   };
 
+  const ensureFreshFaceSession = async (): Promise<string | null> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+      if (!session) return null;
+      const expiresAt = (session.expires_at ?? 0) * 1000;
+      if (expiresAt && expiresAt - Date.now() < 60_000) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        return refreshed?.session?.user?.id || session.user?.id || null;
+      }
+      return session.user?.id || null;
+    } catch {
+      return null;
+    }
+  };
+
   const uploadFile = async (file: File | Blob, folder: string): Promise<string | null> => {
     if (!userId) return null;
     if (!file.size) throw new Error(`Upload blocked: ${folder} file is empty.`);
 
+    // ★ Stale/expired auth tokens silently drop the upload to anon → RLS
+    //   rejection → null URL → orphan submission rows. Refresh first.
+    const authedUid = await ensureFreshFaceSession();
+    const ownerUid = authedUid || userId;
+
     const fileExt = storageExtensionFor(file);
-    const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
+    const fileName = `${ownerUid}/${folder}/${Date.now()}.${fileExt}`;
     const resolvedMime = resolveFileMime(file);
     const contentType = resolvedMime || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
-    
-    const { data, error } = await supabase.storage
+
+    const attemptUpload = () => supabase.storage
       .from('face-verification')
       .upload(fileName, file, { upsert: true, contentType });
-    
+
+    let { data, error } = await attemptUpload();
     if (error) {
-      console.error('Upload error:', error);
-      recordClientError({ label: "FaceVerification.fileName", message: error instanceof Error ? error.message : String(error) });
-      return null;
+      const msg = (error as any)?.message || String(error);
+      if (/row-level security|jwt|JWT|401|403|unauthor/i.test(msg)) {
+        try { await supabase.auth.refreshSession(); } catch {}
+        const retry = await attemptUpload();
+        data = retry.data;
+        error = retry.error;
+      }
     }
-    
+
+    if (error) {
+      console.error('[FaceVerification] Upload error:', error, { folder, fileName });
+      recordClientError({ label: 'FaceVerification.uploadFile', message: (error as any)?.message || String(error) });
+      // Bubble up so the orphan-guard before INSERT actually trips and the
+      // user sees a real "please try again" toast instead of a silent empty row.
+      throw error;
+    }
+
     // ★ Bucket is PRIVATE (workspace policy blocks public face-verification).
     //   getPublicUrl() would produce a 400/broken-icon URL the user, admin and
     //   downstream viewers cannot open. Return a long-lived signed URL so the
