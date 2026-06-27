@@ -2341,7 +2341,7 @@ const FaceVerification = () => {
       return;
     }
 
-    const faceVideoForUpload = effectiveFaceVideo || (capturedAnglesRef.current.center ? buildLiveProofBlob() : null);
+    const faceVideoForUpload = effectiveFaceVideo || await buildLiveProofBlob();
     if (!faceVideoForUpload) {
       toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
       return;
@@ -2666,7 +2666,7 @@ const FaceVerification = () => {
   const completeHostVerification = async () => {
     if (postSubmitLockedRef.current) return;
     const effectiveFaceVideo = await waitForFaceVerificationVideo();
-    const faceVideoForUpload = effectiveFaceVideo || (capturedAnglesRef.current.center ? buildLiveProofBlob() : null);
+    const faceVideoForUpload = effectiveFaceVideo || await buildLiveProofBlob();
     const missingRequirements = getMissingHostRequirements();
     if (missingRequirements.filter((item) => item !== 'face_video').length > 0 || !faceVideoForUpload) {
       toast({
