@@ -1,4 +1,5 @@
 import { AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { isRenderableFaceMediaUrl } from "@/utils/faceVerificationMedia";
 // NOTE: main app (FaceVerification.tsx) writes the WEBM face-clip into both
 // `face_image_url` AND `selfie_url`, while `front_url/left_url/right_url` are
 // only populated when actual angle stills are captured. So we must NOT fall
@@ -16,11 +17,6 @@ interface MediaSubmission {
   right_url?: string | null;
   host_photos?: string[] | null;
 }
-
-const isRenderableFaceMediaUrl = (url?: string | null): url is string => {
-  const value = String(url || "").trim();
-  return Boolean(value) && !value.startsWith("admin-approved://") && !value.startsWith("pending://");
-};
 
 /**
  * Renders profile photo + face verification media + intro video + host photos
