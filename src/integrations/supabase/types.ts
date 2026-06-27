@@ -23586,6 +23586,7 @@ export type Database = {
         Args: never
         Returns: number
       }
+      repair_face_retry_upload_states: { Args: never; Returns: number }
       report_live_face_event: {
         Args: {
           p_device_info?: Json

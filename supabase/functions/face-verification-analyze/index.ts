@@ -309,7 +309,7 @@ serve(async (req) => {
     // DB insert trigger normalizes new rows to 'under_review' instantly
     // (see migration 20260625075339). 'submitted' and 'pending' are kept
     // for legacy/admin-rerun paths. All three are "ready for AI analysis".
-    if (st !== "submitted" && st !== "pending" && st !== "under_review") {
+    if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry") {
       return new Response(JSON.stringify({ error: "Submission not analyzable", status: row.status }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -419,10 +419,42 @@ serve(async (req) => {
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;
     if (!frontUrl) {
-      return new Response(JSON.stringify({ error: "Missing front face URL" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const retryRequired = {
+        kind: "upload_incomplete" as const,
+        verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
+        failed_evidence: [{
+          label: "live_face_scan",
+          human_name: "Live Face Scan",
+          step: "live_face_scan",
+          score: null,
+          message: "Live face scan image did not finish uploading. Please retry the live test.",
+        }],
+        steps: ["live_face_scan"],
+        headline: "Live face scan upload incomplete",
+        summary: "Your account is NOT rejected. The live scan media was missing, so please retry the live face test.",
+      };
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: { ...initialAnalysis, upload_pending: false, requires_resubmit: true, retry_required: retryRequired },
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: "[needs_retry] Missing live/front face URL; upload incomplete, not rejected.",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+      await supabaseAdmin
+        .from("profiles")
+        .update({ is_face_verified: false, face_verification_status: "needs_retry", updated_at: new Date().toISOString() })
+        .eq("id", row.user_id);
+      return new Response(JSON.stringify({
+        ok: true,
+        autoFinalize: { success: false, reason: "upload_incomplete" },
+        blocker: null,
+        retry_required: retryRequired,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     let frontBytes: Uint8Array;
@@ -442,13 +474,30 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          ai_analysis: { ...existingAnalysis, rekognition },
-          admin_notes: `Rekognition: image fetch failed — ${msg}`,
+          status: "needs_retry",
+          ai_analysis: {
+            ...existingAnalysis,
+            rekognition,
+            upload_pending: false,
+            requires_resubmit: true,
+            retry_required: {
+              kind: "upload_incomplete",
+              verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
+              failed_evidence: [{ label: "live_face_scan", human_name: "Live Face Scan", step: "live_face_scan", score: null, message: "Live scan media could not be read. Please retry the live test." }],
+              steps: ["live_face_scan"],
+              headline: "Live face scan upload incomplete",
+              summary: "Your account is NOT rejected. The live scan media could not be read, so please retry the live face test.",
+            },
+          },
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `Rekognition: image fetch failed — ${msg}. Marked needs_retry, not rejected.`,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", submissionId);
-      return new Response(JSON.stringify({ ok: false, error: msg }), {
-        status: 502,
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+      return new Response(JSON.stringify({ ok: true, autoFinalize: { success: false, reason: "upload_incomplete" }, retry_required: true, error: msg }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
