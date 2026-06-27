@@ -2731,6 +2731,10 @@ const FaceVerification = () => {
         console.warn('[FaceVerification] host face hash failed', e);
       }
 
+      // Refresh auth once before the upload burst — stale tokens are the #1
+      // cause of orphan host submissions with no media in admin panel.
+      await ensureFreshFaceSession();
+
       if (photoFile) {
         try { profilePhotoUrl = await uploadFile(photoFile, 'photos'); }
         catch (e) { console.warn('[FaceVerification] host profile photo failed', e); }
