@@ -229,14 +229,24 @@ const EditProfile = () => {
   }, [navigate]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { PhotoPicker } = await import("@/plugins/PhotoPicker");
-    if (PhotoPicker.isSupported()) {
-      const picked = await PhotoPicker.pickImage(false, true);
-      if (picked) {
-        const blob = PhotoPicker.toBlob(picked);
-        handleCropComplete(blob, "none");
+    // 1) Try the native Android picker only when it's actually registered in
+    //    this APK. If the plugin isn't installed (older builds), we fall
+    //    through to the standard HTML file input so the user can still upload.
+    try {
+      const { PhotoPicker } = await import("@/plugins/PhotoPicker");
+      if (PhotoPicker.isSupported()) {
+        const picked = await PhotoPicker.pickImage(false, true);
+        if (picked) {
+          const blob = PhotoPicker.toBlob(picked);
+          handleCropComplete(blob, "none");
+          return;
+        }
+        // picked === null → user cancelled OR native handler errored.
+        // Do not silently dead-end; if there is no file in the input event,
+        // fall through to the HTML picker below so the user can retry.
       }
-      return;
+    } catch (e) {
+      console.warn("[EditProfile] native PhotoPicker unavailable, falling back", e);
     }
 
     const file = event.target.files?.[0];
@@ -258,11 +268,12 @@ const EditProfile = () => {
       setShowCropModal(true);
     };
     reader.readAsDataURL(file);
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
+
 
 
   const handleCropComplete = async (croppedImage: Blob, _filter: string) => {
