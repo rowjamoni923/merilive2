@@ -47,6 +47,7 @@ export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
   "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
   "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
+  "needs_retry", "retry_required", "upload_failed", "upload_incomplete",
 ]);
 
 /** True when the raw status is a value the bucketing logic explicitly recognizes. */
@@ -87,6 +88,8 @@ export function isAutoFaceReview(status: string | null | undefined, adminNotes: 
   const bucket = bucketOfStatus(status);
   const normalized = String(status || "").trim().toLowerCase();
   const notes = String(adminNotes || "").toLowerCase();
+  if (["needs_retry", "retry_required", "upload_failed", "upload_incomplete"].includes(normalized)) return false;
+  if (notes.includes("orphan_media_missing") || notes.includes("orphan submission") || notes.includes("upload incomplete") || notes.includes("upload-incomplete")) return false;
   if (["auto_approved", "auto-approved", "auto_verified", "auto-verified", "auto_rejected", "auto-rejected"].includes(normalized)) {
     return true;
   }

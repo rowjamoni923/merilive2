@@ -100,7 +100,7 @@ const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission
   const normalized = String(status || 'pending').trim().toLowerCase();
   if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
   if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
-  if (['pending', 'submitted', 'under_review'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
+  if (['pending', 'submitted', 'under_review', 'needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
   return 'pending';
 };
 const FACE_VERIFICATION_FETCH_LIMIT = 30;
@@ -258,7 +258,7 @@ interface FaceVerificationSubmission {
   id: string;
   user_id: string;
   verification_type: 'user' | 'host';
-  status: 'pending' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+  status: 'pending' | 'submitted' | 'under_review' | 'needs_retry' | 'retry_required' | 'upload_failed' | 'upload_incomplete' | 'approved' | 'rejected';
   full_name: string | null;
   age: number | null;
   language: string | null;
@@ -989,8 +989,8 @@ export default function AdminUserManagement() {
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status ?? s.status_bucket),
-        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
-        review_source: inferFaceReviewSource(s),
+        is_auto_reviewed: ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean(s?.ai_analysis?.requires_resubmit || s?.ai_analysis?.orphan_media) ? false : inferFaceReviewSource(s) === 'auto',
+        review_source: ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean(s?.ai_analysis?.requires_resubmit || s?.ai_analysis?.orphan_media) ? 'manual' : inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
@@ -1458,7 +1458,8 @@ export default function AdminUserManagement() {
   const isFaceApproved = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
-  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
+  const isFaceRetryRequired = (s: FaceVerificationSubmission) => ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean((s.ai_analysis as any)?.requires_resubmit || (s.ai_analysis as any)?.orphan_media);
+  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => !isFaceRetryRequired(s) && (Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes));
 
   const faceQueryRaw = debouncedFaceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
@@ -2648,11 +2649,12 @@ export default function AdminUserManagement() {
                                 {submission.verification_type === 'host' ? 'Host' : 'User'}
                               </Badge>
                               <Badge className={
+                                isFaceRetryRequired(submission) ? "bg-sky-100 text-sky-700 border border-sky-200" :
                                 isFacePendingBucket(submission) ? "bg-amber-100 text-amber-700" :
                                 isFaceApproved(submission) ? "bg-green-100 text-green-700" :
                                 "bg-red-100 text-red-700"
                               }>
-                                {isFacePendingBucket(submission) ? 'Pending' : isFaceApproved(submission) ? 'Approved' : 'Rejected'}
+                                {isFaceRetryRequired(submission) ? 'Needs Retry' : isFacePendingBucket(submission) ? 'Pending' : isFaceApproved(submission) ? 'Approved' : 'Rejected'}
                               </Badge>
                               {!isKnownStatus(submission.status) && (() => {
                                 warnUnknownStatus("AdminUserManagement.FaceVerify", submission.status, { id: submission.id, user_id: submission.user_id });
@@ -2703,8 +2705,8 @@ export default function AdminUserManagement() {
                         <FaceSubmissionMediaBlocks submission={submission} priority={index < 6} />
 
                         {!mediaReadiness.ready && (
-                          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-                            ⚠ Approval locked until evidence is complete: {mediaReadiness.missing.join(', ')}
+                          <div className="rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-800">
+                            🔁 Upload incomplete — user must resubmit: {mediaReadiness.missing.join(', ')}
                           </div>
                         )}
 
