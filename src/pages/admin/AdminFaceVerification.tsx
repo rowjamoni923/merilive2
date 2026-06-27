@@ -1039,7 +1039,7 @@ const AdminFaceVerification = () => {
             return (
               <div className="space-y-5">
                 {isPendingBucket(selectedSubmission) && (
-                  <div className="sticky top-0 z-20 rounded-2xl border border-amber-500/25 bg-background/95 p-3 shadow-xl backdrop-blur">
+                  <div className="sticky top-0 z-20 rounded-xl border border-[#E2E8F0] bg-white/95 p-3 shadow-sm backdrop-blur">
                     <RoleApproveBar
                       defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
                       processing={processing}
