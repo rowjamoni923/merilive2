@@ -1022,7 +1022,7 @@ const AdminFaceVerification = () => {
 
       {/* Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-xl overflow-y-auto bg-white border-[#E2E8F0] text-[#0F172A]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ScanFace className="w-5 h-5 text-purple-500" />
