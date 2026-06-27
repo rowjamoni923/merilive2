@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isFaceRetryRequiredRow, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -989,8 +989,8 @@ export default function AdminUserManagement() {
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status ?? s.status_bucket),
-        is_auto_reviewed: ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean(s?.ai_analysis?.requires_resubmit || s?.ai_analysis?.orphan_media) ? false : inferFaceReviewSource(s) === 'auto',
-        review_source: ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean(s?.ai_analysis?.requires_resubmit || s?.ai_analysis?.orphan_media) ? 'manual' : inferFaceReviewSource(s),
+        is_auto_reviewed: isFaceRetryRequiredRow(s, s.status, s.admin_notes) ? false : inferFaceReviewSource(s) === 'auto',
+        review_source: isFaceRetryRequiredRow(s, s.status, s.admin_notes) ? 'manual' : inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
@@ -1454,11 +1454,11 @@ export default function AdminUserManagement() {
 
   // Button/tab visibility follows raw row status first. Older RPC buckets can be
   // stale, which hid Approve/Reject for real pending submissions.
-  const getFaceSubmissionBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status || s.status_bucket);
+  const getFaceSubmissionBucket = (s: FaceVerificationSubmission) => isFaceRetryRequiredRow(s, s.status || s.status_bucket, s.admin_notes) ? 'pending' : bucketOfStatus(s.status || s.status_bucket);
   const isFaceApproved = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
-  const isFaceRetryRequired = (s: FaceVerificationSubmission) => ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(String(s.status || '').toLowerCase()) || Boolean((s.ai_analysis as any)?.requires_resubmit || (s.ai_analysis as any)?.orphan_media);
+  const isFaceRetryRequired = (s: FaceVerificationSubmission) => isFaceRetryRequiredRow(s, s.status || s.status_bucket, s.admin_notes);
   const isFaceAutoReviewed = (s: FaceVerificationSubmission) => !isFaceRetryRequired(s) && (Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes));
 
   const faceQueryRaw = debouncedFaceSearchQuery.trim();
