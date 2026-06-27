@@ -2326,7 +2326,7 @@ const FaceVerification = () => {
     if (!photoFile) missing.push("profile_photo");
     if (!videoFile) missing.push("intro_video");
     if (hostPhotos.length !== 3) missing.push("host_photos");
-    if (!faceVerificationVideo) missing.push("face_video");
+    if (!faceVerified) missing.push("face_video");
     if (!faceVerified) missing.push("face_verification");
 
     return missing;
@@ -3224,7 +3224,7 @@ const FaceVerification = () => {
         <Button
             className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400 rounded-2xl text-lg font-bold text-slate-950 shadow-xl shadow-emerald-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
-          disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
+          disabled={loading || !faceVerified || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
           {loading ? (
             <Loader2 className="w-6 h-6 mr-3 animate-spin" />
