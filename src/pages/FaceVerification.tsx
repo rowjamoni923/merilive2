@@ -3295,7 +3295,13 @@ const FaceVerification = () => {
 
   // Contact Support is required for account-type mismatch or duplicate account.
   const lowerRejectReason = cleanRejectionReason?.toLowerCase() || '';
-  const isContactSupportRequired = lowerRejectReason.includes('account type') || lowerRejectReason.includes('gender mismatch') || !!duplicateInfo;
+  const isGenderMismatch = lowerRejectReason.includes('gender mismatch') || lowerRejectReason.includes('account type');
+  const isContactSupportRequired = isGenderMismatch || !!duplicateInfo;
+  const displayRejectionMessage = duplicateInfo
+    ? "This face is already linked to another Merilive account. Only one account per person is allowed. Please contact our support team if you believe this is a mistake."
+    : isGenderMismatch
+      ? "The gender on your profile does not match the gender detected in your live face scan. For your account safety, this cannot be changed automatically. Please contact our support team to resolve this."
+      : (cleanRejectionReason || "Your verification was rejected. Please ensure you are the same person as in your photos.");
   const openVerificationSupport = () => {
     try {
       sessionStorage.setItem(
@@ -3469,7 +3475,7 @@ const FaceVerification = () => {
           
           <div className="mx-6 mb-6">
             <p className="text-red-700 bg-red-50 border border-red-200 rounded-2xl px-5 py-4 text-center text-sm font-medium leading-relaxed shadow-sm">
-              {cleanRejectionReason || "Your verification was rejected. Please ensure you are the same person as in your photos."}
+              {displayRejectionMessage}
             </p>
           </div>
 
