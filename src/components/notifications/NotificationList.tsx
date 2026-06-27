@@ -260,8 +260,13 @@ const getNotificationLink = (notification: Notification): string | null => {
     'host_approved': '/host-dashboard',
     'host_rejected': '/host-application',
     'host_verification': '/face-verification',
-    'face_verification_approved': '/host-dashboard',
+    'face_verification': '/face-verification',
+    'face_verification_approved': '/face-verification',
     'face_verification_rejected': '/face-verification',
+    'face_verification_retry': '/face-verification',
+    'face_verification_needs_retry': '/face-verification',
+    'face_verification_under_review': '/face-verification',
+    'face_verification_submitted': '/face-verification',
     
     // Agency related
     'agency_host_request': '/agency-dashboard',
