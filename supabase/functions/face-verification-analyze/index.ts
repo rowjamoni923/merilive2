@@ -1232,16 +1232,26 @@ serve(async (req) => {
     };
 
     const evidenceChecks = await Promise.all(requiredEvidence.map((item) => compareEvidenceToLive(item.label, item.url)));
-    const evidenceScores = Object.fromEntries(evidenceChecks.map((c) => [c.label, c.score]));
+    // Optional checks run in parallel for telemetry only — never block approval.
+    const optionalChecks = await Promise.all(
+      optionalEvidence.map((item) => item.url
+        ? compareEvidenceToLive(item.label, item.url)
+        : Promise.resolve({ label: item.label, url: item.url, score: null as number | null, face_count: 0, error: "missing_url" })),
+    );
+    const evidenceScores = Object.fromEntries([...evidenceChecks, ...optionalChecks].map((c) => [c.label, c.score]));
+    // evidenceErrors must ONLY contain REQUIRED-evidence errors, so the soft-retry
+    // path doesn't fire for optional video-frame extraction issues.
     const evidenceErrors = Object.fromEntries(evidenceChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
+    const optionalEvidenceErrors = Object.fromEntries(optionalChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
     const requiredUrlsPresent = requiredEvidence.every((item) => !!item.url);
     const hostGalleryComplete = vtForEvidence !== "host" || (
       hostPhotos.length === 3 && hostPhotoScores.length === 3 && hostPhotoScores.every((s) => typeof s.score === "number")
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
-    // Three-way identity gate: profile photo + recorded video frame + live scan
-    // must resolve to the same person at the owner-approved 55% minimum. Hard
-    // fraud (duplicate/ban) is handled separately with stricter gates.
+    // Identity gate: REQUIRED evidence (profile photo) must match the live scan
+    // at the owner-approved minimum similarity. Host gallery (3 photos) is also
+    // hard-checked separately. Optional video-frame scores are surfaced but never
+    // used to fail approval — they were too brittle (frame can land on blink).
     const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY) ||
       (hostGalleryComplete && hostPhotosMismatch));
     const evidenceSamePerson = evidenceComplete &&
@@ -1255,6 +1265,7 @@ serve(async (req) => {
     rekognition.face_video_live_score = evidenceScores.face_video ?? null;
     rekognition.intro_video_live_score = evidenceScores.intro_video ?? null;
     rekognition.evidence_errors = evidenceErrors;
+    rekognition.optional_evidence_errors = optionalEvidenceErrors;
     rekognition.evidence_urls_present = {
       profile_photo: !!profileEvidenceUrl,
       face_video_frame: !!faceVideoFrameUrl,
