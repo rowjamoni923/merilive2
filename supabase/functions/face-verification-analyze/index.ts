@@ -609,7 +609,8 @@ serve(async (req) => {
       await supabaseAdmin
         .from("profiles")
         .update({ is_face_verified: false, face_verification_status: "needs_retry", updated_at: new Date().toISOString() })
-        .eq("id", row.user_id);
+        .eq("id", row.user_id)
+        .eq("is_face_verified", false);
       return new Response(JSON.stringify({
         ok: true,
         autoFinalize: { success: false, reason: "upload_incomplete" },
