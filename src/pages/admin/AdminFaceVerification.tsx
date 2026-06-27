@@ -415,6 +415,9 @@ const AdminFaceVerification = () => {
       }
 
       setActionReason('');
+      // Bust the 15s server-stats cache so badges + tab counters reflect the
+      // new approved/rejected row immediately instead of after TTL.
+      invalidateStatusCountsCache('face_verification_submissions');
       fetchSubmissions();
     } catch (error: any) {
       setSubmissions(previousSubmissions);
