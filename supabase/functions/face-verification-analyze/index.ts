@@ -358,6 +358,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    activeUserId = row.user_id as string | null;
     // Internal/cron calls operate on behalf of the row owner.
     if (isInternalCall) {
       userId = row.user_id;
