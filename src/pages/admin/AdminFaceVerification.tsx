@@ -325,7 +325,7 @@ const AdminFaceVerification = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, debouncedSearchQuery]);
 
-  const handleRefresh = () => { setRefreshing(true); fetchSubmissions(); };
+  const handleRefresh = () => { setRefreshing(true); invalidateStatusCountsCache('face_verification_submissions'); fetchSubmissions(); };
 
   type SubmissionActionParams = {
     submission: Submission;
