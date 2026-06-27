@@ -263,7 +263,7 @@ export default function AdminHosts() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div>

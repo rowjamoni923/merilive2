@@ -117,7 +117,7 @@ const AdminFaceViolations = () => {
   const unreviewedCount = violations.filter(v => !v.admin_reviewed).length;
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-red-500/20 rounded-xl">

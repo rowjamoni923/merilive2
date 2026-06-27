@@ -62,7 +62,7 @@ const AdminCountryDistribution = () => {
   const totalCountryUsers = countryStats.reduce((s, c) => s + c.count, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       <AdminPageHeader
         title="Country Distribution"
         subtitle="Geographic spread of users across the platform"

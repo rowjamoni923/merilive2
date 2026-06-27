@@ -192,7 +192,7 @@ export default function AdminHostSearch() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
