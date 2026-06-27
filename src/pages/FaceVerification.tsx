@@ -4008,7 +4008,7 @@ const FaceVerification = () => {
                   disablePictureInPicture
                   disableRemotePlayback
                   controlsList="nodownload noremoteplayback noplaybackrate"
-                  className="w-full h-full object-cover bg-black"
+                  className="w-full h-full object-contain bg-black"
                   onLoadedData={(event) => event.currentTarget.play().catch(() => {})}
                 />
               ) : isRecording ? (
