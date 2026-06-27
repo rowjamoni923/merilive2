@@ -834,6 +834,13 @@ const FaceVerification = () => {
       };
       
       video.load();
+      window.setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          reject(new Error('timeout'));
+        }
+      }, 4000);
     });
   };
 

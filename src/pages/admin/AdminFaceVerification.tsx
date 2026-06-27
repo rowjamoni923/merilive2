@@ -1000,8 +1000,8 @@ const AdminFaceVerification = () => {
                       <RoleApproveBar
                         defaultRole={submission.verification_type === 'host' ? 'host' : 'user'}
                         processing={processing}
-                        approvalDisabled={!mediaReadiness.ready}
-                        disabledReason={mediaReadiness.missing.join(', ')}
+                        approvalDisabled={false}
+                        disabledReason={mediaReadiness.ready ? undefined : `Manual override allowed — missing: ${mediaReadiness.missing.join(', ')}`}
                         onApprove={(role) => approveSubmissionAs(submission, role)}
                         onReject={() => processSubmissionAction({ submission, action: 'reject' })}
                       />
@@ -1037,8 +1037,8 @@ const AdminFaceVerification = () => {
                     <RoleApproveBar
                       defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
                       processing={processing}
-                      approvalDisabled={!mediaReadiness.ready}
-                      disabledReason={mediaReadiness.missing.join(', ')}
+                      approvalDisabled={false}
+                      disabledReason={mediaReadiness.ready ? undefined : `Manual override allowed — missing: ${mediaReadiness.missing.join(', ')}`}
                       onApprove={(role) => approveSubmissionAs(selectedSubmission, role)}
                       onReject={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
                     />
@@ -1257,7 +1257,7 @@ const AdminFaceVerification = () => {
                     <div className="flex gap-3">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        disabled={processing || !mediaReadiness.ready}
+                        disabled={processing}
                         onClick={() => {
                           processSubmissionAction({
                             submission: selectedSubmission,
