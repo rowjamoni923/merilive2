@@ -2428,7 +2428,8 @@ const FaceVerification = () => {
       // 1) Profile photo — independent, must not block other uploads.
       //    Refresh auth first so the avatar upload doesn't get RLS-rejected
       //    against `avatars` bucket because of a stale token.
-      await ensureFreshFaceSession();
+      const freshUid = await ensureFreshFaceSession();
+      if (!freshUid) throw new Error('Session expired. Please login again and retry upload.');
       try {
         const ext = (userPhotoFile.type || '').includes('png') ? 'png'
           : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
@@ -2484,7 +2485,7 @@ const FaceVerification = () => {
       catch (e) { console.warn('[FaceVerification] angle uploads failed', e); }
 
       // 5) Video evidence frame.
-      if (faceVideoForUpload.type !== 'application/json') {
+      if (faceVideoForUpload.type.startsWith('video/')) {
         try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
         catch (e) { console.warn('[FaceVerification] face video frame failed', e); }
       }
@@ -2493,8 +2494,8 @@ const FaceVerification = () => {
 
       // ★ Guard: at least one live-evidence asset must have uploaded; otherwise
       //   creating a row would leave admin + AI blind (the very bug we're fixing).
-      if (!videoUrl && !angleUrls.front_url && !selfieUrl) {
-        throw new Error('Upload failed — please check your connection and try again.');
+      if (!profilePhotoUrl || !videoUrl || !angleUrls.front_url) {
+        throw new Error('Upload failed — photo, face video and live test must upload before review. Please check your connection and try again.');
       }
 
       const fullInsertPayload = {
