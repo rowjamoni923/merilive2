@@ -285,7 +285,7 @@ const FaceVerification = () => {
   const chunksRef = useRef<Blob[]>([]);
   
   // Face Verification Video States
-  const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
+  const [, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
   const [faceCameraStarting, setFaceCameraStarting] = useState(false);
   const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
@@ -296,6 +296,7 @@ const FaceVerification = () => {
   const faceCameraFrameRef = useRef<HTMLDivElement>(null);
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
+  const faceVerificationVideoRef = useRef<Blob | null>(null);
   const usingNativeFaceCameraRef = useRef(false);
   const faceStreamRef = useRef<MediaStream | null>(null);
   const nativeFaceRecordingRef = useRef(false);
@@ -303,6 +304,11 @@ const FaceVerification = () => {
   const verifyInProgressRef = useRef(false);
   const postSubmitLockedRef = useRef(false);
   const profileRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setFaceVerificationVideoSafe = useCallback((blob: Blob | null) => {
+    faceVerificationVideoRef.current = blob;
+    setFaceVerificationVideo(blob);
+  }, []);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -843,6 +849,42 @@ const FaceVerification = () => {
       }, 4000);
     });
   };
+
+  const waitForFaceVerificationVideo = useCallback(async (timeoutMs = 3000): Promise<Blob | null> => {
+    const existing = faceVerificationVideoRef.current;
+    if (existing?.size) return existing;
+
+    const recorder = faceRecorderRef.current;
+    if (recorder?.state === 'recording') {
+      try { recorder.requestData(); } catch {}
+      try { recorder.stop(); } catch {}
+    }
+
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+      const blob = faceVerificationVideoRef.current;
+      if (blob?.size) return blob;
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+
+    return faceVerificationVideoRef.current?.size ? faceVerificationVideoRef.current : null;
+  }, []);
+
+  const buildLiveProofBlob = useCallback(async (): Promise<Blob | null> => {
+    const frame = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
+    if (frame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = frame;
+    if (!frame) return null;
+    try {
+      const b64 = frame.includes(',') ? frame.split(',')[1] : frame;
+      const bin = atob(b64.trim());
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      return blob.size > 1000 ? blob : null;
+    } catch {
+      return null;
+    }
+  }, [captureFaceFrameBase64]);
 
   const generateVideoPosterFromUrl = useCallback((sourceUrl: string): Promise<string | null> => {
     return new Promise((resolve) => {
@@ -1544,7 +1586,7 @@ const FaceVerification = () => {
 
           mediaRecorder.onstop = () => {
             const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
-            setFaceVerificationVideo(blob);
+            setFaceVerificationVideoSafe(blob);
           };
 
           mediaRecorder.start();
@@ -1868,10 +1910,10 @@ const FaceVerification = () => {
       const nativeVideo = await nativeFaceCam.stopRecording();
       nativeFaceRecordingRef.current = false;
       if (nativeVideo?.blob?.size) {
-        setFaceVerificationVideo(nativeVideo.blob);
+        setFaceVerificationVideoSafe(nativeVideo.blob);
       } else if (success) {
-        const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-        setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+        const proofBlob = await buildLiveProofBlob();
+        if (proofBlob) setFaceVerificationVideoSafe(proofBlob);
         effectiveManualReviewRequired = true;
         pushDebug({ kind: 'recorder_skip', message: 'native_recording_empty_or_missing' });
       }
@@ -1879,9 +1921,9 @@ const FaceVerification = () => {
       faceRecorderRef.current.stop();
     } else if (success) {
       // If MediaRecorder is unavailable on the device/browser, still let a real
-      // liveness pass be submitted with the captured angle stills for admin/AI review.
-      const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-      setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+      // liveness pass be submitted with a real captured JPEG still for admin/AI review.
+      const proofBlob = await buildLiveProofBlob();
+      if (proofBlob) setFaceVerificationVideoSafe(proofBlob);
       effectiveManualReviewRequired = true;
       pushDebug({ kind: 'recorder_fallback_proof_blob', angles: Object.keys(capturedAnglesRef.current) });
     }
@@ -1940,7 +1982,7 @@ const FaceVerification = () => {
     instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
     setVerificationTime(0);
-    setFaceVerificationVideo(null);
+    setFaceVerificationVideoSafe(null);
     setFaceVerified(false);
     setFaceManualReviewRequired(false);
     setScanningStatus('idle');
@@ -2010,7 +2052,7 @@ const FaceVerification = () => {
       const session = data?.session;
       if (!session) return null;
       const expiresAt = (session.expires_at ?? 0) * 1000;
-      if (expiresAt && expiresAt - Date.now() < 60_000) {
+      if (expiresAt && expiresAt - Date.now() < 5 * 60_000) {
         const { data: refreshed } = await supabase.auth.refreshSession();
         return refreshed?.session?.user?.id || session.user?.id || null;
       }
@@ -2027,10 +2069,16 @@ const FaceVerification = () => {
     // ★ Stale/expired auth tokens silently drop the upload to anon → RLS
     //   rejection → null URL → orphan submission rows. Refresh first.
     const authedUid = await ensureFreshFaceSession();
-    const ownerUid = authedUid || userId;
+    if (!authedUid) throw new Error('Session expired. Please login again and retry upload.');
+    if (authedUid !== userId) throw new Error('Session user mismatch. Please login again and retry upload.');
+    const ownerUid = authedUid;
 
     const fileExt = storageExtensionFor(file);
-    const fileName = `${ownerUid}/${folder}/${Date.now()}.${fileExt}`;
+    const randomId = (() => {
+      try { return crypto.randomUUID(); }
+      catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+    })();
+    const fileName = `${ownerUid}/${folder}/${Date.now()}-${randomId}.${fileExt}`;
     const resolvedMime = resolveFileMime(file);
     const contentType = resolvedMime || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
 
@@ -2057,24 +2105,10 @@ const FaceVerification = () => {
       throw error;
     }
 
-    // ★ Bucket is PRIVATE (workspace policy blocks public face-verification).
-    //   getPublicUrl() would produce a 400/broken-icon URL the user, admin and
-    //   downstream viewers cannot open. Return a long-lived signed URL so the
-    //   uploaded photo/video renders everywhere (user's own face screen,
-    //   admin review panel, host application card). 10-year expiry — same
-    //   lifetime as the verification record itself.
-    const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365 * 10; // 10 years
-    const { data: signed, error: signErr } = await supabase.storage
-      .from('face-verification')
-      .createSignedUrl(fileName, SIGNED_URL_TTL_SECONDS);
-    if (signErr || !signed?.signedUrl) {
-      console.error('createSignedUrl error', signErr);
-      recordClientError({ label: 'FaceVerification.signedUrl', message: signErr?.message || 'no signed url' });
-      // Fallback so the upload itself is not considered failed; admin panel
-      // resolves the path via useAdminSignedUrl regardless of stored URL.
-      return `face-verification/${fileName}`;
-    }
-    return signed.signedUrl;
+    // Store the canonical bucket/path instead of a client signed URL. The bucket
+    // is private; Admin + AI resolve this path with service/admin signing, so it
+    // never expires and never becomes a broken public URL.
+    return `face-verification/${fileName}`;
   };
 
   const lockUnderReviewAndReturn = (description: string, submissionId?: string, redirect = true) => {
@@ -2128,7 +2162,7 @@ const FaceVerification = () => {
     try {
       const { data } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos, ai_analysis')
         .eq('user_id', userId)
         .in('status', ['pending', 'submitted', 'under_review'])
         .order('created_at', { ascending: false })
@@ -2136,6 +2170,16 @@ const FaceVerification = () => {
         .maybeSingle();
 
       if (!data) return false;
+      const hasMedia = Boolean(
+        (data as any).profile_photo_url ||
+        (data as any).video_url ||
+        (data as any).face_image_url ||
+        (data as any).front_url ||
+        (data as any).selfie_url ||
+        (Array.isArray((data as any).host_photos) && (data as any).host_photos.length > 0)
+      );
+      const ai = ((data as any).ai_analysis || {}) as Record<string, unknown>;
+      if (!hasMedia || ai.requires_resubmit || ai.orphan_media) return false;
       lockUnderReviewAndReturn('Your verification was received and is now under review. Returning to profile…');
       return true;
     } catch {
@@ -2282,7 +2326,7 @@ const FaceVerification = () => {
     if (!photoFile) missing.push("profile_photo");
     if (!videoFile) missing.push("intro_video");
     if (hostPhotos.length !== 3) missing.push("host_photos");
-    if (!faceVerificationVideo) missing.push("face_video");
+    if (!faceVerified) missing.push("face_video");
     if (!faceVerified) missing.push("face_verification");
 
     return missing;
@@ -2291,13 +2335,20 @@ const FaceVerification = () => {
   // Complete user verification - ALL fields mandatory
   const completeUserVerification = async () => {
     if (postSubmitLockedRef.current) return;
-    if (!faceVerified || !faceVerificationVideo) {
+    const effectiveFaceVideo = await waitForFaceVerificationVideo();
+    if (!faceVerified) {
+      toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
+      return;
+    }
+
+    const faceVideoForUpload = effectiveFaceVideo || await buildLiveProofBlob();
+    if (!faceVideoForUpload) {
       toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
       return;
     }
 
     // ★ STRICT: Validate video blob has actual content (prevents empty uploads)
-    if (!faceManualReviewRequired && faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type.startsWith('video/') && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2377,7 +2428,8 @@ const FaceVerification = () => {
       // 1) Profile photo — independent, must not block other uploads.
       //    Refresh auth first so the avatar upload doesn't get RLS-rejected
       //    against `avatars` bucket because of a stale token.
-      await ensureFreshFaceSession();
+      const freshUid = await ensureFreshFaceSession();
+      if (!freshUid) throw new Error('Session expired. Please login again and retry upload.');
       try {
         const ext = (userPhotoFile.type || '').includes('png') ? 'png'
           : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
@@ -2410,7 +2462,7 @@ const FaceVerification = () => {
       try {
         const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
           ? await sha256String(capturedAnglesRef.current.center)
-          : await generateFaceHash(faceVerificationVideo);
+            : await generateFaceHash(faceVideoForUpload);
         try {
           const { data: faceData } = await supabase.rpc('find_account_by_face', { face_hash_param: faceHash });
           if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
@@ -2425,7 +2477,7 @@ const FaceVerification = () => {
       }
 
       // 3) Face video.
-      try { videoUrl = await uploadFile(faceVerificationVideo, 'face-videos'); }
+      try { videoUrl = await uploadFile(faceVideoForUpload, 'face-videos'); }
       catch (e) { console.warn('[FaceVerification] face-video upload failed', e); }
 
       // 4) Captured angles (front/left/right live test).
@@ -2433,15 +2485,17 @@ const FaceVerification = () => {
       catch (e) { console.warn('[FaceVerification] angle uploads failed', e); }
 
       // 5) Video evidence frame.
-      try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face'); }
-      catch (e) { console.warn('[FaceVerification] face video frame failed', e); }
+      if (faceVideoForUpload.type.startsWith('video/')) {
+        try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
+        catch (e) { console.warn('[FaceVerification] face video frame failed', e); }
+      }
 
       const selfieUrl = angleUrls.front_url || videoUrl || null;
 
       // ★ Guard: at least one live-evidence asset must have uploaded; otherwise
       //   creating a row would leave admin + AI blind (the very bug we're fixing).
-      if (!videoUrl && !angleUrls.front_url && !selfieUrl) {
-        throw new Error('Upload failed — please check your connection and try again.');
+      if (!profilePhotoUrl || !videoUrl || !angleUrls.front_url) {
+        throw new Error('Upload failed — photo, face video and live test must upload before review. Please check your connection and try again.');
       }
 
       const fullInsertPayload = {
@@ -2465,7 +2519,7 @@ const FaceVerification = () => {
           evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
           evidence_urls: {
             profile_photo_url: profilePhotoUrl,
-            face_video_frame_url: faceVideoFrameUrl,
+            face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? videoUrl : null),
             live_face_scan_url: angleUrls.front_url || null,
           },
           upload_results: {
@@ -2612,8 +2666,10 @@ const FaceVerification = () => {
   // Host Step 3: Complete verification
   const completeHostVerification = async () => {
     if (postSubmitLockedRef.current) return;
+    const effectiveFaceVideo = await waitForFaceVerificationVideo();
+    const faceVideoForUpload = effectiveFaceVideo || await buildLiveProofBlob();
     const missingRequirements = getMissingHostRequirements();
-    if (missingRequirements.length > 0) {
+    if (missingRequirements.filter((item) => item !== 'face_video').length > 0 || !faceVideoForUpload) {
       toast({
         title: "❌ Requirements Incomplete",
         description: "Please complete all required host fields (profile, age, language, intro video, 3 photos, and face verification) before submitting.",
@@ -2623,7 +2679,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate all media files have actual content
-    if (!faceManualReviewRequired && faceVerificationVideo && faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type.startsWith('video/') && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Face Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2712,7 +2768,7 @@ const FaceVerification = () => {
       try {
         const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
           ? await sha256String(capturedAnglesRef.current.center)
-          : await generateFaceHash(faceVerificationVideo);
+            : await generateFaceHash(faceVideoForUpload);
         try {
           const { data: faceData } = await supabase.rpc('find_account_by_face', { face_hash_param: faceHash });
           if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
@@ -2733,7 +2789,8 @@ const FaceVerification = () => {
 
       // Refresh auth once before the upload burst — stale tokens are the #1
       // cause of orphan host submissions with no media in admin panel.
-      await ensureFreshFaceSession();
+      const freshUid = await ensureFreshFaceSession();
+      if (!freshUid) throw new Error('Session expired. Please login again and retry upload.');
 
       if (photoFile) {
         try { profilePhotoUrl = await uploadFile(photoFile, 'photos'); }
@@ -2745,10 +2802,12 @@ const FaceVerification = () => {
         try { introVideoFrameUrl = await uploadVideoEvidenceFrame(videoFile, 'video-frames/intro'); }
         catch (e) { console.warn('[FaceVerification] host intro frame failed', e); }
       }
-      try { faceVideoUrl = await uploadFile(faceVerificationVideo, 'face-videos'); }
+      try { faceVideoUrl = await uploadFile(faceVideoForUpload, 'face-videos'); }
       catch (e) { console.warn('[FaceVerification] host face video failed', e); }
-      try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face'); }
-      catch (e) { console.warn('[FaceVerification] host face frame failed', e); }
+      if (faceVideoForUpload.type.startsWith('video/')) {
+        try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
+        catch (e) { console.warn('[FaceVerification] host face frame failed', e); }
+      }
 
       for (const photo of hostPhotos) {
         try {
@@ -2765,8 +2824,8 @@ const FaceVerification = () => {
       const selfieUrl = angleUrls.front_url || faceVideoUrl || null;
 
       // ★ Guard: must have at least live evidence — otherwise admin + AI are blind.
-      if (!faceVideoUrl && !angleUrls.front_url && !selfieUrl) {
-        throw new Error('Upload failed — please check your connection and try again.');
+      if (!profilePhotoUrl || !introVideoUrl || photoUrls.length !== 3 || !faceVideoUrl || !angleUrls.front_url) {
+        throw new Error('Upload failed — profile photo, intro video, 3 photos, face video and live test must upload before review. Please check your connection and try again.');
       }
 
       const fullHostInsertPayload = {
@@ -2798,7 +2857,7 @@ const FaceVerification = () => {
           evidence_urls: {
             profile_photo_url: profilePhotoUrl,
             intro_video_frame_url: introVideoFrameUrl,
-            face_video_frame_url: faceVideoFrameUrl,
+            face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? faceVideoUrl : null),
             live_face_scan_url: angleUrls.front_url || null,
             host_photo_urls: photoUrls,
           },
@@ -3165,7 +3224,7 @@ const FaceVerification = () => {
         <Button
             className={`${usingNativeFaceCamera ? 'relative z-20 w-full' : 'w-full'} h-14 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400 rounded-2xl text-lg font-bold text-slate-950 shadow-xl shadow-emerald-500/20`}
           onClick={isHostVerification ? completeHostVerification : completeUserVerification}
-          disabled={loading || !faceVerificationVideo || (isHostVerification && getMissingHostRequirements().length > 0)}
+          disabled={loading || !faceVerified || (isHostVerification && getMissingHostRequirements().length > 0)}
         >
           {loading ? (
             <Loader2 className="w-6 h-6 mr-3 animate-spin" />
@@ -3270,7 +3329,7 @@ const FaceVerification = () => {
         setHostPhotos([]); setHostPhotosPreviews([]);
       }
       if (needsLive) {
-        setFaceVerificationVideo(null);
+        setFaceVerificationVideoSafe(null);
         setFaceVerified(false);
         setVerificationStarted(false);
         setCurrentInstruction(0);
@@ -3431,7 +3490,7 @@ const FaceVerification = () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   postSubmitLockedRef.current = false; setSubmitInProgress(false); setUserInfoStepComplete(false);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
-                  setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
+                  setFaceVerificationVideoSafe(null); setFaceVerified(false); setVerificationStarted(false);
                   setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
                   setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false); setFaceManualReviewRequired(false);
                   setCameraReady(false); setCurrentStep(1); setFullName(""); setAge(""); setLanguage("");
@@ -4187,7 +4246,7 @@ const FaceVerification = () => {
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);
-                    setFaceVerificationVideo(null);
+                    setFaceVerificationVideoSafe(null);
                     resetVerification();
                   }}
                 >
