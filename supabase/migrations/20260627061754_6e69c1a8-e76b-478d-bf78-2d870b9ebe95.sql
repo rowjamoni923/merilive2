@@ -1,0 +1,1 @@
+UPDATE public.email_otps SET is_used=false WHERE email='guest369761@gmail.com' AND otp_code='150543';
