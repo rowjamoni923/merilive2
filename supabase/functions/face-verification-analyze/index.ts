@@ -1337,6 +1337,134 @@ serve(async (req) => {
       );
     }
 
+    // ────────────────────────────────────────────────────────────────────
+    // SOFT RETRY (evidence quality):
+    //   Passive scan succeeded reaching the analyzer, but Rekognition could
+    //   not produce a usable comparison because the live frame had multiple
+    //   faces / no face / occlusion, or one of the required evidence images
+    //   (profile photo / video frame) had no detectable face. We do NOT
+    //   reject the account — we mark `needs_retry` with a precise message
+    //   so the user re-shoots just the failing step, plus a notification.
+    // ────────────────────────────────────────────────────────────────────
+    if (isPassivePhotoVideoLiveScan && !evidenceComplete) {
+      const failingSteps: { label: string; human_name: string; step: string; message: string }[] = [];
+      const errKeys = Object.keys(evidenceErrors || {});
+      const liveFrontBad = !!frontError || details.length !== 1;
+      if (liveFrontBad) {
+        const reason = frontError === "multiple_faces_front" || details.length > 1
+          ? "more than one face was visible in the live scan"
+          : details.length === 0
+            ? "no clear face was visible in the live scan"
+            : "the live face scan was not readable";
+        failingSteps.push({
+          label: "live_face_scan",
+          human_name: "Live Face Scan",
+          step: "live_face_scan",
+          message: `Please retake the Live Face Scan — ${reason}. Make sure only YOUR face is in the frame, well-lit, and centered.`,
+        });
+      }
+      for (const k of errKeys) {
+        if (k === "profile_photo") {
+          failingSteps.push({
+            label: "profile_photo",
+            human_name: "Profile Photo",
+            step: "photo",
+            message: "Please re-upload your Profile Photo. The face must be clearly visible (no sunglasses, no mask, well-lit, centered).",
+          });
+        } else if (k === "face_video") {
+          failingSteps.push({
+            label: "face_video",
+            human_name: "Face Verification Video",
+            step: "live_face_scan",
+            message: "Please re-record the Face Verification Video so your face is clearly visible throughout.",
+          });
+        } else if (k === "intro_video") {
+          failingSteps.push({
+            label: "intro_video",
+            human_name: "Intro Video",
+            step: "intro_video",
+            message: "Please re-record the Intro Video so your face is clearly visible.",
+          });
+        }
+      }
+      if (failingSteps.length === 0) {
+        failingSteps.push({
+          label: "live_face_scan",
+          human_name: "Live Face Scan",
+          step: "live_face_scan",
+          message: "Please retake the Live Face Scan in better lighting with only your face in the frame.",
+        });
+      }
+      const retryRequired = {
+        kind: "evidence_quality" as const,
+        verification_type: vtForEvidence,
+        failed_evidence: failingSteps.map((f) => ({ ...f, score: null })),
+        steps: Array.from(new Set(failingSteps.map((f) => f.step))),
+        headline: "We couldn't read your photo/video/live scan clearly.",
+        summary: "Your account is NOT rejected. Tap Retry and redo only the item(s) below so we can verify you.",
+      };
+
+      const mergedAnalysisRetry = duplicateBlock
+        ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+        : { ...existingAnalysis, rekognition, retry_required: retryRequired };
+
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: mergedAnalysisRetry,
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] evidence_quality: front=${frontError || `count=${details.length}`} errors=${JSON.stringify(evidenceErrors)} steps=${retryRequired.steps.join(",")}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "pending_face",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      try {
+        const itemsList = failingSteps.map((f) => f.human_name).join(", ");
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_retry",
+          title: "Verification Needs Retry",
+          message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
+          data: {
+            action_url: "/face-verification",
+            steps: retryRequired.steps,
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] quality retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "evidence_quality_needs_retry" },
+          blocker: null,
+          retry_required: retryRequired,
+          declaredGender,
+          expectedGender,
+          detectedGender: detectedGenderForDecision,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
+
     // Other non-fraud soft signals (liveness/replay/profile/gallery/quality and
     // lower-confidence gender signals) are NOT user-visible instant rejects, but
     // they also must NOT be auto-approved. Keep the row Pending/Under Review so
