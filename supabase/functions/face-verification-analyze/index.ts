@@ -1198,6 +1198,9 @@ serve(async (req) => {
           publicMessage = `This face is already registered with ${dName}${dUid ? ` (ID ${dUid})` : ""}. One face can only be used for one account. Tap to review or contact Support.`;
         } else if (hardAutoReject === "banned_face") {
           publicMessage = "This face is associated with a previously banned account. You cannot create a new account. Tap to contact Support if you believe this is an error.";
+        } else if (hardAutoReject === "gender_mismatch") {
+          const expectedLabel = expectedGender === "female" ? "Host (female)" : "User (male)";
+          publicMessage = `Your account type is ${expectedLabel}, but our AI detected a different gender. Please create the correct account type or contact Support.`;
         }
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
