@@ -879,25 +879,26 @@ const AdminFaceVerification = () => {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Completion</p>
-                        <p className="text-sm font-semibold">{completed}/{total} ({percentage}%)</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Completion</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{completed}/{total} ({percentage}%)</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Face Match</p>
-                        <p className={`text-sm font-semibold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Face Match</p>
+                        <p className={`text-sm font-semibold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {typeof faceMatch === 'number' ? `${faceMatch.toFixed(1)}%` : 'N/A'}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">Profile Photo</p>
-                        <p className="text-sm font-semibold">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Profile Photo</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-accent/20 px-2.5 py-2">
-                        <p className="text-[10px] text-muted-foreground">{mediaStatus.videoLabel}</p>
-                        <p className="text-sm font-semibold">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{mediaStatus.videoLabel}</p>
+                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
                       </div>
                     </div>
+
 
                     {(() => {
                       // Inline media strip — admin sees every photo/video right in the list
