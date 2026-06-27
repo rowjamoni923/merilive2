@@ -283,6 +283,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    activeAdmin = supabaseAdmin;
 
     // Validate internal/cron secret against EITHER env var OR app_settings row.
     // app_settings path lets the DB trigger/cron sync with edge fn without manual env juggling.
