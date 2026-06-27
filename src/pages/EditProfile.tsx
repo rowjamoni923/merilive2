@@ -278,20 +278,47 @@ const EditProfile = () => {
 
   const handleCropComplete = async (croppedImage: Blob, _filter: string) => {
     if (!profile) return;
-    
+
     setShowCropModal(false);
     setUploading(true);
 
     try {
-      const fileName = `${profile.id}/${Date.now()}.jpg`;
+      // Ensure we have a valid, non-expired session before hitting Storage RLS.
+      // Stale tokens were the root cause of "new row violates row-level security
+      // policy" toasts on avatar upload — the request reached the API as anon
+      // and the owner_upload_avatars policy denied it.
+      let { data: { session } } = await supabase.auth.getSession();
+      const expiresAt = session?.expires_at ? session.expires_at * 1000 : 0;
+      if (!session || expiresAt - Date.now() < 60_000) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        session = refreshed.session ?? session;
+      }
+      const authUid = session?.user?.id;
+      if (!authUid) {
+        sonnerToast.error("Please sign in again to upload your photo");
+        navigate("/auth");
+        return;
+      }
 
-      const { error: uploadError } = await supabase.storage
+      // Always upload under the auth.uid() folder — this is what the storage
+      // RLS policy checks. Falling back to profile.id (which is the same in
+      // practice) would still be safe, but reading auth.uid directly guards
+      // against any stale `profile` state in this component.
+      const fileName = `${authUid}/${Date.now()}.jpg`;
+
+      const doUpload = () => supabase.storage
         .from("avatars")
-        .upload(fileName, croppedImage, { 
+        .upload(fileName, croppedImage, {
           upsert: true,
-          contentType: "image/jpeg"
+          contentType: "image/jpeg",
         });
 
+      let { error: uploadError } = await doUpload();
+      if (uploadError && /row-level security|jwt|unauthorized|401|403/i.test(uploadError.message)) {
+        // One forced refresh + retry in case the session token rotated mid-flight.
+        await supabase.auth.refreshSession();
+        ({ error: uploadError } = await doUpload());
+      }
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
@@ -301,27 +328,31 @@ const EditProfile = () => {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq("id", profile.id);
+        .eq("id", authUid);
 
       if (updateError) throw updateError;
 
       syncProfileState({ ...profile, avatar_url: publicUrl });
       try {
         window.dispatchEvent(new CustomEvent("app-sync", {
-          detail: { topic: "profiles", eventType: "UPDATE", payload: { id: profile.id, avatar_url: publicUrl } },
+          detail: { topic: "profiles", eventType: "UPDATE", payload: { id: authUid, avatar_url: publicUrl } },
         }));
       } catch {}
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
       recordClientError({ label: "EditProfile.fileName", message: error instanceof Error ? error.message : String(error) });
-      const msg = error instanceof Error ? error.message : String(error);
-      sonnerToast.error(msg ? `Upload failed: ${msg}` : "Upload failed");
+      const raw = error instanceof Error ? error.message : String(error);
+      const friendly = /row-level security/i.test(raw)
+        ? "Your session expired. Please sign in again and retry."
+        : raw;
+      sonnerToast.error(friendly ? `Upload failed: ${friendly}` : "Upload failed");
     } finally {
 
       setUploading(false);
     }
   };
+
 
 
   const handlePhoneUpdate = async () => {
