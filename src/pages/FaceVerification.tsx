@@ -2934,13 +2934,25 @@ const FaceVerification = () => {
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : '#d4af37';
-    const nativeApertureStyle: React.CSSProperties | undefined = usingNativeFaceCamera
-      ? {
-          WebkitMaskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
-          maskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
-          background: 'radial-gradient(circle at 50% 18%, rgba(212,175,55,0.18), transparent 38%), linear-gradient(180deg, rgba(2,6,23,0.72), rgba(15,23,42,0.88))',
-        }
-      : undefined;
+    // Hexagon clip-path (matches the SVG polygon below); used to clip both the
+    // web <video> feed and the native camera "hole" so the live image only
+    // shows INSIDE the scan frame, while the area outside stays decorative.
+    const HEX_CLIP_PATH = 'polygon(50% 4.6%, 89% 21.5%, 89% 78.5%, 50% 95.4%, 11% 78.5%, 11% 21.5%)';
+    // Web video is positioned inside the frame at 82% × 70%, centered.
+    const cameraWindowStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: '15%',
+      left: '9%',
+      width: '82%',
+      height: '70%',
+      clipPath: HEX_CLIP_PATH,
+      WebkitClipPath: HEX_CLIP_PATH,
+      transform: 'scaleX(-1) translateZ(0)',
+      backfaceVisibility: 'hidden',
+      backgroundColor: '#000',
+      pointerEvents: 'none',
+    };
+
     const completeFromPartialScan = () => {
       const completed = instructionsCompletedRef.current.filter(Boolean).length;
       if (completed < 2 || (!usingNativeFaceCameraRef.current && !faceChunksRef.current.length)) {
@@ -2958,13 +2970,28 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30 ring-1 ring-amber-200/60'
-        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/60 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30'}`
-      }>
-        {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
-          <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
+      <div ref={faceCameraFrameRef} data-face-verification-camera className={`relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 ring-1 ring-amber-200/60 shadow-xl shadow-amber-200/30 ${faceCameraActive && !faceVerified ? 'bg-transparent' : 'bg-gradient-to-br from-amber-50 via-white to-orange-50'}`}>
+        {faceCameraActive && !faceVerified && (
+          <div
+            className="absolute inset-0 z-[1] overflow-hidden pointer-events-none"
+            style={{
+              WebkitMaskImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path fill-rule='evenodd' fill='white' d='M0 0H100V100H0Z M50 18.22L18.02 30.05L18.02 69.95L50 81.78L81.98 69.95L81.98 30.05Z'/></svg>")`,
+              maskImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path fill-rule='evenodd' fill='white' d='M0 0H100V100H0Z M50 18.22L18.02 30.05L18.02 69.95L50 81.78L81.98 69.95L81.98 30.05Z'/></svg>")`,
+              WebkitMaskSize: '100% 100%',
+              maskSize: '100% 100%',
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-orange-50" />
+            <div className="face-scan-aura" />
+            <div className="face-scan-glow-a" />
+            <div className="face-scan-glow-b" />
+            <div className="face-scan-glow-c" />
+            <div className="face-scan-sweep" />
+          </div>
         )}
+
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-amber-50 via-white to-orange-50">
             <motion.div
@@ -3028,13 +3055,14 @@ const FaceVerification = () => {
                 disableRemotePlayback
                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                 {...({ 'x5-video-player-type': 'h5', 'x5-video-player-fullscreen': 'false', 'x5-playsinline': 'true', 'webkit-playsinline': 'true' } as Record<string, string>)}
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="object-cover object-center"
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'], transform: 'scaleX(-1) translateZ(0)', backfaceVisibility: 'hidden' }}
+                style={{ ...cameraWindowStyle, WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
               />
             )}
+
             
             {/* Loading overlay */}
             {(faceCameraStarting || (faceCameraActive && !cameraReady)) && !usingNativeFaceCamera && (
@@ -3046,12 +3074,9 @@ const FaceVerification = () => {
             
             {/* Face oval guide with dynamic border color */}
             <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
-              {/* Dark overlay outside oval */}
-              {!usingNativeFaceCamera && (
-                <div className="absolute inset-0" style={{
-                  background: 'radial-gradient(ellipse 63% 52% at 50% 44%, transparent 94%, rgba(2,6,23,0.68) 100%), radial-gradient(circle at 50% 10%, rgba(212,175,55,0.18), transparent 36%)',
-                }} />
-              )}
+              {/* (dark vignette overlay removed — camera is now hex-clipped and
+                  the surrounding area is filled by the animated lighting layer) */}
+
               
               {/* Animated hex face frame */}
               <motion.div 
