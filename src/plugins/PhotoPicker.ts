@@ -21,10 +21,20 @@ const isAndroidNative = () =>
 
 /** Returns null on web/iOS so the caller falls back to <input type="file">. */
 export const PhotoPicker = {
-  isSupported: () => isAndroidNative(),
+  /**
+   * True only when the native plugin is actually registered in the running
+   * APK. On web, iOS, or older APK builds that pre-date the plugin this
+   * returns false so callers fall back to <input type="file"> instead of
+   * silently doing nothing when the native handler isn't there.
+   */
+  isSupported: () => {
+    if (!isAndroidNative()) return false;
+    try { return Capacitor.isPluginAvailable?.('PhotoPicker') === true; }
+    catch { return false; }
+  },
 
   async pickImage(video = false, crop = false): Promise<PickedMedia | null> {
-    if (!isAndroidNative()) return null;
+    if (!PhotoPicker.isSupported()) return null;
     try {
       const res = await Native.pickImage({ video, crop });
 
@@ -34,6 +44,7 @@ export const PhotoPicker = {
       return null;
     }
   },
+
 
   async pickImages(video = false): Promise<PickedMedia[]> {
     if (!isAndroidNative()) return [];
