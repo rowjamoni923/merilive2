@@ -2934,13 +2934,25 @@ const FaceVerification = () => {
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : '#d4af37';
-    const nativeApertureStyle: React.CSSProperties | undefined = usingNativeFaceCamera
-      ? {
-          WebkitMaskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
-          maskImage: 'radial-gradient(ellipse 42% 47% at 50% 44%, transparent 0 98%, #000 100%)',
-          background: 'radial-gradient(circle at 50% 18%, rgba(212,175,55,0.18), transparent 38%), linear-gradient(180deg, rgba(2,6,23,0.72), rgba(15,23,42,0.88))',
-        }
-      : undefined;
+    // Hexagon clip-path (matches the SVG polygon below); used to clip both the
+    // web <video> feed and the native camera "hole" so the live image only
+    // shows INSIDE the scan frame, while the area outside stays decorative.
+    const HEX_CLIP_PATH = 'polygon(50% 4.6%, 89% 21.5%, 89% 78.5%, 50% 95.4%, 11% 78.5%, 11% 21.5%)';
+    // Web video is positioned inside the frame at 82% × 70%, centered.
+    const cameraWindowStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: '15%',
+      left: '9%',
+      width: '82%',
+      height: '70%',
+      clipPath: HEX_CLIP_PATH,
+      WebkitClipPath: HEX_CLIP_PATH,
+      transform: 'scaleX(-1) translateZ(0)',
+      backfaceVisibility: 'hidden',
+      backgroundColor: '#000',
+      pointerEvents: 'none',
+    };
+
     const completeFromPartialScan = () => {
       const completed = instructionsCompletedRef.current.filter(Boolean).length;
       if (completed < 2 || (!usingNativeFaceCameraRef.current && !faceChunksRef.current.length)) {
