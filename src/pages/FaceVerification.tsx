@@ -769,6 +769,12 @@ const FaceVerification = () => {
             setRetryRequired(null);
             toast({ title: 'Face verification rejected', description: next?.rejection_reason || 'Please re-submit.', variant: 'destructive' });
           } else if (status === 'needs_retry') {
+            const currentProfileStatus = String((profile as any)?.face_verification_status || '').toLowerCase();
+            if ((profile as any)?.is_face_verified === true || currentProfileStatus === 'approved' || currentProfileStatus === 'verified') {
+              // A delayed retry update from an older/stuck submission must never
+              // downgrade an already-approved user in the live UI.
+              return;
+            }
             const rr = (next?.ai_analysis as any)?.retry_required || null;
             setRetryRequired(rr);
             setVerificationStatus('needs_retry');
