@@ -873,6 +873,7 @@ serve(async (req) => {
             // Skip one bad historical avatar; never block the whole analysis.
           }
         }
+        duplicateSearchCompleted = true;
 
         if (bestLegacyCandidate && Number(bestLegacyCandidate.similarity || 0) >= DUPLICATE_FACE_MIN_SIMILARITY) {
           duplicateFields = {
@@ -1258,6 +1259,20 @@ serve(async (req) => {
     //    leave the row in `submitted` for manual admin review.
     const livenessProviderAvailable = !!faceProviderEarly;
     const livenessActuallyRan = livenessStatus !== null;
+    // Current app flow is passive photo/video/live: profile photo + extracted
+    // video frame + live frame. When these three pieces are complete and match,
+    // Rekognition itself is enough to finalize instantly even if the optional
+    // external liveness provider is not configured in this environment.
+    const passiveStrongPhotoVideoLiveEvidence = isPassivePhotoVideoLiveScan
+      && evidenceComplete
+      && evidenceSamePerson
+      && !frontError
+      && !profileMismatch
+      && !hostPhotosMismatch
+      && !noFaceInAvatar
+      && !hostNoFaceInGallery
+      && !replaySuspected
+      && !livenessFailed;
     const passiveManualReviewReason = isPassivePhotoVideoLiveScan
       ? !evidenceComplete
         ? "photo_video_live_evidence_missing"
@@ -1287,10 +1302,10 @@ serve(async (req) => {
     } else if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
-    } else if (!livenessProviderAvailable) {
+    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_missing" };
       console.error("[face-verification-analyze] ⚠️ VERIFY_FACE_API_KEY not configured — auto-approve blocked, manual review required");
-    } else if (!livenessActuallyRan) {
+    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
     } else if (!duplicateSearchCompleted && !frontError) {

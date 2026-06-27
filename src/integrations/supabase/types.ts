@@ -19740,10 +19740,9 @@ export type Database = {
       admin_helper_applications_stats: { Args: never; Returns: Json }
       admin_helper_management_stats: { Args: never; Returns: Json }
       admin_helper_requests_stats: { Args: never; Returns: Json }
-      admin_host_application_stats: {
-        Args: { _search?: string }
-        Returns: Json
-      }
+      admin_host_application_stats:
+        | { Args: never; Returns: Json }
+        | { Args: { _search?: string }; Returns: Json }
       admin_host_applications_paginated: {
         Args: {
           _limit?: number
