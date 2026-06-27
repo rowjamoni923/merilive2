@@ -21595,6 +21595,7 @@ export type Database = {
         Args: { _reset_date?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
+      claim_device_id: { Args: { p_device_id: string }; Returns: undefined }
       claim_first_recharge_bonus_and_credit: {
         Args: {
           _bonus_amount: number
