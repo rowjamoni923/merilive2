@@ -344,6 +344,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    activeSubmissionId = submissionId;
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
