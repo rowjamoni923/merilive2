@@ -2614,12 +2614,23 @@ const FaceVerification = () => {
 
       const { data: existingSubmission } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, ai_analysis, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos')
         .eq('user_id', userId)
         .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
-      if (existingSubmission) {
+      const existingHostAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingHostIsOrphan = !!(existingHostAi.requires_resubmit || existingHostAi.orphan_media)
+        || (!!existingSubmission
+            && !existingSubmission.profile_photo_url
+            && !existingSubmission.video_url
+            && !existingSubmission.face_image_url
+            && !existingSubmission.front_url
+            && !existingSubmission.selfie_url
+            && !(existingSubmission.host_photos && existingSubmission.host_photos.length));
+
+      if (existingSubmission && !existingHostIsOrphan) {
         lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
