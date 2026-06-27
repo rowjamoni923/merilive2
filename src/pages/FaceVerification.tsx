@@ -2789,7 +2789,8 @@ const FaceVerification = () => {
 
       // Refresh auth once before the upload burst — stale tokens are the #1
       // cause of orphan host submissions with no media in admin panel.
-      await ensureFreshFaceSession();
+      const freshUid = await ensureFreshFaceSession();
+      if (!freshUid) throw new Error('Session expired. Please login again and retry upload.');
 
       if (photoFile) {
         try { profilePhotoUrl = await uploadFile(photoFile, 'photos'); }
@@ -2803,7 +2804,7 @@ const FaceVerification = () => {
       }
       try { faceVideoUrl = await uploadFile(faceVideoForUpload, 'face-videos'); }
       catch (e) { console.warn('[FaceVerification] host face video failed', e); }
-      if (faceVideoForUpload.type !== 'application/json') {
+      if (faceVideoForUpload.type.startsWith('video/')) {
         try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
         catch (e) { console.warn('[FaceVerification] host face frame failed', e); }
       }
@@ -2823,8 +2824,8 @@ const FaceVerification = () => {
       const selfieUrl = angleUrls.front_url || faceVideoUrl || null;
 
       // ★ Guard: must have at least live evidence — otherwise admin + AI are blind.
-      if (!faceVideoUrl && !angleUrls.front_url && !selfieUrl) {
-        throw new Error('Upload failed — please check your connection and try again.');
+      if (!profilePhotoUrl || !introVideoUrl || photoUrls.length !== 3 || !faceVideoUrl || !angleUrls.front_url) {
+        throw new Error('Upload failed — profile photo, intro video, 3 photos, face video and live test must upload before review. Please check your connection and try again.');
       }
 
       const fullHostInsertPayload = {
