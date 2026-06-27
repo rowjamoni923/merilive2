@@ -135,9 +135,8 @@ const OtpEmail = ({ otp = '------', purpose = 'verify', expiryMinutes = 5, displ
 export const template = {
   component: OtpEmail,
   subject: (data: Record<string, any>) => {
-    const code = String(data?.otp ?? '').trim()
     const lbl = purposeLabel(data?.purpose)
-    return code ? `${code} — Your MeriLive ${lbl} Code` : `Your MeriLive ${lbl} Code`
+    return `Your MeriLive ${lbl} code`
   },
   displayName: 'OTP / Verification Code',
   previewData: { otp: '482917', purpose: 'login', expiryMinutes: 5, displayName: 'Sazzad' },
