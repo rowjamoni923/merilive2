@@ -1216,12 +1216,25 @@ const FaceVerification = () => {
       }
       
       videoStreamRef.current = stream;
-      
-      if (liveVideoRef.current) {
-        liveVideoRef.current.srcObject = stream;
-        await liveVideoRef.current.play().catch(console.error);
-      }
-      
+
+      // Mount the live <video> element FIRST so liveVideoRef exists, then attach
+      // the stream on the next animation frame. Without this, srcObject is set
+      // on a null ref (element only renders after isRecording flips true) and
+      // the preview stays black.
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      const attachLivePreview = () => {
+        const el = liveVideoRef.current;
+        if (!el) return;
+        try { el.srcObject = stream; } catch (err) { console.warn('[FaceVerify] srcObject set failed', err); }
+        el.muted = true;
+        el.playsInline = true;
+        el.play().catch((err) => console.warn('[FaceVerify] live preview play failed', err));
+      };
+      // Two rAFs guarantees React committed the new DOM node before we touch it.
+      requestAnimationFrame(() => requestAnimationFrame(attachLivePreview));
+
       const mimeType = MediaRecorder.isTypeSupported('video/mp4')
         ? 'video/mp4'
         : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
@@ -1248,8 +1261,6 @@ const FaceVerification = () => {
       };
       
       mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
       
       const timer = setInterval(() => {
         setRecordingTime(prev => {
