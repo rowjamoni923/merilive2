@@ -1132,7 +1132,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | "gender_mismatch" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1140,9 +1140,11 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    // Owner policy (2026-06-26/27): only duplicate/banned identity are hard
-    // rejects. Gender signals are retained in ai_analysis for admin context but
-    // must never auto-reject or block a genuine photo/video/live same-person pass.
+    // Owner policy (2026-06-27): account-gender mismatch is a HARD auto-reject.
+    // Male signing up as host (female account) or female signing up as user
+    // (male account) is rejected instantly with notification, only when
+    // Rekognition is highly confident (≥90%) and there is a clean single face.
+    else if (genderDeclarationMismatch) hardAutoReject = "gender_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
