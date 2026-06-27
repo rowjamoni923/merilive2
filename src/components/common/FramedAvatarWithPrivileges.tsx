@@ -202,7 +202,7 @@ const FramedAvatarWithPrivileges = ({
     >
       <AvatarImage
         src={effectiveSrc || undefined}
-        className="object-contain"
+        className="object-cover w-full h-full"
       />
       <AvatarFallback
         className={cn(
