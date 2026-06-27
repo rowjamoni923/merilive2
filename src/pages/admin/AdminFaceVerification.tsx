@@ -1602,6 +1602,7 @@ const AdminFaceVerification = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </div>
   );
 };
 
