@@ -2016,7 +2016,7 @@ const FaceVerification = () => {
       const session = data?.session;
       if (!session) return null;
       const expiresAt = (session.expires_at ?? 0) * 1000;
-      if (expiresAt && expiresAt - Date.now() < 60_000) {
+      if (expiresAt && expiresAt - Date.now() < 5 * 60_000) {
         const { data: refreshed } = await supabase.auth.refreshSession();
         return refreshed?.session?.user?.id || session.user?.id || null;
       }
@@ -2033,10 +2033,16 @@ const FaceVerification = () => {
     // ★ Stale/expired auth tokens silently drop the upload to anon → RLS
     //   rejection → null URL → orphan submission rows. Refresh first.
     const authedUid = await ensureFreshFaceSession();
-    const ownerUid = authedUid || userId;
+    if (!authedUid) throw new Error('Session expired. Please login again and retry upload.');
+    if (authedUid !== userId) throw new Error('Session user mismatch. Please login again and retry upload.');
+    const ownerUid = authedUid;
 
     const fileExt = storageExtensionFor(file);
-    const fileName = `${ownerUid}/${folder}/${Date.now()}.${fileExt}`;
+    const randomId = (() => {
+      try { return crypto.randomUUID(); }
+      catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+    })();
+    const fileName = `${ownerUid}/${folder}/${Date.now()}-${randomId}.${fileExt}`;
     const resolvedMime = resolveFileMime(file);
     const contentType = resolvedMime || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
 
@@ -2063,24 +2069,10 @@ const FaceVerification = () => {
       throw error;
     }
 
-    // ★ Bucket is PRIVATE (workspace policy blocks public face-verification).
-    //   getPublicUrl() would produce a 400/broken-icon URL the user, admin and
-    //   downstream viewers cannot open. Return a long-lived signed URL so the
-    //   uploaded photo/video renders everywhere (user's own face screen,
-    //   admin review panel, host application card). 10-year expiry — same
-    //   lifetime as the verification record itself.
-    const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365 * 10; // 10 years
-    const { data: signed, error: signErr } = await supabase.storage
-      .from('face-verification')
-      .createSignedUrl(fileName, SIGNED_URL_TTL_SECONDS);
-    if (signErr || !signed?.signedUrl) {
-      console.error('createSignedUrl error', signErr);
-      recordClientError({ label: 'FaceVerification.signedUrl', message: signErr?.message || 'no signed url' });
-      // Fallback so the upload itself is not considered failed; admin panel
-      // resolves the path via useAdminSignedUrl regardless of stored URL.
-      return `face-verification/${fileName}`;
-    }
-    return signed.signedUrl;
+    // Store the canonical bucket/path instead of a client signed URL. The bucket
+    // is private; Admin + AI resolve this path with service/admin signing, so it
+    // never expires and never becomes a broken public URL.
+    return `face-verification/${fileName}`;
   };
 
   const lockUnderReviewAndReturn = (description: string, submissionId?: string, redirect = true) => {
