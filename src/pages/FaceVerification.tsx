@@ -2319,13 +2319,20 @@ const FaceVerification = () => {
   // Complete user verification - ALL fields mandatory
   const completeUserVerification = async () => {
     if (postSubmitLockedRef.current) return;
-    if (!faceVerified || !faceVerificationVideo) {
+    const effectiveFaceVideo = await waitForFaceVerificationVideo();
+    if (!faceVerified) {
+      toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
+      return;
+    }
+
+    const faceVideoForUpload = effectiveFaceVideo || (capturedAnglesRef.current.center ? buildLiveProofBlob() : null);
+    if (!faceVideoForUpload) {
       toast({ title: "Error", description: "Please complete face verification first", variant: "destructive" });
       return;
     }
 
     // ★ STRICT: Validate video blob has actual content (prevents empty uploads)
-    if (!faceManualReviewRequired && faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type !== 'application/json' && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2438,7 +2445,7 @@ const FaceVerification = () => {
       try {
         const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
           ? await sha256String(capturedAnglesRef.current.center)
-          : await generateFaceHash(faceVerificationVideo);
+            : await generateFaceHash(faceVideoForUpload);
         try {
           const { data: faceData } = await supabase.rpc('find_account_by_face', { face_hash_param: faceHash });
           if (faceData && faceData.length > 0 && faceData[0].user_id !== userId) {
@@ -2453,7 +2460,7 @@ const FaceVerification = () => {
       }
 
       // 3) Face video.
-      try { videoUrl = await uploadFile(faceVerificationVideo, 'face-videos'); }
+      try { videoUrl = await uploadFile(faceVideoForUpload, 'face-videos'); }
       catch (e) { console.warn('[FaceVerification] face-video upload failed', e); }
 
       // 4) Captured angles (front/left/right live test).
@@ -2461,8 +2468,10 @@ const FaceVerification = () => {
       catch (e) { console.warn('[FaceVerification] angle uploads failed', e); }
 
       // 5) Video evidence frame.
-      try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVerificationVideo, 'video-frames/face'); }
-      catch (e) { console.warn('[FaceVerification] face video frame failed', e); }
+      if (faceVideoForUpload.type !== 'application/json') {
+        try { faceVideoFrameUrl = await uploadVideoEvidenceFrame(faceVideoForUpload, 'video-frames/face'); }
+        catch (e) { console.warn('[FaceVerification] face video frame failed', e); }
+      }
 
       const selfieUrl = angleUrls.front_url || videoUrl || null;
 
