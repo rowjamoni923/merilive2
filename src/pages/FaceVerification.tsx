@@ -2959,24 +2959,28 @@ const FaceVerification = () => {
       
       {/* Video Container with Face Oval */}
       <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-slate-950 shadow-[0_28px_80px_-24px_rgba(2,6,23,0.75)] ring-1 ring-amber-200/35'
-        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/35 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-white/80 shadow-2xl'}`
+        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30 ring-1 ring-amber-200/60'
+        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/60 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30'}`
       }>
         {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
           <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
         )}
         {!faceCameraActive && !faceVerified ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
-            {/* Pkg381: No large "Ready to Scan" icon — use a more professional subtle pulse to indicate camera is standby */}
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-amber-50 via-white to-orange-50">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="relative w-full h-full flex flex-col items-center justify-center"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse mb-3" />
-              <p className="text-white/40 text-xs font-medium tracking-wide">CAMERA STANDBY</p>
+              <div className="w-14 h-14 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-400/30 mb-3">
+                <Camera className="w-7 h-7 text-white" />
+              </div>
+              <p className="text-slate-700 text-xs font-semibold tracking-wide">CAMERA STANDBY</p>
+              <p className="text-slate-500 text-[11px] mt-1">Tap start to begin recording</p>
             </motion.div>
           </div>
+
+
 
         ) : faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900/60 to-green-900/40">
