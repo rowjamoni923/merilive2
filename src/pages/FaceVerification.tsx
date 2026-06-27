@@ -1550,7 +1550,7 @@ const FaceVerification = () => {
 
           mediaRecorder.onstop = () => {
             const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
-            setFaceVerificationVideo(blob);
+            setFaceVerificationVideoSafe(blob);
           };
 
           mediaRecorder.start();
@@ -1874,10 +1874,10 @@ const FaceVerification = () => {
       const nativeVideo = await nativeFaceCam.stopRecording();
       nativeFaceRecordingRef.current = false;
       if (nativeVideo?.blob?.size) {
-        setFaceVerificationVideo(nativeVideo.blob);
+        setFaceVerificationVideoSafe(nativeVideo.blob);
       } else if (success) {
         const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-        setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+        setFaceVerificationVideoSafe(new Blob([proof], { type: 'application/json' }));
         effectiveManualReviewRequired = true;
         pushDebug({ kind: 'recorder_skip', message: 'native_recording_empty_or_missing' });
       }
@@ -1887,7 +1887,7 @@ const FaceVerification = () => {
       // If MediaRecorder is unavailable on the device/browser, still let a real
       // liveness pass be submitted with the captured angle stills for admin/AI review.
       const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
-      setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+      setFaceVerificationVideoSafe(new Blob([proof], { type: 'application/json' }));
       effectiveManualReviewRequired = true;
       pushDebug({ kind: 'recorder_fallback_proof_blob', angles: Object.keys(capturedAnglesRef.current) });
     }
@@ -1946,7 +1946,7 @@ const FaceVerification = () => {
     instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
     setVerificationTime(0);
-    setFaceVerificationVideo(null);
+    setFaceVerificationVideoSafe(null);
     setFaceVerified(false);
     setFaceManualReviewRequired(false);
     setScanningStatus('idle');
