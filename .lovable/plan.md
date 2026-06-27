@@ -402,3 +402,20 @@ Patch scope:
 - Limit the admin scroll bridge to desktop/internal-scroll mode only; mobile/tablet touch gestures are never intercepted, so the document scrolls naturally across every admin page.
 - Mark both `body` and `html` as admin-active while mounted and clear leaked inline scroll-lock styles/attributes from body/html.
 - Strengthen admin mobile CSS so `.admin-shell`, root wrappers, and admin content stay in normal document flow with `touch-action: pan-y` and momentum scrolling.
+
+---
+
+# Phase 21 — Verified OTP sender-domain activation fix (2026-06-27)
+
+Research / professional standard:
+- Mailgun domain setup guidance confirms that a sender domain must be verified before sending and that sender verification errors happen when the sender identity does not match the verified DNS/provider domain — https://help.mailgun.com/hc/en-us/articles/32884700912923-Domain-Verification-Setup-Guide and https://help.mailgun.com/hc/en-us/articles/360011804533-Why-did-I-receive-the-error-Sender-Verify-Failed-or-some-variation-thereof
+- Lovable Emails resolves the exact delegated sender subdomain; a verified workspace domain still fails if deployed functions send with an old `sender_domain`.
+
+Verified current gap:
+- Project email domain is verified for `otp.merilive.top`; delegated sender is `notify.otp.merilive.top`.
+- Recent OTP logs still returned `EMAIL_SENDER_DOMAIN_NOT_READY`.
+- The deployed email functions needed to use the verified sender domain exactly and be redeployed after the domain switch.
+
+Patch scope:
+- Align app OTP/app-email and auth-email sender config to `notify.otp.merilive.top` with visible From domain `otp.merilive.top`.
+- Redeploy affected email functions and validate `send-email-otp` against the verified sender.
