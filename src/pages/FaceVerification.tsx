@@ -2304,12 +2304,22 @@ const FaceVerification = () => {
 
       const { data: existingSubmission } = await supabase
         .from('face_verification_submissions')
-        .select('id, status')
+        .select('id, status, ai_analysis, profile_photo_url, video_url, face_image_url, front_url, selfie_url')
         .eq('user_id', userId)
         .in('status', ['pending','submitted','under_review'])
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
-      if (existingSubmission) {
+      const existingAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingIsOrphan = !!(existingAi.requires_resubmit || existingAi.orphan_media)
+        || (!!existingSubmission
+            && !existingSubmission.profile_photo_url
+            && !existingSubmission.video_url
+            && !existingSubmission.face_image_url
+            && !existingSubmission.front_url
+            && !existingSubmission.selfie_url);
+
+      if (existingSubmission && !existingIsOrphan) {
         lockUnderReviewAndReturn('Your verification is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
