@@ -1793,7 +1793,7 @@ serve(async (req) => {
             user_id: activeUserId,
             type: "face_verification_retry",
             title: "Face Verification — Please Retry",
-            body: "We could not process your face verification this time. Please retake your photo, live face scan and intro video in good light and submit again.",
+            message: "We could not process your face verification this time. Please retake your photo, live face scan and intro video in good light and submit again.",
             data: { route: "/face-verification", reason: "analyzer_error" },
           });
         }
