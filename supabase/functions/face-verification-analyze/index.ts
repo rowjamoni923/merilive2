@@ -1199,8 +1199,17 @@ serve(async (req) => {
     // gates still have to pass before auto-finalize can run.
     const faceVideoEvidenceUrl = faceVideoFrameUrl || firstUsableStillUrl(row.face_image_url as string | null, frontUrl);
     const introVideoEvidenceUrl = vtForEvidence === "host" ? (introVideoFrameUrl || ((row.video_url && profileEvidenceUrl) ? profileEvidenceUrl : null)) : null;
+    // Owner rule (2026-06-27): Approve = "Photo + Live Test match" (+ gender + no duplicate).
+    // Video frame extractions (face_video, intro_video) are brittle — the captured
+    // frame can land on a blink/turn and report no_face even when the live scan and
+    // profile photo are a 99% match. Treat them as OPTIONAL bonus signals: still
+    // computed below if a usable URL exists, but never block approval. Host gallery
+    // photos (3 host_photos) are validated separately via hostPhotosMismatch and
+    // remain mandatory for hosts (those become the public profile gallery).
     const requiredEvidence: Array<{ label: string; url: string | null }> = [
       { label: "profile_photo", url: profileEvidenceUrl },
+    ];
+    const optionalEvidence: Array<{ label: string; url: string | null }> = [
       { label: "face_video", url: faceVideoEvidenceUrl },
       ...(vtForEvidence === "host" ? [{ label: "intro_video", url: introVideoEvidenceUrl }] : []),
     ];
