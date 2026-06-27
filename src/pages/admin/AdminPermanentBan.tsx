@@ -248,7 +248,7 @@ export default function AdminPermanentBan() {
   const SeverityIcon = cfg.icon;
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 shadow-lg shadow-rose-500/30 ring-2 ring-rose-400/20">
