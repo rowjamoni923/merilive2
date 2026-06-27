@@ -683,90 +683,85 @@ const AdminFaceVerification = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8" style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ScanFace className="w-7 h-7 text-purple-500" />
+          <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] flex items-center gap-2">
+            <ScanFace className="w-6 h-6 text-[#2563EB]" />
             Face Verification
           </h1>
-          <p className="text-muted-foreground">Manage face verification requests</p>
+          <p className="text-sm text-slate-500 mt-1">Review and verify user identity submissions</p>
         </div>
-        <Button onClick={handleRefresh} disabled={refreshing} variant="outline">
+        <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="border-[#E2E8F0] bg-white text-slate-700 hover:bg-slate-50">
           <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         {[
-          { label: 'Pending', count: pendingCount, icon: Clock, bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', iconBg: 'rgba(245,158,11,0.3)', iconColor: '#fbbf24', textColor: '#fcd34d', subColor: 'rgba(251,191,36,0.8)' },
-          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, bg: 'rgba(6,182,212,0.15)', border: 'rgba(6,182,212,0.3)', iconBg: 'rgba(6,182,212,0.3)', iconColor: '#22d3ee', textColor: '#67e8f9', subColor: 'rgba(34,211,238,0.8)' },
-          { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
-          { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
-          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.3)', iconBg: 'rgba(249,115,22,0.3)', iconColor: '#fb923c', textColor: '#fdba74', subColor: 'rgba(251,146,60,0.8)' },
-          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
-        ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
-          <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold" style={{ color: textColor }}>{count}</p>
-                <p className="text-sm" style={{ color: subColor }}>{label}</p>
-              </div>
+          { label: 'Pending', count: pendingCount, icon: Clock, accent: '#F59E0B' },
+          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4' },
+          { label: 'Approved', count: approvedCount, icon: CheckCircle2, accent: '#10B981' },
+          { label: 'Rejected', count: rejectedCount, icon: XCircle, accent: '#EF4444' },
+          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316' },
+          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, accent: '#8B5CF6' },
+        ].map(({ label, count, icon: Icon, accent }) => (
+          <div key={label} className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
+              <Icon className="w-4 h-4" style={{ color: accent }} />
             </div>
+            <p className="text-2xl font-bold text-[#0F172A]">{count}</p>
           </div>
         ))}
       </div>
 
-      {/* Status legend — premium admin card */}
-      <div className="relative overflow-hidden rounded-2xl border border-amber-500/15 bg-gradient-to-br from-card via-card to-card/60 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
-        <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-        <div className="relative p-5">
+      {/* Status legend — light professional card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="p-5">
           <div className="flex items-center gap-2.5 mb-4">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/25 shadow-inner">
-              <ScanFace className="w-4 h-4 text-amber-300" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 border border-[#E2E8F0]">
+              <ScanFace className="w-4 h-4 text-slate-600" />
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground tracking-tight">Status Legend</span>
-              <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">How submissions are bucketed</span>
+              <span className="text-sm font-semibold text-[#0F172A] tracking-tight">Status Legend</span>
+              <span className="text-[11px] uppercase tracking-[0.14em] text-slate-500 font-medium">How submissions are bucketed</span>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="group rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-3.5 transition-colors hover:border-amber-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                   <Clock className="w-3 h-3" /> Pending
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Submitted but not yet reviewed. Anything not Approved or Rejected lives here.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Submitted but not yet reviewed. Anything not Approved or Rejected lives here.</p>
             </div>
-            <div className="group rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5 transition-colors hover:border-emerald-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                   <CheckCircle2 className="w-3 h-3" /> Approved
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Accepted manually or by auto-approval. Host gains <code className="rounded bg-emerald-500/10 px-1 text-[10px] text-emerald-200">is_host=true</code> and can go live.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Accepted manually or by auto-approval. Host gains <code className="rounded bg-emerald-50 px-1 text-[10px] text-emerald-700">is_host=true</code> and can go live.</p>
             </div>
-            <div className="group rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-3.5 transition-colors hover:border-rose-500/40">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-semibold text-rose-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
                   <XCircle className="w-3 h-3" /> Rejected
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">Declined with a reason. Host stays a regular user and must resubmit to re-enter Pending.</p>
+              <p className="text-xs leading-relaxed text-slate-600">Declined with a reason. Host stays a regular user and must resubmit to re-enter Pending.</p>
             </div>
           </div>
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-            <p className="text-[11px] leading-relaxed text-muted-foreground/90">
-              <span className="text-foreground/80 font-medium">Auto Approved</span> is a sub-view of Approved (when <code className="text-amber-200/80">admin_notes</code> contains <span className="text-amber-200/80">"auto"</span>). Search and tab counters always reflect what is visible in the list.
+          <div className="mt-3 flex items-start gap-2 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2">
+            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <p className="text-[11px] leading-relaxed text-slate-600">
+              <span className="text-[#0F172A] font-medium">Auto Approved</span> is a sub-view of Approved (when <code className="text-slate-700">admin_notes</code> contains <span className="text-slate-700">"auto"</span>). Search and tab counters always reflect what is visible in the list.
             </p>
           </div>
         </div>
@@ -776,26 +771,27 @@ const AdminFaceVerification = () => {
       {/* Search + Mismatch filter */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-white border-[#E2E8F0] text-[#0F172A] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 focus-visible:border-[#2563EB]" />
         </div>
         <button
           type="button"
           data-testid="mismatch-only-toggle"
           aria-pressed={mismatchOnly}
           onClick={() => setMismatchOnly((v) => !v)}
-          className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors ${
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
             mismatchOnly
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-200'
-              : 'bg-card/40 border-border/50 text-muted-foreground hover:text-foreground'
+              ? 'bg-amber-50 border-amber-300 text-amber-800'
+              : 'bg-white border-[#E2E8F0] text-slate-600 hover:text-[#0F172A]'
           }`}
           title="Show only submissions with an unknown/mismatched status"
         >
           <AlertTriangle className="w-4 h-4" />
           Mismatch only
-          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-100 text-[10px] font-bold">{mismatchCount}</span>
+          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">{mismatchCount}</span>
         </button>
       </div>
+
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
