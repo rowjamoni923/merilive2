@@ -2970,13 +2970,28 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div ref={faceCameraFrameRef} data-face-verification-camera className={usingNativeFaceCamera
-        ? 'relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30 ring-1 ring-amber-200/60'
-        : `relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 border border-amber-200/60 ring-1 ring-amber-100/50 ${faceCameraActive ? 'bg-black shadow-[0_28px_80px_-24px_rgba(2,6,23,0.8)]' : 'bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30'}`
-      }>
-        {usingNativeFaceCamera && faceCameraActive && !faceVerified && (
-          <div className="absolute inset-0 z-[1] pointer-events-none" style={nativeApertureStyle} />
+      <div ref={faceCameraFrameRef} data-face-verification-camera className={`relative aspect-[3/4] w-full max-w-[380px] mx-auto rounded-[36px] overflow-hidden mb-5 ring-1 ring-amber-200/60 shadow-xl shadow-amber-200/30 ${faceCameraActive && !faceVerified ? 'bg-transparent' : 'bg-gradient-to-br from-amber-50 via-white to-orange-50'}`}>
+        {faceCameraActive && !faceVerified && (
+          <div
+            className="absolute inset-0 z-[1] overflow-hidden pointer-events-none"
+            style={{
+              WebkitMaskImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path fill-rule='evenodd' fill='white' d='M0 0H100V100H0Z M50 18.22L18.02 30.05L18.02 69.95L50 81.78L81.98 69.95L81.98 30.05Z'/></svg>")`,
+              maskImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path fill-rule='evenodd' fill='white' d='M0 0H100V100H0Z M50 18.22L18.02 30.05L18.02 69.95L50 81.78L81.98 69.95L81.98 30.05Z'/></svg>")`,
+              WebkitMaskSize: '100% 100%',
+              maskSize: '100% 100%',
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-orange-50" />
+            <div className="face-scan-aura" />
+            <div className="face-scan-glow-a" />
+            <div className="face-scan-glow-b" />
+            <div className="face-scan-glow-c" />
+            <div className="face-scan-sweep" />
+          </div>
         )}
+
         {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-amber-50 via-white to-orange-50">
             <motion.div
