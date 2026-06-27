@@ -47,6 +47,65 @@ const DUPLICATE_FACE_MIN_SIMILARITY = 85;
 const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
 const LEGACY_DUPLICATE_SCAN_LIMIT = 1000;
 const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
+const APPROVED_PROFILE_FACE_STATUSES = new Set(["approved", "verified", "auto_approved", "auto-approved", "passed"]);
+const FACE_RETRY_NOTIFICATION_TYPES = ["face_verification_retry", "face_verification_needs_retry"];
+
+async function hasApprovedFaceState(supabaseAdmin: any, userId: string): Promise<boolean> {
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("is_face_verified,face_verification_status,face_verification_image,face_verified_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const profileStatus = String(profile?.face_verification_status || "").trim().toLowerCase();
+    if (
+      profile?.is_face_verified === true ||
+      APPROVED_PROFILE_FACE_STATUSES.has(profileStatus) ||
+      Boolean(profile?.face_verification_image) ||
+      Boolean(profile?.face_verified_at)
+    ) {
+      return true;
+    }
+
+    const { count } = await supabaseAdmin
+      .from("face_verification_submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", APPROVED_FACE_STATUSES);
+    return (count || 0) > 0;
+  } catch (e) {
+    console.warn("[face-verification-analyze] approved-state lookup skipped:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+async function markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin: any, userId: string): Promise<boolean> {
+  const alreadyApproved = await hasApprovedFaceState(supabaseAdmin, userId);
+  if (alreadyApproved) {
+    await clearStaleFaceRetryNotifications(supabaseAdmin, userId);
+    return true;
+  }
+
+  await supabaseAdmin
+    .from("profiles")
+    .update({ is_face_verified: false, face_verification_status: "needs_retry", updated_at: new Date().toISOString() })
+    .eq("id", userId);
+  return false;
+}
+
+async function clearStaleFaceRetryNotifications(supabaseAdmin: any, userId: string): Promise<void> {
+  try {
+    await supabaseAdmin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .in("type", FACE_RETRY_NOTIFICATION_TYPES);
+  } catch (e) {
+    console.warn("[face-verification-analyze] retry-notification cleanup skipped:", e instanceof Error ? e.message : e);
+  }
+}
 
 function getAmzDate(): { amzDate: string; dateStamp: string } {
   const now = new Date();
