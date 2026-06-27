@@ -2348,7 +2348,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate video blob has actual content (prevents empty uploads)
-    if (!faceManualReviewRequired && faceVideoForUpload.type !== 'application/json' && faceVideoForUpload.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type.startsWith('video/') && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2519,7 +2519,7 @@ const FaceVerification = () => {
           evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
           evidence_urls: {
             profile_photo_url: profilePhotoUrl,
-            face_video_frame_url: faceVideoFrameUrl,
+            face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? videoUrl : null),
             live_face_scan_url: angleUrls.front_url || null,
           },
           upload_results: {
@@ -2679,7 +2679,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate all media files have actual content
-    if (!faceManualReviewRequired && faceVideoForUpload.type !== 'application/json' && faceVideoForUpload.size < 10000) {
+    if (!faceManualReviewRequired && faceVideoForUpload.type.startsWith('video/') && faceVideoForUpload.size < 10000) {
       toast({ title: "❌ Invalid Face Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2857,7 +2857,7 @@ const FaceVerification = () => {
           evidence_urls: {
             profile_photo_url: profilePhotoUrl,
             intro_video_frame_url: introVideoFrameUrl,
-            face_video_frame_url: faceVideoFrameUrl,
+            face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? faceVideoUrl : null),
             live_face_scan_url: angleUrls.front_url || null,
             host_photo_urls: photoUrls,
           },
