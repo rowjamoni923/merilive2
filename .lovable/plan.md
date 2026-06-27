@@ -438,6 +438,7 @@ Verified current gap:
 
 Patch scope:
 - Add one shared session recovery helper: fresh JWT check, forced refresh, native-session restore, then device-token recovery through the existing secure device-session flow.
+- Harden the global auth request guard so `getSession()` never serves cached/60-minute-stale expired JWTs to Storage/RLS requests.
 - Use the authenticated `session.user.id` folder for avatar/poster paths so Storage RLS and database owner rows stay aligned.
 - Retry avatar/poster Storage and profile/poster DB writes once after forced recovery; if recovery is impossible, show the existing English sign-in message.
 - Mark both `body` and `html` as admin-active while mounted and clear leaked inline scroll-lock styles/attributes from body/html.

@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { getSessionFromNative, saveSessionToNative } from '@/utils/nativeSessionStorage';
 
+const SUPABASE_URL = 'https://ayjdlvuurscxucatbbah.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJheWpkbHZ1dXJzY3h1Y2F0YmJhaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc1MjY0MTIzLCJleHAiOjIwOTA4NDAxMjN9.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc';
 const DEFAULT_MIN_FRESH_MS = 2 * 60_000;
 
 type EnsureFreshSessionOptions = {
@@ -55,20 +57,35 @@ const recoverSessionFromDevice = async (minFreshMs: number, expectedUserId?: str
   const deviceId = await getPersistentDeviceId();
   if (!deviceId) return null;
 
-  const { data: accountRows, error: rpcError } = await supabase.rpc('recover_session_by_device', {
-    p_device_id: deviceId,
+  const rpcResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/recover_session_by_device`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_device_id: deviceId }),
   });
 
-  if (rpcError || !Array.isArray(accountRows) || accountRows.length === 0) return null;
+  if (!rpcResponse.ok) return null;
+  const accountRows = await rpcResponse.json().catch(() => null);
+  if (!Array.isArray(accountRows) || accountRows.length === 0) return null;
   const account = accountRows[0] as { user_id?: string; exchange_token?: string };
   if (!account.exchange_token) return null;
   if (expectedUserId && account.user_id && account.user_id !== expectedUserId) return null;
 
-  const { data, error } = await supabase.functions.invoke('device-session-recover', {
-    body: { device_id: deviceId, exchange_token: account.exchange_token },
+  const recoverResponse = await fetch(`${SUPABASE_URL}/functions/v1/device-session-recover`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ device_id: deviceId, exchange_token: account.exchange_token }),
   });
 
-  if (error || !data?.success || !data?.access_token || !data?.refresh_token) return null;
+  const data = await recoverResponse.json().catch(() => null);
+  if (!recoverResponse.ok || !data?.success || !data?.access_token || !data?.refresh_token) return null;
 
   const { data: setData, error: setError } = await supabase.auth.setSession({
     access_token: data.access_token,
