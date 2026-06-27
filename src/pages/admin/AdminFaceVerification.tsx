@@ -68,7 +68,7 @@ function RoleApproveBar({
       <div
         role="tablist"
         aria-label="Approve as"
-        className="relative grid grid-cols-2 gap-1 rounded-xl border border-amber-500/25 bg-gradient-to-b from-background/80 to-background/40 p-1 shadow-inner backdrop-blur"
+        className="relative grid grid-cols-2 gap-1 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] p-1"
       >
         <button
           type="button"
@@ -77,10 +77,10 @@ function RoleApproveBar({
           disabled={processing}
           onClick={() => setRole('user')}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:opacity-50",
             role === 'user'
-              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
-              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+              ? "bg-white text-[#0F172A] shadow-sm"
+              : "text-slate-500 hover:text-[#0F172A]"
           )}
         >
           <User className="h-3.5 w-3.5" /> User
@@ -92,10 +92,10 @@ function RoleApproveBar({
           disabled={processing}
           onClick={() => setRole('host')}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:opacity-50",
             role === 'host'
-              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
-              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+              ? "bg-white text-[#0F172A] shadow-sm"
+              : "text-slate-500 hover:text-[#0F172A]"
           )}
         >
           <Mic className="h-3.5 w-3.5" /> Host
@@ -105,11 +105,10 @@ function RoleApproveBar({
       {/* Main actions */}
       <div className="grid grid-cols-2 gap-2">
         <Button
-          variant="luxury"
-          size="default"
+          size="sm"
           disabled={processing || approvalDisabled}
           onClick={() => onApprove(role)}
-          className="w-full"
+          className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-semibold shadow-sm"
           title={disabledReason}
         >
           <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -117,11 +116,11 @@ function RoleApproveBar({
         </Button>
         {onReject && (
           <Button
-            variant="destructive"
-            size="default"
+            variant="outline"
+            size="sm"
             disabled={processing}
             onClick={onReject}
-            className="w-full"
+            className="w-full border-[#E2E8F0] text-slate-700 hover:bg-slate-50 font-semibold"
           >
             <XCircle className="h-4 w-4 mr-2" />
             Reject
@@ -129,7 +128,7 @@ function RoleApproveBar({
         )}
       </div>
       {approvalDisabled && disabledReason && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
           ⚠ Approval locked: {disabledReason}
         </div>
       )}
