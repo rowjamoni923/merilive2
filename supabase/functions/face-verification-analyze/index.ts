@@ -1132,7 +1132,7 @@ serve(async (req) => {
     // Policy (2026-06-06): Unified scan. All photos (avatar, host photos) must match the live face.
     const isDuplicate = Boolean(duplicateBlock);
     const isBannedFace = Boolean(bannedFaceMatch);
-    let hardAutoReject: "duplicate_face" | "banned_face" | null = null;
+    let hardAutoReject: "duplicate_face" | "banned_face" | "gender_mismatch" | null = null;
 
     // Check for "no face" in required photos for hosts
     const hostNoFaceInGallery = hostPhotos.length > 0 && hostPhotoScores.some(s => s.skip === "no_face");
@@ -1140,9 +1140,11 @@ serve(async (req) => {
 
     if (isBannedFace) hardAutoReject = "banned_face";
     else if (isDuplicate) hardAutoReject = "duplicate_face";
-    // Owner policy (2026-06-26/27): only duplicate/banned identity are hard
-    // rejects. Gender signals are retained in ai_analysis for admin context but
-    // must never auto-reject or block a genuine photo/video/live same-person pass.
+    // Owner policy (2026-06-27): account-gender mismatch is a HARD auto-reject.
+    // Male signing up as host (female account) or female signing up as user
+    // (male account) is rejected instantly with notification, only when
+    // Rekognition is highly confident (≥90%) and there is a clean single face.
+    else if (genderDeclarationMismatch) hardAutoReject = "gender_mismatch";
 
     if (hardAutoReject) {
       let rReason = "Verification rejected.";
@@ -1159,6 +1161,10 @@ serve(async (req) => {
         rReason = `This face is already registered with another account: ${dName} (ID: ${dUid}). One face can only be used for one account. Please contact Support Chat if you believe this is an error. [duplicate_info:${duplicatePayload}]`;
       } else if (hardAutoReject === "banned_face") {
         rReason = `This face is associated with a previously banned account${bannedFaceMatch?.reason ? ` (reason: ${bannedFaceMatch.reason})` : ""}. You cannot create a new account. Please contact Support Chat if you believe this is an error.`;
+      } else if (hardAutoReject === "gender_mismatch") {
+        const expectedLabel = expectedGender === "female" ? "Host (female)" : "User (male)";
+        const detectedLabel = rawG === "female" ? "female" : rawG === "male" ? "male" : "unknown";
+        rReason = `Your account type is ${expectedLabel} but our AI detected a ${detectedLabel} face (confidence ${genderConf.toFixed(1)}%). Please create the correct account type or contact Support Chat if you believe this is an error.`;
       }
 
       await supabaseAdmin
@@ -1167,7 +1173,7 @@ serve(async (req) => {
           status: "rejected",
           rejection_reason: rReason,
           reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : "banned face/account reuse"}`,
+          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} conf=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -1192,6 +1198,9 @@ serve(async (req) => {
           publicMessage = `This face is already registered with ${dName}${dUid ? ` (ID ${dUid})` : ""}. One face can only be used for one account. Tap to review or contact Support.`;
         } else if (hardAutoReject === "banned_face") {
           publicMessage = "This face is associated with a previously banned account. You cannot create a new account. Tap to contact Support if you believe this is an error.";
+        } else if (hardAutoReject === "gender_mismatch") {
+          const expectedLabel = expectedGender === "female" ? "Host (female)" : "User (male)";
+          publicMessage = `Your account type is ${expectedLabel}, but our AI detected a different gender. Please create the correct account type or contact Support.`;
         }
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
@@ -1327,6 +1336,134 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    // ────────────────────────────────────────────────────────────────────
+    // SOFT RETRY (evidence quality):
+    //   Passive scan succeeded reaching the analyzer, but Rekognition could
+    //   not produce a usable comparison because the live frame had multiple
+    //   faces / no face / occlusion, or one of the required evidence images
+    //   (profile photo / video frame) had no detectable face. We do NOT
+    //   reject the account — we mark `needs_retry` with a precise message
+    //   so the user re-shoots just the failing step, plus a notification.
+    // ────────────────────────────────────────────────────────────────────
+    if (isPassivePhotoVideoLiveScan && !evidenceComplete) {
+      const failingSteps: { label: string; human_name: string; step: string; message: string }[] = [];
+      const errKeys = Object.keys(evidenceErrors || {});
+      const liveFrontBad = !!frontError || details.length !== 1;
+      if (liveFrontBad) {
+        const reason = frontError === "multiple_faces_front" || details.length > 1
+          ? "more than one face was visible in the live scan"
+          : details.length === 0
+            ? "no clear face was visible in the live scan"
+            : "the live face scan was not readable";
+        failingSteps.push({
+          label: "live_face_scan",
+          human_name: "Live Face Scan",
+          step: "live_face_scan",
+          message: `Please retake the Live Face Scan — ${reason}. Make sure only YOUR face is in the frame, well-lit, and centered.`,
+        });
+      }
+      for (const k of errKeys) {
+        if (k === "profile_photo") {
+          failingSteps.push({
+            label: "profile_photo",
+            human_name: "Profile Photo",
+            step: "photo",
+            message: "Please re-upload your Profile Photo. The face must be clearly visible (no sunglasses, no mask, well-lit, centered).",
+          });
+        } else if (k === "face_video") {
+          failingSteps.push({
+            label: "face_video",
+            human_name: "Face Verification Video",
+            step: "live_face_scan",
+            message: "Please re-record the Face Verification Video so your face is clearly visible throughout.",
+          });
+        } else if (k === "intro_video") {
+          failingSteps.push({
+            label: "intro_video",
+            human_name: "Intro Video",
+            step: "intro_video",
+            message: "Please re-record the Intro Video so your face is clearly visible.",
+          });
+        }
+      }
+      if (failingSteps.length === 0) {
+        failingSteps.push({
+          label: "live_face_scan",
+          human_name: "Live Face Scan",
+          step: "live_face_scan",
+          message: "Please retake the Live Face Scan in better lighting with only your face in the frame.",
+        });
+      }
+      const retryRequired = {
+        kind: "evidence_quality" as const,
+        verification_type: vtForEvidence,
+        failed_evidence: failingSteps.map((f) => ({ ...f, score: null })),
+        steps: Array.from(new Set(failingSteps.map((f) => f.step))),
+        headline: "We couldn't read your photo/video/live scan clearly.",
+        summary: "Your account is NOT rejected. Tap Retry and redo only the item(s) below so we can verify you.",
+      };
+
+      const mergedAnalysisRetry = duplicateBlock
+        ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+        : { ...existingAnalysis, rekognition, retry_required: retryRequired };
+
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: mergedAnalysisRetry,
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] evidence_quality: front=${frontError || `count=${details.length}`} errors=${JSON.stringify(evidenceErrors)} steps=${retryRequired.steps.join(",")}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "pending_face",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      try {
+        const itemsList = failingSteps.map((f) => f.human_name).join(", ");
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_retry",
+          title: "Verification Needs Retry",
+          message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
+          data: {
+            action_url: "/face-verification",
+            steps: retryRequired.steps,
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] quality retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "evidence_quality_needs_retry" },
+          blocker: null,
+          retry_required: retryRequired,
+          declaredGender,
+          expectedGender,
+          detectedGender: detectedGenderForDecision,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
 
     // Other non-fraud soft signals (liveness/replay/profile/gallery/quality and
     // lower-confidence gender signals) are NOT user-visible instant rejects, but
