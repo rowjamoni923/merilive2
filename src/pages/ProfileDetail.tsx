@@ -1233,48 +1233,6 @@ const ProfileDetail = () => {
               )}
             </div>
           </div>
-          {posterImages.length > 1 && (
-            <div className="mt-4 -mx-1 overflow-x-auto no-scrollbar">
-              <div className="flex gap-2 px-1 pb-1">
-                {posterImages.map((poster, idx) => {
-                  const mediaIsVideo = isPosterVideo(poster);
-                  const active = idx === currentSlideIndex;
-                  return (
-                    <button
-                      key={`profile-media-${poster.id || idx}`}
-                      type="button"
-                      onClick={() => {
-                        setCurrentSlideIndex(idx);
-                        setIsPaused(false);
-                      }}
-                      aria-label={`Open profile media ${idx + 1}`}
-                      className={cn(
-                        "relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl border bg-muted transition-transform active:scale-95",
-                        active ? "border-primary ring-2 ring-primary/35" : "border-border"
-                      )}
-                    >
-                      {mediaIsVideo ? (
-                        <>
-                          <video src={poster.image_url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
-                          <span className="absolute inset-0 flex items-center justify-center bg-foreground/25">
-                            <Play className="h-5 w-5 text-background" />
-                          </span>
-                        </>
-                      ) : (
-                        <img
-                          src={enhanceThumbnail(poster.image_url, { width: 180, quality: 80 })}
-                          alt=""
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
           {/* Privileges & Animations - Premium Glass Card */}
           {(userPrivileges.frames.length > 0 || userPrivileges.entryBars.length > 0 || purchasedItems.length > 0) && (
             <motion.div
