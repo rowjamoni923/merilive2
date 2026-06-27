@@ -256,6 +256,8 @@ async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
     throw new Error(`image_unreadable:${decodeErr instanceof Error ? decodeErr.message : "decode_failed"}`);
   }
 }
+
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
