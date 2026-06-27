@@ -1525,6 +1525,88 @@ serve(async (req) => {
       );
     }
 
+    // SOFT RETRY (host gallery incomplete/unreadable): host approval publishes
+    // the 3 Step-2 photos to the public profile, so host accounts must provide
+    // exactly 3 readable same-person photos. Do NOT blame the live scan when the
+    // live/photo/video match is already 99%+; route the user to the gallery step.
+    if (isPassivePhotoVideoLiveScan && vtForEvidence === "host" && (hostGalleryMissing || hostGalleryUnreadable)) {
+      const retryRequired = {
+        kind: "host_gallery_incomplete" as const,
+        verification_type: vtForEvidence,
+        failed_evidence: [{
+          label: "host_gallery",
+          human_name: "Host Profile Photos",
+          step: "host_gallery",
+          score: typeof hostPhotosMinScore === "number" ? Math.round(hostPhotosMinScore * 10) / 10 : null,
+          message: hostGalleryMissing
+            ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
+            : "Please replace your host profile photos with 3 clear photos where your face is visible.",
+        }],
+        steps: ["host_gallery"],
+        headline: hostGalleryMissing
+          ? `Please upload all 3 host profile photos (${hostPhotos.length}/3 received).`
+          : "Please replace unreadable host profile photos.",
+        summary: "Your account is NOT rejected. Your profile photo, video and live face scan can still match, but host verification needs 3 clear host profile photos before approval.",
+      };
+
+      const mergedAnalysisRetry = duplicateBlock
+        ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+        : { ...existingAnalysis, rekognition, retry_required: retryRequired };
+
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: mergedAnalysisRetry,
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] host_gallery: count=${hostPhotos.length}/3 unreadable=${hostGalleryUnreadable} min=${hostPhotosMinScore}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          is_face_verified: false,
+          face_verification_status: "needs_retry",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      try {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: userId,
+          type: "face_verification_retry",
+          title: "Verification Needs Retry",
+          message: `${retryRequired.headline} Tap to upload the missing photos.`,
+          data: {
+            action_url: "/face-verification",
+            steps: retryRequired.steps,
+            submission_id: submissionId,
+          },
+          is_read: false,
+        });
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] host-gallery retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "host_gallery_needs_retry" },
+          blocker: null,
+          retry_required: retryRequired,
+          declaredGender,
+          expectedGender,
+          detectedGender: detectedGenderForDecision,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // ────────────────────────────────────────────────────────────────────
     // SOFT RETRY (evidence quality):
     //   Passive scan succeeded reaching the analyzer, but Rekognition could
@@ -1538,6 +1620,7 @@ serve(async (req) => {
       const failingSteps: { label: string; human_name: string; step: string; message: string }[] = [];
       const errKeys = Object.keys(evidenceErrors || {});
       const liveFrontBad = !!frontError || details.length !== 1;
+      const onlyMissingHostGallery = vtForEvidence === "host" && !evidenceComplete && !frontError && details.length === 1 && errKeys.length === 0 && (hostGalleryMissing || hostGalleryUnreadable);
       if (liveFrontBad) {
         const reason = frontError === "multiple_faces_front" || details.length > 1
           ? "more than one face was visible in the live scan"
@@ -1575,7 +1658,16 @@ serve(async (req) => {
           });
         }
       }
-      if (failingSteps.length === 0) {
+      if (failingSteps.length === 0 && onlyMissingHostGallery) {
+        failingSteps.push({
+          label: "host_gallery",
+          human_name: "Host Profile Photos",
+          step: "host_gallery",
+          message: hostGalleryMissing
+            ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
+            : "Please replace your host profile photos with 3 clear photos where your face is visible.",
+        });
+      } else if (failingSteps.length === 0) {
         failingSteps.push({
           label: "live_face_scan",
           human_name: "Live Face Scan",
