@@ -15,8 +15,12 @@ export const isChunkLoadError = (error: unknown) => {
     message.includes('Loading chunk') ||
     message.includes('Importing a module script failed') ||
     message.includes('dynamically imported module') ||
-    message.includes("Cannot read properties of undefined (reading 'default')") ||
-    message.includes('Cannot read properties of undefined (reading "default")') ||
+    message.includes('vite_preloadError') ||
+    // Stale/empty module → `.then(m => ({ default: m.X }))` throws this when
+    // the chunk resolved to undefined after a deploy. Treat as chunk error so
+    // recovery (cache wipe + hard reload) runs instead of blank-screening.
+    /Cannot read properties of undefined \(reading ['"`]/.test(message) ||
+    /undefined is not an object \(evaluating /.test(message) ||
     getErrorName(error) === 'ChunkLoadError';
 };
 
