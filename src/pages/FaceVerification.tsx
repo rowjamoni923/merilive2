@@ -870,15 +870,21 @@ const FaceVerification = () => {
     return faceVerificationVideoRef.current?.size ? faceVerificationVideoRef.current : null;
   }, []);
 
-  const buildLiveProofBlob = useCallback(() => {
-    const proof = JSON.stringify({
-      type: 'face-verification-proof',
-      at: Date.now(),
-      angles: Object.keys(capturedAnglesRef.current),
-      hasCenterFrame: Boolean(capturedAnglesRef.current.center),
-    });
-    return new Blob([proof], { type: 'application/json' });
-  }, []);
+  const buildLiveProofBlob = useCallback(async (): Promise<Blob | null> => {
+    const frame = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
+    if (frame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = frame;
+    if (!frame) return null;
+    try {
+      const b64 = frame.includes(',') ? frame.split(',')[1] : frame;
+      const bin = atob(b64.trim());
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      return blob.size > 1000 ? blob : null;
+    } catch {
+      return null;
+    }
+  }, [captureFaceFrameBase64]);
 
   const generateVideoPosterFromUrl = useCallback((sourceUrl: string): Promise<string | null> => {
     return new Promise((resolve) => {
