@@ -1170,7 +1170,7 @@ const AdminFaceVerification = () => {
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
                         <ScanFace className="w-5 h-5 text-amber-300" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)]" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)] max-h-[70vh] flex items-center justify-center" mediaClassName="max-h-[70vh] w-full object-contain" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
