@@ -47,6 +47,65 @@ const DUPLICATE_FACE_MIN_SIMILARITY = 85;
 const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
 const LEGACY_DUPLICATE_SCAN_LIMIT = 1000;
 const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
+const APPROVED_PROFILE_FACE_STATUSES = new Set(["approved", "verified", "auto_approved", "auto-approved", "passed"]);
+const FACE_RETRY_NOTIFICATION_TYPES = ["face_verification_retry", "face_verification_needs_retry"];
+
+async function hasApprovedFaceState(supabaseAdmin: any, userId: string): Promise<boolean> {
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("is_face_verified,face_verification_status,face_verification_image,face_verified_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const profileStatus = String(profile?.face_verification_status || "").trim().toLowerCase();
+    if (
+      profile?.is_face_verified === true ||
+      APPROVED_PROFILE_FACE_STATUSES.has(profileStatus) ||
+      Boolean(profile?.face_verification_image) ||
+      Boolean(profile?.face_verified_at)
+    ) {
+      return true;
+    }
+
+    const { count } = await supabaseAdmin
+      .from("face_verification_submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", APPROVED_FACE_STATUSES);
+    return (count || 0) > 0;
+  } catch (e) {
+    console.warn("[face-verification-analyze] approved-state lookup skipped:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+async function markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin: any, userId: string): Promise<boolean> {
+  const alreadyApproved = await hasApprovedFaceState(supabaseAdmin, userId);
+  if (alreadyApproved) {
+    await clearStaleFaceRetryNotifications(supabaseAdmin, userId);
+    return true;
+  }
+
+  await supabaseAdmin
+    .from("profiles")
+    .update({ is_face_verified: false, face_verification_status: "needs_retry", updated_at: new Date().toISOString() })
+    .eq("id", userId);
+  return false;
+}
+
+async function clearStaleFaceRetryNotifications(supabaseAdmin: any, userId: string): Promise<void> {
+  try {
+    await supabaseAdmin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .in("type", FACE_RETRY_NOTIFICATION_TYPES);
+  } catch (e) {
+    console.warn("[face-verification-analyze] retry-notification cleanup skipped:", e instanceof Error ? e.message : e);
+  }
+}
 
 function getAmzDate(): { amzDate: string; dateStamp: string } {
   const now = new Date();
@@ -547,10 +606,7 @@ serve(async (req) => {
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
-      await supabaseAdmin
-        .from("profiles")
-        .update({ is_face_verified: false, face_verification_status: "needs_retry", updated_at: new Date().toISOString() })
-        .eq("id", row.user_id);
+      await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, row.user_id);
       return new Response(JSON.stringify({
         ok: true,
         autoFinalize: { success: false, reason: "upload_incomplete" },
@@ -1244,7 +1300,12 @@ serve(async (req) => {
     const evidenceErrors = Object.fromEntries(evidenceChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
     const optionalEvidenceErrors = Object.fromEntries(optionalChecks.filter((c) => c.error).map((c) => [c.label, c.error]));
     const requiredUrlsPresent = requiredEvidence.every((item) => !!item.url);
-    const hostGalleryComplete = vtForEvidence !== "host" || (
+    const hostGalleryRequired = vtForEvidence === "host";
+    const hostGalleryMissing = hostGalleryRequired && hostPhotos.length < 3;
+    const hostGalleryUnreadable = hostGalleryRequired && hostPhotos.length >= 3 && (
+      hostPhotoScores.length !== 3 || hostPhotoScores.some((s) => typeof s.score !== "number")
+    );
+    const hostGalleryComplete = !hostGalleryRequired || (
       hostPhotos.length === 3 && hostPhotoScores.length === 3 && hostPhotoScores.every((s) => typeof s.score === "number")
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
@@ -1274,6 +1335,8 @@ serve(async (req) => {
       intro_video_frame_fallback: vtForEvidence === "host" ? (!introVideoFrameUrl && !!introVideoEvidenceUrl) : undefined,
       live_face_scan: !!frontUrl,
       host_gallery_complete: hostGalleryComplete,
+      host_gallery_missing: hostGalleryMissing,
+      host_gallery_unreadable: hostGalleryUnreadable,
     };
 
     const evidenceSummary = `, evidence photo/live=${typeof evidenceScores.profile_photo === "number" ? (evidenceScores.profile_photo as number).toFixed(1) + "%" : "n/a"}` +
@@ -1475,30 +1538,25 @@ serve(async (req) => {
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
 
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          is_face_verified: false,
-          face_verification_status: "pending_face",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
+      const alreadyApprovedForRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
 
       // In-app + push notification (English) — tap routes to /face-verification.
       try {
-        const itemsList = failedEvidence.map((f) => f.human_name).join(", ");
-        await supabaseAdmin.from("notifications").insert({
-          user_id: userId,
-          type: "face_verification_retry",
-          title: "Verification Needs Retry",
-          message: `${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
-          data: {
-            action_url: "/face-verification",
-            steps: retryRequired.steps,
-            submission_id: submissionId,
-          },
-          is_read: false,
-        });
+        if (!alreadyApprovedForRetry) {
+          const itemsList = failedEvidence.map((f) => f.human_name).join(", ");
+          await supabaseAdmin.from("notifications").insert({
+            user_id: userId,
+            type: "face_verification_retry",
+            title: "Verification Needs Retry",
+            message: `${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
+            data: {
+              action_url: "/face-verification",
+              steps: retryRequired.steps,
+              submission_id: submissionId,
+            },
+            is_read: false,
+          });
+        }
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
@@ -1508,6 +1566,83 @@ serve(async (req) => {
           ok: true,
           rekognition,
           autoFinalize: { success: false, reason: "identity_mismatch_needs_retry" },
+          blocker: null,
+          retry_required: retryRequired,
+          declaredGender,
+          expectedGender,
+          detectedGender: detectedGenderForDecision,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // SOFT RETRY (host gallery incomplete/unreadable): host approval publishes
+    // the 3 Step-2 photos to the public profile, so host accounts must provide
+    // exactly 3 readable same-person photos. Do NOT blame the live scan when the
+    // live/photo/video match is already 99%+; route the user to the gallery step.
+    if (isPassivePhotoVideoLiveScan && vtForEvidence === "host" && (hostGalleryMissing || hostGalleryUnreadable)) {
+      const retryRequired = {
+        kind: "host_gallery_incomplete" as const,
+        verification_type: vtForEvidence,
+        failed_evidence: [{
+          label: "host_gallery",
+          human_name: "Host Profile Photos",
+          step: "host_gallery",
+          score: typeof hostPhotosMinScore === "number" ? Math.round(hostPhotosMinScore * 10) / 10 : null,
+          message: hostGalleryMissing
+            ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
+            : "Please replace your host profile photos with 3 clear photos where your face is visible.",
+        }],
+        steps: ["host_gallery"],
+        headline: hostGalleryMissing
+          ? `Please upload all 3 host profile photos (${hostPhotos.length}/3 received).`
+          : "Please replace unreadable host profile photos.",
+        summary: "Your account is NOT rejected. Your profile photo, video and live face scan can still match, but host verification needs 3 clear host profile photos before approval.",
+      };
+
+      const mergedAnalysisRetry = duplicateBlock
+        ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
+        : { ...existingAnalysis, rekognition, retry_required: retryRequired };
+
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "needs_retry",
+          ai_analysis: mergedAnalysisRetry,
+          rejection_reason: null,
+          reviewed_at: null,
+          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] host_gallery: count=${hostPhotos.length}/3 unreadable=${hostGalleryUnreadable} min=${hostPhotosMinScore}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
+
+      const alreadyApprovedForGalleryRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
+
+      try {
+        if (!alreadyApprovedForGalleryRetry) {
+          await supabaseAdmin.from("notifications").insert({
+            user_id: userId,
+            type: "face_verification_retry",
+            title: "Verification Needs Retry",
+            message: `${retryRequired.headline} Tap to upload the missing photos.`,
+            data: {
+              action_url: "/face-verification",
+              steps: retryRequired.steps,
+              submission_id: submissionId,
+            },
+            is_read: false,
+          });
+        }
+      } catch (notifyErr) {
+        console.warn("[face-verification-analyze] host-gallery retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "host_gallery_needs_retry" },
           blocker: null,
           retry_required: retryRequired,
           declaredGender,
@@ -1531,6 +1666,7 @@ serve(async (req) => {
       const failingSteps: { label: string; human_name: string; step: string; message: string }[] = [];
       const errKeys = Object.keys(evidenceErrors || {});
       const liveFrontBad = !!frontError || details.length !== 1;
+      const onlyMissingHostGallery = vtForEvidence === "host" && !evidenceComplete && !frontError && details.length === 1 && errKeys.length === 0 && (hostGalleryMissing || hostGalleryUnreadable);
       if (liveFrontBad) {
         const reason = frontError === "multiple_faces_front" || details.length > 1
           ? "more than one face was visible in the live scan"
@@ -1568,7 +1704,16 @@ serve(async (req) => {
           });
         }
       }
-      if (failingSteps.length === 0) {
+      if (failingSteps.length === 0 && onlyMissingHostGallery) {
+        failingSteps.push({
+          label: "host_gallery",
+          human_name: "Host Profile Photos",
+          step: "host_gallery",
+          message: hostGalleryMissing
+            ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
+            : "Please replace your host profile photos with 3 clear photos where your face is visible.",
+        });
+      } else if (failingSteps.length === 0) {
         failingSteps.push({
           label: "live_face_scan",
           human_name: "Live Face Scan",
@@ -1602,29 +1747,24 @@ serve(async (req) => {
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
 
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          is_face_verified: false,
-          face_verification_status: "pending_face",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
+      const alreadyApprovedForQualityRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
 
       try {
-        const itemsList = failingSteps.map((f) => f.human_name).join(", ");
-        await supabaseAdmin.from("notifications").insert({
-          user_id: userId,
-          type: "face_verification_retry",
-          title: "Verification Needs Retry",
-          message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
-          data: {
-            action_url: "/face-verification",
-            steps: retryRequired.steps,
-            submission_id: submissionId,
-          },
-          is_read: false,
-        });
+        if (!alreadyApprovedForQualityRetry) {
+          const itemsList = failingSteps.map((f) => f.human_name).join(", ");
+          await supabaseAdmin.from("notifications").insert({
+            user_id: userId,
+            type: "face_verification_retry",
+            title: "Verification Needs Retry",
+            message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
+            data: {
+              action_url: "/face-verification",
+              steps: retryRequired.steps,
+              submission_id: submissionId,
+            },
+            is_read: false,
+          });
+        }
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] quality retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
@@ -1738,6 +1878,7 @@ serve(async (req) => {
     // Instant in-app + push notification on auto-approval (English).
     if (autoResult?.success) {
       try {
+        await clearStaleFaceRetryNotifications(supabaseAdmin, userId);
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
           type: "face_verification_approved",
@@ -1846,7 +1987,7 @@ serve(async (req) => {
           })
           .eq("id", activeSubmissionId)
           .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
-        if (activeUserId) {
+        if (activeUserId && !(await hasApprovedFaceState(activeAdmin, activeUserId))) {
           await activeAdmin.from("notifications").insert({
             user_id: activeUserId,
             type: "face_verification_retry",
