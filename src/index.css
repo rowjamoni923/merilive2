@@ -7285,3 +7285,108 @@ body[data-admin-active="true"] header.sticky {
 .admin-badge-danger  { background: hsl(var(--admin-danger)  / 0.10); color: hsl(var(--admin-danger));  border-color: hsl(var(--admin-danger)  / 0.25); }
 .admin-badge-muted   { background: hsl(var(--admin-canvas-sunken));  color: hsl(var(--admin-text-soft)); border-color: hsl(var(--admin-card-border)); }
 
+
+/* ============================================================
+   RESPONSIVE FIT — Mobile / Tablet (Admin Shell)
+   Ensures the sidebar, header, and cards never overflow the
+   viewport and that long content scrolls inside its container
+   instead of pushing the page wider.
+   ============================================================ */
+
+/* Global guard: nothing inside the admin shell may push horizontal scroll. */
+.admin-pro-shell,
+.admin-pro-shell * {
+  min-width: 0;
+}
+.admin-pro-shell {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Cards: full-fit on small screens, predictable padding ladder. */
+.admin-pro-shell [data-slot="card"],
+.admin-content [data-slot="card"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Raw tables → make horizontally scrollable inside their parent. */
+.admin-content table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+}
+.admin-content :where(table):not([class*="block"]) {
+  display: table;
+}
+.admin-content :where(.table-wrapper, [data-table-wrapper]) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Grids: avoid 3+ col layouts squeezing on phones. */
+@media (max-width: 640px) {
+  .admin-content [class*="grid-cols-3"]:not([class*="sm:grid-cols-"]):not([class*="md:grid-cols-"]),
+  .admin-content [class*="grid-cols-4"]:not([class*="sm:grid-cols-"]):not([class*="md:grid-cols-"]),
+  .admin-content [class*="grid-cols-5"]:not([class*="sm:grid-cols-"]):not([class*="md:grid-cols-"]),
+  .admin-content [class*="grid-cols-6"]:not([class*="sm:grid-cols-"]):not([class*="md:grid-cols-"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Tighten card / page padding on phones. */
+  .admin-content { padding: 0.625rem !important; }
+  .admin-pro-shell [data-slot="card"] { border-radius: 14px; }
+  .admin-pro-shell [data-slot="card-header"],
+  .admin-pro-shell [data-slot="card-content"],
+  .admin-pro-shell [data-slot="card-footer"] {
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+  }
+
+  /* Header: avoid double-row crowding. */
+  .admin-shell header h2 { font-size: 0.95rem !important; }
+
+  /* Disable hover-lift on touch devices — feels janky. */
+  .admin-card-interactive:hover,
+  .admin-pro-shell [data-slot="card"]:hover {
+    transform: none !important;
+  }
+}
+
+/* Tablet: keep 3-col density but make sure cards never overflow. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .admin-content [class*="grid-cols-5"]:not([class*="lg:grid-cols-"]),
+  .admin-content [class*="grid-cols-6"]:not([class*="lg:grid-cols-"]) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .admin-content { padding: 1rem !important; }
+}
+
+/* Sidebar items: clip long labels gracefully, never overflow drawer. */
+.admin-sidebar-item,
+aside .admin-sidebar-item,
+aside a, aside button {
+  max-width: 100%;
+}
+aside .truncate-safe,
+aside [class*="text-"] > span:not(.shrink-0) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile sidebar drawer: lock width to viewport, scroll inside. */
+@media (max-width: 1023px) {
+  aside.fixed {
+    max-width: 100vw;
+  }
+}
+
+/* Long values inside cards (UIDs, txn hashes, emails) wrap instead of overflow. */
+.admin-content [data-slot="card"] :where(p, span, dd, td, th, div):not([class*="truncate"]):not([class*="whitespace-nowrap"]) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
