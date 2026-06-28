@@ -145,8 +145,8 @@ const AdminFinance = () => {
             <Globe2 className="w-4 h-4 mr-1" />
             <span className="hidden md:inline">ePay</span>
             {stats.pendingEpay > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
-                {stats.pendingEpay}
+              <span className="admin-tab-badge bg-red-500 animate-pulse">
+                {stats.pendingEpay > 99 ? "99+" : stats.pendingEpay}
               </span>
             )}
           </TabsTrigger>
