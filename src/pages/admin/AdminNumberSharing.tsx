@@ -562,7 +562,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-slate-900"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                   onClick={handleBan}
                   disabled={banning}
                 >

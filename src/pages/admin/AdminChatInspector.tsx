@@ -297,7 +297,7 @@ const AdminChatInspector = () => {
           <TabsTrigger value="phone-alerts" className="data-[state=active]:bg-red-600 py-2.5 text-xs relative">
             <Phone className="w-4 h-4 mr-1" /> Alerts
             {newAlertCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-slate-900 flex items-center justify-center font-bold animate-pulse">
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold animate-pulse">
                 {newAlertCount}
               </span>
             )}
