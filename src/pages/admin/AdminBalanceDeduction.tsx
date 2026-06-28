@@ -797,7 +797,7 @@ export default function AdminBalanceDeduction() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                     >
-                      <Card className={`p-3 ${alert.violationResult?.is_banned ? 'bg-red-50 dark:bg-red-950/20 border-red-200' : 'bg-orange-50 dark:bg-orange-950/20 border-orange-200'}`}>
+                      <Card className={`p-3 ${alert.violationResult?.is_banned ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
                         <div className="flex items-start gap-3">
                           <Avatar className="w-10 h-10 border-2 border-red-300">
                             <UserAvatarImage seed={(((alert.userProfile) as any)?.id ?? ((alert.userProfile) as any)?.user_id ?? ((alert.userProfile) as any)?.host_id)} gender={((alert.userProfile) as any)?.gender} src={alert.userProfile?.avatar_url || undefined} />
@@ -831,7 +831,7 @@ export default function AdminBalanceDeduction() {
                             
                             {/* Auto Deduction Info */}
                             {(alert.autoDeducted || alert.violationResult?.beans_deducted) && (
-                              <div className="mt-1 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200">
+                              <div className="mt-1 p-2 bg-green-50 rounded border border-green-200">
                                 <p className="text-sm text-green-700 font-bold flex items-center gap-1">
                                   ✅ Auto Deduction: {alert.deductedAmount || alert.violationResult?.beans_deducted || 2000} beans deducted
                                 </p>
@@ -1078,7 +1078,7 @@ export default function AdminBalanceDeduction() {
                   <Button
                     key={`add-${field.key}`}
                     variant="outline"
-                    className="justify-start gap-2 h-auto py-3 border-green-200 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/20"
+                    className="justify-start gap-2 h-auto py-3 border-green-200 hover:border-green-400 hover:bg-green-50"
                     onClick={() => handleAddClick(field.key)}
                   >
                     <div className="flex items-center gap-2 flex-1">
@@ -1105,7 +1105,7 @@ export default function AdminBalanceDeduction() {
                   <Button
                     key={`deduct-${field.key}`}
                     variant="outline"
-                    className="justify-start gap-2 h-auto py-3 border-red-200 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    className="justify-start gap-2 h-auto py-3 border-red-200 hover:border-red-400 hover:bg-red-50"
                     onClick={() => handleDeductClick(field.key)}
                   >
                     <div className="flex items-center gap-2 flex-1">
