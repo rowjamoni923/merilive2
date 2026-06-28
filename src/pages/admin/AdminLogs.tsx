@@ -58,13 +58,24 @@ export default function AdminLogs() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
+  const [levelFilter, setLevelFilter] = useState<"all" | "info" | "warn" | "error">("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLogs();
-  }, [actionFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionFilter, dateFrom, dateTo]);
 
   useAdminRealtime(['admin_logs'], () => fetchLogs());
+
+  const classifyLevel = (a: string): "info" | "warn" | "error" => {
+    const s = (a || "").toLowerCase();
+    if (s.includes("delete") || s.includes("reject") || s.includes("ban") || s.includes("error")) return "error";
+    if (s.includes("block") || s.includes("warn") || s.includes("suspend") || s.includes("unblock")) return "warn";
+    return "info";
+  };
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -73,10 +84,18 @@ export default function AdminLogs() {
         .from("admin_logs")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (actionFilter !== "all") {
         query = query.eq("action_type", actionFilter);
+      }
+      if (dateFrom) {
+        query = query.gte("created_at", new Date(dateFrom).toISOString());
+      }
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte("created_at", end.toISOString());
       }
 
       const { data, error } = await query;
