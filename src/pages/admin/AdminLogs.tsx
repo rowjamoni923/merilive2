@@ -205,10 +205,28 @@ export default function AdminLogs() {
           </h1>
           <p className="text-slate-900/80 text-sm mt-1">All admin activities</p>
         </div>
-        <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white border-slate-200">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <FileText className="w-4 h-4 mr-2" /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
