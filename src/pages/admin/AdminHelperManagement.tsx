@@ -568,7 +568,7 @@ const AdminHelperManagement = () => {
 
   return (
     <>
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="admin-pro-shell space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-violet-700 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl border-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">

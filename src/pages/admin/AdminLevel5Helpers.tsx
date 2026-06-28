@@ -555,7 +555,7 @@ const AdminLevel5Helpers = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="admin-pro-shell space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">

@@ -214,7 +214,7 @@ export default function AdminSuperAdminManagement() {
   const pending = apps.filter(a => a.status === "pending" || a.status === "under_review");
 
   return (
-    <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
+    <div className="admin-pro-shell p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
       <div className="flex items-center gap-3">
         <ShieldCheck className="w-7 h-7 text-primary" />
         <div>
