@@ -3131,25 +3131,25 @@ export default function AdminLayout() {
               </div>
 
               {/* Quick Stats - visible on tablet+ */}
-              <div className="hidden md:flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/[0.02] rounded-xl border border-white/[0.04]">
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_6px_-2px_rgba(15,23,42,0.06)]">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/30" />
-                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Online</span>
-                  <span className="text-xs sm:text-sm font-bold text-emerald-400 tabular-nums">{onlineUsersCount}</span>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/40" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Online</span>
+                  <span className="text-xs sm:text-sm font-bold text-emerald-600 tabular-nums">{onlineUsersCount}</span>
                 </div>
-                <div className="w-px h-4 sm:h-5 bg-white/[0.06]" />
+                <div className="w-px h-4 sm:h-5 bg-slate-200" />
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
-                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Live</span>
-                  <span className="text-xs sm:text-sm font-bold text-red-400 tabular-nums">{liveStreamsCount}</span>
+                  <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-500" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Live</span>
+                  <span className="text-xs sm:text-sm font-bold text-rose-600 tabular-nums">{liveStreamsCount}</span>
                 </div>
               </div>
 
               {/* Mobile Avatar */}
               <button onClick={() => setShowProfileMenu(true)} className="lg:hidden flex-shrink-0">
-                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
+                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-blue-200 ring-2 ring-blue-500/15 shadow-md cursor-pointer">
                   <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white text-[10px] sm:text-xs font-bold">
                     {currentUser?.profile?.display_name?.charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
