@@ -7390,3 +7390,69 @@ aside [class*="text-"] > span:not(.shrink-0) {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/* ============================================================
+   CARD UNIFICATION — single border/shadow/radius across panel
+   Forces every card-like surface inside the admin shell to use
+   the SAME 3D treatment regardless of inline Tailwind classes.
+   ============================================================ */
+
+.admin-pro-shell :where(
+  [data-slot="card"],
+  .admin-card,
+  .card,
+  [class*="rounded-2xl"][class*="border"],
+  [class*="rounded-xl"][class*="border"][class*="bg-white"],
+  [class*="rounded-lg"][class*="border"][class*="bg-white"]
+) {
+  background: hsl(var(--admin-card-bg)) !important;
+  color: hsl(var(--admin-text)) !important;
+  border: 1px solid hsl(var(--admin-card-border)) !important;
+  border-radius: var(--admin-radius) !important;
+  box-shadow: var(--admin-shadow-3d) !important;
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+/* Nested cards (card-inside-card) get softer treatment to avoid stacking heavy shadows. */
+.admin-pro-shell :where([data-slot="card"], .admin-card, .card)
+  :where([data-slot="card"], .admin-card, .card) {
+  border-radius: var(--admin-radius-sm) !important;
+  box-shadow: var(--admin-shadow-sm) !important;
+  background: hsl(var(--admin-card-bg-alt)) !important;
+}
+
+/* Hover lift — desktop only, and only for interactive cards. */
+@media (hover: hover) and (pointer: fine) {
+  .admin-pro-shell :where([data-slot="card"], .admin-card)[role="button"]:hover,
+  .admin-pro-shell :where([data-slot="card"], .admin-card).admin-card-interactive:hover,
+  .admin-pro-shell a > :where([data-slot="card"], .admin-card):hover,
+  .admin-pro-shell button > :where([data-slot="card"], .admin-card):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--admin-shadow-3d-hover) !important;
+    border-color: hsl(var(--admin-card-ring) / 0.40) !important;
+  }
+}
+
+/* Card sub-parts: consistent dividers + padding rhythm. */
+.admin-pro-shell :where([data-slot="card"], .admin-card) > [data-slot="card-header"] {
+  border-bottom: 1px solid hsl(var(--admin-card-border-soft)) !important;
+}
+.admin-pro-shell :where([data-slot="card"], .admin-card) > [data-slot="card-footer"] {
+  border-top: 1px solid hsl(var(--admin-card-border-soft)) !important;
+  background: hsl(var(--admin-card-bg-alt)) !important;
+  border-bottom-left-radius: var(--admin-radius) !important;
+  border-bottom-right-radius: var(--admin-radius) !important;
+}
+
+/* Neutralize hard-coded shadow utilities on cards so the unified
+   recipe wins (shadow-md / shadow-lg / shadow-2xl / shadow-none). */
+.admin-pro-shell :where([data-slot="card"], .admin-card, .card)[class*="shadow-"] {
+  box-shadow: var(--admin-shadow-3d) !important;
+}
+
+/* Mobile: trim radius a touch for tighter density. */
+@media (max-width: 640px) {
+  .admin-pro-shell :where([data-slot="card"], .admin-card, .card) {
+    border-radius: 14px !important;
+  }
+}
