@@ -2993,7 +2993,7 @@ export default function AdminLayout() {
                 <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 border border-transparent rounded-xl h-8 w-8 flex-shrink-0 transition-colors" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-4 h-4" />
               </Button>
 
