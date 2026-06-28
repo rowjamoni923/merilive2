@@ -2799,15 +2799,27 @@ body[data-admin-active="true"] #root {
   letter-spacing: -0.01em;
 }
 
-/* Near-white / very light text utilities → dark slate
-   (prevents white-on-white bleed across all 160 admin pages) */
-.admin-content .text-white,
-.admin-content [class*="text-white/"],
-.admin-content .text-slate-50, .admin-content .text-slate-100, .admin-content .text-slate-200,
-.admin-content .text-zinc-50,  .admin-content .text-zinc-100,  .admin-content .text-zinc-200,
-.admin-content .text-neutral-50,.admin-content .text-neutral-100,.admin-content .text-neutral-200,
-.admin-content .text-gray-50,  .admin-content .text-gray-100,  .admin-content .text-gray-200,
-.admin-content .text-stone-50, .admin-content .text-stone-100, .admin-content .text-stone-200 {
+/* Near-white / very light text utilities -> dark slate ONLY when the element
+   sits on a white-ish surface. Elements that carry their OWN colored
+   background (inline style="background-color: ..." or a bg- or from- utility,
+   e.g. count chips, status pills, gradient cards) MUST keep their white text. */
+.admin-content .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-content [class*="text-white/"]:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-content .text-slate-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-slate-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-slate-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]) {
   color: #0F172A !important;
 }
 
@@ -3486,19 +3498,19 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-5"] {
 }
 
 /* ============================================
-   FINAL CONTRAST GUARDS — prevent same-color text/bg
-   (kills white-on-white & black-on-black across all admin pages)
+   FINAL CONTRAST GUARDS - prevent same-color text/bg
+   (kills white-on-white and black-on-black across all admin pages)
    ============================================ */
 .admin-content .text-white {
   color: #FFFFFF !important;
 }
-/* If a child has text-white but no colored ancestor background, fall back to slate ink */
-.admin-content :not([class*="bg-"]):not([class*="from-"]) > .text-white,
-.admin-content [class*="bg-white"] .text-white,
-.admin-content [class*="bg-slate-50"] .text-white,
-.admin-content [class*="bg-slate-100"] .text-white,
-.admin-content [class*="bg-gray-50"] .text-white,
-.admin-content [class*="bg-gray-100"] .text-white {
+/* Fall back to slate ink ONLY when .text-white sits on a white-ish surface
+   AND the element itself has no colored bg of its own (inline or utility). */
+.admin-content [class*="bg-white"]   > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-slate-50"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-slate-100"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-gray-50"]  > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-gray-100"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]) {
   color: #0F172A !important;
 }
 /* Black-on-white-ish is fine; black-on-dark must lift */
@@ -6250,9 +6262,10 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell [class*="border-white/"] { border-color: #E2E8F0 !important; }
 .admin-pro-shell [class*="ring-white/"] { --tw-ring-color: #E2E8F0 !important; }
 .admin-pro-shell [class*="divide-white/"] > * + * { border-color: #E2E8F0 !important; }
-/* Text re-skin */
-.admin-pro-shell .text-white,
-.admin-pro-shell [class*="text-white/"] { color: #0F172A !important; }
+/* Text re-skin: only neutralize white text on white-ish parents and when the
+   element itself has no colored bg of its own (preserves chips/badges). */
+.admin-pro-shell .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-pro-shell [class*="text-white/"]:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]) { color: #0F172A !important; }
 .admin-pro-shell [class*="text-white/3"],
 .admin-pro-shell [class*="text-white/4"],
 .admin-pro-shell [class*="text-white/5"] { color: #64748B !important; }
