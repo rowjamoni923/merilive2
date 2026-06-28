@@ -1547,8 +1547,8 @@ export default function AdminUserManagement() {
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
             {autoApprovedFaceCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {autoApprovedFaceCount}
+              <span className="admin-tab-badge bg-cyan-500">
+                {autoApprovedFaceCount > 99 ? "99+" : autoApprovedFaceCount}
               </span>
             )}
           </TabsTrigger>
@@ -1556,8 +1556,8 @@ export default function AdminUserManagement() {
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
             {autoRejectedFaceCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {autoRejectedFaceCount}
+              <span className="admin-tab-badge bg-orange-500">
+                {autoRejectedFaceCount > 99 ? "99+" : autoRejectedFaceCount}
               </span>
             )}
           </TabsTrigger>
@@ -1565,8 +1565,8 @@ export default function AdminUserManagement() {
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Face Verify
             {pendingFaceCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {pendingFaceCount}
+              <span className="admin-tab-badge bg-red-500">
+                {pendingFaceCount > 99 ? "99+" : pendingFaceCount}
               </span>
             )}
           </TabsTrigger>
