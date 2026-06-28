@@ -98,8 +98,8 @@ import { CopyableUid } from "@/components/admin/CopyableUid";
 import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
-  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected', 'failed', 'denied'].includes(normalized)) return 'rejected';
   if (['pending', 'submitted', 'under_review', 'needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
   return 'pending';
 };
@@ -1017,7 +1017,7 @@ export default function AdminUserManagement() {
 
   const fetchFaceSubmissions = async () => {
     const requestId = ++faceFetchRequestIdRef.current;
-    setLoading(true);
+    if (faceSubmissions.length === 0) setLoading(true);
     try {
       const isAutoTab = activeTab === "auto-verified" || activeTab === "auto-rejected";
       const q = (isAutoTab ? debouncedAppSearchQuery : debouncedFaceSearchQuery).trim();
@@ -1074,7 +1074,7 @@ export default function AdminUserManagement() {
     const nextStatus: FaceVerificationSubmission['status'] = faceActionType === 'approve' ? 'approved' : 'rejected';
     const nextReason = faceActionType === 'reject' ? (faceActionReason.trim() || 'Rejected by admin') : null;
     const reviewedAt = new Date().toISOString();
-    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: reviewedAt };
+    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus as FaceVerificationSubmission['status_bucket'], rejection_reason: nextReason, reviewed_at: reviewedAt };
 
     // Instant optimistic update: remove from Pending immediately and keep the row
     // available for Approved/Rejected while the RPC/realtime refresh completes.
@@ -1141,7 +1141,7 @@ export default function AdminUserManagement() {
     const previousFaceStats = faceServerStats;
     const nextStatus: FaceVerificationSubmission['status'] = action === 'approve' ? 'approved' : 'rejected';
     const nextReason = action === 'reject' ? (reason?.trim() || 'Rejected by admin') : null;
-    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() };
+    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus as FaceVerificationSubmission['status_bucket'], rejection_reason: nextReason, reviewed_at: new Date().toISOString() };
 
     optimisticFaceTerminalRowsRef.current.set(submission.id, optimisticSubmission);
     setFaceSubmissions(prev => withOptimisticFaceTerminalRows(
