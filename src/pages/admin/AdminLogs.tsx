@@ -163,8 +163,20 @@ export default function AdminLogs() {
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
   };
+
+  const formatAgo = (d: Date) => {
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 5) return "just now";
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  };
+
 
   const getActionIcon = (actionType: string) => {
     if (actionType.includes("block")) return <Ban className="w-4 h-4 text-red-400" />;
