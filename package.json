@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "scan:dark": "node scripts/scan-dark-tokens.mjs",
+    "audit:admin": "node scripts/audit-admin-theme.mjs",
+    "audit:admin:json": "node scripts/audit-admin-theme.mjs --json",
     "scan:dark:baseline": "node scripts/scan-dark-tokens.mjs --update-baseline",
     "fix:dark": "node scripts/fix-dark-tokens.mjs",
     "fix:dark:dry": "node scripts/fix-dark-tokens.mjs --dry",
