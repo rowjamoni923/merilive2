@@ -329,14 +329,14 @@ const AdminNotificationTemplates = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
+      <div className="admin-pro-shell admin-content min-h-[60vh] flex items-center justify-center p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
         <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a14]">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
         <div className="flex items-center h-14 px-4">
@@ -370,14 +370,14 @@ const AdminNotificationTemplates = () => {
       <div className="p-4 grid gap-4 lg:grid-cols-2">
         <Card className="bg-white/5 border-white/10 overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white flex items-center gap-2"><Sparkles className="w-5 h-5 text-amber-300" /> Premium 3D PNG Icons</CardTitle>
-            <CardDescription className="text-white/50">5 industry-standard PNG icons for push + in-app notifications.</CardDescription>
+            <CardTitle className="text-slate-900 flex items-center gap-2"><Sparkles className="w-5 h-5 text-amber-300" /> Premium 3D PNG Icons</CardTitle>
+            <CardDescription className="text-slate-900/50">5 industry-standard PNG icons for push + in-app notifications.</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-5 gap-3">
             {premiumIcons.map((icon) => (
               <div key={icon.url} className="rounded-xl bg-white/[0.04] border border-white/10 p-2 text-center">
                 <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" />
-                <p className="mt-1 text-[10px] text-white/70 truncate">{icon.label}</p>
+                <p className="mt-1 text-[10px] text-slate-900/70 truncate">{icon.label}</p>
               </div>
             ))}
           </CardContent>
@@ -385,8 +385,8 @@ const AdminNotificationTemplates = () => {
 
         <Card className="bg-white/5 border-white/10 overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white flex items-center gap-2"><ImageIcon className="w-5 h-5 text-blue-300" /> Premium Event Banners</CardTitle>
-            <CardDescription className="text-white/50">5 universal event banners ready for campaigns and notification images.</CardDescription>
+            <CardTitle className="text-slate-900 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-blue-300" /> Premium Event Banners</CardTitle>
+            <CardDescription className="text-slate-900/50">5 universal event banners ready for campaigns and notification images.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             {eventBanners.map((banner) => (
@@ -402,18 +402,18 @@ const AdminNotificationTemplates = () => {
       <div className="p-4">
         <Card className="bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-amber-900/20 border-amber-400/20 overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
               <Wand2 className="w-5 h-5 text-amber-300" /> AI Banner Generator
               <Badge className="ml-2 bg-amber-500/20 text-amber-200 border-amber-400/30">Nano Banana 3D</Badge>
             </CardTitle>
-            <CardDescription className="text-white/60">
+            <CardDescription className="text-slate-900/60">
               Click any event name below to auto-generate a premium 3D luxury banner. Or type your own event name.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Size selector */}
             <div>
-              <Label className="text-white/80 text-xs uppercase tracking-wider mb-1.5 block">Banner Size</Label>
+              <Label className="text-slate-900/80 text-xs uppercase tracking-wider mb-1.5 block">Banner Size</Label>
               <div className="flex flex-wrap gap-1.5">
                 {BANNER_SIZES.map((s) => (
                   <button
@@ -429,7 +429,7 @@ const AdminNotificationTemplates = () => {
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-white/40 mt-1.5">Selected size is pixel-exact — AI render is cover-cropped to {BANNER_SIZES.find(s => s.key === aiSizeKey)?.w}×{BANNER_SIZES.find(s => s.key === aiSizeKey)?.h}.</p>
+              <p className="text-[11px] text-slate-900/40 mt-1.5">Selected size is pixel-exact — AI render is cover-cropped to {BANNER_SIZES.find(s => s.key === aiSizeKey)?.w}×{BANNER_SIZES.find(s => s.key === aiSizeKey)?.h}.</p>
             </div>
 
             {/* Custom event input */}
@@ -438,7 +438,7 @@ const AdminNotificationTemplates = () => {
                 value={aiCustomEvent}
                 onChange={(e) => setAiCustomEvent(e.target.value)}
                 placeholder="Type any event name (e.g. New Year Mega Bash)..."
-                className="bg-white/5 border-white/15 text-white placeholder:text-white/40"
+                className="bg-white/5 border-white/15 text-slate-900 placeholder:text-slate-900/40"
                 onKeyDown={(e) => { if (e.key === 'Enter' && aiCustomEvent.trim()) generateAiBanner(aiCustomEvent.trim()); }}
               />
               <Button
@@ -453,7 +453,7 @@ const AdminNotificationTemplates = () => {
 
             {/* Event preset chips - grouped by category */}
             <div className="space-y-3">
-              <p className="text-xs text-white/50">Tap any event below — premium 3D luxury banner generates instantly at the selected size. Unlimited generations.</p>
+              <p className="text-xs text-slate-900/50">Tap any event below — premium 3D luxury banner generates instantly at the selected size. Unlimited generations.</p>
               {eventGroups.map((group) => (
                 <div key={group.group}>
                   <p className="text-[11px] uppercase tracking-wider text-amber-300/70 font-semibold mb-1.5">{group.group}</p>
@@ -478,20 +478,20 @@ const AdminNotificationTemplates = () => {
             {/* Generated banners gallery */}
             {aiBanners.length > 0 && (
               <div>
-                <p className="text-xs text-white/50 mb-2">Generated banners ({aiBanners.length}):</p>
+                <p className="text-xs text-slate-900/50 mb-2">Generated banners ({aiBanners.length}):</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {aiBanners.map((b) => (
                     <div key={b.url} className="rounded-xl overflow-hidden border border-white/10 bg-black/30">
                       <SmartImage src={b.url} alt={b.eventName} className="w-full object-cover" style={{ aspectRatio: `${b.w} / ${b.h}` }} />
                       <div className="p-2 flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white/90 truncate">{b.eventName}</p>
-                          <p className="text-[10px] text-white/50">{b.w}×{b.h}</p>
+                          <p className="text-xs text-slate-900/90 truncate">{b.eventName}</p>
+                          <p className="text-[10px] text-slate-900/50">{b.w}×{b.h}</p>
                         </div>
-                        <Button size="sm" variant="ghost" onClick={() => copyBannerUrl(b.url)} className="h-7 px-2 text-white/70 hover:text-white" title="Copy URL">
+                        <Button size="sm" variant="ghost" onClick={() => copyBannerUrl(b.url)} className="h-7 px-2 text-slate-900/70 hover:text-slate-900" title="Copy URL">
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => downloadBanner(b.eventName, b.url, b.w, b.h)} className="h-7 px-2 text-white/70 hover:text-white" title="Download PNG">
+                        <Button size="sm" variant="ghost" onClick={() => downloadBanner(b.eventName, b.url, b.w, b.h)} className="h-7 px-2 text-slate-900/70 hover:text-slate-900" title="Download PNG">
                           <Download className="w-3.5 h-3.5" />
                         </Button>
                       </div>
@@ -518,23 +518,23 @@ const AdminNotificationTemplates = () => {
                       <span className="text-2xl">{template.icon_emoji || getTemplateIcon(template.template_key)}</span>
                     )}
                   <div>
-                    <CardTitle className="text-base text-white">
+                    <CardTitle className="text-base text-slate-900">
                       {getTemplateLabel(template.template_key)}
                     </CardTitle>
-                    <CardDescription className="text-xs mt-0.5 text-white/50">
+                    <CardDescription className="text-xs mt-0.5 text-slate-900/50">
                       {template.description || template.template_key}
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs text-white/60 border-white/20">
+                <Badge variant="outline" className="text-xs text-slate-900/60 border-white/20">
                   {template.template_key}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="bg-white/5 rounded-lg p-3 mb-4 border border-white/10">
-                <p className="font-medium text-sm mb-1 text-white/90">{template.title_template}</p>
-                <p className="text-xs text-white/50 line-clamp-2">{template.message_template}</p>
+                <p className="font-medium text-sm mb-1 text-slate-900/90">{template.title_template}</p>
+                <p className="text-xs text-slate-900/50 line-clamp-2">{template.message_template}</p>
               </div>
               
               <div className="flex gap-2">
@@ -542,7 +542,7 @@ const AdminNotificationTemplates = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => previewTemplate(template)}
-                  className="flex-1 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
+                  className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10 hover:text-slate-900"
                 >
                   <Eye className="w-4 h-4 mr-1" />
                   Preview
@@ -572,9 +572,9 @@ const AdminNotificationTemplates = () => {
 
       {/* Edit Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Edit3 className="w-5 h-5 text-purple-400" />
               Edit Template
             </DialogTitle>
@@ -582,48 +582,48 @@ const AdminNotificationTemplates = () => {
 
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Template Key</Label>
+              <Label className="text-sm font-medium text-slate-900/80">Template Key</Label>
               <Input
                 value={selectedTemplate?.template_key || ""}
                 disabled
-                className="mt-1.5 bg-white/5 border-white/10 text-white/60"
+                className="mt-1.5 bg-white/5 border-white/10 text-slate-900/60"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-white/80">Description</Label>
+              <Label className="text-sm font-medium text-slate-900/80">Description</Label>
               <Input
                 value={editForm.description}
                 onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Description of this template"
-                className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-sm font-medium text-white/80">Unicode Emoji</Label>
+                <Label className="text-sm font-medium text-slate-900/80">Unicode Emoji</Label>
                 <Input
                   value={editForm.icon_emoji}
                   onChange={(e) => setEditForm(prev => ({ ...prev, icon_emoji: e.target.value }))}
                   placeholder="💎"
-                  className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-white/80">Image URL</Label>
+                <Label className="text-sm font-medium text-slate-900/80">Image URL</Label>
                 <Input
                   value={editForm.image_url}
                   onChange={(e) => setEditForm(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="Pick below or paste URL"
-                  className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
                 />
               </div>
             </div>
 
             {/* Visual Icon Picker */}
             <div>
-              <Label className="text-sm font-medium text-white/80 flex items-center gap-2">
+              <Label className="text-sm font-medium text-slate-900/80 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-300" /> Pick Premium 3D Icon
               </Label>
               <div className="mt-2 grid grid-cols-5 gap-2">
@@ -638,7 +638,7 @@ const AdminNotificationTemplates = () => {
                       title={icon.label}
                     >
                       <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" />
-                      <p className="mt-1 text-[9px] text-white/70 truncate">{icon.label}</p>
+                      <p className="mt-1 text-[9px] text-slate-900/70 truncate">{icon.label}</p>
                     </button>
                   );
                 })}
@@ -647,7 +647,7 @@ const AdminNotificationTemplates = () => {
 
             {/* Visual Banner Picker */}
             <div>
-              <Label className="text-sm font-medium text-white/80 flex items-center gap-2">
+              <Label className="text-sm font-medium text-slate-900/80 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-blue-300" /> Pick Event Banner
               </Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -662,7 +662,7 @@ const AdminNotificationTemplates = () => {
                       title={banner.title}
                     >
                       <SmartImage src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" />
-                      <p className="px-2 py-1 text-[10px] text-white/70 truncate bg-white/[0.04]">{banner.title}</p>
+                      <p className="px-2 py-1 text-[10px] text-slate-900/70 truncate bg-white/[0.04]">{banner.title}</p>
                     </button>
                   );
                 })}
@@ -671,7 +671,7 @@ const AdminNotificationTemplates = () => {
                 <button
                   type="button"
                   onClick={() => setEditForm(prev => ({ ...prev, image_url: '' }))}
-                  className="mt-2 text-xs text-white/50 hover:text-white/80 underline"
+                  className="mt-2 text-xs text-slate-900/50 hover:text-slate-900/80 underline"
                 >
                   Clear image (use emoji only)
                 </button>
@@ -679,24 +679,24 @@ const AdminNotificationTemplates = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-white/80">Title Template *</Label>
+              <Label className="text-sm font-medium text-slate-900/80">Title Template *</Label>
               <Input
                 value={editForm.title_template}
                 onChange={(e) => setEditForm(prev => ({ ...prev, title_template: e.target.value }))}
                 placeholder="Notification title"
-                className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-white/80">Message Template *</Label>
+              <Label className="text-sm font-medium text-slate-900/80">Message Template *</Label>
               <Textarea
                 value={editForm.message_template}
                 onChange={(e) => setEditForm(prev => ({ ...prev, message_template: e.target.value }))}
                 placeholder="Notification message"
-                className="mt-1.5 min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="mt-1.5 min-h-[150px] bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
               />
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-slate-900/40 mt-1">
                 Variables: {"{{code}}"}, {"{{agency_name}}"}, {"{{agency_code}}"}, {"{{display_name}}"}
               </p>
             </div>
@@ -705,7 +705,7 @@ const AdminNotificationTemplates = () => {
               <Button
                 variant="outline"
                 onClick={() => setEditDialog(false)}
-                className="flex-1 border-white/20 text-white/80 hover:bg-white/10"
+                className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10"
               >
                 Cancel
               </Button>
@@ -728,9 +728,9 @@ const AdminNotificationTemplates = () => {
 
       {/* Preview Dialog */}
       <Dialog open={previewDialog} onOpenChange={setPreviewDialog}>
-        <DialogContent className="max-w-sm bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-sm bg-[#1a1a2e] border-white/10 text-slate-900">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <MessageSquare className="w-5 h-5 text-purple-400" />
               Preview
             </DialogTitle>
@@ -747,11 +747,11 @@ const AdminNotificationTemplates = () => {
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="font-semibold text-sm text-white">{previewContent.title}</p>
-                  <p className="text-xs text-white/60 mt-1 whitespace-pre-wrap">
+                  <p className="font-semibold text-sm text-slate-900">{previewContent.title}</p>
+                  <p className="text-xs text-slate-900/60 mt-1 whitespace-pre-wrap">
                     {previewContent.message}
                   </p>
-                  <p className="text-xs text-white/30 mt-2">Just now</p>
+                  <p className="text-xs text-slate-900/30 mt-2">Just now</p>
                 </div>
               </div>
             </div>
