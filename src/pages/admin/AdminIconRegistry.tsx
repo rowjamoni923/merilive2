@@ -260,7 +260,7 @@ const AdminIconRegistry = () => {
   }, [lucideSearch]);
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl border border-[hsl(var(--admin-border-light)/0.8)] bg-[linear-gradient(120deg,hsl(var(--admin-card-alt)/0.96),hsl(var(--admin-card)/0.82))] p-6 shadow-[0_24px_50px_-30px_hsl(var(--admin-gold)/0.65)]">
         <div className="flex items-center gap-4">

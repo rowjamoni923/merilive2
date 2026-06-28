@@ -271,7 +271,7 @@ const AdminAnimationStore = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="admin-pro-shell space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
