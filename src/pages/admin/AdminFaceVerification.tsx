@@ -738,7 +738,7 @@ const AdminFaceVerification = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8" style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
+    <div className="admin-pro-shell min-h-screen bg-[#F8FAFC] text-[#0F172A] -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8" style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}>
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
