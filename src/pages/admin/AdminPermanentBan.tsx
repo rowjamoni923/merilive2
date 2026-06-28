@@ -398,21 +398,21 @@ export default function AdminPermanentBan() {
                     <div className="grid grid-cols-3 gap-2 pt-1">
                       <label className={cn(
                         "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
-                        banDevice ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                        banDevice ? "border-rose-500/50 bg-rose-500/10 text-rose-700" : "border-border bg-background"
                       )}>
                         <input type="checkbox" checked={banDevice} onChange={(e) => setBanDevice(e.target.checked)} className="accent-rose-500" />
                         <Smartphone className="h-3.5 w-3.5" /> Device
                       </label>
                       <label className={cn(
                         "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
-                        banIp ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                        banIp ? "border-rose-500/50 bg-rose-500/10 text-rose-700" : "border-border bg-background"
                       )}>
                         <input type="checkbox" checked={banIp} onChange={(e) => setBanIp(e.target.checked)} className="accent-rose-500" />
                         <Globe className="h-3.5 w-3.5" /> IP
                       </label>
                       <label className={cn(
                         "flex items-center gap-2 rounded-md border p-2 cursor-pointer text-xs",
-                        banFace ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-border bg-background"
+                        banFace ? "border-rose-500/50 bg-rose-500/10 text-rose-700" : "border-border bg-background"
                       )}>
                         <input type="checkbox" checked={banFace} onChange={(e) => setBanFace(e.target.checked)} className="accent-rose-500" />
                         <ScanFace className="h-3.5 w-3.5" /> Face
@@ -428,20 +428,20 @@ export default function AdminPermanentBan() {
                       <Skull className="h-4 w-4" /> URGENT — Lifetime block enforced on:
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="flex items-center gap-2 text-rose-300/80">
+                      <div className="flex items-center gap-2 text-rose-700/80">
                         <Smartphone className="h-3.5 w-3.5" /> Device ID
                       </div>
-                      <div className="flex items-center gap-2 text-rose-300/80">
+                      <div className="flex items-center gap-2 text-rose-700/80">
                         <Globe className="h-3.5 w-3.5" /> IP Address
                       </div>
-                      <div className="flex items-center gap-2 text-rose-300/80">
+                      <div className="flex items-center gap-2 text-rose-700/80">
                         <ScanFace className="h-3.5 w-3.5" /> Face Hash
                       </div>
-                      <div className="flex items-center gap-2 text-rose-300/80">
+                      <div className="flex items-center gap-2 text-rose-700/80">
                         <Ban className="h-3.5 w-3.5" /> User Account
                       </div>
                     </div>
-                    <p className="text-[11px] text-rose-300/60 pt-1 border-t border-rose-500/20">
+                    <p className="text-[11px] text-rose-700/60 pt-1 border-t border-rose-500/20">
                       Factory reset will NOT bypass this block. The user will never be able to create another account from these credentials.
                     </p>
                   </div>
