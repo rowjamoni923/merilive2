@@ -6398,14 +6398,19 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: hsl(var(--admin-pro-text)) !important;
   box-shadow: none !important;
   opacity: 1 !important;
-  overflow: hidden;
+  overflow: visible !important;
   text-overflow: ellipsis;
 }
 
 .admin-pro-shell [role="tab"] svg,
-.admin-pro-shell [role="tab"] span {
+.admin-pro-shell [role="tab"] span:not(.admin-tab-badge) {
   color: currentColor !important;
 }
+
+.admin-pro-shell [role="tab"] .admin-tab-badge {
+  color: #FFFFFF !important;
+}
+
 
 .admin-pro-shell [role="tab"][data-state="active"] {
   background: hsl(var(--admin-pro-primary)) !important;
