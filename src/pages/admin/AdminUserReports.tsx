@@ -417,13 +417,13 @@ export default function AdminUserReports() {
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Admin notes..."
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
               <Input
                 value={actionTaken}
                 onChange={(e) => setActionTaken(e.target.value)}
                 placeholder="Action taken (e.g., warned, banned)..."
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
           )}

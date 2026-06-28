@@ -285,7 +285,7 @@ const AdminNobleSubscriptions = () => {
                         value={form.rank_code || ''}
                         onChange={e => setForm(p => ({ ...p, rank_code: e.target.value }))}
                         placeholder="baron"
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -294,7 +294,7 @@ const AdminNobleSubscriptions = () => {
                         value={form.rank_name || ''}
                         onChange={e => setForm(p => ({ ...p, rank_name: e.target.value }))}
                         placeholder="Baron"
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                   </div>
@@ -305,7 +305,7 @@ const AdminNobleSubscriptions = () => {
                         type="number"
                         value={form.rank_order || 1}
                         onChange={e => setForm(p => ({ ...p, rank_order: parseInt(e.target.value) || 1 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -314,7 +314,7 @@ const AdminNobleSubscriptions = () => {
                         type="number"
                         value={form.monthly_diamond_cost || 0}
                         onChange={e => setForm(p => ({ ...p, monthly_diamond_cost: parseInt(e.target.value) || 0 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -323,7 +323,7 @@ const AdminNobleSubscriptions = () => {
                         type="number"
                         value={form.duration_days || 30}
                         onChange={e => setForm(p => ({ ...p, duration_days: parseInt(e.target.value) || 30 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                   </div>
@@ -332,7 +332,7 @@ const AdminNobleSubscriptions = () => {
                     <Textarea
                       value={form.description || ''}
                       onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                      className="bg-slate-50 border-slate-200 text-white"
+                      className="bg-slate-50 border-slate-200 text-slate-900"
                     />
                   </div>
                   <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">

@@ -526,7 +526,7 @@ export default function AdminUsers() {
                 placeholder="Reason for blocking (optional)"
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                className="bg-slate-50 border-slate-200 text-white font-semibold"
+                className="bg-slate-50 border-slate-200 text-slate-900 font-semibold"
               />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -543,7 +543,7 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               onClick={() => setShowBlockDialog(false)}
-              className="bg-slate-50 border-slate-200 text-white font-bold"
+              className="bg-slate-50 border-slate-200 text-slate-900 font-bold"
             >
               Cancel
             </Button>

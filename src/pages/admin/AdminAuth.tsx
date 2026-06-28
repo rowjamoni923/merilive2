@@ -494,7 +494,7 @@ export default function AdminAuth() {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Checking approval status...</span>
               </div>
-              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-white hover:bg-slate-700">
+              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-slate-900 hover:bg-slate-700">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Login
               </Button>
@@ -523,7 +523,7 @@ export default function AdminAuth() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-white hover:bg-slate-700">
+              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-slate-900 hover:bg-slate-700">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Login
               </Button>

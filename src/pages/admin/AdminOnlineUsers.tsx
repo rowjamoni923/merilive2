@@ -100,7 +100,7 @@ export default function AdminOnlineUsers() {
               placeholder="Search name or UID..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              className="pl-9 bg-slate-50 border-slate-200 text-white w-64"
+              className="pl-9 bg-slate-50 border-slate-200 text-slate-900 w-64"
             />
           </div>
           <Button onClick={() => void fetchOnlineUsers()} variant="outline" size="icon" className="border-slate-200">

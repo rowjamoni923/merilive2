@@ -387,13 +387,13 @@ const AdminTopupPaymentMethods = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., bKash, ePay, Binance Pay"
-                  className="bg-slate-50 border-slate-200 text-white mt-1"
+                  className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 />
               </div>
               <div>
                 <Label className="text-white">Type *</Label>
                 <Select value={formData.method_type} onValueChange={(v) => setFormData({ ...formData, method_type: v })}>
-                  <SelectTrigger className="bg-slate-50 border-slate-200 text-white mt-1">
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,7 +411,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.account_name}
                 onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
                 placeholder="Account holder name"
-                className="bg-slate-50 border-slate-200 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
               />
             </div>
 
@@ -421,7 +421,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.account_number}
                 onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
                 placeholder="Account number, bank account, etc."
-                className="bg-slate-50 border-slate-200 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
               />
             </div>
 
@@ -431,7 +431,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.payment_number}
                 onChange={(e) => setFormData({ ...formData, payment_number: e.target.value })}
                 placeholder="Phone, email or Binance Pay ID shown to user"
-                className="bg-slate-50 border-slate-200 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
               />
             </div>
 
@@ -441,7 +441,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.payment_instructions}
                 onChange={(e) => setFormData({ ...formData, payment_instructions: e.target.value })}
                 placeholder="Step-by-step instructions for the user..."
-                className="bg-slate-50 border-slate-200 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 rows={3}
               />
             </div>
@@ -488,7 +488,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.icon_url}
                 onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
                 placeholder="Or paste an image URL: https://..."
-                className="bg-slate-50 border-slate-200 text-white mt-3 text-xs"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-3 text-xs"
               />
             </div>
 
@@ -501,7 +501,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.country_codes}
                 onChange={(e) => setFormData({ ...formData, country_codes: e.target.value })}
                 placeholder="BD,IN,PK   (or leave empty for global)"
-                className="bg-slate-50 border-slate-200 text-white mt-1 font-mono text-sm"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1 font-mono text-sm"
               />
             </div>
 

@@ -425,7 +425,7 @@ const AdminVIPPrivileges = () => {
                         value={tierForm.tier_code || ''}
                         onChange={(e) => setTierForm(prev => ({ ...prev, tier_code: e.target.value }))}
                         placeholder="vip1"
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -434,7 +434,7 @@ const AdminVIPPrivileges = () => {
                         value={tierForm.tier_name || ''}
                         onChange={(e) => setTierForm(prev => ({ ...prev, tier_name: e.target.value }))}
                         placeholder="VIP 1"
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                   </div>
@@ -446,7 +446,7 @@ const AdminVIPPrivileges = () => {
                         type="number"
                         value={tierForm.tier_level || 1}
                         onChange={(e) => setTierForm(prev => ({ ...prev, tier_level: parseInt(e.target.value) || 1 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -455,7 +455,7 @@ const AdminVIPPrivileges = () => {
                         type="number"
                         value={tierForm.price_diamonds || 0}
                         onChange={(e) => setTierForm(prev => ({ ...prev, price_diamonds: parseInt(e.target.value) || 0 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                     <div>
@@ -464,7 +464,7 @@ const AdminVIPPrivileges = () => {
                         type="number"
                         value={tierForm.duration_days || 30}
                         onChange={(e) => setTierForm(prev => ({ ...prev, duration_days: parseInt(e.target.value) || 30 }))}
-                        className="bg-slate-50 border-slate-200 text-white"
+                        className="bg-slate-50 border-slate-200 text-slate-900"
                       />
                     </div>
                   </div>
@@ -475,7 +475,7 @@ const AdminVIPPrivileges = () => {
                       value={tierForm.description || ''}
                       onChange={(e) => setTierForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="VIP membership with exclusive privileges..."
-                      className="bg-slate-50 border-slate-200 text-white"
+                      className="bg-slate-50 border-slate-200 text-slate-900"
                     />
                   </div>
 

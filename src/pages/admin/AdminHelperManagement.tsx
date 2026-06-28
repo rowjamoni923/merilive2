@@ -702,11 +702,11 @@ const AdminHelperManagement = () => {
                 placeholder="Search by name or UID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-50 border-slate-200 text-white placeholder:text-slate-500"
+                className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200 text-white">
+              <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200 text-slate-900">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-slate-200 text-slate-900">

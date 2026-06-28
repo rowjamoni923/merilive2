@@ -360,10 +360,10 @@ export default function AdminAgentDispatches() {
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Scope</label>
               <Select value={scope} onValueChange={(v) => setScope(v as AgentScope)}>
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-50 border-slate-200 text-white">
+                <SelectContent className="bg-slate-50 border-slate-200 text-slate-900">
                   <SelectItem value="call">call</SelectItem>
                   <SelectItem value="live">live</SelectItem>
                   <SelectItem value="party">party</SelectItem>
@@ -376,7 +376,7 @@ export default function AdminAgentDispatches() {
                 value={scopeId}
                 onChange={(e) => setScopeId(e.target.value)}
                 placeholder="uuid"
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
             <div>
@@ -385,7 +385,7 @@ export default function AdminAgentDispatches() {
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="live_<streamId> / party_<id> / call_<id>"
-                className="bg-slate-50 border-slate-200 text-white font-mono text-sm"
+                className="bg-slate-50 border-slate-200 text-slate-900 font-mono text-sm"
               />
             </div>
             <div>
@@ -394,7 +394,7 @@ export default function AdminAgentDispatches() {
                 value={agentName}
                 onChange={(e) => setAgentName(e.target.value)}
                 placeholder="moderator / transcriber / assistant"
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
             <div>
@@ -404,7 +404,7 @@ export default function AdminAgentDispatches() {
                 onChange={(e) => setMetadataText(e.target.value)}
                 placeholder='{"lang":"en","persona":"friendly"}'
                 rows={3}
-                className="bg-slate-50 border-slate-200 text-white font-mono text-xs"
+                className="bg-slate-50 border-slate-200 text-slate-900 font-mono text-xs"
               />
             </div>
           </div>

@@ -1075,7 +1075,7 @@ export default function AdminGifts() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Gift name"
-                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1.5 md:mt-2 text-sm"
               />
             </div>
 
@@ -1086,7 +1086,7 @@ export default function AdminGifts() {
                 type="number"
                 value={formData.coin_value}
                 onChange={(e) => setFormData({ ...formData, coin_value: parseInt(e.target.value) || 0 })}
-                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1.5 md:mt-2 text-sm"
               />
             </div>
 
@@ -1100,7 +1100,7 @@ export default function AdminGifts() {
                   value={formData.min_level}
                   onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
                   placeholder="0 = No level requirement"
-                  className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
+                  className="bg-slate-50 border-slate-200 text-slate-900 mt-1.5 md:mt-2 text-sm"
                 />
                 <p className="text-xs text-slate-500 mt-1">Users below this level cannot send this gift</p>
               </div>
@@ -1388,7 +1388,7 @@ export default function AdminGifts() {
                 value={formData.display_order}
                 onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                 placeholder="0 = show first"
-                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-slate-900 mt-1.5 md:mt-2 text-sm"
               />
             </div>
 

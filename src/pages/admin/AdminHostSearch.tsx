@@ -222,7 +222,7 @@ export default function AdminHostSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-12 h-12 bg-slate-50 border-slate-200 text-white text-lg placeholder:text-slate-500"
+                className="pl-12 h-12 bg-slate-50 border-slate-200 text-slate-900 text-lg placeholder:text-slate-500"
               />
             </div>
             <Button

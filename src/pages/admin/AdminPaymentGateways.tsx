@@ -676,7 +676,7 @@ const AdminPaymentGateways = () => {
                 <select
                   value={countryFilter}
                   onChange={(e) => setCountryFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-white"
+                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900"
                 >
                   <option value="all">All countries</option>
                   {ADMIN_COUNTRY_OPTIONS.map(c => (
@@ -848,13 +848,13 @@ const AdminPaymentGateways = () => {
                   placeholder="Search by Transaction ID or user..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-50 border-slate-200 text-white placeholder:text-white/40"
+                  className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-white"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900"
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>

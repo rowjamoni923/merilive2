@@ -616,7 +616,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.role_type}
                 onValueChange={(v) => setFrameForm(prev => ({ ...prev, role_type: v }))}
               >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -639,7 +639,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.frame_name || ''}
                 onChange={(e) => setFrameForm(prev => ({ ...prev, frame_name: e.target.value }))}
                 placeholder="e.g. Admin Diamond Frame"
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
 
@@ -677,7 +677,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.description || ''}
                 onChange={(e) => setFrameForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Optional description..."
-                className="bg-slate-50 border-slate-200 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
 
@@ -740,7 +740,7 @@ const AdminRoleFrames = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Enter user UID or name..."
-                  className="bg-slate-50 border-slate-200 text-white flex-1"
+                  className="bg-slate-50 border-slate-200 text-slate-900 flex-1"
                   onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
                 />
                 <Button onClick={searchUsers} disabled={searching}>
@@ -788,7 +788,7 @@ const AdminRoleFrames = () => {
                 value={assignRoleType}
                 onValueChange={setAssignRoleType}
               >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -811,7 +811,7 @@ const AdminRoleFrames = () => {
                 value={selectedFrameForAssign}
                 onValueChange={setSelectedFrameForAssign}
               >
-                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900">
                   <SelectValue placeholder="Choose a frame..." />
                 </SelectTrigger>
                 <SelectContent>

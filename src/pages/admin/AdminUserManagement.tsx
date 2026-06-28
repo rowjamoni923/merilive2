@@ -1753,7 +1753,7 @@ export default function AdminUserManagement() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <p className="text-sm text-slate-500">@{user.username || user.id.slice(0, 8)}</p>
                                   {user.app_uid && (
-                                    <Badge className="text-xs bg-slate-50 text-white border-slate-200 font-semibold">
+                                    <Badge className="text-xs bg-slate-50 text-slate-900 border-slate-200 font-semibold">
                                       {user.app_uid}
                                     </Badge>
                                   )}
@@ -3304,7 +3304,7 @@ export default function AdminUserManagement() {
               placeholder="Reason for blocking (optional)"
               value={blockReason}
               onChange={(e) => setBlockReason(e.target.value)}
-              className="bg-slate-50 border-slate-200 text-white"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             />
           )}
           <DialogFooter>
@@ -3584,7 +3584,7 @@ export default function AdminUserManagement() {
             placeholder="Enter reason..."
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            className="bg-slate-50 border-slate-200 text-white"
+            className="bg-slate-50 border-slate-200 text-slate-900"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
@@ -3693,7 +3693,7 @@ export default function AdminUserManagement() {
               placeholder="Reason for rejection..."
               value={faceActionReason}
               onChange={(e) => setFaceActionReason(e.target.value)}
-              className="bg-slate-50 border-slate-200 text-white"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             />
           )}
           <DialogFooter>
