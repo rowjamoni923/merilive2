@@ -2987,7 +2987,7 @@ export default function AdminLayout() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost" size="icon"
-                className="lg:hidden text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white border border-slate-200 shadow-sm flex-shrink-0"
+                className="lg:hidden text-slate-700 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white border border-slate-200 shadow-sm flex-shrink-0 transition-colors"
                 onClick={() => { setIsMobileSidebarOpen(true); setIsSidebarOpen(true); }}
               >
                 <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
