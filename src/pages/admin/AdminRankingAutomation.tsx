@@ -578,8 +578,8 @@ const AdminRankingAutomation = () => {
             <div
               className={`flex items-start gap-2 rounded-md border p-3 text-sm ${
                 lastVerify.ok
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                  : "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300"
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                  : "border-red-500/40 bg-red-500/10 text-red-700"
               }`}
             >
               {lastVerify.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4" /> : <AlertTriangle className="mt-0.5 h-4 w-4" />}
