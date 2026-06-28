@@ -149,7 +149,8 @@ export default function AdminModerationAudit() {
   );
 
   return (
-    <div className="admin-content space-y-5 p-4 md:p-6">
+    <div className="admin-pro-shell admin-content space-y-5 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       <AdminPageHeader
         icon={ScrollText}
         title="Moderation Audit"
@@ -161,12 +162,12 @@ export default function AdminModerationAudit() {
         {summary.map((s) => (
           <div
             key={s.label}
-            className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
+            className="rounded-xl border border-slate-200 bg-white/[0.02] p-3"
           >
             <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500 font-bold">
               {s.label}
             </div>
-            <div className="text-xl font-bold text-white mt-1">
+            <div className="text-xl font-bold text-slate-900 mt-1">
               {typeof s.value === "number" ? s.value.toLocaleString() : s.value}
             </div>
           </div>
@@ -184,7 +185,7 @@ export default function AdminModerationAudit() {
               setSearch(e.target.value);
               setPage(0);
             }}
-            className="pl-9 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-600 rounded-xl"
+            className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl"
           />
         </div>
 
@@ -195,7 +196,7 @@ export default function AdminModerationAudit() {
             setPage(0);
           }}
         >
-          <SelectTrigger className="w-[180px] bg-white/[0.03] border-white/[0.06] text-white rounded-xl">
+          <SelectTrigger className="w-[180px] bg-white border-slate-200 text-slate-900 rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -214,7 +215,7 @@ export default function AdminModerationAudit() {
             setPage(0);
           }}
         >
-          <SelectTrigger className="w-[150px] bg-white/[0.03] border-white/[0.06] text-white rounded-xl">
+          <SelectTrigger className="w-[150px] bg-white border-slate-200 text-slate-900 rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -240,10 +241,10 @@ export default function AdminModerationAudit() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-white/[0.06] overflow-hidden">
+      <div className="rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-white/[0.03] text-[10px] uppercase tracking-[0.12em] text-slate-500">
+            <thead className="bg-white text-[10px] uppercase tracking-[0.12em] text-slate-500">
               <tr>
                 <th className="text-left px-3 py-2.5">When</th>
                 <th className="text-left px-3 py-2.5">Action</th>
@@ -421,7 +422,7 @@ function DiffBlock({ label, data }: { label: string; data: any }) {
       <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500 font-bold mb-1">
         {label}
       </div>
-      <pre className="bg-black/40 border border-white/[0.06] rounded-lg p-3 text-[11px] text-slate-300 font-mono overflow-x-auto max-h-72">
+      <pre className="bg-black/40 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-300 font-mono overflow-x-auto max-h-72">
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>

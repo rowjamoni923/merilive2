@@ -1138,7 +1138,8 @@ const AdminSupportTickets = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">

@@ -275,21 +275,22 @@ const AdminChatInspector = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Shield className="w-6 h-6 text-purple-400" />
           Moderation & Chat Inspector
         </h1>
-        <p className="text-white/60 text-sm mt-1">
+        <p className="text-slate-600 text-sm mt-1">
           Chat inspection, number sharing detection, violations & live bans — all in one place
         </p>
       </div>
 
       {/* Main 5-Tab Navigation */}
       <Tabs value={mainTab} onValueChange={setMainTab}>
-        <TabsList className="bg-slate-800/50 border border-slate-700 mb-4 grid grid-cols-5 h-auto">
+        <TabsList className="bg-white border-slate-200 border border-slate-200 mb-4 grid grid-cols-5 h-auto">
           <TabsTrigger value="chat-search" className="data-[state=active]:bg-purple-600 py-2.5 text-xs">
             <MessageSquare className="w-4 h-4 mr-1" /> Chat
           </TabsTrigger>
@@ -319,7 +320,7 @@ const AdminChatInspector = () => {
               variant="ghost"
               size="sm"
               onClick={() => { setSelectedConversation(null); setMessages([]); }}
-              className="text-white/70 hover:text-white"
+              className="text-slate-700 hover:text-slate-900"
             >
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to conversations
             </Button>
@@ -329,7 +330,7 @@ const AdminChatInspector = () => {
               variant="ghost"
               size="sm"
               onClick={() => { setSelectedUser(null); setConversations([]); }}
-              className="text-white/70 hover:text-white"
+              className="text-slate-700 hover:text-slate-900"
             >
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to search
             </Button>
@@ -338,12 +339,12 @@ const AdminChatInspector = () => {
           {/* Search Box */}
           {!selectedUser && (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Search by UID or name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-white/40"
+                className="pl-10 bg-white border-slate-200 border-slate-200 text-slate-900 placeholder:text-slate-400"
               />
             </div>
           )}
@@ -355,7 +356,7 @@ const AdminChatInspector = () => {
                 <div
                   key={user.id}
                   onClick={() => loadConversations(user)}
-                  className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-white border-slate-200 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
                 >
                   <Avatar className="w-10 h-10 border-2 border-purple-500/30">
                     <UserAvatarImage gender={((user) as any)?.gender} seed={((user) as any)?.id ?? ((user) as any)?.user_id ?? ((user) as any)?.host_id} src={user.avatar_url || ""} />
@@ -365,16 +366,16 @@ const AdminChatInspector = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-medium text-sm truncate">
+                      <span className="text-slate-900 font-medium text-sm truncate">
                         {user.display_name || "Unknown"}
                       </span>
                       {user.country_flag && <span className="text-sm">{user.country_flag}</span>}
                       {user.is_host && <Badge className="bg-pink-600/30 text-pink-300 text-[10px] px-1.5">Host</Badge>}
                       {user.is_blocked && <Badge className="bg-red-600/30 text-red-300 text-[10px] px-1.5">Blocked</Badge>}
                     </div>
-                    <p className="text-white/50 text-xs"><CopyableUid value={user.app_uid || "—"} /></p>
+                    <p className="text-slate-500 text-xs"><CopyableUid value={user.app_uid || "—"} /></p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-white/30" />
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
               ))}
             </div>
@@ -393,14 +394,14 @@ const AdminChatInspector = () => {
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-white font-bold">{selectedUser.display_name}</h3>
+                      <h3 className="text-slate-900 font-bold">{selectedUser.display_name}</h3>
                       {selectedUser.country_flag && <span>{selectedUser.country_flag}</span>}
                     </div>
-                    <p className="text-white/50 text-sm"><CopyableUid value={selectedUser.app_uid} /></p>
+                    <p className="text-slate-500 text-sm"><CopyableUid value={selectedUser.app_uid} /></p>
                     <div className="flex gap-1.5 mt-1">
                       {selectedUser.is_host && <Badge className="bg-pink-600/30 text-pink-300 text-[10px]">🎤 Host</Badge>}
                       {selectedUser.is_blocked && <Badge className="bg-red-600/30 text-red-300 text-[10px]">🚫 Blocked</Badge>}
-                      <Badge className="bg-slate-700 text-white/60 text-[10px]">Lv.{selectedUser.user_level || 1}</Badge>
+                      <Badge className="bg-slate-100 text-slate-600 text-[10px]">Lv.{selectedUser.user_level || 1}</Badge>
                     </div>
                   </div>
                 </div>
@@ -411,13 +412,13 @@ const AdminChatInspector = () => {
                   <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
                 </div>
               ) : conversations.length === 0 ? (
-                <div className="text-center py-10 text-white/40">
+                <div className="text-center py-10 text-slate-400">
                   <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-40" />
                   <p>No conversations found</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-white/50 text-sm font-medium">
+                  <p className="text-slate-500 text-sm font-medium">
                     {conversations.length} conversations
                   </p>
                   {conversations.map((conv) => (
@@ -428,18 +429,18 @@ const AdminChatInspector = () => {
                         "flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors",
                         conv.has_violations
                           ? "bg-red-900/20 border-red-500/30 hover:bg-red-900/30"
-                          : "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50"
+                          : "bg-white border-slate-200 border-slate-200 hover:bg-slate-100"
                       )}
                     >
                       <Avatar className="w-10 h-10">
                         <UserAvatarImage seed={(((conv.other_user) as any)?.id ?? ((conv.other_user) as any)?.user_id ?? ((conv.other_user) as any)?.host_id)} gender={((conv.other_user) as any)?.gender} src={conv.other_user.avatar_url || ""} />
-                        <AvatarFallback className="bg-slate-700 text-white/60 text-sm">
+                        <AvatarFallback className="bg-slate-100 text-slate-600 text-sm">
                           {conv.other_user.display_name?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-medium text-sm truncate">
+                          <span className="text-slate-900 font-medium text-sm truncate">
                             {conv.other_user.display_name || "Unknown"}
                           </span>
                           {conv.other_user.country_flag && <span className="text-xs">{conv.other_user.country_flag}</span>}
@@ -451,21 +452,21 @@ const AdminChatInspector = () => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs truncate">
+                        <p className="text-slate-400 text-xs truncate">
                           {conv.last_message?.content || "No messages"}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <Badge className="bg-slate-700 text-white/50 text-[10px]">
+                        <Badge className="bg-slate-100 text-slate-500 text-[10px]">
                           {conv.message_count} msgs
                         </Badge>
                         {conv.last_message_at && (
-                          <p className="text-[10px] text-white/30 mt-1">
+                          <p className="text-[10px] text-slate-400 mt-1">
                             {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}
                           </p>
                         )}
                       </div>
-                      <ChevronRight className="w-4 h-4 text-white/20" />
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
                     </div>
                   ))}
                 </div>
@@ -476,22 +477,22 @@ const AdminChatInspector = () => {
           {/* Messages View */}
           {selectedConversation && (
             <div className="space-y-3">
-              <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl flex items-center gap-3">
+              <div className="p-3 bg-white border-slate-200 border border-slate-200 rounded-xl flex items-center gap-3">
                 <Avatar className="w-8 h-8">
                   <UserAvatarImage seed={(((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id)} gender={((selectedUser) as any)?.gender} src={selectedUser?.avatar_url || ""} />
                   <AvatarFallback className="bg-purple-900/50 text-purple-300 text-xs">
                     {selectedUser?.display_name?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-white/80 text-sm font-medium">{selectedUser?.display_name}</span>
-                <span className="text-white/30 text-xs">↔</span>
+                <span className="text-slate-800 text-sm font-medium">{selectedUser?.display_name}</span>
+                <span className="text-slate-400 text-xs">↔</span>
                 <Avatar className="w-8 h-8">
                   <UserAvatarImage seed={(((selectedConversation.other_user) as any)?.id ?? ((selectedConversation.other_user) as any)?.user_id ?? ((selectedConversation.other_user) as any)?.host_id)} gender={((selectedConversation.other_user) as any)?.gender} src={selectedConversation.other_user.avatar_url || ""} />
-                  <AvatarFallback className="bg-slate-700 text-white/60 text-xs">
+                  <AvatarFallback className="bg-slate-100 text-slate-600 text-xs">
                     {selectedConversation.other_user.display_name?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-white/80 text-sm font-medium">{selectedConversation.other_user.display_name}</span>
+                <span className="text-slate-800 text-sm font-medium">{selectedConversation.other_user.display_name}</span>
               </div>
 
               {loadingMessages ? (
@@ -499,7 +500,7 @@ const AdminChatInspector = () => {
                   <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
                 </div>
               ) : (
-                <ScrollArea className="h-[60vh] rounded-xl border border-slate-700 bg-slate-900/50 p-3">
+                <ScrollArea className="h-[60vh] rounded-xl border border-slate-200 bg-slate-900/50 p-3">
                   <div className="space-y-2">
                     {messages.map((msg) => {
                       const isTarget = msg.sender_id === selectedUser?.id;
@@ -516,14 +517,14 @@ const AdminChatInspector = () => {
                             className={cn(
                               "max-w-[75%] p-2.5 rounded-xl text-sm relative",
                               isTarget
-                                ? "bg-slate-800 text-white/90 rounded-tl-sm"
-                                : "bg-purple-900/40 text-white/90 rounded-tr-sm",
+                                ? "bg-white text-slate-900 rounded-tl-sm"
+                                : "bg-purple-900/40 text-slate-900 rounded-tr-sm",
                               flagged && "ring-2 ring-red-500 bg-red-900/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
                             )}
                           >
                             {flagged && (
                               <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
-                                <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                                <AlertTriangle className="w-3.5 h-3.5 text-slate-900" />
                               </div>
                             )}
                             <p className="text-[10px] font-semibold mb-0.5" style={{ color: isTarget ? '#a78bfa' : '#f0abfc' }}>
@@ -531,11 +532,11 @@ const AdminChatInspector = () => {
                             </p>
 
                             {msg.message_type === 'image' ? (
-                              <div className="text-white/50 text-xs italic">[📷 Image]</div>
+                              <div className="text-slate-500 text-xs italic">[📷 Image]</div>
                             ) : msg.message_type === 'audio' ? (
-                              <div className="text-white/50 text-xs italic">[🎵 Audio]</div>
+                              <div className="text-slate-500 text-xs italic">[🎵 Audio]</div>
                             ) : msg.message_type === 'gift' ? (
-                              <div className="text-white/50 text-xs italic">[🎁 Gift]</div>
+                              <div className="text-slate-500 text-xs italic">[🎁 Gift]</div>
                             ) : (
                               <>
                                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -561,7 +562,7 @@ const AdminChatInspector = () => {
                               </div>
                             )}
 
-                            <p className="text-[9px] text-white/30 mt-1 text-right">
+                            <p className="text-[9px] text-slate-400 mt-1 text-right">
                               {format(new Date(msg.created_at), "dd MMM yyyy, hh:mm a")}
                             </p>
                           </div>
@@ -569,7 +570,7 @@ const AdminChatInspector = () => {
                       );
                     })}
                     {messages.length === 0 && (
-                      <p className="text-center text-white/30 py-10">No messages</p>
+                      <p className="text-center text-slate-400 py-10">No messages</p>
                     )}
                   </div>
                 </ScrollArea>
@@ -578,7 +579,7 @@ const AdminChatInspector = () => {
           )}
 
           {!selectedUser && searchResults.length === 0 && !searching && (
-            <div className="text-center py-16 text-white/30">
+            <div className="text-center py-16 text-slate-400">
               <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-lg font-medium">Search Users</p>
               <p className="text-sm mt-1">Search by UID or name to view their messages</p>
@@ -589,7 +590,7 @@ const AdminChatInspector = () => {
         {/* ========== TAB 2: PHONE ALERTS ========== */}
         <TabsContent value="phone-alerts" className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-white/50 text-sm">
+            <p className="text-slate-500 text-sm">
               {phoneAlerts.length > 0 ? `Latest ${phoneAlerts.length} number detections` : ''}
             </p>
             <Button
@@ -597,7 +598,7 @@ const AdminChatInspector = () => {
               variant="ghost"
               onClick={() => void loadPhoneAlerts(true)}
               disabled={loadingAlerts}
-              className="text-white/50 hover:text-white"
+              className="text-slate-500 hover:text-slate-900"
             >
               <RefreshCw className={cn("w-4 h-4 mr-1", loadingAlerts && "animate-spin")} />
               Refresh
@@ -609,7 +610,7 @@ const AdminChatInspector = () => {
               <Loader2 className="w-6 h-6 text-red-400 animate-spin" />
             </div>
           ) : phoneAlerts.length === 0 ? (
-            <div className="text-center py-16 text-white/30">
+            <div className="text-center py-16 text-slate-400">
               <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p>No number sharing alerts</p>
             </div>
@@ -626,10 +627,10 @@ const AdminChatInspector = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-white font-medium text-sm">
+                        <span className="text-slate-900 font-medium text-sm">
                           {alert.user?.display_name || "Unknown"}
                         </span>
-                        <span className="text-white/40 text-xs">
+                        <span className="text-slate-400 text-xs">
                           <CopyableUid value={alert.user?.app_uid || "—"} />
                         </span>
                         {alert.user?.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
@@ -645,10 +646,10 @@ const AdminChatInspector = () => {
                         </p>
                       )}
                       {alert.notes && (
-                        <p className="text-white/40 text-[10px] mt-1 truncate">{alert.notes}</p>
+                        <p className="text-slate-400 text-[10px] mt-1 truncate">{alert.notes}</p>
                       )}
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className="text-white/30 text-[10px]">
+                        <span className="text-slate-400 text-[10px]">
                           {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
                         </span>
                         {alert.action_taken && (
@@ -724,7 +725,7 @@ const AdminChatInspector = () => {
 
       {/* ========== BAN DIALOG ========== */}
       <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+        <DialogContent className="bg-slate-900 border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Gavel className="w-5 h-5" />
@@ -734,7 +735,7 @@ const AdminChatInspector = () => {
 
           {banTargetUser && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-white border-slate-200 border border-slate-200 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
                   <UserAvatarImage gender={((banTargetUser) as any)?.gender} seed={((banTargetUser) as any)?.id ?? ((banTargetUser) as any)?.user_id ?? ((banTargetUser) as any)?.host_id} src={banTargetUser.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
@@ -742,23 +743,23 @@ const AdminChatInspector = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-medium text-sm">{banTargetUser.display_name}</p>
-                  <p className="text-white/40 text-xs"><CopyableUid value={banTargetUser.app_uid} /></p>
+                  <p className="text-slate-900 font-medium text-sm">{banTargetUser.display_name}</p>
+                  <p className="text-slate-400 text-xs"><CopyableUid value={banTargetUser.app_uid} /></p>
                 </div>
                 {banTargetUser.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
               </div>
 
               {/* Ban Type - 3 Tiers */}
               <div>
-                <p className="text-white/70 text-sm mb-2 font-medium">Ban Type</p>
+                <p className="text-slate-700 text-sm mb-2 font-medium">Ban Type</p>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setBanType("normal")}
                     className={cn(
                       "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
                       banType === "normal"
-                        ? "bg-yellow-600 border-yellow-500 text-white"
-                        : "bg-slate-800 border-slate-700 text-white/60 hover:border-yellow-500/50"
+                        ? "bg-yellow-600 border-yellow-500 text-slate-900"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-yellow-500/50"
                     )}
                   >
                     ⏱️ Normal
@@ -768,8 +769,8 @@ const AdminChatInspector = () => {
                     className={cn(
                       "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
                       banType === "medium"
-                        ? "bg-orange-600 border-orange-500 text-white"
-                        : "bg-slate-800 border-slate-700 text-white/60 hover:border-orange-500/50"
+                        ? "bg-orange-600 border-orange-500 text-slate-900"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-orange-500/50"
                     )}
                   >
                     🚫 Medium
@@ -779,8 +780,8 @@ const AdminChatInspector = () => {
                     className={cn(
                       "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
                       banType === "urgent"
-                        ? "bg-red-700 border-red-600 text-white"
-                        : "bg-slate-800 border-slate-700 text-white/60 hover:border-red-500/50"
+                        ? "bg-red-700 border-red-600 text-slate-900"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-red-500/50"
                     )}
                   >
                     🚨 Urgent
@@ -808,7 +809,7 @@ const AdminChatInspector = () => {
 
               {banType === "normal" && (
                 <div>
-                  <p className="text-white/70 text-sm mb-2 font-medium">
+                  <p className="text-slate-700 text-sm mb-2 font-medium">
                     <Clock className="w-4 h-4 inline mr-1" />
                     Ban Duration
                   </p>
@@ -829,8 +830,8 @@ const AdminChatInspector = () => {
                         className={cn(
                           "px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
                           banDuration === opt.value
-                            ? "bg-yellow-600 border-yellow-500 text-white"
-                            : "bg-slate-800 border-slate-700 text-white/60 hover:border-yellow-500/50"
+                            ? "bg-yellow-600 border-yellow-500 text-slate-900"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-yellow-500/50"
                         )}
                       >
                         {opt.label}
@@ -843,35 +844,35 @@ const AdminChatInspector = () => {
                       placeholder="Enter hours..."
                       value={banCustomHours}
                       onChange={(e) => setBanCustomHours(e.target.value)}
-                      className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-white/30"
+                      className="mt-2 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
                     />
                   )}
                 </div>
               )}
 
               <div>
-                <p className="text-white/70 text-sm mb-2 font-medium">
+                <p className="text-slate-700 text-sm mb-2 font-medium">
                   Ban Reason
                 </p>
                 <Textarea
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
                   placeholder="Enter reason for ban..."
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-white/30 min-h-[60px]"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 min-h-[60px]"
                 />
               </div>
 
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
-                  className="flex-1 text-white/60"
+                  className="flex-1 text-slate-600"
                   onClick={() => setShowBanDialog(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   className={cn(
-                    "flex-1 text-white",
+                    "flex-1 text-slate-900",
                     banType === "urgent"
                       ? "bg-red-700 hover:bg-red-800"
                       : banType === "medium"

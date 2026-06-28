@@ -389,7 +389,8 @@ const AdminGmailSupport = () => {
   ];
 
   return (
-    <div className="space-y-4 min-h-0">
+    <div className="admin-pro-shell admin-content space-y-4 p-4 md:p-6 min-h-0 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
