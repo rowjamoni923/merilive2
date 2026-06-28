@@ -205,8 +205,8 @@ export default function AdminLogs() {
       {/* Filters */}
       <Card className="bg-slate-50 border-slate-200 shadow-sm">
         <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col md:flex-row md:flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
               <Input
                 placeholder="Search by admin name or target ID..."
@@ -220,14 +220,54 @@ export default function AdminLogs() {
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Action Filter" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-50 border-slate-200">
+              <SelectContent className="bg-white border-slate-200">
                 {actionTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value} className="text-slate-800 focus:bg-slate-700 focus:text-slate-900">
+                  <SelectItem key={type.value} value={type.value} className="text-slate-800">
                     {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Select value={levelFilter} onValueChange={(v) => setLevelFilter(v as any)}>
+              <SelectTrigger className="w-full md:w-36 bg-white border-slate-200 text-slate-800">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-slate-200">
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warn">Warning</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full md:w-44 bg-white border-slate-200 text-slate-900"
+              aria-label="From date"
+            />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full md:w-44 bg-white border-slate-200 text-slate-900"
+              aria-label="To date"
+            />
+            {(dateFrom || dateTo || levelFilter !== "all" || actionFilter !== "all" || searchQuery) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setLevelFilter("all");
+                  setActionFilter("all");
+                  setSearchQuery("");
+                }}
+                className="border-slate-200 text-slate-700"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
