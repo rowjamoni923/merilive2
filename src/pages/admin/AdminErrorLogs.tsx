@@ -177,7 +177,8 @@ export default function AdminErrorLogs() {
 
   useEffect(() => {
     fetchErrors();
-  }, [filterType, filterResolved, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterType, filterLevel, filterResolved, searchQuery, dateFrom, dateTo]);
 
   useAdminRealtime(['system_error_logs'], () => fetchErrors());
 
