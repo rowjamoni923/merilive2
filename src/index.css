@@ -2689,27 +2689,66 @@ body[data-admin-active="true"] #root {
 
 
 /* ============================================
-   CARD & CONTAINER BACKGROUNDS
+   CARD & CONTAINER BACKGROUNDS — Cloud White
    ============================================ */
-.admin-content .card,
-.admin-content [class*="bg-white"]:not([class*="bg-white/"]),
+.admin-content .card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06);
+}
+
+/* Translucent whites/blacks → opaque white surface */
+.admin-content [class*="bg-white/"] {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+.admin-content [class*="bg-black/"] {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* Dark solid surfaces → flatten to white card so text stays readable */
+.admin-content [class*="bg-slate-9"],
+.admin-content [class*="bg-slate-8"],
+.admin-content [class*="bg-slate-7"],
+.admin-content [class*="bg-zinc-9"],
+.admin-content [class*="bg-zinc-8"],
+.admin-content [class*="bg-zinc-7"],
+.admin-content [class*="bg-neutral-9"],
+.admin-content [class*="bg-neutral-8"],
+.admin-content [class*="bg-gray-9"],
+.admin-content [class*="bg-gray-8"],
+.admin-content [class*="bg-stone-9"],
+.admin-content [class*="bg-stone-8"],
+.admin-content [class*="bg-black"]:not([class*="bg-black/"]) {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* Dark custom-hex gradients (e.g. from-[#0f0a1a]) → neutralize to white */
+.admin-content [class*="from-["],
+.admin-content [class*="via-["],
+.admin-content [class*="to-["] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* Light pastel surfaces — keep faint tint, force dark text */
 .admin-content [class*="bg-slate-50"],
 .admin-content [class*="bg-slate-100"],
 .admin-content [class*="bg-gray-50"],
 .admin-content [class*="bg-gray-100"],
 .admin-content [class*="bg-zinc-50"],
-.admin-content [class*="bg-zinc-100"] {
-  background: hsl(230 14% 8%) !important;
-  border: 1px solid hsl(225 15% 16%) !important;
-  color: hsl(210 40% 96%) !important;
-}
-
-.admin-content [class*="bg-white/"] {
-  background: hsl(230 12% 12% / 0.6) !important;
-  color: hsl(210 40% 96%) !important;
-}
-
-/* ALL colored light backgrounds → dark admin */
+.admin-content [class*="bg-zinc-100"],
+.admin-content [class*="bg-neutral-50"],
+.admin-content [class*="bg-neutral-100"],
+.admin-content [class*="bg-stone-50"],
+.admin-content [class*="bg-stone-100"],
 .admin-content [class*="bg-amber-50"],
 .admin-content [class*="bg-amber-100"],
 .admin-content [class*="bg-yellow-50"],
@@ -2742,22 +2781,11 @@ body[data-admin-active="true"] #root {
 .admin-content [class*="bg-fuchsia-100"],
 .admin-content [class*="bg-lime-50"],
 .admin-content [class*="bg-lime-100"] {
-  background: hsl(230 12% 11%) !important;
-  border-color: hsl(225 15% 18%) !important;
-  color: hsl(210 40% 96%) !important;
-}
-
-/* Secondary backgrounds */
-.admin-content [class*="bg-slate-200"],
-.admin-content [class*="bg-gray-200"],
-.admin-content [class*="bg-gray-300"],
-.admin-content [class*="bg-muted"] {
-  background: hsl(230 12% 13%) !important;
-  border-color: hsl(225 15% 20%) !important;
+  color: #0F172A !important;
 }
 
 /* ============================================
-   TEXT — High contrast hierarchy
+   TEXT — Cloud White hierarchy
    ============================================ */
 .admin-content h1,
 .admin-content h2,
@@ -2765,109 +2793,97 @@ body[data-admin-active="true"] #root {
 .admin-content h4,
 .admin-content h5,
 .admin-content h6 {
-  color: hsl(210 40% 97%) !important;
+  color: #0F172A !important;
   font-weight: 700;
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
-.admin-content p,
-.admin-content span,
-.admin-content label,
-.admin-content div {
-  color: inherit;
+/* Near-white / very light text utilities → dark slate
+   (prevents white-on-white bleed across all 160 admin pages) */
+.admin-content .text-white,
+.admin-content [class*="text-white/"],
+.admin-content .text-slate-50, .admin-content .text-slate-100, .admin-content .text-slate-200,
+.admin-content .text-zinc-50,  .admin-content .text-zinc-100,  .admin-content .text-zinc-200,
+.admin-content .text-neutral-50,.admin-content .text-neutral-100,.admin-content .text-neutral-200,
+.admin-content .text-gray-50,  .admin-content .text-gray-100,  .admin-content .text-gray-200,
+.admin-content .text-stone-50, .admin-content .text-stone-100, .admin-content .text-stone-200 {
+  color: #0F172A !important;
 }
 
-/* Dark text classes → bright white */
-.admin-content [class*="text-white"],
-.admin-content [class*="text-slate-700"],
-.admin-content [class*="text-slate-800"],
-.admin-content [class*="text-slate-900"],
-.admin-content [class*="text-gray-700"],
-.admin-content [class*="text-gray-800"],
-.admin-content [class*="text-gray-900"],
-.admin-content [class*="text-zinc-700"],
-.admin-content [class*="text-zinc-800"],
-.admin-content [class*="text-zinc-900"],
-.admin-content [class*="text-black"],
-.admin-content [class*="text-foreground"] {
-  color: hsl(210 40% 97%) !important;
+/* Soft secondary text */
+.admin-content .text-slate-300, .admin-content .text-slate-400,
+.admin-content .text-zinc-300,  .admin-content .text-zinc-400,
+.admin-content .text-neutral-300,.admin-content .text-neutral-400,
+.admin-content .text-gray-300,  .admin-content .text-gray-400,
+.admin-content .text-stone-300, .admin-content .text-stone-400 {
+  color: #64748B !important;
+}
+.admin-content .text-slate-500, .admin-content .text-zinc-500,
+.admin-content .text-neutral-500, .admin-content .text-gray-500, .admin-content .text-stone-500 {
+  color: #475569 !important;
 }
 
-/* Muted/secondary text — clean gray */
-.admin-content [class*="text-slate-400"],
-.admin-content [class*="text-slate-500"],
-.admin-content [class*="text-slate-600"],
-.admin-content [class*="text-gray-400"],
-.admin-content [class*="text-gray-500"],
-.admin-content [class*="text-gray-600"],
-.admin-content [class*="text-zinc-400"],
-.admin-content [class*="text-zinc-500"],
-.admin-content [class*="text-zinc-600"],
-.admin-content [class*="text-muted"],
-.admin-content [class*="text-muted-foreground"] {
-  color: hsl(215 20% 58%) !important;
-}
+/* Semantic tokens that often resolve to white in dark themes */
+.admin-content .text-foreground,
+.admin-content .text-card-foreground,
+.admin-content .text-popover-foreground,
+.admin-content .text-secondary-foreground,
+.admin-content .text-accent-foreground { color: #0F172A !important; }
+.admin-content .text-muted-foreground { color: #64748B !important; }
 
 /* ============================================
-   INPUT, TEXTAREA, SELECT
+   INPUT, TEXTAREA, SELECT — Cloud White
    ============================================ */
-.admin-content input,
+.admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .admin-content textarea,
 .admin-content select,
-.admin-content [role="combobox"],
-.admin-content [role="listbox"],
-.admin-content .input {
-  background: hsl(230 14% 10%) !important;
-  border-color: hsl(225 15% 20%) !important;
-  color: hsl(210 40% 96%) !important;
+.admin-content [role="combobox"] {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
 }
 
 .admin-content input::placeholder,
 .admin-content textarea::placeholder {
-  color: hsl(215 15% 42%) !important;
+  color: #94A3B8 !important;
 }
 
 .admin-content input:focus,
 .admin-content textarea:focus,
 .admin-content select:focus,
 .admin-content [role="combobox"]:focus {
-  border-color: hsl(262 80% 60%) !important;
-  box-shadow: 0 0 0 3px hsl(262 80% 60% / 0.15) !important;
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.18) !important;
   outline: none !important;
 }
 
 /* ============================================
-   DROPDOWNS — high z-index, solid bg
+   DROPDOWNS / POPOVERS
    ============================================ */
 .admin-content [role="listbox"],
 .admin-content [role="menu"],
-.admin-content [data-radix-popper-content-wrapper],
-.admin-content [class*="SelectContent"],
-.admin-content [class*="DropdownMenuContent"] {
+.admin-content [data-radix-popper-content-wrapper] > * {
   z-index: 9999 !important;
-  background: hsl(230 14% 10%) !important;
-  border: 1px solid hsl(225 15% 20%) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 12px 32px -12px rgba(15,23,42,0.18) !important;
 }
 
-.admin-content [role="listbox"] > *,
-.admin-content [role="menu"] > *,
 .admin-content [role="option"],
-.admin-content [role="menuitem"],
-.admin-content [class*="SelectItem"],
-.admin-content [class*="DropdownMenuItem"] {
+.admin-content [role="menuitem"] {
   background: transparent !important;
-  color: hsl(210 40% 96%) !important;
+  color: #0F172A !important;
 }
 
 .admin-content [role="option"]:hover,
 .admin-content [role="option"]:focus,
 .admin-content [role="option"][data-highlighted],
 .admin-content [role="menuitem"]:hover,
-.admin-content [role="menuitem"]:focus,
-.admin-content [class*="SelectItem"]:hover,
-.admin-content [class*="SelectItem"]:focus,
-.admin-content [class*="SelectItem"][data-highlighted] {
-  background: hsl(262 50% 25%) !important;
-  color: white !important;
+.admin-content [role="menuitem"]:focus {
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
 }
 
 /* ============================================
