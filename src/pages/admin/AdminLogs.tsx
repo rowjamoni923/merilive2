@@ -76,16 +76,23 @@ export default function AdminLogs() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(10);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [, setNowTick] = useState(0);
+
+  // Re-render every second so the "updated Ns ago" label stays accurate
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!autoRefresh) return;
     const id = setInterval(() => {
       fetchLogs();
-      setLastRefresh(new Date());
     }, refreshInterval * 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, refreshInterval, actionFilter, dateFrom, dateTo]);
+
 
   useEffect(() => {
     fetchLogs();
@@ -156,8 +163,20 @@ export default function AdminLogs() {
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
   };
+
+  const formatAgo = (d: Date) => {
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 5) return "just now";
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  };
+
 
   const getActionIcon = (actionType: string) => {
     if (actionType.includes("block")) return <Ban className="w-4 h-4 text-red-400" />;
@@ -239,9 +258,25 @@ export default function AdminLogs() {
             <FileText className="w-7 h-7" />
             Activity Log
           </h1>
-          <p className="text-slate-900/80 text-sm mt-1">
-            All admin activities {autoRefresh && <span className="ml-2 inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live · {refreshInterval}s</span>}
+          <p className="text-slate-900/80 text-sm mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>All admin activities</span>
+            {autoRefresh ? (
+              <span className="inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live · {refreshInterval}s
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                Paused
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1" title={lastRefresh.toLocaleString()}>
+              <Clock className="w-3 h-3" />
+              Updated {formatAgo(lastRefresh)}
+            </span>
           </p>
+
         </div>
         <div className="flex flex-wrap gap-2">
           <Button

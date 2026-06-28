@@ -105,6 +105,24 @@ export default function AdminErrorLogs() {
   });
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(10);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [, setNowTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const formatAgo = (d: Date) => {
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 5) return "just now";
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  };
+
 
   const LEVEL_MAP: Record<"info" | "warn" | "error", string[]> = {
     info: ["info"],
@@ -185,6 +203,7 @@ export default function AdminErrorLogs() {
       toast.error('Failed to load error logs');
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
   };
 
@@ -348,15 +367,25 @@ export default function AdminErrorLogs() {
             <Bug className="w-7 h-7 text-red-400" />
             System Error Logs
           </h1>
-          <p className="text-muted-foreground mt-1 flex items-center gap-2">
-            All application errors are recorded here
-            {autoRefresh && (
-              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+          <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span className="text-sm">All application errors are recorded here</span>
+            {autoRefresh ? (
+              <span className="inline-flex items-center gap-1 text-emerald-600">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live · {refreshInterval}s
               </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-slate-500">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                Paused
+              </span>
             )}
+            <span className="inline-flex items-center gap-1 text-slate-600" title={lastRefresh.toLocaleString()}>
+              <Clock className="w-3 h-3" />
+              Updated {formatAgo(lastRefresh)}
+            </span>
           </p>
+
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setAutoRefresh((v) => !v)}>
