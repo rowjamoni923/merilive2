@@ -3632,13 +3632,20 @@ const FaceVerification = () => {
           <p className="text-slate-600 text-center px-6">
             {submitInProgress
               ? 'Your live scan is being uploaded securely. The camera is off and AI review will start automatically.'
-              : 'Your face verification has been submitted and is now under AI/admin review. Please wait for approval.'}
+              : 'Your face verification has been submitted. AI review usually completes in under 2 minutes. If manual review is needed, our team will decide within 30 minutes. You will be notified the moment a decision is made — no need to wait on this screen.'}
           </p>
+          {!submitInProgress && (
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+              Estimated wait: under 2 minutes · max 30 minutes
+            </div>
+          )}
           {!submitInProgress && (
             <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
               Back to Profile
             </Button>
           )}
+
         </div>
         </div>
       </div>
