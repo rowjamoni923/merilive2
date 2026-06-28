@@ -7314,6 +7314,41 @@ body[data-admin-active="true"] header.sticky {
   background: hsl(var(--admin-sidebar-item-active-bar));
 }
 
+/* Unified top-bar / nav-trigger hover+active — synced with sidebar tokens */
+.admin-pro-shell [data-admin-navbtn],
+.admin-pro-shell .admin-navbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  color: hsl(var(--admin-sidebar-item));
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.admin-pro-shell [data-admin-navbtn]:hover,
+.admin-pro-shell .admin-navbtn:hover {
+  background: hsl(var(--admin-sidebar-item-hover-bg));
+  color: hsl(var(--admin-sidebar-item-active-ink));
+  border-color: hsl(var(--admin-sidebar-item-active-bg));
+}
+.admin-pro-shell [data-admin-navbtn][data-active="true"],
+.admin-pro-shell [data-admin-navbtn][aria-current="page"],
+.admin-pro-shell .admin-navbtn.is-active {
+  background: hsl(var(--admin-sidebar-item-active-bg));
+  color: hsl(var(--admin-sidebar-item-active-ink));
+  border-color: hsl(var(--admin-sidebar-item-active-bar) / 0.35);
+  box-shadow: var(--admin-shadow-xs);
+}
+.admin-pro-shell [data-admin-navbtn]:focus-visible,
+.admin-pro-shell .admin-navbtn:focus-visible,
+.admin-pro-shell .admin-sidebar-item:focus-visible {
+  outline: 2px solid hsl(var(--admin-sidebar-item-active-bar) / 0.55);
+  outline-offset: 2px;
+}
+
+
 /* Text ------------------------------------------------------- */
 .admin-heading {
   color: hsl(var(--admin-text-strong));
