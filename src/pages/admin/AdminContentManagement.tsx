@@ -61,8 +61,8 @@ export default function AdminContentManagement() {
             <Camera className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Content Management</h1>
-            <p className="text-slate-400 text-sm">
+            <h1 className="text-2xl font-bold text-slate-900">Content Management</h1>
+            <p className="text-slate-500 text-sm">
               Manage streams, recordings, reels, banners & content
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function AdminContentManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Live Streams</p>
-              <p className="text-white font-bold text-xl">{stats.activeStreams}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeStreams}</p>
             </div>
           </CardContent>
         </Card>
@@ -90,7 +90,7 @@ export default function AdminContentManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Recordings</p>
-              <p className="text-white font-bold text-xl">{stats.totalRecordings}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.totalRecordings}</p>
             </div>
           </CardContent>
         </Card>
@@ -102,7 +102,7 @@ export default function AdminContentManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Pending Reels</p>
-              <p className="text-white font-bold text-xl">{stats.pendingReels}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.pendingReels}</p>
             </div>
           </CardContent>
         </Card>
@@ -114,7 +114,7 @@ export default function AdminContentManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Active Banners</p>
-              <p className="text-white font-bold text-xl">{stats.activeBanners}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeBanners}</p>
             </div>
           </CardContent>
         </Card>
@@ -169,7 +169,7 @@ export default function AdminContentManagement() {
         <TabsContent value="streams" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Camera className="w-5 h-5 text-red-400" />
                 Live Streams
                 <Badge variant="outline" className="ml-2 text-red-400 border-red-500/50">
@@ -186,7 +186,7 @@ export default function AdminContentManagement() {
         <TabsContent value="recordings" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Film className="w-5 h-5 text-blue-400" />
                 Stream Recordings
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">
@@ -203,7 +203,7 @@ export default function AdminContentManagement() {
         <TabsContent value="reels" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Play className="w-5 h-5 text-purple-400" />
                 Reels Management
                 <Badge variant="outline" className="ml-2 text-purple-400 border-purple-500/50">
@@ -220,7 +220,7 @@ export default function AdminContentManagement() {
         <TabsContent value="banners" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Image className="w-5 h-5 text-amber-400" />
                 Promotional Banners
                 <Badge variant="outline" className="ml-2 text-amber-400 border-amber-500/50">
@@ -237,7 +237,7 @@ export default function AdminContentManagement() {
         <TabsContent value="content" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <FileText className="w-5 h-5 text-green-400" />
                 Content Pages
                 <Badge variant="outline" className="ml-2 text-green-400 border-green-500/50">
