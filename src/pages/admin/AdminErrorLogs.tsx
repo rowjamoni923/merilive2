@@ -112,14 +112,27 @@ export default function AdminErrorLogs() {
         query = query.eq('error_type', filterType);
       }
 
+      if (filterLevel !== 'all') {
+        query = query.in('error_type', LEVEL_MAP[filterLevel]);
+      }
+
       if (filterResolved === 'resolved') {
         query = query.eq('is_resolved', true);
       } else if (filterResolved === 'unresolved') {
         query = query.eq('is_resolved', false);
       }
 
+      if (dateFrom) {
+        query = query.gte('created_at', new Date(dateFrom).toISOString());
+      }
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte('created_at', end.toISOString());
+      }
+
       if (searchQuery) {
-        query = query.or(`error_message.ilike.%${searchQuery}%,page_path.ilike.%${searchQuery}%`);
+        query = query.or(`error_message.ilike.%${searchQuery}%,page_path.ilike.%${searchQuery}%,component_name.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query;
