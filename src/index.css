@@ -6678,3 +6678,211 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell .blur-3xl,
 .admin-pro-shell .blur-2xl { opacity: 0.25 !important; }
 
+/* ============================================================
+   ADMIN CLOUD WHITE + 3D — Section 1: Overview (Dashboard,
+   Reports & Analytics) + Sidebar + Top Header.
+   Reskins the legacy obsidian (#06060a / #08080e / #0c0c14 /
+   #1a1a2e) surfaces into the locked Cloud White system with
+   soft 3D elevation, hover lift, and accent preservation.
+   Scoped to body[data-admin-active="true"] so it ONLY affects
+   the admin panel — never leaks into the consumer app.
+   ============================================================ */
+
+/* ---------- Sidebar (aside) ---------- */
+body[data-admin-active="true"] aside {
+  background: #FFFFFF !important;
+  border-right: 1px solid #E2E8F0 !important;
+  box-shadow:
+    1px 0 0 rgba(15, 23, 42, 0.02),
+    4px 0 24px -8px rgba(15, 23, 42, 0.08) !important;
+}
+body[data-admin-active="true"] aside [class*="bg-gradient-to-b"],
+body[data-admin-active="true"] aside [class*="bg-gradient-to-t"] {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-admin-active="true"] aside [class*="border-white/"] {
+  border-color: #E2E8F0 !important;
+}
+body[data-admin-active="true"] aside h1,
+body[data-admin-active="true"] aside h2,
+body[data-admin-active="true"] aside .text-white {
+  color: #0F172A !important;
+}
+body[data-admin-active="true"] aside [class*="text-slate-5"],
+body[data-admin-active="true"] aside [class*="text-slate-6"],
+body[data-admin-active="true"] aside [class*="text-slate-7"] {
+  color: #64748B !important;
+}
+body[data-admin-active="true"] aside .text-slate-400,
+body[data-admin-active="true"] aside [class*="text-slate-4"] {
+  color: #475569 !important;
+}
+/* Sidebar search input */
+body[data-admin-active="true"] aside input {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+body[data-admin-active="true"] aside input::placeholder {
+  color: #94A3B8 !important;
+}
+body[data-admin-active="true"] aside kbd {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #475569 !important;
+}
+/* Group header chips */
+body[data-admin-active="true"] aside [class*="text-violet-4"],
+body[data-admin-active="true"] aside [class*="text-fuchsia-4"],
+body[data-admin-active="true"] aside [class*="text-purple-4"] {
+  color: #6D28D9 !important;
+}
+/* Nav item — inactive */
+body[data-admin-active="true"] aside a[class*="rounded-xl"]:not([class*="bg-gradient"]) {
+  color: #475569 !important;
+}
+body[data-admin-active="true"] aside a[class*="rounded-xl"]:hover {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+/* Nav item — ACTIVE (had bg-gradient from white/.08 → translucent) */
+body[data-admin-active="true"] aside a[class*="from-white/"] {
+  background: linear-gradient(90deg, hsl(217 91% 96%), hsl(217 91% 98%) 60%, transparent) !important;
+  color: #0F172A !important;
+  border-color: hsl(217 91% 85%) !important;
+  box-shadow: 0 2px 8px -3px hsl(217 91% 60% / 0.18) !important;
+}
+body[data-admin-active="true"] aside a[class*="from-white/"] span {
+  color: #0F172A !important;
+}
+/* Nav icon container */
+body[data-admin-active="true"] aside a [class*="bg-white/"] {
+  background-color: #F1F5F9 !important;
+}
+body[data-admin-active="true"] aside a [class*="bg-white/"] svg {
+  color: #64748B !important;
+}
+body[data-admin-active="true"] aside a[class*="from-white/"] [class*="bg-gradient"] svg {
+  color: #FFFFFF !important;
+}
+/* User profile footer card */
+body[data-admin-active="true"] aside [class*="bg-white/"][class*="border-white/"] {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+/* ---------- Top Header ---------- */
+body[data-admin-active="true"] header.sticky {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  backdrop-filter: saturate(180%) blur(14px) !important;
+}
+body[data-admin-active="true"] header.sticky .text-white {
+  color: #0F172A !important;
+}
+body[data-admin-active="true"] header.sticky [class*="text-slate-5"],
+body[data-admin-active="true"] header.sticky [class*="text-slate-6"],
+body[data-admin-active="true"] header.sticky [class*="text-slate-7"] {
+  color: #64748B !important;
+}
+body[data-admin-active="true"] header.sticky input {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+body[data-admin-active="true"] header.sticky input::placeholder {
+  color: #94A3B8 !important;
+}
+body[data-admin-active="true"] header.sticky button:hover {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* ---------- Custom dark hex surfaces inside admin pages ---------- */
+/* Catches arbitrary tailwind classes like bg-[#0c0c14], bg-[#06060a],
+   bg-[#08080e], bg-[#1a1a2e] used across Dashboard & Reports cards. */
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"],
+body[data-admin-active="true"] [class*="bg-[#06060a]"],
+body[data-admin-active="true"] [class*="bg-[#08080e]"],
+body[data-admin-active="true"] [class*="bg-[#1a1a2e]"],
+body[data-admin-active="true"] [class*="bg-[#0f0a1a]"],
+body[data-admin-active="true"] [class*="bg-[#0a0a0f]"],
+body[data-admin-active="true"] [class*="bg-[#111118]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* ---------- 3D card elevation on Overview pages ---------- */
+.admin-pro-shell [data-slot="card"],
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"][class*="rounded-"],
+body[data-admin-active="true"] [class*="bg-[#06060a]"][class*="rounded-"],
+body[data-admin-active="true"] [class*="bg-[#1a1a2e]"][class*="rounded-"] {
+  border-radius: 14px !important;
+  box-shadow:
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -12px rgba(15, 23, 42, 0.12) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+.admin-pro-shell [data-slot="card"]:hover,
+body[data-admin-active="true"] a:hover > [class*="bg-[#0c0c14]"],
+body[data-admin-active="true"] a:hover > div > [class*="bg-[#0c0c14]"] {
+  transform: translateY(-1px);
+  border-color: #CBD5E1 !important;
+  box-shadow:
+    0 2px 0 rgba(15, 23, 42, 0.04),
+    0 4px 10px rgba(15, 23, 42, 0.06),
+    0 18px 36px -16px rgba(15, 23, 42, 0.18) !important;
+}
+
+/* Reskin the divider/border on dark surfaces */
+body[data-admin-active="true"] [class*="border-white/"] {
+  border-color: #E2E8F0 !important;
+}
+body[data-admin-active="true"] [class*="divide-white/"] > * + * {
+  border-color: #E2E8F0 !important;
+}
+
+/* Subtle inner wash dots / ambient blurs on overview cards */
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="blur-3xl"],
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="blur-2xl"] {
+  opacity: 0.18 !important;
+}
+
+/* Stat numbers — keep readable on white */
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] .text-white {
+  color: #0F172A !important;
+}
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="text-slate-4"],
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="text-slate-5"],
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="text-slate-6"] {
+  color: #64748B !important;
+}
+
+/* Notification dropdown */
+body[data-admin-active="true"] [class*="bg-[#1a1a2e]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow:
+    0 12px 28px -8px rgba(15, 23, 42, 0.16),
+    0 24px 60px -20px rgba(15, 23, 42, 0.20) !important;
+}
+body[data-admin-active="true"] [class*="bg-[#1a1a2e]"] .text-white {
+  color: #0F172A !important;
+}
+
+/* Preserve accent gradient icon tiles inside white cards — they ARE the color */
+body[data-admin-active="true"] [class*="bg-[#0c0c14]"] [class*="bg-gradient-to-br"] svg,
+body[data-admin-active="true"] aside [class*="bg-gradient-to-br"] svg {
+  color: #FFFFFF !important;
+}
+
+/* Performance: kill heavy blur on sidebar/header to remove paint lag */
+body[data-admin-active="true"] aside,
+body[data-admin-active="true"] header.sticky {
+  backdrop-filter: blur(8px) !important;
+}
+
+
