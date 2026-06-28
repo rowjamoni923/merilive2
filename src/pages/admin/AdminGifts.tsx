@@ -750,7 +750,7 @@ export default function AdminGifts() {
   };
 
   return (
-    <div className="space-y-3 md:space-y-6 px-2 md:px-0">
+    <div className="admin-pro-shell space-y-3 md:space-y-6 px-2 md:px-0">
       {/* Header */}
       <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-6 bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
         <div className="flex flex-row items-center justify-between gap-2 md:gap-3">

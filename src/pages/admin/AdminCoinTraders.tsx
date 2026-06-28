@@ -301,7 +301,7 @@ const AdminCoinTraders = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="admin-pro-shell">
       <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/admin')}>

@@ -746,7 +746,7 @@ export default function AdminBalanceDeduction() {
   };
 
   return (
-    <div className={adminStyles.pageContainer}>
+    <div className={`admin-pro-shell ${adminStyles.pageContainer}`}>
       {/* Phone Alerts Panel */}
       <AnimatePresence>
         {showAlertsPanel && (

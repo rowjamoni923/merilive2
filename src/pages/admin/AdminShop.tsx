@@ -610,7 +610,7 @@ const AdminShop = () => {
   const totalSold = items.reduce((acc, i) => acc + (i.total_sold ?? 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 px-3 py-4 pb-24 md:p-6 md:pb-20">
+    <div className="admin-pro-shell px-3 py-4 pb-24 md:p-6 md:pb-20">
       {/* Hidden File Input - Accept all files on mobile to allow SVGA selection, validation happens in handler */}
       <input
         type="file"
