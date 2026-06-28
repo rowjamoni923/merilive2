@@ -54,15 +54,15 @@ const getStatusColor = (status: string) => {
       return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
     case "active":
     case "connected":
-      return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      return "bg-blue-50 text-blue-600 border-blue-200/60";
     case "missed":
     case "timeout":
-      return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      return "bg-amber-50 text-amber-600 border-amber-200/60";
     case "rejected":
     case "cancelled":
-      return "bg-red-500/20 text-red-400 border-red-500/30";
+      return "bg-red-50 text-red-600 border-red-200/60";
     default:
-      return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+      return "bg-slate-100 text-slate-500 border-slate-200";
   }
 };
 
