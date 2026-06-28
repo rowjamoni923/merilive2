@@ -6262,9 +6262,10 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell [class*="border-white/"] { border-color: #E2E8F0 !important; }
 .admin-pro-shell [class*="ring-white/"] { --tw-ring-color: #E2E8F0 !important; }
 .admin-pro-shell [class*="divide-white/"] > * + * { border-color: #E2E8F0 !important; }
-/* Text re-skin */
-.admin-pro-shell .text-white,
-.admin-pro-shell [class*="text-white/"] { color: #0F172A !important; }
+/* Text re-skin: only neutralize white text on white-ish parents and when the
+   element itself has no colored bg of its own (preserves chips/badges). */
+.admin-pro-shell .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-pro-shell [class*="text-white/"]:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]) { color: #0F172A !important; }
 .admin-pro-shell [class*="text-white/3"],
 .admin-pro-shell [class*="text-white/4"],
 .admin-pro-shell [class*="text-white/5"] { color: #64748B !important; }
