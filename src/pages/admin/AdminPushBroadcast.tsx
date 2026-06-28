@@ -435,7 +435,7 @@ export default function AdminPushBroadcast() {
                     {catTemplates.length === 0 ? (
                       <button
                         onClick={() => openAddDialog(catKey)}
-                        className="w-full text-slate-600 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-gray-700 hover:border-purple-500/50 rounded-lg transition-all"
+                        className="w-full text-slate-600 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-slate-200 hover:border-purple-500/50 rounded-lg transition-all"
                       >
                         + Add first template to {info.label}
                       </button>
@@ -453,7 +453,7 @@ export default function AdminPushBroadcast() {
                             setMessage(template.message_template);
                             toast.success("✅ Template loaded! Edit & send.");
                           }}
-                          className="flex-1 text-left p-3 rounded-lg bg-gray-800/70 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800 transition-all group"
+                          className="flex-1 text-left p-3 rounded-lg bg-white border border-slate-200 hover:border-purple-500/50 hover:bg-white transition-all group"
                         >
                           <p className="text-slate-900 font-medium text-sm truncate group-hover:text-purple-300 transition-colors">{template.title_template}</p>
                           <p className="text-slate-600 text-xs mt-1 line-clamp-2">{template.message_template}</p>
@@ -478,13 +478,13 @@ export default function AdminPushBroadcast() {
 
       {/* Compose / History Tabs */}
       <Tabs defaultValue="compose" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
+        <TabsList className="grid w-full grid-cols-2 bg-white">
           <TabsTrigger value="compose">Compose Message</TabsTrigger>
           <TabsTrigger value="history">Sent History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compose" className="mt-4">
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-slate-200">
             <CardHeader>
               <CardTitle className="text-slate-900">New Broadcast</CardTitle>
               <CardDescription>Send a push notification to users</CardDescription>
@@ -541,7 +541,7 @@ export default function AdminPushBroadcast() {
 
               <div className="space-y-2">
                 <Label>Preview</Label>
-                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                       <Bell className="h-5 w-5 text-slate-900" />
@@ -557,7 +557,7 @@ export default function AdminPushBroadcast() {
                       )}
                       <p className="text-slate-500 text-xs mt-1">now</p>
                     </div>
-                    {imagePreview && <SmartImage src={imagePreview} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-700" fallbackSrc="/placeholder.svg" />}
+                    {imagePreview && <SmartImage src={imagePreview} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-slate-200" fallbackSrc="/placeholder.svg" />}
                   </div>
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function AdminPushBroadcast() {
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-slate-200">
             <CardHeader>
               <CardTitle className="text-slate-900">Sent History</CardTitle>
               <CardDescription>Recent broadcast notifications</CardDescription>
@@ -584,7 +584,7 @@ export default function AdminPushBroadcast() {
               ) : (
                 <div className="space-y-3">
                   {sentHistory.map((item) => (
-                    <div key={item.id} className="bg-white rounded-lg p-4 border border-gray-700">
+                    <div key={item.id} className="bg-white rounded-lg p-4 border border-slate-200">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
