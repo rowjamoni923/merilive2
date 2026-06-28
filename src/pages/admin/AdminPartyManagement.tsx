@@ -51,7 +51,7 @@ export default function AdminPartyManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-pink-950/20 to-slate-950 p-4 md:p-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
@@ -59,8 +59,8 @@ export default function AdminPartyManagement() {
             <PartyPopper className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Party Management</h1>
-            <p className="text-slate-400 text-sm">
+            <h1 className="text-2xl font-bold text-slate-900">Party Management</h1>
+            <p className="text-slate-500 text-sm">
               Manage party rooms, banners, and backgrounds
             </p>
           </div>
@@ -69,38 +69,38 @@ export default function AdminPartyManagement() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-pink-500/20">
               <Users className="w-5 h-5 text-pink-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Active Rooms</p>
-              <p className="text-white font-bold text-xl">{stats.activeRooms}</p>
+              <p className="text-slate-500 text-xs">Active Rooms</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeRooms}</p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-500/20">
               <Sparkles className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Active Banners</p>
-              <p className="text-white font-bold text-xl">{stats.totalBanners}</p>
+              <p className="text-slate-500 text-xs">Active Banners</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.totalBanners}</p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Image className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-xs">Backgrounds</p>
-              <p className="text-white font-bold text-xl">{stats.totalBackgrounds}</p>
+              <p className="text-slate-500 text-xs">Backgrounds</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.totalBackgrounds}</p>
             </div>
           </CardContent>
         </Card>
@@ -108,7 +108,7 @@ export default function AdminPartyManagement() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap overflow-x-auto whitespace-nowrap">
+        <TabsList className="bg-slate-100 border border-slate-200 p-1 h-auto flex-wrap overflow-x-auto whitespace-nowrap">
           <TabsTrigger 
             value="rooms" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white gap-2"
@@ -136,9 +136,9 @@ export default function AdminPartyManagement() {
         </TabsList>
 
         <TabsContent value="rooms" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Users className="w-5 h-5 text-pink-400" />
                 Party Rooms
                 <Badge variant="outline" className="ml-2 text-pink-400 border-pink-500/50">
@@ -153,9 +153,9 @@ export default function AdminPartyManagement() {
         </TabsContent>
 
         <TabsContent value="banners" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Sparkles className="w-5 h-5 text-purple-400" />
                 Party Banners
                 <Badge variant="outline" className="ml-2 text-purple-400 border-purple-500/50">
@@ -170,9 +170,9 @@ export default function AdminPartyManagement() {
         </TabsContent>
 
         <TabsContent value="backgrounds" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Image className="w-5 h-5 text-blue-400" />
                 Party Backgrounds
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">

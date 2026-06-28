@@ -222,7 +222,7 @@ export default function AdminPartyRooms() {
   const totalPages = Math.ceil(totalRooms / pageSize);
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="admin-pro-shell space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
