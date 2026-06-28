@@ -50,6 +50,8 @@ import {
   Copy,
   Download,
   FileSpreadsheet,
+  Play,
+  Pause,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
