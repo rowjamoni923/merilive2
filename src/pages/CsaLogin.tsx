@@ -42,7 +42,7 @@ export default function CsaLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-black via-slate-950 to-amber-950">
+    <div className="admin-pro-shell min-h-screen flex items-center justify-center p-4 bg-white">
       <Card className="w-full max-w-md p-8 bg-slate-900/80 border-amber-500/30 backdrop-blur-xl shadow-[0_0_60px_rgba(245,158,11,0.15)]">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg ring-2 ring-amber-300/40 mb-3">
