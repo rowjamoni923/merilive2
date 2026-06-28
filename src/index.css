@@ -2502,7 +2502,7 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 body[data-admin-active="true"] {
   overflow-x: hidden !important;
   overscroll-behavior-x: contain !important;
-  background: hsl(230 15% 6%);
+  background: #FFFFFF;
 }
 
 /* Admin can never coexist with a private-call overlay. If
