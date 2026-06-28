@@ -487,7 +487,7 @@ const AdminNoticeBroadcast = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 via-rose-500 to-pink-600 shadow-lg shadow-orange-500/20">
         <div className="flex items-center h-14 px-4">

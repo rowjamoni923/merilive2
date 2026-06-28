@@ -103,7 +103,7 @@ const AdminEmailBroadcast = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <AdminPageHeader
         title="Email Broadcast"
         subtitle="Send emails to all registered users via Amazon SES"

@@ -345,15 +345,15 @@ export default function AdminPushBroadcast() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Bell className="h-6 w-6 text-purple-400" />
             Push Notification Broadcast
           </h1>
-          <p className="text-gray-400 mt-1">Send push notifications to all users</p>
+          <p className="text-slate-600 mt-1">Send push notifications to all users</p>
         </div>
       </div>
 
@@ -362,7 +362,7 @@ export default function AdminPushBroadcast() {
         <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div><p className="text-sm text-gray-400">Total Devices</p><p className="text-2xl font-bold text-white">{tokenStats?.total || 0}</p></div>
+              <div><p className="text-sm text-slate-600">Total Devices</p><p className="text-2xl font-bold text-slate-900">{tokenStats?.total || 0}</p></div>
               <Users className="h-8 w-8 text-blue-400" />
             </div>
           </CardContent>
@@ -370,7 +370,7 @@ export default function AdminPushBroadcast() {
         <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div><p className="text-sm text-gray-400">Android</p><p className="text-2xl font-bold text-white">{tokenStats?.android || 0}</p></div>
+              <div><p className="text-sm text-slate-600">Android</p><p className="text-2xl font-bold text-slate-900">{tokenStats?.android || 0}</p></div>
               <Globe className="h-8 w-8 text-green-400" />
             </div>
           </CardContent>
@@ -378,7 +378,7 @@ export default function AdminPushBroadcast() {
         <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div><p className="text-sm text-gray-400">iOS</p><p className="text-2xl font-bold text-white">{tokenStats?.ios || 0}</p></div>
+              <div><p className="text-sm text-slate-600">iOS</p><p className="text-2xl font-bold text-slate-900">{tokenStats?.ios || 0}</p></div>
               <Target className="h-8 w-8 text-purple-400" />
             </div>
           </CardContent>
@@ -386,10 +386,10 @@ export default function AdminPushBroadcast() {
       </div>
 
       {/* Quick Templates (from DB) */}
-      <Card className="bg-gray-900/50 border-gray-800">
+      <Card className="bg-white border-slate-200">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-white flex items-center gap-2 text-lg">
+            <CardTitle className="text-slate-900 flex items-center gap-2 text-lg">
               <Zap className="w-5 h-5 text-yellow-400" />
               Quick Templates — Click to Use
             </CardTitle>
@@ -407,7 +407,7 @@ export default function AdminPushBroadcast() {
           {templatesLoading ? (
             <div className="flex items-center justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-purple-400" /></div>
           ) : allCategoryKeys.length === 0 ? (
-            <p className="text-gray-500 text-sm py-4 text-center">No categories yet. Click "New Category" to create one.</p>
+            <p className="text-slate-500 text-sm py-4 text-center">No categories yet. Click "New Category" to create one.</p>
           ) : allCategoryKeys.map((catKey) => {
             const info = getCategoryInfo(catKey);
             const catTemplates = grouped[catKey] || [];
@@ -435,7 +435,7 @@ export default function AdminPushBroadcast() {
                     {catTemplates.length === 0 ? (
                       <button
                         onClick={() => openAddDialog(catKey)}
-                        className="w-full text-gray-400 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-gray-700 hover:border-purple-500/50 rounded-lg transition-all"
+                        className="w-full text-slate-600 hover:text-purple-300 text-sm py-3 pl-2 border border-dashed border-gray-700 hover:border-purple-500/50 rounded-lg transition-all"
                       >
                         + Add first template to {info.label}
                       </button>
@@ -455,8 +455,8 @@ export default function AdminPushBroadcast() {
                           }}
                           className="flex-1 text-left p-3 rounded-lg bg-gray-800/70 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800 transition-all group"
                         >
-                          <p className="text-white font-medium text-sm truncate group-hover:text-purple-300 transition-colors">{template.title_template}</p>
-                          <p className="text-gray-400 text-xs mt-1 line-clamp-2">{template.message_template}</p>
+                          <p className="text-slate-900 font-medium text-sm truncate group-hover:text-purple-300 transition-colors">{template.title_template}</p>
+                          <p className="text-slate-600 text-xs mt-1 line-clamp-2">{template.message_template}</p>
                         </button>
                         <div className="flex flex-col gap-1 pt-1">
                           <button onClick={() => openEditDialog(template)} className="p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 transition-colors" title="Edit">
@@ -486,7 +486,7 @@ export default function AdminPushBroadcast() {
         <TabsContent value="compose" className="mt-4">
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">New Broadcast</CardTitle>
+              <CardTitle className="text-slate-900">New Broadcast</CardTitle>
               <CardDescription>Send a push notification to users</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -505,19 +505,19 @@ export default function AdminPushBroadcast() {
               <div className="space-y-2">
                 <Label htmlFor="title">Notification Title</Label>
                 <Input id="title" placeholder="Enter notification title..." value={title} onChange={(e) => setTitle(e.target.value)} className="bg-gray-700 border-gray-600" maxLength={50} />
-                <p className="text-xs text-gray-500">{title.length}/50 characters</p>
+                <p className="text-xs text-slate-500">{title.length}/50 characters</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="message">Message Body</Label>
                 <Textarea id="message" placeholder="Enter notification message..." value={message} onChange={(e) => setMessage(e.target.value)} className="bg-gray-700 border-gray-600 min-h-[100px]" maxLength={200} />
-                <p className="text-xs text-gray-500">{message.length}/200 characters</p>
+                <p className="text-xs text-slate-500">{message.length}/200 characters</p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="link" className="flex items-center gap-2"><Link2 className="h-4 w-4 text-blue-400" />Action Link (Optional)</Label>
                 <Input id="link" placeholder="https://example.com or /recharge" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} className="bg-gray-700 border-gray-600" />
-                <p className="text-xs text-gray-500">Users will navigate to this link when tapping the notification</p>
+                <p className="text-xs text-slate-500">Users will navigate to this link when tapping the notification</p>
               </div>
 
               <div className="space-y-2">
@@ -526,14 +526,14 @@ export default function AdminPushBroadcast() {
                   <div className="relative inline-block">
                     <SmartImage src={imagePreview} alt="Preview" className="w-full max-w-sm h-auto rounded-lg border border-gray-600 object-cover max-h-48" fallbackSrc="/placeholder.svg" />
                     <button onClick={removeImage} className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                      <X className="h-3 w-3 text-white" />
+                      <X className="h-3 w-3 text-slate-900" />
                     </button>
                   </div>
                 ) : (
                   <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center gap-2 hover:border-purple-500/50 hover:bg-gray-700/30 transition-all">
-                    <ImagePlus className="h-8 w-8 text-gray-500" />
-                    <span className="text-sm text-gray-400">Click to upload image</span>
-                    <span className="text-xs text-gray-500">PNG, JPG up to 5MB</span>
+                    <ImagePlus className="h-8 w-8 text-slate-500" />
+                    <span className="text-sm text-slate-600">Click to upload image</span>
+                    <span className="text-xs text-slate-500">PNG, JPG up to 5MB</span>
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
@@ -544,18 +544,18 @@ export default function AdminPushBroadcast() {
                 <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                      <Bell className="h-5 w-5 text-white" />
+                      <Bell className="h-5 w-5 text-slate-900" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium">{title || "Notification Title"}</p>
-                      <p className="text-gray-400 text-sm">{message || "Notification message will appear here..."}</p>
+                      <p className="text-slate-900 font-medium">{title || "Notification Title"}</p>
+                      <p className="text-slate-600 text-sm">{message || "Notification message will appear here..."}</p>
                       {linkUrl.trim() && (
                         <div className="flex items-center gap-1 mt-1">
                           <ExternalLink className="h-3 w-3 text-blue-400" />
                           <span className="text-blue-400 text-xs truncate">{linkUrl.trim()}</span>
                         </div>
                       )}
-                      <p className="text-gray-500 text-xs mt-1">now</p>
+                      <p className="text-slate-500 text-xs mt-1">now</p>
                     </div>
                     {imagePreview && <SmartImage src={imagePreview} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-700" fallbackSrc="/placeholder.svg" />}
                   </div>
@@ -572,32 +572,32 @@ export default function AdminPushBroadcast() {
         <TabsContent value="history" className="mt-4">
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">Sent History</CardTitle>
+              <CardTitle className="text-slate-900">Sent History</CardTitle>
               <CardDescription>Recent broadcast notifications</CardDescription>
             </CardHeader>
             <CardContent>
               {sentHistory.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-slate-500">
                   <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>No notifications sent yet in this session</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {sentHistory.map((item) => (
-                    <div key={item.id} className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                    <div key={item.id} className="bg-white rounded-lg p-4 border border-gray-700">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
-                            <p className="text-white font-medium truncate">{item.title}</p>
+                            <p className="text-slate-900 font-medium truncate">{item.title}</p>
                           </div>
-                          <p className="text-gray-400 text-sm mt-1">{item.message}</p>
+                          <p className="text-slate-600 text-sm mt-1">{item.message}</p>
                           {item.linkUrl && (<div className="flex items-center gap-1 mt-1"><Link2 className="h-3 w-3 text-blue-400" /><span className="text-blue-400 text-xs truncate">{item.linkUrl}</span></div>)}
                           {item.imageUrl && (<div className="flex items-center gap-1 mt-1"><ImagePlus className="h-3 w-3 text-green-400" /><span className="text-green-400 text-xs">Image attached</span></div>)}
                         </div>
                         <div className="text-right flex-shrink-0 ml-3">
                           <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">{item.sentCount} sent</Badge>
-                          <p className="text-gray-500 text-xs mt-1">{new Date(item.sentAt).toLocaleTimeString()}</p>
+                          <p className="text-slate-500 text-xs mt-1">{new Date(item.sentAt).toLocaleTimeString()}</p>
                         </div>
                       </div>
                     </div>
@@ -611,29 +611,29 @@ export default function AdminPushBroadcast() {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
 
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Edit3 className="w-5 h-5 text-purple-400" />
               Edit Template
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Title</Label>
-              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" />
+              <Label className="text-sm font-medium text-slate-900/80">Title</Label>
+              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Message Body</Label>
-              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-white" />
+              <Label className="text-sm font-medium text-slate-900/80">Message Body</Label>
+              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Description (Optional)</Label>
-              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Internal note" />
+              <Label className="text-sm font-medium text-slate-900/80">Description (Optional)</Label>
+              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={saving || !editForm.title || !editForm.body} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save
               </Button>
@@ -644,9 +644,9 @@ export default function AdminPushBroadcast() {
 
       {/* Add Template Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Plus className="w-5 h-5 text-green-400" />
               {newCategoryMode ? "Create New Category" : "Add New Template"}
             </DialogTitle>
@@ -654,20 +654,20 @@ export default function AdminPushBroadcast() {
           <div className="space-y-4 mt-4">
             {newCategoryMode ? (
               <div>
-                <Label className="text-sm font-medium text-white/80">Category Name *</Label>
+                <Label className="text-sm font-medium text-slate-900/80">Category Name *</Label>
                 <Input
                   value={newCategoryLabel}
                   onChange={(e) => setNewCategoryLabel(e.target.value)}
-                  className="mt-1.5 bg-white/5 border-white/10 text-white"
+                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900"
                   placeholder="e.g. Daily Reminders, VIP Promo..."
                 />
-                <p className="text-xs text-gray-500 mt-1">A new category will be created and the first template added to it.</p>
+                <p className="text-xs text-slate-500 mt-1">A new category will be created and the first template added to it.</p>
               </div>
             ) : (
               <div>
-                <Label className="text-sm font-medium text-white/80">Category</Label>
+                <Label className="text-sm font-medium text-slate-900/80">Category</Label>
                 <Select value={addCategory} onValueChange={setAddCategory}>
-                  <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-slate-900"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {allCategoryKeys.map((key) => (
                       <SelectItem key={key} value={key}>{getCategoryInfo(key).label}</SelectItem>
@@ -684,19 +684,19 @@ export default function AdminPushBroadcast() {
               </div>
             )}
             <div>
-              <Label className="text-sm font-medium text-white/80">Title *</Label>
-              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Notification title..." />
+              <Label className="text-sm font-medium text-slate-900/80">Title *</Label>
+              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Notification title..." />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Message Body *</Label>
-              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-white" placeholder="Notification message..." />
+              <Label className="text-sm font-medium text-slate-900/80">Message Body *</Label>
+              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-slate-900" placeholder="Notification message..." />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Description (Optional)</Label>
-              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Internal note" />
+              <Label className="text-sm font-medium text-slate-900/80">Description (Optional)</Label>
+              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleAddTemplate} disabled={saving || !addForm.title || !addForm.body} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} Add Template
               </Button>

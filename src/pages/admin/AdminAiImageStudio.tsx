@@ -146,7 +146,7 @@ export default function AdminAiImageStudio() {
   };
 
   return (
-    <div className="admin-content space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 max-w-7xl mx-auto -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex items-start gap-3">
         <div className="rounded-xl p-3 bg-gradient-to-br from-amber-500/20 via-fuchsia-500/15 to-violet-600/20 ring-1 ring-amber-300/30">
