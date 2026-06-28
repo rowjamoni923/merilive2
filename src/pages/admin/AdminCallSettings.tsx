@@ -629,7 +629,7 @@ export default function AdminCallSettings() {
                     onClick={() => setCalcDiamonds(amount)}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       calcDiamonds === amount
-                        ? 'bg-purple-500/20 border-purple-400
+                        ? 'bg-purple-500/20 border-purple-400 text-purple-900'
                         : 'bg-white/50 border-slate-200 hover:border-purple-300'
                     }`}
                   >
