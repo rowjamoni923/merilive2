@@ -122,14 +122,14 @@ export default function AdminRandomCallSettings() {
 
   if (loading || !s) {
     return (
-      <div className="p-6">
+      <div className="admin-pro-shell admin-content p-6">
         <AdminPageHeader title="Random Call Settings" subtitle="Loading..." icon={Phone} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-5xl mx-auto">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-5 max-w-5xl mx-auto">
       <AdminPageHeader
         title="Random Call (Match Call)"
         subtitle="Single source of truth for the 1v1 random video-match feature. All numbers apply instantly."
