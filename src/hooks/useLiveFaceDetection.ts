@@ -482,10 +482,13 @@ export function useLiveFaceDetection({
         }
         isCountingDownRef.current = false;
 
-        console.log(`[FaceDetection] 🚫 Live stream auto-closed: face not detected for ${timeout}s`);
+        // Owner policy 2026-06-28: face-absence may NO LONGER auto-close the
+        // live stream. Only the host's explicit End button closes a live. We
+        // still record the violation so the admin sees it; the stream stays up.
+        console.log(`[FaceDetection] ⚠️ Face missing ${timeout}s — recording violation only (auto-close disabled)`);
 
         recordViolation();
-        onAutoCloseRef.current();
+        // onAutoCloseRef.current();  // DISABLED — host-only end policy.
       }
     }, 250);
   }, []);
@@ -522,7 +525,7 @@ export function useLiveFaceDetection({
         host_id: userId,
         stream_id: streamId,
         violation_type: 'no_face',
-        auto_closed: true,
+        auto_closed: false,
         countdown_duration: AUTO_CLOSE_COUNTDOWN_SECONDS,
         brightness_level: 0,
         detection_confidence: 0,
