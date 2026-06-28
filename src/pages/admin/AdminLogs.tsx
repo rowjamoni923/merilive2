@@ -13,7 +13,9 @@ import {
   Clock,
   ChevronDown,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Play,
+  Pause
 } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
 import {
@@ -71,6 +73,19 @@ export default function AdminLogs() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(10);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => {
+      fetchLogs();
+      setLastRefresh(new Date());
+    }, refreshInterval * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, refreshInterval, actionFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchLogs();
@@ -224,9 +239,30 @@ export default function AdminLogs() {
             <FileText className="w-7 h-7" />
             Activity Log
           </h1>
-          <p className="text-slate-900/80 text-sm mt-1">All admin activities</p>
+          <p className="text-slate-900/80 text-sm mt-1">
+            All admin activities {autoRefresh && <span className="ml-2 inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live · {refreshInterval}s</span>}
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setAutoRefresh((v) => !v)}
+            className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20"
+          >
+            {autoRefresh ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+            {autoRefresh ? "Pause" : "Resume"}
+          </Button>
+          <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
+            <SelectTrigger className="w-[110px] bg-white/10 border-white/40 text-slate-900">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-slate-200">
+              <SelectItem value="5">5s</SelectItem>
+              <SelectItem value="10">10s</SelectItem>
+              <SelectItem value="30">30s</SelectItem>
+              <SelectItem value="60">60s</SelectItem>
+            </SelectContent>
+          </Select>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">

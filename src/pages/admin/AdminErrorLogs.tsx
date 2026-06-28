@@ -50,6 +50,8 @@ import {
   Copy,
   Download,
   FileSpreadsheet,
+  Play,
+  Pause,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -101,6 +103,8 @@ export default function AdminErrorLogs() {
     todayErrors: 0,
     topPages: [] as { page: string; count: number }[],
   });
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(10);
 
   const LEVEL_MAP: Record<"info" | "warn" | "error", string[]> = {
     info: ["info"],
@@ -190,6 +194,13 @@ export default function AdminErrorLogs() {
   }, [filterType, filterLevel, filterResolved, searchQuery, dateFrom, dateTo]);
 
   useAdminRealtime(['system_error_logs'], () => fetchErrors());
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => fetchErrors(), refreshInterval * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, refreshInterval, filterType, filterLevel, filterResolved, searchQuery, dateFrom, dateTo]);
 
   const handleResolve = async (errorId: string) => {
     try {
@@ -337,11 +348,30 @@ export default function AdminErrorLogs() {
             <Bug className="w-7 h-7 text-red-400" />
             System Error Logs
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
             All application errors are recorded here
+            {autoRefresh && (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live · {refreshInterval}s
+              </span>
+            )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setAutoRefresh((v) => !v)}>
+            {autoRefresh ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+            {autoRefresh ? "Pause" : "Resume"}
+          </Button>
+          <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
+            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-white border-slate-200">
+              <SelectItem value="5">5s</SelectItem>
+              <SelectItem value="10">10s</SelectItem>
+              <SelectItem value="30">30s</SelectItem>
+              <SelectItem value="60">60s</SelectItem>
+            </SelectContent>
+          </Select>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
