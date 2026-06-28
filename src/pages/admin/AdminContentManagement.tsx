@@ -53,7 +53,7 @@ export default function AdminContentManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-red-950/20 to-slate-950 p-4 md:p-6">
+    <div className="admin-pro-shell min-h-screen p-4 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
@@ -61,8 +61,8 @@ export default function AdminContentManagement() {
             <Camera className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Content Management</h1>
-            <p className="text-slate-400 text-sm">
+            <h1 className="text-2xl font-bold text-slate-900">Content Management</h1>
+            <p className="text-slate-500 text-sm">
               Manage streams, recordings, reels, banners & content
             </p>
           </div>
@@ -71,50 +71,50 @@ export default function AdminContentManagement() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/20">
               <Camera className="w-5 h-5 text-red-400" />
             </div>
             <div>
               <p className="text-slate-400 text-xs">Live Streams</p>
-              <p className="text-white font-bold text-xl">{stats.activeStreams}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeStreams}</p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Film className="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <p className="text-slate-400 text-xs">Recordings</p>
-              <p className="text-white font-bold text-xl">{stats.totalRecordings}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.totalRecordings}</p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-500/20">
               <Play className="w-5 h-5 text-purple-400" />
             </div>
             <div>
               <p className="text-slate-400 text-xs">Pending Reels</p>
-              <p className="text-white font-bold text-xl">{stats.pendingReels}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.pendingReels}</p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/20">
               <Image className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <p className="text-slate-400 text-xs">Active Banners</p>
-              <p className="text-white font-bold text-xl">{stats.activeBanners}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeBanners}</p>
             </div>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ export default function AdminContentManagement() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap">
+        <TabsList className="bg-slate-100 border border-slate-200 p-1 h-auto flex-wrap">
           <TabsTrigger 
             value="streams" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white gap-2"
@@ -167,9 +167,9 @@ export default function AdminContentManagement() {
         </TabsList>
 
         <TabsContent value="streams" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Camera className="w-5 h-5 text-red-400" />
                 Live Streams
                 <Badge variant="outline" className="ml-2 text-red-400 border-red-500/50">
@@ -184,9 +184,9 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="recordings" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Film className="w-5 h-5 text-blue-400" />
                 Stream Recordings
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">
@@ -201,9 +201,9 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="reels" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Play className="w-5 h-5 text-purple-400" />
                 Reels Management
                 <Badge variant="outline" className="ml-2 text-purple-400 border-purple-500/50">
@@ -218,9 +218,9 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="banners" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Image className="w-5 h-5 text-amber-400" />
                 Promotional Banners
                 <Badge variant="outline" className="ml-2 text-amber-400 border-amber-500/50">
@@ -235,9 +235,9 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="content" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <FileText className="w-5 h-5 text-green-400" />
                 Content Pages
                 <Badge variant="outline" className="ml-2 text-green-400 border-green-500/50">

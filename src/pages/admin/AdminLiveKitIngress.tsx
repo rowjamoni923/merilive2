@@ -152,7 +152,7 @@ export default function AdminLiveKitIngress() {
   }, []);
 
   return (
-    <div className="admin-content space-y-4 p-4">
+    <div className="admin-pro-shell admin-content space-y-4 p-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}

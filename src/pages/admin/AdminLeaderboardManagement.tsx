@@ -307,14 +307,14 @@ const AdminLeaderboardManagement = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Trophy className="w-6 h-6 text-amber-400" />
           <div>
-            <h2 className="text-xl font-bold text-white">Leaderboard Management</h2>
-            <p className="text-white/50 text-sm">Icons, podium frames, rewards & auto-distribution</p>
+            <h2 className="text-xl font-bold text-slate-900">Leaderboard Management</h2>
+            <p className="text-slate-500 text-sm">Icons, podium frames, rewards & auto-distribution</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -346,7 +346,7 @@ const AdminLeaderboardManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-white/5 flex-wrap">
+        <TabsList className="bg-slate-50 flex-wrap">
           <TabsTrigger value="icons">🎨 Tab Icons</TabsTrigger>
           <TabsTrigger value="podium-frames">🏅 Podium Frames</TabsTrigger>
           <TabsTrigger value="rewards">🎁 Reward Config</TabsTrigger>
@@ -356,22 +356,22 @@ const AdminLeaderboardManagement = () => {
 
         {/* ===== ICONS TAB ===== */}
         <TabsContent value="icons" className="space-y-4">
-          <p className="text-white/60 text-sm">
+          <p className="text-slate-600 text-sm">
             Upload custom icons for leaderboard tabs. These icons will replace the default Lucide icons on the leaderboard page.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {iconEntries.map(entry => (
-              <Card key={entry.key} className="bg-white/5 border-white/10">
+              <Card key={entry.key} className="bg-white border-slate-200 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-white text-sm">
+                  <CardTitle className="flex items-center gap-2 text-slate-900 text-sm">
                     <span className="text-lg">{entry.emoji}</span>
                     {entry.label}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {/* Preview */}
-                  <div className="w-16 h-16 mx-auto bg-black/30 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 mx-auto bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden">
                     {iconUrls[entry.key] ? (
                       <SmartImage
                         src={iconUrls[entry.key].replace(/^"|"$/g, '')}
@@ -380,7 +380,7 @@ const AdminLeaderboardManagement = () => {
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                     ) : (
-                      <Image className="w-6 h-6 text-white/20" />
+                      <Image className="w-6 h-6 text-slate-300" />
                     )}
                   </div>
 
@@ -389,7 +389,7 @@ const AdminLeaderboardManagement = () => {
                     placeholder="https://icon-url..."
                     value={(iconUrls[entry.key] || '').replace(/^"|"$/g, '')}
                     onChange={(e) => setIconUrls(prev => ({ ...prev, [entry.key]: e.target.value }))}
-                    className="text-xs bg-white/5 border-white/10 text-white"
+                    className="text-xs bg-white border-slate-200 shadow-sm text-slate-900"
                   />
 
                   {/* Upload */}
@@ -434,7 +434,7 @@ const AdminLeaderboardManagement = () => {
 
         {/* ===== PODIUM FRAMES TAB ===== */}
         <TabsContent value="podium-frames" className="space-y-4">
-          <p className="text-white/60 text-sm">
+          <p className="text-slate-600 text-sm">
             Pkg425 — Professional uploader: SVGA / VAP / PAG / Lottie / WebP / GIF / PNG / MP4. Plays at the designer's exact authored duration.
           </p>
 
@@ -443,9 +443,9 @@ const AdminLeaderboardManagement = () => {
               const frame = frames.find(f => f.rank_position === rank);
               const currentFormat = (frame?.frame_type as AnimationFormat) || null;
               return (
-                <Card key={rank} className="bg-white/5 border-white/10">
+                <Card key={rank} className="bg-white border-slate-200 shadow-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-white text-sm">
+                    <CardTitle className="flex items-center gap-2 text-slate-900 text-sm">
                       {RANK_ICONS[rank as keyof typeof RANK_ICONS]}
                       Rank #{rank} Frame
                     </CardTitle>
@@ -469,7 +469,7 @@ const AdminLeaderboardManagement = () => {
 
                     {frame && (
                       <div className="flex items-center justify-between gap-2 pt-1">
-                        <p className="text-[10px] text-white/40">
+                        <p className="text-[10px] text-slate-500">
                           {frame.frame_type.toUpperCase()} · {frame.is_active ? "Active" : "Inactive"}
                         </p>
                         <Button variant="destructive" size="sm" onClick={() => deleteFrame(frame.id)}>
@@ -490,7 +490,7 @@ const AdminLeaderboardManagement = () => {
         <TabsContent value="rewards" className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
-              <Label className="text-white/70 text-sm">Period:</Label>
+              <Label className="text-slate-700 text-sm">Period:</Label>
               <div className="flex gap-2">
                 {PERIODS.map(p => (
                   <Button
@@ -504,7 +504,7 @@ const AdminLeaderboardManagement = () => {
                 ))}
               </div>
             </div>
-            <p className="text-white/40 text-xs">
+            <p className="text-slate-500 text-xs">
               Set rewards for ranks 1-50. Only configured tiers will receive rewards.
             </p>
           </div>
@@ -573,7 +573,7 @@ const AdminLeaderboardManagement = () => {
 
 
             {rewards.length === 0 && (
-              <div className="text-center py-8 text-white/30">
+              <div className="text-center py-8 text-slate-400">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-30" />
                 <p>No reward tiers configured for this category & period.</p>
                 <p className="text-xs mt-1">Click "Generate Empty Tiers" above or add tiers manually.</p>
@@ -588,15 +588,15 @@ const AdminLeaderboardManagement = () => {
 
         {/* ===== DISTRIBUTION TAB ===== */}
         <TabsContent value="distribution" className="space-y-4">
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-white text-sm flex items-center gap-2">
+              <CardTitle className="text-slate-900 text-sm flex items-center gap-2">
                 <Zap className="w-5 h-5 text-amber-400" />
                 Automatic Reward Distribution
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-white/60 text-sm space-y-2">
+              <div className="text-slate-600 text-sm space-y-2">
                 <p>✅ <strong>pg_cron</strong> is configured to run every hour.</p>
                 <p>⏰ <strong>Daily rewards</strong> distribute at midnight (00:00 UTC) for the previous day.</p>
                 <p>📅 <strong>Weekly rewards</strong> distribute every Monday at midnight for the previous week.</p>
@@ -606,15 +606,15 @@ const AdminLeaderboardManagement = () => {
                 </p>
               </div>
 
-              <div className="border-t border-white/10 pt-4 space-y-3">
-                <h4 className="text-white font-medium text-sm">Manual Trigger</h4>
-                <p className="text-white/50 text-xs">
+              <div className="border-t border-slate-200 pt-4 space-y-3">
+                <h4 className="text-slate-900 font-medium text-sm">Manual Trigger</h4>
+                <p className="text-slate-500 text-xs">
                   You can manually trigger distribution for a specific category/period. This will distribute rewards for the <strong>previous</strong> completed period.
                 </p>
                 
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <Label className="text-white/60 text-xs">Period:</Label>
+                    <Label className="text-slate-600 text-xs">Period:</Label>
                     <div className="flex gap-1">
                       {PERIODS.map(p => (
                         <Button
@@ -720,20 +720,20 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
       onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
       onBlur={() => commit(field)}
       onKeyDown={(e) => handleKey(e, field)}
-      className={cn("text-xs bg-white/5 border-white/10 text-white h-8", extraClass)}
+      className={cn("text-xs bg-white border-slate-200 shadow-sm text-slate-900 h-8", extraClass)}
     />
   );
 
   return (
-    <Card className="bg-white/5 border-white/10">
+    <Card className="bg-white border-slate-200 shadow-sm">
       <CardContent className="p-3">
         {isAgency ? (
           <div className="grid grid-cols-4 gap-2 items-center">
             <div className="col-span-1">
-              <Label className="text-white/50 text-[10px]">Rank Range</Label>
+              <Label className="text-slate-500 text-[10px]">Rank Range</Label>
               <div className="flex items-center gap-1">
                 {numInput("rank_from", "w-14")}
-                <span className="text-white/40">-</span>
+                <span className="text-slate-500">-</span>
                 {numInput("rank_to", "w-14")}
               </div>
             </div>
@@ -750,23 +750,23 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
         ) : (
           <div className="grid grid-cols-6 gap-2 items-center">
             <div className="col-span-1">
-              <Label className="text-white/50 text-[10px]">Rank Range</Label>
+              <Label className="text-slate-500 text-[10px]">Rank Range</Label>
               <div className="flex items-center gap-1">
                 {numInput("rank_from", "w-14")}
-                <span className="text-white/40">-</span>
+                <span className="text-slate-500">-</span>
                 {numInput("rank_to", "w-14")}
               </div>
             </div>
             <div>
-              <Label className="text-white/50 text-[10px]">Beans</Label>
+              <Label className="text-slate-500 text-[10px]">Beans</Label>
               {numInput("reward_beans")}
             </div>
             <div>
-              <Label className="text-white/50 text-[10px]">Diamonds 💎</Label>
+              <Label className="text-slate-500 text-[10px]">Diamonds 💎</Label>
               {numInput("reward_diamonds")}
             </div>
             <div>
-              <Label className="text-white/50 text-[10px]">Diamonds 💰</Label>
+              <Label className="text-slate-500 text-[10px]">Diamonds 💰</Label>
               {numInput("reward_coins")}
             </div>
             <div className="col-span-1 flex items-end justify-end gap-1">
@@ -840,25 +840,25 @@ const RecentDistributions = () => {
   };
 
   if (!history.length) return (
-    <div className="border-t border-white/10 pt-4">
-      <h4 className="text-white/50 text-sm mb-2">📋 Recent Reward Distributions</h4>
-      <p className="text-white/30 text-xs">No distributions yet.</p>
+    <div className="border-t border-slate-200 pt-4">
+      <h4 className="text-slate-500 text-sm mb-2">📋 Recent Reward Distributions</h4>
+      <p className="text-slate-400 text-xs">No distributions yet.</p>
     </div>
   );
 
   return (
-    <div className="border-t border-white/10 pt-4">
-      <h4 className="text-white/60 text-sm mb-3">📋 Recent Reward Distributions ({history.length})</h4>
+    <div className="border-t border-slate-200 pt-4">
+      <h4 className="text-slate-600 text-sm mb-3">📋 Recent Reward Distributions ({history.length})</h4>
       <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
         {history.map((h) => (
-          <div key={h.id} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 text-xs gap-2">
+          <div key={h.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 text-xs gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-amber-400 font-bold shrink-0">#{h.rank_position}</span>
-              <span className="text-white/90 truncate">{h.display_name}</span>
+              <span className="text-slate-800 truncate">{h.display_name}</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-white/50">{categoryLabel(h.category)}</span>
-              <span className="text-white/40">{periodLabel(h.period_type)}</span>
+              <span className="text-slate-500">{categoryLabel(h.category)}</span>
+              <span className="text-slate-500">{periodLabel(h.period_type)}</span>
               {h.reward_beans > 0 && <span className="text-green-400">🫘{h.reward_beans.toLocaleString()}</span>}
               {h.reward_diamonds > 0 && <span className="text-blue-400">💎{h.reward_diamonds.toLocaleString()}</span>}
               {h.reward_coins > 0 && <span className="text-yellow-400">🪙{h.reward_coins.toLocaleString()}</span>}

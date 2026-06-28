@@ -191,7 +191,7 @@ export default function AdminContent() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="admin-pro-shell space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 bg-gradient-to-r from-slate-50 via-purple-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-purple-700 to-slate-800 bg-clip-text text-transparent">Content Management</h1>

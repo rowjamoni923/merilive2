@@ -361,15 +361,15 @@ export default function AdminRatingRewards() {
   const totalRejected = historyData.filter(c => c.status === 'rejected').length;
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Star className="w-6 h-6 text-amber-400" />
             Rating Reward Claims
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-500 text-sm mt-1">
             Review Play Store rating screenshots and approve rewards
           </p>
         </div>
@@ -400,7 +400,7 @@ export default function AdminRatingRewards() {
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-          <TabsList className="bg-slate-900/80 border border-slate-800">
+          <TabsList className="bg-slate-100 border border-slate-200">
             <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300 gap-1">
               <Clock className="w-3.5 h-3.5" /> Pending
             </TabsTrigger>
@@ -425,7 +425,7 @@ export default function AdminRatingRewards() {
             placeholder="Search user..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-slate-900/50 border-slate-800 text-white"
+            className="pl-9 bg-white border-slate-200 text-slate-900"
           />
         </div>
       </div>
@@ -466,7 +466,7 @@ export default function AdminRatingRewards() {
           ) : (
             <div className="rounded-xl border border-slate-800 overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
+              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-50 text-[11px] text-slate-600 font-medium uppercase tracking-wider border-b border-slate-800">
                 <div>#</div>
                 <div>Recipient</div>
                 <div>Reward</div>
@@ -496,7 +496,7 @@ export default function AdminRatingRewards() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-sm font-medium text-slate-900 truncate">
                           {item.profile?.display_name || 'Unknown'}
                         </div>
                         <div className="text-[10px] text-slate-500">
@@ -604,7 +604,7 @@ export default function AdminRatingRewards() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white text-sm truncate">
+                      <span className="font-semibold text-slate-900 text-sm truncate">
                         {claim.profile?.display_name || 'Unknown'}
                       </span>
                       {claim.profile?.app_uid && (

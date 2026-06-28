@@ -31,7 +31,7 @@ export default function AdminCampaignBannerHub() {
   const [tab, setTab] = useState<string>("recharge");
 
   return (
-    <div className="admin-content space-y-6 p-4 md:p-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6">
       <AdminPageHeader
         icon={Megaphone}
         title="Campaign Banner Hub"

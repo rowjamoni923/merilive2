@@ -218,7 +218,7 @@ export default function AdminRecordings() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="admin-pro-shell space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
