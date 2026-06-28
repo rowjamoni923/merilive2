@@ -140,17 +140,17 @@ export default function AdminTodayCalls() {
   const callsWithRecordedEarnings = settledCalls.filter(c => getEarnedAmount(c) > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
-            <Phone className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+            <Phone className="w-6 h-6 text-cyan-500" />
             Today&apos;s Calls
-            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 ml-2">
+            <Badge className="bg-cyan-500/15 text-cyan-600 border-cyan-500/20 ml-2">
               {calls.length} Total
             </Badge>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Read-only settlement view using stored call earnings</p>
+          <p className="text-sm text-muted-foreground mt-1">Read-only settlement view using stored call earnings</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -159,12 +159,12 @@ export default function AdminTodayCalls() {
               placeholder="Search caller, host, UID..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 bg-slate-800 border-slate-700 text-white w-64"
+              className="pl-9 bg-white border-input text-slate-900 w-64"
             />
           </div>
           <button
             onClick={fetchCalls}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-700 bg-transparent text-white hover:bg-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-transparent text-slate-700 hover:bg-slate-100"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
