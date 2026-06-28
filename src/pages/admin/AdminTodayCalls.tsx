@@ -172,44 +172,44 @@ export default function AdminTodayCalls() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-white">{calls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Total Calls</p>
+            <p className="text-2xl font-black text-slate-900">{calls.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">Total Calls</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-emerald-400">{settledCalls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Ended / Settled</p>
+            <p className="text-2xl font-black text-emerald-600">{settledCalls.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">Ended / Settled</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-amber-400">
+            <p className="text-2xl font-black text-amber-500">
               {settledCalls.reduce((sum, c) => sum + getSpentAmount(c), 0).toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 font-bold">Diamonds Spent</p>
+            <p className="text-xs text-muted-foreground font-bold">Diamonds Spent</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-cyan-400">{callsWithRecordedEarnings.length}</p>
-            <p className="text-xs text-slate-400 font-bold">With Host Earnings</p>
+            <p className="text-2xl font-black text-cyan-500">{callsWithRecordedEarnings.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">With Host Earnings</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border-emerald-500/30">
+      <Card className="bg-emerald-50/60 border-emerald-200/60">
         <CardContent className="p-4">
-          <p className="text-white font-bold">Host beans are now shown from stored settlement fields only.</p>
-          <p className="text-xs text-emerald-200/80 mt-1">No manual re-credit action is shown here, which avoids duplicate bean crediting.</p>
+          <p className="text-slate-900 font-bold">Host beans are now shown from stored settlement fields only.</p>
+          <p className="text-xs text-emerald-600/80 mt-1">No manual re-credit action is shown here, which avoids duplicate bean crediting.</p>
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50">
+      <Card className="bg-white border-border shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white text-lg">Call Records</CardTitle>
+          <CardTitle className="text-slate-900 text-lg">Call Records</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading && calls.length === 0 ? (
@@ -217,19 +217,19 @@ export default function AdminTodayCalls() {
               <div className="w-10 h-10 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-slate-500">
+            <div className="text-center py-16 text-muted-foreground">
               <Phone className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="font-bold">No calls found today</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-700/50">
+            <div className="divide-y divide-slate-100">
               {filtered.map((call, i) => (
                 <motion.div
                   key={call.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.02 }}
-                  className="p-4 hover:bg-slate-700/20 transition-colors"
+                  className="p-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
