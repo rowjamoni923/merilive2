@@ -7082,4 +7082,206 @@ body[data-admin-active="true"] header.sticky {
 .admin-pro-shell [data-slot="card"] { contain: layout style !important; }
 
 
+/* ============================================================
+   ADMIN UNIFIED THEME TOKENS — single source of truth
+   ------------------------------------------------------------
+   One canonical set of HSL tokens + utility classes for the
+   admin panel. Sidebar, cards, text, borders, shadows — every
+   section reads from these so the look stays identical edge
+   to edge. Add new admin surfaces by composing these classes:
+
+     <aside class="admin-sidebar">…</aside>
+     <a class="admin-sidebar-item">…</a>
+     <a class="admin-sidebar-item is-active">…</a>
+     <div class="admin-card">…</div>
+     <div class="admin-card admin-card-elevated">…</div>
+     <div class="admin-card admin-card-interactive">…</div>
+     <h1 class="admin-heading">…</h1>
+     <p class="admin-text">…</p>
+     <p class="admin-text-muted">…</p>
+
+   Do NOT hardcode hex colors in admin components. Always pull
+   from these tokens (directly or via the utility classes).
+   ============================================================ */
+:root,
+.admin-pro-shell,
+.admin-content,
+[data-admin-scope="true"] {
+  /* ---- Canvas & surfaces ---- */
+  --admin-canvas:           0 0% 100%;      /* #FFFFFF  page background     */
+  --admin-canvas-soft:      210 40% 98%;    /* #F8FAFC  section background  */
+  --admin-canvas-sunken:    214 32% 95%;    /* #EEF2F7  inset / table head  */
+
+  /* ---- Cards ---- */
+  --admin-card-bg:          0 0% 100%;      /* #FFFFFF  default card        */
+  --admin-card-bg-alt:      210 40% 98.5%;  /* #F7FAFC  zebra / sub-card    */
+  --admin-card-bg-hover:    214 32% 97%;    /* #F1F5F9  hover surface       */
+  --admin-card-border:      214 32% 91%;    /* #E2E8F0  card edge           */
+  --admin-card-border-soft: 214 32% 95%;    /* #EEF2F7  inner divider       */
+  --admin-card-ring:        217 91% 60%;    /* #3B82F6  focus / active ring */
+
+  /* ---- Sidebar ---- */
+  --admin-sidebar-bg:           0 0% 100%;     /* #FFFFFF                   */
+  --admin-sidebar-bg-elevated:  210 40% 99%;   /* #FBFCFE  header / footer  */
+  --admin-sidebar-border:       214 32% 91%;   /* #E2E8F0                   */
+  --admin-sidebar-item:         215 20% 35%;   /* #475569  default ink      */
+  --admin-sidebar-item-muted:   215 16% 47%;   /* #64748B  inactive label   */
+  --admin-sidebar-item-hover-bg:214 32% 95%;   /* #EEF2F7                   */
+  --admin-sidebar-item-active-bg: 217 91% 96%; /* #EBF2FE                   */
+  --admin-sidebar-item-active-ink:217 91% 45%; /* #1D6FE5  active label     */
+  --admin-sidebar-item-active-bar:217 91% 60%; /* #3B82F6  left bar         */
+
+  /* ---- Text ---- */
+  --admin-text:           222 47% 11%;   /* #0F172A  primary heading/body  */
+  --admin-text-strong:    222 47% 7%;    /* #0A0F1C  emphasis              */
+  --admin-text-soft:      215 20% 35%;   /* #475569  body secondary        */
+  --admin-text-muted:     215 16% 47%;   /* #64748B  helper / placeholder  */
+  --admin-text-disabled:  214 20% 65%;   /* #94A3B8                        */
+  --admin-text-on-accent: 0 0% 100%;     /* #FFFFFF                        */
+  --admin-text-link:      217 91% 50%;   /* #2476E5                        */
+
+  /* ---- Accents (semantic) ---- */
+  --admin-accent:         217 91% 60%;   /* primary electric blue          */
+  --admin-accent-hover:   221 83% 53%;   /* #2563EB                        */
+  --admin-success:        160 84% 39%;   /* #10B981                        */
+  --admin-warning:        38 92% 50%;    /* #F59E0B                        */
+  --admin-danger:         0 84% 60%;     /* #EF4444                        */
+  --admin-info:           199 89% 48%;   /* #0EA5E9                        */
+
+  /* ---- 3D shadow recipes ---- */
+  --admin-shadow-color:   215 28% 17%;
+  --admin-shadow-xs:      0 1px 1px hsl(var(--admin-shadow-color) / 0.04);
+  --admin-shadow-sm:      0 1px 2px hsl(var(--admin-shadow-color) / 0.05), 0 1px 3px hsl(var(--admin-shadow-color) / 0.06);
+  --admin-shadow-md:      0 2px 4px hsl(var(--admin-shadow-color) / 0.05), 0 6px 14px hsl(var(--admin-shadow-color) / 0.08);
+  --admin-shadow-lg:      0 4px 8px hsl(var(--admin-shadow-color) / 0.06), 0 14px 28px hsl(var(--admin-shadow-color) / 0.10);
+  --admin-shadow-3d:      0 1px 0 hsl(0 0% 100% / 0.6) inset,
+                          0 1px 2px hsl(var(--admin-shadow-color) / 0.06),
+                          0 8px 20px -6px hsl(var(--admin-shadow-color) / 0.10);
+  --admin-shadow-3d-hover:0 1px 0 hsl(0 0% 100% / 0.8) inset,
+                          0 2px 4px hsl(var(--admin-shadow-color) / 0.08),
+                          0 16px 32px -8px hsl(var(--admin-shadow-color) / 0.14);
+
+  /* ---- Geometry ---- */
+  --admin-radius-sm: 0.5rem;
+  --admin-radius:    0.75rem;
+  --admin-radius-lg: 1rem;
+}
+
+/* ============================================================
+   UTILITY CLASSES — compose these instead of raw color classes
+   ============================================================ */
+
+/* Cards ------------------------------------------------------ */
+.admin-card {
+  background: hsl(var(--admin-card-bg));
+  color: hsl(var(--admin-text));
+  border: 1px solid hsl(var(--admin-card-border));
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+}
+.admin-card-elevated {
+  box-shadow: var(--admin-shadow-3d);
+  border-color: hsl(var(--admin-card-border));
+}
+.admin-card-interactive {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  cursor: pointer;
+}
+.admin-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-3d-hover);
+  border-color: hsl(var(--admin-card-ring) / 0.45);
+}
+.admin-card-interactive:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-shadow-3d-hover), 0 0 0 3px hsl(var(--admin-card-ring) / 0.25);
+}
+.admin-card-alt { background: hsl(var(--admin-card-bg-alt)); }
+.admin-card-sunken { background: hsl(var(--admin-canvas-sunken)); }
+
+/* Sidebar ---------------------------------------------------- */
+.admin-sidebar {
+  background: hsl(var(--admin-sidebar-bg));
+  color: hsl(var(--admin-sidebar-item));
+  border-right: 1px solid hsl(var(--admin-sidebar-border));
+  box-shadow: var(--admin-shadow-sm);
+}
+.admin-sidebar-section-label {
+  color: hsl(var(--admin-text-muted));
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--admin-radius-sm);
+  color: hsl(var(--admin-sidebar-item));
+  font-weight: 500;
+  position: relative;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.admin-sidebar-item:hover {
+  background: hsl(var(--admin-sidebar-item-hover-bg));
+  color: hsl(var(--admin-text));
+}
+.admin-sidebar-item.is-active,
+.admin-sidebar-item[data-active="true"],
+.admin-sidebar-item[aria-current="page"] {
+  background: hsl(var(--admin-sidebar-item-active-bg));
+  color: hsl(var(--admin-sidebar-item-active-ink));
+  box-shadow: var(--admin-shadow-xs);
+}
+.admin-sidebar-item.is-active::before,
+.admin-sidebar-item[data-active="true"]::before,
+.admin-sidebar-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  width: 3px;
+  border-radius: 999px;
+  background: hsl(var(--admin-sidebar-item-active-bar));
+}
+
+/* Text ------------------------------------------------------- */
+.admin-heading {
+  color: hsl(var(--admin-text-strong));
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+.admin-text          { color: hsl(var(--admin-text)); }
+.admin-text-soft     { color: hsl(var(--admin-text-soft)); }
+.admin-text-muted    { color: hsl(var(--admin-text-muted)); }
+.admin-text-disabled { color: hsl(var(--admin-text-disabled)); }
+.admin-text-accent   { color: hsl(var(--admin-accent)); }
+.admin-text-success  { color: hsl(var(--admin-success)); }
+.admin-text-warning  { color: hsl(var(--admin-warning)); }
+.admin-text-danger   { color: hsl(var(--admin-danger)); }
+
+/* Surfaces --------------------------------------------------- */
+.admin-canvas        { background: hsl(var(--admin-canvas)); }
+.admin-canvas-soft   { background: hsl(var(--admin-canvas-soft)); }
+.admin-canvas-sunken { background: hsl(var(--admin-canvas-sunken)); }
+
+/* Badges (semantic, tinted) ---------------------------------- */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.admin-badge-accent  { background: hsl(var(--admin-accent)  / 0.10); color: hsl(var(--admin-accent));  border-color: hsl(var(--admin-accent)  / 0.25); }
+.admin-badge-success { background: hsl(var(--admin-success) / 0.10); color: hsl(var(--admin-success)); border-color: hsl(var(--admin-success) / 0.25); }
+.admin-badge-warning { background: hsl(var(--admin-warning) / 0.12); color: hsl(38 92% 35%);           border-color: hsl(var(--admin-warning) / 0.30); }
+.admin-badge-danger  { background: hsl(var(--admin-danger)  / 0.10); color: hsl(var(--admin-danger));  border-color: hsl(var(--admin-danger)  / 0.25); }
+.admin-badge-muted   { background: hsl(var(--admin-canvas-sunken));  color: hsl(var(--admin-text-soft)); border-color: hsl(var(--admin-card-border)); }
 
