@@ -6229,13 +6229,24 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   letter-spacing: -0.01em;
   color: hsl(var(--admin-pro-text)) !important;
 }
-/* Make sure card surfaces sitting on the white canvas have a visible edge */
+/* Unified 3D card polish — every shadcn Card / .bg-card inside the admin
+   shell receives the same elevated treatment so spacing, edge, shadow and
+   hover-lift stay identical across every page. */
 .admin-pro-shell .bg-card,
 .admin-pro-shell [data-slot="card"] {
   background: hsl(var(--admin-pro-surface)) !important;
   border: 1px solid hsl(var(--admin-pro-border)) !important;
-  box-shadow: 0 1px 2px hsl(var(--admin-pro-shadow) / 0.04), 0 1px 3px hsl(var(--admin-pro-shadow) / 0.06) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--admin-shadow-3d) !important;
   color: hsl(var(--admin-pro-text)) !important;
+  transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-pro-shell [data-slot="card"]:hover {
+    box-shadow: var(--admin-shadow-3d-hover) !important;
+    border-color: hsl(var(--admin-card-ring) / 0.35) !important;
+    transform: translateY(-1px);
+  }
 }
 /* When admin-pro-shell sits inside the dark .admin-shell wrapper, the
    wrapper still paints #06060a behind the scroll area. Hard override so
