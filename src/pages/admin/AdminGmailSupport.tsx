@@ -700,7 +700,7 @@ const AdminGmailSupport = () => {
                             {msg.body.includes('<') ? (
                               <div 
                                 dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(msg.body) }} 
-                                className="prose prose-sm max-w-none dark:prose-invert overflow-hidden [&_*]:max-w-full [&_img]:max-w-[280px] [&_img]:h-auto [&_img]:rounded-lg [&_p]:my-0.5 [&_br]:leading-none [&_table]:text-xs [&_blockquote]:hidden"
+                                className="prose prose-sm max-w-none overflow-hidden [&_*]:max-w-full [&_img]:max-w-[280px] [&_img]:h-auto [&_img]:rounded-lg [&_p]:my-0.5 [&_br]:leading-none [&_table]:text-xs [&_blockquote]:hidden"
                               />
                             ) : (
                               stripHtml(msg.body) || msg.snippet
