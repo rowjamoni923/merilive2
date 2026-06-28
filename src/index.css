@@ -6885,4 +6885,201 @@ body[data-admin-active="true"] header.sticky {
   backdrop-filter: blur(8px) !important;
 }
 
+/* ============================================================
+   ADMIN CLOUD WHITE + 3D — Section 2: User System (15 pages)
+   User Hub, User Management, All Users, Host Applications,
+   Host Search, All Hosts, Face Verification, Blocked Users,
+   Live Bans, Permanent Ban, Country Distribution,
+   Face Violations, Moderation, User Reports, Online Users.
+   ============================================================ */
+
+/* Flip remaining dark slate surfaces (slate-600/700/800/900) to white card */
+.admin-pro-shell .bg-slate-600,
+.admin-pro-shell .bg-slate-700,
+.admin-pro-shell .bg-slate-800,
+.admin-pro-shell .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+/* But keep slate-600/700 alpha tints (e.g. bg-slate-700/20) as subtle wash */
+.admin-pro-shell [class*="bg-slate-6"][class*="/"],
+.admin-pro-shell [class*="bg-slate-7"][class*="/"],
+.admin-pro-shell [class*="bg-slate-8"][class*="/"],
+.admin-pro-shell [class*="bg-slate-9"][class*="/"] {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* Status pills — colored alpha bgs keep accent but force readable text */
+.admin-pro-shell [class*="bg-amber-5"][class*="/1"],
+.admin-pro-shell [class*="bg-amber-5"][class*="/2"] {
+  background-color: hsl(38 92% 50% / 0.12) !important;
+  color: #B45309 !important;
+  border-color: hsl(38 92% 50% / 0.30) !important;
+}
+.admin-pro-shell [class*="bg-emerald-5"][class*="/1"],
+.admin-pro-shell [class*="bg-emerald-5"][class*="/2"],
+.admin-pro-shell [class*="bg-green-5"][class*="/1"],
+.admin-pro-shell [class*="bg-green-5"][class*="/2"] {
+  background-color: hsl(160 84% 39% / 0.12) !important;
+  color: #047857 !important;
+  border-color: hsl(160 84% 39% / 0.28) !important;
+}
+.admin-pro-shell [class*="bg-red-5"][class*="/1"],
+.admin-pro-shell [class*="bg-red-5"][class*="/2"],
+.admin-pro-shell [class*="bg-rose-5"][class*="/1"],
+.admin-pro-shell [class*="bg-rose-5"][class*="/2"] {
+  background-color: hsl(0 84% 60% / 0.10) !important;
+  color: #B91C1C !important;
+  border-color: hsl(0 84% 60% / 0.28) !important;
+}
+.admin-pro-shell [class*="bg-blue-5"][class*="/1"],
+.admin-pro-shell [class*="bg-blue-5"][class*="/2"],
+.admin-pro-shell [class*="bg-cyan-5"][class*="/1"],
+.admin-pro-shell [class*="bg-sky-5"][class*="/1"] {
+  background-color: hsl(217 91% 60% / 0.10) !important;
+  color: #1D4ED8 !important;
+  border-color: hsl(217 91% 60% / 0.28) !important;
+}
+.admin-pro-shell [class*="bg-violet-5"][class*="/1"],
+.admin-pro-shell [class*="bg-violet-5"][class*="/2"],
+.admin-pro-shell [class*="bg-purple-5"][class*="/1"],
+.admin-pro-shell [class*="bg-purple-5"][class*="/2"],
+.admin-pro-shell [class*="bg-fuchsia-5"][class*="/1"] {
+  background-color: hsl(262 83% 58% / 0.10) !important;
+  color: #6D28D9 !important;
+  border-color: hsl(262 83% 58% / 0.28) !important;
+}
+.admin-pro-shell [class*="bg-pink-5"][class*="/1"],
+.admin-pro-shell [class*="bg-pink-5"][class*="/2"] {
+  background-color: hsl(330 81% 60% / 0.10) !important;
+  color: #BE185D !important;
+  border-color: hsl(330 81% 60% / 0.28) !important;
+}
+.admin-pro-shell [class*="bg-orange-5"][class*="/1"],
+.admin-pro-shell [class*="bg-orange-5"][class*="/2"] {
+  background-color: hsl(25 95% 53% / 0.10) !important;
+  color: #C2410C !important;
+  border-color: hsl(25 95% 53% / 0.28) !important;
+}
+
+/* User/host row list items — 3D depth + hover lift */
+.admin-pro-shell [data-slot="card"] [class*="rounded-xl"][class*="border"]:not([role="tab"]):not(button),
+.admin-pro-shell [data-slot="card"] [class*="rounded-2xl"][class*="border"]:not([role="tab"]):not(button) {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease !important;
+}
+.admin-pro-shell [data-slot="card"] [class*="rounded-xl"][class*="border"]:hover:not([role="tab"]):not(button),
+.admin-pro-shell [data-slot="card"] [class*="rounded-2xl"][class*="border"]:hover:not([role="tab"]):not(button) {
+  border-color: #CBD5E1 !important;
+  box-shadow:
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 6px 18px -10px rgba(15, 23, 42, 0.14) !important;
+}
+
+/* Tables — host list, user list, ban list */
+.admin-pro-shell table {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow:
+    0 1px 0 rgba(15, 23, 42, 0.03),
+    0 6px 18px -12px rgba(15, 23, 42, 0.10) !important;
+}
+.admin-pro-shell table thead { background: #F8FAFC !important; }
+.admin-pro-shell table thead th {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+.admin-pro-shell table tbody tr {
+  border-bottom: 1px solid #F1F5F9 !important;
+  transition: background-color 0.12s ease !important;
+}
+.admin-pro-shell table tbody tr:hover { background-color: #F8FAFC !important; }
+.admin-pro-shell table tbody td { color: #0F172A !important; }
+
+/* Action button differentiation — Destructive (Ban/Block/Delete) */
+.admin-pro-shell button[class*="bg-red-5"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-red-6"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-rose-5"]:not([class*="/"]) {
+  background: linear-gradient(180deg, #EF4444, #DC2626) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #B91C1C !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 1px 2px rgba(185, 28, 28, 0.30),
+    0 6px 16px -6px rgba(185, 28, 28, 0.45) !important;
+}
+.admin-pro-shell button[class*="bg-red-5"]:not([class*="/"]):hover {
+  filter: brightness(1.04);
+  transform: translateY(-0.5px);
+}
+/* Approve / Success */
+.admin-pro-shell button[class*="bg-emerald-5"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-emerald-6"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-green-5"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-green-6"]:not([class*="/"]) {
+  background: linear-gradient(180deg, #10B981, #059669) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #047857 !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.14) inset,
+    0 1px 2px rgba(4, 120, 87, 0.30),
+    0 6px 16px -6px rgba(4, 120, 87, 0.45) !important;
+}
+.admin-pro-shell button[class*="bg-emerald-5"]:not([class*="/"]):hover,
+.admin-pro-shell button[class*="bg-green-5"]:not([class*="/"]):hover {
+  filter: brightness(1.04);
+  transform: translateY(-0.5px);
+}
+/* Primary action (electric blue) */
+.admin-pro-shell button[class*="bg-blue-5"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-blue-6"]:not([class*="/"]),
+.admin-pro-shell button[class*="bg-indigo-5"]:not([class*="/"]) {
+  background: linear-gradient(180deg, #3B82F6, #2563EB) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1D4ED8 !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.16) inset,
+    0 1px 2px rgba(37, 99, 235, 0.30),
+    0 6px 16px -6px rgba(37, 99, 235, 0.45) !important;
+}
+.admin-pro-shell button[class*="bg-blue-5"]:not([class*="/"]):hover {
+  filter: brightness(1.05);
+  transform: translateY(-0.5px);
+}
+
+/* Avatar ring tints — visible on white card */
+.admin-pro-shell [class*="ring-violet"],
+.admin-pro-shell [class*="ring-purple"],
+.admin-pro-shell [class*="ring-fuchsia"] { --tw-ring-color: hsl(262 83% 58% / 0.30) !important; }
+.admin-pro-shell [class*="ring-emerald"],
+.admin-pro-shell [class*="ring-green"] { --tw-ring-color: hsl(160 84% 39% / 0.30) !important; }
+.admin-pro-shell [class*="ring-amber"],
+.admin-pro-shell [class*="ring-yellow"] { --tw-ring-color: hsl(38 92% 50% / 0.30) !important; }
+.admin-pro-shell [class*="ring-red"],
+.admin-pro-shell [class*="ring-rose"] { --tw-ring-color: hsl(0 84% 60% / 0.30) !important; }
+.admin-pro-shell [class*="ring-blue"],
+.admin-pro-shell [class*="ring-cyan"],
+.admin-pro-shell [class*="ring-sky"] { --tw-ring-color: hsl(217 91% 60% / 0.30) !important; }
+
+/* Online/offline indicator dots — always saturated */
+.admin-pro-shell .bg-emerald-400,
+.admin-pro-shell .bg-emerald-500,
+.admin-pro-shell .bg-green-400,
+.admin-pro-shell .bg-green-500 { background-color: #10B981 !important; }
+.admin-pro-shell .bg-red-400,
+.admin-pro-shell .bg-red-500 { background-color: #EF4444 !important; }
+
+/* Section 2 perf: contain layout repaints on user-row lists */
+.admin-pro-shell [data-slot="card"] { contain: layout style !important; }
+
+
 
