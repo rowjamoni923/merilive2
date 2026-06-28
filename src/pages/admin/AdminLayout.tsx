@@ -3022,7 +3022,7 @@ export default function AdminLayout() {
               <div className="relative" ref={notificationRef}>
                 <Button
                   variant="ghost" size="icon"
-                  className="relative text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 border border-transparent hover:border-blue-200"
+                  className="relative text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 border border-transparent hover:border-blue-200 transition-colors"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
