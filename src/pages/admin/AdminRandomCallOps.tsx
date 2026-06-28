@@ -207,11 +207,11 @@ export default function AdminRandomCallOps() {
   );
 
   if (loading) {
-    return <div className="p-6"><AdminPageHeader title="Random Call Operations" subtitle="Loading..." icon={Activity} /></div>;
+    return <div className="admin-pro-shell admin-content p-6"><AdminPageHeader title="Random Call Operations" subtitle="Loading..." icon={Activity} /></div>;
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-7xl mx-auto">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-5 max-w-7xl mx-auto">
       <AdminPageHeader
         title="Random Call Operations"
         subtitle="Live monitoring, queue, suspensions, revenue & top performers — auto-refresh 15s"
