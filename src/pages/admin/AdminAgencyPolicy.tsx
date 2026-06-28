@@ -448,7 +448,7 @@ const AdminAgencyPolicy = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-pro-shell min-h-screen">
       <AdminPageHeader
         title="Agency Policy"
         icon={FileText}

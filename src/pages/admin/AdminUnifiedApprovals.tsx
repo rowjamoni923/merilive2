@@ -107,7 +107,7 @@ export default function AdminUnifiedApprovals() {
   const totalPending = counts.sub + counts.csa;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6 space-y-4">
+    <div className="admin-pro-shell min-h-screen p-4 md:p-6 space-y-4">
       {/* Header */}
       <div className="rounded-2xl bg-gradient-to-r from-violet-900/50 via-slate-900 to-emerald-900/40 border border-violet-500/30 p-5 relative overflow-hidden">
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-violet-500/20 blur-3xl" />

@@ -293,7 +293,7 @@ export default function AdminPricingHub() {
   }
 
   return (
-    <div className="admin-content p-4 md:p-6 space-y-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-6">
       <AdminPageHeader
         title="Commission & Pricing Hub"
         subtitle="SINGLE source of truth for every percentage, rate, and minimum across the app. No defaults — everything you set here drives the live app instantly."
