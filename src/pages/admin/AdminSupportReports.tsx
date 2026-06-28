@@ -105,7 +105,7 @@ export default function AdminSupportReports() {
   };
 
   return (
-    <div className="admin-content p-4 md:p-6 space-y-4">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-4 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-amber-400" />
