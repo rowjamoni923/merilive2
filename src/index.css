@@ -2799,15 +2799,27 @@ body[data-admin-active="true"] #root {
   letter-spacing: -0.01em;
 }
 
-/* Near-white / very light text utilities → dark slate
-   (prevents white-on-white bleed across all 160 admin pages) */
-.admin-content .text-white,
-.admin-content [class*="text-white/"],
-.admin-content .text-slate-50, .admin-content .text-slate-100, .admin-content .text-slate-200,
-.admin-content .text-zinc-50,  .admin-content .text-zinc-100,  .admin-content .text-zinc-200,
-.admin-content .text-neutral-50,.admin-content .text-neutral-100,.admin-content .text-neutral-200,
-.admin-content .text-gray-50,  .admin-content .text-gray-100,  .admin-content .text-gray-200,
-.admin-content .text-stone-50, .admin-content .text-stone-100, .admin-content .text-stone-200 {
+/* Near-white / very light text utilities → dark slate ONLY when the element
+   sits on a white-ish surface. Elements that carry their OWN colored
+   background (inline style="background-color: ..." or a bg-*/from-* utility,
+   e.g. count chips, status pills, gradient cards) MUST keep their white text. */
+.admin-content .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-content [class*="text-white/"]:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
+.admin-content .text-slate-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-slate-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-slate-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-zinc-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-neutral-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-gray-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-50:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-100:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content .text-stone-200:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]) {
   color: #0F172A !important;
 }
 
