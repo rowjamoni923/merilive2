@@ -101,6 +101,8 @@ export default function AdminErrorLogs() {
     todayErrors: 0,
     topPages: [] as { page: string; count: number }[],
   });
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(10);
 
   const LEVEL_MAP: Record<"info" | "warn" | "error", string[]> = {
     info: ["info"],
