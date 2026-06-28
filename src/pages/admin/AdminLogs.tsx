@@ -11,8 +11,17 @@ import {
   Ban,
   CheckCircle,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Download,
+  FileSpreadsheet
 } from "lucide-react";
+import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -185,6 +194,27 @@ export default function AdminLogs() {
     { value: "update_settings", label: "Update Settings" }
   ];
 
+  const handleExport = (fmt: "csv" | "pdf") => {
+    if (!filteredLogs.length) {
+      toast.error("No logs to export");
+      return;
+    }
+    const rows = filteredLogs.map((l) => ({
+      Time: new Date(l.created_at).toLocaleString(),
+      Action: getActionLabel(l.action_type),
+      Level: classifyLevel(l.action_type),
+      Admin: l.admin?.display_name || "Unknown",
+      Target_Type: l.target_type || "",
+      Target_ID: l.target_id || "",
+      IP: l.ip_address || "",
+      Details: l.details ? JSON.stringify(l.details) : "",
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") exportToCsv(`activity-logs-${stamp}.csv`, rows);
+    else exportToPdf(`activity-logs-${stamp}.pdf`, "Activity Logs", rows);
+    toast.success(`Exported ${rows.length} logs as ${fmt.toUpperCase()}`);
+  };
+
   return (
     <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
@@ -196,10 +226,28 @@ export default function AdminLogs() {
           </h1>
           <p className="text-slate-900/80 text-sm mt-1">All admin activities</p>
         </div>
-        <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white border-slate-200">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <FileText className="w-4 h-4 mr-2" /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

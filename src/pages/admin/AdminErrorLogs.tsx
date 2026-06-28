@@ -48,8 +48,17 @@ import {
   Loader2,
   Wand2,
   Copy,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
 
 interface ErrorLog {
   id: string;
@@ -229,6 +238,27 @@ export default function AdminErrorLogs() {
     }
   };
 
+  const handleExport = (fmt: "csv" | "pdf") => {
+    if (!errors.length) {
+      toast.error("No errors to export");
+      return;
+    }
+    const rows = errors.map((e) => ({
+      Time: new Date(e.created_at).toLocaleString(),
+      Type: e.error_type,
+      Message: e.error_message,
+      Page: e.page_path || "",
+      Component: e.component_name || "",
+      User_ID: e.user_id || "",
+      Resolved: e.is_resolved ? "Yes" : "No",
+      Resolution_Notes: e.resolution_notes || "",
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") exportToCsv(`error-logs-${stamp}.csv`, rows);
+    else exportToPdf(`error-logs-${stamp}.pdf`, "System Error Logs", rows);
+    toast.success(`Exported ${rows.length} errors as ${fmt.toUpperCase()}`);
+  };
+
   // AI Error Analysis Function
   const handleAIAnalysis = async () => {
     if (!selectedError) return;
@@ -312,6 +342,22 @@ export default function AdminErrorLogs() {
           </p>
         </div>
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white border-slate-200">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <Bug className="w-4 h-4 mr-2" /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleClearResolved}>
             <Trash2 className="w-4 h-4 mr-2" />
             Clear Resolved
