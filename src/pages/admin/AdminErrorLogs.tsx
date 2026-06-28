@@ -276,7 +276,7 @@ export default function AdminErrorLogs() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -302,14 +302,14 @@ export default function AdminErrorLogs() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-900/50 border-slate-700">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Errors</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
-              <Bug className="w-8 h-8 text-slate-400" />
+              <Bug className="w-8 h-8 text-slate-600" />
             </div>
           </CardContent>
         </Card>
@@ -338,7 +338,7 @@ export default function AdminErrorLogs() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/50 border-slate-700">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-4">
             <div>
               <p className="text-sm text-muted-foreground mb-2">Problem Pages</p>
@@ -356,7 +356,7 @@ export default function AdminErrorLogs() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-slate-900/50 border-slate-700">
+      <Card className="bg-white border-slate-200">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="relative flex-1 min-w-[200px]">
@@ -365,12 +365,12 @@ export default function AdminErrorLogs() {
                 placeholder="Search error message or page..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-slate-800"
+                className="pl-9 bg-slate-50"
               />
             </div>
             
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[180px] bg-slate-800">
+              <SelectTrigger className="w-[180px] bg-slate-50">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Error Type" />
               </SelectTrigger>
@@ -384,7 +384,7 @@ export default function AdminErrorLogs() {
             </Select>
 
             <Select value={filterResolved} onValueChange={setFilterResolved}>
-              <SelectTrigger className="w-[180px] bg-slate-800">
+              <SelectTrigger className="w-[180px] bg-slate-50">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -398,7 +398,7 @@ export default function AdminErrorLogs() {
       </Card>
 
       {/* Error List */}
-      <Card className="bg-slate-900/50 border-slate-700">
+      <Card className="bg-white border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg">Error List</CardTitle>
         </CardHeader>
@@ -543,7 +543,7 @@ export default function AdminErrorLogs() {
 
                 <div>
                   <label className="text-xs text-muted-foreground">Page URL</label>
-                  <p className="text-sm font-mono bg-slate-800 p-2 rounded text-xs break-all">
+                  <p className="text-sm font-mono bg-slate-50 p-2 rounded text-xs break-all">
                     {selectedError.page_url || 'N/A'}
                   </p>
                 </div>
@@ -558,7 +558,7 @@ export default function AdminErrorLogs() {
                 {selectedError.error_stack && (
                   <div>
                     <label className="text-xs text-muted-foreground">Stack Trace</label>
-                    <pre className="text-xs bg-slate-800 p-3 rounded overflow-x-auto max-h-[200px]">
+                    <pre className="text-xs bg-slate-50 p-3 rounded overflow-x-auto max-h-[200px]">
                       {selectedError.error_stack}
                     </pre>
                   </div>
@@ -567,7 +567,7 @@ export default function AdminErrorLogs() {
                 {selectedError.browser_info && (
                   <div>
                     <label className="text-xs text-muted-foreground">Browser Info</label>
-                    <div className="bg-slate-800 p-3 rounded text-xs space-y-1">
+                    <div className="bg-slate-50 p-3 rounded text-xs space-y-1">
                       <p><MonitorSmartphone className="w-3 h-3 inline mr-2" />
                         {selectedError.browser_info.platform}
                       </p>
@@ -641,7 +641,7 @@ export default function AdminErrorLogs() {
                        placeholder="Describe how you resolved this..."
                       value={resolutionNotes}
                       onChange={(e) => setResolutionNotes(e.target.value)}
-                      className="bg-slate-800"
+                      className="bg-slate-50"
                     />
                   </div>
                 )}

@@ -165,43 +165,43 @@ export default function AdminLogs() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-2xl p-6 shadow-lg">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
             <FileText className="w-7 h-7" />
             Activity Log
           </h1>
-          <p className="text-white/80 text-sm mt-1">All admin activities</p>
+          <p className="text-slate-900/80 text-sm mt-1">All admin activities</p>
         </div>
-        <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-white bg-white/10 hover:bg-white/20">
+        <Button onClick={fetchLogs} variant="outline" className="border-white/40 text-slate-900 bg-white/10 hover:bg-white/20">
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="bg-slate-800/50 border-slate-700 shadow-sm">
+      <Card className="bg-slate-50 border-slate-200 shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
               <Input
                 placeholder="Search by admin name or target ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400"
+                className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-600"
               />
             </div>
             <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="w-full md:w-48 bg-slate-900/50 border-slate-600 text-slate-200">
+              <SelectTrigger className="w-full md:w-48 bg-white border-slate-200 text-slate-800">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Action Filter" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-slate-50 border-slate-200">
                 {actionTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value} className="text-slate-200 focus:bg-slate-700 focus:text-white">
+                  <SelectItem key={type.value} value={type.value} className="text-slate-800 focus:bg-slate-700 focus:text-slate-900">
                     {type.label}
                   </SelectItem>
                 ))}
@@ -212,7 +212,7 @@ export default function AdminLogs() {
       </Card>
 
       {/* Logs List */}
-      <Card className="bg-slate-800/50 border-slate-700 shadow-md">
+      <Card className="bg-slate-50 border-slate-200 shadow-md">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -221,7 +221,7 @@ export default function AdminLogs() {
           ) : filteredLogs.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400">No logs found</p>
+              <p className="text-slate-600">No logs found</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-700">
@@ -245,12 +245,12 @@ export default function AdminLogs() {
                             {getActionLabel(log.action_type)}
                           </Badge>
                           {log.target_type && (
-                            <span className="text-slate-400 text-xs">
+                            <span className="text-slate-600 text-xs">
                               ({log.target_type})
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                        <div className="flex items-center gap-2 text-sm text-slate-700">
                           <Avatar className="w-5 h-5">
                             <UserAvatarImage seed={(((log.admin) as any)?.id ?? ((log.admin) as any)?.user_id ?? ((log.admin) as any)?.host_id)} gender={((log.admin) as any)?.gender} src={log.admin?.avatar_url || ""} />
                             <AvatarFallback className="bg-pink-600 text-white text-xs">
@@ -264,7 +264,7 @@ export default function AdminLogs() {
                       {/* Time */}
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="flex items-center gap-1 text-slate-400 text-sm">
+                          <div className="flex items-center gap-1 text-slate-600 text-sm">
                             <Clock className="w-4 h-4" />
                             {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: bn })}
                           </div>
@@ -277,23 +277,23 @@ export default function AdminLogs() {
                   <CollapsibleContent>
                     <div className="px-4 pb-4 pl-18 space-y-3">
                       {log.target_id && (
-                        <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
-                          <p className="text-slate-400 text-xs mb-1">Target ID</p>
-                          <p className="text-slate-200 font-mono text-sm">{log.target_id}</p>
+                        <div className="bg-white rounded-lg p-3 border border-slate-200">
+                          <p className="text-slate-600 text-xs mb-1">Target ID</p>
+                          <p className="text-slate-800 font-mono text-sm">{log.target_id}</p>
                         </div>
                       )}
                       {log.details && Object.keys(log.details).length > 0 && (
-                        <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
-                          <p className="text-slate-400 text-xs mb-1">Details</p>
-                          <pre className="text-slate-200 text-sm overflow-x-auto">
+                        <div className="bg-white rounded-lg p-3 border border-slate-200">
+                          <p className="text-slate-600 text-xs mb-1">Details</p>
+                          <pre className="text-slate-800 text-sm overflow-x-auto">
                             {JSON.stringify(log.details, null, 2)}
                           </pre>
                         </div>
                       )}
                       {log.ip_address && (
-                        <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
-                          <p className="text-slate-400 text-xs mb-1">IP Address</p>
-                          <p className="text-slate-200 font-mono text-sm">{log.ip_address}</p>
+                        <div className="bg-white rounded-lg p-3 border border-slate-200">
+                          <p className="text-slate-600 text-xs mb-1">IP Address</p>
+                          <p className="text-slate-800 font-mono text-sm">{log.ip_address}</p>
                         </div>
                       )}
                     </div>
