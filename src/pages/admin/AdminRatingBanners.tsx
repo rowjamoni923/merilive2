@@ -118,6 +118,7 @@ export default function AdminRatingBanners() {
   };
 
   return (
+    <div className="admin-pro-shell">
     <div className="admin-content space-y-6 p-4 md:p-6">
       <AdminPageHeader
         icon={Star}
@@ -206,6 +207,7 @@ export default function AdminRatingBanners() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }
