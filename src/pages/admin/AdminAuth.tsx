@@ -458,9 +458,9 @@ export default function AdminAuth() {
   // ============================================
   if (flow === 'pending_approval') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <Card className="border-amber-500/20 bg-slate-900/80 backdrop-blur-xl">
+          <Card className="border-amber-500/20 bg-white/80 backdrop-blur-xl">
             <CardHeader className="text-center">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
                 <Smartphone className="w-10 h-10 text-white" />
@@ -480,7 +480,7 @@ export default function AdminAuth() {
                   </p>
                 </div>
               </div>
-              <div className="rounded-xl bg-slate-800/50 border border-white/5 p-4 space-y-2">
+              <div className="rounded-xl bg-slate-50/50 border border-white/5 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Email:</span>
                   <span className="text-white font-medium">{email}</span>
@@ -494,7 +494,7 @@ export default function AdminAuth() {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Checking approval status...</span>
               </div>
-              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-white hover:bg-slate-700">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Login
               </Button>
@@ -510,9 +510,9 @@ export default function AdminAuth() {
   // ============================================
   if (flow === 'rejected') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <Card className="border-red-500/20 bg-slate-900/80 backdrop-blur-xl">
+          <Card className="border-red-500/20 bg-white/80 backdrop-blur-xl">
             <CardHeader className="text-center">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/30">
                 <X className="w-10 h-10 text-white" />
@@ -523,7 +523,7 @@ export default function AdminAuth() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              <Button onClick={handleCancelPending} variant="outline" className="w-full bg-slate-50 border-slate-200 text-white hover:bg-slate-700">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Login
               </Button>
@@ -538,9 +538,9 @@ export default function AdminAuth() {
   // RENDER: LOGIN FORM
   // ============================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <Card className="border-violet-500/20 bg-slate-900/80 backdrop-blur-xl shadow-2xl">
+        <Card className="border-violet-500/20 bg-white/80 backdrop-blur-xl shadow-2xl">
           <CardHeader className="text-center">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/30">
               <Shield className="w-10 h-10 text-white" />
@@ -562,7 +562,7 @@ export default function AdminAuth() {
                     placeholder="admin@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="pl-10 bg-slate-50/50 border-slate-200 text-white placeholder:text-slate-500"
                     required
                     autoComplete="username"
                   />
@@ -579,7 +579,7 @@ export default function AdminAuth() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="pl-10 pr-10 bg-slate-50/50 border-slate-200 text-white placeholder:text-slate-500"
                     required
                     autoComplete="current-password"
                   />
@@ -606,7 +606,7 @@ export default function AdminAuth() {
               </Button>
             </form>
 
-            <div className="mt-6 rounded-xl bg-slate-800/30 border border-white/5 p-3">
+            <div className="mt-6 rounded-xl bg-slate-50/30 border border-white/5 p-3">
               <div className="flex items-start gap-2 text-xs text-slate-400">
                 <Shield className="w-3.5 h-3.5 mt-0.5 text-violet-400" />
                 <p>

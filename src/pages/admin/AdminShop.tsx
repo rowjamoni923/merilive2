@@ -751,7 +751,7 @@ const AdminShop = () => {
             >
               <div className="flex gap-3">
                 {/* Preview - Show static preview if available, otherwise show animation */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                   {(() => {
                     const previewUrl = item.preview_url;
                     const animUrl = item.animation_file_url || item.svga_url || item.animation_url;
@@ -765,7 +765,7 @@ const AdminShop = () => {
                     const srcUrl = animUrl || previewUrl;
                     if (srcUrl) {
                       return (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-800/60 text-white/70">
+                        <div className="w-full h-full flex items-center justify-center bg-slate-50/60 text-white/70">
                           <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden="true">
                             <path d="M8 5v14l11-7z" />
                           </svg>
@@ -868,7 +868,7 @@ const AdminShop = () => {
 
       {/* Add/Edit Dialog - Mobile optimized */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 w-[95vw] max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-xl">
+        <DialogContent className="bg-white border-white/10 w-[95vw] max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-xl">
           <DialogHeader className="p-3 md:p-6 pb-0 flex-shrink-0 border-b border-white/10">
             <DialogTitle className="text-white text-base md:text-lg">
               {editingItem ? "Edit Item" : "Add New Shop Item"}
@@ -913,7 +913,7 @@ const AdminShop = () => {
                 
                 {previewFile ? (
                   <div className="relative">
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                       {formData.file_type === 'svga' ? (
                         <SVGAPreviewWithMuteToggle 
                           src={previewFile} 
@@ -1270,7 +1270,7 @@ const AdminShop = () => {
       {/* Upload Loading Overlay */}
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl border border-white/10">
+          <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl border border-white/10">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
              <p className="text-white font-medium">Uploading...</p>
              <Button 

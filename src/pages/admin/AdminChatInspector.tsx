@@ -384,7 +384,7 @@ const AdminChatInspector = () => {
           {/* User Profile + Conversations */}
           {selectedUser && !selectedConversation && (
             <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
+              <div className="p-4 bg-gradient-to-r from-purple-900/30 to-slate-100/50 border border-purple-500/20 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-14 h-14 border-2 border-purple-500/40">
                     <UserAvatarImage gender={((selectedUser) as any)?.gender} seed={((selectedUser) as any)?.id ?? ((selectedUser) as any)?.user_id ?? ((selectedUser) as any)?.host_id} src={selectedUser.avatar_url || ""} />
@@ -500,7 +500,7 @@ const AdminChatInspector = () => {
                   <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
                 </div>
               ) : (
-                <ScrollArea className="h-[60vh] rounded-xl border border-slate-200 bg-slate-900/50 p-3">
+                <ScrollArea className="h-[60vh] rounded-xl border border-slate-200 bg-white/50 p-3">
                   <div className="space-y-2">
                     {messages.map((msg) => {
                       const isTarget = msg.sender_id === selectedUser?.id;
@@ -725,7 +725,7 @@ const AdminChatInspector = () => {
 
       {/* ========== BAN DIALOG ========== */}
       <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
-        <DialogContent className="bg-slate-900 border-slate-200 text-slate-900 max-w-md">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Gavel className="w-5 h-5" />

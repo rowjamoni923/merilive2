@@ -238,7 +238,7 @@ export default function AdminRecordings() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="bg-slate-800 border-slate-700 shadow-md">
+        <Card className="bg-slate-50 border-slate-200 shadow-md">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-purple-500/20 flex items-center justify-center">
@@ -251,7 +251,7 @@ export default function AdminRecordings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700 shadow-md">
+        <Card className="bg-slate-50 border-slate-200 shadow-md">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-green-500/20 flex items-center justify-center">
@@ -264,7 +264,7 @@ export default function AdminRecordings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700 shadow-md">
+        <Card className="bg-slate-50 border-slate-200 shadow-md">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -277,7 +277,7 @@ export default function AdminRecordings() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700 shadow-md">
+        <Card className="bg-slate-50 border-slate-200 shadow-md">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-red-500/20 flex items-center justify-center">
@@ -293,7 +293,7 @@ export default function AdminRecordings() {
       </div>
 
       {/* Search & Filters */}
-      <Card className="bg-slate-800 border-slate-700 shadow-md">
+      <Card className="bg-slate-50 border-slate-200 shadow-md">
         <CardContent className="p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
@@ -302,15 +302,15 @@ export default function AdminRecordings() {
                 placeholder="Search by UID or host name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+                className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-slate-900 border-slate-600 text-white">
+              <SelectTrigger className="w-full sm:w-48 bg-white border-slate-200 text-white">
                 <Filter className="w-4 h-4 mr-2 text-slate-400" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-600">
+              <SelectContent className="bg-slate-50 border-slate-200">
                 <SelectItem value="all" className="text-white hover:bg-slate-700">All Recordings</SelectItem>
                 <SelectItem value="recording" className="text-white hover:bg-slate-700">Recording</SelectItem>
                 <SelectItem value="processing" className="text-white hover:bg-slate-700">Processing</SelectItem>
@@ -328,7 +328,7 @@ export default function AdminRecordings() {
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filteredRecordings.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700 shadow-lg">
+        <Card className="bg-slate-50 border-slate-200 shadow-lg">
           <CardContent className="p-8 sm:p-12 text-center">
             <Film className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <p className="text-slate-400">No recordings found</p>
@@ -343,11 +343,11 @@ export default function AdminRecordings() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card className="bg-slate-800 border-slate-700 overflow-hidden hover:border-purple-500/50 transition-all shadow-lg">
+              <Card className="bg-slate-50 border-slate-200 overflow-hidden hover:border-purple-500/50 transition-all shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row gap-4">
                     {/* Thumbnail / Preview */}
-                    <div className="relative w-full sm:w-48 h-28 bg-slate-900 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="relative w-full sm:w-48 h-28 bg-white rounded-lg overflow-hidden flex-shrink-0">
                       {recording.thumbnail_url ? (
                         <SmartImage
                           src={recording.thumbnail_url}
@@ -403,22 +403,22 @@ export default function AdminRecordings() {
 
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                        <div className="bg-slate-900 rounded-lg p-2 text-center">
+                        <div className="bg-white rounded-lg p-2 text-center">
                           <Clock className="w-4 h-4 text-blue-400 mx-auto mb-1" />
                           <p className="text-white text-sm font-medium">{formatDuration(recording.duration_seconds)}</p>
                           <p className="text-slate-500 text-[10px]">Duration</p>
                         </div>
-                        <div className="bg-slate-900 rounded-lg p-2 text-center">
+                        <div className="bg-white rounded-lg p-2 text-center">
                           <Users className="w-4 h-4 text-green-400 mx-auto mb-1" />
                           <p className="text-white text-sm font-medium">{recording.total_viewers}</p>
                           <p className="text-slate-500 text-[10px]">Viewers</p>
                         </div>
-                        <div className="bg-slate-900 rounded-lg p-2 text-center">
+                        <div className="bg-white rounded-lg p-2 text-center">
                           <Gift className="w-4 h-4 text-pink-400 mx-auto mb-1" />
                           <p className="text-white text-sm font-medium">{recording.total_gifts}</p>
                           <p className="text-slate-500 text-[10px]">Gifts</p>
                         </div>
-                        <div className="bg-slate-900 rounded-lg p-2 text-center">
+                        <div className="bg-white rounded-lg p-2 text-center">
                           <Diamond className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
                           <p className="text-white text-sm font-medium">{recording.total_coins}</p>
                           <p className="text-slate-500 text-[10px]">Diamonds</p>
@@ -440,7 +440,7 @@ export default function AdminRecordings() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                              className="border-slate-200 text-slate-300 hover:bg-slate-700"
                               onClick={() => void openRecordingUrl(recording.recording_url || "")}
                             >
                               <Download className="w-4 h-4 mr-1" />
@@ -468,7 +468,7 @@ export default function AdminRecordings() {
 
       {/* Video Player Dialog */}
       <Dialog open={isPlayerOpen} onOpenChange={setIsPlayerOpen}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-4xl bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Film className="w-5 h-5 text-purple-400" />

@@ -420,7 +420,7 @@ const AdminRoleFrames = () => {
               className={`bg-gradient-to-r ${role.color} p-0.5 rounded-xl cursor-pointer transition-transform hover:scale-105`}
               onClick={() => setSelectedRole(role.value)}
             >
-              <div className="bg-slate-900 rounded-xl p-3 h-full">
+              <div className="bg-white rounded-xl p-3 h-full">
                 <role.icon className="w-6 h-6 text-white mb-1" />
                 <p className="text-xl font-bold text-white">{count}</p>
                 <p className="text-xs text-slate-400">{role.label}</p>
@@ -432,7 +432,7 @@ const AdminRoleFrames = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-800">
+        <TabsList className="bg-slate-50">
           <TabsTrigger value="frames">Frames ({frames.length})</TabsTrigger>
           <TabsTrigger value="assignments">Assignments ({assignedFrames.length})</TabsTrigger>
         </TabsList>
@@ -466,11 +466,11 @@ const AdminRoleFrames = () => {
             {filteredFrames.map((frame) => {
               const roleConfig = getRoleConfig(frame.role_type);
               return (
-                <div key={frame.id} className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+                <div key={frame.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                   <div className={`h-1.5 bg-gradient-to-r ${roleConfig.color}`} />
                   <div className="p-3">
                     {/* Frame Preview */}
-                    <div className="aspect-square bg-slate-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                    <div className="aspect-square bg-slate-50 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {frame.frame_url ? (
                         <FixedAnimationFrame size="fill" center
                           src={frame.frame_url}
@@ -524,11 +524,11 @@ const AdminRoleFrames = () => {
 
         {/* Assignments Tab */}
         <TabsContent value="assignments" className="mt-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-700">
+                  <tr className="border-b border-slate-200">
                     <th className="text-left p-3 text-slate-400 text-sm">User</th>
                     <th className="text-left p-3 text-slate-400 text-sm">Frame</th>
                     <th className="text-left p-3 text-slate-400 text-sm">Role</th>
@@ -540,7 +540,7 @@ const AdminRoleFrames = () => {
                   {assignedFrames.map((assignment) => {
                     const roleConfig = getRoleConfig(assignment.role_type);
                     return (
-                      <tr key={assignment.id} className="border-b border-slate-800">
+                      <tr key={assignment.id} className="border-b border-slate-200">
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
@@ -558,7 +558,7 @@ const AdminRoleFrames = () => {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded bg-slate-800 overflow-hidden">
+                            <div className="w-10 h-10 rounded bg-slate-50 overflow-hidden">
                               {assignment.frame?.frame_url && (
                                 <FixedAnimationFrame size="fill" center={false}
                                   src={assignment.frame.frame_url}
@@ -600,7 +600,7 @@ const AdminRoleFrames = () => {
 
       {/* Create/Edit Frame Dialog */}
       <Dialog open={frameDialogOpen} onOpenChange={setFrameDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg">
+        <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Crown className="w-5 h-5 text-purple-400" />
@@ -616,7 +616,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.role_type}
                 onValueChange={(v) => setFrameForm(prev => ({ ...prev, role_type: v }))}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -639,7 +639,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.frame_name || ''}
                 onChange={(e) => setFrameForm(prev => ({ ...prev, frame_name: e.target.value }))}
                 placeholder="e.g. Admin Diamond Frame"
-                className="bg-slate-800 border-slate-600 text-white"
+                className="bg-slate-50 border-slate-200 text-white"
               />
             </div>
 
@@ -677,7 +677,7 @@ const AdminRoleFrames = () => {
                 value={frameForm.description || ''}
                 onChange={(e) => setFrameForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Optional description..."
-                className="bg-slate-800 border-slate-600 text-white"
+                className="bg-slate-50 border-slate-200 text-white"
               />
             </div>
 
@@ -723,7 +723,7 @@ const AdminRoleFrames = () => {
 
       {/* Manual Assign Dialog */}
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg">
+        <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <User className="w-5 h-5 text-green-400" />
@@ -740,7 +740,7 @@ const AdminRoleFrames = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Enter user UID or name..."
-                  className="bg-slate-800 border-slate-600 text-white flex-1"
+                  className="bg-slate-50 border-slate-200 text-white flex-1"
                   onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
                 />
                 <Button onClick={searchUsers} disabled={searching}>
@@ -759,7 +759,7 @@ const AdminRoleFrames = () => {
                     className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
                       selectedUser?.id === user.id 
                         ? 'bg-purple-500/20 border border-purple-500/50' 
-                        : 'bg-slate-800 hover:bg-slate-700'
+                        : 'bg-slate-50 hover:bg-slate-700'
                     }`}
                   >
                     <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
@@ -788,7 +788,7 @@ const AdminRoleFrames = () => {
                 value={assignRoleType}
                 onValueChange={setAssignRoleType}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -811,7 +811,7 @@ const AdminRoleFrames = () => {
                 value={selectedFrameForAssign}
                 onValueChange={setSelectedFrameForAssign}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-white">
                   <SelectValue placeholder="Choose a frame..." />
                 </SelectTrigger>
                 <SelectContent>

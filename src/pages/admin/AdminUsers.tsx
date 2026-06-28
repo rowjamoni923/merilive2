@@ -511,7 +511,7 @@ export default function AdminUsers() {
       )}
 
       <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white font-bold">
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
@@ -526,7 +526,7 @@ export default function AdminUsers() {
                 placeholder="Reason for blocking (optional)"
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                className="bg-slate-800 border-slate-600 text-white font-semibold"
+                className="bg-slate-50 border-slate-200 text-white font-semibold"
               />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -543,7 +543,7 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               onClick={() => setShowBlockDialog(false)}
-              className="bg-slate-800 border-slate-600 text-white font-bold"
+              className="bg-slate-50 border-slate-200 text-white font-bold"
             >
               Cancel
             </Button>
@@ -560,7 +560,7 @@ export default function AdminUsers() {
 
       {/* User Details Dialog */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-slate-50 border-white/10 max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">User Details</DialogTitle>
           </DialogHeader>

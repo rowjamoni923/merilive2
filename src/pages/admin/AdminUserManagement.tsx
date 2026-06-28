@@ -1575,7 +1575,7 @@ export default function AdminUserManagement() {
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
-      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-slate-900/80 via-purple-900/40 to-slate-900/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
+      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-white/80 via-purple-900/40 to-slate-100/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
@@ -1600,7 +1600,7 @@ export default function AdminUserManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-900/60 border border-slate-700/50 p-1 w-full grid grid-cols-3 md:grid-cols-8 gap-1">
+        <TabsList className="bg-white/60 border border-slate-200/50 p-1 w-full grid grid-cols-3 md:grid-cols-8 gap-1">
           <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             All Users
@@ -1670,7 +1670,7 @@ export default function AdminUserManagement() {
                     variant={searchType === "uid" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSearchType("uid")}
-                    className={cn("flex-1 md:flex-none text-xs md:text-sm", searchType === "uid" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-slate-900 text-white border-slate-700 hover:bg-slate-800")}
+                    className={cn("flex-1 md:flex-none text-xs md:text-sm", searchType === "uid" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-white text-white border-slate-200 hover:bg-slate-50")}
                   >
                     🆔 UID
                   </Button>
@@ -1753,7 +1753,7 @@ export default function AdminUserManagement() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <p className="text-sm text-slate-500">@{user.username || user.id.slice(0, 8)}</p>
                                   {user.app_uid && (
-                                    <Badge className="text-xs bg-slate-800 text-white border-slate-600 font-semibold">
+                                    <Badge className="text-xs bg-slate-50 text-white border-slate-200 font-semibold">
                                       {user.app_uid}
                                     </Badge>
                                   )}
@@ -2263,7 +2263,7 @@ export default function AdminUserManagement() {
           </div>
 
           {/* Search */}
-          <Card className="bg-slate-900/40 border-slate-700/50 shadow-md">
+          <Card className="bg-white/40 border-slate-200/50 shadow-md">
             <CardContent className="p-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -2271,7 +2271,7 @@ export default function AdminUserManagement() {
                   placeholder="Search by name or UID..."
                   value={appSearchQuery}
                   onChange={(e) => setAppSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-800/60 border-slate-700 h-10 text-sm text-slate-100 placeholder:text-slate-500"
+                  className="pl-10 bg-slate-50/60 border-slate-200 h-10 text-sm text-slate-100 placeholder:text-slate-500"
                 />
               </div>
             </CardContent>
@@ -2289,7 +2289,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoApproved.length === 0 ? (
-              <Card className="bg-slate-900/40 border-slate-700/50">
+              <Card className="bg-white/40 border-slate-200/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <Shield className="w-12 h-12 mb-4" />
                   <p>No auto-verified submissions found</p>
@@ -2448,7 +2448,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoRejected.length === 0 ? (
-              <Card className="bg-slate-900/40 border-slate-700/50">
+              <Card className="bg-white/40 border-slate-200/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <XCircle className="w-12 h-12 mb-4" />
                   <p>No auto-rejected submissions found</p>
@@ -3290,7 +3290,7 @@ export default function AdminUserManagement() {
       
       {/* Block User Dialog */}
       <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white font-bold">
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
@@ -3304,7 +3304,7 @@ export default function AdminUserManagement() {
               placeholder="Reason for blocking (optional)"
               value={blockReason}
               onChange={(e) => setBlockReason(e.target.value)}
-              className="bg-slate-800 border-slate-600 text-white"
+              className="bg-slate-50 border-slate-200 text-white"
             />
           )}
           <DialogFooter>
@@ -3322,7 +3322,7 @@ export default function AdminUserManagement() {
 
       {/* Reset Password Dialog */}
       <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white font-bold flex items-center gap-2">
               <Unlock className="w-5 h-5 text-orange-500" />
@@ -3341,7 +3341,7 @@ export default function AdminUserManagement() {
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                 <p className="text-sm text-green-400 font-medium mb-2">✅ New Temporary Password:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-slate-800 border border-green-500/30 rounded px-3 py-2 text-lg font-mono text-green-300 select-all text-center">
+                  <code className="flex-1 bg-slate-50 border border-green-500/30 rounded px-3 py-2 text-lg font-mono text-green-300 select-all text-center">
                     {resetPasswordResult}
                   </code>
                   <Button 
@@ -3405,7 +3405,7 @@ export default function AdminUserManagement() {
 
       {/* User Details Dialog */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">User Details</DialogTitle>
           </DialogHeader>
@@ -3429,19 +3429,19 @@ export default function AdminUserManagement() {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg p-3 bg-slate-800">
+                <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Diamonds</p>
                   <p className="font-bold text-amber-400">{selectedUser.coins?.toLocaleString() || 0}</p>
                 </div>
-                <div className="rounded-lg p-3 bg-slate-800">
+                <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Level</p>
                   <p className="font-bold text-purple-400">Lv. {selectedUser.user_level || 0}</p>
                 </div>
-                <div className="rounded-lg p-3 bg-slate-800">
+                <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Earnings</p>
                   <p className="font-bold text-green-400">{selectedUser.total_earnings?.toLocaleString() || 0}</p>
                 </div>
-                <div className="rounded-lg p-3 bg-slate-800">
+                <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Joined</p>
                   <p className="font-bold text-sm text-slate-300">
                     {selectedUser.created_at ? formatDistanceToNow(new Date(selectedUser.created_at), { addSuffix: true }) : '-'}
@@ -3531,14 +3531,14 @@ export default function AdminUserManagement() {
 
       {/* Host Application Detail Dialog */}
       <Dialog open={showAppDetailDialog} onOpenChange={setShowAppDetailDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl">
+        <DialogContent className="bg-white border-slate-200 max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white">Host Application Details</DialogTitle>
           </DialogHeader>
           {selectedApplication && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <Avatar className="w-20 h-20 border-2 border-slate-600">
+                <Avatar className="w-20 h-20 border-2 border-slate-200">
                   <UserAvatarImage gender={((selectedApplication) as any)?.gender} seed={((selectedApplication) as any)?.id ?? ((selectedApplication) as any)?.user_id ?? ((selectedApplication) as any)?.host_id} src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-xl">
                     {selectedApplication.full_name?.charAt(0) || "U"}
@@ -3573,7 +3573,7 @@ export default function AdminUserManagement() {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">Rejection Reason</DialogTitle>
             <DialogDescription className="text-slate-400">
@@ -3584,7 +3584,7 @@ export default function AdminUserManagement() {
             placeholder="Enter reason..."
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            className="bg-slate-800 border-slate-600 text-white"
+            className="bg-slate-50 border-slate-200 text-white"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
@@ -3597,7 +3597,7 @@ export default function AdminUserManagement() {
 
       {/* Face Verification Detail Modal */}
       <Dialog open={showFaceDetailModal} onOpenChange={setShowFaceDetailModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl">
+        <DialogContent className="bg-white border-slate-200 max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <ScanFace className="w-5 h-5 text-purple-400" />
@@ -3614,7 +3614,7 @@ export default function AdminUserManagement() {
                   </div>
                 ) : null;
               })()}
-              <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl">
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
                 <Avatar className="w-16 h-16 border-2 border-purple-500/30">
                   <UserAvatarImage gender={((selectedFaceSubmission.profile) as any)?.gender} seed={selectedFaceSubmission.user_id ?? selectedFaceSubmission.id} src={selectedFaceSubmission.profile?.avatar_url} />
                   <AvatarFallback>{selectedFaceSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
@@ -3667,7 +3667,7 @@ export default function AdminUserManagement() {
 
       {/* Face Action Modal */}
       <Dialog open={showFaceActionModal} onOpenChange={setShowFaceActionModal}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">
               {faceActionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
@@ -3693,7 +3693,7 @@ export default function AdminUserManagement() {
               placeholder="Reason for rejection..."
               value={faceActionReason}
               onChange={(e) => setFaceActionReason(e.target.value)}
-              className="bg-slate-800 border-slate-600 text-white"
+              className="bg-slate-50 border-slate-200 text-white"
             />
           )}
           <DialogFooter>
@@ -3711,7 +3711,7 @@ export default function AdminUserManagement() {
 
       {/* Blocked User Detail Dialog */}
       <Dialog open={showBlockedUserDetailDialog} onOpenChange={setShowBlockedUserDetailDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white font-bold flex items-center gap-2">
               <Ban className="w-5 h-5 text-red-400" />
@@ -3725,7 +3725,7 @@ export default function AdminUserManagement() {
           ) : selectedBlockedUser ? (
             <div className="space-y-6">
               {/* User Profile Section */}
-              <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl border border-slate-700">
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <Avatar className="w-20 h-20 border-3 border-red-500">
                   <UserAvatarImage gender={((selectedBlockedUser) as any)?.gender} seed={((selectedBlockedUser) as any)?.id ?? ((selectedBlockedUser) as any)?.user_id ?? ((selectedBlockedUser) as any)?.host_id} src={selectedBlockedUser.avatar_url || undefined} />
                   <AvatarFallback className="bg-red-500/20 text-red-400 text-2xl">
@@ -3765,19 +3765,19 @@ export default function AdminUserManagement() {
 
               {/* User Information Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                   <p className="text-slate-400 text-xs uppercase">Email</p>
                   <p className="text-slate-200 font-medium truncate">{selectedBlockedUser.email || "-"}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                   <p className="text-slate-400 text-xs uppercase">Phone</p>
                   <p className="text-slate-200 font-medium">{selectedBlockedUser.phone || "-"}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                   <p className="text-slate-400 text-xs uppercase">Gender</p>
                   <p className="text-slate-200 font-medium">{selectedBlockedUser.gender || "-"}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                   <p className="text-slate-400 text-xs uppercase">Country</p>
                   <p className="text-slate-200 font-medium">{selectedBlockedUser.country_name || "-"}</p>
                 </div>
@@ -3797,7 +3797,7 @@ export default function AdminUserManagement() {
                   <p className="text-blue-400 text-xs uppercase">Total Spent</p>
                   <p className="text-blue-300 font-bold">{selectedBlockedUser.total_consumption?.toLocaleString() || 0}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                   <p className="text-slate-400 text-xs uppercase">Auth Provider</p>
                   <p className="text-slate-200 font-medium">{selectedBlockedUser.auth_provider || "email"}</p>
                 </div>
@@ -3870,7 +3870,7 @@ export default function AdminUserManagement() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-red-400 font-bold flex items-center gap-2">
               <AlertTriangle className="w-6 h-6" />
@@ -3890,7 +3890,7 @@ export default function AdminUserManagement() {
             </ul>
           </div>
           {selectedBlockedUser && (
-            <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
               <Avatar className="w-10 h-10">
                 <UserAvatarImage gender={((selectedBlockedUser) as any)?.gender} seed={((selectedBlockedUser) as any)?.id ?? ((selectedBlockedUser) as any)?.user_id ?? ((selectedBlockedUser) as any)?.host_id} src={selectedBlockedUser.avatar_url} />
                 <AvatarFallback className="bg-red-500/20 text-red-400">

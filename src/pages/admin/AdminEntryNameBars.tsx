@@ -376,7 +376,7 @@ const AdminEntryNameBars = () => {
               Add Flying Name Bar
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-slate-900 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+          <DialogContent className="bg-white border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Add Entry Name Bar</DialogTitle>
             </DialogHeader>
@@ -405,7 +405,7 @@ const AdminEntryNameBars = () => {
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredNameBars.map((nameBar) => (
-          <Card key={nameBar.id} className="bg-slate-800/50 border-purple-500/20 overflow-hidden">
+          <Card key={nameBar.id} className="bg-slate-50/50 border-purple-500/20 overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white text-lg flex items-center gap-2">
@@ -507,7 +507,7 @@ const AdminEntryNameBars = () => {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-slate-900 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Entry Name Bar</DialogTitle>
           </DialogHeader>
@@ -546,7 +546,7 @@ const AdminEntryNameBars = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-slate-900 border-red-500/20">
+        <AlertDialogContent className="bg-white border-red-500/20">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Entry Name Bar?</AlertDialogTitle>
             <AlertDialogDescription>

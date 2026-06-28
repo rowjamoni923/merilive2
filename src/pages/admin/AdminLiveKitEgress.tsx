@@ -226,37 +226,37 @@ export default function AdminLiveKitEgress() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Total</p>
             <p className="text-white font-bold text-xl">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Active</p>
             <p className="text-emerald-400 font-bold text-xl">{stats.active}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">MP4</p>
             <p className="text-rose-400 font-bold text-xl">{stats.mp4}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">HLS</p>
             <p className="text-amber-400 font-bold text-xl">{stats.hls}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">RTMP</p>
             <p className="text-fuchsia-400 font-bold text-xl">{stats.rtmp}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Track</p>
             <p className="text-sky-400 font-bold text-xl">{stats.track}</p>
@@ -264,7 +264,7 @@ export default function AdminLiveKitEgress() {
         </Card>
       </div>
 
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-slate-50 border-slate-200">
         <CardContent className="p-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -272,7 +272,7 @@ export default function AdminLiveKitEgress() {
               placeholder="Search egress id / room / status…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -283,7 +283,7 @@ export default function AdminLiveKitEgress() {
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-12 text-center">
             <Film className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <p className="text-slate-400">No egress jobs.</p>
@@ -303,7 +303,7 @@ export default function AdminLiveKitEgress() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Card
-                  className="bg-slate-800 border-slate-700 hover:border-rose-500/50 transition-colors cursor-pointer"
+                  className="bg-slate-50 border-slate-200 hover:border-rose-500/50 transition-colors cursor-pointer"
                   onClick={() => openDetail(e)}
                 >
                   <CardContent className="p-3 sm:p-4">
@@ -338,7 +338,7 @@ export default function AdminLiveKitEgress() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        className="border-slate-200 text-slate-300 hover:bg-slate-700"
                         onClick={(ev) => {
                           ev.stopPropagation();
                           openDetail(e);
@@ -362,7 +362,7 @@ export default function AdminLiveKitEgress() {
           if (!o) setDetail(null);
         }}
       >
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Film className="w-5 h-5 text-rose-400" />
@@ -373,11 +373,11 @@ export default function AdminLiveKitEgress() {
           {detail && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Room</p>
                   <p className="font-mono text-white truncate">{detail.roomName || "—"}</p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Started</p>
                   <p className="text-white">
                     {detail.startedAt
@@ -385,7 +385,7 @@ export default function AdminLiveKitEgress() {
                       : "—"}
                   </p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Updated</p>
                   <p className="text-white">
                     {detail.updatedAt
@@ -393,7 +393,7 @@ export default function AdminLiveKitEgress() {
                       : "—"}
                   </p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Ended</p>
                   <p className="text-white">
                     {detail.endedAt
@@ -418,7 +418,7 @@ export default function AdminLiveKitEgress() {
                   </p>
                   <div className="space-y-1">
                     {detail.fileResults.map((f, i) => (
-                      <div key={i} className="bg-slate-800 rounded p-2 text-[11px]">
+                      <div key={i} className="bg-slate-50 rounded p-2 text-[11px]">
                         <p className="font-mono text-white truncate">{f.location || "—"}</p>
                         <p className="text-slate-500">
                           {formatBytes(f.size)} · {formatDuration(f.duration)}
@@ -439,7 +439,7 @@ export default function AdminLiveKitEgress() {
                     {detail.streamResults.map((s, i) => (
                       <div
                         key={i}
-                        className="bg-slate-800 rounded p-2 text-[11px] flex items-center justify-between gap-2"
+                        className="bg-slate-50 rounded p-2 text-[11px] flex items-center justify-between gap-2"
                       >
                         <p className="font-mono text-white truncate flex-1 min-w-0">
                           {s.url || "—"}
@@ -459,7 +459,7 @@ export default function AdminLiveKitEgress() {
                   </p>
                   <div className="space-y-1">
                     {detail.segmentResults.map((s, i) => (
-                      <div key={i} className="bg-slate-800 rounded p-2 text-[11px]">
+                      <div key={i} className="bg-slate-50 rounded p-2 text-[11px]">
                         <p className="font-mono text-white truncate">
                           {s.playlistLocation || s.playlistName || "—"}
                         </p>
@@ -473,7 +473,7 @@ export default function AdminLiveKitEgress() {
               )}
 
               {kindOf(detail) === "MP4" || kindOf(detail) === "HLS" ? (
-                <div className="bg-slate-800/60 border border-slate-700 rounded p-3 space-y-2">
+                <div className="bg-slate-50/60 border border-slate-200 rounded p-3 space-y-2">
                   <p className="text-xs text-slate-400 flex items-center gap-1.5">
                     <Layout className="w-3.5 h-3.5" />
                     Swap layout (room-composite only)
@@ -483,10 +483,10 @@ export default function AdminLiveKitEgress() {
                       value={layoutChoice}
                       onValueChange={(v) => setLayoutChoice(v as LiveKitEgressLayout)}
                     >
-                      <SelectTrigger className="bg-slate-900 border-slate-600 text-white text-xs h-9">
+                      <SelectTrigger className="bg-white border-slate-200 text-white text-xs h-9">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                      <SelectContent className="bg-white border-slate-200 text-white">
                         {LAYOUTS.map((l) => (
                           <SelectItem key={l} value={l}>
                             {l}

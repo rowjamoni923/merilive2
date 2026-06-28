@@ -647,7 +647,7 @@ const AdminHelperManagement = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-7 h-auto bg-slate-800 border border-slate-700 p-1 rounded-lg">
+        <TabsList className="w-full grid grid-cols-7 h-auto bg-slate-50 border border-slate-200 p-1 rounded-lg">
           <TabsTrigger value="applications" className="gap-2 py-3 relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white text-slate-400">
             <UserPlus className="w-4 h-4" />
             <span className="hidden sm:inline">Applications</span>
@@ -702,14 +702,14 @@ const AdminHelperManagement = () => {
                 placeholder="Search by name or UID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                className="pl-10 bg-slate-50 border-slate-200 text-white placeholder:text-slate-500"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] bg-slate-800 border-slate-600 text-white">
+              <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-700 text-white">
+              <SelectContent className="bg-white border-slate-200 text-white">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
@@ -1239,7 +1239,7 @@ const AdminHelperManagement = () => {
 
                   {/* Transaction ID */}
                   {(selectedApp.payment_transaction_id || selectedApp.payment_details?.transaction_id) && (
-                    <div className="bg-slate-800/50 rounded-lg px-3 py-2">
+                    <div className="bg-slate-50/50 rounded-lg px-3 py-2">
                       <Label className="text-xs text-muted-foreground">Transaction ID</Label>
                       <p className="font-mono text-sm text-emerald-300 break-all">
                         {selectedApp.payment_transaction_id || selectedApp.payment_details?.transaction_id}
@@ -1255,7 +1255,7 @@ const AdminHelperManagement = () => {
                         <SmartImage 
                           src={selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url}
                           alt="Payment Screenshot"
-                          className="w-full max-h-64 object-contain rounded-lg border border-slate-700 cursor-pointer hover:opacity-90 transition-opacity"
+                          className="w-full max-h-64 object-contain rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={() => {
                             const url = selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url;
                             if (url) imageViewer.openImage(url);

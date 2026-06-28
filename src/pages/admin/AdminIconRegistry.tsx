@@ -285,11 +285,11 @@ const AdminIconRegistry = () => {
             placeholder="Search icons..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-slate-900 border-slate-700"
+            className="pl-9 bg-white border-slate-200"
           />
         </div>
         <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-[160px] bg-slate-900 border-slate-700">
+          <SelectTrigger className="w-[160px] bg-white border-slate-200">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -308,11 +308,11 @@ const AdminIconRegistry = () => {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-slate-800 animate-pulse" />
+            <div key={i} className="h-28 rounded-xl bg-slate-50 animate-pulse" />
           ))}
         </div>
       ) : Object.keys(groupedIcons).length === 0 ? (
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-12 text-center">
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-white font-medium">No icons found</p>
@@ -331,7 +331,7 @@ const AdminIconRegistry = () => {
                 <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
                   {catConfig?.label || category}
                 </h2>
-                <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">{categoryIcons.length}</Badge>
+                <Badge variant="outline" className="text-xs border-slate-200 text-slate-400">{categoryIcons.length}</Badge>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 <AnimatePresence mode="popLayout">
@@ -342,7 +342,7 @@ const AdminIconRegistry = () => {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      className="group relative bg-slate-900 border border-slate-700 rounded-xl p-3 hover:border-[hsl(var(--admin-gold)/0.5)] transition-colors cursor-pointer"
+                      className="group relative bg-white border border-slate-200 rounded-xl p-3 hover:border-[hsl(var(--admin-gold)/0.5)] transition-colors cursor-pointer"
                       onClick={() => handleEdit(icon)}
                     >
                       <div className="flex flex-col items-center gap-2">
@@ -355,14 +355,14 @@ const AdminIconRegistry = () => {
                       {/* Type badge */}
                       <Badge
                         variant="outline"
-                        className="absolute top-1.5 right-1.5 text-[9px] px-1 py-0 border-slate-600 text-slate-400"
+                        className="absolute top-1.5 right-1.5 text-[9px] px-1 py-0 border-slate-200 text-slate-400"
                       >
                         {icon.icon_type}
                       </Badge>
                       {/* Copy key button */}
                       <button
                         onClick={(e) => { e.stopPropagation(); handleCopyKey(icon.icon_key); }}
-                        className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-slate-800 hover:bg-slate-700"
+                        className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-slate-50 hover:bg-slate-700"
                       >
                         {copiedKey === icon.icon_key ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-slate-400" />}
                       </button>
@@ -382,7 +382,7 @@ const AdminIconRegistry = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg bg-white border-slate-200 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingIcon ? 'Edit Icon' : 'Add New Icon'}
@@ -392,7 +392,7 @@ const AdminIconRegistry = () => {
           <div className="space-y-4 py-2">
             {/* Preview */}
             <div className="flex justify-center">
-              <div className="w-20 h-20 rounded-2xl bg-slate-800 border border-slate-600 flex items-center justify-center" style={{ color: form.color_hex || undefined }}>
+              <div className="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center" style={{ color: form.color_hex || undefined }}>
                 {form.icon_type === 'lucide' && form.lucide_name ? renderLucideIcon(form.lucide_name, 36) :
                  form.icon_url ? <SmartImage src={form.icon_url} alt="" className="w-14 h-14 object-contain" fallbackSrc="/placeholder.svg" /> :
                  form.fallback_emoji ? <span className="text-3xl">{form.fallback_emoji}</span> :
@@ -407,7 +407,7 @@ const AdminIconRegistry = () => {
                   value={form.icon_key}
                   onChange={e => setForm(f => ({ ...f, icon_key: e.target.value }))}
                   placeholder="nav_home"
-                  className="bg-slate-800 border-slate-600"
+                  className="bg-slate-50 border-slate-200"
                   disabled={!!editingIcon}
                 />
               </div>
@@ -417,7 +417,7 @@ const AdminIconRegistry = () => {
                   value={form.icon_name}
                   onChange={e => setForm(f => ({ ...f, icon_name: e.target.value }))}
                   placeholder="Home"
-                  className="bg-slate-800 border-slate-600"
+                  className="bg-slate-50 border-slate-200"
                 />
               </div>
             </div>
@@ -426,7 +426,7 @@ const AdminIconRegistry = () => {
               <div>
                 <Label className="text-white/70">Category</Label>
                 <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-                  <SelectTrigger className="bg-slate-800 border-slate-600">
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -439,7 +439,7 @@ const AdminIconRegistry = () => {
               <div>
                 <Label className="text-white/70">Icon Type</Label>
                 <Select value={form.icon_type} onValueChange={v => setForm(f => ({ ...f, icon_type: v }))}>
-                  <SelectTrigger className="bg-slate-800 border-slate-600">
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -459,9 +459,9 @@ const AdminIconRegistry = () => {
                   value={lucideSearch || form.lucide_name}
                   onChange={e => { setLucideSearch(e.target.value); setForm(f => ({ ...f, lucide_name: e.target.value })); }}
                   placeholder="Search Lucide icons..."
-                  className="bg-slate-800 border-slate-600 mb-2"
+                  className="bg-slate-50 border-slate-200 mb-2"
                 />
-                <div className="grid grid-cols-6 gap-1.5 max-h-32 overflow-y-auto p-2 bg-slate-800 rounded-lg border border-slate-600">
+                <div className="grid grid-cols-6 gap-1.5 max-h-32 overflow-y-auto p-2 bg-slate-50 rounded-lg border border-slate-200">
                   {lucideIconNames.map(name => (
                     <button
                       key={name}
@@ -491,7 +491,7 @@ const AdminIconRegistry = () => {
                       value={form.icon_url}
                       onChange={e => setForm(f => ({ ...f, icon_url: e.target.value }))}
                       placeholder="https://... or upload"
-                      className="bg-slate-800 border-slate-600 flex-1"
+                      className="bg-slate-50 border-slate-200 flex-1"
                     />
                     <label className="cursor-pointer">
                       <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
@@ -505,7 +505,7 @@ const AdminIconRegistry = () => {
                     value={form.animation_url}
                     onChange={e => setForm(f => ({ ...f, animation_url: e.target.value }))}
                     placeholder="https://r2.merilive.com/animations/..."
-                    className="bg-slate-800 border-slate-600"
+                    className="bg-slate-50 border-slate-200"
                   />
                 )}
               </div>
@@ -518,7 +518,7 @@ const AdminIconRegistry = () => {
                   value={form.fallback_emoji}
                   onChange={e => setForm(f => ({ ...f, fallback_emoji: e.target.value }))}
                   placeholder="💎"
-                  className="bg-slate-800 border-slate-600"
+                  className="bg-slate-50 border-slate-200"
                 />
               </div>
               <div>
@@ -528,10 +528,10 @@ const AdminIconRegistry = () => {
                     value={form.color_hex}
                     onChange={e => setForm(f => ({ ...f, color_hex: e.target.value }))}
                     placeholder="#FFD700"
-                    className="bg-slate-800 border-slate-600 flex-1"
+                    className="bg-slate-50 border-slate-200 flex-1"
                   />
                   {form.color_hex && (
-                    <div className="w-9 h-9 rounded border border-slate-600" style={{ background: form.color_hex }} />
+                    <div className="w-9 h-9 rounded border border-slate-200" style={{ background: form.color_hex }} />
                   )}
                 </div>
               </div>
@@ -541,7 +541,7 @@ const AdminIconRegistry = () => {
                   type="number"
                   value={form.display_order}
                   onChange={e => setForm(f => ({ ...f, display_order: parseInt(e.target.value) || 0 }))}
-                  className="bg-slate-800 border-slate-600"
+                  className="bg-slate-50 border-slate-200"
                 />
               </div>
             </div>
@@ -552,7 +552,7 @@ const AdminIconRegistry = () => {
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 placeholder="Used in bottom nav bar, home page header..."
-                className="bg-slate-800 border-slate-600"
+                className="bg-slate-50 border-slate-200"
                 rows={2}
               />
             </div>

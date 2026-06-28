@@ -109,7 +109,7 @@ export default function AdminUnifiedApprovals() {
   return (
     <div className="admin-pro-shell min-h-screen p-4 md:p-6 space-y-4">
       {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-violet-900/50 via-slate-900 to-emerald-900/40 border border-violet-500/30 p-5 relative overflow-hidden">
+      <div className="rounded-2xl bg-gradient-to-r from-violet-900/50 via-slate-50 to-emerald-900/40 border border-violet-500/30 p-5 relative overflow-hidden">
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-violet-500/20 blur-3xl" />
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
@@ -130,7 +130,7 @@ export default function AdminUnifiedApprovals() {
 
       {/* Two top-level sources */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-white/10 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
+        <TabsList className="bg-white/80 border border-white/10 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
           <TabsTrigger value="subadmin" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white gap-2">
             <ShieldCheck className="w-4 h-4" /> Sub-Admin & Support
             {counts.sub > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.sub}</Badge>}
@@ -144,7 +144,7 @@ export default function AdminUnifiedApprovals() {
         {/* SUB-ADMIN / SUPPORT */}
         <TabsContent value="subadmin" className="space-y-3">
           <Tabs value={subStatus} onValueChange={(v) => setSubStatus(v as any)}>
-            <TabsList className="bg-slate-900/60 border border-white/10">
+            <TabsList className="bg-white/60 border border-white/10">
               <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="approved">Approved</TabsTrigger>
               <TabsTrigger value="rejected">Rejected</TabsTrigger>
@@ -154,7 +154,7 @@ export default function AdminUnifiedApprovals() {
           {loading ? (
             <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-violet-300" /></div>
           ) : subRows.length === 0 ? (
-            <Card className="bg-slate-900/60 border-white/10 p-10 text-center">
+            <Card className="bg-white/60 border-white/10 p-10 text-center">
               <Clock className="w-10 h-10 text-white/30 mx-auto mb-2" />
               <p className="text-white/50 text-sm">No {subStatus} sub-admin requests</p>
             </Card>
@@ -163,7 +163,7 @@ export default function AdminUnifiedApprovals() {
               {subRows.map((r) => {
                 const color = ACTION_COLOR[r.action_type] || ACTION_COLOR.default;
                 return (
-                  <Card key={r.id} className="bg-slate-900/60 border-white/10 p-4 hover:border-violet-500/40 transition">
+                  <Card key={r.id} className="bg-white/60 border-white/10 p-4 hover:border-violet-500/40 transition">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">

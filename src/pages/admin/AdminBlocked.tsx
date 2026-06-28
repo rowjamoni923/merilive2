@@ -206,7 +206,7 @@ export default function AdminBlocked() {
       </div>
 
       {/* Search */}
-      <Card className="bg-slate-800/50 border-slate-700 shadow-sm">
+      <Card className="bg-slate-50/50 border-slate-200 shadow-sm">
         <CardContent className="p-3 md:p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -214,7 +214,7 @@ export default function AdminBlocked() {
               placeholder="Search by name or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white/50 border-slate-200 text-white placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -222,7 +222,7 @@ export default function AdminBlocked() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-800 border border-slate-700 p-1 w-full grid grid-cols-2 md:flex md:w-auto md:inline-flex">
+        <TabsList className="bg-slate-50 border border-slate-200 p-1 w-full grid grid-cols-2 md:flex md:w-auto md:inline-flex">
           <TabsTrigger value="users" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-300 font-medium text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
             Users ({blockedUsers.length})
@@ -234,11 +234,11 @@ export default function AdminBlocked() {
         </TabsList>
 
         <TabsContent value="users" className="mt-4">
-          <Card className="bg-slate-800/50 border-slate-700 shadow-md overflow-hidden">
+          <Card className="bg-slate-50/50 border-slate-200 shadow-md overflow-hidden">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-700 bg-slate-800 hover:bg-slate-800">
+                  <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
                      <TableHead className="text-slate-300 font-semibold">User</TableHead>
                     <TableHead className="text-slate-300 font-semibold">Type</TableHead>
                     <TableHead className="text-slate-300 font-semibold">Block Reason</TableHead>
@@ -261,7 +261,7 @@ export default function AdminBlocked() {
                     </TableRow>
                   ) : (
                     filteredUsers.map((user) => (
-                      <TableRow key={user.id} className="border-slate-700 hover:bg-slate-700/50">
+                      <TableRow key={user.id} className="border-slate-200 hover:bg-slate-700/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10 border-2 border-red-500/50">
@@ -313,11 +313,11 @@ export default function AdminBlocked() {
         </TabsContent>
 
         <TabsContent value="agencies" className="mt-4">
-          <Card className="bg-slate-800/50 border-slate-700 shadow-md overflow-hidden">
+          <Card className="bg-slate-50/50 border-slate-200 shadow-md overflow-hidden">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-700 bg-slate-800 hover:bg-slate-800">
+                  <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
                      <TableHead className="text-slate-300 font-semibold">Agency</TableHead>
                     <TableHead className="text-slate-300 font-semibold">Code</TableHead>
                     <TableHead className="text-slate-300 font-semibold">Host Count</TableHead>
@@ -341,7 +341,7 @@ export default function AdminBlocked() {
                     </TableRow>
                   ) : (
                     filteredAgencies.map((agency) => (
-                      <TableRow key={agency.id} className="border-slate-700 hover:bg-slate-700/50">
+                      <TableRow key={agency.id} className="border-slate-200 hover:bg-slate-700/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center">

@@ -553,7 +553,7 @@ export default function AdminHostApplications() {
                         </AvatarFallback>
                       </Avatar>
                       {/* Online-style status dot */}
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-slate-900 ${
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-slate-200 ${
                         (app.status === 'pending' || app.status === 'submitted') ? 'bg-amber-400' :
                         app.status === 'under_review' ? 'bg-sky-400' :
                         app.status === 'approved' ? 'bg-emerald-400' : 'bg-rose-400'
@@ -754,7 +754,7 @@ export default function AdminHostApplications() {
 
       {/* ============ DETAIL DIALOG ============ */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg overflow-y-auto p-0">
+        <DialogContent className="bg-gradient-to-b from-slate-50 to-slate-100 border-white/10 max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg overflow-y-auto p-0">
           {sel && (
             <>
               {/* Dialog Header with profile banner */}
@@ -766,10 +766,10 @@ export default function AdminHostApplications() {
                       src={sel.profile_photo_url || sel.profile?.avatar_url || ''}
                       alt="Profile"
                       kind="image"
-                      className="w-20 h-20 rounded-2xl border-4 border-slate-800 shadow-xl"
+                      className="w-20 h-20 rounded-2xl border-4 border-slate-200 shadow-xl"
                       mediaClassName="object-cover"
                     />
-                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-800 ${
+                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-200 ${
                       sel.status === 'approved' ? 'bg-emerald-400' : sel.status === 'rejected' ? 'bg-rose-400' : 'bg-amber-400'
                     }`} />
                   </div>
@@ -817,7 +817,7 @@ export default function AdminHostApplications() {
                 />
 
                 {isPendingApplication(sel) && (
-                  <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">
+                  <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-white/95 p-3 shadow-xl backdrop-blur">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button onClick={() => handleApprove()} disabled={actionLoading} className="bg-emerald-600 hover:bg-emerald-500 text-white">
                         <CheckCircle className="w-4 h-4 mr-1" /> Approve
@@ -1020,7 +1020,7 @@ export default function AdminHostApplications() {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-slate-50 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <XCircle className="w-5 h-5 text-rose-400" />

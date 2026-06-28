@@ -269,7 +269,7 @@ const AdminTopupPaymentMethods = () => {
           <p className="text-slate-400">Manage payment methods for manual top-up & helper dashboard</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={loadMethods} className="border-slate-600">
+          <Button variant="outline" onClick={loadMethods} className="border-slate-200">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -292,7 +292,7 @@ const AdminTopupPaymentMethods = () => {
           {methods.map((method, index) => {
             const Icon = getMethodIcon(method.method_type);
             return (
-              <Card key={method.id} className={`bg-slate-800/50 border-slate-700 ${!method.is_active ? 'opacity-50' : ''}`}>
+              <Card key={method.id} className={`bg-slate-50/50 border-slate-200 ${!method.is_active ? 'opacity-50' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col gap-1">
@@ -361,7 +361,7 @@ const AdminTopupPaymentMethods = () => {
           })}
 
           {methods.length === 0 && (
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-slate-50/50 border-slate-200">
               <CardContent className="py-10 text-center">
                 <CreditCard className="w-12 h-12 mx-auto text-slate-600 mb-3" />
                 <p className="text-slate-400">No payment methods configured</p>
@@ -372,7 +372,7 @@ const AdminTopupPaymentMethods = () => {
       )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingMethod ? 'Edit Payment Method' : 'Add Payment Method'}
@@ -387,13 +387,13 @@ const AdminTopupPaymentMethods = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., bKash, ePay, Binance Pay"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                  className="bg-slate-50 border-slate-200 text-white mt-1"
                 />
               </div>
               <div>
                 <Label className="text-white">Type *</Label>
                 <Select value={formData.method_type} onValueChange={(v) => setFormData({ ...formData, method_type: v })}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-white mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,7 +411,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.account_name}
                 onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
                 placeholder="Account holder name"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-white mt-1"
               />
             </div>
 
@@ -421,7 +421,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.account_number}
                 onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
                 placeholder="Account number, bank account, etc."
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-white mt-1"
               />
             </div>
 
@@ -431,7 +431,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.payment_number}
                 onChange={(e) => setFormData({ ...formData, payment_number: e.target.value })}
                 placeholder="Phone, email or Binance Pay ID shown to user"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-white mt-1"
               />
             </div>
 
@@ -441,7 +441,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.payment_instructions}
                 onChange={(e) => setFormData({ ...formData, payment_instructions: e.target.value })}
                 placeholder="Step-by-step instructions for the user..."
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-50 border-slate-200 text-white mt-1"
                 rows={3}
               />
             </div>
@@ -450,7 +450,7 @@ const AdminTopupPaymentMethods = () => {
               <Label className="text-white">Logo Image</Label>
               <p className="text-xs text-slate-400 mb-2">Upload PNG / JPG / SVG / WebP (under 2 MB). Shown in user Recharge page & Helper Dashboard.</p>
               <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                   {formData.icon_url ? (
                     <SmartImage src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" fallbackSrc="/placeholder.svg" />
                   ) : (
@@ -488,7 +488,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.icon_url}
                 onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
                 placeholder="Or paste an image URL: https://..."
-                className="bg-slate-800 border-slate-700 text-white mt-3 text-xs"
+                className="bg-slate-50 border-slate-200 text-white mt-3 text-xs"
               />
             </div>
 
@@ -501,7 +501,7 @@ const AdminTopupPaymentMethods = () => {
                 value={formData.country_codes}
                 onChange={(e) => setFormData({ ...formData, country_codes: e.target.value })}
                 placeholder="BD,IN,PK   (or leave empty for global)"
-                className="bg-slate-800 border-slate-700 text-white mt-1 font-mono text-sm"
+                className="bg-slate-50 border-slate-200 text-white mt-1 font-mono text-sm"
               />
             </div>
 

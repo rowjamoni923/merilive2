@@ -671,7 +671,7 @@ export default function AdminBanners() {
       {/* Upload Loading Overlay */}
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
             <p className="font-medium">Uploading...</p>
             <Button 

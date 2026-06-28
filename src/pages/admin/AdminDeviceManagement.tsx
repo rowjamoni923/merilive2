@@ -243,7 +243,7 @@ export default function AdminDeviceManagement() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card 
-            className={`bg-slate-800/50 border-white/10 cursor-pointer transition-all ${filter === 'all' ? 'ring-2 ring-primary' : 'hover:bg-slate-800'}`}
+            className={`bg-slate-50/50 border-white/10 cursor-pointer transition-all ${filter === 'all' ? 'ring-2 ring-primary' : 'hover:bg-slate-50'}`}
             onClick={() => setFilter('all')}
           >
             <CardContent className="p-4">
@@ -253,7 +253,7 @@ export default function AdminDeviceManagement() {
           </Card>
           
           <Card 
-            className={`bg-slate-800/50 border-white/10 cursor-pointer transition-all ${filter === 'pending' ? 'ring-2 ring-amber-500' : 'hover:bg-slate-800'}`}
+            className={`bg-slate-50/50 border-white/10 cursor-pointer transition-all ${filter === 'pending' ? 'ring-2 ring-amber-500' : 'hover:bg-slate-50'}`}
             onClick={() => setFilter('pending')}
           >
             <CardContent className="p-4">
@@ -263,7 +263,7 @@ export default function AdminDeviceManagement() {
           </Card>
           
           <Card 
-            className={`bg-slate-800/50 border-white/10 cursor-pointer transition-all ${filter === 'approved' ? 'ring-2 ring-green-500' : 'hover:bg-slate-800'}`}
+            className={`bg-slate-50/50 border-white/10 cursor-pointer transition-all ${filter === 'approved' ? 'ring-2 ring-green-500' : 'hover:bg-slate-50'}`}
             onClick={() => setFilter('approved')}
           >
             <CardContent className="p-4">
@@ -273,7 +273,7 @@ export default function AdminDeviceManagement() {
           </Card>
           
           <Card 
-            className={`bg-slate-800/50 border-white/10 cursor-pointer transition-all ${filter === 'blocked' ? 'ring-2 ring-red-500' : 'hover:bg-slate-800'}`}
+            className={`bg-slate-50/50 border-white/10 cursor-pointer transition-all ${filter === 'blocked' ? 'ring-2 ring-red-500' : 'hover:bg-slate-50'}`}
             onClick={() => setFilter('blocked')}
           >
             <CardContent className="p-4">

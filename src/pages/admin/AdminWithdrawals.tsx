@@ -885,7 +885,7 @@ export default function AdminWithdrawals() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-xl">
+        <DialogContent className="bg-white border-white/10 text-white max-w-xl">
           <DialogHeader>
             <DialogTitle>Withdrawal Details</DialogTitle>
           </DialogHeader>
@@ -976,7 +976,7 @@ export default function AdminWithdrawals() {
                     </p>
                     
                     {helperTransactionId && (
-                      <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="bg-slate-50/50 rounded-lg p-3">
                         <span className="text-white/60 text-xs block mb-1">Transaction ID:</span>
                         <span className="text-yellow-400 font-mono text-lg font-bold break-all">
                           {helperTransactionId}
@@ -985,7 +985,7 @@ export default function AdminWithdrawals() {
                     )}
                     
                     {helperPaymentNotes && (
-                      <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="bg-slate-50/50 rounded-lg p-3">
                         <span className="text-white/60 text-xs block mb-1">Helper Notes:</span>
                         <span className="text-white/80 whitespace-pre-wrap break-words">{helperPaymentNotes}</span>
                       </div>
@@ -999,7 +999,7 @@ export default function AdminWithdrawals() {
                           <SmartImage 
                             src={helperPaymentScreenshot} 
                             alt="Helper payment proof" 
-                            className="w-full max-h-64 object-contain bg-slate-800" fallbackSrc="/placeholder.svg" />
+                            className="w-full max-h-64 object-contain bg-slate-50" fallbackSrc="/placeholder.svg" />
                         </div>
                         <p className="text-xs text-purple-300 text-center mt-1">Click to view full size</p>
                       </div>
@@ -1068,7 +1068,7 @@ export default function AdminWithdrawals() {
 
       {/* Action Dialog */}
       <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-white border-white/10 text-white">
           <DialogHeader>
             <DialogTitle>
               {actionType === 'approve' && 'Approve Withdrawal'}

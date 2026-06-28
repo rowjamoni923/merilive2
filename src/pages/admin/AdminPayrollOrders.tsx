@@ -556,7 +556,7 @@ const AdminPayrollOrders = () => {
           {selectedOrder && (
             <div className="space-y-4">
               {/* Order ID */}
-              <div className="bg-slate-800 p-3 rounded-lg">
+              <div className="bg-slate-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-400">Order ID</span>
                   <div className="flex items-center gap-2">
@@ -675,7 +675,7 @@ const AdminPayrollOrders = () => {
 
                   {/* Transaction ID */}
                   {(selectedOrder.payment_details?.transaction_id || selectedOrder.payment_details?.helper_transaction_id) && (
-                    <div className="bg-slate-800 p-3 rounded-lg">
+                    <div className="bg-slate-50 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Transaction ID</p>
                       <div className="flex items-center gap-2">
                         <code className="text-sm font-mono flex-1 text-slate-200 break-all">
@@ -713,7 +713,7 @@ const AdminPayrollOrders = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="bg-slate-800 rounded-lg p-3 border border-amber-500/20">
+                    <div className="bg-slate-50 rounded-lg p-3 border border-amber-500/20">
                       <div className="grid grid-cols-3 gap-2 text-sm">
                         <div className="text-center">
                           <p className="text-xs text-muted-foreground">Fee (USD)</p>
@@ -736,7 +736,7 @@ const AdminPayrollOrders = () => {
                       </div>
                     </div>
                     
-                    <div className="bg-slate-800 rounded-lg p-3 border border-green-500/20">
+                    <div className="bg-slate-50 rounded-lg p-3 border border-green-500/20">
                       <p className="text-xs text-muted-foreground mb-1">Net Withdrawal (Payroll will pay)</p>
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-green-400 text-lg">
@@ -790,7 +790,7 @@ const AdminPayrollOrders = () => {
               )}
 
               {/* Timestamps */}
-              <div className="text-sm space-y-2 bg-slate-800 p-3 rounded-lg">
+              <div className="text-sm space-y-2 bg-slate-50 p-3 rounded-lg">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Time</span>
                   <span>{format(new Date(selectedOrder.created_at), 'dd MMM yyyy, hh:mm:ss a')}</span>

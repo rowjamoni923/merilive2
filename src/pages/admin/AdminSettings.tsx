@@ -214,7 +214,7 @@ export default function AdminSettings() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6 bg-gradient-to-r from-slate-50 via-purple-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-purple-700 to-slate-800 bg-clip-text text-transparent">App Settings</h1>
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-50 via-purple-700 to-slate-100 bg-clip-text text-transparent">App Settings</h1>
           <p className="text-slate-600 text-sm sm:text-base">Configure all app settings</p>
         </div>
       </div>
@@ -550,7 +550,7 @@ export default function AdminSettings() {
               </div>
 
               {/* Preview */}
-              <div className="p-4 sm:p-5 bg-slate-800/50 rounded-lg sm:rounded-xl border border-slate-700">
+              <div className="p-4 sm:p-5 bg-slate-50/50 rounded-lg sm:rounded-xl border border-slate-200">
                 <h4 className="text-foreground font-semibold text-sm mb-3">📊 Fee Preview</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/30 text-center">

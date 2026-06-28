@@ -1028,8 +1028,8 @@ export default function AdminGifts() {
 
       {/* Edit/Create Dialog - Improved scrolling and visibility */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 shadow-2xl w-screen sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[90vh] max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg flex flex-col p-0">
-          <DialogHeader className="p-4 md:p-6 pb-2 flex-shrink-0 border-b border-slate-700">
+        <DialogContent className="bg-white border-slate-200 shadow-2xl w-screen sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[90vh] max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg flex flex-col p-0">
+          <DialogHeader className="p-4 md:p-6 pb-2 flex-shrink-0 border-b border-slate-200">
             <DialogTitle className="text-white text-lg md:text-xl font-bold">
               {editingGift ? "Edit Gift" : "Create New Gift"}
             </DialogTitle>
@@ -1055,7 +1055,7 @@ export default function AdminGifts() {
                         className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                           isSelected 
                             ? `bg-gradient-to-r ${cat.color} text-white shadow-md` 
-                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                            : 'bg-slate-50 text-slate-400 hover:bg-slate-700'
                         }`}
                       >
                         <Icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
@@ -1075,7 +1075,7 @@ export default function AdminGifts() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Gift name"
-                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
               />
             </div>
 
@@ -1086,7 +1086,7 @@ export default function AdminGifts() {
                 type="number"
                 value={formData.coin_value}
                 onChange={(e) => setFormData({ ...formData, coin_value: parseInt(e.target.value) || 0 })}
-                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
               />
             </div>
 
@@ -1100,7 +1100,7 @@ export default function AdminGifts() {
                   value={formData.min_level}
                   onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
                   placeholder="0 = No level requirement"
-                  className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                  className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
                 />
                 <p className="text-xs text-slate-500 mt-1">Users below this level cannot send this gift</p>
               </div>
@@ -1133,7 +1133,7 @@ export default function AdminGifts() {
               {formData.icon_url ? (
                 <div className="p-3 md:p-4 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-pink-500/30">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-50 shadow-lg flex items-center justify-center">
                       {formData.icon_url.startsWith('http') ? (
                         <SmartImage src={formData.icon_url} alt="Icon" cdnWidth={128} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
@@ -1165,7 +1165,7 @@ export default function AdminGifts() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-16 md:h-20 border-2 border-pink-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-pink-400 flex flex-col items-center justify-center gap-2"
+                  className="w-full h-16 md:h-20 border-2 border-pink-500/50 border-dashed bg-slate-50 hover:bg-slate-700 text-pink-400 flex flex-col items-center justify-center gap-2"
                   onClick={() => iconInputRef.current?.click()}
                   disabled={uploading}
                 >
@@ -1197,7 +1197,7 @@ export default function AdminGifts() {
                 {selectedDefaultAnim ? (
                   <div className="p-2 md:p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg md:rounded-xl border-2 border-purple-500/30">
                     <div className="flex items-center gap-2 md:gap-3">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-slate-50 shadow-lg flex items-center justify-center">
                         <Lottie 
                           animationData={selectedDefaultAnim.animationData} 
                           loop 
@@ -1226,7 +1226,7 @@ export default function AdminGifts() {
                 </Button>
 
                 {showDefaultAnimations && (
-                  <div className="p-2 md:p-3 bg-slate-800 rounded-lg md:rounded-xl border border-slate-700 space-y-2 md:space-y-3">
+                  <div className="p-2 md:p-3 bg-slate-50 rounded-lg md:rounded-xl border border-slate-200 space-y-2 md:space-y-3">
                     {/* Category filter */}
                     <div className="flex gap-1 flex-wrap">
                       {animationCategories.map(cat => (
@@ -1258,7 +1258,7 @@ export default function AdminGifts() {
                             className={`p-1.5 md:p-2 rounded-lg border-2 transition-all flex flex-col items-center ${
                               selectedDefaultAnim?.id === anim.id
                                 ? 'border-purple-500 bg-purple-500/10'
-                                : 'border-slate-700 bg-slate-800 hover:border-purple-500/50'
+                                : 'border-slate-200 bg-slate-50 hover:border-purple-500/50'
                             }`}
                           >
                             <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
@@ -1388,12 +1388,12 @@ export default function AdminGifts() {
                 value={formData.display_order}
                 onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                 placeholder="0 = show first"
-                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                className="bg-slate-50 border-slate-200 text-white mt-1.5 md:mt-2 text-sm"
               />
             </div>
 
             {/* Active Toggle */}
-            <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-slate-800 to-purple-500/10 rounded-lg md:rounded-xl border border-slate-700">
+            <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-slate-50 to-purple-500/10 rounded-lg md:rounded-xl border border-slate-200">
               <Label className="text-white font-medium text-sm md:text-base">Active</Label>
               <Switch
                 checked={formData.is_active}
@@ -1403,14 +1403,14 @@ export default function AdminGifts() {
           </div>
           </div>
 
-          <DialogFooter className="p-4 md:p-6 pt-4 flex-shrink-0 border-t border-slate-700">
+          <DialogFooter className="p-4 md:p-6 pt-4 flex-shrink-0 border-t border-slate-200">
             <Button
               variant="outline"
               onClick={() => {
                 setSaving(false);
                 setShowEditDialog(false);
               }}
-              className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700"
+              className="bg-slate-50 border-slate-200 text-slate-300 hover:bg-slate-700"
             >
               Cancel
             </Button>
@@ -1438,7 +1438,7 @@ export default function AdminGifts() {
 
       {/* Lucky Gift Config Dialog */}
       <Dialog open={showLuckyConfig} onOpenChange={setShowLuckyConfig}>
-        <DialogContent className="bg-slate-900 border-slate-700 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               🎰 Lucky Gift Lottery Config
@@ -1453,19 +1453,19 @@ export default function AdminGifts() {
               <p className="text-slate-500 text-xs mt-1">Per 100 gifts ≈ {luckyConfigs.reduce((sum, c) => sum + Number(c.win_chance_percent), 0).toFixed(0)} wins</p>
             </div>
             {luckyConfigs.map((tier) => (
-              <div key={tier.id} className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg">
+              <div key={tier.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
                 <div className="flex-1 grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-slate-400 text-xs">💎 Diamonds</Label>
                     <Input type="number" min={1} defaultValue={tier.diamond_reward}
                       onBlur={(e) => saveLuckyTier({ ...tier, diamond_reward: parseInt(e.target.value) || 1 })}
-                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                      className="bg-slate-700 border-slate-200 text-white text-sm h-8" />
                   </div>
                   <div>
                     <Label className="text-slate-400 text-xs">Win %</Label>
                     <Input type="number" min={0.01} max={100} step={0.1} defaultValue={tier.win_chance_percent}
                       onBlur={(e) => saveLuckyTier({ ...tier, win_chance_percent: parseFloat(e.target.value) || 1 })}
-                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                      className="bg-slate-700 border-slate-200 text-white text-sm h-8" />
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => deleteLuckyTier(tier.id)}>
@@ -1473,7 +1473,7 @@ export default function AdminGifts() {
                 </Button>
               </div>
             ))}
-            <Button variant="outline" className="w-full border-dashed border-slate-600 text-slate-400"
+            <Button variant="outline" className="w-full border-dashed border-slate-200 text-slate-400"
               onClick={() => saveLuckyTier({ diamond_reward: 1, win_chance_percent: 5 })}>
               <Plus className="w-4 h-4 mr-2" /> Add Reward Tier
             </Button>
@@ -1485,7 +1485,7 @@ export default function AdminGifts() {
       {/* Upload Loading Overlay - with real progress tracking */}
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl min-w-[320px] border border-slate-700">
+          <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl min-w-[320px] border border-slate-200">
             <div className="relative">
               <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
               <Upload className="w-6 h-6 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
@@ -1496,7 +1496,7 @@ export default function AdminGifts() {
                 {uploadProgress > 0 ? `${uploadProgress}% complete` : 'Large files may take some time'}
               </p>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-slate-50 rounded-full h-3 overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300" 
                 style={{ width: uploadProgress > 0 ? `${uploadProgress}%` : '10%' }} 

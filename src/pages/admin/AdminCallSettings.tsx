@@ -630,7 +630,7 @@ export default function AdminCallSettings() {
                     className={`p-3 rounded-lg border-2 transition-all ${
                       calcDiamonds === amount
                         ? 'bg-purple-500/20 border-purple-400 dark:bg-purple-500/10'
-                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-slate-200 hover:border-purple-300'
                     }`}
                   >
                     <p className="text-sm font-bold text-slate-900 dark:text-white">{amount} 💎</p>

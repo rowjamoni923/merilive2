@@ -651,7 +651,7 @@ const AdminPaymentGateways = () => {
       {/* Tabs */}
       <div className="px-4 -mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full bg-slate-800 shadow-md rounded-xl p-1 border border-slate-700">
+          <TabsList className="w-full bg-slate-50 shadow-md rounded-xl p-1 border border-slate-200">
             <TabsTrigger 
               value="gateways" 
               className="flex-1 data-[state=active]:bg-pink-500 data-[state=active]:text-white text-white/70 rounded-lg"
@@ -676,7 +676,7 @@ const AdminPaymentGateways = () => {
                 <select
                   value={countryFilter}
                   onChange={(e) => setCountryFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white"
+                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-white"
                 >
                   <option value="all">All countries</option>
                   {ADMIN_COUNTRY_OPTIONS.map(c => (
@@ -701,7 +701,7 @@ const AdminPaymentGateways = () => {
             {loading ? (
               <div className="text-center py-12 text-white/60">Loading...</div>
             ) : gateways.length === 0 ? (
-              <div className="text-center py-12 bg-slate-800 rounded-2xl border border-slate-700">
+              <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200">
                 <CreditCard className="w-12 h-12 mx-auto mb-3 text-slate-600" />
                 <p className="text-white/60">No payment gateways found</p>
                 <Button onClick={handleAdd} className="mt-4 bg-pink-500 hover:bg-pink-600">
@@ -716,8 +716,8 @@ const AdminPaymentGateways = () => {
                   <Card key={gateway.id} className={cn(
                     "transition-all border shadow-sm",
                     gateway.is_active 
-                      ? "bg-slate-800 border-green-500/30" 
-                      : "bg-slate-800/50 border-slate-700"
+                      ? "bg-slate-50 border-green-500/30" 
+                      : "bg-slate-50/50 border-slate-200"
                   )}>
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
@@ -733,7 +733,7 @@ const AdminPaymentGateways = () => {
                           <div className={cn(
                             "w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-inner transition-all overflow-hidden",
                             gateway.logo_url 
-                              ? "bg-white border-2 border-slate-600" 
+                              ? "bg-white border-2 border-slate-200" 
                               : "bg-gradient-to-br from-slate-700 to-slate-600",
                             "group-hover:ring-2 group-hover:ring-pink-500 group-hover:ring-offset-2 group-hover:ring-offset-slate-800"
                           )}>
@@ -780,7 +780,7 @@ const AdminPaymentGateways = () => {
                                 </span>
                               ))
                             ) : (
-                              <span className="bg-slate-700 text-white/40 px-2 py-1 rounded-full border border-slate-600">
+                              <span className="bg-slate-700 text-white/40 px-2 py-1 rounded-full border border-slate-200">
                                 No country
                               </span>
                             )}
@@ -794,7 +794,7 @@ const AdminPaymentGateways = () => {
                                 {gateway.fee_percentage}% Fee
                               </span>
                             )}
-                            <span className="bg-slate-700 text-white/60 px-2 py-1 rounded-full border border-slate-600">
+                            <span className="bg-slate-700 text-white/60 px-2 py-1 rounded-full border border-slate-200">
                               {gateway.gateway_code}
                             </span>
                           </div>
@@ -848,13 +848,13 @@ const AdminPaymentGateways = () => {
                   placeholder="Search by Transaction ID or user..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-white/40"
+                  className="pl-10 bg-slate-50 border-slate-200 text-white placeholder:text-white/40"
                 />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-white"
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
@@ -866,13 +866,13 @@ const AdminPaymentGateways = () => {
             {/* Transactions List */}
             <div className="space-y-3">
               {filteredTransactions.length === 0 ? (
-                <div className="text-center py-12 bg-slate-800 rounded-2xl border border-slate-700">
+                <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200">
                   <FileText className="w-12 h-12 mx-auto mb-3 text-slate-600" />
                   <p className="text-white/60">No transactions found</p>
                 </div>
               ) : (
                 filteredTransactions.map((txn) => (
-                  <Card key={txn.id} className="bg-slate-800 border-slate-700">
+                  <Card key={txn.id} className="bg-slate-50 border-slate-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center border border-pink-500/30">

@@ -401,7 +401,7 @@ const AdminInvitationSettings = () => {
       {/* Tiers List */}
       <div className="grid gap-3 md:gap-4">
         {tiers.map((tier) => (
-          <Card key={tier.id} className={cn("bg-slate-900 border-slate-700/50 shadow-lg", !tier.is_active && 'opacity-50')}>
+          <Card key={tier.id} className={cn("bg-white border-slate-200/50 shadow-lg", !tier.is_active && 'opacity-50')}>
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-3 md:gap-4">
                 <div 

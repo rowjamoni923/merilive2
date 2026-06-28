@@ -1204,7 +1204,7 @@ const AdminSupportTickets = () => {
       {/* Sector Tabs — horizontal scroll on mobile so all 5 stay reachable */}
       <Tabs value={sectorFilter} onValueChange={setSectorFilter} className="w-full">
         <div className="-mx-1 px-1 overflow-x-auto scrollbar-hide">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 bg-slate-800/50 gap-1 p-1">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 bg-slate-50/50 gap-1 p-1">
             <TabsTrigger value="all" className="shrink-0 whitespace-nowrap data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3">
               📋 All ({sectorCounts.all})
             </TabsTrigger>

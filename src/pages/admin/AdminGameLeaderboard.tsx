@@ -396,7 +396,7 @@ export default function AdminGameLeaderboard() {
               "gap-1.5",
               category === cat.id
                 ? `bg-gradient-to-r ${cat.color} text-white border-0`
-                : "border-slate-700 text-slate-400 hover:text-white"
+                : "border-slate-200 text-slate-400 hover:text-white"
             )}
           >
             {cat.icon} {cat.label}
@@ -416,14 +416,14 @@ export default function AdminGameLeaderboard() {
               "gap-1",
               period === p.id
                 ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black border-0"
-                : "border-slate-700 text-slate-400 hover:text-white"
+                : "border-slate-200 text-slate-400 hover:text-white"
             )}
           >
             {p.icon} {p.label}
           </Button>
         ))}
         <div className="flex-1" />
-        <Button variant="outline" size="sm" onClick={fetchAll} className="border-slate-700 text-slate-400 gap-1">
+        <Button variant="outline" size="sm" onClick={fetchAll} className="border-slate-200 text-slate-400 gap-1">
           <RefreshCw className="w-3 h-3" /> Refresh
         </Button>
         <Button
@@ -439,7 +439,7 @@ export default function AdminGameLeaderboard() {
 
       {/* View Toggle */}
       <Tabs value={activeRewardTab} onValueChange={(v) => setActiveRewardTab(v as any)}>
-        <TabsList className="bg-slate-900/80 border border-slate-800">
+        <TabsList className="bg-white/80 border border-slate-200">
           <TabsTrigger value="leaderboard" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-300 gap-1">
             <Trophy className="w-3.5 h-3.5" /> Leaderboard
           </TabsTrigger>
@@ -450,12 +450,12 @@ export default function AdminGameLeaderboard() {
 
         {/* Leaderboard View */}
         <TabsContent value="leaderboard" className="mt-3">
-          <Card className="bg-slate-900/50 border-slate-800">
+          <Card className="bg-white/50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 {currentCat.icon}
                 {currentCat.label} — {PERIODS.find(p => p.id === period)?.label}
-                <Badge variant="outline" className="text-slate-400 border-slate-600 ml-2">
+                <Badge variant="outline" className="text-slate-400 border-slate-200 ml-2">
                   {leaderboard.length} players
                 </Badge>
               </CardTitle>
@@ -481,11 +481,11 @@ export default function AdminGameLeaderboard() {
                             "flex items-center gap-3 p-3 rounded-xl",
                             rank === 1 ? "bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/30"
                               : rank <= 3 ? "bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20"
-                                : "bg-slate-800/50 border border-slate-700/50"
+                                : "bg-slate-50/50 border border-slate-200/50"
                           )}
                         >
                           <div className="w-8 h-8 flex items-center justify-center">{getRankBadge(rank)}</div>
-                          <Avatar className="w-10 h-10 border-2 border-slate-600">
+                          <Avatar className="w-10 h-10 border-2 border-slate-200">
                             <UserAvatarImage gender={((entry) as any)?.gender} seed={((entry) as any)?.id ?? ((entry) as any)?.user_id ?? ((entry) as any)?.host_id} src={entry.avatar_url || undefined} />
                             <AvatarFallback className="bg-purple-500/20 text-purple-300 text-sm">
                               {entry.name.charAt(0).toUpperCase()}
@@ -523,7 +523,7 @@ export default function AdminGameLeaderboard() {
 
         {/* Config View */}
         <TabsContent value="config" className="mt-3">
-          <Card className="bg-slate-900/50 border-slate-800">
+          <Card className="bg-white/50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Gift className="w-5 h-5 text-pink-400" />
@@ -587,7 +587,7 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
   );
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 border border-slate-200/50">
       <div className="w-16 text-center">
         <span className="text-amber-400 font-bold text-sm">
           #{reward.rank_from}{reward.rank_to !== reward.rank_from ? `-${reward.rank_to}` : ''}
@@ -596,19 +596,19 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
       <div className="flex-1 grid grid-cols-4 gap-2">
         <div>
           <label className="text-[10px] text-slate-400">Coins</label>
-          {input('reward_coins', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+          {input('reward_coins', 'h-8 bg-white border-slate-200 text-white text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-slate-400">💎 Diamonds</label>
-          {input('reward_diamonds', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+          {input('reward_diamonds', 'h-8 bg-white border-slate-200 text-white text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-slate-400">Beans</label>
-          {input('reward_beans', 'h-8 bg-slate-900 border-slate-700 text-white text-sm')}
+          {input('reward_beans', 'h-8 bg-white border-slate-200 text-white text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-amber-400">🎯 Min Target</label>
-          {input('min_target', 'h-8 bg-slate-900 border-amber-700/50 text-amber-300 text-sm')}
+          {input('min_target', 'h-8 bg-white border-amber-700/50 text-amber-300 text-sm')}
         </div>
       </div>
       {(reward.min_target || 0) > 0 && (

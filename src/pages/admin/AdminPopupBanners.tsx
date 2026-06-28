@@ -254,7 +254,7 @@ const AdminPopupBanners = () => {
 
       <div className="grid gap-3 md:gap-4">
         {banners.map((banner) => (
-          <Card key={banner.id} className={cn("bg-slate-900 border-slate-700/50 shadow-lg overflow-hidden", !banner.is_active && 'opacity-50')}>
+          <Card key={banner.id} className={cn("bg-white border-slate-200/50 shadow-lg overflow-hidden", !banner.is_active && 'opacity-50')}>
             <CardContent className="p-0">
               <div className="flex gap-3 md:gap-4">
                 <div className="w-24 md:w-32 shrink-0">

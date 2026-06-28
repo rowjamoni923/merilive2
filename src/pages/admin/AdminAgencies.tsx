@@ -968,7 +968,7 @@ export default function AdminAgencies() {
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="w-full overflow-x-auto -mx-2 px-2 mb-4">
-        <TabsList className="bg-slate-800 border border-slate-700 p-1 inline-flex w-max md:w-auto md:flex">
+        <TabsList className="bg-slate-50 border border-slate-200 p-1 inline-flex w-max md:w-auto md:flex">
 
           <TabsTrigger value="agencies" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white text-slate-400 font-medium text-xs md:text-sm">
             <Building2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -1606,7 +1606,7 @@ export default function AdminAgencies() {
                           </AvatarFallback>
                         </Avatar>
                         {hostSearchResult.is_online && (
-                          <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-slate-900" />
+                          <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-slate-200" />
                         )}
                       </div>
                     </div>
@@ -1839,7 +1839,7 @@ export default function AdminAgencies() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <Card className="group relative overflow-hidden cursor-pointer border-0 bg-gradient-to-br from-slate-800/80 via-slate-800/60 to-slate-900/80 hover:from-slate-700/80 hover:via-slate-700/60 hover:to-slate-800/80 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 ring-1 ring-white/10 hover:ring-emerald-500/30"
+              <Card className="group relative overflow-hidden cursor-pointer border-0 bg-gradient-to-br from-slate-50/80 via-slate-100/60 to-slate-100/80 hover:from-slate-700/80 hover:via-slate-700/60 hover:to-slate-100/80 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 ring-1 ring-white/10 hover:ring-emerald-500/30"
                 onClick={() => navigate(`/admin/agencies/${agency.id}`)}
               >
                 {/* Top accent bar */}
@@ -1864,7 +1864,7 @@ export default function AdminAgencies() {
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-800 border-white/10">
+                      <DropdownMenuContent align="end" className="bg-slate-50 border-white/10">
                         <DropdownMenuItem 
                           className="text-white/70 hover:text-white cursor-pointer"
                           onClick={(e) => {
@@ -2102,7 +2102,7 @@ export default function AdminAgencies() {
 
       {/* Cancel/Activate Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="bg-slate-800 border-white/10">
+        <DialogContent className="bg-slate-50 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white">
               {selectedAgency?.is_active ? "Cancel Agency" : selectedAgency?.activation_status === "closed" ? "Reactivate Agency" : "Activate Agency"}
@@ -2141,7 +2141,7 @@ export default function AdminAgencies() {
 
       {/* Payroll Helper Dialog */}
       <Dialog open={showPayrollDialog} onOpenChange={setShowPayrollDialog}>
-        <DialogContent className="bg-slate-800 border-white/10">
+        <DialogContent className="bg-slate-50 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Shield className="w-5 h-5 text-cyan-400" />
@@ -2195,7 +2195,7 @@ export default function AdminAgencies() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-50 border-white/10 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Agency Details</DialogTitle>
           </DialogHeader>
@@ -2257,7 +2257,7 @@ export default function AdminAgencies() {
 
       {/* Create Agency Dialog */}
       <Dialog open={showCreateAgencyDialog} onOpenChange={setShowCreateAgencyDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-50 border-white/10 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Plus className="w-5 h-5 text-emerald-400" />

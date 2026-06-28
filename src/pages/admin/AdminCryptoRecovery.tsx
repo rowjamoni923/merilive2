@@ -147,7 +147,7 @@ const AdminCryptoRecovery = () => {
   }, [rows, search]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 text-white p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-5">
         <div className="flex items-center justify-between gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-white/80">

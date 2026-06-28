@@ -618,7 +618,7 @@ const AdminSubAdmins = () => {
                     </div>
                     <div>
                       <Label className="text-sm text-muted-foreground">Login Link</Label>
-                      <div className="bg-slate-900 p-3 rounded-lg font-mono text-xs break-all text-left mt-1">
+                      <div className="bg-white p-3 rounded-lg font-mono text-xs break-all text-left mt-1">
                         {generatedLink}
                       </div>
                     </div>

@@ -205,19 +205,19 @@ export default function AdminLiveKitSip() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Inbound Trunks</p>
             <p className="text-teal-400 font-bold text-xl">{stats.inbound}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Outbound Trunks</p>
             <p className="text-cyan-400 font-bold text-xl">{stats.outbound}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Dispatch Rules</p>
             <p className="text-sky-400 font-bold text-xl">{stats.dispatch}</p>
@@ -239,7 +239,7 @@ export default function AdminLiveKitSip() {
               className={
                 active
                   ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-transparent"
-                  : "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  : "border-slate-200 text-slate-300 hover:bg-slate-700 hover:text-white"
               }
             >
               <t.icon className="w-4 h-4 mr-1.5" />
@@ -249,7 +249,7 @@ export default function AdminLiveKitSip() {
         })}
       </div>
 
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-slate-50 border-slate-200">
         <CardContent className="p-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -257,7 +257,7 @@ export default function AdminLiveKitSip() {
               placeholder={`Search ${currentTab.label.toLowerCase()}…`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -268,7 +268,7 @@ export default function AdminLiveKitSip() {
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-12 text-center">
             <Phone className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <p className="text-slate-400">No {currentTab.label.toLowerCase()} found.</p>
@@ -291,7 +291,7 @@ export default function AdminLiveKitSip() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Card className="bg-slate-800 border-slate-700 hover:border-teal-500/50 transition-colors">
+                <Card className="bg-slate-50 border-slate-200 hover:border-teal-500/50 transition-colors">
                   <CardContent className="p-3 sm:p-4">
                     <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                       <currentTab.icon className="w-5 h-5 text-teal-400 shrink-0" />
@@ -355,7 +355,7 @@ export default function AdminLiveKitSip() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                          className="border-slate-200 text-slate-300 hover:bg-slate-700"
                           onClick={() => setDetail(item)}
                         >
                           <Eye className="w-3.5 h-3.5 mr-1" />
@@ -393,7 +393,7 @@ export default function AdminLiveKitSip() {
           if (!o) setDetail(null);
         }}
       >
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 text-white max-w-xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <currentTab.icon className="w-5 h-5 text-teal-400" />
@@ -404,7 +404,7 @@ export default function AdminLiveKitSip() {
           </DialogHeader>
           {detail && (
             <div className="space-y-2">
-              <pre className="bg-slate-800 rounded p-3 text-[11px] text-slate-300 overflow-x-auto">
+              <pre className="bg-slate-50 rounded p-3 text-[11px] text-slate-300 overflow-x-auto">
                 {JSON.stringify(detail, null, 2)}
               </pre>
               <div className="flex justify-end pt-2">
@@ -429,7 +429,7 @@ export default function AdminLiveKitSip() {
           if (!o) setConfirmDelete(null);
         }}
       >
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+        <DialogContent className="bg-white border-slate-200 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -442,7 +442,7 @@ export default function AdminLiveKitSip() {
           <div className="flex justify-end gap-2 pt-2">
             <Button
               variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              className="border-slate-200 text-slate-300 hover:bg-slate-700"
               onClick={() => setConfirmDelete(null)}
             >
               Cancel
