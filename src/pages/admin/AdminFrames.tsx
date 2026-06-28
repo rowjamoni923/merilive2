@@ -585,7 +585,7 @@ const AdminFrames = () => {
                 }`}
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-square bg-gradient-to-br from-slate-100 to-slate-100 flex items-center justify-center overflow-hidden">
                   {(() => {
                     const previewUrl = frame.preview_url || '';
                     const lower = previewUrl.toLowerCase().split('?')[0].split('#')[0];
@@ -968,7 +968,7 @@ const AdminFrames = () => {
 
             {/* Preview - mirrors in-app AvatarWithFrame (avatar 112, frame ~138 → -13 inset) */}
             {formData.frame_url && (
-              <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-slate-100 rounded-xl">
+              <div className="flex justify-center p-6 bg-gradient-to-br from-slate-100 to-slate-100 rounded-xl">
                 <div className="relative" style={{ width: 112, height: 112 }}>
                   <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                     <UserAvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />

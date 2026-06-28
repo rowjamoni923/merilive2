@@ -395,7 +395,7 @@ export default function AdminProfitAnalytics() {
         </div>
 
         {/* Date filter */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-4 space-y-3">
             <Tabs value={preset} onValueChange={(v) => handlePreset(v as Preset)}>
               <TabsList className="bg-slate-50 border border-slate-200">
@@ -460,8 +460,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Timeline chart */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <BarChart3 className="h-4 w-4 text-violet-400" />
                 Net Profit Timeline (USD)
@@ -515,8 +515,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Daily Sales (gross) vs Net Profit chart */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <ShoppingCart className="h-4 w-4 text-cyan-400" />
                 Daily Sales vs Net Profit
@@ -564,8 +564,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Per-day breakdown table */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <TableIcon className="h-4 w-4 text-amber-400" />
                 Day-by-Day Breakdown
@@ -627,8 +627,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Daily Totals — Company Profit vs Total Payouts (one glance) */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <TableIcon className="h-4 w-4 text-emerald-400" />
                 Daily Totals — Profit vs Payouts
@@ -689,7 +689,7 @@ export default function AdminProfitAnalytics() {
               ) : dailyTotals.length === 0 ? (
                 <div className="p-6 text-center text-slate-900/40 text-sm">No data</div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-slate-200]">
+                <div className="overflow-x-auto rounded-lg border border-slate-200">
                   <table className="w-full text-xs">
                     <thead className="bg-slate-50 text-slate-900/60 uppercase tracking-wider text-[10px]">
                       <tr>
@@ -741,8 +741,8 @@ export default function AdminProfitAnalytics() {
         )}
 
         {/* Sales by Source — official vs helper level 1..5 */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
-          <CardHeader className="border-b border-slate-200] pb-3">
+        <Card className="bg-white border-slate-200">
+          <CardHeader className="border-b border-slate-200 pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <ShoppingCart className="h-4 w-4 text-cyan-400" />
               Sales by Source
@@ -808,8 +808,8 @@ export default function AdminProfitAnalytics() {
         </Card>
 
         {/* Sector grid */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
-          <CardHeader className="border-b border-slate-200] pb-3">
+        <Card className="bg-white border-slate-200">
+          <CardHeader className="border-b border-slate-200 pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <PieIcon className="h-4 w-4 text-emerald-400" />
               Sector Breakdown
@@ -923,7 +923,7 @@ function KPI({
   return (
     <Card
       className={cn(
-        "bg-[#0c0c14] border-white/[0.06] overflow-hidden relative",
+        "bg-white border-white/[0.06] overflow-hidden relative",
         highlight && "ring-1 ring-violet-500/40",
       )}
     >

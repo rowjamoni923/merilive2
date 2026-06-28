@@ -295,7 +295,7 @@ export default function AdminPayoutsAnalytics() {
         </div>
 
         {/* Date filter */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-4 space-y-3">
             <Tabs value={preset} onValueChange={(v) => handlePreset(v as Preset)}>
               <TabsList className="bg-slate-50 border border-slate-200">
@@ -358,8 +358,8 @@ export default function AdminPayoutsAnalytics() {
 
         {/* Daily payouts chart */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <BarChart3 className="h-4 w-4 text-rose-400" />
                 Daily Payout Outflow (USD)
@@ -399,8 +399,8 @@ export default function AdminPayoutsAnalytics() {
         )}
 
         {/* Category breakdown grid */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
-          <CardHeader className="border-b border-slate-200] pb-3">
+        <Card className="bg-white border-slate-200">
+          <CardHeader className="border-b border-slate-200 pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <TrendingDown className="h-4 w-4 text-rose-400" />
               Payout Categories
@@ -460,8 +460,8 @@ export default function AdminPayoutsAnalytics() {
 
         {/* Day-by-day table */}
         {includeTimeline && dailyRollup.length > 0 && (
-          <Card className="bg-[#0c0c14] border-slate-200]">
-            <CardHeader className="border-b border-slate-200] pb-3">
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="border-b border-slate-200 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <TableIcon className="h-4 w-4 text-amber-400" />
                 Day-by-Day Payouts
@@ -501,8 +501,8 @@ export default function AdminPayoutsAnalytics() {
         )}
 
         {/* Per-helper diamond payouts */}
-        <Card className="bg-[#0c0c14] border-slate-200]">
-          <CardHeader className="border-b border-slate-200] pb-3">
+        <Card className="bg-white border-slate-200">
+          <CardHeader className="border-b border-slate-200 pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <Gem className="h-4 w-4 text-cyan-400" />
               Per-Helper Diamond + Cash Payouts
@@ -588,7 +588,7 @@ function KPI({
   return (
     <Card
       className={cn(
-        "bg-[#0c0c14] border-white/[0.06] overflow-hidden relative",
+        "bg-white border-white/[0.06] overflow-hidden relative",
         highlight && "ring-1 ring-rose-500/40",
       )}
     >

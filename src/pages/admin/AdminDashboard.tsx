@@ -82,7 +82,7 @@ const StatCard = memo(({ title, value, icon: Icon, trend, accentFrom, accentTo, 
       )}
         style={{ boxShadow: `0 8px 32px -8px ${glowColor}` }}
       >
-        <div className="relative bg-[#0c0c14]/90 backdrop-blur-2xl rounded-[15px] md:rounded-[23px] p-4 md:p-6 h-full">
+        <div className="relative bg-white/90 backdrop-blur-2xl rounded-[15px] md:rounded-[23px] p-4 md:p-6 h-full">
           {/* Ambient glow */}
           <div className={cn("absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500")}
             style={{ background: `linear-gradient(135deg, ${glowColor}, transparent)` }}
@@ -146,7 +146,7 @@ const AlertCard = memo(({ title, value, icon: Icon, link, gradientFrom, gradient
   >
     <Link to={link}>
       <Card className={cn(
-        "bg-[#0c0c14] border-2 transition-all duration-300 group cursor-pointer",
+        "bg-white border-2 transition-all duration-300 group cursor-pointer",
         `border-${gradientFrom.split('-')[1]}-500/25 hover:border-${gradientFrom.split('-')[1]}-400/50`,
         "hover:shadow-xl"
       )}
@@ -192,7 +192,7 @@ const QuickAction = memo(({ title, description, icon: Icon, link, accentColor, d
     transition={{ delay }}
   >
     <Link to={link}>
-      <div className="flex items-center gap-3 p-3.5 rounded-xl bg-[#0c0c14] border border-white/5 hover:border-white/15 transition-all group">
+      <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white border border-white/5 hover:border-white/15 transition-all group">
         <div className="w-1 h-10 rounded-full" style={{ background: accentColor }} />
         <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 group-hover:bg-slate-50 transition-colors">
           <Icon className="w-5 h-5" style={{ color: accentColor }} />
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#0c0c14] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200]"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
@@ -623,7 +623,7 @@ export default function AdminDashboard() {
       <ErrorBoundary
         componentName="AdminAnalyticsCharts"
         fallback={
-          <div className="rounded-2xl border border-slate-200] bg-[#0c0c14] p-6 text-center text-slate-600 text-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-600 text-sm">
             Analytics charts are temporarily unavailable. Other dashboard data is still live.
           </div>
         }
@@ -660,8 +660,8 @@ export default function AdminDashboard() {
           transition={{ delay: 0.95 }}
           className="lg:col-span-2"
         >
-          <Card className="bg-[#0c0c14] border-slate-200] h-full">
-            <CardHeader className="border-b border-slate-200] pb-4">
+          <Card className="bg-white border-slate-200 h-full">
+            <CardHeader className="border-b border-slate-200 pb-4">
               <CardTitle className="text-slate-900 flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <Activity className="w-4 h-4 text-emerald-400" />
                 Recent Activity
@@ -714,7 +714,7 @@ export default function AdminDashboard() {
       <ErrorBoundary
         componentName="SystemHealthCheck"
         fallback={
-          <div className="rounded-2xl border border-slate-200] bg-[#0c0c14] p-6 text-center text-slate-600 text-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-600 text-sm">
             System health check is temporarily unavailable.
           </div>
         }
