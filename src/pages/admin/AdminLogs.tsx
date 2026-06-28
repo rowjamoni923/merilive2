@@ -194,6 +194,27 @@ export default function AdminLogs() {
     { value: "update_settings", label: "Update Settings" }
   ];
 
+  const handleExport = (fmt: "csv" | "pdf") => {
+    if (!filteredLogs.length) {
+      toast.error("No logs to export");
+      return;
+    }
+    const rows = filteredLogs.map((l) => ({
+      Time: new Date(l.created_at).toLocaleString(),
+      Action: getActionLabel(l.action_type),
+      Level: classifyLevel(l.action_type),
+      Admin: l.admin?.display_name || "Unknown",
+      Target_Type: l.target_type || "",
+      Target_ID: l.target_id || "",
+      IP: l.ip_address || "",
+      Details: l.details ? JSON.stringify(l.details) : "",
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") exportToCsv(`activity-logs-${stamp}.csv`, rows);
+    else exportToPdf(`activity-logs-${stamp}.pdf`, "Activity Logs", rows);
+    toast.success(`Exported ${rows.length} logs as ${fmt.toUpperCase()}`);
+  };
+
   return (
     <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
