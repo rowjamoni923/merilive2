@@ -1613,29 +1613,29 @@ export default function AdminUserManagement() {
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Verified Users
           </TabsTrigger>
-          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
             {autoApprovedFaceCount > 0 && (
-              <span className="admin-tab-badge bg-cyan-500">
+              <span className="admin-tab-badge" style={{ backgroundColor: "#06b6d4" }}>
                 {autoApprovedFaceCount > 99 ? "99+" : autoApprovedFaceCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
             {autoRejectedFaceCount > 0 && (
-              <span className="admin-tab-badge bg-orange-500">
+              <span className="admin-tab-badge" style={{ backgroundColor: "#f97316" }}>
                 {autoRejectedFaceCount > 99 ? "99+" : autoRejectedFaceCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
+          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Face Verify
             {pendingFaceCount > 0 && (
-              <span className="admin-tab-badge bg-red-500">
+              <span className="admin-tab-badge" style={{ backgroundColor: "#ef4444" }}>
                 {pendingFaceCount > 99 ? "99+" : pendingFaceCount}
               </span>
             )}
