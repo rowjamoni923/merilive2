@@ -365,11 +365,11 @@ export default function AdminRatingRewards() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Star className="w-6 h-6 text-amber-400" />
             Rating Reward Claims
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-500 text-sm mt-1">
             Review Play Store rating screenshots and approve rewards
           </p>
         </div>
@@ -496,7 +496,7 @@ export default function AdminRatingRewards() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-sm font-medium text-slate-900 truncate">
                           {item.profile?.display_name || 'Unknown'}
                         </div>
                         <div className="text-[10px] text-slate-500">
@@ -604,7 +604,7 @@ export default function AdminRatingRewards() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white text-sm truncate">
+                      <span className="font-semibold text-slate-900 text-sm truncate">
                         {claim.profile?.display_name || 'Unknown'}
                       </span>
                       {claim.profile?.app_uid && (
