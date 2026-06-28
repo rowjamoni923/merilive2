@@ -459,8 +459,8 @@ export default function AdminSuperAdminManagement() {
               Contact: {reviewApp?.official_email && reviewApp?.official_phone ? "✅" : "❌"} ·
               NID: {(reviewApp as any)?.nid_front_url ? "✅" : "❌"}
             </div>
-            <div className="rounded border border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs space-y-1">
-              <div className="font-semibold text-amber-700 dark:text-amber-300">⚠ Confirm the actual USD deposit you received</div>
+            <div className="rounded border border-amber-500/40 bg-amber-50 p-3 text-xs space-y-1">
+              <div className="font-semibold text-amber-700">⚠ Confirm the actual USD deposit you received</div>
               <p className="text-muted-foreground">The applicant does not enter a deposit amount — only you do, after verifying funds.</p>
             </div>
             <div>
