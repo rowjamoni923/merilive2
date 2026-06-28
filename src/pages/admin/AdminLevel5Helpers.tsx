@@ -634,8 +634,8 @@ const AdminLevel5Helpers = () => {
                 <Gem className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.totalDiamondsAwarded.toLocaleString()}</p>
-                <p className="text-xs text-yellow-600 dark:text-yellow-400">Diamonds Awarded</p>
+                <p className="text-2xl font-bold text-yellow-700">{stats.totalDiamondsAwarded.toLocaleString()}</p>
+                <p className="text-xs text-yellow-600">Diamonds Awarded</p>
               </div>
             </div>
           </CardContent>
@@ -813,10 +813,10 @@ const AdminLevel5Helpers = () => {
                       className={cn(
                         "flex items-center gap-4 p-4 rounded-xl transition-colors",
                         app.payroll_status === 'pending' 
-                          ? "bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800" 
+                          ? "bg-orange-50 border border-orange-200" 
                           : app.payroll_status === 'approved'
-                          ? "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
-                          : "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800"
+                          ? "bg-green-50 border border-green-200"
+                          : "bg-red-50 border border-red-200"
                       )}
                     >
                       <Avatar className="w-12 h-12 border-2 border-orange-500">
@@ -827,7 +827,7 @@ const AdminLevel5Helpers = () => {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold truncate text-slate-900 dark:text-white">{app.user?.display_name || 'Unknown'}</p>
+                          <p className="font-semibold truncate text-slate-900">{app.user?.display_name || 'Unknown'}</p>
                           <Badge variant="outline" className="gap-1 text-xs">
                             {(app as any).user?.country_flag ? (
                               <span>{(app as any).user.country_flag}</span>
@@ -952,7 +952,7 @@ const AdminLevel5Helpers = () => {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold truncate text-slate-900 dark:text-white">{helper.user?.display_name || 'Unknown'}</p>
+                          <p className="font-semibold truncate text-slate-900">{helper.user?.display_name || 'Unknown'}</p>
                           <Badge className="bg-cyan-500 text-white">Level 5</Badge>
                           {(helper.user?.country_flag || helper.country_code) && (
                             <Badge variant="outline" className="gap-1">
@@ -1050,7 +1050,7 @@ const AdminLevel5Helpers = () => {
                         className={cn(
                           "flex items-center gap-4 p-4 rounded-xl cursor-pointer hover:bg-muted/70 transition-colors",
                           request.status === 'screenshot_submitted' 
-                            ? "bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800" 
+                            ? "bg-purple-50 border border-purple-200" 
                             : "bg-muted/50"
                         )}
                         onClick={() => { setSelectedWithdrawal(request); setShowWithdrawalDialog(true); setDiamondReward(String(request.diamond_reward || 0)); }}
@@ -1063,7 +1063,7 @@ const AdminLevel5Helpers = () => {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold truncate text-slate-900 dark:text-white">{request.helper?.user?.display_name || 'Unknown Helper'}</p>
+                            <p className="font-semibold truncate text-slate-900">{request.helper?.user?.display_name || 'Unknown Helper'}</p>
                             <Badge className={cn("text-white text-xs", statusConfig.color)}>
                               {statusConfig.label}
                             </Badge>
@@ -1113,7 +1113,7 @@ const AdminLevel5Helpers = () => {
                     className={cn(
                       "flex items-center gap-4 p-4 rounded-xl border",
                       config.level_number === 5 
-                        ? "bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 border-cyan-200 dark:border-cyan-800" 
+                        ? "bg-gradient-to-r from-cyan-50 to-blue-50 border-cyan-200" 
                         : "bg-muted/50 border-transparent"
                     )}
                   >
@@ -1125,7 +1125,7 @@ const AdminLevel5Helpers = () => {
                       <span className="text-white text-xs ml-1">{config.level_number}</span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-white">{config.level_name}</p>
+                      <p className="font-semibold text-slate-900">{config.level_name}</p>
                       <p className="text-xs text-muted-foreground">Commission: {config.commission_rate}%</p>
                     </div>
                     <div className="flex items-center gap-6">
@@ -1171,7 +1171,7 @@ const AdminLevel5Helpers = () => {
           {selectedWithdrawal && (
             <div className="space-y-4">
               {/* Amount Info */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl p-4 border border-green-200 dark:border-green-800">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-green-600">${selectedWithdrawal.usd_amount}</p>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -1224,8 +1224,8 @@ const AdminLevel5Helpers = () => {
 
               {/* Helper Notes */}
               {selectedWithdrawal.helper_notes && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
-                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Helper Notes:</p>
+                <div className="p-3 bg-blue-50 rounded-xl">
+                  <p className="text-xs font-semibold text-blue-600">Helper Notes:</p>
                   <p className="text-sm mt-1">{selectedWithdrawal.helper_notes}</p>
                 </div>
               )}
@@ -1282,8 +1282,8 @@ const AdminLevel5Helpers = () => {
               {selectedWithdrawal.status !== 'screenshot_submitted' && (
                 <div className={cn(
                   "text-center p-4 rounded-xl",
-                  selectedWithdrawal.status === 'approved' ? "bg-green-50 dark:bg-green-950/30" :
-                  selectedWithdrawal.status === 'rejected' ? "bg-red-50 dark:bg-red-950/30" :
+                  selectedWithdrawal.status === 'approved' ? "bg-green-50" :
+                  selectedWithdrawal.status === 'rejected' ? "bg-red-50" :
                   "bg-muted/50"
                 )}>
                   <Badge className={cn("text-white", getStatusBadge(selectedWithdrawal.status).color)}>

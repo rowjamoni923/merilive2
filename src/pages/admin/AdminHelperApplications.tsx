@@ -303,57 +303,57 @@ const AdminHelperApplications = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800">
+          <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center">
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.pending}</p>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-700">{stats.pending}</p>
+                  <p className="text-xs text-yellow-600">Pending</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-300">{stats.approved}</p>
-                  <p className="text-xs text-green-600 dark:text-green-400">Approved</p>
+                  <p className="text-2xl font-bold text-green-700">{stats.approved}</p>
+                  <p className="text-xs text-green-600">Approved</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 border-red-200 dark:border-red-800">
+          <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
                   <XCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-red-700 dark:text-red-300">{stats.rejected}</p>
-                  <p className="text-xs text-red-600 dark:text-red-400">Rejected</p>
+                  <p className="text-2xl font-bold text-red-700">{stats.rejected}</p>
+                  <p className="text-xs text-red-600">Rejected</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-purple-200 dark:border-purple-800">
+          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
                   <Banknote className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{stats.pendingPayroll}</p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400">Payroll Requests</p>
+                  <p className="text-2xl font-bold text-purple-700">{stats.pendingPayroll}</p>
+                  <p className="text-xs text-purple-600">Payroll Requests</p>
                 </div>
               </div>
             </CardContent>
@@ -416,15 +416,15 @@ const AdminHelperApplications = () => {
             </div>
 
             {/* Auto-verified crypto by level */}
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20 px-3 py-2">
-              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+              <span className="text-xs font-semibold text-emerald-700">
                 ✓ On-chain auto-verified by level:
               </span>
               {[1, 2, 3, 4, 5].map((lvl) => (
                 <Badge
                   key={lvl}
                   variant="outline"
-                  className="bg-white/70 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200"
+                  className="bg-white/70 border-emerald-300 text-emerald-800"
                 >
                   L{lvl}: {autoVerifiedLevelCounts[lvl]}
                 </Badge>
@@ -771,7 +771,7 @@ const AdminHelperApplications = () => {
                               data-testid="level-audit-block"
                               className="mt-2 rounded-lg border border-purple-500/30 bg-purple-500/5 p-2.5 space-y-1.5"
                             >
-                              <div className="text-[11px] font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-300">
+                              <div className="text-[11px] font-semibold uppercase tracking-wide text-purple-700">
                                 Level Auto-Detection Audit
                               </div>
                               <div className="grid grid-cols-3 gap-2 text-[11px]">
