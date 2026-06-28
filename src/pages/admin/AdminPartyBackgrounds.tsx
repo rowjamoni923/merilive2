@@ -484,7 +484,7 @@ const AdminPartyBackgrounds = () => {
         <Card className="border-0 shadow-md">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Image className="w-5 h-5 text-blue-600" />
               </div>
               <div>
@@ -497,7 +497,7 @@ const AdminPartyBackgrounds = () => {
         <Card className="border-0 shadow-md">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                 <Eye className="w-5 h-5 text-green-600" />
               </div>
               <div>
@@ -510,7 +510,7 @@ const AdminPartyBackgrounds = () => {
         <Card className="border-0 shadow-md">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
                 <Crown className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
@@ -523,7 +523,7 @@ const AdminPartyBackgrounds = () => {
         <Card className="border-0 shadow-md">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-purple-600" />
               </div>
               <div>
