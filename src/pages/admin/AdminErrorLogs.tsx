@@ -203,6 +203,7 @@ export default function AdminErrorLogs() {
       toast.error('Failed to load error logs');
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
   };
 
