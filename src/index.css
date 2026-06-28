@@ -2799,9 +2799,9 @@ body[data-admin-active="true"] #root {
   letter-spacing: -0.01em;
 }
 
-/* Near-white / very light text utilities → dark slate ONLY when the element
+/* Near-white / very light text utilities -> dark slate ONLY when the element
    sits on a white-ish surface. Elements that carry their OWN colored
-   background (inline style="background-color: ..." or a bg-*/from-* utility,
+   background (inline style="background-color: ..." or a bg- or from- utility,
    e.g. count chips, status pills, gradient cards) MUST keep their white text. */
 .admin-content .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
 .admin-content [class*="text-white/"]:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]):not([class*="via-"]):not([class*="to-"]),
