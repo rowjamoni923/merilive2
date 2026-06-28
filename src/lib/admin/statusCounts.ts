@@ -71,6 +71,11 @@ export function isFaceRetryRequiredRow(
   const notes = String(adminNotes ?? r.admin_notes ?? "").toLowerCase();
   const analysis = (typeof r.ai_analysis === "object" && r.ai_analysis !== null ? r.ai_analysis : {}) as Record<string, unknown>;
 
+  // Final admin/AI decisions must never be pulled back into Pending by old
+  // retry/orphan/upload metadata. This mirrors the DB function used by the
+  // admin RPC, so a row disappears from Pending immediately after approve/reject.
+  if (bucketOfStatus(normalized) === "approved" || bucketOfStatus(normalized) === "rejected") return false;
+
   if (RETRY_STATUSES.includes(normalized)) return true;
   if (truthyAnalysisValue(analysis.requires_resubmit) || truthyAnalysisValue(analysis.orphan_media)) return true;
   if (typeof analysis.retry_required === "object" && analysis.retry_required !== null) return true;
@@ -87,8 +92,7 @@ export function isFaceRetryRequiredRow(
     && !hasRenderableMedia(r.selfie_url)
     && !hostPhotos.some(hasRenderableMedia);
 
-  return bucketOfStatus(normalized) !== "approved"
-    && allMediaMissing
+  return allMediaMissing
     && !truthyAnalysisValue(analysis.upload_pending);
 }
 
