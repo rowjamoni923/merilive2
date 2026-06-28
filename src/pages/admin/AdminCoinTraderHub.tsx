@@ -63,7 +63,7 @@ export default function AdminDiamondTraderHub() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-amber-950/20 to-slate-950 p-4 md:p-6">
+    <div className="admin-pro-shell space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">

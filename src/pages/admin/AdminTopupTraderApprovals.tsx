@@ -141,7 +141,7 @@ export default function AdminTopupTraderApprovals() {
   const approvedCount = traders.filter((t) => t.is_approved).length;
 
   return (
-    <div className="admin-content space-y-4 p-4 md:p-6">
+    <div className="admin-pro-shell admin-content space-y-4 p-4 md:p-6">
       <AdminPageHeader
         icon={ShieldCheck}
         title="Top-up Trader Approvals"

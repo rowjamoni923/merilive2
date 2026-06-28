@@ -118,7 +118,7 @@ const AdminTraderTransactions = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="admin-pro-shell">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">

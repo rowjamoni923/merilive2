@@ -645,7 +645,7 @@ const AdminTopupSystem = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+    <div className="admin-pro-shell space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
       {/* Header Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
         <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white border-0">
