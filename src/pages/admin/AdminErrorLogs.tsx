@@ -367,15 +367,25 @@ export default function AdminErrorLogs() {
             <Bug className="w-7 h-7 text-red-400" />
             System Error Logs
           </h1>
-          <p className="text-muted-foreground mt-1 flex items-center gap-2">
-            All application errors are recorded here
-            {autoRefresh && (
-              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+          <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span className="text-sm">All application errors are recorded here</span>
+            {autoRefresh ? (
+              <span className="inline-flex items-center gap-1 text-emerald-600">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live · {refreshInterval}s
               </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-slate-500">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                Paused
+              </span>
             )}
+            <span className="inline-flex items-center gap-1 text-slate-600" title={lastRefresh.toLocaleString()}>
+              <Clock className="w-3 h-3" />
+              Updated {formatAgo(lastRefresh)}
+            </span>
           </p>
+
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setAutoRefresh((v) => !v)}>
