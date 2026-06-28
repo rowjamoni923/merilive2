@@ -2982,34 +2982,34 @@ export default function AdminLayout() {
       <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-visible lg:overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
         
         {/* ━━━ TOP HEADER ━━━ */}
-        <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
+        <header className="sticky top-0 z-30 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_-6px_rgba(15,23,42,0.08)] safe-area-top max-w-full overflow-visible">
           <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost" size="icon"
-                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white/[0.04] border border-white/[0.06] flex-shrink-0"
+                className="lg:hidden text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white border border-slate-200 shadow-sm flex-shrink-0"
                 onClick={() => { setIsMobileSidebarOpen(true); setIsSidebarOpen(true); }}
               >
                 <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-4 h-4" />
               </Button>
 
               <div className="min-w-0">
-                <h2 className="text-white font-bold text-sm sm:text-[15px] truncate">
+                <h2 className="text-slate-900 font-bold text-sm sm:text-[15px] truncate" style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
                   {navGroups.flatMap(g => g.items).find(item => location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path)))?.label || "Dashboard"}
                 </h2>
-                <p className="text-[8px] sm:text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
+                <p className="text-[8px] sm:text-[9px] text-blue-600/80 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0 min-w-0">
               {/* Desktop Search */}
               <div className="relative hidden lg:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                <Input placeholder="Global search..." className="w-56 pl-10 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/25 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9 text-sm" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input placeholder="Global search..." className="w-56 pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 rounded-xl h-9 text-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]" />
               </div>
 
               {/* Realtime sync status pill */}
