@@ -250,7 +250,7 @@ export default function AdminCallSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-900">
             <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
               <Phone className="w-6 h-6 text-white" />
             </div>
@@ -272,57 +272,57 @@ export default function AdminCallSettings() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/30 dark:from-blue-500/10 dark:to-cyan-500/10">
+        <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500 rounded-lg">
                 <PhoneCall className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Total Calls</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(stats.total_calls)}</p>
+                <p className="text-sm text-blue-600 font-medium">Total Calls</p>
+                <p className="text-2xl font-bold text-slate-900">{formatNumber(stats.total_calls)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30 dark:from-green-500/10 dark:to-emerald-500/10">
+        <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-500 rounded-lg">
                 <Phone className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Active</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.active_calls}</p>
+                <p className="text-sm text-green-600 font-medium">Active</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.active_calls}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30 dark:from-purple-500/10 dark:to-pink-500/10">
+        <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-500 rounded-lg">
                 <Clock className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">Total Minutes</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(stats.total_minutes)}</p>
+                <p className="text-sm text-purple-600 font-medium">Total Minutes</p>
+                <p className="text-2xl font-bold text-slate-900">{formatNumber(stats.total_minutes)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30 dark:from-amber-500/10 dark:to-orange-500/10">
+        <Card className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500 rounded-lg">
                 <Diamond className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Total Earnings</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(stats.total_earnings)}</p>
+                <p className="text-sm text-amber-600 font-medium">Total Earnings</p>
+                <p className="text-2xl font-bold text-slate-900">{formatNumber(stats.total_earnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -330,9 +330,9 @@ export default function AdminCallSettings() {
       </div>
 
       {/* Grace Period Settings - MOVED TO TOP FOR VISIBILITY */}
-      <Card className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/5 dark:to-amber-500/5 border-orange-500/30 border-2">
+      <Card className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border-orange-500/30 border-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
             <Clock className="w-5 h-5 text-orange-500" />
             ⚡ First Minute Grace Period (Billing System)
           </CardTitle>
@@ -344,7 +344,7 @@ export default function AdminCallSettings() {
           {/* Grace Period Slider */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-slate-900 dark:text-white font-semibold">Grace Period (Seconds)</Label>
+              <Label className="text-slate-900 font-semibold">Grace Period (Seconds)</Label>
               <Badge className="text-xl font-bold bg-orange-500 px-4 py-1">
                 {settings.first_minute_grace_seconds}s
               </Badge>
@@ -364,8 +364,8 @@ export default function AdminCallSettings() {
           </div>
 
           {/* Visual Explanation */}
-          <div className="p-4 bg-gradient-to-r from-orange-500/20 to-amber-500/20 dark:from-orange-500/10 dark:to-amber-500/10 rounded-xl border border-orange-500/30">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white mb-3">🔄 How it works:</p>
+          <div className="p-4 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl border border-orange-500/30">
+            <p className="text-sm font-semibold text-slate-900 mb-3">🔄 How it works:</p>
             <div className="space-y-3">
               {/* First minute - before grace period */}
               <div className="flex items-start gap-3">
@@ -373,10 +373,10 @@ export default function AdminCallSettings() {
                   <span className="text-red-500 font-bold text-sm">1</span>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-900 dark:text-white font-medium">
+                  <p className="text-sm text-slate-900 font-medium">
                     First Minute (0-{settings.first_minute_grace_seconds}s)
                   </p>
-                  <p className="text-xs text-red-500 dark:text-red-400">
+                  <p className="text-xs text-red-500">
                     ❌ Host earns no beans — Company keeps all diamonds
                   </p>
                 </div>
@@ -388,10 +388,10 @@ export default function AdminCallSettings() {
                   <span className="text-green-500 font-bold text-sm">2</span>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-900 dark:text-white font-medium">
+                  <p className="text-sm text-slate-900 font-medium">
                     First Minute ({settings.first_minute_grace_seconds}s+)
                   </p>
-                  <p className="text-xs text-green-500 dark:text-green-400">
+                  <p className="text-xs text-green-500">
                     ✅ Host earns beans ({settings.host_commission_percent}% commission)
                   </p>
                 </div>
@@ -403,10 +403,10 @@ export default function AdminCallSettings() {
                   <span className="text-emerald-500 font-bold text-sm">3</span>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-900 dark:text-white font-medium">
+                  <p className="text-sm text-slate-900 font-medium">
                     Subsequent Minutes (2nd, 3rd, 4th...)
                   </p>
-                  <p className="text-xs text-emerald-500 dark:text-emerald-400">
+                  <p className="text-xs text-emerald-500">
                     ✅ Host earns beans from second 1 of each minute
                   </p>
                 </div>
@@ -416,33 +416,33 @@ export default function AdminCallSettings() {
 
           {/* Example Calculation */}
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-4 bg-red-500/10 dark:bg-red-500/5 rounded-xl border border-red-500/30 text-center">
-              <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-2">
+            <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/30 text-center">
+              <p className="text-sm text-red-600 font-medium mb-2">
                 If call ends before {settings.first_minute_grace_seconds} seconds
               </p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2 bg-white/80 dark:bg-white/5 rounded">
-                  <p className="font-bold text-slate-900 dark:text-white">Host</p>
+                <div className="p-2 bg-white/80 rounded">
+                  <p className="font-bold text-slate-900">Host</p>
                   <p className="text-red-500 font-bold">0 Beans</p>
                 </div>
-                <div className="p-2 bg-white/80 dark:bg-white/5 rounded">
-                  <p className="font-bold text-slate-900 dark:text-white">Company</p>
+                <div className="p-2 bg-white/80 rounded">
+                  <p className="font-bold text-slate-900">Company</p>
                   <p className="text-blue-500 font-bold">{settings.default_rate} 💎</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-green-500/10 dark:bg-green-500/5 rounded-xl border border-green-500/30 text-center">
-              <p className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
+            <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/30 text-center">
+              <p className="text-sm text-green-600 font-medium mb-2">
                 If call lasts {settings.first_minute_grace_seconds}+ seconds
               </p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2 bg-white/80 dark:bg-white/5 rounded">
-                  <p className="font-bold text-slate-900 dark:text-white">Host</p>
+                <div className="p-2 bg-white/80 rounded">
+                  <p className="font-bold text-slate-900">Host</p>
                   <p className="text-emerald-500 font-bold">{calculateHostBeans(settings.default_rate)} Beans</p>
                 </div>
-                <div className="p-2 bg-white/80 dark:bg-white/5 rounded">
-                  <p className="font-bold text-slate-900 dark:text-white">Company</p>
+                <div className="p-2 bg-white/80 rounded">
+                  <p className="font-bold text-slate-900">Company</p>
                   <p className="text-blue-500 font-bold">{calculateCompanyShare(settings.default_rate)} 💎</p>
                 </div>
               </div>
@@ -455,7 +455,7 @@ export default function AdminCallSettings() {
         {/* Rate Settings */}
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
               <Diamond className="w-5 h-5 text-cyan-500" />
               Call Rate Settings
             </CardTitle>
@@ -465,7 +465,7 @@ export default function AdminCallSettings() {
             {/* Default Rate */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-900 dark:text-white font-semibold">Default Rate (Diamonds/Min)</Label>
+                <Label className="text-slate-900 font-semibold">Default Rate (Diamonds/Min)</Label>
                 <Badge className="text-lg font-bold bg-cyan-500">{settings.default_rate}</Badge>
               </div>
               <Input
@@ -484,7 +484,7 @@ export default function AdminCallSettings() {
             {/* Min Rate */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-900 dark:text-white font-semibold">Minimum Rate</Label>
+                <Label className="text-slate-900 font-semibold">Minimum Rate</Label>
                 <Badge variant="outline">{settings.min_rate}</Badge>
               </div>
               <Slider
@@ -499,7 +499,7 @@ export default function AdminCallSettings() {
             {/* Max Rate */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-900 dark:text-white font-semibold">Maximum Rate</Label>
+                <Label className="text-slate-900 font-semibold">Maximum Rate</Label>
                 <Badge variant="outline">{settings.max_rate}</Badge>
               </div>
               <Slider
@@ -516,7 +516,7 @@ export default function AdminCallSettings() {
         {/* Commission Settings */}
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
               <Percent className="w-5 h-5 text-emerald-500" />
               Commission Settings
             </CardTitle>
@@ -526,7 +526,7 @@ export default function AdminCallSettings() {
             {/* Commission Slider */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-900 dark:text-white font-semibold">Host Commission</Label>
+                <Label className="text-slate-900 font-semibold">Host Commission</Label>
                 <Badge className="text-xl font-bold bg-emerald-500 px-4 py-1">
                   {settings.host_commission_percent}%
                 </Badge>
@@ -546,22 +546,22 @@ export default function AdminCallSettings() {
             </div>
 
             {/* Commission Preview */}
-            <div className="p-4 bg-gradient-to-r from-emerald-500/20 to-green-500/20 dark:from-emerald-500/10 dark:to-green-500/10 rounded-xl border border-emerald-500/30">
-              <p className="text-sm text-slate-900 dark:text-white font-medium mb-3">
+            <div className="p-4 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-500/30">
+              <p className="text-sm text-slate-900 font-medium mb-3">
                 Example: Per {settings.default_rate} Diamonds
               </p>
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-white/80 dark:bg-white/10 rounded-lg shadow-sm">
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="text-center p-3 bg-white/80 rounded-lg shadow-sm">
+                  <p className="text-2xl font-bold text-emerald-600">
                     {calculateHostBeans(settings.default_rate)}
                   </p>
-                  <p className="text-xs text-emerald-700 dark:text-emerald-300">Host Beans</p>
+                  <p className="text-xs text-emerald-700">Host Beans</p>
                 </div>
-                <div className="text-center p-3 bg-white/80 dark:bg-white/10 rounded-lg shadow-sm">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="text-center p-3 bg-white/80 rounded-lg shadow-sm">
+                  <p className="text-2xl font-bold text-blue-600">
                     {calculateCompanyShare(settings.default_rate)}
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">Company Share</p>
+                  <p className="text-xs text-blue-700">Company Share</p>
                 </div>
               </div>
             </div>
@@ -572,7 +572,7 @@ export default function AdminCallSettings() {
         {/* Calculator */}
         <Card className="lg:col-span-2 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
               <Calculator className="w-5 h-5 text-purple-500" />
               Earning Calculator
             </CardTitle>
@@ -584,7 +584,7 @@ export default function AdminCallSettings() {
             <div className="grid md:grid-cols-4 gap-6 items-center">
               {/* Input */}
               <div className="space-y-2">
-                <Label className="text-slate-900 dark:text-white font-semibold">User Pays (Diamonds)</Label>
+                <Label className="text-slate-900 font-semibold">User Pays (Diamonds)</Label>
                 <Input
                   type="number"
                   value={calcDiamonds}
@@ -599,27 +599,27 @@ export default function AdminCallSettings() {
               </div>
 
               {/* Host Beans */}
-              <div className="p-4 bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-500/10 dark:to-green-500/10 rounded-xl border-2 border-emerald-500/30 text-center">
-                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">Host Earns</p>
-                <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="p-4 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl border-2 border-emerald-500/30 text-center">
+                <p className="text-sm text-emerald-600 font-medium mb-1">Host Earns</p>
+                <p className="text-4xl font-bold text-emerald-600">
                   {calculateHostBeans(calcDiamonds).toLocaleString()}
                 </p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Beans ({settings.host_commission_percent}%)</p>
+                <p className="text-xs text-emerald-600 mt-1">Beans ({settings.host_commission_percent}%)</p>
               </div>
 
               {/* Company Share */}
-              <div className="p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 dark:from-blue-500/10 dark:to-cyan-500/10 rounded-xl border-2 border-blue-500/30 text-center">
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Company Earns</p>
-                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border-2 border-blue-500/30 text-center">
+                <p className="text-sm text-blue-600 font-medium mb-1">Company Earns</p>
+                <p className="text-4xl font-bold text-blue-600">
                   {calculateCompanyShare(calcDiamonds).toLocaleString()}
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">💎 Diamonds ({100 - settings.host_commission_percent}%)</p>
+                <p className="text-xs text-blue-600 mt-1">💎 Diamonds ({100 - settings.host_commission_percent}%)</p>
               </div>
             </div>
 
             {/* Quick Examples */}
-            <div className="mt-6 p-4 bg-slate-500/10 dark:bg-slate-500/5 rounded-xl">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Quick Examples:</p>
+            <div className="mt-6 p-4 bg-slate-500/10 rounded-xl">
+              <p className="text-sm font-semibold text-slate-900 mb-3">Quick Examples:</p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {[100, 500, 1000, 2000, 5000].map((amount) => (
                   <motion.button
@@ -629,12 +629,12 @@ export default function AdminCallSettings() {
                     onClick={() => setCalcDiamonds(amount)}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       calcDiamonds === amount
-                        ? 'bg-purple-500/20 border-purple-400 dark:bg-purple-500/10'
-                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-slate-200 hover:border-purple-300'
+                        ? 'bg-purple-500/20 border-purple-400
+                        : 'bg-white/50 border-slate-200 hover:border-purple-300'
                     }`}
                   >
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{amount} 💎</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400">→ {calculateHostBeans(amount)} Beans</p>
+                    <p className="text-sm font-bold text-slate-900">{amount} 💎</p>
+                    <p className="text-xs text-emerald-600">→ {calculateHostBeans(amount)} Beans</p>
                   </motion.button>
                 ))}
               </div>
@@ -645,7 +645,7 @@ export default function AdminCallSettings() {
         {/* Other Settings */}
         <Card className="lg:col-span-2 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
               <Users className="w-5 h-5 text-blue-500" />
               Other Settings
             </CardTitle>
@@ -654,7 +654,7 @@ export default function AdminCallSettings() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Timeout */}
               <div className="space-y-3">
-                <Label className="text-slate-900 dark:text-white font-semibold">Call Timeout (Seconds)</Label>
+                <Label className="text-slate-900 font-semibold">Call Timeout (Seconds)</Label>
                 <Input
                   type="number"
                   value={settings.call_timeout_seconds}
@@ -665,7 +665,7 @@ export default function AdminCallSettings() {
 
               {/* Low Balance Warning */}
               <div className="space-y-3">
-                <Label className="text-slate-900 dark:text-white font-semibold">Low Balance Warning</Label>
+                <Label className="text-slate-900 font-semibold">Low Balance Warning</Label>
                 <Input
                   type="number"
                   value={settings.low_balance_warning_threshold}
@@ -675,9 +675,9 @@ export default function AdminCallSettings() {
               </div>
 
               {/* Toggles */}
-              <div className="flex items-center justify-between p-4 bg-slate-500/10 dark:bg-slate-500/5 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-slate-500/10 rounded-lg">
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">Video Calls</p>
+                  <p className="font-semibold text-slate-900">Video Calls</p>
                   <p className="text-xs text-muted-foreground">Allow video calls</p>
                 </div>
                 <Switch
@@ -686,9 +686,9 @@ export default function AdminCallSettings() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-500/10 dark:bg-slate-500/5 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-slate-500/10 rounded-lg">
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">Audio Calls</p>
+                  <p className="font-semibold text-slate-900">Audio Calls</p>
                   <p className="text-xs text-muted-foreground">Allow audio-only calls</p>
                 </div>
                 <Switch
@@ -697,9 +697,9 @@ export default function AdminCallSettings() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-500/10 dark:bg-slate-500/5 rounded-lg md:col-span-2">
+              <div className="flex items-center justify-between p-4 bg-slate-500/10 rounded-lg md:col-span-2">
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">Auto Disconnect</p>
+                  <p className="font-semibold text-slate-900">Auto Disconnect</p>
                   <p className="text-xs text-muted-foreground">Automatically disconnect when balance runs out</p>
                 </div>
                 <Switch
@@ -714,7 +714,7 @@ export default function AdminCallSettings() {
         {/* Level-Based Pricing */}
         <Card className="lg:col-span-2 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
               <Crown className="w-5 h-5 text-amber-500" />
               Level-Based Call Pricing
             </CardTitle>
@@ -724,9 +724,9 @@ export default function AdminCallSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Min Level for Custom Rate */}
-            <div className="p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 dark:from-amber-500/10 dark:to-orange-500/10 rounded-xl border border-amber-500/30">
+            <div className="p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl border border-amber-500/30">
               <div className="flex items-center justify-between mb-3">
-                <Label className="text-slate-900 dark:text-white font-semibold">Min Level for Custom Rate</Label>
+                <Label className="text-slate-900 font-semibold">Min Level for Custom Rate</Label>
                 <Badge className="bg-amber-500 text-lg font-bold px-3">{settings.min_level_for_custom_rate}</Badge>
               </div>
               <Slider
@@ -736,7 +736,7 @@ export default function AdminCallSettings() {
                 max={10}
                 step={1}
               />
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+              <p className="text-xs text-amber-600 mt-2">
                 Hosts at or above this level can update their call rate
               </p>
             </div>
@@ -745,12 +745,12 @@ export default function AdminCallSettings() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b-2 border-border bg-slate-500/10 dark:bg-slate-500/5">
-                    <th className="text-left p-3 text-slate-900 dark:text-white font-bold text-sm">Level</th>
-                    <th className="text-left p-3 text-slate-900 dark:text-white font-bold text-sm">Rate (💎/min)</th>
-                    <th className="text-center p-3 text-slate-900 dark:text-white font-bold text-sm">Host Earns (Beans)</th>
-                    <th className="text-center p-3 text-slate-900 dark:text-white font-bold text-sm">Company (💎)</th>
-                    <th className="text-center p-3 text-slate-900 dark:text-white font-bold text-sm">Status</th>
+                  <tr className="border-b-2 border-border bg-slate-500/10">
+                    <th className="text-left p-3 text-slate-900 font-bold text-sm">Level</th>
+                    <th className="text-left p-3 text-slate-900 font-bold text-sm">Rate (💎/min)</th>
+                    <th className="text-center p-3 text-slate-900 font-bold text-sm">Host Earns (Beans)</th>
+                    <th className="text-center p-3 text-slate-900 font-bold text-sm">Company (💎)</th>
+                    <th className="text-center p-3 text-slate-900 font-bold text-sm">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -769,10 +769,10 @@ export default function AdminCallSettings() {
                             {lr.level}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900 dark:text-white">Level {lr.level}</p>
-                            {lr.level >= 10 && <span className="text-xs text-amber-600 dark:text-amber-400">👑 VIP</span>}
-                            {lr.level >= 7 && lr.level < 10 && <span className="text-xs text-purple-600 dark:text-purple-400">⭐ Pro</span>}
-                            {lr.level === 0 && <span className="text-xs text-slate-500 dark:text-slate-400">🆕 New</span>}
+                            <p className="font-semibold text-slate-900">Level {lr.level}</p>
+                            {lr.level >= 10 && <span className="text-xs text-amber-600">👑 VIP</span>}
+                            {lr.level >= 7 && lr.level < 10 && <span className="text-xs text-purple-600">⭐ Pro</span>}
+                            {lr.level === 0 && <span className="text-xs text-slate-500">🆕 New</span>}
                           </div>
                         </div>
                       </td>
@@ -791,7 +791,7 @@ export default function AdminCallSettings() {
                       
                       {/* Host Beans */}
                       <td className="p-3 text-center">
-                        <div className="inline-flex items-center gap-1 bg-emerald-500/20 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full font-bold">
+                        <div className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-600 px-3 py-1.5 rounded-full font-bold">
                           <span className="text-lg">B</span>
                           <span>{calculateHostBeans(lr.rate).toLocaleString()}</span>
                         </div>
@@ -799,7 +799,7 @@ export default function AdminCallSettings() {
                       
                       {/* Company Share */}
                       <td className="p-3 text-center">
-                        <div className="inline-flex items-center gap-1 bg-blue-500/20 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full font-bold">
+                        <div className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-600 px-3 py-1.5 rounded-full font-bold">
                           <span className="text-lg">💎</span>
                           <span>{calculateCompanyShare(lr.rate).toLocaleString()}</span>
                         </div>
@@ -826,32 +826,32 @@ export default function AdminCallSettings() {
 
             {/* Summary */}
             <div className="grid md:grid-cols-3 gap-4 mt-6">
-              <div className="p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/10 dark:to-pink-500/10 rounded-xl border border-purple-500/30 text-center">
-                <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Minimum Rate</p>
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30 text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">Minimum Rate</p>
+                <p className="text-2xl font-bold text-purple-600">
                   {Math.min(...settings.level_rates.map(lr => lr.rate)).toLocaleString()} 💎
                 </p>
-                <p className="text-xs text-purple-500 dark:text-purple-300 mt-1">
+                <p className="text-xs text-purple-500 mt-1">
                   = {calculateHostBeans(Math.min(...settings.level_rates.map(lr => lr.rate))).toLocaleString()} Beans
                 </p>
               </div>
               
-              <div className="p-4 bg-gradient-to-br from-amber-500/20 to-orange-500/20 dark:from-amber-500/10 dark:to-orange-500/10 rounded-xl border border-amber-500/30 text-center">
-                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium mb-1">Maximum Rate (Lv10)</p>
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+              <div className="p-4 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl border border-amber-500/30 text-center">
+                <p className="text-sm text-amber-600 font-medium mb-1">Maximum Rate (Lv10)</p>
+                <p className="text-2xl font-bold text-amber-600">
                   {settings.level_rates.find(lr => lr.level === 10)?.rate.toLocaleString() || 0} 💎
                 </p>
-                <p className="text-xs text-amber-500 dark:text-amber-300 mt-1">
+                <p className="text-xs text-amber-500 mt-1">
                   = {calculateHostBeans(settings.level_rates.find(lr => lr.level === 10)?.rate || 0).toLocaleString()} Beans
                 </p>
               </div>
               
-              <div className="p-4 bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-500/10 dark:to-green-500/10 rounded-xl border border-emerald-500/30 text-center">
-                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">Commission Rate</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="p-4 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-500/30 text-center">
+                <p className="text-sm text-emerald-600 font-medium mb-1">Commission Rate</p>
+                <p className="text-2xl font-bold text-emerald-600">
                   {settings.host_commission_percent}%
                 </p>
-                <p className="text-xs text-emerald-500 dark:text-emerald-300 mt-1">Host earns {settings.host_commission_percent} Beans per 100💎</p>
+                <p className="text-xs text-emerald-500 mt-1">Host earns {settings.host_commission_percent} Beans per 100💎</p>
               </div>
             </div>
           </CardContent>
