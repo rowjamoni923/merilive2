@@ -25,22 +25,22 @@ export default function AdminErrorLogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a14] admin-content">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="bg-gradient-to-r from-rose-700 via-red-600 to-orange-600 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-slate-900 hover:bg-white/20"
             onClick={() => navigate("/admin")}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-6 h-6 text-white" />
+            <AlertTriangle className="w-6 h-6 text-slate-900" />
             <div>
-              <h1 className="font-bold text-xl text-white">Admin Error Log</h1>
-              <p className="text-white/80 text-sm">
+              <h1 className="font-bold text-xl text-slate-900">Admin Error Log</h1>
+              <p className="text-slate-900/80 text-sm">
                 Last {entries.length} failed admin queries / RPC / edge calls
               </p>
             </div>
@@ -49,7 +49,7 @@ export default function AdminErrorLogPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20"
+              className="text-slate-900 hover:bg-white/20"
               onClick={refresh}
             >
               <RefreshCw className="w-5 h-5" />
@@ -57,7 +57,7 @@ export default function AdminErrorLogPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20"
+              className="text-slate-900 hover:bg-white/20"
               onClick={() => {
                 clearAdminErrorLog();
                 refresh();
@@ -87,18 +87,18 @@ export default function AdminErrorLogPage() {
                       {e.status}
                     </Badge>
                   ) : null}
-                  <span className="text-xs text-white/50 ml-auto">
+                  <span className="text-xs text-slate-900/50 ml-auto">
                     {format(new Date(e.ts), "HH:mm:ss")}
                   </span>
                 </div>
-                <div className="text-sm font-mono text-white/90 break-all">
+                <div className="text-sm font-mono text-slate-900/90 break-all">
                   {e.label}
                 </div>
                 <div className="text-xs text-rose-300 whitespace-pre-wrap break-words">
                   {e.message}
                 </div>
                 {e.detail ? (
-                  <details className="text-[11px] text-white/40">
+                  <details className="text-[11px] text-slate-900/40">
                     <summary className="cursor-pointer">raw</summary>
                     <pre className="whitespace-pre-wrap break-all mt-1">
                       {e.detail}
