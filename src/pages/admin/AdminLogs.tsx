@@ -11,8 +11,17 @@ import {
   Ban,
   CheckCircle,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Download,
+  FileSpreadsheet
 } from "lucide-react";
+import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
