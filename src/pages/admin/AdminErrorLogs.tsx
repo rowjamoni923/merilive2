@@ -78,7 +78,10 @@ export default function AdminErrorLogs() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterLevel, setFilterLevel] = useState<"all" | "info" | "warn" | "error">("all");
   const [filterResolved, setFilterResolved] = useState<string>("unresolved");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
@@ -89,6 +92,12 @@ export default function AdminErrorLogs() {
     todayErrors: 0,
     topPages: [] as { page: string; count: number }[],
   });
+
+  const LEVEL_MAP: Record<"info" | "warn" | "error", string[]> = {
+    info: ["info"],
+    warn: ["warning", "warn"],
+    error: ["error", "render_error", "network_error", "unhandled_rejection"],
+  };
 
   const fetchErrors = async () => {
     setLoading(true);
