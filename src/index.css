@@ -6408,6 +6408,49 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: hsl(var(--admin-pro-text)) !important;
 }
 
+.admin-pro-shell button[class*="bg-gradient-to"],
+.admin-pro-shell button[class*="bg-primary"],
+.admin-pro-shell button[class*="bg-purple-5"],
+.admin-pro-shell button[class*="bg-violet-5"],
+.admin-pro-shell button[class*="bg-pink-5"],
+.admin-pro-shell button[class*="bg-rose-5"],
+.admin-pro-shell button[class*="bg-red-5"],
+.admin-pro-shell button[class*="bg-orange-5"],
+.admin-pro-shell button[class*="bg-amber-5"],
+.admin-pro-shell button[class*="bg-blue-5"],
+.admin-pro-shell button[class*="bg-cyan-5"],
+.admin-pro-shell button[class*="bg-emerald-5"],
+.admin-pro-shell button[class*="bg-green-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-purple-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-violet-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-pink-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-rose-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-red-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-orange-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-amber-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-blue-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-cyan-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-emerald-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-green-5"] {
+  color: hsl(var(--admin-pro-primary-foreground)) !important;
+}
+
+.admin-pro-shell button[class*="bg-gradient-to"] svg,
+.admin-pro-shell button[class*="bg-primary"] svg,
+.admin-pro-shell button[class*="bg-purple-5"] svg,
+.admin-pro-shell button[class*="bg-violet-5"] svg,
+.admin-pro-shell button[class*="bg-pink-5"] svg,
+.admin-pro-shell button[class*="bg-rose-5"] svg,
+.admin-pro-shell button[class*="bg-red-5"] svg,
+.admin-pro-shell button[class*="bg-orange-5"] svg,
+.admin-pro-shell button[class*="bg-amber-5"] svg,
+.admin-pro-shell button[class*="bg-blue-5"] svg,
+.admin-pro-shell button[class*="bg-cyan-5"] svg,
+.admin-pro-shell button[class*="bg-emerald-5"] svg,
+.admin-pro-shell button[class*="bg-green-5"] svg {
+  color: currentColor !important;
+}
+
 .admin-pro-shell [data-radix-select-trigger],
 .admin-pro-shell button[role="combobox"] {
   background: hsl(var(--admin-pro-surface)) !important;
