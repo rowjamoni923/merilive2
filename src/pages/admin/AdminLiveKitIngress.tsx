@@ -292,7 +292,7 @@ export default function AdminLiveKitIngress() {
                 <DetailRow label="Ended" value={fmtMs(inspect.state?.endedAt)} />
                 <DetailRow label="Resource ID" value={inspect.state?.resourceId} mono />
                 {inspect.state?.error && (
-                  <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-600 dark:text-rose-300">
+                  <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-600">
                     ⚠ {inspect.state.error}
                   </div>
                 )}
