@@ -258,9 +258,25 @@ export default function AdminLogs() {
             <FileText className="w-7 h-7" />
             Activity Log
           </h1>
-          <p className="text-slate-900/80 text-sm mt-1">
-            All admin activities {autoRefresh && <span className="ml-2 inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live · {refreshInterval}s</span>}
+          <p className="text-slate-900/80 text-sm mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>All admin activities</span>
+            {autoRefresh ? (
+              <span className="inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live · {refreshInterval}s
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                Paused
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1" title={lastRefresh.toLocaleString()}>
+              <Clock className="w-3 h-3" />
+              Updated {formatAgo(lastRefresh)}
+            </span>
           </p>
+
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
