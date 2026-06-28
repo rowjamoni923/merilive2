@@ -356,7 +356,7 @@ export default function AdminGameProviders() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
