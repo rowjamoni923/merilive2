@@ -2953,23 +2953,23 @@ export default function AdminLayout() {
         </ScrollArea>
 
         {/* User Section */}
-        <div className="relative p-3 border-t border-white/[0.04] bg-gradient-to-t from-violet-950/5 to-transparent shrink-0">
-          <div className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/10 to-transparent" />
-          
+        <div className="relative p-3 border-t border-slate-200 bg-gradient-to-t from-slate-50 to-white shrink-0">
+          <div className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent" />
+
           <div className={cn(
-            "flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer border border-white/[0.04] hover:border-white/[0.08]",
+            "flex items-center gap-3 p-2.5 rounded-xl bg-white hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-blue-300 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_6px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_8px_16px_-6px_rgba(59,130,246,0.18)]",
             !isSidebarOpen && "justify-center"
           )} onClick={() => setShowProfileMenu(true)}>
-            <Avatar className="w-9 h-9 border border-violet-400/20 ring-2 ring-violet-500/10 shadow-lg">
+            <Avatar className="w-9 h-9 border border-blue-200 ring-2 ring-blue-500/15 shadow-md">
               <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-xs font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white text-xs font-bold">
                 {currentUser?.profile?.display_name?.charAt(0) || "A"}
               </AvatarFallback>
             </Avatar>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-bold truncate">{adminUser?.display_name || currentUser?.profile?.display_name || "Admin"}</p>
-                <p className={cn("text-[9px] font-bold tracking-[0.2em] uppercase", isOwner ? "text-violet-400/60" : "text-slate-600")}>
+                <p className="text-slate-900 text-sm font-bold truncate">{adminUser?.display_name || currentUser?.profile?.display_name || "Admin"}</p>
+                <p className={cn("text-[9px] font-bold tracking-[0.2em] uppercase", isOwner ? "text-blue-600" : "text-slate-500")}>
                   {isOwner ? "👑 Owner" : "🛡️ Sub-Admin"}
                 </p>
               </div>
