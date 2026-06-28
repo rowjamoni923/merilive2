@@ -3498,19 +3498,19 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-5"] {
 }
 
 /* ============================================
-   FINAL CONTRAST GUARDS — prevent same-color text/bg
-   (kills white-on-white & black-on-black across all admin pages)
+   FINAL CONTRAST GUARDS - prevent same-color text/bg
+   (kills white-on-white and black-on-black across all admin pages)
    ============================================ */
 .admin-content .text-white {
   color: #FFFFFF !important;
 }
-/* If a child has text-white but no colored ancestor background, fall back to slate ink */
-.admin-content :not([class*="bg-"]):not([class*="from-"]) > .text-white,
-.admin-content [class*="bg-white"] .text-white,
-.admin-content [class*="bg-slate-50"] .text-white,
-.admin-content [class*="bg-slate-100"] .text-white,
-.admin-content [class*="bg-gray-50"] .text-white,
-.admin-content [class*="bg-gray-100"] .text-white {
+/* Fall back to slate ink ONLY when .text-white sits on a white-ish surface
+   AND the element itself has no colored bg of its own (inline or utility). */
+.admin-content [class*="bg-white"]   > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-slate-50"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-slate-100"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-gray-50"]  > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]),
+.admin-content [class*="bg-gray-100"] > .text-white:not([style*="background"]):not([class*="bg-"]):not([class*="from-"]) {
   color: #0F172A !important;
 }
 /* Black-on-white-ish is fine; black-on-dark must lift */
