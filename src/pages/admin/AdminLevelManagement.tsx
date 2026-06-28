@@ -39,7 +39,7 @@ const AdminLevelManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">

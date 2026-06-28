@@ -370,7 +370,7 @@ const AdminLevelPrivileges = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>

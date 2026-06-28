@@ -216,7 +216,7 @@ const AdminRankingRewards = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-pro-shell min-h-screen">
       {/* Header */}
       <div className={adminStyles.header}>
         <div className="flex items-center gap-3">

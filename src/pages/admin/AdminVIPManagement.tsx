@@ -44,7 +44,7 @@ const AdminVIPManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
