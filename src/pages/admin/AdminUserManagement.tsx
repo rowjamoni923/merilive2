@@ -3603,7 +3603,7 @@ export default function AdminUserManagement() {
                 const mediaReadiness = getFaceSubmissionMediaReadiness(selectedFaceSubmission);
                 return !mediaReadiness.ready ? (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-                    ⚠ Approval locked until evidence is complete: {mediaReadiness.missing.join(', ')}
+                    ⚠ Manual override allowed — missing evidence noted: {mediaReadiness.missing.join(', ')}
                   </div>
                 ) : null;
               })()}
@@ -3635,15 +3635,15 @@ export default function AdminUserManagement() {
 
               {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <Button className="bg-green-500 hover:bg-green-600" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
+                  <Button className="bg-green-500 hover:bg-green-600" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
-                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
+                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
                     <Crown className="w-4 h-4 mr-2" />
                     Host
                   </Button>
-                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
+                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
                     <UserCheck className="w-4 h-4 mr-2" />
                     User
                   </Button>
@@ -3694,7 +3694,7 @@ export default function AdminUserManagement() {
             <Button
               className={faceActionType === 'approve' ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}
               onClick={handleFaceAction}
-              disabled={actionLoading || (faceActionType === 'approve' && selectedFaceSubmission ? !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready : false)}
+              disabled={actionLoading}
             >
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : faceActionType === 'approve' ? 'Approve' : 'Reject'}
             </Button>
