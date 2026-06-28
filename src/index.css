@@ -2446,54 +2446,54 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 }
 
 /* ============================================
-   ADMIN PANEL — CLEAN DARK THEME
-   Cool obsidian + high-contrast text
+   ADMIN PANEL — CLOUD WHITE (Linear / Vercel)
+   Pure white canvas + slate ink + electric blue
    ============================================ */
 
 /* CSS custom properties for admin scope */
 .admin-content {
-  --background: 230 15% 6%;
-  --foreground: 210 40% 96%;
-  --card: 230 14% 8%;
-  --card-foreground: 210 40% 96%;
-  --popover: 230 14% 8%;
-  --popover-foreground: 210 40% 96%;
-  --primary: 262 80% 60%;
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 230 12% 14%;
-  --secondary-foreground: 210 40% 96%;
-  --muted: 230 12% 12%;
-  --muted-foreground: 220 18% 72%;
-  --accent: 262 80% 60%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 217 91% 60%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 72% 51%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 225 15% 16%;
-  --input: 225 15% 16%;
-  --ring: 262 80% 60%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
 
   /* Admin tokens */
-  --admin-text: 210 40% 96%;
-  --admin-text-secondary: 215 20% 72%;
-  --admin-text-muted: 215 15% 50%;
-  --admin-bg: 230 15% 6%;
-  --admin-card: 230 14% 8%;
-  --admin-card-alt: 230 12% 11%;
-  --admin-border: 225 15% 16%;
-  --admin-border-light: 225 15% 22%;
-  --admin-accent: 262 80% 60%;
+  --admin-text: 222 47% 11%;
+  --admin-text-secondary: 215 20% 35%;
+  --admin-text-muted: 215 16% 47%;
+  --admin-bg: 0 0% 100%;
+  --admin-card: 0 0% 100%;
+  --admin-card-alt: 210 40% 98%;
+  --admin-border: 214 32% 91%;
+  --admin-border-light: 214 32% 95%;
+  --admin-accent: 217 91% 60%;
 
   filter: none !important;
   -webkit-filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Admin content wrapper */
 .admin-content {
-  background: hsl(230 15% 6%);
-  color: hsl(210 40% 96%);
+  background: #FFFFFF;
+  color: #0F172A;
   min-height: 100%;
 }
 
