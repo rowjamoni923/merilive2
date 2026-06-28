@@ -26,6 +26,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
+import { lockAdminRealtimeTables } from "@/utils/adminRealtimeMutationGuard";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { cn } from "@/lib/utils";
@@ -243,7 +244,6 @@ const AdminFaceVerification = () => {
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const actionInFlightRef = useRef(false);
-  const didRunFilterFetchRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
   const optimisticTerminalRowsRef = useRef<Map<string, Submission>>(new Map());
 
@@ -353,10 +353,6 @@ const AdminFaceVerification = () => {
   });
 
   useEffect(() => {
-    if (!didRunFilterFetchRef.current) {
-      didRunFilterFetchRef.current = true;
-      return;
-    }
     if (!getAdminSessionToken()) return;
     fetchSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -442,6 +438,7 @@ const AdminFaceVerification = () => {
     setShowActionModal(false);
     setShowDetailModal(false);
     setSelectedSubmission(null);
+    lockAdminRealtimeTables(['face_verification_submissions'], 2200);
 
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
