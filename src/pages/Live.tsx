@@ -51,10 +51,10 @@ const Live = () => {
 
   const fetchLiveStreams = async () => {
     try {
-      // Trigger server-side cleanup of stale streams before fetching
+      // Owner policy 2026-06-28: NEVER auto-close a host's stream from the
+      // viewer feed. Only the host's explicit End button (or an admin force
+      // close) ends a live. The 24h zombie sweep handles truly dead rows.
       
-      // First trigger server-side cleanup of stale streams
-      try { await supabase.rpc('cleanup_stale_live_streams'); } catch(_) {}
       
       const { data: streamRows, error } = await supabase
         .from('live_streams')
