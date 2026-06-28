@@ -207,6 +207,11 @@ export default function AdminHostApplications() {
     if (!application) return;
     if (!guardStart(`approve-${application.id}`)) return;
     const finalRole = role || approveAsRole;
+    const previousApplications = applications;
+    const approvedId = application.id;
+    // Instant moderation feel: remove the row from Pending in the same tap.
+    setApplications((prev) => prev.filter((a) => a.id !== approvedId));
+    setShowDetailDialog(false);
     setActionLoading(true);
     try {
       const isHost = finalRole === 'host';
@@ -223,7 +228,7 @@ export default function AdminHostApplications() {
 
       if ((processData as any)?.pending) {
         toast.success('⏳ Submitted for Owner Approval');
-        setShowDetailDialog(false);
+        setApplications(previousApplications);
         setAdminNotes("");
         invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
         return;
@@ -242,13 +247,11 @@ export default function AdminHostApplications() {
       });
 
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
-      // Optimistic: remove from current pending list immediately
-      const approvedId = application.id;
-      setApplications((prev) => prev.filter((a) => a.id !== approvedId));
-      setShowDetailDialog(false);
       setAdminNotes("");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
+      setApplications(previousApplications);
+      setShowDetailDialog(true);
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -266,6 +269,8 @@ export default function AdminHostApplications() {
     const reason = window.prompt("Reject reason", "Rejected by admin");
     if (!reason?.trim()) return;
     if (!guardStart(`inline-reject-${application.id}`)) return;
+    const previousApplications = applications;
+    setApplications((prev) => prev.filter((a) => a.id !== application.id));
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
@@ -277,10 +282,10 @@ export default function AdminHostApplications() {
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Rejection failed');
-      setApplications((prev) => prev.filter((a) => a.id !== application.id));
       toast.success("Application rejected");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
+      setApplications(previousApplications);
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -294,6 +299,11 @@ export default function AdminHostApplications() {
       return;
     }
     if (!guardStart(`reject-${selectedApplication.id}`)) return;
+    const previousApplications = applications;
+    const rejectedId = selectedApplication.id;
+    setApplications((prev) => prev.filter((a) => a.id !== rejectedId));
+    setShowRejectDialog(false);
+    setShowDetailDialog(false);
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
@@ -313,14 +323,13 @@ export default function AdminHostApplications() {
         toast.success("Application rejected");
       }
 
-      const rejectedId = selectedApplication.id;
-      setApplications((prev) => prev.filter((a) => a.id !== rejectedId));
-      setShowRejectDialog(false);
-      setShowDetailDialog(false);
       setRejectionReason("");
       setAdminNotes("");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
+      setApplications(previousApplications);
+      setShowRejectDialog(true);
+      setShowDetailDialog(true);
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);

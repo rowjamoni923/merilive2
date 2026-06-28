@@ -278,6 +278,7 @@ type CacheEntry = { at: number; value: StatusCounts };
 const COUNT_CACHE = new Map<string, CacheEntry>();
 const IN_FLIGHT = new Map<string, Promise<StatusCounts>>();
 const DEFAULT_TTL_MS = 15_000;
+let CACHE_EPOCH = 0;
 
 function cacheKey(opts: FilteredCountOptions): string {
   return `${opts.table}::${opts.searchColumn}::${(opts.searchQuery || "").trim().toLowerCase()}::${opts.globalStatsRpc || ""}`;
@@ -305,12 +306,17 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
 
 /** Invalidate all cached status-count entries (e.g. after a mutation). */
 export function invalidateStatusCountsCache(table?: string): void {
+  CACHE_EPOCH += 1;
   if (!table) {
     COUNT_CACHE.clear();
+    IN_FLIGHT.clear();
     return;
   }
   for (const key of COUNT_CACHE.keys()) {
     if (key.startsWith(`${table}::`)) COUNT_CACHE.delete(key);
+  }
+  for (const key of IN_FLIGHT.keys()) {
+    if (key.startsWith(`${table}::`)) IN_FLIGHT.delete(key);
   }
 }
 
@@ -338,9 +344,10 @@ export async function fetchFilteredStatusCounts(
   const pending = IN_FLIGHT.get(key);
   if (pending && !opts.forceRefresh) return pending;
 
+  const runEpoch = CACHE_EPOCH;
   const run = (async (): Promise<StatusCounts> => {
     const result = await doFetch();
-    if (ttl > 0) COUNT_CACHE.set(key, { at: Date.now(), value: result });
+    if (ttl > 0 && runEpoch === CACHE_EPOCH) COUNT_CACHE.set(key, { at: Date.now(), value: result });
     return result;
   })();
   IN_FLIGHT.set(key, run);

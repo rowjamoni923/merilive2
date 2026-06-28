@@ -1,6 +1,25 @@
 # Goal
 প্রত্যেকটা section (gift, live, party, private call, message, profile details) এ instant feel — SVGA / VIP / VAP gift animation tap-থেকে-frame ≤ 0–100 ms, zero black flash, zero "loading…", zero spinner.
 
+---
+
+# Admin Face Verification instant moderation fix (2026-06-28)
+
+Research / professional standard:
+- Google/web.dev INP guidance: visible response to an input should be fast, with good interactions under 200 ms; moderation buttons must update UI optimistically before server refresh — https://web.dev/articles/inp
+- React optimistic UI guidance: `useOptimistic` pattern shows the expected result immediately while the server action completes, then rolls back on failure — https://react.dev/reference/react/useOptimistic
+- Ant Design feedback/state patterns: admin operations should give immediate visual feedback and keep table/list state consistent with action results — https://ant.design/components/message/ and https://ant.design/components/table/
+
+Verified current gap:
+- Face Verification UI said manual override was allowed, but `processSubmissionAction` still blocked approve when media readiness was incomplete, so approve appeared not to work.
+- Pending-list refetch replaced local state with only pending rows, so an optimistically approved/rejected item could disappear instead of being visible instantly in Approved/Rejected.
+- Counters decremented pending but did not consistently decrement previous approved/rejected manual buckets for terminal-to-terminal admin corrections.
+
+Patch scope:
+- Remove the hidden media-readiness hard block for admin approve/reject; admin manual action can proceed and the RPC remains server-authoritative.
+- Keep a 120s optimistic terminal-row buffer so Pending removes the row immediately and Approved/Rejected can show it before DB/realtime refresh arrives.
+- Roll back the optimistic row/counts if RPC fails or owner-approval queue is returned.
+
 আগের কাজ যা already shipped:
 - **4A** — gift toast false-fail fix (idempotency polling)
 - **4B** — panel-open prefetch (icons + top 8 VAP)

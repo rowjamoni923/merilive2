@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isFaceRetryRequiredRow, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, invalidateStatusCountsCache, isAutoFaceReview, isFaceRetryRequiredRow, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -98,8 +98,8 @@ import { CopyableUid } from "@/components/admin/CopyableUid";
 import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
-  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected', 'failed', 'denied'].includes(normalized)) return 'rejected';
   if (['pending', 'submitted', 'under_review', 'needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
   return 'pending';
 };
@@ -431,6 +431,62 @@ export default function AdminUserManagement() {
   const pageSize = 20;
   const inFlightActionsRef = useRef<Set<string>>(new Set());
   const faceFetchRequestIdRef = useRef(0);
+  const optimisticFaceTerminalRowsRef = useRef<Map<string, FaceVerificationSubmission>>(new Map());
+
+  const matchesFaceSubmissionQuery = (sub: FaceVerificationSubmission, rawQuery: string) => {
+    const trimmed = rawQuery.trim();
+    if (!trimmed) return true;
+    const lower = trimmed.toLowerCase();
+    return Boolean(
+      sub.profile?.display_name?.toLowerCase().includes(lower) ||
+      sub.profile?.app_uid?.includes(trimmed) ||
+      sub.full_name?.toLowerCase().includes(lower) ||
+      sub.user_id?.toLowerCase().startsWith(lower)
+    );
+  };
+
+  const withOptimisticFaceTerminalRows = (rows: FaceVerificationSubmission[], rawQuery: string) => {
+    const now = Date.now();
+    const merged = new Map(rows.map((row) => [row.id, row]));
+
+    optimisticFaceTerminalRowsRef.current.forEach((row, id) => {
+      const reviewedAt = row.reviewed_at ? new Date(row.reviewed_at).getTime() : now;
+      const ageMs = Number.isFinite(reviewedAt) ? now - reviewedAt : 0;
+      if (ageMs > 120_000) {
+        optimisticFaceTerminalRowsRef.current.delete(id);
+        return;
+      }
+      if (matchesFaceSubmissionQuery(row, rawQuery)) {
+        merged.set(id, { ...(merged.get(id) || row), ...row });
+      }
+    });
+
+    return Array.from(merged.values()).sort((a, b) => {
+      const aTime = new Date(a.reviewed_at || a.created_at).getTime();
+      const bTime = new Date(b.reviewed_at || b.created_at).getTime();
+      return bTime - aTime;
+    });
+  };
+
+  const adjustFaceStatsForOptimisticTerminal = (
+    previous: StatusCounts,
+    submission: FaceVerificationSubmission,
+    nextStatus: 'approved' | 'rejected',
+  ): StatusCounts => {
+    const fromKey = bucketOfStatus(submission.status || submission.status_bucket) as 'pending' | 'approved' | 'rejected';
+    const next = { ...previous } as StatusCounts;
+    if (fromKey === nextStatus) return next;
+    next[fromKey] = Math.max(0, Number(next[fromKey] || 0) - 1);
+    next[nextStatus] = Number(next[nextStatus] || 0) + 1;
+    if (fromKey === 'pending') {
+      next.manual_pending = Math.max(0, Number(next.manual_pending || 0) - 1);
+      if (submission.status === 'under_review') next.under_review = Math.max(0, Number(next.under_review || 0) - 1);
+    } else if (fromKey === 'approved') next.manual_approved = Math.max(0, Number(next.manual_approved || 0) - 1);
+    else if (fromKey === 'rejected') next.manual_rejected = Math.max(0, Number(next.manual_rejected || 0) - 1);
+    if (nextStatus === 'approved') next.manual_approved = Number(next.manual_approved || 0) + 1;
+    if (nextStatus === 'rejected') next.manual_rejected = Number(next.manual_rejected || 0) + 1;
+    return next;
+  };
 
   const startSingleFlight = (key: string) => {
     if (inFlightActionsRef.current.has(key)) return false;
@@ -880,6 +936,9 @@ export default function AdminUserManagement() {
     const actionKey = `approve-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
+    const previousApplications = applications;
+    setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+    setShowAppDetailDialog(false);
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_review_host_application', {
@@ -893,11 +952,11 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application approval failed');
 
       toast.success("Application approved!");
-      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
-      setShowAppDetailDialog(false);
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
+      setApplications(previousApplications);
+      setShowAppDetailDialog(true);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -916,6 +975,10 @@ export default function AdminUserManagement() {
     const actionKey = `reject-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
+    const previousApplications = applications;
+    setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+    setShowRejectDialog(false);
+    setShowAppDetailDialog(false);
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_review_host_application', {
@@ -929,13 +992,13 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application rejection failed');
 
       toast.success("Application rejected");
-      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
-      setShowRejectDialog(false);
-      setShowAppDetailDialog(false);
       setRejectionReason("");
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
+      setApplications(previousApplications);
+      setShowRejectDialog(true);
+      setShowAppDetailDialog(true);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorRejecting", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -961,7 +1024,7 @@ export default function AdminUserManagement() {
 
   const fetchFaceSubmissions = async () => {
     const requestId = ++faceFetchRequestIdRef.current;
-    setLoading(true);
+    if (faceSubmissions.length === 0) setLoading(true);
     try {
       const isAutoTab = activeTab === "auto-verified" || activeTab === "auto-rejected";
       const q = (isAutoTab ? debouncedAppSearchQuery : debouncedFaceSearchQuery).trim();
@@ -996,7 +1059,7 @@ export default function AdminUserManagement() {
       }));
 
       if (requestId !== faceFetchRequestIdRef.current) return;
-      setFaceSubmissions(enriched);
+      setFaceSubmissions(withOptimisticFaceTerminalRows(enriched, q));
       setFaceServerStats(stats);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingSubmissions", message: formatAdminError(error)});
@@ -1010,27 +1073,26 @@ export default function AdminUserManagement() {
     if (!selectedFaceSubmission || actionLoading) return;
 
     const submission = selectedFaceSubmission;
-    if (faceActionType === 'approve') {
-      const readiness = getFaceSubmissionMediaReadiness(submission);
-      if (!readiness.ready) {
-        toast.error(`Cannot approve yet: ${readiness.missing.join(', ')}`);
-        return;
-      }
-    }
     const actionKey = `face-action-${submission.id}-${faceActionType}`;
     if (!startSingleFlight(actionKey)) return;
 
     const previousFaceSubmissions = faceSubmissions;
+    const previousFaceStats = faceServerStats;
     const nextStatus: FaceVerificationSubmission['status'] = faceActionType === 'approve' ? 'approved' : 'rejected';
     const nextReason = faceActionType === 'reject' ? (faceActionReason.trim() || 'Rejected by admin') : null;
     const reviewedAt = new Date().toISOString();
+    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus as FaceVerificationSubmission['status_bucket'], rejection_reason: nextReason, reviewed_at: reviewedAt };
 
-    // Instant optimistic update: remove from pending views immediately
-    setFaceSubmissions(prev => prev.map(item =>
-      item.id === submission.id
-        ? { ...item, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: reviewedAt }
-        : item
+    // Instant optimistic update: remove from Pending immediately and keep the row
+    // available for Approved/Rejected while the RPC/realtime refresh completes.
+    optimisticFaceTerminalRowsRef.current.set(submission.id, optimisticSubmission);
+    setFaceSubmissions(prev => withOptimisticFaceTerminalRows(
+      prev.some((item) => item.id === submission.id)
+        ? prev.map(item => item.id === submission.id ? optimisticSubmission : item)
+        : [optimisticSubmission, ...prev],
+      activeTab === "auto-verified" || activeTab === "auto-rejected" ? debouncedAppSearchQuery : debouncedFaceSearchQuery,
     ));
+    setFaceServerStats((prev) => adjustFaceStatsForOptimisticTerminal(prev, submission, nextStatus as 'approved' | 'rejected'));
 
     setShowFaceActionModal(false);
     setShowFaceDetailModal(false);
@@ -1048,17 +1110,22 @@ export default function AdminUserManagement() {
 
       if (error) throw error;
       if ((data as any)?.pending) {
+        optimisticFaceTerminalRowsRef.current.delete(submission.id);
         setFaceSubmissions(previousFaceSubmissions);
+        setFaceServerStats(previousFaceStats);
         toast.success('⏳ Submitted for Owner Approval — decision queued.');
         fetchFaceSubmissions();
         return;
       }
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to process');
 
+      invalidateStatusCountsCache('face_verification_submissions');
       toast.success(faceActionType === 'approve' ? "✅ Approved!" : "❌ Rejected!");
       fetchFaceSubmissions();
     } catch (error: any) {
+      optimisticFaceTerminalRowsRef.current.delete(submission.id);
       setFaceSubmissions(previousFaceSubmissions);
+      setFaceServerStats(previousFaceStats);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorProcessingSubmission", message: formatAdminError(error)});
       toast.error(error.message || "Failed to process");
     } finally {
@@ -1074,25 +1141,23 @@ export default function AdminUserManagement() {
     reason?: string,
   ) => {
     if (actionLoading) return;
-    if (action === 'approve') {
-      const readiness = getFaceSubmissionMediaReadiness(submission);
-      if (!readiness.ready) {
-        toast.error(`Cannot approve yet: ${readiness.missing.join(', ')}`);
-        return;
-      }
-    }
     const actionKey = `face-direct-${submission.id}-${action}-${approveAs}`;
     if (!startSingleFlight(actionKey)) return;
 
     const previousFaceSubmissions = faceSubmissions;
+    const previousFaceStats = faceServerStats;
     const nextStatus: FaceVerificationSubmission['status'] = action === 'approve' ? 'approved' : 'rejected';
     const nextReason = action === 'reject' ? (reason?.trim() || 'Rejected by admin') : null;
+    const optimisticSubmission: FaceVerificationSubmission = { ...submission, status: nextStatus, status_bucket: nextStatus as FaceVerificationSubmission['status_bucket'], rejection_reason: nextReason, reviewed_at: new Date().toISOString() };
 
-    setFaceSubmissions(prev => prev.map(item =>
-      item.id === submission.id
-        ? { ...item, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() }
-        : item
+    optimisticFaceTerminalRowsRef.current.set(submission.id, optimisticSubmission);
+    setFaceSubmissions(prev => withOptimisticFaceTerminalRows(
+      prev.some((item) => item.id === submission.id)
+        ? prev.map(item => item.id === submission.id ? optimisticSubmission : item)
+        : [optimisticSubmission, ...prev],
+      activeTab === "auto-verified" || activeTab === "auto-rejected" ? debouncedAppSearchQuery : debouncedFaceSearchQuery,
     ));
+    setFaceServerStats((prev) => adjustFaceStatsForOptimisticTerminal(prev, submission, nextStatus as 'approved' | 'rejected'));
     setShowFaceActionModal(false);
     setShowFaceDetailModal(false);
     setActionLoading(true);
@@ -1108,16 +1173,21 @@ export default function AdminUserManagement() {
 
       if (error) throw error;
       if ((data as any)?.pending) {
+        optimisticFaceTerminalRowsRef.current.delete(submission.id);
         setFaceSubmissions(previousFaceSubmissions);
+        setFaceServerStats(previousFaceStats);
         toast.success('⏳ Submitted for Owner Approval — decision queued.');
       } else if ((data as any)?.success === false) {
         throw new Error((data as any)?.error || 'Failed to process');
       } else {
+        invalidateStatusCountsCache('face_verification_submissions');
         toast.success(action === 'approve' ? `✅ Approved as ${approveAs === 'host' ? 'Host' : 'User'}!` : '❌ Rejected!');
       }
       fetchFaceSubmissions();
     } catch (error: any) {
+      optimisticFaceTerminalRowsRef.current.delete(submission.id);
       setFaceSubmissions(previousFaceSubmissions);
+      setFaceServerStats(previousFaceStats);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorProcessingSubmissionDirect", message: formatAdminError(error)});
       toast.error(error.message || "Failed to process");
     } finally {
@@ -3540,7 +3610,7 @@ export default function AdminUserManagement() {
                 const mediaReadiness = getFaceSubmissionMediaReadiness(selectedFaceSubmission);
                 return !mediaReadiness.ready ? (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-                    ⚠ Approval locked until evidence is complete: {mediaReadiness.missing.join(', ')}
+                    ⚠ Manual override allowed — missing evidence noted: {mediaReadiness.missing.join(', ')}
                   </div>
                 ) : null;
               })()}
@@ -3572,15 +3642,15 @@ export default function AdminUserManagement() {
 
               {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <Button className="bg-green-500 hover:bg-green-600" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
+                  <Button className="bg-green-500 hover:bg-green-600" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
-                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
+                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
                     <Crown className="w-4 h-4 mr-2" />
                     Host
                   </Button>
-                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" disabled={actionLoading || !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
+                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
                     <UserCheck className="w-4 h-4 mr-2" />
                     User
                   </Button>
@@ -3631,7 +3701,7 @@ export default function AdminUserManagement() {
             <Button
               className={faceActionType === 'approve' ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}
               onClick={handleFaceAction}
-              disabled={actionLoading || (faceActionType === 'approve' && selectedFaceSubmission ? !getFaceSubmissionMediaReadiness(selectedFaceSubmission).ready : false)}
+              disabled={actionLoading}
             >
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : faceActionType === 'approve' ? 'Approve' : 'Reject'}
             </Button>
