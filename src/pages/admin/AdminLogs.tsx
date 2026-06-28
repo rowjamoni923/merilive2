@@ -13,7 +13,9 @@ import {
   Clock,
   ChevronDown,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Play,
+  Pause
 } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
 import {
