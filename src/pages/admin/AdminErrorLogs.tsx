@@ -238,6 +238,27 @@ export default function AdminErrorLogs() {
     }
   };
 
+  const handleExport = (fmt: "csv" | "pdf") => {
+    if (!errors.length) {
+      toast.error("No errors to export");
+      return;
+    }
+    const rows = errors.map((e) => ({
+      Time: new Date(e.created_at).toLocaleString(),
+      Type: e.error_type,
+      Message: e.error_message,
+      Page: e.page_path || "",
+      Component: e.component_name || "",
+      User_ID: e.user_id || "",
+      Resolved: e.is_resolved ? "Yes" : "No",
+      Resolution_Notes: e.resolution_notes || "",
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") exportToCsv(`error-logs-${stamp}.csv`, rows);
+    else exportToPdf(`error-logs-${stamp}.pdf`, "System Error Logs", rows);
+    toast.success(`Exported ${rows.length} errors as ${fmt.toUpperCase()}`);
+  };
+
   // AI Error Analysis Function
   const handleAIAnalysis = async () => {
     if (!selectedError) return;
