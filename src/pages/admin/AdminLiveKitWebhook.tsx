@@ -157,7 +157,7 @@ export default function AdminLiveKitWebhook() {
   }, [rows]);
 
   return (
-    <div className="admin-content space-y-4 p-4 md:p-6">
+    <div className="admin-pro-shell admin-content space-y-4 p-4 md:p-6">
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}

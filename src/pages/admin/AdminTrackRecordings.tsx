@@ -118,7 +118,7 @@ export default function AdminTrackRecordings() {
   const completed = rows.filter((r) => r.status === "completed").length;
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="admin-pro-shell space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div className="bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>

@@ -365,7 +365,7 @@ const AdminTasksSettings = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="admin-pro-shell p-6 space-y-6">
       {/* New Host Live Bonus Settings */}
       {bonusGlobals && bonusHourRows.length > 0 && (
         <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-fuchsia-50">

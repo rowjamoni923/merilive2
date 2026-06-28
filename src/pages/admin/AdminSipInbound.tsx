@@ -174,7 +174,7 @@ export default function AdminSipInbound() {
   const totalNumbers = rows.reduce((sum, r) => sum + (r.phone_numbers?.length || 0), 0);
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="admin-pro-shell space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>

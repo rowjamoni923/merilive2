@@ -53,7 +53,7 @@ export default function AdminContentManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-red-950/20 to-slate-950 p-4 md:p-6">
+    <div className="admin-pro-shell min-h-screen p-4 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
