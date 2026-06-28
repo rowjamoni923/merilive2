@@ -6258,3 +6258,76 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell [class*="shadow-violet"],
 .admin-pro-shell [class*="shadow-fuchsia"],
 .admin-pro-shell [class*="shadow-purple"] { box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06) !important; }
+
+/* ---------------------------------------------------------------
+   Contrast safety net — remap any near-white / very light text
+   utilities to dark slate so text stays readable on white cards.
+   Covers slate/zinc/neutral/gray/stone families at 50/100/200,
+   plus muted-foreground & primary-foreground tokens that often
+   resolve to white in dark themes.
+   --------------------------------------------------------------- */
+.admin-pro-shell .text-slate-50,  .admin-pro-shell .text-slate-100,  .admin-pro-shell .text-slate-200,
+.admin-pro-shell .text-zinc-50,   .admin-pro-shell .text-zinc-100,   .admin-pro-shell .text-zinc-200,
+.admin-pro-shell .text-neutral-50,.admin-pro-shell .text-neutral-100,.admin-pro-shell .text-neutral-200,
+.admin-pro-shell .text-gray-50,   .admin-pro-shell .text-gray-100,   .admin-pro-shell .text-gray-200,
+.admin-pro-shell .text-stone-50,  .admin-pro-shell .text-stone-100,  .admin-pro-shell .text-stone-200 {
+  color: #0F172A !important;
+}
+.admin-pro-shell .text-slate-300, .admin-pro-shell .text-zinc-300,
+.admin-pro-shell .text-neutral-300, .admin-pro-shell .text-gray-300, .admin-pro-shell .text-stone-300 {
+  color: #475569 !important;
+}
+.admin-pro-shell .text-slate-400, .admin-pro-shell .text-zinc-400,
+.admin-pro-shell .text-neutral-400, .admin-pro-shell .text-gray-400, .admin-pro-shell .text-stone-400 {
+  color: #64748B !important;
+}
+/* Pastel accent text on white -> use saturated accent for readability */
+.admin-pro-shell [class*="text-violet-1"], .admin-pro-shell [class*="text-violet-2"],
+.admin-pro-shell [class*="text-purple-1"], .admin-pro-shell [class*="text-purple-2"],
+.admin-pro-shell [class*="text-fuchsia-1"], .admin-pro-shell [class*="text-fuchsia-2"],
+.admin-pro-shell [class*="text-pink-1"],   .admin-pro-shell [class*="text-pink-2"],
+.admin-pro-shell [class*="text-indigo-1"], .admin-pro-shell [class*="text-indigo-2"] {
+  color: #6D28D9 !important;
+}
+.admin-pro-shell [class*="text-blue-1"],   .admin-pro-shell [class*="text-blue-2"],
+.admin-pro-shell [class*="text-sky-1"],    .admin-pro-shell [class*="text-sky-2"],
+.admin-pro-shell [class*="text-cyan-1"],   .admin-pro-shell [class*="text-cyan-2"] {
+  color: #1D4ED8 !important;
+}
+.admin-pro-shell [class*="text-emerald-1"],.admin-pro-shell [class*="text-emerald-2"],
+.admin-pro-shell [class*="text-green-1"],  .admin-pro-shell [class*="text-green-2"],
+.admin-pro-shell [class*="text-teal-1"],   .admin-pro-shell [class*="text-teal-2"],
+.admin-pro-shell [class*="text-lime-1"],   .admin-pro-shell [class*="text-lime-2"] {
+  color: #047857 !important;
+}
+.admin-pro-shell [class*="text-amber-1"],  .admin-pro-shell [class*="text-amber-2"],
+.admin-pro-shell [class*="text-yellow-1"], .admin-pro-shell [class*="text-yellow-2"],
+.admin-pro-shell [class*="text-orange-1"], .admin-pro-shell [class*="text-orange-2"] {
+  color: #B45309 !important;
+}
+.admin-pro-shell [class*="text-red-1"],    .admin-pro-shell [class*="text-red-2"],
+.admin-pro-shell [class*="text-rose-1"],   .admin-pro-shell [class*="text-rose-2"] {
+  color: #B91C1C !important;
+}
+/* Semantic tokens that often resolve to white/very-light in dark themes */
+.admin-pro-shell .text-foreground { color: #0F172A !important; }
+.admin-pro-shell .text-muted-foreground { color: #64748B !important; }
+.admin-pro-shell .text-card-foreground,
+.admin-pro-shell .text-popover-foreground,
+.admin-pro-shell .text-secondary-foreground,
+.admin-pro-shell .text-accent-foreground { color: #0F172A !important; }
+/* Keep primary-foreground white on colored primary buttons only — don't override there.
+   But on plain surfaces it stays unchanged. */
+
+/* Light pastel backgrounds: ensure direct text children remain dark */
+.admin-pro-shell [class*="bg-slate-50"],   .admin-pro-shell [class*="bg-slate-100"],
+.admin-pro-shell [class*="bg-zinc-50"],    .admin-pro-shell [class*="bg-zinc-100"],
+.admin-pro-shell [class*="bg-neutral-50"], .admin-pro-shell [class*="bg-neutral-100"],
+.admin-pro-shell [class*="bg-gray-50"],    .admin-pro-shell [class*="bg-gray-100"],
+.admin-pro-shell [class*="bg-stone-50"],   .admin-pro-shell [class*="bg-stone-100"] {
+  color: #0F172A;
+}
+
+/* Badges / pill chips that use light bg + light text combinations */
+.admin-pro-shell .badge,
+.admin-pro-shell [data-slot="badge"] { color: #0F172A; }
