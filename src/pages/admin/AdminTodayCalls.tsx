@@ -54,15 +54,15 @@ const getStatusColor = (status: string) => {
       return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
     case "active":
     case "connected":
-      return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      return "bg-blue-50 text-blue-600 border-blue-200/60";
     case "missed":
     case "timeout":
-      return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      return "bg-amber-50 text-amber-600 border-amber-200/60";
     case "rejected":
     case "cancelled":
-      return "bg-red-500/20 text-red-400 border-red-500/30";
+      return "bg-red-50 text-red-600 border-red-200/60";
     default:
-      return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+      return "bg-slate-100 text-slate-500 border-slate-200";
   }
 };
 
@@ -140,17 +140,17 @@ export default function AdminTodayCalls() {
   const callsWithRecordedEarnings = settledCalls.filter(c => getEarnedAmount(c) > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
-            <Phone className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+            <Phone className="w-6 h-6 text-cyan-500" />
             Today&apos;s Calls
-            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 ml-2">
+            <Badge className="bg-cyan-500/15 text-cyan-600 border-cyan-500/20 ml-2">
               {calls.length} Total
             </Badge>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Read-only settlement view using stored call earnings</p>
+          <p className="text-sm text-muted-foreground mt-1">Read-only settlement view using stored call earnings</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -159,12 +159,12 @@ export default function AdminTodayCalls() {
               placeholder="Search caller, host, UID..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 bg-slate-800 border-slate-700 text-white w-64"
+              className="pl-9 bg-white border-input text-slate-900 w-64"
             />
           </div>
           <button
             onClick={fetchCalls}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-700 bg-transparent text-white hover:bg-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-transparent text-slate-700 hover:bg-slate-100"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -172,44 +172,44 @@ export default function AdminTodayCalls() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-white">{calls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Total Calls</p>
+            <p className="text-2xl font-black text-slate-900">{calls.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">Total Calls</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-emerald-400">{settledCalls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Ended / Settled</p>
+            <p className="text-2xl font-black text-emerald-600">{settledCalls.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">Ended / Settled</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-amber-400">
+            <p className="text-2xl font-black text-amber-500">
               {settledCalls.reduce((sum, c) => sum + getSpentAmount(c), 0).toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 font-bold">Diamonds Spent</p>
+            <p className="text-xs text-muted-foreground font-bold">Diamonds Spent</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-white border-border shadow-sm">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-cyan-400">{callsWithRecordedEarnings.length}</p>
-            <p className="text-xs text-slate-400 font-bold">With Host Earnings</p>
+            <p className="text-2xl font-black text-cyan-500">{callsWithRecordedEarnings.length}</p>
+            <p className="text-xs text-muted-foreground font-bold">With Host Earnings</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border-emerald-500/30">
+      <Card className="bg-emerald-50/60 border-emerald-200/60">
         <CardContent className="p-4">
-          <p className="text-white font-bold">Host beans are now shown from stored settlement fields only.</p>
-          <p className="text-xs text-emerald-200/80 mt-1">No manual re-credit action is shown here, which avoids duplicate bean crediting.</p>
+          <p className="text-slate-900 font-bold">Host beans are now shown from stored settlement fields only.</p>
+          <p className="text-xs text-emerald-600/80 mt-1">No manual re-credit action is shown here, which avoids duplicate bean crediting.</p>
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50">
+      <Card className="bg-white border-border shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white text-lg">Call Records</CardTitle>
+          <CardTitle className="text-slate-900 text-lg">Call Records</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading && calls.length === 0 ? (
@@ -217,54 +217,54 @@ export default function AdminTodayCalls() {
               <div className="w-10 h-10 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-slate-500">
+            <div className="text-center py-16 text-muted-foreground">
               <Phone className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="font-bold">No calls found today</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-700/50">
+            <div className="divide-y divide-slate-100">
               {filtered.map((call, i) => (
                 <motion.div
                   key={call.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.02 }}
-                  className="p-4 hover:bg-slate-700/20 transition-colors"
+                  className="p-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
                         <UserAvatarImage seed={(((call.caller_profile) as any)?.id ?? ((call.caller_profile) as any)?.user_id ?? ((call.caller_profile) as any)?.host_id)} gender={((call.caller_profile) as any)?.gender} src={call.caller_profile?.avatar_url || ""} />
-                        <AvatarFallback className="bg-blue-900 text-blue-300 text-xs">
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
                           {call.caller_profile?.display_name?.[0] || "C"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-white truncate">
+                        <p className="text-sm font-bold text-slate-900 truncate">
                           {call.caller_profile?.display_name || "Unknown Caller"}
                         </p>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-muted-foreground">
                           <CopyableUid value={call.caller_profile?.app_uid || "N/A"} />
                         </p>
                       </div>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-1 text-slate-500 px-2">
+                    <div className="hidden sm:flex items-center gap-1 text-muted-foreground px-2">
                       <Phone className="w-3 h-3" />→
                     </div>
 
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
                         <UserAvatarImage seed={(((call.host_profile) as any)?.id ?? ((call.host_profile) as any)?.user_id ?? ((call.host_profile) as any)?.host_id)} gender={((call.host_profile) as any)?.gender} src={call.host_profile?.avatar_url || ""} />
-                        <AvatarFallback className="bg-pink-900 text-pink-300 text-xs">
+                        <AvatarFallback className="bg-pink-100 text-pink-600 text-xs">
                           {call.host_profile?.display_name?.[0] || "H"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-white truncate">
+                        <p className="text-sm font-bold text-slate-900 truncate">
                           {call.host_profile?.display_name || "Unknown Host"}
                         </p>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-muted-foreground">
                           <CopyableUid value={call.host_profile?.app_uid || "N/A"} />
                         </p>
                       </div>
@@ -276,14 +276,14 @@ export default function AdminTodayCalls() {
                       </Badge>
 
                       {call.duration_seconds != null && call.duration_seconds > 0 && (
-                        <Badge className="bg-slate-700 text-slate-300 border-slate-600">
+                        <Badge className="bg-slate-100 text-slate-600 border-slate-200">
                           <Clock className="w-3 h-3 mr-1" />
                           {formatDuration(call.duration_seconds)}
                         </Badge>
                       )}
 
                       {getSpentAmount(call) > 0 && (
-                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                        <Badge className="bg-amber-50 text-amber-600 border-amber-200/60">
                           <Coins className="w-3 h-3 mr-1" />
                           {getSpentAmount(call)} spent
                         </Badge>
@@ -291,11 +291,11 @@ export default function AdminTodayCalls() {
 
                       {isSettledCall(call) && (
                         getEarnedAmount(call) > 0 ? (
-                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200/60">
                             {getEarnedAmount(call)} Beans Recorded
                           </Badge>
                         ) : (
-                          <Badge className="bg-slate-600/50 text-slate-400 border-slate-500/30">
+                          <Badge className="bg-slate-100 text-slate-500 border-slate-200">
                             No Earnings
                           </Badge>
                         )
@@ -304,7 +304,7 @@ export default function AdminTodayCalls() {
                       {(call.status === "active" || call.status === "connected") && (
                         call.e2ee_key ? (
                           <Badge
-                            className="bg-slate-700/40 text-slate-300 border-slate-500/30 cursor-default"
+                            className="bg-slate-100 text-slate-600 border-slate-200 cursor-default"
                             title="End-to-end encrypted — admin cannot view media, metadata only."
                           >
                             <ShieldCheck className="w-3 h-3 mr-1" />
@@ -314,7 +314,7 @@ export default function AdminTodayCalls() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-6 px-2 text-[11px] border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20"
+                            className="h-6 px-2 text-[11px] border-indigo-300 text-indigo-600 hover:bg-indigo-50"
                             onClick={() => setMonitorCall(call)}
                           >
                             <EyeOff className="w-3 h-3 mr-1" />
@@ -325,7 +325,7 @@ export default function AdminTodayCalls() {
                     </div>
                   </div>
 
-                  <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-500">
+                  <div className="mt-2 flex items-center gap-4 text-[10px] text-muted-foreground">
                     <span>Created: {new Date(call.created_at).toLocaleTimeString()}</span>
                     {call.connected_at && <span>Connected: {new Date(call.connected_at).toLocaleTimeString()}</span>}
                     {call.ended_at && <span>Ended: {new Date(call.ended_at).toLocaleTimeString()}</span>}
@@ -340,10 +340,10 @@ export default function AdminTodayCalls() {
       </Card>
 
       <Dialog open={!!monitorCall} onOpenChange={(o) => { if (!o) setMonitorCall(null); }}>
-        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+        <DialogContent className="bg-white border-border text-slate-900 max-w-3xl p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4">
-            <DialogTitle className="text-sm flex items-center gap-2">
-              <EyeOff className="w-4 h-4 text-amber-400" />
+            <DialogTitle className="text-sm flex items-center gap-2 text-slate-900">
+              <EyeOff className="w-4 h-4 text-amber-500" />
               Invisible Call Monitor
             </DialogTitle>
           </DialogHeader>
@@ -355,7 +355,7 @@ export default function AdminTodayCalls() {
               onClose={() => setMonitorCall(null)}
             />
           )}
-          <p className="px-4 pb-3 text-[11px] text-slate-500">
+          <p className="px-4 pb-3 text-[11px] text-muted-foreground">
             Neither participant receives any signal. No row is written to call_events. Audio starts muted.
           </p>
         </DialogContent>
