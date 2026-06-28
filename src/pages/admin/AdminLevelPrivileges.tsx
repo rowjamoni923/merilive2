@@ -502,7 +502,7 @@ const AdminLevelPrivileges = () => {
 
       {/* Privilege Edit Dialog */}
       <Dialog open={isPrivilegeDialogOpen} onOpenChange={setIsPrivilegeDialogOpen}>
-        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingPrivilege?.id ? 'Edit Privilege' : 'Create New Privilege'}
@@ -746,7 +746,7 @@ const AdminLevelPrivileges = () => {
 
       {/* Animation Edit Dialog */}
       <Dialog open={isAnimationDialogOpen} onOpenChange={setIsAnimationDialogOpen}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">
               Edit Level {editingAnimation?.level} Animation
@@ -924,7 +924,7 @@ const AdminLevelPrivileges = () => {
 
       {/* Animation Preview Dialog */}
       <Dialog open={!!previewAnimation} onOpenChange={() => setPreviewAnimation(null)}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">Animation Preview</DialogTitle>
           </DialogHeader>
@@ -944,7 +944,7 @@ const AdminLevelPrivileges = () => {
       {/* Upload Loading Overlay */}
       {uploadingFile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-white dark:bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+          <div className="bg-white bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
             <p className="font-medium">Uploading...</p>
             <Button 
