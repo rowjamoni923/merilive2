@@ -6344,6 +6344,34 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell [data-slot="badge"] { color: #0F172A; }
 
 /* ---------------------------------------------------------------
+   Tab notification count badge — the small pill anchored to the
+   top-right of a TabsTrigger ("Auto Verified 12", "Face Verify 3+").
+   Stays white-on-color regardless of admin-pro-shell remaps, auto-
+   widens for 2-3 digit counts, and sits above sibling tabs.
+   --------------------------------------------------------------- */
+.admin-tab-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  color: #FFFFFF !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+  z-index: 5;
+  white-space: nowrap;
+}
+.admin-pro-shell .admin-tab-badge { color: #FFFFFF !important; }
+
+/* ---------------------------------------------------------------
    User System readability hardening — all tabs, segmented filters,
    action pills, selects and tables stay high-contrast after the
    light admin re-skin. This fixes dark pills with dark text across
