@@ -6218,7 +6218,61 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: 'cv11', 'ss01', 'ss03';
   min-height: calc(100vh - 4rem);
+
+  /* ----------------------------------------------------------------
+     THEME LOCK — neutralize every dark-mode token inside the admin.
+     shadcn / Tailwind dark theme tokens are re-bound to their light
+     equivalents so any rogue `.dark`, `dark:` variant or hard-coded
+     dark hsl/hex inherited from a parent cannot repaint a page.
+     ---------------------------------------------------------------- */
+  color-scheme: light !important;
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
 }
+/* Re-assert the same tokens when any ancestor toggles `.dark` — this
+   is the single guarantee that the admin canvas never goes dark. */
+.dark .admin-pro-shell,
+.admin-pro-shell.dark,
+.admin-pro-shell .dark {
+  color-scheme: light !important;
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
+  background: hsl(var(--admin-pro-canvas)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
 .admin-pro-shell h1,
 .admin-pro-shell h2,
 .admin-pro-shell h3,
