@@ -208,7 +208,7 @@ export default function AdminModeration() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 md:p-6 bg-gradient-to-r from-white via-red-50/50 to-orange-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-slate-800 via-red-700 to-slate-800 bg-clip-text text-transparent flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-slate-50 via-red-700 to-slate-100 bg-clip-text text-transparent flex items-center gap-2">
             <Shield className="w-5 h-5 md:w-7 md:h-7 text-red-500" />
             Moderation Management
           </h1>
@@ -444,7 +444,7 @@ export default function AdminModeration() {
 
       {/* Settings Dialog */}
       <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-purple-500" />

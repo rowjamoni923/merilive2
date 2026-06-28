@@ -704,7 +704,7 @@ const AdminTopupSystem = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-slate-600 to-slate-800 text-white border-0 col-span-2 sm:col-span-1">
+        <Card className="bg-gradient-to-br from-slate-600 to-slate-100 text-white border-0 col-span-2 sm:col-span-1">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-2 bg-white/20 rounded-lg">
@@ -1273,7 +1273,7 @@ const AdminTopupSystem = () => {
                         <Button
                           variant="secondary"
                           size="sm"
-                          className="bg-white/20 hover:bg-white/30 text-white border-0 gap-2 self-start sm:self-auto"
+                          className="bg-white/20 hover:bg-white/30 text-slate-900 border-0 gap-2 self-start sm:self-auto"
                           onClick={() => {
                             setEditingTier({ ...tier });
                             setShowEditTierModal(true);

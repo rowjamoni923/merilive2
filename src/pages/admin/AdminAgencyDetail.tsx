@@ -588,7 +588,7 @@ export default function AdminAgencyDetail() {
           variant="outline"
           size="sm"
           onClick={fetchAgencyDetails}
-          className="bg-white/5 border-white/10 text-white"
+          className="bg-white/5 border-white/10 text-slate-900"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
@@ -719,7 +719,7 @@ export default function AdminAgencyDetail() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-white/5 border-white/10 text-white w-full"
+                  className="bg-white/5 border-white/10 text-slate-900 w-full"
                   onClick={() => navigate(`/admin/users?search=${agency.owner?.id}`)}
                 >
                   View Profile
@@ -761,7 +761,7 @@ export default function AdminAgencyDetail() {
                       placeholder="Search host (name or ID)..."
                       value={hostSearchQuery}
                       onChange={(e) => setHostSearchQuery(e.target.value)}
-                      className="pl-10 bg-white/5 border-white/10 text-white"
+                      className="pl-10 bg-white/5 border-white/10 text-slate-900"
                     />
                   </div>
                   <Button
@@ -815,7 +815,7 @@ export default function AdminAgencyDetail() {
                                 </AvatarFallback>
                               </Avatar>
                               {h.host?.is_online && (
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900" />
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-200" />
                               )}
                             </div>
                             <div>
@@ -955,7 +955,7 @@ export default function AdminAgencyDetail() {
 
       {/* Remove Host Dialog */}
       <Dialog open={showRemoveHostDialog} onOpenChange={setShowRemoveHostDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Remove Host</DialogTitle>
             <DialogDescription className="text-white/60">
@@ -966,7 +966,7 @@ export default function AdminAgencyDetail() {
             placeholder="Reason for removal (optional)"
             value={removeReason}
             onChange={(e) => setRemoveReason(e.target.value)}
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-white/5 border-white/10 text-slate-900"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRemoveHostDialog(false)}>Cancel</Button>
@@ -980,7 +980,7 @@ export default function AdminAgencyDetail() {
 
       {/* Add Diamonds Dialog */}
       <Dialog open={showAddCoinsDialog} onOpenChange={setShowAddCoinsDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Diamonds</DialogTitle>
           </DialogHeader>
@@ -990,13 +990,13 @@ export default function AdminAgencyDetail() {
               placeholder="Diamond amount"
               value={coinAmount}
               onChange={(e) => setCoinAmount(e.target.value)}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             />
             <Textarea
               placeholder="Note (optional)"
               value={coinNote}
               onChange={(e) => setCoinNote(e.target.value)}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             />
           </div>
           <DialogFooter>
@@ -1011,12 +1011,12 @@ export default function AdminAgencyDetail() {
 
       {/* Change Level Dialog */}
       <Dialog open={showChangeLevelDialog} onOpenChange={setShowChangeLevelDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Change Agency Level</DialogTitle>
           </DialogHeader>
           <Select value={newLevel} onValueChange={setNewLevel}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white">
+            <SelectTrigger className="bg-white/5 border-white/10 text-slate-900">
               <SelectValue placeholder="Select level" />
             </SelectTrigger>
             <SelectContent>
@@ -1038,7 +1038,7 @@ export default function AdminAgencyDetail() {
 
       {/* Remove All Hosts Dialog */}
       <Dialog open={showRemoveAllHostsDialog} onOpenChange={setShowRemoveAllHostsDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-red-400 flex items-center gap-2">
               <Trash2 className="w-5 h-5" />
@@ -1052,7 +1052,7 @@ export default function AdminAgencyDetail() {
             placeholder="Reason for removal (optional)"
             value={removeReason}
             onChange={(e) => setRemoveReason(e.target.value)}
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-white/5 border-white/10 text-slate-900"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRemoveAllHostsDialog(false)}>Cancel</Button>
@@ -1070,7 +1070,7 @@ export default function AdminAgencyDetail() {
 
       {/* Transfer Host Dialog */}
       <Dialog open={showTransferHostDialog} onOpenChange={setShowTransferHostDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowRightLeft className="w-5 h-5 text-blue-400" />
@@ -1099,7 +1099,7 @@ export default function AdminAgencyDetail() {
           <div className="space-y-2">
             <p className="text-white/70 text-sm">Select new agency:</p>
             <Select value={targetAgencyId} onValueChange={setTargetAgencyId}>
-              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+              <SelectTrigger className="bg-white/5 border-white/10 text-slate-900">
                 <SelectValue placeholder="Select agency" />
               </SelectTrigger>
               <SelectContent>
@@ -1139,7 +1139,7 @@ export default function AdminAgencyDetail() {
           setFoundUser(null);
         }
       }}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="w-5 h-5 text-green-400" />
@@ -1158,7 +1158,7 @@ export default function AdminAgencyDetail() {
                 value={addHostSearchQuery}
                 onChange={(e) => setAddHostSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchUserByUID()}
-                className="bg-white/5 border-white/10 text-white flex-1"
+                className="bg-white/5 border-white/10 text-slate-900 flex-1"
               />
               <Button 
                 onClick={searchUserByUID} 

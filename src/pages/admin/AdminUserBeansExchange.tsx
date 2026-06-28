@@ -169,7 +169,7 @@
              variant="outline" 
              size="sm" 
              onClick={fetchTiers}
-             className="border-slate-600"
+             className="border-slate-200"
            >
              <RefreshCw className="w-4 h-4" />
            </Button>
@@ -199,7 +199,7 @@
            <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
          </div>
        ) : tiers.length === 0 ? (
-         <Card className="bg-slate-900/50 border-slate-800">
+         <Card className="bg-white/50 border-slate-200">
            <CardContent className="p-8 text-center">
              <Coins className="w-12 h-12 text-slate-600 mx-auto mb-3" />
              <p className="text-slate-400">No exchange tiers configured</p>
@@ -213,7 +213,7 @@
            {tiers.map((tier) => (
              <Card 
                key={tier.id} 
-               className={`bg-slate-900/50 border-slate-800 ${!tier.is_active ? 'opacity-50' : ''}`}
+               className={`bg-white/50 border-slate-200 ${!tier.is_active ? 'opacity-50' : ''}`}
              >
                <CardContent className="p-4 space-y-4">
                  <div className="flex items-center justify-between">
@@ -250,7 +250,7 @@
                     </div>
                   </div>
                  
-                 <div className="flex items-center justify-between pt-2 border-t border-slate-700">
+                 <div className="flex items-center justify-between pt-2 border-t border-slate-200">
                    <Switch
                      checked={tier.is_active}
                      onCheckedChange={() => handleToggleActive(tier)}
@@ -282,7 +282,7 @@
  
        {/* Add/Edit Modal */}
        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-         <DialogContent className="bg-slate-900 border-slate-700">
+         <DialogContent className="bg-white border-slate-200">
            <DialogHeader>
              <DialogTitle className="text-white">
                {editingTier ? "Edit Exchange Tier" : "Add Exchange Tier"}

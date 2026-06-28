@@ -81,7 +81,7 @@ export default function AdminDiamondTraderHub() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/20">
               <Users className="w-5 h-5 text-green-400" />
@@ -93,7 +93,7 @@ export default function AdminDiamondTraderHub() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-yellow-500/20">
               <Package className="w-5 h-5 text-yellow-400" />
@@ -105,7 +105,7 @@ export default function AdminDiamondTraderHub() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Activity className="w-5 h-5 text-blue-400" />
@@ -117,7 +117,7 @@ export default function AdminDiamondTraderHub() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-500/20">
               <CreditCard className="w-5 h-5 text-purple-400" />
@@ -132,7 +132,7 @@ export default function AdminDiamondTraderHub() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap">
+        <TabsList className="bg-white/80 border border-slate-200 p-1 h-auto flex-wrap">
           <TabsTrigger 
             value="traders" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white gap-2"
@@ -212,7 +212,7 @@ export default function AdminDiamondTraderHub() {
         </TabsList>
 
         <TabsContent value="traders" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Users className="w-5 h-5 text-green-400" />
@@ -229,7 +229,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="orders" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Package className="w-5 h-5 text-yellow-400" />
@@ -246,7 +246,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Activity className="w-5 h-5 text-blue-400" />
@@ -263,7 +263,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="payment-methods" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <CreditCard className="w-5 h-5 text-purple-400" />
@@ -280,7 +280,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="manual-topup" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Wallet className="w-5 h-5 text-orange-400" />
@@ -297,7 +297,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="coin-packages" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Coins className="w-5 h-5 text-cyan-400" />
@@ -314,7 +314,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="topup-system" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <DollarSign className="w-5 h-5 text-teal-400" />
@@ -331,7 +331,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="gateways" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Settings className="w-5 h-5 text-pink-400" />
@@ -348,7 +348,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
 
         <TabsContent value="helper-methods" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Phone className="w-5 h-5 text-cyan-400" />
@@ -365,7 +365,7 @@ export default function AdminDiamondTraderHub() {
         </TabsContent>
  
          <TabsContent value="user-exchange" className="mt-0">
-           <Card className="bg-slate-900/30 border-slate-800">
+           <Card className="bg-white/30 border-slate-200">
              <CardHeader className="pb-2">
                <CardTitle className="text-lg flex items-center gap-2 text-white">
                  <Coins className="w-5 h-5 text-amber-400" />

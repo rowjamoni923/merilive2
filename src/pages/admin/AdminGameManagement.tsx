@@ -65,7 +65,7 @@ export default function AdminGameManagement() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Settings2 className="w-5 h-5 text-blue-400" />
@@ -77,7 +77,7 @@ export default function AdminGameManagement() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/20">
               <Globe className="w-5 h-5 text-green-400" />
@@ -89,7 +89,7 @@ export default function AdminGameManagement() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white/50 border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-orange-500/20">
               <Server className="w-5 h-5 text-orange-400" />
@@ -104,7 +104,7 @@ export default function AdminGameManagement() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap">
+        <TabsList className="bg-white/80 border border-slate-200 p-1 h-auto flex-wrap">
           <TabsTrigger 
             value="settings" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white gap-2"
@@ -136,7 +136,7 @@ export default function AdminGameManagement() {
         </TabsList>
 
         <TabsContent value="settings" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Settings2 className="w-5 h-5 text-blue-400" />
@@ -159,7 +159,7 @@ export default function AdminGameManagement() {
         </TabsContent>
 
         <TabsContent value="providers" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Globe className="w-5 h-5 text-green-400" />
@@ -176,7 +176,7 @@ export default function AdminGameManagement() {
         </TabsContent>
 
         <TabsContent value="server" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Server className="w-5 h-5 text-orange-400" />

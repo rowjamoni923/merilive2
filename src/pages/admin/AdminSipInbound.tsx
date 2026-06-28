@@ -188,7 +188,7 @@ export default function AdminSipInbound() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-white hover:bg-white/20">
+            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -201,19 +201,19 @@ export default function AdminSipInbound() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Routes</p>
             <p className="text-white font-bold text-xl">{rows.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Enabled</p>
             <p className="text-emerald-400 font-bold text-xl">{enabledCount}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">DIDs</p>
             <p className="text-cyan-400 font-bold text-xl">{totalNumbers}</p>
@@ -221,7 +221,7 @@ export default function AdminSipInbound() {
         </Card>
       </div>
 
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-slate-50 border-slate-200">
         <CardContent className="p-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -229,7 +229,7 @@ export default function AdminSipInbound() {
               placeholder="Search name / room / phone number…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -240,7 +240,7 @@ export default function AdminSipInbound() {
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-12 text-center">
             <PhoneIncoming className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <p className="text-slate-400">No SIP inbound routes yet.</p>
@@ -257,7 +257,7 @@ export default function AdminSipInbound() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card className={`bg-slate-800 border-slate-700 hover:border-emerald-500/40 transition-colors ${!r.enabled ? "opacity-60" : ""}`}>
+              <Card className={`bg-slate-50 border-slate-200 hover:border-emerald-500/40 transition-colors ${!r.enabled ? "opacity-60" : ""}`}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                     <div className="flex-1 min-w-0">
@@ -283,7 +283,7 @@ export default function AdminSipInbound() {
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {r.phone_numbers.map((n) => (
-                          <span key={n} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-300">
+                          <span key={n} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-slate-200 text-emerald-300">
                             {n}
                           </span>
                         ))}

@@ -354,7 +354,7 @@ const AdminEntryBars = () => {
 
               <CardContent className="space-y-4">
                 {/* YouTube-Style Thumbnail Preview */}
-                <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 rounded-xl overflow-hidden group shadow-lg">
+                <div className="relative aspect-video bg-gradient-to-br from-white via-purple-900/50 to-slate-100 rounded-xl overflow-hidden group shadow-lg">
                   {/* Thumbnail Image (Primary Display) */}
                   {item.preview_url ? (
                     <SmartImage 

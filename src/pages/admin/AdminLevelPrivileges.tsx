@@ -380,7 +380,7 @@ const AdminLevelPrivileges = () => {
             </h1>
             <p className="text-white/80">Upload animations and manage settings for each category</p>
           </div>
-          <Button onClick={fetchData} variant="outline" size="icon" className="border-white/30 text-white hover:bg-white/20">
+          <Button onClick={fetchData} variant="outline" size="icon" className="border-white/30 text-slate-900 hover:bg-white/20">
             <RefreshCw className="w-4 h-4" />
           </Button>
         </div>
@@ -388,7 +388,7 @@ const AdminLevelPrivileges = () => {
 
       {/* Categories Section - Removed tabs, showing only categories */}
       <div className="space-y-4">
-          <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+          <Card className="bg-white border-slate-200/50 shadow-lg">
             <CardHeader>
               <CardTitle className="text-white">Privilege Categories</CardTitle>
               <CardDescription className="text-slate-400">
@@ -404,7 +404,7 @@ const AdminLevelPrivileges = () => {
                   return (
                     <div
                       key={category.type}
-                      className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-purple-500/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-xl border border-slate-200/50 hover:border-purple-500/50 transition-colors cursor-pointer"
                       onClick={() => openCategoryEditor(category)}
                     >
                       {/* Icon (custom uploaded logo, falls back to lucide) */}
@@ -521,7 +521,7 @@ const AdminLevelPrivileges = () => {
                       name: e.target.value
                     })}
                     placeholder="Privilege name"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white/5 border-white/10 text-slate-900"
                   />
                 </div>
                 <div className="space-y-2">
@@ -535,7 +535,7 @@ const AdminLevelPrivileges = () => {
                       ...editingPrivilege,
                       unlock_level: parseInt(e.target.value) || 1
                     })}
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white/5 border-white/10 text-slate-900"
                   />
                 </div>
               </div>
@@ -549,7 +549,7 @@ const AdminLevelPrivileges = () => {
                     description: e.target.value
                   })}
                   placeholder="Privilege description"
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 />
               </div>
 
@@ -572,7 +572,7 @@ const AdminLevelPrivileges = () => {
                         ...editingPrivilege,
                         icon_bg_color: e.target.value
                       })}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     />
                   </div>
                 </div>
@@ -594,7 +594,7 @@ const AdminLevelPrivileges = () => {
                         ...editingPrivilege,
                         icon_color: e.target.value
                       })}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     />
                   </div>
                 </div>
@@ -619,7 +619,7 @@ const AdminLevelPrivileges = () => {
                       value={editingPrivilege.icon_url || ''}
                       onChange={(e) => setEditingPrivilege({ ...editingPrivilege, icon_url: e.target.value || null })}
                       placeholder="https://… or upload"
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     />
                     <div className="flex gap-2">
                       <label className="cursor-pointer">
@@ -689,7 +689,7 @@ const AdminLevelPrivileges = () => {
                       preview_url: e.target.value
                     })}
                     placeholder="URL or upload file"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white/5 border-white/10 text-slate-900"
                   />
                   <label className="cursor-pointer">
                     <Button variant="outline" asChild disabled={uploadingFile}>
@@ -780,7 +780,7 @@ const AdminLevelPrivileges = () => {
                         icon_url: e.target.value
                       })}
                       placeholder="Logo URL or upload"
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     />
                     <label className="cursor-pointer inline-block">
                       <Button variant="outline" size="sm" asChild disabled={uploadingFile}>
@@ -821,14 +821,14 @@ const AdminLevelPrivileges = () => {
                     display_name: e.target.value
                   })}
                   placeholder={`Level ${editingAnimation.level}`}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-white/60">Animation Type</Label>
                 <select
-                  className="w-full h-10 px-3 rounded-md border border-white/10 bg-white/5 text-white"
+                  className="w-full h-10 px-3 rounded-md border border-white/10 bg-white/5 text-slate-900"
                   value={editingAnimation.animation_type}
                   onChange={(e) => setEditingAnimation({
                     ...editingAnimation,
@@ -852,7 +852,7 @@ const AdminLevelPrivileges = () => {
                       animation_url: e.target.value
                     })}
                     placeholder="URL or upload file"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white/5 border-white/10 text-slate-900"
                   />
                   <label className="cursor-pointer">
                     <Button variant="outline" asChild disabled={uploadingFile}>
@@ -893,7 +893,7 @@ const AdminLevelPrivileges = () => {
                     ...editingAnimation,
                     duration_ms: parseInt(e.target.value) || 3000
                   })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 />
               </div>
 
@@ -944,7 +944,7 @@ const AdminLevelPrivileges = () => {
       {/* Upload Loading Overlay */}
       {uploadingFile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
             <p className="font-medium">Uploading...</p>
             <Button 

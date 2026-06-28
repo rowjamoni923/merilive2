@@ -100,10 +100,10 @@ export default function AdminOnlineUsers() {
               placeholder="Search name or UID..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              className="pl-9 bg-slate-800 border-slate-700 text-white w-64"
+              className="pl-9 bg-slate-50 border-slate-200 text-slate-900 w-64"
             />
           </div>
-          <Button onClick={() => void fetchOnlineUsers()} variant="outline" size="icon" className="border-slate-700">
+          <Button onClick={() => void fetchOnlineUsers()} variant="outline" size="icon" className="border-slate-200">
             <RefreshCw className={`w-4 h-4 ${loading || refreshing ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -111,7 +111,7 @@ export default function AdminOnlineUsers() {
 
       {/* Online Hosts (current page) */}
       {hosts.length > 0 && (
-        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-emerald-500/30">
+        <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-emerald-500/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-lg flex items-center gap-2">
               <Star className="w-5 h-5 text-amber-400" />
@@ -126,7 +126,7 @@ export default function AdminOnlineUsers() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.02 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 border border-slate-600/50 hover:border-emerald-500/40 transition-all"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 border border-slate-200/50 hover:border-emerald-500/40 transition-all"
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10 ring-2 ring-emerald-500/50">
@@ -135,7 +135,7 @@ export default function AdminOnlineUsers() {
                         {user.display_name?.[0] || "H"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-200" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>
@@ -150,7 +150,7 @@ export default function AdminOnlineUsers() {
       )}
 
       {/* Online Regular Users (current page) */}
-      <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50">
+      <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-lg flex items-center gap-2">
             <User className="w-5 h-5 text-blue-400" />
@@ -168,7 +168,7 @@ export default function AdminOnlineUsers() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.01 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 border border-slate-600/50 hover:border-blue-500/40 transition-all"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 border border-slate-200/50 hover:border-blue-500/40 transition-all"
                 >
                   <div className="relative">
                     <Avatar className="w-10 h-10">
@@ -177,7 +177,7 @@ export default function AdminOnlineUsers() {
                         {user.display_name?.[0] || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-200" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>

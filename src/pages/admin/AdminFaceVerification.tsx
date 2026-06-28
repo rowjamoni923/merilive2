@@ -1381,7 +1381,7 @@ const AdminFaceVerification = () => {
 
                 {/* Rejected → allow re-open via override approve */}
                 {isRejected(selectedSubmission) && (
-                  <div className="flex gap-2 pt-4 border-t border-slate-700">
+                  <div className="flex gap-2 pt-4 border-t border-slate-200">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1414,7 +1414,7 @@ const AdminFaceVerification = () => {
 
                 {/* Post-Approval Admin Controls */}
                 {isApproved(selectedSubmission) && (
-                  <div className="pt-4 border-t border-slate-700 space-y-4">
+                  <div className="pt-4 border-t border-slate-200 space-y-4">
                     <h4 className="font-semibold text-sm text-amber-300 flex items-center gap-2">
                       <Shield className="w-4 h-4" /> Admin Controls
                     </h4>

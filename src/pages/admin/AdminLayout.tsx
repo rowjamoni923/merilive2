@@ -2737,7 +2737,7 @@ export default function AdminLayout() {
   // Premium centered loader instead of fake skeleton — feels alive, not janky
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#06060a]">
+      <div className="min-h-screen w-full flex items-center justify-center bg-slate-50">
         <PremiumSpinner size="xl" label="Preparing admin console…" labelClassName="text-slate-400" />
       </div>
     );
@@ -2769,7 +2769,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell min-h-screen lg:min-h-0 w-full max-w-full bg-[#06060a]">
+    <div className="admin-shell min-h-screen lg:min-h-0 w-full max-w-full bg-slate-50">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (

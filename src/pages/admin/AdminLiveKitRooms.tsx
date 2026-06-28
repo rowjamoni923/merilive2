@@ -241,7 +241,7 @@ export default function AdminLiveKitRooms() {
               onClick={fetchRooms}
               variant="outline"
               disabled={loading}
-              className="border-white/30 text-white hover:bg-white/20"
+              className="border-white/30 text-slate-900 hover:bg-white/20"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -255,13 +255,13 @@ export default function AdminLiveKitRooms() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Rooms</p>
             <p className="text-white font-bold text-xl">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Participants</p>
             <p className="text-emerald-400 font-bold text-xl">
@@ -269,31 +269,31 @@ export default function AdminLiveKitRooms() {
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Publishers</p>
             <p className="text-amber-400 font-bold text-xl">{stats.publishers}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Recording</p>
             <p className="text-red-400 font-bold text-xl">{stats.recording}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Live</p>
             <p className="text-fuchsia-400 font-bold text-xl">{stats.live}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Party</p>
             <p className="text-purple-400 font-bold text-xl">{stats.party}</p>
           </CardContent>
         </Card>
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Call</p>
             <p className="text-sky-400 font-bold text-xl">{stats.call}</p>
@@ -301,7 +301,7 @@ export default function AdminLiveKitRooms() {
         </Card>
       </div>
 
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-slate-50 border-slate-200">
         <CardContent className="p-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -309,7 +309,7 @@ export default function AdminLiveKitRooms() {
               placeholder="Search room name / sid / metadata…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -320,7 +320,7 @@ export default function AdminLiveKitRooms() {
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-12 text-center">
             <Radio className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <p className="text-slate-400">No active LiveKit rooms.</p>
@@ -338,7 +338,7 @@ export default function AdminLiveKitRooms() {
               animate={{ opacity: 1, y: 0 }}
             >
               <Card
-                className="bg-slate-800 border-slate-700 hover:border-indigo-500/50 transition-colors cursor-pointer"
+                className="bg-slate-50 border-slate-200 hover:border-indigo-500/50 transition-colors cursor-pointer"
                 onClick={() => openDetail(r)}
               >
                 <CardContent className="p-3 sm:p-4">
@@ -398,7 +398,7 @@ export default function AdminLiveKitRooms() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        className="border-slate-200 text-slate-300 hover:bg-slate-700"
                         onClick={(e) => {
                           e.stopPropagation();
                           openDetail(r);
@@ -425,7 +425,7 @@ export default function AdminLiveKitRooms() {
           }
         }}
       >
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Radio className="w-5 h-5 text-indigo-400" />
@@ -445,13 +445,13 @@ export default function AdminLiveKitRooms() {
           {detailRoom && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">SID</p>
                   <p className="font-mono text-white truncate">
                     {detailRoom.sid}
                   </p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Created</p>
                   <p className="text-white">
                     {detailRoom.creationTime
@@ -462,13 +462,13 @@ export default function AdminLiveKitRooms() {
                       : "—"}
                   </p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Empty timeout</p>
                   <p className="text-white">
                     {detailRoom.emptyTimeout ?? "—"}s
                   </p>
                 </div>
-                <div className="bg-slate-800 rounded p-2">
+                <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Recording</p>
                   <p
                     className={
@@ -500,7 +500,7 @@ export default function AdminLiveKitRooms() {
                     {participants.map((p) => (
                       <div
                         key={p.sid}
-                        className="bg-slate-800 rounded p-2 space-y-2 text-xs"
+                        className="bg-slate-50 rounded p-2 space-y-2 text-xs"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono text-white truncate flex-1 min-w-0">
@@ -525,7 +525,7 @@ export default function AdminLiveKitRooms() {
                           </span>
                         </div>
                         {p.tracks && p.tracks.length > 0 && detailRoom && (
-                          <div className="border-t border-slate-700/60 pt-1.5 space-y-1">
+                          <div className="border-t border-slate-200/60 pt-1.5 space-y-1">
                             {p.tracks.map((t) => {
                               const isVideo = t.type === 1;
                               const recordingEgressId =
@@ -593,7 +593,7 @@ export default function AdminLiveKitRooms() {
                                           t,
                                         )
                                       }
-                                      className="h-6 px-2 border-slate-600 text-slate-200 hover:bg-slate-700 text-[10px]"
+                                      className="h-6 px-2 border-slate-200 text-slate-200 hover:bg-slate-700 text-[10px]"
                                     >
                                       {busy ? (
                                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -640,7 +640,7 @@ export default function AdminLiveKitRooms() {
       />
 
       <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
-        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-3xl p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4">
             <DialogTitle className="text-sm flex items-center gap-2">
               <EyeOff className="w-4 h-4 text-amber-400" />

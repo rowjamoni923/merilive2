@@ -153,7 +153,7 @@ export default function AdminGiftTransactions() {
       {/* Header */}
       <div className="bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/admin')}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
@@ -162,7 +162,7 @@ export default function AdminGiftTransactions() {
               {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Tap refresh to update` : 'All gift transactions today'}
             </p>
           </div>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -199,7 +199,7 @@ export default function AdminGiftTransactions() {
               placeholder="Search users..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+              className="pl-10 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-500"
             />
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -238,7 +238,7 @@ export default function AdminGiftTransactions() {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                         index === 0 ? 'bg-yellow-500 text-black' :
                         index === 1 ? 'bg-slate-300 text-black' :
-                        index === 2 ? 'bg-amber-700 text-white' :
+                        index === 2 ? 'bg-amber-700 text-slate-900' :
                         'bg-white/10 text-slate-400'
                       }`}>
                         {index + 1}

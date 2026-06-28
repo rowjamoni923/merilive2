@@ -304,7 +304,7 @@ const AdminCoinTraders = () => {
     <div className="admin-pro-shell">
       <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/admin')}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -323,7 +323,7 @@ const AdminCoinTraders = () => {
                   toast({ title: "No helpers found", variant: "destructive" });
                 }
               }} 
-              className="bg-white/20 hover:bg-white/30 text-white gap-2"
+              className="bg-white/20 hover:bg-white/30 text-slate-900 gap-2"
               size="sm"
             >
               <CreditCard className="w-4 h-4" />
@@ -331,7 +331,7 @@ const AdminCoinTraders = () => {
             </Button>
             <Button 
               onClick={() => setShowTransferModal(true)} 
-              className="bg-white/20 hover:bg-white/30 text-white gap-2"
+              className="bg-white/20 hover:bg-white/30 text-slate-900 gap-2"
               size="sm"
             >
               <Send className="w-4 h-4" />

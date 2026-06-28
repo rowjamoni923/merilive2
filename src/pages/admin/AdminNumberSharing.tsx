@@ -242,22 +242,22 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div className="p-4 bg-gradient-to-br from-red-900/30 to-slate-800/50 border border-red-500/20 rounded-xl">
+        <div className="p-4 bg-gradient-to-br from-red-900/30 to-slate-100/50 border border-red-500/20 rounded-xl">
           <p className="text-slate-500 text-xs mb-1">Today</p>
           <p className="text-2xl font-bold text-red-400">{totalToday}</p>
           <p className="text-slate-400 text-[10px]">Detections</p>
         </div>
-        <div className="p-4 bg-gradient-to-br from-orange-900/30 to-slate-800/50 border border-orange-500/20 rounded-xl">
+        <div className="p-4 bg-gradient-to-br from-orange-900/30 to-slate-100/50 border border-orange-500/20 rounded-xl">
           <p className="text-slate-500 text-xs mb-1">This Week</p>
           <p className="text-2xl font-bold text-orange-400">{totalWeek}</p>
           <p className="text-slate-400 text-[10px]">Detections</p>
         </div>
-        <div className="p-4 bg-gradient-to-br from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
+        <div className="p-4 bg-gradient-to-br from-purple-900/30 to-slate-100/50 border border-purple-500/20 rounded-xl">
           <p className="text-slate-500 text-xs mb-1">Total Records</p>
           <p className="text-2xl font-bold text-purple-400">{violations.length}</p>
           <p className="text-slate-400 text-[10px]">Violations</p>
         </div>
-        <div className="p-4 bg-gradient-to-br from-blue-900/30 to-slate-800/50 border border-blue-500/20 rounded-xl">
+        <div className="p-4 bg-gradient-to-br from-blue-900/30 to-slate-100/50 border border-blue-500/20 rounded-xl">
           <p className="text-slate-500 text-xs mb-1">Unique Hosts</p>
           <p className="text-2xl font-bold text-blue-400">
             {new Set(violations.map(v => v.host_id)).size}
@@ -379,7 +379,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                       warningLevel === 'critical' ? "bg-red-500/20 text-red-300 border border-red-500/30" :
                       warningLevel === 'high' ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" :
                       warningLevel === 'medium' ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30" :
-                      "bg-slate-100 text-slate-500 border border-slate-600"
+                      "bg-slate-100 text-slate-500 border border-slate-200"
                     )}>
                       <AlertTriangle className="w-3 h-3" />
                       {warningLevel === 'critical' ? `⚠️ ${hostTotalViolations}x shared — Ban required!` :
@@ -424,7 +424,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-200 text-slate-900 min-w-[180px] z-50">
+                      <DropdownMenuContent align="end" className="bg-white border-slate-200 text-slate-900 min-w-[180px] z-50">
                         <DropdownMenuItem
                           className="text-purple-400 hover:text-purple-300 cursor-pointer"
                           onClick={() => {
@@ -480,7 +480,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
       {/* Ban Dialog */}
       <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
-        <DialogContent className="bg-slate-900 border-slate-200 text-slate-900 max-w-md">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Gavel className="w-5 h-5" />

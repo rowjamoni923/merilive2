@@ -456,7 +456,7 @@ export default function AdminHostApplications() {
               variant="ghost"
               size="icon"
               onClick={() => fetchApplications()}
-              className="text-white hover:bg-white/15 rounded-lg"
+              className="text-slate-900 hover:bg-white/15 rounded-lg"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </Button>
@@ -501,11 +501,11 @@ export default function AdminHostApplications() {
             placeholder="Search by name or UID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 h-10"
+            className="pl-10 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30 h-10"
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-32 bg-white/5 border-white/10 text-white/70 h-10">
+          <SelectTrigger className="w-32 bg-white/5 border-white/10 text-slate-900/70 h-10">
             <Filter className="w-3.5 h-3.5 mr-1.5" />
             <SelectValue />
           </SelectTrigger>
@@ -553,7 +553,7 @@ export default function AdminHostApplications() {
                         </AvatarFallback>
                       </Avatar>
                       {/* Online-style status dot */}
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-slate-900 ${
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-slate-200 ${
                         (app.status === 'pending' || app.status === 'submitted') ? 'bg-amber-400' :
                         app.status === 'under_review' ? 'bg-sky-400' :
                         app.status === 'approved' ? 'bg-emerald-400' : 'bg-rose-400'
@@ -667,11 +667,11 @@ export default function AdminHostApplications() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 py-2">
-          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="bg-white/5 border-white/10 text-white/70 h-8">
+          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             <ChevronLeft className="w-4 h-4 mr-1" /> Prev
           </Button>
           <span className="text-white/40 text-sm font-mono">{currentPage}/{totalPages}</span>
-          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-white/70 h-8">
+          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
@@ -754,7 +754,7 @@ export default function AdminHostApplications() {
 
       {/* ============ DETAIL DIALOG ============ */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg overflow-y-auto p-0">
+        <DialogContent className="bg-gradient-to-b from-slate-50 to-slate-100 border-white/10 max-w-4xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] rounded-none sm:rounded-lg overflow-y-auto p-0">
           {sel && (
             <>
               {/* Dialog Header with profile banner */}
@@ -766,10 +766,10 @@ export default function AdminHostApplications() {
                       src={sel.profile_photo_url || sel.profile?.avatar_url || ''}
                       alt="Profile"
                       kind="image"
-                      className="w-20 h-20 rounded-2xl border-4 border-slate-800 shadow-xl"
+                      className="w-20 h-20 rounded-2xl border-4 border-slate-200 shadow-xl"
                       mediaClassName="object-cover"
                     />
-                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-800 ${
+                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-200 ${
                       sel.status === 'approved' ? 'bg-emerald-400' : sel.status === 'rejected' ? 'bg-rose-400' : 'bg-amber-400'
                     }`} />
                   </div>
@@ -817,7 +817,7 @@ export default function AdminHostApplications() {
                 />
 
                 {isPendingApplication(sel) && (
-                  <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">
+                  <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-white/95 p-3 shadow-xl backdrop-blur">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button onClick={() => handleApprove()} disabled={actionLoading} className="bg-emerald-600 hover:bg-emerald-500 text-white">
                         <CheckCircle className="w-4 h-4 mr-1" /> Approve
@@ -909,7 +909,7 @@ export default function AdminHostApplications() {
                         placeholder="Write internal notes (optional)..."
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
-                        className="mt-3 bg-white/5 border-white/10 text-white placeholder:text-white/25 min-h-[80px]"
+                        className="mt-3 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/25 min-h-[80px]"
                       />
                     </section>
                   </>
@@ -1020,7 +1020,7 @@ export default function AdminHostApplications() {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="bg-slate-800 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-slate-50 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <XCircle className="w-5 h-5 text-rose-400" />
@@ -1034,10 +1034,10 @@ export default function AdminHostApplications() {
             placeholder="Enter reason..."
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 min-h-[100px]"
+            className="bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/25 min-h-[100px]"
           />
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="bg-white/5 border-white/10 text-white/70">
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="bg-white/5 border-white/10 text-slate-900/70">
               Cancel
             </Button>
             <Button
@@ -1084,7 +1084,7 @@ function SectionHeader({ icon: Icon, title, count }: { icon: any; title: string;
 
 function EmptyState({ icon: Icon, text }: { icon: any; text: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-32 text-white/25 mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+    <div className="flex flex-col items-center justify-center h-32 text-slate-900/25 mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
       <Icon className="w-8 h-8 mb-2" />
       <p className="text-xs">{text}</p>
     </div>

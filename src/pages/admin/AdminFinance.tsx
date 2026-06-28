@@ -94,7 +94,7 @@ const AdminFinance = () => {
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="w-full overflow-x-auto -mx-2 px-2">
-        <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 bg-slate-900/50 p-1 h-auto">
+        <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 bg-white/50 p-1 h-auto">
 
           <TabsTrigger 
             value="withdrawals" 

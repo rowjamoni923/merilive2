@@ -104,7 +104,7 @@ const AdminVisualAssetsHub = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7 bg-slate-900/50 p-1 h-auto">
+        <TabsList className="grid w-full grid-cols-7 bg-white/50 p-1 h-auto">
           <TabsTrigger 
             value="frames" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white py-2 text-[10px] sm:text-xs"

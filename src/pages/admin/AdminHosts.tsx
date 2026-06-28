@@ -349,7 +349,7 @@ export default function AdminHosts() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+      <Card className="bg-white border-slate-200/50 shadow-lg">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -358,14 +358,14 @@ export default function AdminHosts() {
                 placeholder="Search by name or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
               />
             </div>
              <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48 bg-slate-800 border-slate-600 text-white">
+              <SelectTrigger className="w-full md:w-48 bg-slate-50 border-slate-200 text-slate-900">
                 <SelectValue placeholder="Filter Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-700">
+              <SelectContent className="bg-white border-slate-200">
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="pending">Pending {stats.pendingHosts > 0 && `(${stats.pendingHosts})`}</SelectItem>
@@ -509,7 +509,7 @@ export default function AdminHosts() {
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-800 border-white/10">
+                        <DropdownMenuContent align="end" className="bg-slate-50 border-white/10">
                           <DropdownMenuItem
                             className="text-white/70 hover:text-white"
                             onClick={() => { setSelectedHost(host); setShowDetails(true); }}
@@ -563,7 +563,7 @@ export default function AdminHosts() {
 
       {/* Host Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Host Details</DialogTitle>
           </DialogHeader>

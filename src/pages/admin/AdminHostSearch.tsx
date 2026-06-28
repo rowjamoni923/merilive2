@@ -200,7 +200,7 @@ export default function AdminHostSearch() {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/admin/agencies")}
-            className="text-white/80 hover:text-white hover:bg-white/20"
+            className="text-slate-900/80 hover:text-slate-900 hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -212,7 +212,7 @@ export default function AdminHostSearch() {
       </div>
 
       {/* Search Box */}
-      <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+      <Card className="bg-white border-slate-200/50 shadow-lg">
         <CardContent className="p-6">
           <div className="flex gap-3">
             <div className="relative flex-1">
@@ -222,7 +222,7 @@ export default function AdminHostSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-12 h-12 bg-slate-800 border-slate-600 text-white text-lg placeholder:text-slate-500"
+                className="pl-12 h-12 bg-slate-50 border-slate-200 text-slate-900 text-lg placeholder:text-slate-500"
               />
             </div>
             <Button
@@ -249,7 +249,7 @@ export default function AdminHostSearch() {
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : searched && !host ? (
-        <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+        <Card className="bg-white border-slate-200/50 shadow-lg">
           <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
             <Users className="w-12 h-12 mb-4" />
             <p>No host found</p>
@@ -276,7 +276,7 @@ export default function AdminHostSearch() {
                       </AvatarFallback>
                     </Avatar>
                     {host.is_online && (
-                      <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-slate-900" />
+                      <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-slate-200" />
                     )}
                   </div>
                 </div>
@@ -367,7 +367,7 @@ export default function AdminHostSearch() {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/admin/agencies/${agency.id}`)}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     >
                       View Agency
                     </Button>

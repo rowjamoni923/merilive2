@@ -323,14 +323,14 @@ const AdminHelperRequests = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/admin')}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
             <h1 className="font-bold text-xl text-white">Helper Requests</h1>
             <p className="text-white/80 text-sm">Manage upgrade & top-up requests</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={loadRequests}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={loadRequests}>
             <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
           </Button>
         </div>

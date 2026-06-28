@@ -85,7 +85,7 @@ const AdminVIPManagement = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-900/50 p-1 h-auto">
+        <TabsList className="grid w-full grid-cols-3 bg-white/50 p-1 h-auto">
           <TabsTrigger 
             value="tiers" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black py-3"

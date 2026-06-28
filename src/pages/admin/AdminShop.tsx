@@ -56,7 +56,7 @@ import { formatAdminError } from "@/utils/formatAdminError";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 const adminCardStyles = "bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10";
 const adminButtonStyles = { primary: "bg-gradient-to-r from-purple-500 to-pink-500 text-white" };
-const adminInputStyles = "bg-white/10 border-white/20 text-white";
+const adminInputStyles = "bg-white/10 border-white/20 text-slate-900";
 
 interface ShopItem {
   id: string;
@@ -627,7 +627,7 @@ const AdminShop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate("/admin")}
-            className="text-white hover:bg-white/10 shrink-0 w-8 h-8 md:w-10 md:h-10"
+            className="text-slate-900 hover:bg-white/10 shrink-0 w-8 h-8 md:w-10 md:h-10"
           >
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
@@ -644,7 +644,7 @@ const AdminShop = () => {
           size="sm"
           onClick={fetchItems}
           disabled={loading}
-          className="gap-1.5 bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs px-2 md:px-3 shrink-0"
+          className="gap-1.5 bg-white/10 border-white/20 text-slate-900 hover:bg-white/20 text-xs px-2 md:px-3 shrink-0"
         >
           <RefreshCw className={`w-3.5 h-3.5 md:w-4 md:h-4 ${loading ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">Refresh</span>
@@ -717,7 +717,7 @@ const AdminShop = () => {
           size="sm"
           onClick={fetchItems}
           disabled={loading}
-          className="border-white/20 text-white hover:bg-white/10"
+          className="border-white/20 text-slate-900 hover:bg-white/10"
         >
           <svg className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -751,7 +751,7 @@ const AdminShop = () => {
             >
               <div className="flex gap-3">
                 {/* Preview - Show static preview if available, otherwise show animation */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                   {(() => {
                     const previewUrl = item.preview_url;
                     const animUrl = item.animation_file_url || item.svga_url || item.animation_url;
@@ -765,7 +765,7 @@ const AdminShop = () => {
                     const srcUrl = animUrl || previewUrl;
                     if (srcUrl) {
                       return (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-800/60 text-white/70">
+                        <div className="w-full h-full flex items-center justify-center bg-slate-50/60 text-white/70">
                           <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden="true">
                             <path d="M8 5v14l11-7z" />
                           </svg>
@@ -868,7 +868,7 @@ const AdminShop = () => {
 
       {/* Add/Edit Dialog - Mobile optimized */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 w-[95vw] max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-xl">
+        <DialogContent className="bg-white border-white/10 w-[95vw] max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-xl">
           <DialogHeader className="p-3 md:p-6 pb-0 flex-shrink-0 border-b border-white/10">
             <DialogTitle className="text-white text-base md:text-lg">
               {editingItem ? "Edit Item" : "Add New Shop Item"}
@@ -913,7 +913,7 @@ const AdminShop = () => {
                 
                 {previewFile ? (
                   <div className="relative">
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                       {formData.file_type === 'svga' ? (
                         <SVGAPreviewWithMuteToggle 
                           src={previewFile} 
@@ -971,7 +971,7 @@ const AdminShop = () => {
                 ) : (
                   <Button
                     variant="outline"
-                    className="w-full h-16 md:h-24 border-white/20 text-white/70 hover:bg-white/10 flex-col md:flex-row items-center justify-center gap-1 md:gap-2"
+                    className="w-full h-16 md:h-24 border-white/20 text-slate-900/70 hover:bg-white/10 flex-col md:flex-row items-center justify-center gap-1 md:gap-2"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                   >
@@ -1270,14 +1270,14 @@ const AdminShop = () => {
       {/* Upload Loading Overlay */}
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl border border-white/10">
+          <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl border border-white/10">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
              <p className="text-white font-medium">Uploading...</p>
              <Button 
                variant="outline" 
                size="sm"
                onClick={() => setUploading(false)}
-               className="mt-2 border-white/20 text-white/70 hover:text-white hover:bg-white/10"
+               className="mt-2 border-white/20 text-slate-900/70 hover:text-slate-900 hover:bg-white/10"
              >
                Cancel
             </Button>
@@ -1291,7 +1291,7 @@ const AdminShop = () => {
             size="icon"
             variant="ghost"
             onClick={() => setFullscreenPreviewItem(null)}
-            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full"
+            className="absolute top-4 right-4 text-slate-900 z-10 bg-white/10 hover:bg-white/20 rounded-full"
           >
             <X className="w-6 h-6" />
           </Button>

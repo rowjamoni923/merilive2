@@ -569,13 +569,13 @@ const AdminLevel5Helpers = () => {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="gap-2 bg-white/20 border-white/30 text-white hover:bg-white/30"
+              className="gap-2 bg-white/20 border-white/30 text-slate-900 hover:bg-white/30"
               onClick={() => navigate('/admin/payroll-orders')}
             >
               <FileText className="w-4 h-4" />
               <span className="hidden md:inline">View All Orders</span>
             </Button>
-            <Button variant="outline" onClick={() => loadData()} className="bg-white/20 border-white/30 text-white hover:bg-white/30">
+            <Button variant="outline" onClick={() => loadData()} className="bg-white/20 border-white/30 text-slate-900 hover:bg-white/30">
               <Loader2 className={cn("w-4 h-4", loading && "animate-spin")} />
               <span className="ml-2 hidden md:inline">Refresh</span>
             </Button>

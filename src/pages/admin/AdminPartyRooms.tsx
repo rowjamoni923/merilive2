@@ -452,7 +452,7 @@ export default function AdminPartyRooms() {
 
       {/* End Room Dialog */}
       <Dialog open={showEndDialog} onOpenChange={setShowEndDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">Close Party Room</DialogTitle>
             <DialogDescription className="text-slate-400">
@@ -463,7 +463,7 @@ export default function AdminPartyRooms() {
             <Button
               variant="outline"
               onClick={() => setShowEndDialog(false)}
-              className="bg-slate-800 border-slate-600 text-slate-300"
+              className="bg-slate-50 border-slate-200 text-slate-300"
             >
               Cancel
             </Button>
@@ -480,7 +480,7 @@ export default function AdminPartyRooms() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg">
+        <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Party Room Details</DialogTitle>
           </DialogHeader>
@@ -503,19 +503,19 @@ export default function AdminPartyRooms() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-800 rounded-lg p-3">
+                <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Type</p>
                   <p className="text-white font-bold capitalize">{selectedRoom.room_type}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3">
+                <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Participants</p>
                   <p className="text-white font-bold">{selectedRoom.current_participants}/{selectedRoom.max_participants}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3">
+                <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Game Mode</p>
                   <p className="text-white font-bold">{selectedRoom.game_mode || "-"}</p>
                 </div>
-                <div className="bg-slate-800 rounded-lg p-3">
+                <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Status</p>
                   <p className={selectedRoom.is_active ? "text-green-400 font-bold" : "text-red-400 font-bold"}>
                     {selectedRoom.is_active ? "Active" : "Closed"}
@@ -541,7 +541,7 @@ export default function AdminPartyRooms() {
       </Dialog>
 
       <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
-        <DialogContent className="bg-slate-950 border-slate-800 text-white max-w-3xl p-0 overflow-hidden">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-3xl p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4">
             <DialogTitle className="text-sm flex items-center gap-2">
               <EyeOff className="w-4 h-4 text-amber-400" />

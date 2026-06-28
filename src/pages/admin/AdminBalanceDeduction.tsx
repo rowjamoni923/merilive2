@@ -775,7 +775,7 @@ export default function AdminBalanceDeduction() {
                     setShowAlertsPanel(false);
                     setUnreadAlertCount(0);
                   }}
-                  className="text-white hover:bg-white/20"
+                  className="text-slate-900 hover:bg-white/20"
                 >
                   <X className="w-5 h-5" />
                 </Button>
@@ -920,7 +920,7 @@ export default function AdminBalanceDeduction() {
                 setShowAlertsPanel(true);
                 setUnreadAlertCount(0);
               }}
-              className="relative text-white hover:bg-white/20"
+              className="relative text-slate-900 hover:bg-white/20"
             >
               <Bell className="w-6 h-6" />
               {unreadAlertCount > 0 && (

@@ -402,7 +402,7 @@ export default function AdminEntryBanners() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900/50 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-gradient-to-br from-white to-purple-900/50 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-400" />
@@ -541,7 +541,7 @@ export default function AdminEntryBanners() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-slate-900 border-red-500/20">
+        <AlertDialogContent className="bg-white border-red-500/20">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Entry Banner?</AlertDialogTitle>
             <AlertDialogDescription>

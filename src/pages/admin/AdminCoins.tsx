@@ -545,7 +545,7 @@ export default function AdminCoins() {
         {/* Exchange Rate Tab */}
         <TabsContent value="exchange" className="space-y-4">
           {/* Beans to USD Rate Card */}
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-amber-400">
                 <Coins className="w-5 h-5" />
@@ -565,7 +565,7 @@ export default function AdminCoins() {
                       type="number"
                       value={beansToUsdRate}
                       onChange={(e) => setBeansToUsdRate(parseInt(e.target.value) || 10000)}
-                      className="pl-10 bg-slate-700 border-slate-600 text-white text-xl font-bold focus:border-amber-400"
+                      className="pl-10 bg-slate-700 border-slate-200 text-white text-xl font-bold focus:border-amber-400"
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
@@ -587,14 +587,14 @@ export default function AdminCoins() {
               </div>
 
               {/* Calculator Preview */}
-              <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
+              <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-200">
                 <h4 className="text-amber-400 font-medium mb-3 flex items-center gap-2">
                   <Calculator className="w-4 h-4" />
                 Real-Time Calculation Preview
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
                   {[10000, 50000, 100000, 500000].map(beans => (
-                    <div key={beans} className="bg-slate-800 rounded-lg p-3 border border-slate-600">
+                    <div key={beans} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                       <p className="text-xs text-slate-400">{beans.toLocaleString()} Beans</p>
                       <p className="text-lg font-bold text-amber-400">
                         ${(beans / beansToUsdRate).toFixed(2)}
@@ -607,7 +607,7 @@ export default function AdminCoins() {
           </Card>
 
           {/* AI-Powered Live Rates */}
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-blue-400">
                 <Sparkles className="w-5 h-5" />
@@ -646,7 +646,7 @@ export default function AdminCoins() {
 
               {/* Live Rates Display */}
               {liveRates.length > 0 && (
-                <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
+                <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-200">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
                     <h4 className="text-blue-400 font-medium flex items-center gap-2">
                       <TrendingUp className="w-4 h-4" />
@@ -663,7 +663,7 @@ export default function AdminCoins() {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 text-sm max-h-80 overflow-y-auto">
                     {liveRates.map((rate) => (
-                      <div key={rate.code} className="bg-slate-800 rounded-lg p-3 text-center border border-slate-600">
+                      <div key={rate.code} className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
                         <p className="text-xs text-blue-400 font-medium">{rate.code}</p>
                         <p className="text-lg font-bold text-white">
                           {rate.symbol}{rate.adjustedRate.toFixed(2)}
@@ -678,7 +678,7 @@ export default function AdminCoins() {
               )}
 
               {liveRates.length === 0 && (
-                <div className="bg-slate-700/30 rounded-xl p-6 border border-slate-600 text-center">
+                <div className="bg-slate-700/30 rounded-xl p-6 border border-slate-200 text-center">
                   <Globe className="w-12 h-12 text-slate-500 mx-auto mb-3" />
                   <p className="text-slate-400 text-sm">
                     Click "Fetch Rates via AI" to view accurate international exchange rates
@@ -689,7 +689,7 @@ export default function AdminCoins() {
           </Card>
 
           {/* Manual Preset Rates (Fallback) */}
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-green-400">
                 <TrendingUp className="w-5 h-5" />
@@ -714,11 +714,11 @@ export default function AdminCoins() {
                 Update Preset Rates
               </Button>
 
-              <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
+              <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-200">
                 <h4 className="text-green-400 font-medium mb-3 text-sm">Preset Rates (Market - 5)</h4>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-xs">
                   {Object.entries(internationalRates).slice(0, 12).map(([code, info]) => (
-                    <div key={code} className="bg-slate-800 rounded-lg p-2 text-center border border-slate-600">
+                    <div key={code} className="bg-slate-50 rounded-lg p-2 text-center border border-slate-200">
                       <p className="text-green-400 font-medium">{code}</p>
                       <p className="font-bold text-white">
                         {info.symbol}{Math.max(info.rate - 5, info.rate * 0.95).toFixed(2)}
@@ -731,7 +731,7 @@ export default function AdminCoins() {
           </Card>
 
           {/* Live Preview for Agency */}
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-purple-400">
                 <Calculator className="w-5 h-5" />
@@ -1095,7 +1095,7 @@ export default function AdminCoins() {
                 <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-4 py-2.5">
                   <p className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Live Preview — User Will See</p>
                 </div>
-                <div className="bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 p-4">
+                <div className="bg-gradient-to-br from-white via-purple-900/30 to-slate-100 p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">

@@ -461,7 +461,7 @@ const AdminSubAdmins = () => {
 
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) resetCreateForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border-0">
+              <Button className="bg-white/20 hover:bg-white/30 text-slate-900 border-0">
                 <UserPlus className="w-4 h-4 mr-2" />
                 New Sub-Admin
               </Button>
@@ -618,7 +618,7 @@ const AdminSubAdmins = () => {
                     </div>
                     <div>
                       <Label className="text-sm text-muted-foreground">Login Link</Label>
-                      <div className="bg-slate-900 p-3 rounded-lg font-mono text-xs break-all text-left mt-1">
+                      <div className="bg-white p-3 rounded-lg font-mono text-xs break-all text-left mt-1">
                         {generatedLink}
                       </div>
                     </div>

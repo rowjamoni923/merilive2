@@ -678,7 +678,7 @@ const AdminGmailSupport = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className={cn("h-4 w-4 p-0 opacity-50 hover:opacity-100", isOur ? "text-white hover:bg-white/10" : "hover:bg-muted")}
+                              className={cn("h-4 w-4 p-0 opacity-50 hover:opacity-100", isOur ? "text-slate-900 hover:bg-white/10" : "hover:bg-muted")}
                               onClick={() => handleTranslateMessage(msg.id, msg.body || msg.snippet, isOur)}
                               disabled={translatingId === msg.id}
                               title={isOur ? 'Translate to English' : 'Translate to Bengali'}
@@ -689,7 +689,7 @@ const AdminGmailSupport = () => {
                           
                           {/* Translated text */}
                           {translatedMessages[msg.id] && (
-                            <div className={cn("mb-1.5 px-2.5 py-1.5 rounded-lg text-xs", isOur ? "bg-white/10 text-white/90" : "bg-accent/20 border border-accent/15")}>
+                            <div className={cn("mb-1.5 px-2.5 py-1.5 rounded-lg text-xs", isOur ? "bg-white/10 text-slate-900/90" : "bg-accent/20 border border-accent/15")}>
                               <p className="text-[9px] font-semibold opacity-60 mb-0.5">{isOur ? '🇬🇧 English' : '🇧🇩 Bengali'}</p>
                               <p className="leading-relaxed">{translatedMessages[msg.id]}</p>
                             </div>

@@ -182,7 +182,7 @@ export default function AdminUserReports() {
         <Button
           onClick={() => fetchReports()}
           disabled={loading}
-          className="bg-white/15 hover:bg-white/25 text-white border border-white/30"
+          className="bg-white/15 hover:bg-white/25 text-slate-900 border border-white/30"
           size="sm"
         >
           <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
@@ -212,7 +212,7 @@ export default function AdminUserReports() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-slate-800/50 border-slate-700">
+      <Card className="bg-slate-50/50 border-slate-200">
         <CardContent className="p-3 flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -220,14 +220,14 @@ export default function AdminUserReports() {
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-900/50 border-slate-600 text-white text-sm"
+              className="pl-10 bg-white/50 border-slate-200 text-slate-900 text-sm"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-36 bg-slate-900/50 border-slate-600 text-white text-sm">
+            <SelectTrigger className="w-full md:w-36 bg-white/50 border-slate-200 text-slate-900 text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectContent className="bg-white border-slate-200 text-slate-900">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="reviewing">Reviewing</SelectItem>
@@ -236,10 +236,10 @@ export default function AdminUserReports() {
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full md:w-44 bg-slate-900/50 border-slate-600 text-white text-sm">
+            <SelectTrigger className="w-full md:w-44 bg-white/50 border-slate-200 text-slate-900 text-sm">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectContent className="bg-white border-slate-200 text-slate-900">
               <SelectItem value="all">All Categories</SelectItem>
               {Object.entries(CATEGORY_LABELS).map(([key, val]) => (
                 <SelectItem key={key} value={key}>{val.label}</SelectItem>
@@ -250,11 +250,11 @@ export default function AdminUserReports() {
       </Card>
 
       {/* Reports Table */}
-      <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
+      <Card className="bg-slate-50/50 border-slate-200 overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700 bg-slate-800 hover:bg-slate-800">
+              <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
                 <TableHead className="text-slate-300 font-semibold">Reported User</TableHead>
                 <TableHead className="text-slate-300 font-semibold">Category</TableHead>
                 <TableHead className="text-slate-300 font-semibold hidden md:table-cell">Reporter</TableHead>
@@ -276,7 +276,7 @@ export default function AdminUserReports() {
                 filtered.map((report) => {
                   const cat = CATEGORY_LABELS[report.report_category] || { label: report.report_category, color: "bg-slate-600" };
                   return (
-                    <TableRow key={report.id} className="border-slate-700 hover:bg-slate-700/50">
+                    <TableRow key={report.id} className="border-slate-200 hover:bg-slate-700/50">
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="w-8 h-8 border border-red-500/30">
@@ -334,7 +334,7 @@ export default function AdminUserReports() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-slate-600 text-white h-7 px-2"
+                            className="border-slate-200 text-white h-7 px-2"
                             onClick={() => {
                               setSelectedReport(report);
                               setAdminNotes(report.admin_notes || "");
@@ -365,7 +365,7 @@ export default function AdminUserReports() {
 
       {/* Report Detail Dialog */}
       <Dialog open={!!selectedReport} onOpenChange={(o) => !o && setSelectedReport(null)}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Report Details</DialogTitle>
           </DialogHeader>
@@ -410,27 +410,27 @@ export default function AdminUserReports() {
               {selectedReport.description && (
                 <div>
                   <p className="text-xs text-slate-400 mb-1">Description</p>
-                  <p className="text-white/80 text-sm bg-slate-800 p-3 rounded-lg">{selectedReport.description}</p>
+                  <p className="text-white/80 text-sm bg-slate-50 p-3 rounded-lg">{selectedReport.description}</p>
                 </div>
               )}
               <Textarea
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Admin notes..."
-                className="bg-slate-800 border-slate-600 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
               <Input
                 value={actionTaken}
                 onChange={(e) => setActionTaken(e.target.value)}
                 placeholder="Action taken (e.g., warned, banned)..."
-                className="bg-slate-800 border-slate-600 text-white"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
           )}
           <DialogFooter className="gap-2 flex-wrap">
             <Button
               variant="outline"
-              className="border-slate-600 text-slate-300"
+              className="border-slate-200 text-slate-300"
               onClick={() => selectedReport && handleUpdateStatus(selectedReport.id, "dismissed")}
             >
               <XCircle className="w-4 h-4 mr-1" /> Dismiss
