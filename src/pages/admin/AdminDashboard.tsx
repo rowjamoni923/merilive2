@@ -90,8 +90,8 @@ const StatCard = memo(({ title, value, icon: Icon, trend, accentFrom, accentTo, 
 
           <div className="relative z-10 flex items-start justify-between">
             <div className="space-y-1 md:space-y-2">
-              <p className="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-widest">{title}</p>
-              <p className="text-2xl md:text-4xl font-black text-white tracking-tight">
+              <p className="text-[10px] md:text-xs text-slate-600 font-semibold uppercase tracking-widest">{title}</p>
+              <p className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">
                 {typeof value === 'number' ? value.toLocaleString() : value}
               </p>
               {trend !== undefined && (
@@ -112,11 +112,11 @@ const StatCard = memo(({ title, value, icon: Icon, trend, accentFrom, accentTo, 
               "bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform duration-300",
               accentFrom.replace('from-', 'from-'), accentTo.replace('to-', 'to-')
             )}>
-              <Icon className="w-5 h-5 md:w-7 md:h-7 text-white" />
+              <Icon className="w-5 h-5 md:w-7 md:h-7 text-slate-900" />
             </div>
           </div>
 
-          <div className="mt-3 md:mt-4 flex items-center gap-1 text-[10px] md:text-xs text-slate-500 group-hover:text-slate-300 transition-colors font-medium">
+          <div className="mt-3 md:mt-4 flex items-center gap-1 text-[10px] md:text-xs text-slate-500 group-hover:text-slate-700 transition-colors font-medium">
             <span>View details</span>
             <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -158,16 +158,16 @@ const AlertCard = memo(({ title, value, icon: Icon, link, gradientFrom, gradient
             "bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform",
             gradientFrom, gradientTo
           )}>
-            <Icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
+            <Icon className="w-7 h-7 md:w-8 md:h-8 text-slate-900" />
           </div>
           <div className="flex-1">
             <p className="text-3xl md:text-4xl font-black" style={{ color: textColor }}>
               {value.toLocaleString()}
             </p>
-            <p className="text-sm font-semibold text-slate-400 mt-0.5">{title}</p>
+            <p className="text-sm font-semibold text-slate-600 mt-0.5">{title}</p>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-all">
-            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+          <div className="w-9 h-9 rounded-xl bg-slate-50 group-hover:bg-slate-50 flex items-center justify-center transition-all">
+            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all" />
           </div>
         </CardContent>
       </Card>
@@ -194,14 +194,14 @@ const QuickAction = memo(({ title, description, icon: Icon, link, accentColor, d
     <Link to={link}>
       <div className="flex items-center gap-3 p-3.5 rounded-xl bg-[#0c0c14] border border-white/5 hover:border-white/15 transition-all group">
         <div className="w-1 h-10 rounded-full" style={{ background: accentColor }} />
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 group-hover:bg-white/10 transition-colors">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 group-hover:bg-slate-50 transition-colors">
           <Icon className="w-5 h-5" style={{ color: accentColor }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-white">{title}</p>
+          <p className="text-sm font-bold text-slate-900">{title}</p>
           <p className="text-xs text-slate-500">{description}</p>
         </div>
-        <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+        <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all" />
       </div>
     </Link>
   </motion.div>
@@ -357,20 +357,20 @@ export default function AdminDashboard() {
   if (loading && !stats) return <AdminDashboardSkeleton />;
 
   return (
-    <div className="space-y-5 md:space-y-8 p-2 md:p-0">
+    <div className="admin-pro-shell admin-content space-y-5 md:space-y-8 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
 
       {/* ━━━ HEADER ━━━ */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#0c0c14] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/[0.06]"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#0c0c14] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200]"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
-            <BarChart3 className="w-6 h-6 text-white" />
+            <BarChart3 className="w-6 h-6 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">Command Center</h1>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Command Center</h1>
             <p className="text-slate-500 text-xs md:text-sm font-medium">
               Live overview
               {lastRefreshTime && (
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
             size="sm"
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="text-slate-400 hover:text-white hover:bg-white/5 gap-1.5 text-xs font-semibold"
+            className="text-slate-600 hover:text-slate-900 hover:bg-slate-50 gap-1.5 text-xs font-semibold"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
             {isRefreshing ? "..." : "Refresh"}
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse inline-block" />
             Live
           </Badge>
-          <Badge className="bg-white/5 text-slate-400 border border-white/10 px-3 py-1.5 font-medium text-xs hidden sm:flex">
+          <Badge className="bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1.5 font-medium text-xs hidden sm:flex">
             <Clock className="w-3 h-3 mr-1.5" />
             {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
           </Badge>
@@ -623,7 +623,7 @@ export default function AdminDashboard() {
       <ErrorBoundary
         componentName="AdminAnalyticsCharts"
         fallback={
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0c0c14] p-6 text-center text-slate-400 text-sm">
+          <div className="rounded-2xl border border-slate-200] bg-[#0c0c14] p-6 text-center text-slate-600 text-sm">
             Analytics charts are temporarily unavailable. Other dashboard data is still live.
           </div>
         }
@@ -641,7 +641,7 @@ export default function AdminDashboard() {
             className="flex items-center gap-2 mb-1"
           >
             <Zap className="w-4 h-4 text-violet-400" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quick Actions</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
           </motion.div>
           
           <QuickAction title="Host Applications" description="Review new applications" icon={Shield} link="/admin/host-applications" accentColor="#a78bfa" delay={0.7} />
@@ -660,9 +660,9 @@ export default function AdminDashboard() {
           transition={{ delay: 0.95 }}
           className="lg:col-span-2"
         >
-          <Card className="bg-[#0c0c14] border-white/[0.06] h-full">
-            <CardHeader className="border-b border-white/[0.06] pb-4">
-              <CardTitle className="text-white flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+          <Card className="bg-[#0c0c14] border-slate-200] h-full">
+            <CardHeader className="border-b border-slate-200] pb-4">
+              <CardTitle className="text-slate-900 flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <Activity className="w-4 h-4 text-emerald-400" />
                 Recent Activity
               </CardTitle>
@@ -686,12 +686,12 @@ export default function AdminDashboard() {
                         "bg-blue-500 ring-blue-500/30"
                       )} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white font-semibold truncate">{activity.action_type}</p>
+                        <p className="text-sm text-slate-900 font-semibold truncate">{activity.action_type}</p>
                         <p className="text-[11px] text-slate-500">
                           {new Date(activity.created_at).toLocaleString("en-US")}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-[10px] border-white/10 text-slate-500 font-medium">
+                      <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-500 font-medium">
                         {activity.target_type || 'action'}
                       </Badge>
                     </motion.div>
@@ -699,7 +699,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
                     <Activity className="w-6 h-6 text-slate-600" />
                   </div>
                   <p className="text-slate-500 text-sm font-medium">No recent activity</p>
@@ -714,7 +714,7 @@ export default function AdminDashboard() {
       <ErrorBoundary
         componentName="SystemHealthCheck"
         fallback={
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0c0c14] p-6 text-center text-slate-400 text-sm">
+          <div className="rounded-2xl border border-slate-200] bg-[#0c0c14] p-6 text-center text-slate-600 text-sm">
             System health check is temporarily unavailable.
           </div>
         }

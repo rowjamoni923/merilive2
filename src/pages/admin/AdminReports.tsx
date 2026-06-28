@@ -116,7 +116,7 @@ export default function AdminReports() {
     change?: number; 
     color: string;
   }) => (
-    <Card className="bg-white/5 border-white/10">
+    <Card className="bg-slate-50 border-slate-200">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className={`w-12 h-12 rounded-xl bg-${color}-500/20 flex items-center justify-center`}>
@@ -130,8 +130,8 @@ export default function AdminReports() {
           )}
         </div>
         <div className="mt-3">
-          <p className="text-white/60 text-sm">{label}</p>
-          <p className="text-white font-bold text-2xl">{value}</p>
+          <p className="text-slate-900/60 text-sm">{label}</p>
+          <p className="text-slate-900 font-bold text-2xl">{value}</p>
         </div>
       </CardContent>
     </Card>
@@ -176,25 +176,25 @@ export default function AdminReports() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 rounded-2xl p-6 shadow-xl">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
             <TrendingUp className="w-7 h-7" />
             Reports & Analytics
           </h1>
-          <p className="text-white/80 text-sm mt-1">App Performance Analysis</p>
+          <p className="text-slate-900/80 text-sm mt-1">App Performance Analysis</p>
         </div>
         <div className="flex gap-3">
           <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40 bg-white/20 border-white/30 text-white">
+            <SelectTrigger className="w-40 bg-slate-50 border-slate-200 text-slate-900">
               <Calendar className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectContent className="bg-white border-slate-200 text-slate-900">
               <SelectItem value="week">Last 7 Days</SelectItem>
               <SelectItem value="month">Last 30 Days</SelectItem>
               <SelectItem value="quarter">Last 90 Days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="border-white/40 text-white bg-white/10 hover:bg-white/20">
+          <Button variant="outline" className="border-slate-200 text-slate-900 bg-slate-50 hover:bg-slate-50">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
@@ -250,9 +250,9 @@ export default function AdminReports() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Chart */}
-        <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+        <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-400" />
               New Users
             </CardTitle>
@@ -276,9 +276,9 @@ export default function AdminReports() {
         </Card>
 
         {/* Coins Chart */}
-        <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+        <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
               <Coins className="w-5 h-5 text-amber-400" />
               Diamonds Spent
             </CardTitle>
@@ -308,9 +308,9 @@ export default function AdminReports() {
         </Card>
 
         {/* Gift Distribution */}
-        <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+        <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
               <Gift className="w-5 h-5 text-pink-400" />
               Gift Distribution
             </CardTitle>
@@ -345,9 +345,9 @@ export default function AdminReports() {
         </Card>
 
         {/* Streams Chart */}
-        <Card className="bg-slate-900 border-slate-700/50 shadow-lg">
+        <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-slate-900 flex items-center gap-2">
               <Camera className="w-5 h-5 text-red-400" />
               Live Streams
             </CardTitle>

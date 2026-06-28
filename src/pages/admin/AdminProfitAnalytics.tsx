@@ -354,19 +354,19 @@ export default function AdminProfitAnalytics() {
   }, [sectors, startDate, endDate]);
 
   return (
-    <div className="min-h-screen bg-[#06060a] text-white">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link to="/admin">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-slate-50">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Profit Analytics</h1>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-slate-900/60">
                 Sector-wise company revenue, payouts and net profit
               </p>
             </div>
@@ -376,7 +376,7 @@ export default function AdminProfitAnalytics() {
               variant="outline"
               size="sm"
               onClick={() => setRefreshKey((k) => k + 1)}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-slate-200 text-slate-900 hover:bg-slate-50"
             >
               <RefreshCw className={cn("h-4 w-4 mr-1.5", loading && "animate-spin")} />
               Refresh
@@ -386,7 +386,7 @@ export default function AdminProfitAnalytics() {
               size="sm"
               onClick={handleExport}
               disabled={!sectors.length}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-slate-200 text-slate-900 hover:bg-slate-50"
             >
               <Download className="h-4 w-4 mr-1.5" />
               Export CSV
@@ -395,10 +395,10 @@ export default function AdminProfitAnalytics() {
         </div>
 
         {/* Date filter */}
-        <Card className="bg-[#0c0c14] border-white/[0.06]">
+        <Card className="bg-[#0c0c14] border-slate-200]">
           <CardContent className="p-4 space-y-3">
             <Tabs value={preset} onValueChange={(v) => handlePreset(v as Preset)}>
-              <TabsList className="bg-black/40 border border-white/10">
+              <TabsList className="bg-slate-50 border border-slate-200">
                 <TabsTrigger value="today">Today</TabsTrigger>
                 <TabsTrigger value="yesterday">Yesterday</TabsTrigger>
                 <TabsTrigger value="week">Last 7 days</TabsTrigger>
@@ -408,8 +408,8 @@ export default function AdminProfitAnalytics() {
             </Tabs>
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-white/60" />
-                <span className="text-white/60">From</span>
+                <CalendarIcon className="h-4 w-4 text-slate-900/60" />
+                <span className="text-slate-900/60">From</span>
                 <Input
                   type="date"
                   value={startDate}
@@ -417,11 +417,11 @@ export default function AdminProfitAnalytics() {
                     setStartDate(e.target.value);
                     setPreset("custom");
                   }}
-                  className="bg-black/40 border-white/10 text-white w-auto"
+                  className="bg-slate-50 border-slate-200 text-slate-900 w-auto"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-white/60">To</span>
+                <span className="text-slate-900/60">To</span>
                 <Input
                   type="date"
                   value={endDate}
@@ -429,10 +429,10 @@ export default function AdminProfitAnalytics() {
                     setEndDate(e.target.value);
                     setPreset("custom");
                   }}
-                  className="bg-black/40 border-white/10 text-white w-auto"
+                  className="bg-slate-50 border-slate-200 text-slate-900 w-auto"
                 />
               </div>
-              <label className="flex items-center gap-2 text-white/60 ml-auto cursor-pointer">
+              <label className="flex items-center gap-2 text-slate-900/60 ml-auto cursor-pointer">
                 <input
                   type="checkbox"
                   checked={includeTimeline}
@@ -460,8 +460,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Timeline chart */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-white/[0.06]">
-            <CardHeader className="border-b border-white/[0.06] pb-3">
+          <Card className="bg-[#0c0c14] border-slate-200]">
+            <CardHeader className="border-b border-slate-200] pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <BarChart3 className="h-4 w-4 text-violet-400" />
                 Net Profit Timeline (USD)
@@ -469,9 +469,9 @@ export default function AdminProfitAnalytics() {
             </CardHeader>
             <CardContent className="p-4">
               {loading ? (
-                <Skeleton className="h-72 w-full bg-white/5" />
+                <Skeleton className="h-72 w-full bg-slate-50" />
               ) : chartData.length === 0 ? (
-                <div className="h-72 grid place-items-center text-white/40 text-sm">
+                <div className="h-72 grid place-items-center text-slate-900/40 text-sm">
                   No data for the selected range
                 </div>
               ) : (
@@ -515,8 +515,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Daily Sales (gross) vs Net Profit chart */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-white/[0.06]">
-            <CardHeader className="border-b border-white/[0.06] pb-3">
+          <Card className="bg-[#0c0c14] border-slate-200]">
+            <CardHeader className="border-b border-slate-200] pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <ShoppingCart className="h-4 w-4 text-cyan-400" />
                 Daily Sales vs Net Profit
@@ -524,9 +524,9 @@ export default function AdminProfitAnalytics() {
             </CardHeader>
             <CardContent className="p-4">
               {loading ? (
-                <Skeleton className="h-64 w-full bg-white/5" />
+                <Skeleton className="h-64 w-full bg-slate-50" />
               ) : dailyRollup.length === 0 ? (
-                <div className="h-64 grid place-items-center text-white/40 text-sm">
+                <div className="h-64 grid place-items-center text-slate-900/40 text-sm">
                   No data
                 </div>
               ) : (
@@ -564,8 +564,8 @@ export default function AdminProfitAnalytics() {
 
         {/* Per-day breakdown table */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-white/[0.06]">
-            <CardHeader className="border-b border-white/[0.06] pb-3">
+          <Card className="bg-[#0c0c14] border-slate-200]">
+            <CardHeader className="border-b border-slate-200] pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <TableIcon className="h-4 w-4 text-amber-400" />
                 Day-by-Day Breakdown
@@ -573,13 +573,13 @@ export default function AdminProfitAnalytics() {
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
-                <div className="p-4"><Skeleton className="h-40 w-full bg-white/5" /></div>
+                <div className="p-4"><Skeleton className="h-40 w-full bg-slate-50" /></div>
               ) : dailyRollup.length === 0 ? (
-                <div className="p-6 text-center text-white/40 text-sm">No data</div>
+                <div className="p-6 text-center text-slate-900/40 text-sm">No data</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
-                    <thead className="bg-black/40 text-white/60 uppercase tracking-wider text-[10px]">
+                    <thead className="bg-slate-50 text-slate-900/60 uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="text-left px-3 py-2">Date</th>
                         <th className="text-right px-3 py-2">Gross Sales</th>
@@ -596,26 +596,26 @@ export default function AdminProfitAnalytics() {
                         const m = r.gross > 0 ? (r.net / r.gross) * 100 : 0;
                         return (
                           <tr key={r.day} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
-                            <td className="px-3 py-2 font-mono text-white/80">{r.day}</td>
+                            <td className="px-3 py-2 font-mono text-slate-900/80">{r.day}</td>
                             <td className="px-3 py-2 text-right text-cyan-300">{fmtUsd(r.gross)}</td>
                             <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(r.company_cut)}</td>
                             <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(r.payouts)}</td>
                             <td className="px-3 py-2 text-right text-yellow-300">{fmtUsd(r.gateway)}</td>
                             <td className="px-3 py-2 text-right font-semibold text-violet-300">{fmtUsd(r.net)}</td>
-                            <td className="px-3 py-2 text-right text-white/70">{m.toFixed(1)}%</td>
-                            <td className="px-3 py-2 text-right text-white/70">{fmtInt(r.txns)}</td>
+                            <td className="px-3 py-2 text-right text-slate-900/70">{m.toFixed(1)}%</td>
+                            <td className="px-3 py-2 text-right text-slate-900/70">{fmtInt(r.txns)}</td>
                           </tr>
                         );
                       })}
-                      <tr className="border-t-2 border-white/20 bg-black/40 font-bold">
+                      <tr className="border-t-2 border-slate-200 bg-slate-50 font-bold">
                         <td className="px-3 py-2">TOTAL</td>
                         <td className="px-3 py-2 text-right text-cyan-300">{fmtUsd(totals.gross)}</td>
                         <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(totals.company_cut)}</td>
                         <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(totals.payouts)}</td>
                         <td className="px-3 py-2 text-right text-yellow-300">{fmtUsd(totals.gateway)}</td>
                         <td className="px-3 py-2 text-right text-violet-300">{fmtUsd(totals.net)}</td>
-                        <td className="px-3 py-2 text-right text-white/70">{margin.toFixed(1)}%</td>
-                        <td className="px-3 py-2 text-right text-white/70">{fmtInt(totals.txns)}</td>
+                        <td className="px-3 py-2 text-right text-slate-900/70">{margin.toFixed(1)}%</td>
+                        <td className="px-3 py-2 text-right text-slate-900/70">{fmtInt(totals.txns)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -627,12 +627,12 @@ export default function AdminProfitAnalytics() {
 
         {/* Daily Totals — Company Profit vs Total Payouts (one glance) */}
         {includeTimeline && (
-          <Card className="bg-[#0c0c14] border-white/[0.06]">
-            <CardHeader className="border-b border-white/[0.06] pb-3">
+          <Card className="bg-[#0c0c14] border-slate-200]">
+            <CardHeader className="border-b border-slate-200] pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                 <TableIcon className="h-4 w-4 text-emerald-400" />
                 Daily Totals — Profit vs Payouts
-                <span className="ml-auto text-[10px] text-white/40 normal-case font-normal">
+                <span className="ml-auto text-[10px] text-slate-900/40 normal-case font-normal">
                   Profit kept by company vs total paid out to users / hosts / agencies / helpers
                 </span>
               </CardTitle>
@@ -685,13 +685,13 @@ export default function AdminProfitAnalytics() {
 
               {/* Per-day table */}
               {loading ? (
-                <Skeleton className="h-40 w-full bg-white/5" />
+                <Skeleton className="h-40 w-full bg-slate-50" />
               ) : dailyTotals.length === 0 ? (
-                <div className="p-6 text-center text-white/40 text-sm">No data</div>
+                <div className="p-6 text-center text-slate-900/40 text-sm">No data</div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+                <div className="overflow-x-auto rounded-lg border border-slate-200]">
                   <table className="w-full text-xs">
-                    <thead className="bg-black/40 text-white/60 uppercase tracking-wider text-[10px]">
+                    <thead className="bg-slate-50 text-slate-900/60 uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="text-left px-3 py-2">Date</th>
                         <th className="text-right px-3 py-2">Company Profit</th>
@@ -702,7 +702,7 @@ export default function AdminProfitAnalytics() {
                     <tbody>
                       {[...dailyTotals].reverse().map((r) => (
                         <tr key={r.day} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
-                          <td className="px-3 py-2 font-mono text-white/80">{r.day}</td>
+                          <td className="px-3 py-2 font-mono text-slate-900/80">{r.day}</td>
                           <td className="px-3 py-2 text-right text-emerald-300">{fmtUsd(r.profit)}</td>
                           <td className="px-3 py-2 text-right text-rose-300">{fmtUsd(r.payouts)}</td>
                           <td
@@ -715,7 +715,7 @@ export default function AdminProfitAnalytics() {
                           </td>
                         </tr>
                       ))}
-                      <tr className="border-t-2 border-white/20 bg-black/40 font-bold">
+                      <tr className="border-t-2 border-slate-200 bg-slate-50 font-bold">
                         <td className="px-3 py-2">TOTAL</td>
                         <td className="px-3 py-2 text-right text-emerald-300">
                           {fmtUsd(dailyTotalsSummary.profit)}
@@ -741,21 +741,21 @@ export default function AdminProfitAnalytics() {
         )}
 
         {/* Sales by Source — official vs helper level 1..5 */}
-        <Card className="bg-[#0c0c14] border-white/[0.06]">
-          <CardHeader className="border-b border-white/[0.06] pb-3">
+        <Card className="bg-[#0c0c14] border-slate-200]">
+          <CardHeader className="border-b border-slate-200] pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <ShoppingCart className="h-4 w-4 text-cyan-400" />
               Sales by Source
-              <span className="ml-auto text-[10px] text-white/40 normal-case font-normal">
+              <span className="ml-auto text-[10px] text-slate-900/40 normal-case font-normal">
                 Official + every helper level
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             {loading ? (
-              <Skeleton className="h-24 w-full bg-white/5" />
+              <Skeleton className="h-24 w-full bg-slate-50" />
             ) : salesSources.length === 0 ? (
-              <div className="text-center text-white/40 py-6 text-sm">No sales in this range</div>
+              <div className="text-center text-slate-900/40 py-6 text-sm">No sales in this range</div>
             ) : (
               (() => {
                 const totalSales = salesSources.reduce(
@@ -781,7 +781,7 @@ export default function AdminProfitAnalytics() {
                               className="absolute inset-y-0 left-0 w-1"
                               style={{ background: color }}
                             />
-                            <div className="text-[10px] uppercase tracking-wider text-white/50">
+                            <div className="text-[10px] uppercase tracking-wider text-slate-900/50">
                               {isOfficial ? "Official" : "Helper Sales"}
                             </div>
                             <div className="text-sm font-semibold mt-0.5 truncate">
@@ -793,7 +793,7 @@ export default function AdminProfitAnalytics() {
                             >
                               {fmtUsd(Number(s.gross_usd))}
                             </div>
-                            <div className="text-[10px] text-white/40">
+                            <div className="text-[10px] text-slate-900/40">
                               {share.toFixed(1)}% · {fmtInt(Number(s.transaction_count))} txns ·{" "}
                               {fmtInt(Number(s.unique_buyers))} buyers
                             </div>
@@ -808,8 +808,8 @@ export default function AdminProfitAnalytics() {
         </Card>
 
         {/* Sector grid */}
-        <Card className="bg-[#0c0c14] border-white/[0.06]">
-          <CardHeader className="border-b border-white/[0.06] pb-3">
+        <Card className="bg-[#0c0c14] border-slate-200]">
+          <CardHeader className="border-b border-slate-200] pb-3">
             <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
               <PieIcon className="h-4 w-4 text-emerald-400" />
               Sector Breakdown
@@ -819,11 +819,11 @@ export default function AdminProfitAnalytics() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full bg-white/5" />
+                  <Skeleton key={i} className="h-32 w-full bg-slate-50" />
                 ))}
               </div>
             ) : sectors.length === 0 ? (
-              <div className="text-center text-white/40 py-12 text-sm">No data available for the selected range</div>
+              <div className="text-center text-slate-900/40 py-12 text-sm">No data available for the selected range</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {sectors.map((s) => {
@@ -840,14 +840,14 @@ export default function AdminProfitAnalytics() {
                       />
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <div className="text-xs uppercase tracking-wider text-white/50">
+                          <div className="text-xs uppercase tracking-wider text-slate-900/50">
                             {s.sector_key}
                           </div>
                           <div className="text-base font-semibold mt-0.5">{s.display_name}</div>
                         </div>
                         <Badge
                           variant="outline"
-                          className="border-white/20 text-white/80 text-[10px]"
+                          className="border-slate-200 text-slate-900/80 text-[10px]"
                         >
                           {Number(s.company_cut_percent).toFixed(0)}% cut
                         </Badge>
@@ -855,25 +855,25 @@ export default function AdminProfitAnalytics() {
                       <div className="text-2xl font-bold" style={{ color }}>
                         {fmtUsd(Number(s.net_profit_usd))}
                       </div>
-                      <div className="text-[11px] text-white/40 mt-0.5">
+                      <div className="text-[11px] text-slate-900/40 mt-0.5">
                         {share.toFixed(1)}% of net profit
                       </div>
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-3 text-[11px] text-white/60">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-3 text-[11px] text-slate-900/60">
                         <div className="flex justify-between">
                           <span>Gross</span>
-                          <span className="text-white/90">{fmtUsd(Number(s.gross_revenue_usd))}</span>
+                          <span className="text-slate-900/90">{fmtUsd(Number(s.gross_revenue_usd))}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Payouts</span>
-                          <span className="text-white/90">{fmtUsd(Number(s.payouts_usd))}</span>
+                          <span className="text-slate-900/90">{fmtUsd(Number(s.payouts_usd))}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Gateway</span>
-                          <span className="text-white/90">{fmtUsd(Number(s.gateway_cost_usd))}</span>
+                          <span className="text-slate-900/90">{fmtUsd(Number(s.gateway_cost_usd))}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Txns</span>
-                          <span className="text-white/90">{fmtInt(Number(s.transaction_count))}</span>
+                          <span className="text-slate-900/90">{fmtInt(Number(s.transaction_count))}</span>
                         </div>
                       </div>
                     </div>
@@ -884,17 +884,17 @@ export default function AdminProfitAnalytics() {
           </CardContent>
         </Card>
 
-        <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] text-white/60 leading-relaxed space-y-1">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-900/60 leading-relaxed space-y-1">
           <div>
-            <span className="text-white/80 font-semibold">Official coin rate:</span>{" "}
+            <span className="text-slate-900/80 font-semibold">Official coin rate:</span>{" "}
             {coinRate
               ? `${(1 / coinRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} coins = $1 USD`
               : "loading…"}{" "}
-            <span className="text-white/40">
+            <span className="text-slate-900/40">
               (auto-computed from active top-up packages)
             </span>
           </div>
-          <div className="text-white/40">
+          <div className="text-slate-900/40">
             Add / edit packages in Admin → Top-up Packages and this rate updates instantly.
             Party Room / PK Battle / Lucky Gift are informational counters only — their coin
             flow is already captured in the Gift sector to prevent double-counting.
@@ -933,11 +933,11 @@ function KPI({
       />
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] uppercase tracking-wider text-white/50">{label}</span>
+          <span className="text-[11px] uppercase tracking-wider text-slate-900/50">{label}</span>
           <Icon className="h-4 w-4" style={{ color: accent }} />
         </div>
         {loading ? (
-          <Skeleton className="h-7 w-24 bg-white/5" />
+          <Skeleton className="h-7 w-24 bg-slate-50" />
         ) : (
           <div className="text-xl md:text-2xl font-bold">{value}</div>
         )}
