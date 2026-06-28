@@ -298,6 +298,7 @@ const AdminHelperDiamondPricing = () => {
         </div>
       </div>
     </div>
+    </div>
   );
 };
 
