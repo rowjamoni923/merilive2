@@ -229,7 +229,7 @@ export default function AdminPartyBanners() {
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="admin-pro-shell space-y-6 p-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Party Room Banners</h1>
