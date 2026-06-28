@@ -497,31 +497,31 @@ const AdminFrames = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-purple-600">{frames.length}</p>
             <p className="text-sm text-muted-foreground">Total</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-violet-200 dark:border-violet-800">
+        <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-violet-600">{frames.filter(f => f.frame_type === 'svga').length}</p>
             <p className="text-sm text-muted-foreground">SVGA</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-blue-600">{frames.filter(f => f.frame_type === 'lottie').length}</p>
             <p className="text-sm text-muted-foreground">Lottie</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-green-600">{frames.filter(f => f.frame_type === 'gif').length}</p>
             <p className="text-sm text-muted-foreground">GIF</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-800">
+        <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
           <CardContent className="p-4">
             <p className="text-2xl font-bold text-amber-600">{frames.filter(f => f.is_premium).length}</p>
             <p className="text-sm text-muted-foreground">Premium</p>
@@ -580,8 +580,8 @@ const AdminFrames = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.05 }}
-                className={`relative bg-white dark:bg-slate-50 rounded-xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all ${
-                  frame.is_active ? "border-green-200 dark:border-green-800" : "border-gray-200 dark:border-gray-700 opacity-60"
+                className={`relative bg-white rounded-xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all ${
+                  frame.is_active ? "border-green-200" : "border-gray-200 opacity-60"
                 }`}
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
@@ -680,7 +680,7 @@ const AdminFrames = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    className="h-7 w-7 bg-white/80 backdrop-blur-sm"
                     onClick={() => setFullscreenPreviewFrame(frame)}
                     title="Preview Animation"
                   >
@@ -689,7 +689,7 @@ const AdminFrames = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    className="h-7 w-7 bg-white/80 backdrop-blur-sm"
                     onClick={() => setGiftFrame(frame)}
                     title="Gift to a user"
                   >
@@ -698,7 +698,7 @@ const AdminFrames = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    className="h-7 w-7 bg-white/80 backdrop-blur-sm"
                     onClick={() => toggleActive(frame)}
                     title={frame.is_active ? "Deactivate" : "Activate"}
                   >
@@ -711,7 +711,7 @@ const AdminFrames = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    className="h-7 w-7 bg-white/80 backdrop-blur-sm"
                     onClick={() => openEditDialog(frame)}
                   >
                     <Edit2 className="w-4 h-4 text-blue-500" />
@@ -719,7 +719,7 @@ const AdminFrames = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    className="h-7 w-7 bg-white/80 backdrop-blur-sm"
                     onClick={() => handleDelete(frame.id)}
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -744,7 +744,7 @@ const AdminFrames = () => {
           <ScrollArea className="flex-1 px-4 md:px-6 overflow-y-auto">
           <div className="space-y-4 py-4">
             {/* File Upload - Primary Upload Area */}
-            <div className="border-2 border-dashed border-purple-400 rounded-xl p-4 bg-purple-50/50 dark:bg-purple-900/20">
+            <div className="border-2 border-dashed border-purple-400 rounded-xl p-4 bg-purple-50/50">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -756,7 +756,7 @@ const AdminFrames = () => {
               {formData.frame_url ? (
                 <div className="flex items-center gap-4">
                   {/* Preview */}
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center shadow-lg">
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shadow-lg">
                     {/* Avatar - Behind */}
                     <Avatar className="w-12 h-12 z-10">
                       <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">U</AvatarFallback>
@@ -774,10 +774,10 @@ const AdminFrames = () => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <p className="text-sm font-bold text-purple-700 flex items-center gap-2">
                       ✅ Frame Uploaded!
                     </p>
-                    <p className="text-xs text-purple-600 dark:text-purple-400 truncate mt-1">
+                    <p className="text-xs text-purple-600 truncate mt-1">
                       {formData.frame_url.split('/').pop()}
                     </p>
                     <Badge className="mt-2 bg-purple-600">
@@ -800,7 +800,7 @@ const AdminFrames = () => {
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="w-full h-24 border-2 border-purple-400 border-dashed bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-300 flex flex-col items-center justify-center gap-2"
+                  className="w-full h-24 border-2 border-purple-400 border-dashed bg-white hover:bg-purple-50 text-purple-700 flex flex-col items-center justify-center gap-2"
                 >
                   {uploading ? (
                     <>
