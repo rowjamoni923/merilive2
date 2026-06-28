@@ -2921,102 +2921,110 @@ body > div[class*="fixed"][class*="backdrop-blur"] {
 }
 
 /* ============================================
-   TABLE — Clean dark
+   CLOUD WHITE — TABLES
    ============================================ */
 .admin-content table {
-  background: hsl(230 14% 7%) !important;
-  border-color: hsl(225 15% 16%) !important;
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
 }
-
 .admin-content thead,
 .admin-content th {
-  background: hsl(230 12% 12%) !important;
-  color: hsl(215 20% 75%) !important;
-  border-color: hsl(225 15% 16%) !important;
+  background: #F8FAFC !important;
+  color: #334155 !important;
+  border-color: #E2E8F0 !important;
   font-weight: 600;
 }
-
 .admin-content tbody tr {
-  border-color: hsl(225 12% 14%) !important;
+  border-color: #E2E8F0 !important;
+  background: #FFFFFF !important;
 }
-
 .admin-content td {
-  border-color: hsl(225 12% 14%) !important;
-  color: hsl(210 40% 92%) !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  background: transparent !important;
 }
-
 .admin-content tr:hover,
 .admin-content tbody tr:hover {
-  background: hsl(230 12% 12%) !important;
+  background: #F1F5F9 !important;
 }
 
 /* ============================================
-   TABS — Violet active state
+   CLOUD WHITE — TABS
    ============================================ */
 .admin-content [role="tablist"] {
-  background: hsl(230 14% 8%) !important;
-  border-color: hsl(225 15% 16%) !important;
+  background: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
 }
-
 .admin-content [role="tab"] {
-  color: hsl(215 20% 55%) !important;
+  color: #475569 !important;
   transition: all 0.2s ease;
 }
-
 .admin-content [role="tab"]:hover {
-  color: hsl(215 20% 80%) !important;
-  background: hsl(230 12% 13%) !important;
+  color: #0F172A !important;
+  background: #E2E8F0 !important;
 }
-
 .admin-content [role="tab"][data-state="active"],
 .admin-content [role="tab"][aria-selected="true"] {
-  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
-  color: white !important;
+  background: #3B82F6 !important;
+  color: #FFFFFF !important;
   font-weight: 600;
 }
 
 /* ============================================
-   ADMIN DIALOG/MODAL — Portaled (admin-only dark)
-   Note: Admin dialogs are portaled to <body>, so we scope
-   via body[data-admin-active="true"] which AdminLayout sets.
+   CLOUD WHITE — DIALOGS / SHEETS / DRAWERS
+   (Admin-scoped via body[data-admin-active]; portaled to body)
    ============================================ */
 body[data-admin-active="true"] [role="dialog"],
-body[data-admin-active="true"] [role="alertdialog"] {
-  --background: 230 15% 6%;
-  --foreground: 210 40% 96%;
-  --card: 230 14% 8%;
-  --card-foreground: 210 40% 96%;
-  --popover: 230 14% 8%;
-  --popover-foreground: 210 40% 96%;
-  --muted: 230 12% 12%;
-  --muted-foreground: 215 20% 55%;
-  --accent: 230 12% 14%;
-  --accent-foreground: 210 40% 96%;
-  --border: 225 15% 16%;
-  --input: 225 15% 16%;
+body[data-admin-active="true"] [role="alertdialog"],
+.admin-content [role="dialog"],
+.admin-content [role="alertdialog"],
+.admin-content [class*="DialogContent"],
+.admin-content [class*="SheetContent"] {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 217 91% 60%;
+  --accent-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
 
-  background: hsl(230 14% 8%) !important;
-  border: 1px solid hsl(225 15% 18%) !important;
-  color: hsl(210 40% 96%) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 24px 48px -16px rgba(15,23,42,0.18) !important;
 }
 
+body[data-admin-active="true"] [role="dialog"] h1,
 body[data-admin-active="true"] [role="dialog"] h2,
 body[data-admin-active="true"] [role="dialog"] h3,
+body[data-admin-active="true"] [role="dialog"] h4,
 body[data-admin-active="true"] [role="dialog"] [class*="DialogTitle"],
+body[data-admin-active="true"] [role="alertdialog"] h1,
 body[data-admin-active="true"] [role="alertdialog"] h2,
 body[data-admin-active="true"] [role="alertdialog"] h3,
-body[data-admin-active="true"] [role="alertdialog"] [class*="DialogTitle"] {
-  color: hsl(210 40% 97%) !important;
+body[data-admin-active="true"] [role="alertdialog"] [class*="DialogTitle"],
+.admin-content [class*="DialogHeader"] h2,
+.admin-content [class*="DialogTitle"],
+.admin-content [class*="SheetTitle"] {
+  color: #0F172A !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [class*="DialogDescription"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="DialogDescription"] {
-  color: hsl(215 20% 58%) !important;
+body[data-admin-active="true"] [role="alertdialog"] [class*="DialogDescription"],
+.admin-content [class*="DialogDescription"],
+.admin-content [class*="SheetDescription"] {
+  color: #64748B !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] label,
 body[data-admin-active="true"] [role="alertdialog"] label {
-  color: hsl(215 20% 82%) !important;
+  color: #334155 !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] input,
@@ -3025,139 +3033,106 @@ body[data-admin-active="true"] [role="dialog"] select,
 body[data-admin-active="true"] [role="alertdialog"] input,
 body[data-admin-active="true"] [role="alertdialog"] textarea,
 body[data-admin-active="true"] [role="alertdialog"] select {
-  background: hsl(230 14% 7%) !important;
-  border-color: hsl(225 15% 20%) !important;
-  color: hsl(210 40% 96%) !important;
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] input::placeholder,
 body[data-admin-active="true"] [role="dialog"] textarea::placeholder,
 body[data-admin-active="true"] [role="alertdialog"] input::placeholder,
 body[data-admin-active="true"] [role="alertdialog"] textarea::placeholder {
-  color: hsl(215 15% 40%) !important;
+  color: #94A3B8 !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] button[class*="absolute"][class*="right"],
 body[data-admin-active="true"] [role="alertdialog"] button[class*="absolute"][class*="right"] {
-  color: hsl(215 20% 55%) !important;
+  color: #475569 !important;
 }
-
 body[data-admin-active="true"] [role="dialog"] button[class*="absolute"][class*="right"]:hover,
 body[data-admin-active="true"] [role="alertdialog"] button[class*="absolute"][class*="right"]:hover {
-  color: hsl(210 40% 96%) !important;
+  color: #0F172A !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] button[class*="outline"],
 body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"] {
-  border-color: hsl(225 15% 25%) !important;
-  color: hsl(215 20% 85%) !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+  background: #FFFFFF !important;
 }
-
 body[data-admin-active="true"] [role="dialog"] button[class*="outline"]:hover,
 body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"]:hover {
-  background: hsl(230 12% 14%) !important;
+  background: #F1F5F9 !important;
 }
 
 body[data-admin-active="true"] [role="dialog"][class*="bg-white"],
 body[data-admin-active="true"] [role="alertdialog"][class*="bg-white"] {
-  background: hsl(230 14% 8%) !important;
+  background: #FFFFFF !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [role="checkbox"],
 body[data-admin-active="true"] [role="dialog"] [role="switch"],
 body[data-admin-active="true"] [role="alertdialog"] [role="checkbox"],
 body[data-admin-active="true"] [role="alertdialog"] [role="switch"] {
-  border-color: hsl(225 15% 25%) !important;
-  background: hsl(230 14% 10%) !important;
+  border-color: #CBD5E1 !important;
+  background: #FFFFFF !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [role="checkbox"][data-state="checked"],
 body[data-admin-active="true"] [role="dialog"] [role="switch"][data-state="checked"],
 body[data-admin-active="true"] [role="alertdialog"] [role="checkbox"][data-state="checked"],
 body[data-admin-active="true"] [role="alertdialog"] [role="switch"][data-state="checked"] {
-  background: hsl(262 80% 58%) !important;
-  border-color: hsl(262 80% 58%) !important;
-}
-
-body[data-admin-active="true"] [role="dialog"] [class*="Collapsible"],
-body[data-admin-active="true"] [role="dialog"] [class*="border rounded"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="Collapsible"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="border rounded"] {
-  border-color: hsl(225 15% 18%) !important;
+  background: #3B82F6 !important;
+  border-color: #3B82F6 !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [class*="text-muted"],
 body[data-admin-active="true"] [role="alertdialog"] [class*="text-muted"] {
-  color: hsl(215 20% 55%) !important;
+  color: #64748B !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [class*="Badge"][class*="outline"],
 body[data-admin-active="true"] [role="alertdialog"] [class*="Badge"][class*="outline"] {
-  border-color: hsl(225 15% 25%) !important;
-  color: hsl(215 20% 82%) !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+  background: #FFFFFF !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [class*="hover:bg-accent"]:hover,
 body[data-admin-active="true"] [role="alertdialog"] [class*="hover:bg-accent"]:hover {
-  background: hsl(230 12% 14%) !important;
+  background: #EFF6FF !important;
 }
 
 body[data-admin-active="true"] [role="dialog"] [role="tablist"],
 body[data-admin-active="true"] [role="alertdialog"] [role="tablist"] {
-  background: hsl(230 14% 8%) !important;
-  border-color: hsl(225 15% 16%) !important;
+  background: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
 }
-
 body[data-admin-active="true"] [role="dialog"] [role="tab"],
 body[data-admin-active="true"] [role="alertdialog"] [role="tab"] {
-  color: hsl(215 20% 55%) !important;
+  color: #475569 !important;
 }
-
 body[data-admin-active="true"] [role="dialog"] [role="tab"][data-state="active"],
 body[data-admin-active="true"] [role="alertdialog"] [role="tab"][data-state="active"] {
-  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
-  color: white !important;
+  background: #3B82F6 !important;
+  color: #FFFFFF !important;
 }
 
-body[data-admin-active="true"] [role="dialog"] [class*="bg-green-"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="bg-green-"] {
-  color: white !important;
-}
-
-body[data-admin-active="true"] [role="dialog"] [class*="bg-red-"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="bg-red-"] {
-  color: white !important;
-}
-
-body[data-admin-active="true"] [role="dialog"] [class*="bg-blue-"],
-body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
-  color: white !important;
-}
-
-.admin-content [role="dialog"],
-.admin-content [role="alertdialog"],
-.admin-content [class*="DialogContent"],
-.admin-content [class*="SheetContent"] {
-  background: hsl(230 14% 8%) !important;
-  border: 1px solid hsl(225 15% 18%) !important;
-  color: hsl(210 40% 96%) !important;
-}
-
-.admin-content [class*="DialogHeader"] h2,
-.admin-content [class*="DialogTitle"],
-.admin-content [class*="SheetTitle"] {
-  color: hsl(210 40% 97%) !important;
-}
-
-.admin-content [class*="DialogDescription"],
-.admin-content [class*="SheetDescription"] {
-  color: hsl(215 20% 58%) !important;
+/* Status pills inside dialogs keep their semantic color background, white text */
+body[data-admin-active="true"] [role="dialog"] [class*="bg-green-5"],
+body[data-admin-active="true"] [role="dialog"] [class*="bg-green-6"],
+body[data-admin-active="true"] [role="dialog"] [class*="bg-red-5"],
+body[data-admin-active="true"] [role="dialog"] [class*="bg-red-6"],
+body[data-admin-active="true"] [role="dialog"] [class*="bg-blue-5"],
+body[data-admin-active="true"] [role="dialog"] [class*="bg-blue-6"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-green-5"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-red-5"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-5"] {
+  color: #FFFFFF !important;
 }
 
 /* ============================================
-   LIGHT DRAWER OPT-OUT
-   Scoped reset for user-facing light-themed Vaul drawers (not admin).
-   Add `data-light-drawer` attribute to opt out of the global dark dialog theme above.
+   LIGHT DRAWER OPT-OUT (unchanged contract)
    ============================================ */
 [role="dialog"][data-light-drawer],
 [data-light-drawer] {
@@ -3178,43 +3153,43 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
 }
 
 /* ============================================
-   BADGE
+   CLOUD WHITE — BADGES
    ============================================ */
 .admin-content .badge,
 .admin-content [class*="Badge"] {
-  border: 1px solid hsl(225 15% 22%);
+  border: 1px solid #CBD5E1;
+  color: #0F172A !important;
+  background: #F8FAFC;
   font-weight: 600;
 }
 
 /* ============================================
-   SWITCH
+   CLOUD WHITE — SWITCH
    ============================================ */
 .admin-content [role="switch"] {
-  background: hsl(230 12% 16%) !important;
-  border: 1px solid hsl(225 15% 22%) !important;
+  background: #E2E8F0 !important;
+  border: 1px solid #CBD5E1 !important;
 }
-
 .admin-content [role="switch"][data-state="checked"] {
-  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
+  background: #3B82F6 !important;
+  border-color: #3B82F6 !important;
 }
 
 /* ============================================
-   SCROLL AREA
+   CLOUD WHITE — SCROLL AREA
    ============================================ */
 .admin-content [data-radix-scroll-area-viewport] {
   background: transparent !important;
 }
-
 .admin-content [data-radix-scroll-area-scrollbar] {
-  background: hsl(230 12% 12%) !important;
+  background: #F1F5F9 !important;
 }
-
 .admin-content [data-radix-scroll-area-thumb] {
-  background: hsl(225 15% 30%) !important;
+  background: #CBD5E1 !important;
 }
 
 /* ============================================
-   GRADIENT CARDS — preserve colors, white text
+   GRADIENT CARDS — preserve color, force white text
    ============================================ */
 .admin-content [class*="from-blue-500"],
 .admin-content [class*="from-blue-600"],
@@ -3250,133 +3225,8 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
 .admin-content [class*="from-sky-600"],
 .admin-content [class*="from-lime-500"],
 .admin-content [class*="from-lime-600"] {
-  color: white !important;
+  color: #FFFFFF !important;
 }
-
-/* ============================================
-   LIGHT BACKGROUND OVERRIDES → dark
-   ============================================ */
-.admin-content [class*="from-yellow-50"],
-.admin-content [class*="from-red-50"],
-.admin-content [class*="from-orange-50"],
-.admin-content [class*="from-green-50"],
-.admin-content [class*="from-blue-50"],
-.admin-content [class*="from-purple-50"],
-.admin-content [class*="from-pink-50"],
-.admin-content [class*="from-slate-50"],
-.admin-content [class*="from-gray-50"],
-.admin-content [class*="bg-white"],
-.admin-content [class*="bg-slate-50"],
-.admin-content [class*="bg-gray-50"],
-.admin-content [class*="bg-slate-100"],
-.admin-content [class*="bg-gray-100"] {
-  background: hsl(230 12% 11%) !important;
-  border-color: hsl(225 15% 18%) !important;
-}
-
-.admin-content [class*="from-yellow-50"] *,
-.admin-content [class*="from-red-50"] *,
-.admin-content [class*="from-orange-50"] *,
-.admin-content [class*="from-green-50"] *,
-.admin-content [class*="from-blue-50"] *,
-.admin-content [class*="from-purple-50"] *,
-.admin-content [class*="from-pink-50"] *,
-.admin-content [class*="bg-green-100"] *,
-.admin-content [class*="bg-blue-100"] *,
-.admin-content [class*="bg-red-100"] *,
-.admin-content [class*="bg-yellow-100"] *,
-.admin-content [class*="bg-purple-100"] *,
-.admin-content [class*="bg-pink-100"] *,
-.admin-content [class*="bg-emerald-100"] *,
-.admin-content [class*="bg-white"] *,
-.admin-content [class*="bg-slate-50"] *,
-.admin-content [class*="bg-gray-50"] *,
-.admin-content [class*="bg-slate-100"] *,
-.admin-content [class*="bg-amber-100"] *,
-.admin-content [class*="bg-amber-50"] *,
-.admin-content [class*="bg-rose-100"] * {
-  color: hsl(210 40% 96%) !important;
-}
-
-/* ============================================
-   DARK TEXT ON DARK BG FIX
-   ============================================ */
-.admin-content [class*="text-slate-600"],
-.admin-content [class*="text-slate-700"],
-.admin-content [class*="text-slate-800"],
-.admin-content [class*="text-slate-900"],
-.admin-content [class*="text-gray-600"],
-.admin-content [class*="text-gray-700"],
-.admin-content [class*="text-gray-800"],
-.admin-content [class*="text-gray-900"],
-.admin-content [class*="text-zinc-600"],
-.admin-content [class*="text-zinc-700"],
-.admin-content [class*="text-zinc-800"],
-.admin-content [class*="text-neutral-600"],
-.admin-content [class*="text-neutral-700"],
-.admin-content [class*="text-neutral-800"] {
-  color: hsl(215 25% 82%) !important;
-}
-
-/* Dark colored text in badges → brighten */
-.admin-content [class*="text-green-700"],
-.admin-content [class*="text-green-800"],
-.admin-content [class*="text-blue-700"],
-.admin-content [class*="text-blue-800"],
-.admin-content [class*="text-red-700"],
-.admin-content [class*="text-red-800"],
-.admin-content [class*="text-amber-700"],
-.admin-content [class*="text-amber-800"],
-.admin-content [class*="text-purple-700"],
-.admin-content [class*="text-purple-800"],
-.admin-content [class*="text-pink-700"],
-.admin-content [class*="text-pink-800"],
-.admin-content [class*="text-orange-700"],
-.admin-content [class*="text-orange-800"],
-.admin-content [class*="text-yellow-700"],
-.admin-content [class*="text-yellow-800"],
-.admin-content [class*="text-cyan-700"],
-.admin-content [class*="text-emerald-700"],
-.admin-content [class*="text-emerald-800"],
-.admin-content [class*="text-rose-700"],
-.admin-content [class*="text-violet-700"],
-.admin-content [class*="text-indigo-700"],
-.admin-content [class*="text-teal-700"] {
-  filter: brightness(1.5) !important;
-}
-
-/* Border color fixes */
-.admin-content [class*="border-slate-200"],
-.admin-content [class*="border-slate-300"],
-.admin-content [class*="border-gray-200"],
-.admin-content [class*="border-gray-300"],
-.admin-content [class*="border-green-200"],
-.admin-content [class*="border-blue-200"],
-.admin-content [class*="border-red-200"],
-.admin-content [class*="border-amber-200"],
-.admin-content [class*="border-purple-200"],
-.admin-content [class*="border-pink-200"],
-.admin-content [class*="border-orange-200"],
-.admin-content [class*="border-yellow-200"] {
-  border-color: hsl(225 15% 22%) !important;
-}
-
-/* ============================================
-   PRESERVE SEMANTIC COLORED TEXT
-   ============================================ */
-.admin-content [class*="text-yellow-700"],
-.admin-content [class*="text-red-700"],
-.admin-content [class*="text-orange-700"],
-.admin-content [class*="text-green-700"],
-.admin-content [class*="text-emerald-700"],
-.admin-content [class*="text-blue-700"],
-.admin-content [class*="text-purple-700"],
-.admin-content [class*="text-pink-700"],
-.admin-content [class*="text-cyan-700"] {
-  filter: brightness(1.4) !important;
-}
-
-/* Gradient card children text → white */
 .admin-content [class*="from-blue-500"] *,
 .admin-content [class*="from-pink-500"] *,
 .admin-content [class*="from-purple-500"] *,
@@ -3394,39 +3244,144 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
 .admin-content [class*="from-violet-500"] *,
 .admin-content [class*="from-sky-500"] *,
 .admin-content [class*="from-lime-500"] * {
-  color: white !important;
+  color: #FFFFFF !important;
 }
 
 /* ============================================
-   RECHARTS
+   LIGHT TINTED SURFACES — keep light, force dark text
+   (replaces old rules that forced everything to dark slate)
+   ============================================ */
+.admin-content [class*="from-yellow-50"],
+.admin-content [class*="from-red-50"],
+.admin-content [class*="from-orange-50"],
+.admin-content [class*="from-green-50"],
+.admin-content [class*="from-blue-50"],
+.admin-content [class*="from-purple-50"],
+.admin-content [class*="from-pink-50"],
+.admin-content [class*="from-slate-50"],
+.admin-content [class*="from-gray-50"],
+.admin-content [class*="bg-white"],
+.admin-content [class*="bg-slate-50"],
+.admin-content [class*="bg-gray-50"],
+.admin-content [class*="bg-slate-100"],
+.admin-content [class*="bg-gray-100"] {
+  color: #0F172A !important;
+}
+.admin-content [class*="from-yellow-50"] *,
+.admin-content [class*="from-red-50"] *,
+.admin-content [class*="from-orange-50"] *,
+.admin-content [class*="from-green-50"] *,
+.admin-content [class*="from-blue-50"] *,
+.admin-content [class*="from-purple-50"] *,
+.admin-content [class*="from-pink-50"] *,
+.admin-content [class*="bg-green-100"],
+.admin-content [class*="bg-blue-100"],
+.admin-content [class*="bg-red-100"],
+.admin-content [class*="bg-yellow-100"],
+.admin-content [class*="bg-purple-100"],
+.admin-content [class*="bg-pink-100"],
+.admin-content [class*="bg-emerald-100"],
+.admin-content [class*="bg-amber-100"],
+.admin-content [class*="bg-amber-50"],
+.admin-content [class*="bg-rose-100"] {
+  color: #0F172A !important;
+}
+
+/* ============================================
+   DARK SLATE TEXT UTILITIES — keep them dark on white
+   (prevents the old "brightness/invert" rules from washing them out)
+   ============================================ */
+.admin-content [class*="text-slate-600"],
+.admin-content [class*="text-slate-700"],
+.admin-content [class*="text-slate-800"],
+.admin-content [class*="text-slate-900"],
+.admin-content [class*="text-gray-600"],
+.admin-content [class*="text-gray-700"],
+.admin-content [class*="text-gray-800"],
+.admin-content [class*="text-gray-900"],
+.admin-content [class*="text-zinc-600"],
+.admin-content [class*="text-zinc-700"],
+.admin-content [class*="text-zinc-800"],
+.admin-content [class*="text-neutral-600"],
+.admin-content [class*="text-neutral-700"],
+.admin-content [class*="text-neutral-800"] {
+  color: #1E293B !important;
+}
+
+/* Semantic dark color text → readable AA contrast on white */
+.admin-content [class*="text-green-700"],
+.admin-content [class*="text-green-800"],
+.admin-content [class*="text-emerald-700"],
+.admin-content [class*="text-emerald-800"] { color: #047857 !important; }
+.admin-content [class*="text-blue-700"],
+.admin-content [class*="text-blue-800"],
+.admin-content [class*="text-sky-700"]    { color: #1D4ED8 !important; }
+.admin-content [class*="text-red-700"],
+.admin-content [class*="text-red-800"],
+.admin-content [class*="text-rose-700"]   { color: #B91C1C !important; }
+.admin-content [class*="text-amber-700"],
+.admin-content [class*="text-amber-800"],
+.admin-content [class*="text-yellow-700"],
+.admin-content [class*="text-yellow-800"],
+.admin-content [class*="text-orange-700"],
+.admin-content [class*="text-orange-800"] { color: #B45309 !important; }
+.admin-content [class*="text-purple-700"],
+.admin-content [class*="text-purple-800"],
+.admin-content [class*="text-violet-700"],
+.admin-content [class*="text-indigo-700"],
+.admin-content [class*="text-fuchsia-700"]{ color: #6D28D9 !important; }
+.admin-content [class*="text-pink-700"],
+.admin-content [class*="text-pink-800"]   { color: #BE185D !important; }
+.admin-content [class*="text-cyan-700"],
+.admin-content [class*="text-teal-700"]   { color: #0E7490 !important; }
+
+/* Border color fixes — keep soft slate */
+.admin-content [class*="border-slate-200"],
+.admin-content [class*="border-slate-300"],
+.admin-content [class*="border-gray-200"],
+.admin-content [class*="border-gray-300"],
+.admin-content [class*="border-green-200"],
+.admin-content [class*="border-blue-200"],
+.admin-content [class*="border-red-200"],
+.admin-content [class*="border-amber-200"],
+.admin-content [class*="border-purple-200"],
+.admin-content [class*="border-pink-200"],
+.admin-content [class*="border-orange-200"],
+.admin-content [class*="border-yellow-200"] {
+  border-color: #E2E8F0 !important;
+}
+
+/* ============================================
+   CLOUD WHITE — RECHARTS
    ============================================ */
 .admin-content .recharts-wrapper text,
 .admin-content .recharts-cartesian-axis-tick text {
-  fill: hsl(215 20% 65%) !important;
+  fill: #475569 !important;
 }
-
 .admin-content .recharts-legend-item-text {
-  color: hsl(215 20% 75%) !important;
+  color: #334155 !important;
 }
-
 .admin-content .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: hsl(230 14% 10%) !important;
-  border-color: hsl(225 15% 20%) !important;
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 12px 24px -8px rgba(15,23,42,0.18) !important;
 }
-
 .admin-content .recharts-tooltip-label {
-  color: hsl(210 40% 92%) !important;
+  color: #0F172A !important;
 }
-
 .admin-content .recharts-tooltip-item {
-  color: hsl(210 40% 82%) !important;
+  color: #334155 !important;
+}
+.admin-content .recharts-cartesian-grid line {
+  stroke: #E2E8F0 !important;
 }
 
 /* ============================================
-   ADDITIONAL OVERRIDES
+   CLOUD WHITE — MISC SHADCN SURFACES
    ============================================ */
 .admin-content button:not([class*="gradient"]):not([class*="bg-"]) {
-  color: hsl(210 40% 96%);
+  color: #0F172A;
 }
 
 .admin-content [class*="CardContent"] p,
@@ -3437,93 +3392,120 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
 
 .admin-content button[class*="border-slate-200"],
 .admin-content button[class*="border-slate-300"] {
-  border-color: hsl(225 15% 28%) !important;
-  color: hsl(210 40% 92%) !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+  background: #FFFFFF !important;
 }
-
 .admin-content button[class*="border-slate-200"]:hover,
 .admin-content button[class*="border-slate-300"]:hover {
-  background: hsl(230 12% 16%) !important;
-  border-color: hsl(262 60% 50%) !important;
+  background: #F1F5F9 !important;
+  border-color: #3B82F6 !important;
 }
 
 .admin-content [class*="CardDescription"],
 .admin-content .card-description {
-  color: hsl(215 20% 65%) !important;
+  color: #64748B !important;
 }
 
 .admin-content [class*="Separator"],
 .admin-content hr {
-  background: hsl(225 15% 20%) !important;
-  border-color: hsl(225 15% 20%) !important;
+  background: #E2E8F0 !important;
+  border-color: #E2E8F0 !important;
 }
 
 .admin-content [role="alert"],
 .admin-content [class*="Alert"] {
-  background: hsl(230 12% 12%) !important;
-  border-color: hsl(225 15% 22%) !important;
-  color: hsl(210 40% 96%) !important;
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
 }
 
 .admin-content [role="progressbar"],
 .admin-content [class*="Progress"] {
-  background: hsl(230 12% 16%) !important;
+  background: #E2E8F0 !important;
+}
+.admin-content [role="progressbar"] > div,
+.admin-content [class*="Progress"] > div {
+  background: #3B82F6 !important;
 }
 
 .admin-content [role="checkbox"],
 .admin-content [role="radio"] {
-  border-color: hsl(225 15% 30%) !important;
-  background: hsl(230 14% 10%) !important;
+  border-color: #CBD5E1 !important;
+  background: #FFFFFF !important;
 }
-
 .admin-content [role="checkbox"][data-state="checked"],
 .admin-content [role="radio"][data-state="checked"] {
-  background: hsl(262 80% 58%) !important;
-  border-color: hsl(262 80% 58%) !important;
+  background: #3B82F6 !important;
+  border-color: #3B82F6 !important;
 }
 
 .admin-content [role="tooltip"] {
-  background: hsl(230 14% 12%) !important;
-  border: 1px solid hsl(225 15% 22%) !important;
-  color: hsl(210 40% 98%) !important;
+  background: #0F172A !important;
+  border: 1px solid #1E293B !important;
+  color: #FFFFFF !important;
 }
 
 .admin-content [class*="AvatarFallback"] {
-  background: hsl(262 50% 35%) !important;
-  color: white !important;
+  background: #DBEAFE !important;
+  color: #1D4ED8 !important;
 }
 
 .admin-content [class*="Skeleton"] {
-  background: hsl(230 12% 16%) !important;
+  background: #E2E8F0 !important;
 }
 
 .admin-content [class*="AccordionTrigger"],
 .admin-content [class*="AccordionContent"] {
-  border-color: hsl(225 15% 20%) !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
 }
-
 .admin-content [class*="AccordionTrigger"] {
-  color: hsl(210 40% 96%) !important;
+  color: #0F172A !important;
 }
 
 .admin-content [class*="PopoverContent"] {
-  background: hsl(230 14% 10%) !important;
-  border: 1px solid hsl(225 15% 22%) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 12px 32px -12px rgba(15,23,42,0.18) !important;
 }
 
 .admin-content [class*="CommandInput"] {
-  background: hsl(230 14% 10%) !important;
-  border-color: hsl(225 15% 22%) !important;
-  color: hsl(210 40% 98%) !important;
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
 }
-
 .admin-content [class*="CommandItem"] {
-  color: hsl(210 40% 96%) !important;
+  color: #0F172A !important;
 }
-
 .admin-content [class*="CommandItem"]:hover,
 .admin-content [class*="CommandItem"][data-highlighted] {
-  background: hsl(262 50% 28%) !important;
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+}
+
+/* ============================================
+   FINAL CONTRAST GUARDS — prevent same-color text/bg
+   (kills white-on-white & black-on-black across all admin pages)
+   ============================================ */
+.admin-content .text-white {
+  color: #FFFFFF !important;
+}
+/* If a child has text-white but no colored ancestor background, fall back to slate ink */
+.admin-content :not([class*="bg-"]):not([class*="from-"]) > .text-white,
+.admin-content [class*="bg-white"] .text-white,
+.admin-content [class*="bg-slate-50"] .text-white,
+.admin-content [class*="bg-slate-100"] .text-white,
+.admin-content [class*="bg-gray-50"] .text-white,
+.admin-content [class*="bg-gray-100"] .text-white {
+  color: #0F172A !important;
+}
+/* Black-on-white-ish is fine; black-on-dark must lift */
+.admin-content [class*="from-slate-9"] .text-slate-900,
+.admin-content [class*="from-slate-9"] .text-gray-900,
+.admin-content [class*="from-zinc-9"] .text-slate-900 {
+  color: #FFFFFF !important;
 }
 
 /* ============================================================
