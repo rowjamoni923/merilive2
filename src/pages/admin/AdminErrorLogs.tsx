@@ -48,8 +48,17 @@ import {
   Loader2,
   Wand2,
   Copy,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportToCsv, exportToPdf } from "@/utils/exportLogs";
 
 interface ErrorLog {
   id: string;
