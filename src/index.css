@@ -6273,6 +6273,7 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   --ring: 217 91% 60%;
   background: hsl(var(--admin-pro-canvas)) !important;
   color: hsl(var(--admin-pro-text)) !important;
+}
 .admin-pro-shell h1,
 .admin-pro-shell h2,
 .admin-pro-shell h3,
