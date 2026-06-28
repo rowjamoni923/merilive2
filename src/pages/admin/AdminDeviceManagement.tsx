@@ -199,14 +199,14 @@ export default function AdminDeviceManagement() {
 
   if (loading || accessLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="admin-pro-shell admin-content min-h-[60vh] flex items-center justify-center -mx-4 -my-4 sm:-mx-6 sm:-my-6 p-4 md:p-6">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -215,16 +215,16 @@ export default function AdminDeviceManagement() {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/admin')}
-              className="text-white/60 hover:text-white"
+              className="text-slate-900/60 hover:text-slate-900"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <Shield className="w-6 h-6 text-primary" />
                 Device Management
               </h1>
-              <p className="text-white/60 text-sm">
+              <p className="text-slate-900/60 text-sm">
                 Manage devices with access to the admin panel
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function AdminDeviceManagement() {
           <Button
             onClick={loadDevices}
             variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
+            className="border-slate-200 text-slate-900 hover:bg-slate-50"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -247,8 +247,8 @@ export default function AdminDeviceManagement() {
             onClick={() => setFilter('all')}
           >
             <CardContent className="p-4">
-              <div className="text-3xl font-bold text-white">{devices.length}</div>
-              <div className="text-white/60 text-sm">Total Devices</div>
+              <div className="text-3xl font-bold text-slate-900">{devices.length}</div>
+              <div className="text-slate-900/60 text-sm">Total Devices</div>
             </CardContent>
           </Card>
           
@@ -258,7 +258,7 @@ export default function AdminDeviceManagement() {
           >
             <CardContent className="p-4">
               <div className="text-3xl font-bold text-amber-400">{pendingCount}</div>
-              <div className="text-white/60 text-sm">Pending</div>
+              <div className="text-slate-900/60 text-sm">Pending</div>
             </CardContent>
           </Card>
           
@@ -268,7 +268,7 @@ export default function AdminDeviceManagement() {
           >
             <CardContent className="p-4">
               <div className="text-3xl font-bold text-green-400">{approvedCount}</div>
-              <div className="text-white/60 text-sm">Approved</div>
+              <div className="text-slate-900/60 text-sm">Approved</div>
             </CardContent>
           </Card>
           
@@ -278,7 +278,7 @@ export default function AdminDeviceManagement() {
           >
             <CardContent className="p-4">
               <div className="text-3xl font-bold text-red-400">{blockedCount}</div>
-              <div className="text-white/60 text-sm">Blocked</div>
+              <div className="text-slate-900/60 text-sm">Blocked</div>
             </CardContent>
           </Card>
         </div>
@@ -287,10 +287,10 @@ export default function AdminDeviceManagement() {
         <div className="space-y-4">
           <AnimatePresence>
             {filteredDevices.length === 0 ? (
-              <Card className="bg-slate-800/50 border-white/10">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Smartphone className="w-12 h-12 text-white/30 mx-auto mb-3" />
-                  <p className="text-white/60">No devices found</p>
+                  <Smartphone className="w-12 h-12 text-slate-900/30 mx-auto mb-3" />
+                  <p className="text-slate-900/60">No devices found</p>
                 </CardContent>
               </Card>
             ) : (
@@ -302,7 +302,7 @@ export default function AdminDeviceManagement() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="bg-slate-800/50 border-white/10 hover:bg-slate-800 transition-all">
+                  <Card className="bg-slate-50 border-slate-200 hover:bg-slate-50 transition-all">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4">
@@ -318,14 +318,14 @@ export default function AdminDeviceManagement() {
                           {/* Device Info */}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-white font-semibold">
+                              <h3 className="text-slate-900 font-semibold">
                                 {device.device_name || 'Unknown Device'}
                               </h3>
                               {getStatusBadge(device.status)}
                             </div>
                             
                             {/* Admin User */}
-                            <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
+                            <div className="flex items-center gap-2 text-slate-900/60 text-sm mb-2">
                               <User className="w-3.5 h-3.5" />
                               <span>{device.admin_display_name || device.admin_email}</span>
                               <Badge variant="outline" className="text-xs">
@@ -334,7 +334,7 @@ export default function AdminDeviceManagement() {
                             </div>
                             
                             {/* Details */}
-                            <div className="flex flex-wrap gap-4 text-xs text-white/50">
+                            <div className="flex flex-wrap gap-4 text-xs text-slate-900/50">
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 <span>
@@ -358,7 +358,7 @@ export default function AdminDeviceManagement() {
                             </div>
                             
                             {/* Fingerprint */}
-                            <div className="mt-2 text-xs font-mono text-white/30 truncate max-w-xs">
+                            <div className="mt-2 text-xs font-mono text-slate-900/30 truncate max-w-xs">
                               ID: {device.device_fingerprint}
                             </div>
                           </div>
@@ -436,36 +436,36 @@ export default function AdminDeviceManagement() {
         setSelectedDevice(null);
         setActionType(null);
       }}>
-        <AlertDialogContent className="bg-slate-900 border-white/10">
+        <AlertDialogContent className="bg-white border-slate-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
+            <AlertDialogTitle className="text-slate-900">
               {actionType === 'approve' && 'Approve Device'}
               {actionType === 'block' && 'Block Device'}
               {actionType === 'delete' && 'Delete Device'}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogDescription className="text-slate-900/60">
               {actionType === 'approve' && (
                 <>
-                  Approving <strong className="text-white">{selectedDevice?.device_name}</strong> will grant{' '}
-                  <strong className="text-white">{selectedDevice?.admin_display_name || selectedDevice?.admin_email}</strong>{' '}
+                  Approving <strong className="text-slate-900">{selectedDevice?.device_name}</strong> will grant{' '}
+                  <strong className="text-slate-900">{selectedDevice?.admin_display_name || selectedDevice?.admin_email}</strong>{' '}
                   access to the admin panel from this device.
                 </>
               )}
               {actionType === 'block' && (
                 <>
-                  Blocking <strong className="text-white">{selectedDevice?.device_name}</strong> will revoke admin panel access from this device.
+                  Blocking <strong className="text-slate-900">{selectedDevice?.device_name}</strong> will revoke admin panel access from this device.
                 </>
               )}
               {actionType === 'delete' && (
                 <>
-                  The device record for <strong className="text-white">{selectedDevice?.device_name}</strong> will be permanently deleted.
+                  The device record for <strong className="text-slate-900">{selectedDevice?.device_name}</strong> will be permanently deleted.
                   A new registration will be required upon next login.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+            <AlertDialogCancel className="border-slate-200 text-slate-900 hover:bg-slate-50">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

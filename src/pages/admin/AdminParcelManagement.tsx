@@ -221,7 +221,7 @@ const AdminParcelManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
         <div className="flex items-center gap-3">
@@ -284,7 +284,7 @@ const AdminParcelManagement = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-foreground truncate">{t.name}</h3>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-muted-foreground uppercase">{t.parcel_type}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-50 text-muted-foreground uppercase">{t.parcel_type}</span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{t.description}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -300,13 +300,13 @@ const AdminParcelManagement = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
-                    <button onClick={() => toggleActive(t.id, t.is_active)} className="p-1.5 rounded-lg hover:bg-white/10">
+                    <button onClick={() => toggleActive(t.id, t.is_active)} className="p-1.5 rounded-lg hover:bg-slate-50">
                       {t.is_active ? <Eye className="w-4 h-4 text-emerald-400" /> : <EyeOff className="w-4 h-4 text-red-400" />}
                     </button>
-                    <button onClick={() => { setEditingTemplate(t); setIsNew(false); }} className="p-1.5 rounded-lg hover:bg-white/10">
+                    <button onClick={() => { setEditingTemplate(t); setIsNew(false); }} className="p-1.5 rounded-lg hover:bg-slate-50">
                       <Pencil className="w-4 h-4 text-blue-400" />
                     </button>
-                    <button onClick={() => handleDelete(t.id)} className="p-1.5 rounded-lg hover:bg-white/10">
+                    <button onClick={() => handleDelete(t.id)} className="p-1.5 rounded-lg hover:bg-slate-50">
                       <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   </div>
@@ -320,13 +320,13 @@ const AdminParcelManagement = () => {
       {/* Edit/Create Modal */}
       {editingTemplate && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
-          <div className="w-full max-h-[90vh] overflow-y-auto bg-card rounded-t-3xl border-t border-white/10 p-6">
+          <div className="w-full max-h-[90vh] overflow-y-auto bg-card rounded-t-3xl border-t border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-foreground">
                 {isNew ? 'Create Parcel Template' : 'Edit Template'}
               </h2>
               <button onClick={() => setEditingTemplate(null)}>
-                <X className="w-5 h-5 text-white/40" />
+                <X className="w-5 h-5 text-slate-900/40" />
               </button>
             </div>
 

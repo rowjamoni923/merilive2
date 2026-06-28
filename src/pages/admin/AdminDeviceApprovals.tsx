@@ -123,22 +123,22 @@ export default function AdminDeviceApprovals() {
   const blocked = devices.filter(d => d.status === 'rejected' || d.status === 'revoked');
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Shield className="w-6 h-6 text-violet-400" />
             Device Approvals
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Approve sub-admin devices to grant admin panel access</p>
+          <p className="text-sm text-slate-600 mt-1">Approve sub-admin devices to grant admin panel access</p>
         </div>
-        <Button onClick={load} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-white">
+        <Button onClick={load} variant="outline" size="sm" className="bg-slate-50 border-slate-200 text-slate-900">
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </Button>
       </div>
 
       {/* Pending */}
-      <Card className="bg-slate-900/50 border-amber-500/20">
+      <Card className="bg-white border-amber-500/20">
         <CardHeader>
           <CardTitle className="text-amber-400 flex items-center gap-2">
             <Clock className="w-5 h-5" /> Pending ({pending.length})
@@ -151,16 +151,16 @@ export default function AdminDeviceApprovals() {
           ) : (
             <div className="space-y-3">
               {pending.map(d => (
-                <div key={d.id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-amber-500/20">
+                <div key={d.id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-amber-500/20">
                   <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
                     <Smartphone className="w-6 h-6 text-amber-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-white">{d.admin_display_name || d.admin_email}</p>
+                      <p className="font-medium text-slate-900">{d.admin_display_name || d.admin_email}</p>
                       <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-400">{d.admin_role}</Badge>
                     </div>
-                    <p className="text-sm text-slate-400">{d.admin_email}</p>
+                    <p className="text-sm text-slate-600">{d.admin_email}</p>
                     <p className="text-xs text-slate-500 mt-1 truncate">📱 {d.device_name || 'Unknown device'}</p>
                     {d.ip_address && <p className="text-xs text-slate-500">🌐 IP: {d.ip_address}</p>}
                     <p className="text-xs text-slate-500">Requested: {format(new Date(d.requested_at), 'MMM d, yyyy HH:mm')}</p>
@@ -181,7 +181,7 @@ export default function AdminDeviceApprovals() {
       </Card>
 
       {/* Approved */}
-      <Card className="bg-slate-900/50 border-emerald-500/20">
+      <Card className="bg-white border-emerald-500/20">
         <CardHeader>
           <CardTitle className="text-emerald-400 flex items-center gap-2">
             <Check className="w-5 h-5" /> Approved ({approved.length})
@@ -194,10 +194,10 @@ export default function AdminDeviceApprovals() {
           ) : (
             <div className="space-y-2">
               {approved.map(d => (
-                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-white/5">
+                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-white/5">
                   <Smartphone className="w-5 h-5 text-emerald-400" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white">{d.admin_display_name || d.admin_email}</p>
+                    <p className="text-sm font-medium text-slate-900">{d.admin_display_name || d.admin_email}</p>
                     <p className="text-xs text-slate-500 truncate">{d.device_name} · {d.admin_email}</p>
                     {d.last_used_at && <p className="text-xs text-slate-500">Last active: {format(new Date(d.last_used_at), 'MMM d HH:mm')}</p>}
                   </div>
@@ -215,7 +215,7 @@ export default function AdminDeviceApprovals() {
 
       {/* Blocked */}
       {blocked.length > 0 && (
-        <Card className="bg-slate-900/50 border-red-500/20">
+        <Card className="bg-white border-red-500/20">
           <CardHeader>
             <CardTitle className="text-red-400 flex items-center gap-2">
               <X className="w-5 h-5" /> Rejected / Revoked ({blocked.length})
@@ -224,10 +224,10 @@ export default function AdminDeviceApprovals() {
           <CardContent>
             <div className="space-y-2">
               {blocked.map(d => (
-                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-white/5">
+                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-white/5">
                   <Smartphone className="w-5 h-5 text-red-400" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white">{d.admin_display_name || d.admin_email}</p>
+                    <p className="text-sm font-medium text-slate-900">{d.admin_display_name || d.admin_email}</p>
                     <p className="text-xs text-slate-500 truncate">{d.device_name} · {d.status}</p>
                   </div>
                   <Button onClick={() => approve(d.id)} disabled={actioning === d.id} size="sm" variant="outline" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">

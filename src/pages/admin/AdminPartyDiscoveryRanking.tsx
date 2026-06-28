@@ -198,7 +198,7 @@ const AdminPartyDiscoveryRanking = () => {
   };
 
   return (
-    <div className="space-y-6 admin-content">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <AdminPageHeader
         title="Party Discovery Ranking"
         subtitle="Control participant weight, recency, growth and peak-hour boosts for the party room discovery feed"

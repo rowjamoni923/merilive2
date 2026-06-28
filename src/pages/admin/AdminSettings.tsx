@@ -210,7 +210,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+    <div className="admin-pro-shell admin-content space-y-4 sm:space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6 bg-gradient-to-r from-slate-50 via-purple-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200">
         <div>

@@ -63,7 +63,7 @@ const AdminAppSettingsHub = () => {
   useAdminRealtime(["app_version_settings", "notification_templates", "app_settings"], () => fetchStats());
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <AdminPageHeader
         title="App Settings Hub"
         subtitle="All app configurations in one luxury control panel"
