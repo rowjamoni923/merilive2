@@ -88,6 +88,25 @@ Already PersistentCameraSurface + prejoin preview আছে। যোগ:
 
 ---
 
+# Admin User System contrast hardening (2026-06-28)
+
+Research / professional standard:
+- Ant Design contrast guidance: dashboard controls must separate foreground/background clearly and avoid low-contrast inactive states — https://ant-design.antgroup.com/docs/spec/contrast
+- Ant Design Segmented/Tabs patterns keep active state visually double-coded through filled surface + text contrast — https://ant.design/components/segmented/ and https://ant.design/components/tabs/
+- Material tabs accessibility guidance: selected/inactive tab states must remain perceivable with clear text contrast and state indication — https://m3.material.io/components/tabs/guidelines
+
+Verified current gap:
+- User System pages were globally re-skinned to light surfaces, but many old dark-theme classes remained (`bg-slate-900`, `bg-slate-800`, `text-slate-200`, `text-white`).
+- On User Hub / User Management tab bars, inactive filter pills became dark pills with dark text, making labels almost invisible.
+- Same risk existed across User System pages: Host Applications, All Users, All Hosts, Host Search, Block List, Live Bans, Permanent Ban, Face Violations, User Reports, Online Users, Country Distribution.
+
+Patch scope:
+- Add a single `.admin-pro-shell` CSS safety layer for high-contrast tabs, segmented filters, select triggers, action buttons, badges, and tables.
+- Use semantic admin CSS variables in HSL form inside `index.css`; no component-level custom color expansion.
+- Keep business logic untouched.
+
+---
+
 # Phase 8 — App-wide instant taps + instant page commit (2026-06-26)
 
 Research / professional standard:
