@@ -389,7 +389,7 @@ const AdminLeaderboardManagement = () => {
                     placeholder="https://icon-url..."
                     value={(iconUrls[entry.key] || '').replace(/^"|"$/g, '')}
                     onChange={(e) => setIconUrls(prev => ({ ...prev, [entry.key]: e.target.value }))}
-                    className="text-xs bg-white border-slate-200 shadow-sm text-white"
+                    className="text-xs bg-white border-slate-200 shadow-sm text-slate-900"
                   />
 
                   {/* Upload */}
@@ -854,7 +854,7 @@ const RecentDistributions = () => {
           <div key={h.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 text-xs gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-amber-400 font-bold shrink-0">#{h.rank_position}</span>
-              <span className="text-white/90 truncate">{h.display_name}</span>
+              <span className="text-slate-800 truncate">{h.display_name}</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-slate-500">{categoryLabel(h.category)}</span>
