@@ -245,6 +245,41 @@ const AdminFaceVerification = () => {
   const actionInFlightRef = useRef(false);
   const didRunFilterFetchRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
+  const optimisticTerminalRowsRef = useRef<Map<string, Submission>>(new Map());
+
+  const matchesSubmissionQuery = (sub: Submission, rawQuery: string) => {
+    const trimmed = rawQuery.trim();
+    if (!trimmed) return true;
+    const lower = trimmed.toLowerCase();
+    const name = sub.profile?.display_name?.toLowerCase() ?? '';
+    const fullName = sub.full_name?.toLowerCase() ?? '';
+    const uid = sub.profile?.app_uid ?? '';
+    const userId = sub.user_id?.toLowerCase() ?? '';
+    return name.includes(lower) || fullName.includes(lower) || uid.includes(trimmed) || userId.startsWith(lower);
+  };
+
+  const withOptimisticTerminalRows = (rows: Submission[], rawQuery: string) => {
+    const now = Date.now();
+    const merged = new Map(rows.map((row) => [row.id, row]));
+
+    optimisticTerminalRowsRef.current.forEach((row, id) => {
+      const reviewedAt = row.reviewed_at ? new Date(row.reviewed_at).getTime() : now;
+      const ageMs = Number.isFinite(reviewedAt) ? now - reviewedAt : 0;
+      if (ageMs > 120_000) {
+        optimisticTerminalRowsRef.current.delete(id);
+        return;
+      }
+      if (matchesSubmissionQuery(row, rawQuery)) {
+        merged.set(id, { ...(merged.get(id) || row), ...row });
+      }
+    });
+
+    return Array.from(merged.values()).sort((a, b) => {
+      const aTime = new Date(a.reviewed_at || a.created_at).getTime();
+      const bTime = new Date(b.reviewed_at || b.created_at).getTime();
+      return bTime - aTime;
+    });
+  };
 
   const fetchSubmissions = async () => {
     const requestId = ++fetchRequestIdRef.current;
@@ -292,7 +327,7 @@ const AdminFaceVerification = () => {
       }));
 
       if (requestId !== fetchRequestIdRef.current) return;
-      setSubmissions(enriched);
+      setSubmissions(withOptimisticTerminalRows(enriched, q));
       setServerStats(stats);
 
       // Never reuse old face-verification rows: approval state must be DB-fresh.
@@ -347,14 +382,6 @@ const AdminFaceVerification = () => {
     closeModals = true,
   }: SubmissionActionParams) => {
     if (processing || actionInFlightRef.current) return;
-    if (action === 'approve') {
-      const readiness = getFaceSubmissionMediaReadiness(submission);
-      if (!readiness.ready) {
-        toast({ title: 'Cannot approve yet', description: readiness.missing.join(', '), variant: 'destructive' });
-        return;
-      }
-    }
-
     actionInFlightRef.current = true;
     setProcessing(true);
 
@@ -372,19 +399,25 @@ const AdminFaceVerification = () => {
       ? (reason?.trim() || 'Rejected by admin')
       : (reason?.trim() || null);
 
-    // Optimistic: update the row's status in place so it moves to the right
-    // tab (Approved / Rejected) — do NOT delete it, otherwise it vanishes
-    // from every tab until the next refetch.
-    setSubmissions((prev) => prev.map((s) =>
-      s.id === submission.id
-        ? {
-            ...s,
-            status: nextStatus as Submission['status'],
-            status_bucket: nextStatus as Submission['status_bucket'],
-            reviewed_at: new Date().toISOString(),
-          }
-        : s
-    ));
+    const reviewedAt = new Date().toISOString();
+    const optimisticSubmission: Submission = {
+      ...submission,
+      status: nextStatus as Submission['status'],
+      status_bucket: nextStatus as Submission['status_bucket'],
+      reviewed_at: reviewedAt,
+      rejection_reason: action === 'reject' ? resolvedReason : null,
+    };
+
+    // Optimistic: update/add the row immediately so Pending loses it in the
+    // same frame, while Approved/Rejected can show it before the next DB fetch.
+    optimisticTerminalRowsRef.current.set(submission.id, optimisticSubmission);
+    setSubmissions((prev) => {
+      const exists = prev.some((s) => s.id === submission.id);
+      const next = exists
+        ? prev.map((s) => (s.id === submission.id ? optimisticSubmission : s))
+        : [optimisticSubmission, ...prev];
+      return withOptimisticTerminalRows(next, debouncedSearchQuery);
+    });
     setServerStats((prev) => {
       const fromKey = previousBucket;
       const toKey = nextStatus as 'approved' | 'rejected';
@@ -397,7 +430,8 @@ const AdminFaceVerification = () => {
           if (submission.status === 'under_review') {
             next.under_review = Math.max(0, Number(next.under_review || 0) - 1);
           }
-        }
+        } else if (fromKey === 'approved') next.manual_approved = Math.max(0, Number(next.manual_approved || 0) - 1);
+        else if (fromKey === 'rejected') next.manual_rejected = Math.max(0, Number(next.manual_rejected || 0) - 1);
         if (toKey === 'approved') next.manual_approved = Number(next.manual_approved || 0) + 1;
         if (toKey === 'rejected') next.manual_rejected = Number(next.manual_rejected || 0) + 1;
       }
@@ -426,6 +460,7 @@ const AdminFaceVerification = () => {
           description: 'Your decision has been queued for owner approval.',
         });
         // Restore — submission was not actually changed
+        optimisticTerminalRowsRef.current.delete(submission.id);
         setSubmissions(previousSubmissions);
         setServerStats(previousServerStats);
       } else if ((data as any)?.success === false) {
@@ -443,6 +478,7 @@ const AdminFaceVerification = () => {
       invalidateStatusCountsCache('face_verification_submissions');
       fetchSubmissions();
     } catch (error: any) {
+      optimisticTerminalRowsRef.current.delete(submission.id);
       setSubmissions(previousSubmissions);
       setServerStats(previousServerStats);
       toast({ title: 'Error', description: error.message || 'Failed to process', variant: 'destructive' });
