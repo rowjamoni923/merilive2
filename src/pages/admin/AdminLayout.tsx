@@ -3022,12 +3022,12 @@ export default function AdminLayout() {
               <div className="relative" ref={notificationRef}>
                 <Button
                   variant="ghost" size="icon"
-                  className="relative text-slate-400 hover:text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10"
+                  className="relative text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 border border-transparent hover:border-blue-200"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                   {totalUnreadCount > 0 && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-4 sm:min-w-5 h-4 sm:h-5 flex items-center justify-center px-0.5 sm:px-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-[8px] sm:text-[10px] text-white font-bold ring-2 ring-[#06060a]">
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-4 sm:min-w-5 h-4 sm:h-5 flex items-center justify-center px-0.5 sm:px-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full text-[8px] sm:text-[10px] text-white font-bold ring-2 ring-white shadow">
                       {formatBadgeCount(totalUnreadCount)}
                     </motion.span>
                   )}
