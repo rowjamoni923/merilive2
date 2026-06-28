@@ -141,17 +141,17 @@ export default function CountryAdminDashboard() {
 
   if (loading || !ctx) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+      <div className="admin-pro-shell min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-amber-950/30 text-white">
+    <div className="admin-pro-shell min-h-screen bg-white text-slate-900">
       {/* Hero */}
-      <div className="relative overflow-hidden border-b border-amber-500/20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.15),transparent_60%)]" />
+      <div className="relative overflow-hidden border-b border-slate-200">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_60%)]" />
         <div className="relative max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg ring-2 ring-amber-300/40">
