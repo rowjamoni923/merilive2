@@ -229,7 +229,7 @@ export default function AdminRecordings() {
             </h1>
             <p className="text-white/80 text-xs sm:text-sm mt-1">Recordings stored for 15 days</p>
           </div>
-          <Button onClick={fetchRecordings} variant="outline" className="border-white/30 text-white hover:bg-white/20 w-full sm:w-auto">
+          <Button onClick={fetchRecordings} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20 w-full sm:w-auto">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -302,11 +302,11 @@ export default function AdminRecordings() {
                 placeholder="Search by UID or host name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+                className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-white border-slate-200 text-white">
+              <SelectTrigger className="w-full sm:w-48 bg-white border-slate-200 text-slate-900">
                 <Filter className="w-4 h-4 mr-2 text-slate-400" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>

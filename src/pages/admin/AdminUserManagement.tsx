@@ -1670,7 +1670,7 @@ export default function AdminUserManagement() {
                     variant={searchType === "uid" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSearchType("uid")}
-                    className={cn("flex-1 md:flex-none text-xs md:text-sm", searchType === "uid" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-white text-white border-slate-200 hover:bg-slate-50")}
+                    className={cn("flex-1 md:flex-none text-xs md:text-sm", searchType === "uid" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50")}
                   >
                     🆔 UID
                   </Button>

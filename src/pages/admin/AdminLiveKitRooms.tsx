@@ -241,7 +241,7 @@ export default function AdminLiveKitRooms() {
               onClick={fetchRooms}
               variant="outline"
               disabled={loading}
-              className="border-white/30 text-white hover:bg-white/20"
+              className="border-white/30 text-slate-900 hover:bg-white/20"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -309,7 +309,7 @@ export default function AdminLiveKitRooms() {
               placeholder="Search room name / sid / metadata…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -425,7 +425,7 @@ export default function AdminLiveKitRooms() {
           }
         }}
       >
-        <DialogContent className="bg-white border-slate-200 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Radio className="w-5 h-5 text-indigo-400" />
@@ -640,7 +640,7 @@ export default function AdminLiveKitRooms() {
       />
 
       <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
-        <DialogContent className="bg-white border-slate-200 text-white max-w-3xl p-0 overflow-hidden">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-3xl p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4">
             <DialogTitle className="text-sm flex items-center gap-2">
               <EyeOff className="w-4 h-4 text-amber-400" />

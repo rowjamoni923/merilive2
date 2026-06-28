@@ -817,7 +817,7 @@ export default function AdminGifts() {
                     <span className="hidden sm:inline">{cat.name}</span>
                     <Badge 
                       variant="secondary" 
-                      className={`text-[10px] md:text-xs ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}
+                      className={`text-[10px] md:text-xs ${isSelected ? 'bg-white/20 text-slate-900' : 'bg-slate-200 text-slate-600'}`}
                     >
                       {count}
                     </Badge>
@@ -1515,7 +1515,7 @@ export default function AdminGifts() {
             size="icon"
             variant="ghost"
             onClick={() => setFullscreenPreviewGift(null)}
-            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full"
+            className="absolute top-4 right-4 text-slate-900 z-10 bg-white/10 hover:bg-white/20 rounded-full"
           >
             <X className="w-6 h-6" />
           </Button>

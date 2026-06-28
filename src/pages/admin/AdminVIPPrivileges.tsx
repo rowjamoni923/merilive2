@@ -313,7 +313,7 @@ const AdminVIPPrivileges = () => {
                     size="icon"
                     variant="ghost"
                     onClick={() => openEdit(tier)}
-                    className="text-white hover:bg-white/20"
+                    className="text-slate-900 hover:bg-white/20"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -552,7 +552,7 @@ const AdminVIPPrivileges = () => {
                       min={0}
                       value={tierForm.max_kick_tier_level ?? 0}
                       onChange={(e) => setTierForm(prev => ({ ...prev, max_kick_tier_level: parseInt(e.target.value) || 0 }))}
-                      className="bg-white border-slate-200 text-white"
+                      className="bg-white border-slate-200 text-slate-900"
                     />
                   </div>
                 </TabsContent>
@@ -576,7 +576,7 @@ const AdminVIPPrivileges = () => {
                         max={100}
                         value={tierForm.recharge_bonus_percent ?? 0}
                         onChange={(e) => setTierForm(prev => ({ ...prev, recharge_bonus_percent: parseInt(e.target.value) || 0 }))}
-                        className="bg-white border-slate-200 text-white"
+                        className="bg-white border-slate-200 text-slate-900"
                       />
                     </div>
 
@@ -591,7 +591,7 @@ const AdminVIPPrivileges = () => {
                         min={0}
                         value={tierForm.daily_free_diamonds ?? 0}
                         onChange={(e) => setTierForm(prev => ({ ...prev, daily_free_diamonds: parseInt(e.target.value) || 0 }))}
-                        className="bg-white border-slate-200 text-white"
+                        className="bg-white border-slate-200 text-slate-900"
                       />
                     </div>
 
@@ -605,7 +605,7 @@ const AdminVIPPrivileges = () => {
                         min={0}
                         value={tierForm.free_name_changes_per_month ?? 0}
                         onChange={(e) => setTierForm(prev => ({ ...prev, free_name_changes_per_month: parseInt(e.target.value) || 0 }))}
-                        className="bg-white border-slate-200 text-white"
+                        className="bg-white border-slate-200 text-slate-900"
                       />
                     </div>
 
@@ -620,7 +620,7 @@ const AdminVIPPrivileges = () => {
                         max={60}
                         value={tierForm.entry_effect_duration_seconds ?? 5}
                         onChange={(e) => setTierForm(prev => ({ ...prev, entry_effect_duration_seconds: parseInt(e.target.value) || 5 }))}
-                        className="bg-white border-slate-200 text-white"
+                        className="bg-white border-slate-200 text-slate-900"
                       />
                     </div>
                   </div>
@@ -638,7 +638,7 @@ const AdminVIPPrivileges = () => {
                         value={tierForm.username_color || ''}
                         onChange={(e) => setTierForm(prev => ({ ...prev, username_color: e.target.value }))}
                         placeholder="#FFD700"
-                        className="bg-white border-slate-200 text-white flex-1"
+                        className="bg-white border-slate-200 text-slate-900 flex-1"
                       />
                     </div>
                   </div>
@@ -649,7 +649,7 @@ const AdminVIPPrivileges = () => {
                       value={tierForm.profile_background_url || ''}
                       onChange={(e) => setTierForm(prev => ({ ...prev, profile_background_url: e.target.value }))}
                       placeholder="https://..."
-                      className="bg-white border-slate-200 text-white"
+                      className="bg-white border-slate-200 text-slate-900"
                     />
                   </div>
                 </TabsContent>

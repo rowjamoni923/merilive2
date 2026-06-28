@@ -579,7 +579,7 @@ const AdminHelperManagement = () => {
             </h1>
             <p className="text-white/80 text-sm mt-1">Manage all helper-related operations</p>
           </div>
-          <Button variant="outline" onClick={loadData} className="bg-white/20 border-white/30 text-white hover:bg-white/30 self-start md:self-auto">
+          <Button variant="outline" onClick={loadData} className="bg-white/20 border-white/30 text-slate-900 hover:bg-white/30 self-start md:self-auto">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -709,7 +709,7 @@ const AdminHelperManagement = () => {
               <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200 text-white">
+              <SelectContent className="bg-white border-slate-200 text-slate-900">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>

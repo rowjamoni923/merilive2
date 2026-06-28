@@ -596,15 +596,15 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
       <div className="flex-1 grid grid-cols-4 gap-2">
         <div>
           <label className="text-[10px] text-slate-400">Coins</label>
-          {input('reward_coins', 'h-8 bg-white border-slate-200 text-white text-sm')}
+          {input('reward_coins', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-slate-400">💎 Diamonds</label>
-          {input('reward_diamonds', 'h-8 bg-white border-slate-200 text-white text-sm')}
+          {input('reward_diamonds', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-slate-400">Beans</label>
-          {input('reward_beans', 'h-8 bg-white border-slate-200 text-white text-sm')}
+          {input('reward_beans', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-amber-400">🎯 Min Target</label>

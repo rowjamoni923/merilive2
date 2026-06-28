@@ -335,14 +335,14 @@ const AdminPayrollOrders = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/admin/level5-helpers')}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin/level5-helpers')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
             <h1 className="font-bold text-xl text-white">Payroll Orders History</h1>
             <p className="text-white/80 text-sm">Complete payroll order history</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-auto" onClick={fetchOrders}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchOrders}>
             <RefreshCw className="w-5 h-5" />
           </Button>
         </div>

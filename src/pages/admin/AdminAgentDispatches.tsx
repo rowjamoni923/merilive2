@@ -221,7 +221,7 @@ export default function AdminAgentDispatches() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-white hover:bg-white/20">
+            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -268,7 +268,7 @@ export default function AdminAgentDispatches() {
               placeholder="Search room / agent / scope / status…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -349,7 +349,7 @@ export default function AdminAgentDispatches() {
       )}
 
       <Dialog open={showDispatch} onOpenChange={(o) => { setShowDispatch(o); if (!o) resetForm(); }}>
-        <DialogContent className="bg-white border-slate-200 text-white max-w-md">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-cyan-400" />

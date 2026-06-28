@@ -1273,7 +1273,7 @@ const AdminTopupSystem = () => {
                         <Button
                           variant="secondary"
                           size="sm"
-                          className="bg-white/20 hover:bg-white/30 text-white border-0 gap-2 self-start sm:self-auto"
+                          className="bg-white/20 hover:bg-white/30 text-slate-900 border-0 gap-2 self-start sm:self-auto"
                           onClick={() => {
                             setEditingTier({ ...tier });
                             setShowEditTierModal(true);

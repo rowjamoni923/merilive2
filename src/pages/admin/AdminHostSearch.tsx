@@ -200,7 +200,7 @@ export default function AdminHostSearch() {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/admin/agencies")}
-            className="text-white/80 hover:text-white hover:bg-white/20"
+            className="text-slate-900/80 hover:text-slate-900 hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -367,7 +367,7 @@ export default function AdminHostSearch() {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/admin/agencies/${agency.id}`)}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-white/5 border-white/10 text-slate-900"
                     >
                       View Agency
                     </Button>

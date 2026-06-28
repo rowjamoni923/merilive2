@@ -358,7 +358,7 @@ const AdminNobleSubscriptions = () => {
                       <Input
                         value={form.badge_color || ''}
                         onChange={e => setForm(p => ({ ...p, badge_color: e.target.value }))}
-                        className="bg-white border-slate-200 text-white flex-1"
+                        className="bg-white border-slate-200 text-slate-900 flex-1"
                       />
                     </div>
                   </div>
@@ -374,7 +374,7 @@ const AdminNobleSubscriptions = () => {
                       <Input
                         value={form.username_color || ''}
                         onChange={e => setForm(p => ({ ...p, username_color: e.target.value }))}
-                        className="bg-white border-slate-200 text-white flex-1"
+                        className="bg-white border-slate-200 text-slate-900 flex-1"
                       />
                     </div>
                   </div>
@@ -392,7 +392,7 @@ const AdminNobleSubscriptions = () => {
                         value={(form as any)[key] || ''}
                         onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
                         placeholder="https://..."
-                        className="bg-white border-slate-200 text-white"
+                        className="bg-white border-slate-200 text-slate-900"
                       />
                       {(form as any)[key] && (key === 'entrance_animation_url' || key === 'custom_avatar_frame_url' || key === 'custom_chat_bubble_url') && (
                         <div className="mt-2 w-20 h-20 bg-white rounded overflow-hidden">
@@ -449,7 +449,7 @@ const AdminNobleSubscriptions = () => {
                           min={0}
                           value={(form as any)[key] ?? 0}
                           onChange={e => setForm(p => ({ ...p, [key]: parseInt(e.target.value) || 0 }))}
-                          className="bg-white border-slate-200 text-white"
+                          className="bg-white border-slate-200 text-slate-900"
                         />
                       </div>
                     ))}

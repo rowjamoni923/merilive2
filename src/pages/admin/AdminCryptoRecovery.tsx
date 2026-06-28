@@ -169,7 +169,7 @@ const AdminCryptoRecovery = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {stats.map((s) => {
-            const meta = STATUS_META[s.status] || { color: "bg-white/10 text-white/80 border-white/20", icon: Clock, label: s.status };
+            const meta = STATUS_META[s.status] || { color: "bg-white/10 text-slate-900/80 border-white/20", icon: Clock, label: s.status };
             const Icon = meta.icon;
             return (
               <Card key={s.status} className={`border ${meta.color} bg-white/5`}>
@@ -196,11 +196,11 @@ const AdminCryptoRecovery = () => {
                 placeholder="Search by user ID, topup ID, payment ID, or address"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                className="pl-9 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/40"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48 bg-white/5 border-white/10 text-white">
+              <SelectTrigger className="w-full md:w-48 bg-white/5 border-white/10 text-slate-900">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

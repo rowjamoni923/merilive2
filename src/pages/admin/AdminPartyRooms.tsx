@@ -541,7 +541,7 @@ export default function AdminPartyRooms() {
       </Dialog>
 
       <Dialog open={!!watchRoom} onOpenChange={(o) => { if (!o) setWatchRoom(null); }}>
-        <DialogContent className="bg-white border-slate-200 text-white max-w-3xl p-0 overflow-hidden">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-3xl p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4">
             <DialogTitle className="text-sm flex items-center gap-2">
               <EyeOff className="w-4 h-4 text-amber-400" />

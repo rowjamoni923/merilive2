@@ -131,7 +131,7 @@ export default function AdminTrackRecordings() {
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">track_egress</code>.
             </p>
           </div>
-          <Button onClick={fetchRows} variant="outline" className="border-white/30 text-white hover:bg-white/20">
+          <Button onClick={fetchRows} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -167,7 +167,7 @@ export default function AdminTrackRecordings() {
               placeholder="Search room / identity / egress / reason…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>

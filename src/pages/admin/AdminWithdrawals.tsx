@@ -885,7 +885,7 @@ export default function AdminWithdrawals() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-white border-white/10 text-white max-w-xl">
+        <DialogContent className="bg-white border-white/10 text-slate-900 max-w-xl">
           <DialogHeader>
             <DialogTitle>Withdrawal Details</DialogTitle>
           </DialogHeader>
@@ -1068,7 +1068,7 @@ export default function AdminWithdrawals() {
 
       {/* Action Dialog */}
       <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
-        <DialogContent className="bg-white border-white/10 text-white">
+        <DialogContent className="bg-white border-white/10 text-slate-900">
           <DialogHeader>
             <DialogTitle>
               {actionType === 'approve' && 'Approve Withdrawal'}
@@ -1137,7 +1137,7 @@ export default function AdminWithdrawals() {
                 value={actionNotes}
                 onChange={(e) => setActionNotes(e.target.value)}
                 placeholder="Write a note..."
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-slate-900"
               />
             </div>
           </div>

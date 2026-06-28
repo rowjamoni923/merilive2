@@ -509,7 +509,7 @@ export default function AdminStreams() {
             </h1>
             <p className="text-white/80 text-xs sm:text-sm mt-1">Real-time stream observation & recordings</p>
           </div>
-          <Button onClick={fetchStreams} variant="outline" className="border-white/30 text-white hover:bg-white/20 w-full sm:w-auto">
+          <Button onClick={fetchStreams} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20 w-full sm:w-auto">
             <RefreshCw className="w-4 h-4 mr-2" /> Refresh
           </Button>
         </div>

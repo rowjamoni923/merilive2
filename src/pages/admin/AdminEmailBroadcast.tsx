@@ -253,18 +253,18 @@ const AdminEmailBroadcast = () => {
           <div className="space-y-4 mt-4">
             <div>
               <Label className="text-sm font-medium text-white/80">Template Name</Label>
-              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" />
+              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" />
             </div>
             <div>
               <Label className="text-sm font-medium text-white/80">Description</Label>
-              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Internal note" />
+              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div>
               <Label className="text-sm font-medium text-white/80">HTML Content</Label>
-              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-white font-mono text-xs" />
+              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-slate-900 font-mono text-xs" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={saving || !editForm.title || !editForm.body} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save
               </Button>
@@ -285,18 +285,18 @@ const AdminEmailBroadcast = () => {
           <div className="space-y-4 mt-4">
             <div>
               <Label className="text-sm font-medium text-white/80">Template Name *</Label>
-              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="e.g. 📢 General Announcement" />
+              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="e.g. 📢 General Announcement" />
             </div>
             <div>
               <Label className="text-sm font-medium text-white/80">Description</Label>
-              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Internal note" />
+              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div>
               <Label className="text-sm font-medium text-white/80">HTML Content *</Label>
-              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-white font-mono text-xs" placeholder="Paste HTML email content..." />
+              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-slate-900 font-mono text-xs" placeholder="Paste HTML email content..." />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleAddTemplate} disabled={saving || !addForm.title || !addForm.body} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} Add Template
               </Button>

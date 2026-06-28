@@ -422,7 +422,7 @@ const AdminNotificationTemplates = () => {
                     className={`px-3 py-1.5 text-[11px] rounded-lg border transition ${
                       aiSizeKey === s.key
                         ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
-                        : 'bg-white/[0.04] border-white/15 text-white/70 hover:bg-white/[0.08]'
+                        : 'bg-white/[0.04] border-white/15 text-slate-900/70 hover:bg-white/[0.08]'
                     }`}
                   >
                     {s.label}

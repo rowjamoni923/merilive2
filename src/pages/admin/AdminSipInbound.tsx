@@ -188,7 +188,7 @@ export default function AdminSipInbound() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-white hover:bg-white/20">
+            <Button onClick={fetchRows} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -229,7 +229,7 @@ export default function AdminSipInbound() {
               placeholder="Search name / room / phone number…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>

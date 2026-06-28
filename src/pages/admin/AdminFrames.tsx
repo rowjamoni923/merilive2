@@ -1039,7 +1039,7 @@ const AdminFrames = () => {
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewFrame(null)}>
           <button
             onClick={() => setFullscreenPreviewFrame(null)}
-            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full p-2"
+            className="absolute top-4 right-4 text-slate-900 z-10 bg-white/10 hover:bg-white/20 rounded-full p-2"
           >
             ✕
           </button>

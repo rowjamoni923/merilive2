@@ -204,7 +204,7 @@ export default function AdminLiveKitEgress() {
             <Button
               onClick={() => setActiveOnly((v) => !v)}
               variant="outline"
-              className="border-white/30 text-white hover:bg-white/20"
+              className="border-white/30 text-slate-900 hover:bg-white/20"
             >
               {activeOnly ? "Show all" : "Active only"}
             </Button>
@@ -212,7 +212,7 @@ export default function AdminLiveKitEgress() {
               onClick={fetchList}
               variant="outline"
               disabled={loading}
-              className="border-white/30 text-white hover:bg-white/20"
+              className="border-white/30 text-slate-900 hover:bg-white/20"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -272,7 +272,7 @@ export default function AdminLiveKitEgress() {
               placeholder="Search egress id / room / status…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>
@@ -362,7 +362,7 @@ export default function AdminLiveKitEgress() {
           if (!o) setDetail(null);
         }}
       >
-        <DialogContent className="bg-white border-slate-200 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Film className="w-5 h-5 text-rose-400" />
@@ -483,10 +483,10 @@ export default function AdminLiveKitEgress() {
                       value={layoutChoice}
                       onValueChange={(v) => setLayoutChoice(v as LiveKitEgressLayout)}
                     >
-                      <SelectTrigger className="bg-white border-slate-200 text-white text-xs h-9">
+                      <SelectTrigger className="bg-white border-slate-200 text-slate-900 text-xs h-9">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-white">
+                      <SelectContent className="bg-white border-slate-200 text-slate-900">
                         {LAYOUTS.map((l) => (
                           <SelectItem key={l} value={l}>
                             {l}

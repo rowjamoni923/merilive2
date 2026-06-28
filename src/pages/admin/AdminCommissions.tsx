@@ -332,7 +332,7 @@ export default function AdminCommissions() {
                       min={0}
                       value={settings?.call_rates.default_rate || 60}
                       onChange={(e) => handleCallRateChange("default_rate", parseInt(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white text-lg font-bold"
+                      className="bg-white/5 border-white/10 text-slate-900 text-lg font-bold"
                     />
                     <p className="text-xs text-white/50 mt-1">Deducted from user</p>
                   </div>
@@ -347,7 +347,7 @@ export default function AdminCommissions() {
                       max={100}
                       value={100 - (settings?.call_rates.host_commission_percent ?? 50)}
                       onChange={(e) => handleCallRateChange("host_commission_percent", 100 - (parseInt(e.target.value) || 0))}
-                      className="bg-white/5 border-white/10 text-white text-lg font-bold"
+                      className="bg-white/5 border-white/10 text-slate-900 text-lg font-bold"
                     />
                     <p className="text-xs text-white/50 mt-1">Host gets remaining %</p>
                   </div>
@@ -449,7 +449,7 @@ export default function AdminCommissions() {
                       max={100}
                       value={settings?.gift_commission.host_percent || 40}
                       onChange={(e) => handleGiftCommissionChange("host_percent", parseInt(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white mt-2"
+                      className="bg-white/5 border-white/10 text-slate-900 mt-2"
                     />
                   </div>
                   <div className="flex items-center justify-center p-4 bg-white/5 rounded-lg">
@@ -506,7 +506,7 @@ export default function AdminCommissions() {
                     max={50}
                     value={settings?.agency_commission.agency_percent || 2}
                     onChange={(e) => handleAgencyCommissionChange("agency_percent", parseInt(e.target.value) || 0)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">Default 2% for new agencies</p>
                 </div>
@@ -517,7 +517,7 @@ export default function AdminCommissions() {
                     min={0}
                     value={settings?.agency_commission.min_payout || 10000}
                     onChange={(e) => handleAgencyCommissionChange("min_payout", parseInt(e.target.value) || 0)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">Minimum to withdraw</p>
                 </div>
@@ -528,7 +528,7 @@ export default function AdminCommissions() {
                     min={100}
                     value={settings?.agency_commission.coins_to_dollar_rate || 10000}
                     onChange={(e) => handleAgencyCommissionChange("coins_to_dollar_rate", parseInt(e.target.value) || 10000)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">{settings?.agency_commission.coins_to_dollar_rate || 10000} Beans = $1</p>
                 </div>
@@ -593,7 +593,7 @@ export default function AdminCommissions() {
                   <select
                     value={settings?.transfer_schedule?.day || 'sunday'}
                     onChange={(e) => handleTransferScheduleChange('day', e.target.value)}
-                    className="w-full mt-2 h-10 px-3 bg-white/5 border border-white/10 text-white rounded-md"
+                    className="w-full mt-2 h-10 px-3 bg-white/5 border border-white/10 text-slate-900 rounded-md"
                   >
                     <option value="sunday">Sunday</option>
                     <option value="monday">Monday</option>
@@ -610,7 +610,7 @@ export default function AdminCommissions() {
                     type="time"
                     value={settings?.transfer_schedule?.time || '00:00'}
                     onChange={(e) => handleTransferScheduleChange('time', e.target.value)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                 </div>
                 <div className="flex items-end">
@@ -686,7 +686,7 @@ export default function AdminCommissions() {
                     max={12}
                     value={settings?.party_room_defaults.max_video_participants || 4}
                     onChange={(e) => handlePartyDefaultsChange("max_video_participants", parseInt(e.target.value) || 4)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                 </div>
 
@@ -702,7 +702,7 @@ export default function AdminCommissions() {
                     max={20}
                     value={settings?.party_room_defaults.max_audio_participants || 12}
                     onChange={(e) => handlePartyDefaultsChange("max_audio_participants", parseInt(e.target.value) || 12)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                 </div>
 
@@ -718,7 +718,7 @@ export default function AdminCommissions() {
                     max={16}
                     value={settings?.party_room_defaults.max_game_participants || 8}
                     onChange={(e) => handlePartyDefaultsChange("max_game_participants", parseInt(e.target.value) || 8)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                 </div>
               </div>
@@ -732,7 +732,7 @@ export default function AdminCommissions() {
                     min={0}
                     value={settings?.party_room_defaults.default_entry_fee || 0}
                     onChange={(e) => handlePartyDefaultsChange("default_entry_fee", parseInt(e.target.value) || 0)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">0 means free entry</p>
                 </div>
@@ -744,7 +744,7 @@ export default function AdminCommissions() {
                     max={50}
                     value={settings?.party_room_defaults.min_level_required || 0}
                     onChange={(e) => handlePartyDefaultsChange("min_level_required", parseInt(e.target.value) || 0)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">0 means everyone can join</p>
                 </div>
@@ -787,7 +787,7 @@ export default function AdminCommissions() {
                     min={1}
                     value={settings?.coin_exchange.beans_to_diamonds_rate || 100}
                     onChange={(e) => handleDiamondExchangeChange("beans_to_diamonds_rate", parseInt(e.target.value) || 100)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     {settings?.coin_exchange.beans_to_diamonds_rate || 100} Beans = 1 Diamond
@@ -806,7 +806,7 @@ export default function AdminCommissions() {
                     max={50}
                     value={settings?.coin_exchange.exchange_fee_percent || 5}
                     onChange={(e) => handleDiamondExchangeChange("exchange_fee_percent", parseInt(e.target.value) || 5)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     {settings?.coin_exchange.exchange_fee_percent || 5}% deducted during exchange
@@ -824,7 +824,7 @@ export default function AdminCommissions() {
                     min={100}
                     value={settings?.coin_exchange.min_exchange_amount || 1000}
                     onChange={(e) => handleDiamondExchangeChange("min_exchange_amount", parseInt(e.target.value) || 1000)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     Minimum {settings?.coin_exchange.min_exchange_amount || 1000} beans to exchange
@@ -848,7 +848,7 @@ export default function AdminCommissions() {
                     placeholder="e.g. 10000"
                     value={calcBeansInput}
                     onChange={(e) => setCalcBeansInput(parseInt(e.target.value) || 0)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                 </div>
 
@@ -967,7 +967,7 @@ export default function AdminCommissions() {
                     min={1}
                     value={settings?.coin_trader.buy_rate || 9500}
                     onChange={(e) => handleCoinTraderChange("buy_rate", parseInt(e.target.value) || 9500)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     Agency buys from users at this rate
@@ -986,7 +986,7 @@ export default function AdminCommissions() {
                     min={1}
                     value={settings?.coin_trader.sell_rate || 10500}
                     onChange={(e) => handleCoinTraderChange("sell_rate", parseInt(e.target.value) || 10500)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     Agency sells to users at this rate
@@ -1005,7 +1005,7 @@ export default function AdminCommissions() {
                     min={100}
                     value={settings?.coin_trader.min_trade_amount || 1000}
                     onChange={(e) => handleCoinTraderChange("min_trade_amount", parseInt(e.target.value) || 1000)}
-                    className="bg-white/5 border-white/10 text-white mt-2"
+                    className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     Minimum {settings?.coin_trader.min_trade_amount || 1000} beans to trade

@@ -563,7 +563,7 @@ export default function AdminHosts() {
 
       {/* Host Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="bg-white border-white/10 text-white max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
+        <DialogContent className="bg-white border-white/10 text-slate-900 max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Host Details</DialogTitle>
           </DialogHeader>

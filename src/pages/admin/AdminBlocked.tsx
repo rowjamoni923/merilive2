@@ -214,7 +214,7 @@ export default function AdminBlocked() {
               placeholder="Search by name or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/50 border-slate-200 text-white placeholder:text-slate-400 text-sm"
+              className="pl-10 bg-white/50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm"
             />
           </div>
         </CardContent>

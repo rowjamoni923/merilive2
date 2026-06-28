@@ -493,7 +493,7 @@ const AdminNoticeBroadcast = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate('/admin')}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors text-white"
+            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors text-slate-900"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -605,7 +605,7 @@ const AdminNoticeBroadcast = () => {
                     className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
                       aiSize === s.key
                         ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
-                        : 'bg-white/[0.04] border-white/15 text-white/70 hover:bg-white/[0.08]'
+                        : 'bg-white/[0.04] border-white/15 text-slate-900/70 hover:bg-white/[0.08]'
                     }`}
                   >
                     {s.label}
@@ -665,7 +665,7 @@ const AdminNoticeBroadcast = () => {
                             type="button"
                             disabled={aiGenerating || imageUrls.length >= 10}
                             onClick={() => { setAiPrompt(name); generateAiBanner(name); }}
-                            className="px-2 py-1 text-[11px] rounded-md border border-white/15 bg-white/[0.04] hover:bg-amber-400/15 hover:border-amber-300/50 text-white/80 hover:text-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                            className="px-2 py-1 text-[11px] rounded-md border border-white/15 bg-white/[0.04] hover:bg-amber-400/15 hover:border-amber-300/50 text-slate-900/80 hover:text-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
                           >
                             <Sparkles className="w-3 h-3 text-amber-300" />
                             {name}

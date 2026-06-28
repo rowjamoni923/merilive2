@@ -182,7 +182,7 @@ export default function AdminUserReports() {
         <Button
           onClick={() => fetchReports()}
           disabled={loading}
-          className="bg-white/15 hover:bg-white/25 text-white border border-white/30"
+          className="bg-white/15 hover:bg-white/25 text-slate-900 border border-white/30"
           size="sm"
         >
           <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
@@ -220,14 +220,14 @@ export default function AdminUserReports() {
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/50 border-slate-200 text-white text-sm"
+              className="pl-10 bg-white/50 border-slate-200 text-slate-900 text-sm"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-36 bg-white/50 border-slate-200 text-white text-sm">
+            <SelectTrigger className="w-full md:w-36 bg-white/50 border-slate-200 text-slate-900 text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 text-white">
+            <SelectContent className="bg-white border-slate-200 text-slate-900">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="reviewing">Reviewing</SelectItem>
@@ -236,10 +236,10 @@ export default function AdminUserReports() {
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full md:w-44 bg-white/50 border-slate-200 text-white text-sm">
+            <SelectTrigger className="w-full md:w-44 bg-white/50 border-slate-200 text-slate-900 text-sm">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 text-white">
+            <SelectContent className="bg-white border-slate-200 text-slate-900">
               <SelectItem value="all">All Categories</SelectItem>
               {Object.entries(CATEGORY_LABELS).map(([key, val]) => (
                 <SelectItem key={key} value={key}>{val.label}</SelectItem>
@@ -365,7 +365,7 @@ export default function AdminUserReports() {
 
       {/* Report Detail Dialog */}
       <Dialog open={!!selectedReport} onOpenChange={(o) => !o && setSelectedReport(null)}>
-        <DialogContent className="bg-white border-slate-200 text-white max-w-lg">
+        <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Report Details</DialogTitle>
           </DialogHeader>

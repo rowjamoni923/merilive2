@@ -515,7 +515,7 @@ const AdminThemeManager = () => {
                 "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all border",
                 selectedCountry === c.code
                   ? "bg-purple-500/20 border-purple-500/40 text-purple-300"
-                  : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60"
+                  : "bg-white/5 border-white/10 text-slate-900/40 hover:bg-white/10 hover:text-slate-900/60"
               )}
             >
               <span>{c.flag}</span>

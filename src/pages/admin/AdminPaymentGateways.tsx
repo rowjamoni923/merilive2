@@ -616,7 +616,7 @@ const AdminPaymentGateways = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-slate-900 hover:bg-white/20"
             onClick={() => navigate('/admin')}
           >
             <ArrowLeft className="w-5 h-5" />

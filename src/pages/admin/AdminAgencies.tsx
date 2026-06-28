@@ -949,13 +949,13 @@ export default function AdminAgencies() {
               size="sm"
               onClick={fetchAgencies}
               disabled={loading}
-              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              className="bg-white/20 hover:bg-white/30 text-slate-900 border-0"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
             <Button
               onClick={() => setShowCreateAgencyDialog(true)}
-              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              className="bg-white/20 hover:bg-white/30 text-slate-900 border-0"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -1386,7 +1386,7 @@ export default function AdminAgencies() {
                   onClick={recalculateAllLevels}
                   variant="outline"
                   size="sm"
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Recalculate All Levels
@@ -1411,7 +1411,7 @@ export default function AdminAgencies() {
                         <Input
                           value={tier.level_name}
                           onChange={(e) => updateTier(tier.id, "level_name", e.target.value)}
-                          className="bg-white/5 border-white/10 text-white font-medium h-8 w-40"
+                          className="bg-white/5 border-white/10 text-slate-900 font-medium h-8 w-40"
                         />
                         <p className="text-white/50 text-xs mt-1">Level Code: {tier.level_code}</p>
                       </div>
@@ -1431,7 +1431,7 @@ export default function AdminAgencies() {
                           type="number"
                           value={tier.min_weekly_income}
                           onChange={(e) => updateTier(tier.id, "min_weekly_income", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-8 pl-7"
+                          className="bg-white/5 border-white/10 text-slate-900 h-8 pl-7"
                         />
                       </div>
                     </div>
@@ -1443,7 +1443,7 @@ export default function AdminAgencies() {
                           type="number"
                           value={tier.max_weekly_income}
                           onChange={(e) => updateTier(tier.id, "max_weekly_income", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-8 pl-7"
+                          className="bg-white/5 border-white/10 text-slate-900 h-8 pl-7"
                         />
                       </div>
                     </div>
@@ -1454,7 +1454,7 @@ export default function AdminAgencies() {
                         step="0.1"
                         value={tier.commission_rate}
                         onChange={(e) => updateTier(tier.id, "commission_rate", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8"
+                        className="bg-white/5 border-white/10 text-slate-900 h-8"
                       />
                     </div>
                     <div>
@@ -1468,7 +1468,7 @@ export default function AdminAgencies() {
                           value={normalizeAgencyBadgeColor(tier.badge_color, tier.level_code)}
                           onValueChange={(val) => updateTier(tier.id, "badge_color", val)}
                         >
-                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-8">
+                          <SelectTrigger className="bg-white/5 border-white/10 text-slate-900 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1697,7 +1697,7 @@ export default function AdminAgencies() {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/admin/agencies/${hostAgency.id}`)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-white/5 border-white/10 text-slate-900"
                         >
                           View Agency
                         </Button>
@@ -1779,11 +1779,11 @@ export default function AdminAgencies() {
                 placeholder="Search by name or code..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white"
+                className="pl-10 bg-white/5 border-white/10 text-slate-900"
               />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full md:w-48 bg-white/5 border-white/10 text-white">
+              <SelectTrigger className="w-full md:w-48 bg-white/5 border-white/10 text-slate-900">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
@@ -1860,7 +1860,7 @@ export default function AdminAgencies() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="text-white/40 hover:text-white hover:bg-white/10 rounded-xl">
+                        <Button variant="ghost" size="icon" className="text-slate-900/40 hover:text-slate-900 hover:bg-white/10 rounded-xl">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -2062,7 +2062,7 @@ export default function AdminAgencies() {
             size="icon"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => p - 1)}
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-white/5 border-white/10 text-slate-900"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -2074,7 +2074,7 @@ export default function AdminAgencies() {
             size="icon"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(p => p + 1)}
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-white/5 border-white/10 text-slate-900"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -2116,14 +2116,14 @@ export default function AdminAgencies() {
               placeholder="Reason for cancellation (optional)"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             />
           )}
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowCancelDialog(false)}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             >
               Cancel
             </Button>
@@ -2174,7 +2174,7 @@ export default function AdminAgencies() {
             <Button
               variant="outline"
               onClick={() => setShowPayrollDialog(false)}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             >
               Cancel
             </Button>
@@ -2230,7 +2230,7 @@ export default function AdminAgencies() {
                     value={selectedAgency.level || "A1"}
                     onValueChange={(val) => handleUpdateLevel(selectedAgency.id, val)}
                   >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white h-8">
+                    <SelectTrigger className="bg-white/5 border-white/10 text-slate-900 h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -2277,7 +2277,7 @@ export default function AdminAgencies() {
                   value={ownerSearchQuery}
                   onChange={(e) => setOwnerSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleOwnerSearch()}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 />
                 <Button
                   onClick={handleOwnerSearch}
@@ -2320,7 +2320,7 @@ export default function AdminAgencies() {
                 placeholder="Enter agency name..."
                 value={newAgencyName}
                 onChange={(e) => setNewAgencyName(e.target.value)}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-slate-900"
               />
             </div>
 
@@ -2328,7 +2328,7 @@ export default function AdminAgencies() {
               <div className="space-y-2">
                 <Label className="text-white">Level</Label>
                 <Select value={newAgencyLevel} onValueChange={setNewAgencyLevel}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-slate-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -2349,7 +2349,7 @@ export default function AdminAgencies() {
                   max="100"
                   value={newAgencyCommission}
                   onChange={(e) => setNewAgencyCommission(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-slate-900"
                 />
               </div>
             </div>
@@ -2364,7 +2364,7 @@ export default function AdminAgencies() {
                 setOwnerSearchResult(null);
                 setNewAgencyName("");
               }}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-white/10 text-slate-900"
             >
               Cancel
             </Button>

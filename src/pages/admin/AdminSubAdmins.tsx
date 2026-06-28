@@ -461,7 +461,7 @@ const AdminSubAdmins = () => {
 
           <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) resetCreateForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border-0">
+              <Button className="bg-white/20 hover:bg-white/30 text-slate-900 border-0">
                 <UserPlus className="w-4 h-4 mr-2" />
                 New Sub-Admin
               </Button>

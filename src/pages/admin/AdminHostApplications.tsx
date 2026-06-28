@@ -456,7 +456,7 @@ export default function AdminHostApplications() {
               variant="ghost"
               size="icon"
               onClick={() => fetchApplications()}
-              className="text-white hover:bg-white/15 rounded-lg"
+              className="text-slate-900 hover:bg-white/15 rounded-lg"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </Button>
@@ -501,11 +501,11 @@ export default function AdminHostApplications() {
             placeholder="Search by name or UID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 h-10"
+            className="pl-10 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30 h-10"
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-32 bg-white/5 border-white/10 text-white/70 h-10">
+          <SelectTrigger className="w-32 bg-white/5 border-white/10 text-slate-900/70 h-10">
             <Filter className="w-3.5 h-3.5 mr-1.5" />
             <SelectValue />
           </SelectTrigger>
@@ -667,11 +667,11 @@ export default function AdminHostApplications() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 py-2">
-          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="bg-white/5 border-white/10 text-white/70 h-8">
+          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             <ChevronLeft className="w-4 h-4 mr-1" /> Prev
           </Button>
           <span className="text-white/40 text-sm font-mono">{currentPage}/{totalPages}</span>
-          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-white/70 h-8">
+          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
@@ -909,7 +909,7 @@ export default function AdminHostApplications() {
                         placeholder="Write internal notes (optional)..."
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
-                        className="mt-3 bg-white/5 border-white/10 text-white placeholder:text-white/25 min-h-[80px]"
+                        className="mt-3 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/25 min-h-[80px]"
                       />
                     </section>
                   </>
@@ -1034,10 +1034,10 @@ export default function AdminHostApplications() {
             placeholder="Enter reason..."
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            className="bg-white/5 border-white/10 text-white placeholder:text-white/25 min-h-[100px]"
+            className="bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/25 min-h-[100px]"
           />
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="bg-white/5 border-white/10 text-white/70">
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="bg-white/5 border-white/10 text-slate-900/70">
               Cancel
             </Button>
             <Button
@@ -1084,7 +1084,7 @@ function SectionHeader({ icon: Icon, title, count }: { icon: any; title: string;
 
 function EmptyState({ icon: Icon, text }: { icon: any; text: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-32 text-white/25 mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+    <div className="flex flex-col items-center justify-center h-32 text-slate-900/25 mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
       <Icon className="w-8 h-8 mb-2" />
       <p className="text-xs">{text}</p>
     </div>
