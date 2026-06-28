@@ -139,8 +139,8 @@ function RoleApproveBar({
 
 const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
-  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected', 'failed', 'denied'].includes(normalized)) return 'rejected';
   if (normalized === 'submitted' || normalized === 'under_review' || normalized === 'pending') return normalized;
   return 'pending';
 };
@@ -359,7 +359,9 @@ const AdminFaceVerification = () => {
     setProcessing(true);
 
     const previousSubmissions = submissions;
+    const previousServerStats = serverStats;
     const nextStatus = action === 'approve' ? 'approved' : 'rejected';
+    const previousBucket = bucketOfStatus(submission.status || submission.status_bucket);
     const resolvedApproveAs = action === 'approve'
       ? (approveAs || (submission.verification_type === 'host' ? 'host' : 'user'))
       : 'user';
@@ -383,6 +385,24 @@ const AdminFaceVerification = () => {
           }
         : s
     ));
+    setServerStats((prev) => {
+      const fromKey = previousBucket;
+      const toKey = nextStatus as 'approved' | 'rejected';
+      const next = { ...prev } as StatusCounts;
+      if (fromKey !== toKey) {
+        next[fromKey] = Math.max(0, Number(next[fromKey] || 0) - 1);
+        next[toKey] = Number(next[toKey] || 0) + 1;
+        if (fromKey === 'pending') {
+          next.manual_pending = Math.max(0, Number(next.manual_pending || 0) - 1);
+          if (submission.status === 'under_review') {
+            next.under_review = Math.max(0, Number(next.under_review || 0) - 1);
+          }
+        }
+        if (toKey === 'approved') next.manual_approved = Number(next.manual_approved || 0) + 1;
+        if (toKey === 'rejected') next.manual_rejected = Number(next.manual_rejected || 0) + 1;
+      }
+      return next;
+    });
 
     // Always close modals immediately for instant feel
     setShowActionModal(false);
@@ -407,6 +427,7 @@ const AdminFaceVerification = () => {
         });
         // Restore — submission was not actually changed
         setSubmissions(previousSubmissions);
+        setServerStats(previousServerStats);
       } else if ((data as any)?.success === false) {
         throw new Error((data as any)?.error || 'Failed to process');
       } else {
@@ -423,6 +444,7 @@ const AdminFaceVerification = () => {
       fetchSubmissions();
     } catch (error: any) {
       setSubmissions(previousSubmissions);
+      setServerStats(previousServerStats);
       toast({ title: 'Error', description: error.message || 'Failed to process', variant: 'destructive' });
     } finally {
       setProcessing(false);
