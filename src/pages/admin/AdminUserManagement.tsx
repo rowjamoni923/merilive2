@@ -2775,8 +2775,8 @@ export default function AdminUserManagement() {
                         <FaceSubmissionMediaBlocks submission={submission} priority={index < 6} />
 
                         {!mediaReadiness.ready && (
-                          <div className="rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-800">
-                            🔁 Upload incomplete — user must resubmit: {mediaReadiness.missing.join(', ')}
+                          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                            ⚠ Manual override allowed — missing evidence noted: {mediaReadiness.missing.join(', ')}
                           </div>
                         )}
 
