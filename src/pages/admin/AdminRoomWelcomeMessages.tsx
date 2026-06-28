@@ -120,14 +120,14 @@ export default function AdminRoomWelcomeMessages() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="admin-pro-shell space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
             <MessageSquare className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Room Welcome Messages</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Room Welcome Messages</h1>
             <p className="text-sm text-muted-foreground">Configure warning/welcome messages shown when users join rooms</p>
           </div>
         </div>
