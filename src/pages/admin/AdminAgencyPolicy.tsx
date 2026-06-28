@@ -507,9 +507,9 @@ const AdminAgencyPolicy = () => {
                     This is the exchange rate for agency withdrawals
                   </p>
                 </div>
-                <div className="p-4 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-lg border border-emerald-500/30">
-                  <p className="text-sm text-emerald-900/70 dark:text-emerald-200/80 mb-1">Preview:</p>
-                  <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
+                <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <p className="text-sm text-emerald-800 mb-1">Preview:</p>
+                  <p className="text-xl font-bold text-emerald-700">
                     {exchangeRate.toLocaleString()} Beans = $1 USD
                   </p>
                 </div>
