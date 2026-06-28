@@ -6186,22 +6186,53 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
    User System and other professional admin sections.
    ============================================================ */
 .admin-pro-shell {
-  --admin-pro-canvas: 210 40% 98%;
-  --admin-pro-surface: 0 0% 100%;
-  --admin-pro-surface-soft: 210 40% 96%;
-  --admin-pro-border: 214 32% 91%;
-  --admin-pro-border-strong: 215 20% 65%;
-  --admin-pro-text: 222 47% 11%;
-  --admin-pro-text-muted: 215 16% 47%;
-  --admin-pro-text-soft: 215 20% 35%;
-  --admin-pro-primary: 271 81% 56%;
+  /* Cloud White (Linear / Vercel) — Space Grotesk + DM Sans */
+  --admin-pro-canvas: 0 0% 100%;             /* #FFFFFF */
+  --admin-pro-surface: 0 0% 100%;            /* #FFFFFF */
+  --admin-pro-surface-soft: 210 40% 98%;     /* #F8FAFC */
+  --admin-pro-surface-sunken: 214 32% 95%;   /* #EEF2F7 */
+  --admin-pro-border: 214 32% 91%;           /* #E2E8F0 */
+  --admin-pro-border-strong: 215 25% 78%;    /* slate-300 */
+  --admin-pro-text: 222 47% 11%;             /* #0F172A */
+  --admin-pro-text-muted: 215 16% 47%;       /* #64748B */
+  --admin-pro-text-soft: 215 20% 35%;        /* #475569 */
+  --admin-pro-primary: 217 91% 60%;          /* #3B82F6 electric blue */
+  --admin-pro-primary-hover: 221 83% 53%;    /* #2563EB */
   --admin-pro-primary-foreground: 0 0% 100%;
+  --admin-pro-success: 160 84% 39%;          /* emerald-500 */
+  --admin-pro-warning: 38 92% 50%;           /* amber-500 */
+  --admin-pro-danger: 0 84% 60%;             /* red-500 */
   --admin-pro-shadow: 215 28% 17%;
   background: hsl(var(--admin-pro-canvas));
   color: hsl(var(--admin-pro-text));
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
   min-height: calc(100vh - 4rem);
 }
+.admin-pro-shell h1,
+.admin-pro-shell h2,
+.admin-pro-shell h3,
+.admin-pro-shell h4,
+.admin-pro-shell h5,
+.admin-pro-shell h6 {
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+/* Make sure card surfaces sitting on the white canvas have a visible edge */
+.admin-pro-shell .bg-card,
+.admin-pro-shell [data-slot="card"] {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border: 1px solid hsl(var(--admin-pro-border)) !important;
+  box-shadow: 0 1px 2px hsl(var(--admin-pro-shadow) / 0.04), 0 1px 3px hsl(var(--admin-pro-shadow) / 0.06) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+/* When admin-pro-shell sits inside the dark .admin-shell wrapper, the
+   wrapper still paints #06060a behind the scroll area. Hard override so
+   the whole admin canvas is white edge-to-edge. */
+.admin-shell { background: #FFFFFF !important; }
+.admin-shell .admin-pro-shell { background: hsl(var(--admin-pro-canvas)); }
+
 /* Flatten dark custom-hex gradients (e.g. from-[#0f0a1a]) to white surfaces */
 .admin-pro-shell [class*="from-["],
 .admin-pro-shell [class*="via-["],
@@ -6520,3 +6551,119 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: hsl(var(--admin-pro-text)) !important;
   border-color: hsl(var(--admin-pro-border)) !important;
 }
+
+/* ============================================================
+   Cloud White admin chrome — whiten the global admin shell
+   (sidebar + sticky header) so the full admin panel matches
+   the Linear/Vercel light surface, not just the page bodies.
+   Scoped to .admin-shell so it never leaks into the user app.
+   ============================================================ */
+.admin-shell {
+  background: #FFFFFF !important;
+  color: #0F172A;
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4 {
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+/* Sidebar */
+.admin-shell aside {
+  background: #FFFFFF !important;
+  border-right: 1px solid #E2E8F0 !important;
+  color: #0F172A;
+}
+.admin-shell aside [class*="bg-["],
+.admin-shell aside [class*="bg-white/"],
+.admin-shell aside [class*="bg-black/"] {
+  background-color: transparent !important;
+}
+.admin-shell aside [class*="border-white/"] { border-color: #E2E8F0 !important; }
+.admin-shell aside [class*="text-white/"],
+.admin-shell aside .text-white { color: #0F172A !important; }
+.admin-shell aside [class*="text-slate-3"],
+.admin-shell aside [class*="text-slate-4"],
+.admin-shell aside [class*="text-slate-5"],
+.admin-shell aside [class*="text-violet-4"] { color: #64748B !important; }
+.admin-shell aside a:hover,
+.admin-shell aside button:hover {
+  background: #F1F5F9 !important;
+}
+/* Active nav item: subtle blue tint, not gradient */
+.admin-shell aside [data-active="true"],
+.admin-shell aside .bg-gradient-to-r,
+.admin-shell aside [class*="bg-violet-5"],
+.admin-shell aside [class*="bg-purple-5"],
+.admin-shell aside [class*="bg-fuchsia-"] {
+  background: #EFF6FF !important;
+  background-image: none !important;
+  color: #1D4ED8 !important;
+}
+.admin-shell aside [data-active="true"] svg,
+.admin-shell aside [data-active="true"] span {
+  color: #1D4ED8 !important;
+}
+/* Sidebar decorative blur orbs */
+.admin-shell aside [class*="blur-"] { display: none !important; }
+
+/* Sticky top header */
+.admin-shell header {
+  background: rgba(255,255,255,0.92) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+.admin-shell header [class*="text-white/"],
+.admin-shell header .text-white { color: #0F172A !important; }
+.admin-shell header [class*="bg-white/"] { background-color: #F8FAFC !important; }
+.admin-shell header [class*="border-white/"] { border-color: #E2E8F0 !important; }
+.admin-shell header input {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+.admin-shell header input::placeholder { color: #94A3B8 !important; }
+
+/* Notification dropdown */
+.admin-shell [class*="bg-[#1a1a2e]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 20px 40px -16px rgba(15,23,42,0.18) !important;
+}
+
+/* Primary accent buttons inside admin shell: switch violet/purple gradients
+   to the Cloud White electric blue accent */
+.admin-pro-shell button[class*="bg-gradient-to"][class*="violet"],
+.admin-pro-shell button[class*="bg-gradient-to"][class*="purple"],
+.admin-pro-shell button[class*="bg-gradient-to"][class*="fuchsia"],
+.admin-pro-shell button[class*="bg-violet-5"],
+.admin-pro-shell button[class*="bg-violet-6"],
+.admin-pro-shell button[class*="bg-purple-5"],
+.admin-pro-shell button[class*="bg-purple-6"],
+.admin-pro-shell button[class*="bg-fuchsia-5"],
+.admin-pro-shell button[class*="bg-fuchsia-6"] {
+  background-image: none !important;
+  background-color: hsl(var(--admin-pro-primary)) !important;
+  color: #FFFFFF !important;
+}
+.admin-pro-shell button[class*="bg-gradient-to"][class*="violet"]:hover,
+.admin-pro-shell button[class*="bg-violet-5"]:hover,
+.admin-pro-shell button[class*="bg-purple-5"]:hover {
+  background-color: hsl(var(--admin-pro-primary-hover)) !important;
+}
+
+/* Solid icon containers (small rounded squares with gradient) */
+.admin-pro-shell .bg-gradient-to-br[class*="violet"],
+.admin-pro-shell .bg-gradient-to-br[class*="purple"],
+.admin-pro-shell .bg-gradient-to-br[class*="fuchsia"] {
+  background-image: linear-gradient(135deg, hsl(var(--admin-pro-primary)), hsl(var(--admin-pro-primary-hover))) !important;
+  color: #FFFFFF !important;
+}
+
+/* Decorative blurred orbs across admin pages — kill them on the white canvas */
+.admin-pro-shell .blur-3xl,
+.admin-pro-shell .blur-2xl { opacity: 0.25 !important; }
+
