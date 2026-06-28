@@ -932,7 +932,7 @@ export default function AdminAgencies() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+    <div className="admin-pro-shell space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
       <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-xl md:rounded-2xl shadow-xl">
         <div className="flex items-start justify-between">
