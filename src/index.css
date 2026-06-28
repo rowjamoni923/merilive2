@@ -6186,8 +6186,19 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
    User System and other professional admin sections.
    ============================================================ */
 .admin-pro-shell {
-  background: #F8FAFC;
-  color: #0F172A;
+  --admin-pro-canvas: 210 40% 98%;
+  --admin-pro-surface: 0 0% 100%;
+  --admin-pro-surface-soft: 210 40% 96%;
+  --admin-pro-border: 214 32% 91%;
+  --admin-pro-border-strong: 215 20% 65%;
+  --admin-pro-text: 222 47% 11%;
+  --admin-pro-text-muted: 215 16% 47%;
+  --admin-pro-text-soft: 215 20% 35%;
+  --admin-pro-primary: 271 81% 56%;
+  --admin-pro-primary-foreground: 0 0% 100%;
+  --admin-pro-shadow: 215 28% 17%;
+  background: hsl(var(--admin-pro-canvas));
+  color: hsl(var(--admin-pro-text));
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   min-height: calc(100vh - 4rem);
 }
@@ -6331,3 +6342,148 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 /* Badges / pill chips that use light bg + light text combinations */
 .admin-pro-shell .badge,
 .admin-pro-shell [data-slot="badge"] { color: #0F172A; }
+
+/* ---------------------------------------------------------------
+   User System readability hardening — all tabs, segmented filters,
+   action pills, selects and tables stay high-contrast after the
+   light admin re-skin. This fixes dark pills with dark text across
+   every User System page, not just User Hub.
+   --------------------------------------------------------------- */
+.admin-pro-shell [role="tablist"] {
+  width: 100%;
+  min-height: 3.75rem !important;
+  height: auto !important;
+  align-items: stretch !important;
+  gap: 0.5rem !important;
+  padding: 0.625rem !important;
+  background: hsl(var(--admin-pro-surface)) !important;
+  border: 1px solid hsl(var(--admin-pro-border)) !important;
+  box-shadow: 0 8px 24px -18px hsl(var(--admin-pro-shadow) / 0.35) !important;
+}
+
+.admin-pro-shell [role="tab"] {
+  min-width: 0;
+  min-height: 2.5rem;
+  border-radius: 0.65rem !important;
+  border: 1px solid hsl(var(--admin-pro-border)) !important;
+  background: hsl(var(--admin-pro-surface-soft)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-pro-shell [role="tab"] svg,
+.admin-pro-shell [role="tab"] span {
+  color: currentColor !important;
+}
+
+.admin-pro-shell [role="tab"][data-state="active"] {
+  background: hsl(var(--admin-pro-primary)) !important;
+  border-color: hsl(var(--admin-pro-primary)) !important;
+  color: hsl(var(--admin-pro-primary-foreground)) !important;
+  box-shadow: 0 10px 22px -12px hsl(var(--admin-pro-primary) / 0.55) !important;
+}
+
+.admin-pro-shell [role="tab"]:not([data-state="active"]):hover {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border-color: hsl(var(--admin-pro-border-strong)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+
+.admin-pro-shell button:not([role="tab"]):not([data-sidebar="trigger"]):not([data-sidebar="menu-button"]):not([aria-haspopup="dialog"]),
+.admin-pro-shell [role="button"]:not([role="tab"]) {
+  color: inherit;
+}
+
+.admin-pro-shell button:not([role="tab"])[class*="bg-slate-9"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-slate-8"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-zinc-9"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-zinc-8"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-neutral-9"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-black"] {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border-color: hsl(var(--admin-pro-border)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+
+.admin-pro-shell button:not([role="tab"])[class*="bg-gradient-to"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-primary"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-purple-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-violet-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-pink-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-rose-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-red-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-orange-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-amber-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-blue-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-cyan-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-emerald-5"],
+.admin-pro-shell button:not([role="tab"])[class*="bg-green-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-purple-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-violet-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-pink-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-rose-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-red-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-orange-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-amber-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-blue-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-cyan-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-emerald-5"],
+.admin-pro-shell [data-slot="badge"][class*="bg-green-5"] {
+  color: hsl(var(--admin-pro-primary-foreground)) !important;
+}
+
+.admin-pro-shell button:not([role="tab"])[class*="bg-gradient-to"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-primary"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-purple-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-violet-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-pink-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-rose-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-red-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-orange-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-amber-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-blue-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-cyan-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-emerald-5"] svg,
+.admin-pro-shell button:not([role="tab"])[class*="bg-green-5"] svg {
+  color: currentColor !important;
+}
+
+.admin-pro-shell [data-radix-select-trigger],
+.admin-pro-shell button[role="combobox"] {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border-color: hsl(var(--admin-pro-border-strong)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+
+.admin-pro-shell [data-radix-select-content],
+.admin-pro-shell [role="listbox"] {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border-color: hsl(var(--admin-pro-border)) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+
+.admin-pro-shell table,
+.admin-pro-shell [role="table"] {
+  color: hsl(var(--admin-pro-text)) !important;
+}
+
+.admin-pro-shell thead tr,
+.admin-pro-shell [role="rowgroup"]:first-child [role="row"] {
+  background: hsl(var(--admin-pro-surface-soft)) !important;
+  border-color: hsl(var(--admin-pro-border)) !important;
+}
+
+.admin-pro-shell th,
+.admin-pro-shell [role="columnheader"] {
+  color: hsl(var(--admin-pro-text)) !important;
+  font-weight: 700 !important;
+}
+
+.admin-pro-shell td,
+.admin-pro-shell [role="cell"] {
+  color: hsl(var(--admin-pro-text)) !important;
+  border-color: hsl(var(--admin-pro-border)) !important;
+}
