@@ -6551,3 +6551,119 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: hsl(var(--admin-pro-text)) !important;
   border-color: hsl(var(--admin-pro-border)) !important;
 }
+
+/* ============================================================
+   Cloud White admin chrome — whiten the global admin shell
+   (sidebar + sticky header) so the full admin panel matches
+   the Linear/Vercel light surface, not just the page bodies.
+   Scoped to .admin-shell so it never leaks into the user app.
+   ============================================================ */
+.admin-shell {
+  background: #FFFFFF !important;
+  color: #0F172A;
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4 {
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+/* Sidebar */
+.admin-shell aside {
+  background: #FFFFFF !important;
+  border-right: 1px solid #E2E8F0 !important;
+  color: #0F172A;
+}
+.admin-shell aside [class*="bg-["],
+.admin-shell aside [class*="bg-white/"],
+.admin-shell aside [class*="bg-black/"] {
+  background-color: transparent !important;
+}
+.admin-shell aside [class*="border-white/"] { border-color: #E2E8F0 !important; }
+.admin-shell aside [class*="text-white/"],
+.admin-shell aside .text-white { color: #0F172A !important; }
+.admin-shell aside [class*="text-slate-3"],
+.admin-shell aside [class*="text-slate-4"],
+.admin-shell aside [class*="text-slate-5"],
+.admin-shell aside [class*="text-violet-4"] { color: #64748B !important; }
+.admin-shell aside a:hover,
+.admin-shell aside button:hover {
+  background: #F1F5F9 !important;
+}
+/* Active nav item: subtle blue tint, not gradient */
+.admin-shell aside [data-active="true"],
+.admin-shell aside .bg-gradient-to-r,
+.admin-shell aside [class*="bg-violet-5"],
+.admin-shell aside [class*="bg-purple-5"],
+.admin-shell aside [class*="bg-fuchsia-"] {
+  background: #EFF6FF !important;
+  background-image: none !important;
+  color: #1D4ED8 !important;
+}
+.admin-shell aside [data-active="true"] svg,
+.admin-shell aside [data-active="true"] span {
+  color: #1D4ED8 !important;
+}
+/* Sidebar decorative blur orbs */
+.admin-shell aside [class*="blur-"] { display: none !important; }
+
+/* Sticky top header */
+.admin-shell header {
+  background: rgba(255,255,255,0.92) !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+.admin-shell header [class*="text-white/"],
+.admin-shell header .text-white { color: #0F172A !important; }
+.admin-shell header [class*="bg-white/"] { background-color: #F8FAFC !important; }
+.admin-shell header [class*="border-white/"] { border-color: #E2E8F0 !important; }
+.admin-shell header input {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+.admin-shell header input::placeholder { color: #94A3B8 !important; }
+
+/* Notification dropdown */
+.admin-shell [class*="bg-[#1a1a2e]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 20px 40px -16px rgba(15,23,42,0.18) !important;
+}
+
+/* Primary accent buttons inside admin shell: switch violet/purple gradients
+   to the Cloud White electric blue accent */
+.admin-pro-shell button[class*="bg-gradient-to"][class*="violet"],
+.admin-pro-shell button[class*="bg-gradient-to"][class*="purple"],
+.admin-pro-shell button[class*="bg-gradient-to"][class*="fuchsia"],
+.admin-pro-shell button[class*="bg-violet-5"],
+.admin-pro-shell button[class*="bg-violet-6"],
+.admin-pro-shell button[class*="bg-purple-5"],
+.admin-pro-shell button[class*="bg-purple-6"],
+.admin-pro-shell button[class*="bg-fuchsia-5"],
+.admin-pro-shell button[class*="bg-fuchsia-6"] {
+  background-image: none !important;
+  background-color: hsl(var(--admin-pro-primary)) !important;
+  color: #FFFFFF !important;
+}
+.admin-pro-shell button[class*="bg-gradient-to"][class*="violet"]:hover,
+.admin-pro-shell button[class*="bg-violet-5"]:hover,
+.admin-pro-shell button[class*="bg-purple-5"]:hover {
+  background-color: hsl(var(--admin-pro-primary-hover)) !important;
+}
+
+/* Solid icon containers (small rounded squares with gradient) */
+.admin-pro-shell .bg-gradient-to-br[class*="violet"],
+.admin-pro-shell .bg-gradient-to-br[class*="purple"],
+.admin-pro-shell .bg-gradient-to-br[class*="fuchsia"] {
+  background-image: linear-gradient(135deg, hsl(var(--admin-pro-primary)), hsl(var(--admin-pro-primary-hover))) !important;
+  color: #FFFFFF !important;
+}
+
+/* Decorative blurred orbs across admin pages — kill them on the white canvas */
+.admin-pro-shell .blur-3xl,
+.admin-pro-shell .blur-2xl { opacity: 0.25 !important; }
+
