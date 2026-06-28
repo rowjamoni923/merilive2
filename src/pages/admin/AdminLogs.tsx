@@ -168,11 +168,13 @@ export default function AdminLogs() {
     return "bg-gray-500/20 text-gray-400 border-gray-500/30";
   };
 
-  const filteredLogs = logs.filter(log =>
-    log.action_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.admin?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.target_id?.includes(searchQuery)
-  );
+  const filteredLogs = logs
+    .filter((log) => levelFilter === "all" || classifyLevel(log.action_type) === levelFilter)
+    .filter((log) =>
+      log.action_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.admin?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.target_id?.includes(searchQuery)
+    );
 
   const actionTypes = [
     { value: "all", label: "All Actions" },
