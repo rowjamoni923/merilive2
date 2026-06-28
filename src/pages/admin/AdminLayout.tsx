@@ -2784,38 +2784,37 @@ export default function AdminLayout() {
         )}
       </AnimatePresence>
 
-      {/* ━━━ SIDEBAR ━━━ */}
+      {/* ━━━ SIDEBAR (Cloud White + 3D) ━━━ */}
       <aside className={cn(
         "fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out flex flex-col",
-        "bg-[#08080e]/95 backdrop-blur-2xl border-r border-white/[0.04]",
-        "shadow-[4px_0_50px_-10px_rgba(0,0,0,0.8)]",
-        // Mobile: slightly narrower; Desktop: collapsible
+        "bg-white border-r border-slate-200",
+        "shadow-[6px_0_24px_-12px_rgba(15,23,42,0.12),2px_0_8px_-4px_rgba(15,23,42,0.06)]",
         isMobileSidebarOpen ? "w-[min(84vw,320px)]" : (isSidebarOpen ? "w-72" : "w-20"),
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
-        {/* Subtle gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.02] via-transparent to-emerald-500/[0.01] pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-violet-500/15 via-white/[0.03] to-emerald-500/10 pointer-events-none" />
-        
+        {/* Soft accent wash */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50/40 via-transparent to-slate-50/40 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-200/60 via-slate-200/40 to-transparent pointer-events-none" />
+
         {/* Logo Header */}
-        <div className="relative p-4 border-b border-white/[0.04]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-violet-500/[0.04] blur-3xl pointer-events-none" />
-          
+        <div className="relative p-4 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-blue-500/[0.06] blur-3xl pointer-events-none" />
+
           <div className="relative flex items-center gap-3">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-xl ring-1 ring-white/10">
-                <Shield className="w-5 h-5 text-white drop-shadow-lg" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-blue-400/30">
+                <Shield className="w-5 h-5 text-white drop-shadow" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#08080e] shadow-lg shadow-emerald-400/50 animate-pulse" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-lg shadow-emerald-500/40 animate-pulse" />
             </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex-1">
-                <h1 className="text-white font-extrabold text-base tracking-wide">MeriLive</h1>
-                <p className="text-[9px] text-violet-400/50 font-bold uppercase tracking-[0.25em]">Admin Console</p>
+                <h1 className="text-slate-900 font-extrabold text-base tracking-tight" style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>MeriLive</h1>
+                <p className="text-[9px] text-blue-600/80 font-bold uppercase tracking-[0.25em]">Admin Console</p>
               </motion.div>
             )}
-            <Button variant="ghost" size="icon" className="lg:hidden text-slate-400 hover:text-white hover:bg-white/5" onClick={() => setIsMobileSidebarOpen(false)}>
+            <Button variant="ghost" size="icon" className="lg:hidden text-slate-500 hover:text-slate-900 hover:bg-slate-100" onClick={() => setIsMobileSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -2823,26 +2822,26 @@ export default function AdminLayout() {
           {/* Search */}
           {isSidebarOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 ref={sidebarSearchRef}
                 placeholder="Search... (Ctrl+K)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-16 bg-white/[0.03] border-white/[0.06] text-white text-sm placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/30 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9"
+                className="pl-9 pr-16 bg-white border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 rounded-xl h-9 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]"
               />
               {!searchQuery && (
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.03] text-[10px] text-slate-600 font-mono">⌘K</kbd>
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] text-slate-500 font-mono">⌘K</kbd>
               )}
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                  <X className="w-3 h-3 text-white" />
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center transition-colors">
+                  <X className="w-3 h-3 text-slate-700" />
                 </button>
               )}
             </motion.div>
           )}
 
-          {/* Pkg82 — Audit ID search (jump to diagnostic section) */}
+          {/* Audit ID search */}
           {isSidebarOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-2">
               <AuditIdSearch compact />
