@@ -459,7 +459,7 @@ const AdminFrames = () => {
   const levelGroups = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

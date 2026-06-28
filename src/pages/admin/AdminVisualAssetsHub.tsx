@@ -49,7 +49,7 @@ const AdminVisualAssetsHub = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
