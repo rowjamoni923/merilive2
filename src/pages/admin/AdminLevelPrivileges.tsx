@@ -390,7 +390,7 @@ const AdminLevelPrivileges = () => {
       <div className="space-y-4">
           <Card className="bg-white border-slate-200/50 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-white">Privilege Categories</CardTitle>
+              <CardTitle className="text-slate-900">Privilege Categories</CardTitle>
               <CardDescription className="text-slate-400">
                 Click on each category to edit name, description and upload animations
               </CardDescription>
@@ -424,7 +424,7 @@ const AdminLevelPrivileges = () => {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-semibold">
+                        <h3 className="text-slate-900 font-semibold">
                           {existingPrivilege?.name || category.name}
                         </h3>
                         <p className="text-slate-400 text-sm truncate">
@@ -502,9 +502,9 @@ const AdminLevelPrivileges = () => {
 
       {/* Privilege Edit Dialog */}
       <Dialog open={isPrivilegeDialogOpen} onOpenChange={setIsPrivilegeDialogOpen}>
-        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-2xl w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-slate-900">
               {editingPrivilege?.id ? 'Edit Privilege' : 'Create New Privilege'}
             </DialogTitle>
           </DialogHeader>
@@ -513,7 +513,7 @@ const AdminLevelPrivileges = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/60">Name</Label>
+                  <Label className="text-slate-600">Name</Label>
                   <Input
                     value={editingPrivilege.name}
                     onChange={(e) => setEditingPrivilege({
@@ -525,7 +525,7 @@ const AdminLevelPrivileges = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/60">Unlock Level</Label>
+                  <Label className="text-slate-600">Unlock Level</Label>
                   <Input
                     type="number"
                     min={1}
@@ -541,7 +541,7 @@ const AdminLevelPrivileges = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60">Description</Label>
+                <Label className="text-slate-600">Description</Label>
                 <Textarea
                   value={editingPrivilege.description}
                   onChange={(e) => setEditingPrivilege({
@@ -555,7 +555,7 @@ const AdminLevelPrivileges = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/60">Icon Background Color</Label>
+                  <Label className="text-slate-600">Icon Background Color</Label>
                   <div className="flex gap-2">
                     <Input
                       type="color"
@@ -577,7 +577,7 @@ const AdminLevelPrivileges = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/60">Icon Color</Label>
+                  <Label className="text-slate-600">Icon Color</Label>
                   <div className="flex gap-2">
                     <Input
                       type="color"
@@ -602,7 +602,7 @@ const AdminLevelPrivileges = () => {
 
               {/* Category Logo / 3D Icon Upload — shown to admin, host & user everywhere */}
               <div className="space-y-2">
-                <Label className="text-white/60">Category Logo (3D / PNG — replaces default icon for everyone)</Label>
+                <Label className="text-slate-600">Category Logo (3D / PNG — replaces default icon for everyone)</Label>
                 <div className="flex items-center gap-3">
                   <div
                     className="w-16 h-16 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0"
@@ -611,7 +611,7 @@ const AdminLevelPrivileges = () => {
                     {editingPrivilege.icon_url ? (
                       <SmartImage src={editingPrivilege.icon_url} alt="logo" className="w-full h-full object-contain" />
                     ) : (
-                      <span className="text-white/40 text-xs text-center px-1">No Logo</span>
+                      <span className="text-slate-400 text-xs text-center px-1">No Logo</span>
                     )}
                   </div>
                   <div className="flex-1 flex flex-col gap-2">
@@ -656,7 +656,7 @@ const AdminLevelPrivileges = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-white/40">PNG / WebP / SVG recommended (transparent background). Shown to users, hosts & admins identically.</p>
+                <p className="text-xs text-slate-400">PNG / WebP / SVG recommended (transparent background). Shown to users, hosts & admins identically.</p>
               </div>
 
               {/* Pkg424 — Unified animation uploader (VAP / SVGA / Lottie / WebP / PNG / GIF / MP4) */}
@@ -680,7 +680,7 @@ const AdminLevelPrivileges = () => {
 
               {/* Preview Image Upload */}
               <div className="space-y-2">
-                <Label className="text-white/60">Preview Image (Optional)</Label>
+                <Label className="text-slate-600">Preview Image (Optional)</Label>
                 <div className="flex gap-2">
                   <Input
                     value={editingPrivilege.preview_url || ''}
@@ -728,7 +728,7 @@ const AdminLevelPrivileges = () => {
                       is_active: checked
                     })}
                   />
-                  <Label className="text-white">Active</Label>
+                  <Label className="text-slate-900">Active</Label>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setIsPrivilegeDialogOpen(false)}>
@@ -746,9 +746,9 @@ const AdminLevelPrivileges = () => {
 
       {/* Animation Edit Dialog */}
       <Dialog open={isAnimationDialogOpen} onOpenChange={setIsAnimationDialogOpen}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-slate-900">
               Edit Level {editingAnimation?.level} Animation
             </DialogTitle>
           </DialogHeader>
@@ -757,7 +757,7 @@ const AdminLevelPrivileges = () => {
             <div className="space-y-4">
               {/* Level Icon/Logo Upload */}
               <div className="space-y-2">
-                <Label className="text-white/60">Level Logo/Icon</Label>
+                <Label className="text-slate-600">Level Logo/Icon</Label>
                 <div className="flex items-center gap-4">
                   {/* Preview */}
                   <div className="w-20 h-20 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
@@ -767,7 +767,7 @@ const AdminLevelPrivileges = () => {
                         alt={`Level ${editingAnimation.level}`}
                         className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                     ) : (
-                      <span className="text-3xl font-bold text-white/40">
+                      <span className="text-3xl font-bold text-slate-400">
                         {editingAnimation.level}
                       </span>
                     )}
@@ -813,7 +813,7 @@ const AdminLevelPrivileges = () => {
 
               {/* Display Name */}
               <div className="space-y-2">
-                <Label className="text-white/60">Display Name</Label>
+                <Label className="text-slate-600">Display Name</Label>
                 <Input
                   value={editingAnimation.display_name || ''}
                   onChange={(e) => setEditingAnimation({
@@ -826,7 +826,7 @@ const AdminLevelPrivileges = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60">Animation Type</Label>
+                <Label className="text-slate-600">Animation Type</Label>
                 <select
                   className="w-full h-10 px-3 rounded-md border border-white/10 bg-white/5 text-slate-900"
                   value={editingAnimation.animation_type}
@@ -843,7 +843,7 @@ const AdminLevelPrivileges = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60">Animation File</Label>
+                <Label className="text-slate-600">Animation File</Label>
                 <div className="flex gap-2">
                   <Input
                     value={editingAnimation.animation_url}
@@ -882,7 +882,7 @@ const AdminLevelPrivileges = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60">Duration (milliseconds)</Label>
+                <Label className="text-slate-600">Duration (milliseconds)</Label>
                 <Input
                   type="number"
                   min={1000}
@@ -906,7 +906,7 @@ const AdminLevelPrivileges = () => {
                       is_active: checked
                     })}
                   />
-                  <Label className="text-white">Active</Label>
+                  <Label className="text-slate-900">Active</Label>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setIsAnimationDialogOpen(false)}>
@@ -924,9 +924,9 @@ const AdminLevelPrivileges = () => {
 
       {/* Animation Preview Dialog */}
       <Dialog open={!!previewAnimation} onOpenChange={() => setPreviewAnimation(null)}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">Animation Preview</DialogTitle>
+            <DialogTitle className="text-slate-900">Animation Preview</DialogTitle>
           </DialogHeader>
           <div className="aspect-video bg-black/90 rounded-lg flex items-center justify-center overflow-hidden">
             {previewAnimation && (
@@ -944,7 +944,7 @@ const AdminLevelPrivileges = () => {
       {/* Upload Loading Overlay */}
       {uploadingFile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-          <div className="bg-white dark:bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+          <div className="bg-white bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
             <p className="font-medium">Uploading...</p>
             <Button 

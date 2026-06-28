@@ -480,7 +480,7 @@ const AdminLevelTiers = () => {
                 <Label>Animation/GIF (Optional)</Label>
                 <div className="flex gap-3">
                   {selectedAnimationData ? (
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center border-2 border-purple-300">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-2 border-purple-300">
                       <Lottie animationData={selectedAnimationData} loop autoplay style={{ width: 50, height: 50 }} />
                     </div>
                   ) : editingTier.animation_url ? (
