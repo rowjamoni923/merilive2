@@ -321,6 +321,22 @@ export default function AdminErrorLogs() {
           </p>
         </div>
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white border-slate-200">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <Bug className="w-4 h-4 mr-2" /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleClearResolved}>
             <Trash2 className="w-4 h-4 mr-2" />
             Clear Resolved
