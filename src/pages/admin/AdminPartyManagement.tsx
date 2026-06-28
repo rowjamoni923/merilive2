@@ -51,7 +51,7 @@ export default function AdminPartyManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-pink-950/20 to-slate-950 p-4 md:p-6">
+    <div className="admin-pro-shell space-y-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
@@ -59,8 +59,8 @@ export default function AdminPartyManagement() {
             <PartyPopper className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Party Management</h1>
-            <p className="text-slate-400 text-sm">
+            <h1 className="text-2xl font-bold text-slate-900">Party Management</h1>
+            <p className="text-slate-500 text-sm">
               Manage party rooms, banners, and backgrounds
             </p>
           </div>
