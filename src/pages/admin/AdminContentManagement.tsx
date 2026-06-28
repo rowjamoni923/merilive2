@@ -71,7 +71,7 @@ export default function AdminContentManagement() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/20">
               <Camera className="w-5 h-5 text-red-400" />
@@ -83,7 +83,7 @@ export default function AdminContentManagement() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Film className="w-5 h-5 text-blue-400" />
@@ -95,7 +95,7 @@ export default function AdminContentManagement() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-500/20">
               <Play className="w-5 h-5 text-purple-400" />
@@ -107,7 +107,7 @@ export default function AdminContentManagement() {
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-900/50 border-slate-800">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/20">
               <Image className="w-5 h-5 text-amber-400" />
@@ -122,7 +122,7 @@ export default function AdminContentManagement() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900/80 border border-slate-800 p-1 h-auto flex-wrap">
+        <TabsList className="bg-slate-100 border border-slate-200 p-1 h-auto flex-wrap">
           <TabsTrigger 
             value="streams" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white gap-2"
@@ -167,7 +167,7 @@ export default function AdminContentManagement() {
         </TabsList>
 
         <TabsContent value="streams" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Camera className="w-5 h-5 text-red-400" />
@@ -184,7 +184,7 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="recordings" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Film className="w-5 h-5 text-blue-400" />
@@ -201,7 +201,7 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="reels" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Play className="w-5 h-5 text-purple-400" />
@@ -218,7 +218,7 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="banners" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Image className="w-5 h-5 text-amber-400" />
@@ -235,7 +235,7 @@ export default function AdminContentManagement() {
         </TabsContent>
 
         <TabsContent value="content" className="mt-0">
-          <Card className="bg-slate-900/30 border-slate-800">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <FileText className="w-5 h-5 text-green-400" />
