@@ -208,5 +208,6 @@ export default function AdminRatingBanners() {
         </DialogContent>
       </Dialog>
     </div>
+    </div>
   );
 }
