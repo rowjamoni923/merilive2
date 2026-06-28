@@ -383,7 +383,7 @@ export default function AdminGameLeaderboard() {
   const currentCat = CATEGORIES.find(c => c.id === category)!;
 
   return (
-    <div className="space-y-4">
+    <div className="admin-pro-shell space-y-4">
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2">
         {CATEGORIES.map(cat => (
