@@ -936,6 +936,9 @@ export default function AdminUserManagement() {
     const actionKey = `approve-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
+    const previousApplications = applications;
+    setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+    setShowAppDetailDialog(false);
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_review_host_application', {
@@ -949,11 +952,11 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application approval failed');
 
       toast.success("Application approved!");
-      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
-      setShowAppDetailDialog(false);
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
+      setApplications(previousApplications);
+      setShowAppDetailDialog(true);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -972,6 +975,10 @@ export default function AdminUserManagement() {
     const actionKey = `reject-app-${applicationId}`;
     if (!startSingleFlight(actionKey)) return;
 
+    const previousApplications = applications;
+    setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+    setShowRejectDialog(false);
+    setShowAppDetailDialog(false);
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_review_host_application', {
@@ -985,13 +992,13 @@ export default function AdminUserManagement() {
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application rejection failed');
 
       toast.success("Application rejected");
-      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
-      setShowRejectDialog(false);
-      setShowAppDetailDialog(false);
       setRejectionReason("");
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
+      setApplications(previousApplications);
+      setShowRejectDialog(true);
+      setShowAppDetailDialog(true);
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorRejecting", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
