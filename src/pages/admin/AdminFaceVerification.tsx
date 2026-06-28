@@ -139,8 +139,8 @@ function RoleApproveBar({
 
 const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
-  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected', 'failed', 'denied'].includes(normalized)) return 'rejected';
   if (normalized === 'submitted' || normalized === 'under_review' || normalized === 'pending') return normalized;
   return 'pending';
 };
