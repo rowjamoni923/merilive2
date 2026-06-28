@@ -220,11 +220,11 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Phone className="w-6 h-6 text-red-400" />
             Number Sharing
           </h1>
-          <p className="text-white/60 text-sm mt-1">
+          <p className="text-slate-600 text-sm mt-1">
             Voice & Chat Number Sharing Detection Report
           </p>
         </div>
@@ -233,7 +233,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
           variant="ghost"
           onClick={fetchViolations}
           disabled={loading}
-          className="text-white/50 hover:text-white"
+          className="text-slate-500 hover:text-slate-900"
         >
           <RefreshCw className={cn("w-4 h-4 mr-1", loading && "animate-spin")} />
           Refresh
@@ -243,32 +243,32 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <div className="p-4 bg-gradient-to-br from-red-900/30 to-slate-800/50 border border-red-500/20 rounded-xl">
-          <p className="text-white/50 text-xs mb-1">Today</p>
+          <p className="text-slate-500 text-xs mb-1">Today</p>
           <p className="text-2xl font-bold text-red-400">{totalToday}</p>
-          <p className="text-white/40 text-[10px]">Detections</p>
+          <p className="text-slate-400 text-[10px]">Detections</p>
         </div>
         <div className="p-4 bg-gradient-to-br from-orange-900/30 to-slate-800/50 border border-orange-500/20 rounded-xl">
-          <p className="text-white/50 text-xs mb-1">This Week</p>
+          <p className="text-slate-500 text-xs mb-1">This Week</p>
           <p className="text-2xl font-bold text-orange-400">{totalWeek}</p>
-          <p className="text-white/40 text-[10px]">Detections</p>
+          <p className="text-slate-400 text-[10px]">Detections</p>
         </div>
         <div className="p-4 bg-gradient-to-br from-purple-900/30 to-slate-800/50 border border-purple-500/20 rounded-xl">
-          <p className="text-white/50 text-xs mb-1">Total Records</p>
+          <p className="text-slate-500 text-xs mb-1">Total Records</p>
           <p className="text-2xl font-bold text-purple-400">{violations.length}</p>
-          <p className="text-white/40 text-[10px]">Violations</p>
+          <p className="text-slate-400 text-[10px]">Violations</p>
         </div>
         <div className="p-4 bg-gradient-to-br from-blue-900/30 to-slate-800/50 border border-blue-500/20 rounded-xl">
-          <p className="text-white/50 text-xs mb-1">Unique Hosts</p>
+          <p className="text-slate-500 text-xs mb-1">Unique Hosts</p>
           <p className="text-2xl font-bold text-blue-400">
             {new Set(violations.map(v => v.host_id)).size}
           </p>
-          <p className="text-white/40 text-[10px]">Involved</p>
+          <p className="text-slate-400 text-[10px]">Involved</p>
         </div>
       </div>
 
       {/* Daily Stats Bar */}
       <div className="mb-6">
-        <p className="text-white/60 text-sm mb-2 font-medium flex items-center gap-1.5">
+        <p className="text-slate-600 text-sm mb-2 font-medium flex items-center gap-1.5">
           <Calendar className="w-4 h-4" /> Daily Report (Last 14 Days)
         </p>
         <div className="flex gap-1.5 overflow-x-auto pb-2">
@@ -277,8 +277,8 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
             className={cn(
               "shrink-0 px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
               !selectedDate
-                ? "bg-purple-600 border-purple-500 text-white"
-                : "bg-slate-800 border-slate-700 text-white/50 hover:border-purple-500/50"
+                ? "bg-purple-600 border-purple-500 text-slate-900"
+                : "bg-white border-slate-200 text-slate-500 hover:border-purple-500/50"
             )}
           >
             All
@@ -290,10 +290,10 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
               className={cn(
                 "shrink-0 px-3 py-2 rounded-lg text-xs border transition-colors text-center min-w-[70px]",
                 selectedDate === stat.date
-                  ? "bg-red-600 border-red-500 text-white"
+                  ? "bg-red-600 border-red-500 text-slate-900"
                   : stat.count > 0
-                    ? "bg-red-900/20 border-red-500/20 text-white/70 hover:border-red-500/50"
-                    : "bg-slate-800/50 border-slate-700 text-white/30"
+                    ? "bg-red-900/20 border-red-500/20 text-slate-700 hover:border-red-500/50"
+                    : "bg-white border-slate-200 border-slate-200 text-slate-400"
               )}
             >
               <div className="font-bold text-sm">{stat.count}</div>
@@ -312,7 +312,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
           <Loader2 className="w-8 h-8 text-red-400 animate-spin" />
         </div>
       ) : filteredViolations.length === 0 ? (
-        <div className="text-center py-16 text-white/30">
+        <div className="text-center py-16 text-slate-400">
           <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>{selectedDate ? "No detections on this date" : "No number sharing records"}</p>
         </div>
@@ -328,10 +328,10 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
               <div
                 key={v.id}
                 className={cn(
-                  "p-3 border rounded-xl hover:bg-slate-800/70 transition-colors",
+                  "p-3 border rounded-xl hover:bg-slate-50 transition-colors",
                   warningLevel === 'critical' ? "bg-red-900/20 border-red-500/30" :
                   warningLevel === 'high' ? "bg-orange-900/15 border-orange-500/25" :
-                  "bg-slate-800/50 border-slate-700"
+                  "bg-white border-slate-200 border-slate-200"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -350,7 +350,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                     </Avatar>
                     {/* Violation count badge on avatar */}
                     <div className={cn(
-                      "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg",
+                      "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-lg",
                       warningLevel === 'critical' ? "bg-red-500 animate-pulse" :
                       warningLevel === 'high' ? "bg-orange-500" :
                       "bg-yellow-600"
@@ -362,10 +362,10 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-white font-medium text-sm">
+                      <span className="text-slate-900 font-medium text-sm">
                         {v.host?.display_name || "Unknown"}
                       </span>
-                      <span className="text-white/40 text-xs">
+                      <span className="text-slate-400 text-xs">
                         <CopyableUid value={v.host?.app_uid || "—"} />
                       </span>
                       {v.host?.is_blocked && (
@@ -379,7 +379,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                       warningLevel === 'critical' ? "bg-red-500/20 text-red-300 border border-red-500/30" :
                       warningLevel === 'high' ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" :
                       warningLevel === 'medium' ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30" :
-                      "bg-slate-700/50 text-white/50 border border-slate-600"
+                      "bg-slate-100 text-slate-500 border border-slate-600"
                     )}>
                       <AlertTriangle className="w-3 h-3" />
                       {warningLevel === 'critical' ? `⚠️ ${hostTotalViolations}x shared — Ban required!` :
@@ -397,11 +397,11 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
                     {/* Meta */}
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <Badge className="bg-slate-700/50 text-white/50 text-[9px]">
+                      <Badge className="bg-slate-100 text-slate-500 text-[9px]">
                         {getSourceLabel(v.source_type)}
                       </Badge>
                       {v.detected_pattern && (
-                        <Badge className="bg-slate-700/50 text-white/40 text-[9px]">
+                        <Badge className="bg-slate-100 text-slate-400 text-[9px]">
                           {v.detected_pattern}
                         </Badge>
                       )}
@@ -410,7 +410,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                           -{v.beans_deducted} beans
                         </Badge>
                       )}
-                      <span className="text-white/30 text-[10px]">
+                      <span className="text-slate-400 text-[10px]">
                         {format(new Date(v.created_at), "dd MMM yyyy, hh:mm a")}
                       </span>
                     </div>
@@ -420,11 +420,11 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                   <div className="shrink-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-white/50 hover:text-white">
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-500 hover:text-slate-900">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-white min-w-[180px] z-50">
+                      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-200 text-slate-900 min-w-[180px] z-50">
                         <DropdownMenuItem
                           className="text-purple-400 hover:text-purple-300 cursor-pointer"
                           onClick={() => {
@@ -443,7 +443,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                         >
                           <MessageSquare className="w-4 h-4 mr-2" /> View Messages
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-slate-700" />
+                        <DropdownMenuSeparator className="bg-slate-100" />
                         <DropdownMenuItem
                           className="text-orange-400 hover:text-orange-300 cursor-pointer"
                           onClick={() => openBanDialog(v)}
@@ -480,7 +480,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
       {/* Ban Dialog */}
       <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+        <DialogContent className="bg-slate-900 border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Gavel className="w-5 h-5" />
@@ -490,7 +490,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
           {banTarget && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-white border-slate-200 border border-slate-200 rounded-xl">
                 <Avatar className="w-10 h-10 border-2 border-red-500/30">
                   <UserAvatarImage seed={(((banTarget.host) as any)?.id ?? ((banTarget.host) as any)?.user_id ?? ((banTarget.host) as any)?.host_id)} gender={((banTarget.host) as any)?.gender} src={banTarget.host?.avatar_url || ""} />
                   <AvatarFallback className="bg-red-900/50 text-red-300 text-sm">
@@ -498,13 +498,13 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-medium text-sm">{banTarget.host?.display_name}</p>
-                  <p className="text-white/40 text-xs"><CopyableUid value={banTarget.host?.app_uid} /></p>
+                  <p className="text-slate-900 font-medium text-sm">{banTarget.host?.display_name}</p>
+                  <p className="text-slate-400 text-xs"><CopyableUid value={banTarget.host?.app_uid} /></p>
                 </div>
               </div>
 
               <div>
-                <p className="text-white/70 text-sm mb-2 font-medium">
+                <p className="text-slate-700 text-sm mb-2 font-medium">
                   <Clock className="w-4 h-4 inline mr-1" /> Ban Duration
                 </p>
                 <div className="grid grid-cols-4 gap-2">
@@ -524,8 +524,8 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                       className={cn(
                         "px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
                         banDuration === opt.value
-                          ? "bg-red-600 border-red-500 text-white"
-                          : "bg-slate-800 border-slate-700 text-white/60 hover:border-red-500/50"
+                          ? "bg-red-600 border-red-500 text-slate-900"
+                          : "bg-white border-slate-200 text-slate-600 hover:border-red-500/50"
                       )}
                     >
                       {opt.label}
@@ -538,31 +538,31 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                     placeholder="Number of hours..."
                     value={banCustomHours}
                     onChange={(e) => setBanCustomHours(e.target.value)}
-                    className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-white/30"
+                    className="mt-2 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
                   />
                 )}
               </div>
 
               <div>
-                <p className="text-white/70 text-sm mb-2 font-medium">Ban Reason</p>
+                <p className="text-slate-700 text-sm mb-2 font-medium">Ban Reason</p>
                 <Textarea
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
                   placeholder="Enter reason..."
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-white/30 min-h-[60px]"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 min-h-[60px]"
                 />
               </div>
 
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
-                  className="flex-1 text-white/60"
+                  className="flex-1 text-slate-600"
                   onClick={() => setShowBanDialog(false)}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-slate-900"
                   onClick={handleBan}
                   disabled={banning}
                 >
