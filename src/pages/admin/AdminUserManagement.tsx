@@ -2775,8 +2775,8 @@ export default function AdminUserManagement() {
                         <FaceSubmissionMediaBlocks submission={submission} priority={index < 6} />
 
                         {!mediaReadiness.ready && (
-                          <div className="rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-800">
-                            🔁 Upload incomplete — user must resubmit: {mediaReadiness.missing.join(', ')}
+                          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                            ⚠ Manual override allowed — missing evidence noted: {mediaReadiness.missing.join(', ')}
                           </div>
                         )}
 
@@ -2786,7 +2786,7 @@ export default function AdminUserManagement() {
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <Button 
                               className="bg-green-500 hover:bg-green-600 text-white"
-                              disabled={actionLoading || !mediaReadiness.ready}
+                              disabled={actionLoading}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 processFaceSubmission(submission, 'approve', submission.verification_type === 'host' ? 'host' : 'user');
@@ -2798,7 +2798,7 @@ export default function AdminUserManagement() {
                             <Button
                               variant="outline"
                               className="border-pink-200 text-pink-600 hover:bg-pink-50"
-                              disabled={actionLoading || !mediaReadiness.ready}
+                              disabled={actionLoading}
                               onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'host'); }}
                             >
                               <Crown className="w-4 h-4 mr-2" />
@@ -2807,7 +2807,7 @@ export default function AdminUserManagement() {
                             <Button
                               variant="outline"
                               className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                              disabled={actionLoading || !mediaReadiness.ready}
+                              disabled={actionLoading}
                               onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'user'); }}
                             >
                               <UserCheck className="w-4 h-4 mr-2" />

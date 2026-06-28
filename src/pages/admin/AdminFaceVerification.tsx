@@ -934,23 +934,23 @@ const AdminFaceVerification = () => {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Completion</p>
-                        <p className="text-sm font-semibold text-[#0F172A]">{completed}/{total} ({percentage}%)</p>
+                      <div className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 shadow-sm">
+                        <p className="text-[10px] text-slate-700 uppercase tracking-wider font-bold">Completion</p>
+                        <p className="text-sm font-bold text-slate-900">{completed}/{total} ({percentage}%)</p>
                       </div>
-                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Face Match</p>
-                        <p className={`text-sm font-semibold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <div className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 shadow-sm">
+                        <p className="text-[10px] text-slate-700 uppercase tracking-wider font-bold">Face Match</p>
+                        <p className={`text-sm font-bold ${typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {typeof faceMatch === 'number' ? `${faceMatch.toFixed(1)}%` : 'N/A'}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Profile Photo</p>
-                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 shadow-sm">
+                        <p className="text-[10px] text-slate-700 uppercase tracking-wider font-bold">Profile Photo</p>
+                        <p className="text-sm font-bold text-slate-900">{mediaStatus.hasProfilePhoto ? 'Yes' : 'No'}</p>
                       </div>
-                      <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{mediaStatus.videoLabel}</p>
-                        <p className="text-sm font-semibold text-[#0F172A]">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
+                      <div className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 shadow-sm">
+                        <p className="text-[10px] text-slate-700 uppercase tracking-wider font-bold">{mediaStatus.videoLabel}</p>
+                        <p className="text-sm font-bold text-slate-900">{mediaStatus.hasRequiredVideo ? 'Yes' : 'No'}</p>
                       </div>
                     </div>
 
