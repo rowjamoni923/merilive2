@@ -121,6 +121,7 @@ const AdminHelperDiamondPricing = () => {
   }
 
   return (
+    <div className="admin-pro-shell">
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -296,6 +297,7 @@ const AdminHelperDiamondPricing = () => {
           })}
         </div>
       </div>
+    </div>
     </div>
   );
 };
