@@ -2784,38 +2784,37 @@ export default function AdminLayout() {
         )}
       </AnimatePresence>
 
-      {/* ━━━ SIDEBAR ━━━ */}
+      {/* ━━━ SIDEBAR (Cloud White + 3D) ━━━ */}
       <aside className={cn(
         "fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out flex flex-col",
-        "bg-[#08080e]/95 backdrop-blur-2xl border-r border-white/[0.04]",
-        "shadow-[4px_0_50px_-10px_rgba(0,0,0,0.8)]",
-        // Mobile: slightly narrower; Desktop: collapsible
+        "bg-white border-r border-slate-200",
+        "shadow-[6px_0_24px_-12px_rgba(15,23,42,0.12),2px_0_8px_-4px_rgba(15,23,42,0.06)]",
         isMobileSidebarOpen ? "w-[min(84vw,320px)]" : (isSidebarOpen ? "w-72" : "w-20"),
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
-        {/* Subtle gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.02] via-transparent to-emerald-500/[0.01] pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-violet-500/15 via-white/[0.03] to-emerald-500/10 pointer-events-none" />
-        
+        {/* Soft accent wash */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50/40 via-transparent to-slate-50/40 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-200/60 via-slate-200/40 to-transparent pointer-events-none" />
+
         {/* Logo Header */}
-        <div className="relative p-4 border-b border-white/[0.04]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-violet-500/[0.04] blur-3xl pointer-events-none" />
-          
+        <div className="relative p-4 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-blue-500/[0.06] blur-3xl pointer-events-none" />
+
           <div className="relative flex items-center gap-3">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-xl ring-1 ring-white/10">
-                <Shield className="w-5 h-5 text-white drop-shadow-lg" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-blue-400/30">
+                <Shield className="w-5 h-5 text-white drop-shadow" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#08080e] shadow-lg shadow-emerald-400/50 animate-pulse" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-lg shadow-emerald-500/40 animate-pulse" />
             </div>
             {isSidebarOpen && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex-1">
-                <h1 className="text-white font-extrabold text-base tracking-wide">MeriLive</h1>
-                <p className="text-[9px] text-violet-400/50 font-bold uppercase tracking-[0.25em]">Admin Console</p>
+                <h1 className="text-slate-900 font-extrabold text-base tracking-tight" style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>MeriLive</h1>
+                <p className="text-[9px] text-blue-600/80 font-bold uppercase tracking-[0.25em]">Admin Console</p>
               </motion.div>
             )}
-            <Button variant="ghost" size="icon" className="lg:hidden text-slate-400 hover:text-white hover:bg-white/5" onClick={() => setIsMobileSidebarOpen(false)}>
+            <Button variant="ghost" size="icon" className="lg:hidden text-slate-500 hover:text-slate-900 hover:bg-slate-100" onClick={() => setIsMobileSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -2823,26 +2822,26 @@ export default function AdminLayout() {
           {/* Search */}
           {isSidebarOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 ref={sidebarSearchRef}
                 placeholder="Search... (Ctrl+K)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-16 bg-white/[0.03] border-white/[0.06] text-white text-sm placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/30 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9"
+                className="pl-9 pr-16 bg-white border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 rounded-xl h-9 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]"
               />
               {!searchQuery && (
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.03] text-[10px] text-slate-600 font-mono">⌘K</kbd>
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] text-slate-500 font-mono">⌘K</kbd>
               )}
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                  <X className="w-3 h-3 text-white" />
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center transition-colors">
+                  <X className="w-3 h-3 text-slate-700" />
                 </button>
               )}
             </motion.div>
           )}
 
-          {/* Pkg82 — Audit ID search (jump to diagnostic section) */}
+          {/* Audit ID search */}
           {isSidebarOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-2">
               <AuditIdSearch compact />
@@ -2863,14 +2862,14 @@ export default function AdminLayout() {
                   {isSidebarOpen && (
                     <button
                       onClick={() => toggleGroup(group.title)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] hover:text-white/80 transition-colors group/header"
+                      className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-slate-50 rounded-lg transition-colors group/header"
                     >
-                      <span className={cn("flex items-center gap-2", accent.text)}>
-                        <span className={cn("w-1.5 h-1.5 rounded-full", accent.dot)} />
+                      <span className="flex items-center gap-2 text-slate-500">
+                        <span className={cn("w-1.5 h-1.5 rounded-full shadow-sm", accent.dot)} />
                         {group.title}
                       </span>
                       <ChevronDown className={cn(
-                        "w-3 h-3 transition-transform duration-200 text-slate-600",
+                        "w-3 h-3 transition-transform duration-200 text-slate-400",
                         isExpanded ? "rotate-0" : "-rotate-90"
                       )} />
                     </button>
@@ -2889,7 +2888,7 @@ export default function AdminLayout() {
                           const isActive = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
                           const Icon = item.icon;
                           const badgeCount = getEffectivePendingCount(item.path) + Number(notificationCountsByPath[normalizeAdminPath(item.path)] || 0);
-                          
+
                           return (
                             <Link
                               key={item.path}
@@ -2899,47 +2898,44 @@ export default function AdminLayout() {
                               onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
-                                // Do NOT auto-dismiss the sidebar/bell badge on click —
-                                // owner directive: notifications persist until manually
-                                // cleared from the bell panel.
                               }}
 
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group/item relative overflow-hidden",
                                 isActive
-                                  ? cn("bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent text-white border", accent.border)
-                                  : "text-slate-500 hover:text-white/80 hover:bg-white/[0.03] border border-transparent"
+                                  ? "bg-gradient-to-r from-blue-50 via-blue-50/60 to-transparent text-blue-700 border border-blue-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_8px_-4px_rgba(59,130,246,0.25)]"
+                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
                               )}
                             >
                               {isActive && (
                                 <motion.div
                                   layoutId="activeNav"
-                                  className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-gradient-to-b", accent.iconActive)}
-                                  style={{ boxShadow: `0 0 12px ${accent.dot.replace('bg-', '').includes('violet') ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.2)'}` }}
+                                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-gradient-to-b from-blue-500 to-indigo-600"
+                                  style={{ boxShadow: '0 0 12px rgba(59,130,246,0.45)' }}
                                 />
                               )}
-                              
+
                               <div className={cn(
-                                "w-7 h-7 rounded-lg flex items-center justify-center transition-all flex-shrink-0",
-                                isActive 
-                                  ? cn("bg-gradient-to-br shadow-md", accent.iconActive)
-                                  : "bg-white/[0.04] group-hover/item:bg-white/[0.08]"
+                                "w-7 h-7 rounded-lg flex items-center justify-center transition-all flex-shrink-0 relative",
+                                isActive
+                                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_4px_10px_-2px_rgba(59,130,246,0.5),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-blue-400/40"
+                                  : "bg-slate-100 group-hover/item:bg-white group-hover/item:shadow-[0_1px_2px_rgba(15,23,42,0.06),0_2px_6px_-2px_rgba(15,23,42,0.08)] group-hover/item:ring-1 group-hover/item:ring-slate-200"
                               )}>
-                                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-slate-500 group-hover/item:text-white/60")} />
+                                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-slate-500 group-hover/item:text-blue-600")} />
                                 {!isSidebarOpen && badgeCount > 0 && (
-                                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center px-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-[8px] text-white font-bold ring-2 ring-[#08080e]">
+                                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center px-0.5 bg-gradient-to-r from-rose-500 to-red-600 rounded-full text-[8px] text-white font-bold ring-2 ring-white shadow">
                                     {formatBadgeCount(badgeCount)}
                                   </motion.span>
                                 )}
                               </div>
-                              
+
                               {isSidebarOpen && (
-                                <span className="text-[13px] font-semibold truncate flex-1">{item.label}</span>
+                                <span className={cn("text-[13px] font-semibold truncate flex-1", isActive && "text-blue-700")}>{item.label}</span>
                               )}
-                              
+
                               {isSidebarOpen && badgeCount > 0 && (
                                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                                  <Badge className={cn("ml-auto border-0 text-[10px] px-1.5 shadow-lg font-bold bg-gradient-to-r text-white", accent.iconActive)}>
+                                  <Badge className="ml-auto border-0 text-[10px] px-1.5 shadow-[0_2px_6px_-2px_rgba(244,63,94,0.5)] font-bold bg-gradient-to-r from-rose-500 to-red-600 text-white">
                                     {formatBadgeCount(badgeCount)}
                                   </Badge>
                                 </motion.div>
@@ -2957,23 +2953,23 @@ export default function AdminLayout() {
         </ScrollArea>
 
         {/* User Section */}
-        <div className="relative p-3 border-t border-white/[0.04] bg-gradient-to-t from-violet-950/5 to-transparent shrink-0">
-          <div className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/10 to-transparent" />
-          
+        <div className="relative p-3 border-t border-slate-200 bg-gradient-to-t from-slate-50 to-white shrink-0">
+          <div className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent" />
+
           <div className={cn(
-            "flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer border border-white/[0.04] hover:border-white/[0.08]",
+            "flex items-center gap-3 p-2.5 rounded-xl bg-white hover:bg-slate-50 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-blue-300 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_6px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_8px_16px_-6px_rgba(59,130,246,0.18)]",
             !isSidebarOpen && "justify-center"
           )} onClick={() => setShowProfileMenu(true)}>
-            <Avatar className="w-9 h-9 border border-violet-400/20 ring-2 ring-violet-500/10 shadow-lg">
+            <Avatar className="w-9 h-9 border border-blue-200 ring-2 ring-blue-500/15 shadow-md">
               <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-xs font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white text-xs font-bold">
                 {currentUser?.profile?.display_name?.charAt(0) || "A"}
               </AvatarFallback>
             </Avatar>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-bold truncate">{adminUser?.display_name || currentUser?.profile?.display_name || "Admin"}</p>
-                <p className={cn("text-[9px] font-bold tracking-[0.2em] uppercase", isOwner ? "text-violet-400/60" : "text-slate-600")}>
+                <p className="text-slate-900 text-sm font-bold truncate">{adminUser?.display_name || currentUser?.profile?.display_name || "Admin"}</p>
+                <p className={cn("text-[9px] font-bold tracking-[0.2em] uppercase", isOwner ? "text-blue-600" : "text-slate-500")}>
                   {isOwner ? "👑 Owner" : "🛡️ Sub-Admin"}
                 </p>
               </div>
@@ -2986,34 +2982,34 @@ export default function AdminLayout() {
       <div className={cn("transition-all duration-300 min-h-0 min-w-0 max-w-full flex flex-col overflow-visible lg:overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
         
         {/* ━━━ TOP HEADER ━━━ */}
-        <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
+        <header className="sticky top-0 z-30 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_-6px_rgba(15,23,42,0.08)] safe-area-top max-w-full overflow-visible">
           <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost" size="icon"
-                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white/[0.04] border border-white/[0.06] flex-shrink-0"
+                className="lg:hidden text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white border border-slate-200 shadow-sm flex-shrink-0"
                 onClick={() => { setIsMobileSidebarOpen(true); setIsSidebarOpen(true); }}
               >
                 <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-4 h-4" />
               </Button>
 
               <div className="min-w-0">
-                <h2 className="text-white font-bold text-sm sm:text-[15px] truncate">
+                <h2 className="text-slate-900 font-bold text-sm sm:text-[15px] truncate" style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
                   {navGroups.flatMap(g => g.items).find(item => location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path)))?.label || "Dashboard"}
                 </h2>
-                <p className="text-[8px] sm:text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
+                <p className="text-[8px] sm:text-[9px] text-blue-600/80 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0 min-w-0">
               {/* Desktop Search */}
               <div className="relative hidden lg:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                <Input placeholder="Global search..." className="w-56 pl-10 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/25 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9 text-sm" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input placeholder="Global search..." className="w-56 pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 rounded-xl h-9 text-sm shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]" />
               </div>
 
               {/* Realtime sync status pill */}
@@ -3026,12 +3022,12 @@ export default function AdminLayout() {
               <div className="relative" ref={notificationRef}>
                 <Button
                   variant="ghost" size="icon"
-                  className="relative text-slate-400 hover:text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10"
+                  className="relative text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl h-9 w-9 sm:h-10 sm:w-10 border border-transparent hover:border-blue-200"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                   {totalUnreadCount > 0 && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-4 sm:min-w-5 h-4 sm:h-5 flex items-center justify-center px-0.5 sm:px-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-[8px] sm:text-[10px] text-white font-bold ring-2 ring-[#06060a]">
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-4 sm:min-w-5 h-4 sm:h-5 flex items-center justify-center px-0.5 sm:px-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full text-[8px] sm:text-[10px] text-white font-bold ring-2 ring-white shadow">
                       {formatBadgeCount(totalUnreadCount)}
                     </motion.span>
                   )}
@@ -3135,25 +3131,25 @@ export default function AdminLayout() {
               </div>
 
               {/* Quick Stats - visible on tablet+ */}
-              <div className="hidden md:flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/[0.02] rounded-xl border border-white/[0.04]">
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_6px_-2px_rgba(15,23,42,0.06)]">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/30" />
-                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Online</span>
-                  <span className="text-xs sm:text-sm font-bold text-emerald-400 tabular-nums">{onlineUsersCount}</span>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/40" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Online</span>
+                  <span className="text-xs sm:text-sm font-bold text-emerald-600 tabular-nums">{onlineUsersCount}</span>
                 </div>
-                <div className="w-px h-4 sm:h-5 bg-white/[0.06]" />
+                <div className="w-px h-4 sm:h-5 bg-slate-200" />
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
-                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Live</span>
-                  <span className="text-xs sm:text-sm font-bold text-red-400 tabular-nums">{liveStreamsCount}</span>
+                  <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-500" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Live</span>
+                  <span className="text-xs sm:text-sm font-bold text-rose-600 tabular-nums">{liveStreamsCount}</span>
                 </div>
               </div>
 
               {/* Mobile Avatar */}
               <button onClick={() => setShowProfileMenu(true)} className="lg:hidden flex-shrink-0">
-                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
+                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-blue-200 ring-2 ring-blue-500/15 shadow-md cursor-pointer">
                   <UserAvatarImage seed={(((currentUser?.profile) as any)?.id ?? ((currentUser?.profile) as any)?.user_id ?? ((currentUser?.profile) as any)?.host_id)} gender={((currentUser?.profile) as any)?.gender} src={currentUser?.profile?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white text-[10px] sm:text-xs font-bold">
                     {currentUser?.profile?.display_name?.charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
