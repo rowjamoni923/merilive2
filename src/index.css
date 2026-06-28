@@ -6186,22 +6186,53 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
    User System and other professional admin sections.
    ============================================================ */
 .admin-pro-shell {
-  --admin-pro-canvas: 210 40% 98%;
-  --admin-pro-surface: 0 0% 100%;
-  --admin-pro-surface-soft: 210 40% 96%;
-  --admin-pro-border: 214 32% 91%;
-  --admin-pro-border-strong: 215 20% 65%;
-  --admin-pro-text: 222 47% 11%;
-  --admin-pro-text-muted: 215 16% 47%;
-  --admin-pro-text-soft: 215 20% 35%;
-  --admin-pro-primary: 271 81% 56%;
+  /* Cloud White (Linear / Vercel) — Space Grotesk + DM Sans */
+  --admin-pro-canvas: 0 0% 100%;             /* #FFFFFF */
+  --admin-pro-surface: 0 0% 100%;            /* #FFFFFF */
+  --admin-pro-surface-soft: 210 40% 98%;     /* #F8FAFC */
+  --admin-pro-surface-sunken: 214 32% 95%;   /* #EEF2F7 */
+  --admin-pro-border: 214 32% 91%;           /* #E2E8F0 */
+  --admin-pro-border-strong: 215 25% 78%;    /* slate-300 */
+  --admin-pro-text: 222 47% 11%;             /* #0F172A */
+  --admin-pro-text-muted: 215 16% 47%;       /* #64748B */
+  --admin-pro-text-soft: 215 20% 35%;        /* #475569 */
+  --admin-pro-primary: 217 91% 60%;          /* #3B82F6 electric blue */
+  --admin-pro-primary-hover: 221 83% 53%;    /* #2563EB */
   --admin-pro-primary-foreground: 0 0% 100%;
+  --admin-pro-success: 160 84% 39%;          /* emerald-500 */
+  --admin-pro-warning: 38 92% 50%;           /* amber-500 */
+  --admin-pro-danger: 0 84% 60%;             /* red-500 */
   --admin-pro-shadow: 215 28% 17%;
   background: hsl(var(--admin-pro-canvas));
   color: hsl(var(--admin-pro-text));
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
   min-height: calc(100vh - 4rem);
 }
+.admin-pro-shell h1,
+.admin-pro-shell h2,
+.admin-pro-shell h3,
+.admin-pro-shell h4,
+.admin-pro-shell h5,
+.admin-pro-shell h6 {
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+/* Make sure card surfaces sitting on the white canvas have a visible edge */
+.admin-pro-shell .bg-card,
+.admin-pro-shell [data-slot="card"] {
+  background: hsl(var(--admin-pro-surface)) !important;
+  border: 1px solid hsl(var(--admin-pro-border)) !important;
+  box-shadow: 0 1px 2px hsl(var(--admin-pro-shadow) / 0.04), 0 1px 3px hsl(var(--admin-pro-shadow) / 0.06) !important;
+  color: hsl(var(--admin-pro-text)) !important;
+}
+/* When admin-pro-shell sits inside the dark .admin-shell wrapper, the
+   wrapper still paints #06060a behind the scroll area. Hard override so
+   the whole admin canvas is white edge-to-edge. */
+.admin-shell { background: #FFFFFF !important; }
+.admin-shell .admin-pro-shell { background: hsl(var(--admin-pro-canvas)); }
+
 /* Flatten dark custom-hex gradients (e.g. from-[#0f0a1a]) to white surfaces */
 .admin-pro-shell [class*="from-["],
 .admin-pro-shell [class*="via-["],
