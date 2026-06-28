@@ -1582,8 +1582,8 @@ const AdminFaceVerification = () => {
                   <RoleApproveBar
                     defaultRole={selectedSubmission?.verification_type === 'host' ? 'host' : 'user'}
                     processing={processing}
-                    approvalDisabled={selectedSubmission ? !getFaceSubmissionMediaReadiness(selectedSubmission).ready : true}
-                    disabledReason={selectedSubmission ? getFaceSubmissionMediaReadiness(selectedSubmission).missing.join(', ') : 'No submission selected'}
+                    approvalDisabled={!selectedSubmission}
+                    disabledReason={selectedSubmission ? undefined : 'No submission selected'}
                     onApprove={(role) => {
                       if (!selectedSubmission) return;
                       processSubmissionAction({
