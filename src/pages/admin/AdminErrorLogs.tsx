@@ -78,7 +78,10 @@ export default function AdminErrorLogs() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterLevel, setFilterLevel] = useState<"all" | "info" | "warn" | "error">("all");
   const [filterResolved, setFilterResolved] = useState<string>("unresolved");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
@@ -89,6 +92,12 @@ export default function AdminErrorLogs() {
     todayErrors: 0,
     topPages: [] as { page: string; count: number }[],
   });
+
+  const LEVEL_MAP: Record<"info" | "warn" | "error", string[]> = {
+    info: ["info"],
+    warn: ["warning", "warn"],
+    error: ["error", "render_error", "network_error", "unhandled_rejection"],
+  };
 
   const fetchErrors = async () => {
     setLoading(true);
@@ -103,14 +112,27 @@ export default function AdminErrorLogs() {
         query = query.eq('error_type', filterType);
       }
 
+      if (filterLevel !== 'all') {
+        query = query.in('error_type', LEVEL_MAP[filterLevel]);
+      }
+
       if (filterResolved === 'resolved') {
         query = query.eq('is_resolved', true);
       } else if (filterResolved === 'unresolved') {
         query = query.eq('is_resolved', false);
       }
 
+      if (dateFrom) {
+        query = query.gte('created_at', new Date(dateFrom).toISOString());
+      }
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte('created_at', end.toISOString());
+      }
+
       if (searchQuery) {
-        query = query.or(`error_message.ilike.%${searchQuery}%,page_path.ilike.%${searchQuery}%`);
+        query = query.or(`error_message.ilike.%${searchQuery}%,page_path.ilike.%${searchQuery}%,component_name.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query;
@@ -155,7 +177,8 @@ export default function AdminErrorLogs() {
 
   useEffect(() => {
     fetchErrors();
-  }, [filterType, filterResolved, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterType, filterLevel, filterResolved, searchQuery, dateFrom, dateTo]);
 
   useAdminRealtime(['system_error_logs'], () => fetchErrors());
 
@@ -383,8 +406,20 @@ export default function AdminErrorLogs() {
               </SelectContent>
             </Select>
 
+            <Select value={filterLevel} onValueChange={(v) => setFilterLevel(v as any)}>
+              <SelectTrigger className="w-[150px] bg-slate-50">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warn">Warning</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={filterResolved} onValueChange={setFilterResolved}>
-              <SelectTrigger className="w-[180px] bg-slate-50">
+              <SelectTrigger className="w-[150px] bg-slate-50">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -393,6 +428,35 @@ export default function AdminErrorLogs() {
                  <SelectItem value="resolved">Resolved</SelectItem>
               </SelectContent>
             </Select>
+
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-[170px] bg-slate-50"
+              aria-label="From date"
+            />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-[170px] bg-slate-50"
+              aria-label="To date"
+            />
+            {(dateFrom || dateTo || filterLevel !== "all" || filterType !== "all" || searchQuery) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setFilterLevel("all");
+                  setFilterType("all");
+                  setSearchQuery("");
+                }}
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
