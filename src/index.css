@@ -2536,6 +2536,16 @@ body[data-admin-active="true"] #root {
     overflow: hidden;
     overscroll-behavior: contain;
   }
+  /* Inner content wrapper (sibling of <aside>) must fill viewport height so
+     the <main data-admin-scroll-root> child can actually scroll. Without an
+     explicit height here the wrapper grows with content and the inner
+     overflow-y:auto never activates → whole admin panel looks frozen. */
+  .admin-shell > div[class*="flex-col"] {
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
   .admin-shell [data-admin-scroll-root="true"] {
     flex: 1 1 0% !important;
     min-height: 0 !important;
