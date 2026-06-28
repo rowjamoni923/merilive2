@@ -300,23 +300,23 @@ const AdminLandingPageManager = () => {
   const filteredSections = filterType === "all" ? sections : sections.filter(s => s.section_type === filterType);
 
   return (
-    <div className="h-full min-h-0 flex flex-col gap-6">
+    <div className="admin-pro-shell admin-content h-full min-h-0 flex flex-col gap-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 rounded-2xl p-6 shadow-lg shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Globe className="w-8 h-8 text-white" />
+          <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center">
+            <Globe className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Landing Page Manager</h1>
-            <p className="text-white/80">Manage all content for merilive.top</p>
+            <h1 className="text-2xl font-bold text-slate-900">Landing Page Manager</h1>
+            <p className="text-slate-900/80">Manage all content for merilive.top</p>
           </div>
         </div>
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col space-y-4">
-        <TabsList className="flex w-full bg-slate-900/50 p-1 h-auto shrink-0 overflow-x-auto whitespace-nowrap">
+        <TabsList className="flex w-full bg-white p-1 h-auto shrink-0 overflow-x-auto whitespace-nowrap">
           <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-3 flex-1 text-xs sm:text-sm">
             <Settings className="w-4 h-4 mr-1.5" />
             Settings
@@ -419,7 +419,7 @@ const AdminLandingPageManager = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${section.gradient_colors} flex items-center justify-center flex-shrink-0`}>
-                          <TypeIcon className="w-5 h-5 text-white" />
+                          <TypeIcon className="w-5 h-5 text-slate-900" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">

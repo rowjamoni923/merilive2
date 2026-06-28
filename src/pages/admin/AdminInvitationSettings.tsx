@@ -239,39 +239,39 @@ const AdminInvitationSettings = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-4 md:space-y-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Crown className="w-5 h-5 md:w-6 md:h-6" />
               Invitation Settings
             </h1>
-            <p className="text-white/90 text-sm mt-1">Manage invitation reward tiers & banner</p>
+            <p className="text-slate-900/90 text-sm mt-1">Manage invitation reward tiers & banner</p>
           </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingTier(null); resetForm(); }} className="bg-white/20 hover:bg-white/30 text-white border border-white/30">
+            <Button onClick={() => { setEditingTier(null); resetForm(); }} className="bg-slate-50 hover:bg-white/30 text-slate-900 border border-white/30">
               <Plus className="w-4 h-4 mr-2" />
               New Tier
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
+          <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white border-slate-200">
             <DialogHeader>
-              <DialogTitle className="text-white">
+              <DialogTitle className="text-slate-900">
                 {editingTier ? 'Edit Tier' : 'Create New Tier'}
               </DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-300 font-medium">Tier Name</Label>
+                <Label className="text-slate-700 font-medium">Tier Name</Label>
                 <Input
                   value={formData.tier_name || ''}
                   onChange={(e) => setFormData({ ...formData, tier_name: e.target.value })}
                   placeholder="e.g., Bronze, Silver, Gold"
-                  className="mt-1 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="mt-1 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
                 />
               </div>
 
@@ -315,7 +315,7 @@ const AdminInvitationSettings = () => {
 
               <div className="flex items-center gap-2">
                 <Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })} />
-                <Label className="text-slate-300">Active</Label>
+                <Label className="text-slate-700">Active</Label>
               </div>
 
               <div className="flex gap-2 pt-4">
@@ -323,7 +323,7 @@ const AdminInvitationSettings = () => {
                   <Save className="w-4 h-4 mr-2" />
                   Save
                 </Button>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-600 text-slate-300 hover:bg-slate-800">
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-200 text-slate-700 hover:bg-slate-50">
                   <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
@@ -335,18 +335,18 @@ const AdminInvitationSettings = () => {
       </div>
 
       {/* Banner Management Section */}
-      <Card className="bg-slate-900 border-slate-700/50 shadow-lg overflow-hidden">
+      <Card className="bg-white border-slate-200 shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-b border-amber-500/20 px-4 py-3">
-          <h2 className="text-white font-bold flex items-center gap-2">
+          <h2 className="text-slate-900 font-bold flex items-center gap-2">
             <Image className="w-5 h-5 text-amber-400" />
             Invitation Banner
           </h2>
-          <p className="text-white/50 text-xs mt-0.5">Set up the banner image for the invitation page</p>
+          <p className="text-slate-900/50 text-xs mt-0.5">Set up the banner image for the invitation page</p>
         </div>
         <CardContent className="p-4 space-y-4">
           {/* Current Banner Preview */}
           {(bannerUrl || bannerInput) && (
-            <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg">
+            <div className="rounded-xl overflow-hidden border border-slate-200 shadow-lg">
               <SmartImage 
                 src={bannerInput || bannerUrl} 
                 alt="Invitation Banner Preview" 
@@ -358,7 +358,7 @@ const AdminInvitationSettings = () => {
 
           {/* URL Input */}
           <div>
-            <Label className="text-slate-300 text-sm">Banner URL</Label>
+            <Label className="text-slate-700 text-sm">Banner URL</Label>
             <div className="flex gap-2 mt-1">
               <div className="relative flex-1">
                 <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -366,7 +366,7 @@ const AdminInvitationSettings = () => {
                   value={bannerInput}
                   onChange={(e) => setBannerInput(e.target.value)}
                   placeholder="https://example.com/banner.jpg"
-                  className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="pl-9 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
                 />
               </div>
               <Button 
@@ -382,10 +382,10 @@ const AdminInvitationSettings = () => {
 
           {/* File Upload */}
           <div>
-            <Label className="text-slate-300 text-sm">Or upload file</Label>
-            <label className="mt-1 flex items-center gap-2 cursor-pointer bg-slate-800 border border-slate-600 border-dashed rounded-lg px-4 py-3 hover:bg-slate-700/50 transition-colors">
+            <Label className="text-slate-700 text-sm">Or upload file</Label>
+            <label className="mt-1 flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 border-dashed rounded-lg px-4 py-3 hover:bg-slate-700/50 transition-colors">
               <Upload className="w-5 h-5 text-amber-400" />
-              <span className="text-slate-400 text-sm">{uploadingBanner ? 'Uploading...' : 'Select banner image'}</span>
+              <span className="text-slate-600 text-sm">{uploadingBanner ? 'Uploading...' : 'Select banner image'}</span>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -408,12 +408,12 @@ const AdminInvitationSettings = () => {
                   className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0"
                   style={{ backgroundColor: tier.badge_color }}
                 >
-                  <Crown className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <Crown className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white">{tier.tier_name}</h3>
-                  <p className="text-sm text-slate-400">
+                  <h3 className="font-semibold text-slate-900">{tier.tier_name}</h3>
+                  <p className="text-sm text-slate-600">
                     {tier.min_invites}{tier.max_invites ? `-${tier.max_invites}` : '+'} Invites
                   </p>
                   <div className="flex gap-2 mt-1">
@@ -433,10 +433,10 @@ const AdminInvitationSettings = () => {
 
                 <div className="flex items-center gap-2">
                   <Switch checked={tier.is_active} onCheckedChange={() => toggleActive(tier)} />
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(tier)} className="text-slate-400 hover:text-white hover:bg-slate-800">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(tier)} className="text-slate-600 hover:text-slate-900 hover:bg-slate-50">
                     <Edit2 className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(tier.id)} className="text-red-400 hover:text-red-300 hover:bg-slate-800">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(tier.id)} className="text-red-400 hover:text-red-300 hover:bg-slate-50">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -446,7 +446,7 @@ const AdminInvitationSettings = () => {
         ))}
 
         {tiers.length === 0 && (
-          <div className="text-center py-12 text-slate-400 bg-slate-900/50 rounded-xl border border-slate-700/50">
+          <div className="text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200">
             No tiers found. Create a new tier.
           </div>
         )}

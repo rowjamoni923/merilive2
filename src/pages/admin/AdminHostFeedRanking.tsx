@@ -196,7 +196,7 @@ const AdminHostFeedRanking = () => {
   };
 
   return (
-    <div className="space-y-6 admin-content">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <AdminPageHeader
         title="Host Feed Ranking"
         subtitle="Control reject penalties, traffic boosts and ranking weights for the home host feed"

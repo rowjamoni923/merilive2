@@ -160,89 +160,89 @@ const AdminPopupBanners = () => {
     }
   };
 
-  if (loading) return <div className="p-6 text-white">Loading...</div>;
+  if (loading) return <div className="p-6 text-slate-900">Loading...</div>;
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-4 md:space-y-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Megaphone className="w-5 h-5 md:w-6 md:h-6" />
               Popup Event Banners
             </h1>
-            <p className="text-white/90 text-sm mt-1">Shows popup banner when app opens</p>
+            <p className="text-slate-900/90 text-sm mt-1">Shows popup banner when app opens</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => { setEditingBanner(null); resetForm(); }} className="bg-white/20 hover:bg-white/30 text-white border border-white/30">
+              <Button onClick={() => { setEditingBanner(null); resetForm(); }} className="bg-slate-50 hover:bg-white/30 text-slate-900 border border-white/30">
                 <Plus className="w-4 h-4 mr-2" /> New Banner
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg bg-slate-900 border-slate-700 max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-lg bg-white border-slate-200 max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle className="text-slate-900">
                   {editingBanner ? 'Edit Banner' : 'New Popup Banner'}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-300">Title *</Label>
-                  <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Event title" className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                  <Label className="text-slate-700">Title *</Label>
+                  <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Event title" className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Description</Label>
-                  <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Optional description" className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                  <Label className="text-slate-700">Description</Label>
+                  <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Optional description" className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Banner Image *</Label>
+                  <Label className="text-slate-700">Banner Image *</Label>
                   {formData.image_url && (
-                    <div className="mt-2 rounded-lg overflow-hidden border border-white/10 mb-2">
+                    <div className="mt-2 rounded-lg overflow-hidden border border-slate-200 mb-2">
                       <SmartImage src={formData.image_url} alt="Preview" className="w-full h-auto max-h-48 object-contain bg-black/50" fallbackSrc="/placeholder.svg" />
                     </div>
                   )}
                   <div className="flex gap-2 mt-1">
-                    <Input value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} placeholder="Image URL" className="bg-slate-800 border-slate-600 text-white text-sm" />
+                    <Input value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} placeholder="Image URL" className="bg-slate-50 border-slate-200 text-slate-900 text-sm" />
                   </div>
-                  <label className="mt-2 flex items-center gap-2 cursor-pointer bg-slate-800 border border-slate-600 border-dashed rounded-lg px-3 py-2 hover:bg-slate-700/50 transition-colors">
+                  <label className="mt-2 flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:bg-slate-700/50 transition-colors">
                     <Upload className="w-4 h-4 text-purple-400" />
-                    <span className="text-slate-400 text-sm">{uploading ? 'Uploading...' : 'Upload File'}</span>
+                    <span className="text-slate-600 text-sm">{uploading ? 'Uploading...' : 'Upload File'}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   </label>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Btn Delay (s)</Label>
-                    <Input type="number" min={1} value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-700 flex items-center gap-1"><Clock className="w-3 h-3" /> Close Btn Delay (s)</Label>
+                    <Input type="number" min={1} value={formData.skip_delay_seconds} onChange={(e) => setFormData({ ...formData, skip_delay_seconds: parseInt(e.target.value) || 3 })} className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                   </div>
                   <div>
-                    <Label className="text-slate-300 flex items-center gap-1"><Clock className="w-3 h-3" /> Auto Dismiss (s)</Label>
-                    <Input type="number" min={0} value={formData.auto_dismiss_seconds} onChange={(e) => setFormData({ ...formData, auto_dismiss_seconds: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-700 flex items-center gap-1"><Clock className="w-3 h-3" /> Auto Dismiss (s)</Label>
+                    <Input type="number" min={0} value={formData.auto_dismiss_seconds} onChange={(e) => setFormData({ ...formData, auto_dismiss_seconds: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                   </div>
                   <div>
-                    <Label className="text-slate-300">Display Order</Label>
-                    <Input type="number" value={formData.display_order} onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-700">Display Order</Label>
+                    <Input type="number" value={formData.display_order} onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })} className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">Start Date</Label>
-                    <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-700">Start Date</Label>
+                    <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                   </div>
                   <div>
-                    <Label className="text-slate-300">End Date</Label>
-                    <Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="mt-1 bg-slate-800 border-slate-600 text-white" />
+                    <Label className="text-slate-700">End Date</Label>
+                    <Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="mt-1 bg-slate-50 border-slate-200 text-slate-900" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })} />
-                  <Label className="text-slate-300">Active</Label>
+                  <Label className="text-slate-700">Active</Label>
                 </div>
                 <div className="flex gap-2 pt-4">
                   <Button onClick={handleSave} disabled={saving} className="flex-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white">
                     <Save className="w-4 h-4 mr-2" /> {saving ? 'Saving...' : 'Save'}
                   </Button>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-600 text-slate-300 hover:bg-slate-800">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-200 text-slate-700 hover:bg-slate-50">
                     <X className="w-4 h-4 mr-2" /> Cancel
                   </Button>
                 </div>
@@ -263,8 +263,8 @@ const AdminPopupBanners = () => {
                 <div className="flex-1 py-3 pr-3 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-white truncate">{banner.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Skip after: {banner.skip_delay_seconds}s • Auto-close: {banner.auto_dismiss_seconds}s • Order: {banner.display_order}</p>
+                      <h3 className="font-semibold text-slate-900 truncate">{banner.title}</h3>
+                      <p className="text-xs text-slate-600 mt-0.5">Skip after: {banner.skip_delay_seconds}s • Auto-close: {banner.auto_dismiss_seconds}s • Order: {banner.display_order}</p>
                       {banner.start_date && (
                         <p className="text-[10px] text-slate-500 mt-1">
                           {new Date(banner.start_date).toLocaleDateString()} — {banner.end_date ? new Date(banner.end_date).toLocaleDateString() : 'Ongoing'}
@@ -273,10 +273,10 @@ const AdminPopupBanners = () => {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Switch checked={banner.is_active} onCheckedChange={() => toggleActive(banner)} />
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(banner)} className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(banner)} className="text-slate-600 hover:text-slate-900 hover:bg-slate-50 h-8 w-8">
                         <Edit2 className="w-3.5 h-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-red-400 hover:text-red-300 hover:bg-slate-800 h-8 w-8">
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-red-400 hover:text-red-300 hover:bg-slate-50 h-8 w-8">
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -288,7 +288,7 @@ const AdminPopupBanners = () => {
         ))}
 
         {banners.length === 0 && (
-          <div className="text-center py-12 text-slate-400 bg-slate-900/50 rounded-xl border border-slate-700/50">
+          <div className="text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200">
             <Megaphone className="w-10 h-10 mx-auto mb-3 text-slate-600" />
             No popup banners yet. Create a new banner.
           </div>

@@ -445,7 +445,7 @@ const AdminSubAdmins = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between">

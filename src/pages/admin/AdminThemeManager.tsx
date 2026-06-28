@@ -84,7 +84,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[390px] p-0 bg-black border-white/10 overflow-hidden max-h-[92vh] rounded-[2rem]">
+      <DialogContent className="sm:max-w-[390px] p-0 bg-black border-slate-200 overflow-hidden max-h-[92vh] rounded-[2rem]">
         <DialogHeader className="sr-only">
           <DialogTitle>{theme.theme_name} Preview</DialogTitle>
         </DialogHeader>
@@ -108,7 +108,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
           </div>
 
           {/* ===== STATUS BAR ===== */}
-          <div className="flex items-center justify-between px-5 pt-3 pb-1 text-white/60 text-[11px] font-medium relative z-20">
+          <div className="flex items-center justify-between px-5 pt-3 pb-1 text-slate-900/60 text-[11px] font-medium relative z-20">
             <span>9:41</span>
             <div className="flex items-center gap-1.5">
               <div className="flex gap-[2px]">{[1,2,3,4].map(i => <div key={i} className="w-[3px] h-[10px] rounded-full" style={{ background: i <= 3 ? 'white' : 'rgba(255,255,255,0.2)', opacity: 0.6 }} />)}</div>
@@ -130,17 +130,17 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-black" style={{ background: '#22c55e' }} />
                 </div>
                 <div>
-                  <h3 className="text-white font-extrabold text-[15px] tracking-tight">{theme.theme_name}</h3>
+                  <h3 className="text-slate-900 font-extrabold text-[15px] tracking-tight">{theme.theme_name}</h3>
                   <p className="text-[10px] font-medium" style={{ color: `${primary}99` }}>Live Streaming • Event Theme</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md" style={{ background: `${primary}18`, border: `1px solid ${primary}30` }}>
-                  <Bell className="w-4 h-4 text-white/70" />
-                  <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[8px] font-bold flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>3</div>
+                  <Bell className="w-4 h-4 text-slate-900/70" />
+                  <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[8px] font-bold flex items-center justify-center text-slate-900" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>3</div>
                 </div>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md" style={{ background: `${primary}18`, border: `1px solid ${primary}30` }}>
-                  <MessageCircle className="w-4 h-4 text-white/70" />
+                  <MessageCircle className="w-4 h-4 text-slate-900/70" />
                 </div>
               </div>
             </div>
@@ -207,12 +207,12 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                   {/* LIVE badge */}
                   <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.9)', boxShadow: '0 0 8px rgba(239,68,68,0.5)' }}>
                     <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    <span className="text-[8px] font-extrabold text-white tracking-wider">LIVE</span>
+                    <span className="text-[8px] font-extrabold text-slate-900 tracking-wider">LIVE</span>
                   </div>
                   {/* Viewer count */}
                   <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-black/50 backdrop-blur-sm">
-                    <User className="w-2.5 h-2.5 text-white/70" />
-                    <span className="text-[8px] font-bold text-white/80">{user.viewers.toLocaleString()}</span>
+                    <User className="w-2.5 h-2.5 text-slate-900/70" />
+                    <span className="text-[8px] font-bold text-slate-900/80">{user.viewers.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -233,11 +233,11 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                         className="w-7 h-7 rounded-full object-cover"
                         style={{ border: `2px solid ${primary}`, boxShadow: `0 0 8px ${primary}50` }} fallbackSrc="/placeholder.svg" />
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-black flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>
-                        <span className="text-[5px] font-bold text-white">✓</span>
+                        <span className="text-[5px] font-bold text-slate-900">✓</span>
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-white font-bold text-[11px] truncate">{user.name}</p>
+                      <p className="text-slate-900 font-bold text-[11px] truncate">{user.name}</p>
                       <div className="flex items-center gap-1">
                         {/* Level badge */}
                         <div className="px-1.5 py-[1px] rounded-sm text-[7px] font-extrabold" style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})`, color: 'white' }}>
@@ -266,10 +266,10 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                 {theme.theme_icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-extrabold text-xs">{theme.theme_name} Special Event</p>
+                <p className="text-slate-900 font-extrabold text-xs">{theme.theme_name} Special Event</p>
                 <p className="text-[10px] mt-0.5" style={{ color: `${primary}bb` }}>🎁 Send gifts & win exclusive rewards!</p>
               </div>
-              <div className="px-3 py-1.5 rounded-full text-[9px] font-extrabold text-white shrink-0" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 4px 12px ${primary}50` }}>
+              <div className="px-3 py-1.5 rounded-full text-[9px] font-extrabold text-slate-900 shrink-0" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 4px 12px ${primary}50` }}>
                 JOIN
               </div>
             </div>
@@ -286,40 +286,40 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                   <SmartImage src={MOCK_AVATARS[4]} alt="" className="w-full h-full rounded-full object-cover border-2 border-black" fallbackSrc="/placeholder.svg" />
                 </div>
                 {/* VIP badge */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-[1px] rounded-full text-[7px] font-extrabold text-white whitespace-nowrap" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 8px ${primary}60` }}>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-[1px] rounded-full text-[7px] font-extrabold text-slate-900 whitespace-nowrap" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 8px ${primary}60` }}>
                   VIP 5
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-white font-extrabold text-sm">MeriLive User</span>
+                  <span className="text-slate-900 font-extrabold text-sm">MeriLive User</span>
                   <Star className="w-3.5 h-3.5" style={{ color: accent, fill: accent }} />
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <div className="px-1.5 py-[1px] rounded-sm text-[7px] font-extrabold text-white" style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})` }}>
+                  <div className="px-1.5 py-[1px] rounded-sm text-[7px] font-extrabold text-slate-900" style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})` }}>
                     Lv.25
                   </div>
-                  <span className="text-[10px] text-white/40">ID: 100892</span>
+                  <span className="text-[10px] text-slate-900/40">ID: 100892</span>
                 </div>
                 <div className="flex items-center gap-3 mt-1.5">
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-white">1.2K</p>
-                    <p className="text-[8px] text-white/30">Followers</p>
+                    <p className="text-[10px] font-bold text-slate-900">1.2K</p>
+                    <p className="text-[8px] text-slate-900/30">Followers</p>
                   </div>
-                  <div className="w-px h-4 bg-white/10" />
+                  <div className="w-px h-4 bg-slate-50" />
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-white">348</p>
-                    <p className="text-[8px] text-white/30">Following</p>
+                    <p className="text-[10px] font-bold text-slate-900">348</p>
+                    <p className="text-[8px] text-slate-900/30">Following</p>
                   </div>
-                  <div className="w-px h-4 bg-white/10" />
+                  <div className="w-px h-4 bg-slate-50" />
                   <div className="text-center">
                     <p className="text-[10px] font-bold" style={{ color: accent }}>5.6K</p>
-                    <p className="text-[8px] text-white/30">Gifts</p>
+                    <p className="text-[8px] text-slate-900/30">Gifts</p>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
-                <div className="px-3 py-1.5 rounded-full text-[9px] font-extrabold text-white text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 10px ${primary}50` }}>
+                <div className="px-3 py-1.5 rounded-full text-[9px] font-extrabold text-slate-900 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 10px ${primary}50` }}>
                   Follow
                 </div>
                 <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto" style={{ background: `${accent}15`, border: `1px solid ${accent}30` }}>
@@ -349,7 +349,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                         style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})`, boxShadow: `0 4px 20px ${primary}60` }}
                       >
                         <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-white/25 via-transparent to-transparent" />
-                        <span className="text-white text-xl font-light">+</span>
+                        <span className="text-slate-900 text-xl font-light">+</span>
                       </div>
                     </div>
                   ) : (
@@ -480,18 +480,18 @@ const AdminThemeManager = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="admin-pro-shell admin-content min-h-[60vh] flex items-center justify-center -mx-4 -my-4 sm:-mx-6 sm:-my-6 p-4 md:p-6">
         <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur-xl border-b border-white/10 p-4">
+      <div className="sticky top-0 z-10 bg-white backdrop-blur-xl border-b border-slate-200 p-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-900">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
@@ -499,7 +499,7 @@ const AdminThemeManager = () => {
               <Palette className="w-5 h-5 text-purple-400" />
               Event Theme Manager
             </h1>
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-slate-900/50">
               {filteredThemes.length} themes {selectedCountry !== 'ALL' ? `for ${COUNTRY_FILTERS.find(c => c.code === selectedCountry)?.name}` : 'total'}
             </p>
           </div>
@@ -595,7 +595,7 @@ const AdminThemeManager = () => {
               <div className="flex items-start gap-3">
                 {/* Theme Icon & Preview */}
                 <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 border border-white/10 cursor-pointer hover:scale-105 transition-transform"
+                  className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 border border-slate-200 cursor-pointer hover:scale-105 transition-transform"
                   style={{
                     background: `linear-gradient(135deg, hsl(${theme.header_gradient_from}), hsl(${theme.header_gradient_to}))`,
                   }}
@@ -619,29 +619,29 @@ const AdminThemeManager = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-white/50 line-clamp-1">{theme.description}</p>
+                  <p className="text-xs text-slate-900/50 line-clamp-1">{theme.description}</p>
 
                   {/* Color Preview Dots */}
                   <div className="flex items-center gap-1.5 mt-2">
-                    <div className="w-4 h-4 rounded-full border border-white/20" style={{ background: `hsl(${theme.primary_color})` }} title="Primary" />
-                    <div className="w-4 h-4 rounded-full border border-white/20" style={{ background: `hsl(${theme.secondary_color})` }} title="Secondary" />
-                    <div className="w-4 h-4 rounded-full border border-white/20" style={{ background: `hsl(${theme.accent_color})` }} title="Accent" />
-                    <div className="w-4 h-4 rounded-full border border-white/20" style={{ background: `hsl(${theme.tab_active_color})` }} title="Tab" />
-                    <span className="text-white/30 text-[10px] ml-1">
+                    <div className="w-4 h-4 rounded-full border border-slate-200" style={{ background: `hsl(${theme.primary_color})` }} title="Primary" />
+                    <div className="w-4 h-4 rounded-full border border-slate-200" style={{ background: `hsl(${theme.secondary_color})` }} title="Secondary" />
+                    <div className="w-4 h-4 rounded-full border border-slate-200" style={{ background: `hsl(${theme.accent_color})` }} title="Accent" />
+                    <div className="w-4 h-4 rounded-full border border-slate-200" style={{ background: `hsl(${theme.tab_active_color})` }} title="Tab" />
+                    <span className="text-slate-900/30 text-[10px] ml-1">
                       {theme.floating_particles?.join(" ")}
                     </span>
                   </div>
 
                   {/* Nav Icon Upload Section */}
-                  <div className="mt-2 p-2 rounded-lg bg-white/5 border border-white/10">
-                    <p className="text-[10px] font-bold text-white/60 mb-1.5">🎨 Nav Bar Icons (PNG)</p>
+                  <div className="mt-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-900/60 mb-1.5">🎨 Nav Bar Icons (PNG)</p>
                     <div className="grid grid-cols-4 gap-2">
                       {(['home', 'party', 'reels', 'profile'] as const).map((iconType) => {
                         const fieldKey = `nav_${iconType}_icon_url` as keyof EventTheme;
                         const currentUrl = theme[fieldKey] as string | null;
                         return (
                           <div key={iconType} className="flex flex-col items-center gap-1">
-                            <div className="w-10 h-10 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center overflow-hidden relative group">
+                            <div className="w-10 h-10 rounded-lg bg-black/30 border border-slate-200 flex items-center justify-center overflow-hidden relative group">
                               {currentUrl ? (
                                 <>
                                   <SmartImage src={currentUrl} alt={iconType} className="w-8 h-8 object-contain" fallbackSrc="/placeholder.svg" />
@@ -652,12 +652,12 @@ const AdminThemeManager = () => {
                                       toast.success(`${iconType} icon removed`);
                                     }}
                                   >
-                                    <Trash2 className="w-3 h-3 text-white" />
+                                    <Trash2 className="w-3 h-3 text-slate-900" />
                                   </button>
                                 </>
                               ) : (
-                                <label className="cursor-pointer w-full h-full flex items-center justify-center hover:bg-white/10 transition-colors">
-                                  <Upload className="w-3.5 h-3.5 text-white/40" />
+                                <label className="cursor-pointer w-full h-full flex items-center justify-center hover:bg-slate-50 transition-colors">
+                                  <Upload className="w-3.5 h-3.5 text-slate-900/40" />
                                   <input
                                     type="file"
                                     accept="image/png"
@@ -676,7 +676,7 @@ const AdminThemeManager = () => {
                                 </label>
                               )}
                             </div>
-                            <span className="text-[8px] text-white/40 capitalize">{iconType}</span>
+                            <span className="text-[8px] text-slate-900/40 capitalize">{iconType}</span>
                           </div>
                         );
                       })}
@@ -700,39 +700,39 @@ const AdminThemeManager = () => {
                       onOpenChange={(open) => setDatePickerOpen(open ? { id: theme.id, type: 'start' } : null)}
                     >
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1 bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white">
+                        <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1 bg-slate-50 border-slate-200 text-slate-900/70 hover:bg-slate-50 hover:text-slate-900">
                           <CalendarIcon className="w-3 h-3" />
                           {theme.starts_at ? format(new Date(theme.starts_at), "MMM d, yyyy") : "Start Date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-slate-900 border-white/10" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white border-slate-200" align="start">
                         <Calendar
                           mode="single"
                           selected={theme.starts_at ? new Date(theme.starts_at) : undefined}
                           onSelect={(d) => handleDateChange(theme.id, 'start', d)}
-                          className="p-3 pointer-events-auto text-white"
+                          className="p-3 pointer-events-auto text-slate-900"
                         />
                       </PopoverContent>
                     </Popover>
 
-                    <span className="text-white/30 text-[10px]">→</span>
+                    <span className="text-slate-900/30 text-[10px]">→</span>
 
                     <Popover
                       open={datePickerOpen?.id === theme.id && datePickerOpen?.type === 'end'}
                       onOpenChange={(open) => setDatePickerOpen(open ? { id: theme.id, type: 'end' } : null)}
                     >
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1 bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white">
+                        <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1 bg-slate-50 border-slate-200 text-slate-900/70 hover:bg-slate-50 hover:text-slate-900">
                           <CalendarIcon className="w-3 h-3" />
                           {theme.ends_at ? format(new Date(theme.ends_at), "MMM d, yyyy") : "End Date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-slate-900 border-white/10" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white border-slate-200" align="start">
                         <Calendar
                           mode="single"
                           selected={theme.ends_at ? new Date(theme.ends_at) : undefined}
                           onSelect={(d) => handleDateChange(theme.id, 'end', d)}
-                          className="p-3 pointer-events-auto text-white"
+                          className="p-3 pointer-events-auto text-slate-900"
                         />
                       </PopoverContent>
                     </Popover>
@@ -761,7 +761,7 @@ const AdminThemeManager = () => {
                       className="data-[state=checked]:bg-green-500"
                     />
                   )}
-                  <span className="text-[9px] text-white/30">
+                  <span className="text-[9px] text-slate-900/30">
                     {theme.is_active ? "ON" : "OFF"}
                   </span>
                 </div>

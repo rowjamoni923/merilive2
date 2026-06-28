@@ -409,7 +409,7 @@ const AdminRankingAutomation = () => {
   }, [advisorContext, home, party]);
 
   return (
-    <div className="space-y-6 admin-content">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <AdminPageHeader
         title="Ranking Automation"
         subtitle="Snapshot → Apply → Verify → Rollback for home & party ranking, plus AI advisor"
