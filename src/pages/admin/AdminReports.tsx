@@ -172,7 +172,7 @@ export default function AdminReports() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 rounded-2xl p-6 shadow-xl">
         <div>
