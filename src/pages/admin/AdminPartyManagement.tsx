@@ -138,7 +138,7 @@ export default function AdminPartyManagement() {
         <TabsContent value="rooms" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Users className="w-5 h-5 text-pink-400" />
                 Party Rooms
                 <Badge variant="outline" className="ml-2 text-pink-400 border-pink-500/50">
@@ -155,7 +155,7 @@ export default function AdminPartyManagement() {
         <TabsContent value="banners" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Sparkles className="w-5 h-5 text-purple-400" />
                 Party Banners
                 <Badge variant="outline" className="ml-2 text-purple-400 border-purple-500/50">
@@ -172,7 +172,7 @@ export default function AdminPartyManagement() {
         <TabsContent value="backgrounds" className="mt-0">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Image className="w-5 h-5 text-blue-400" />
                 Party Backgrounds
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">
