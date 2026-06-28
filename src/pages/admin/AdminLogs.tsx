@@ -76,16 +76,23 @@ export default function AdminLogs() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(10);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [, setNowTick] = useState(0);
+
+  // Re-render every second so the "updated Ns ago" label stays accurate
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!autoRefresh) return;
     const id = setInterval(() => {
       fetchLogs();
-      setLastRefresh(new Date());
     }, refreshInterval * 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, refreshInterval, actionFilter, dateFrom, dateTo]);
+
 
   useEffect(() => {
     fetchLogs();
