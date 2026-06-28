@@ -406,8 +406,20 @@ export default function AdminErrorLogs() {
               </SelectContent>
             </Select>
 
+            <Select value={filterLevel} onValueChange={(v) => setFilterLevel(v as any)}>
+              <SelectTrigger className="w-[150px] bg-slate-50">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warn">Warning</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={filterResolved} onValueChange={setFilterResolved}>
-              <SelectTrigger className="w-[180px] bg-slate-50">
+              <SelectTrigger className="w-[150px] bg-slate-50">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -416,6 +428,35 @@ export default function AdminErrorLogs() {
                  <SelectItem value="resolved">Resolved</SelectItem>
               </SelectContent>
             </Select>
+
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-[170px] bg-slate-50"
+              aria-label="From date"
+            />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-[170px] bg-slate-50"
+              aria-label="To date"
+            />
+            {(dateFrom || dateTo || filterLevel !== "all" || filterType !== "all" || searchQuery) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setFilterLevel("all");
+                  setFilterType("all");
+                  setSearchQuery("");
+                }}
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
