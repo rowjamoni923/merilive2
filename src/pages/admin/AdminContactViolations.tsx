@@ -267,7 +267,8 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell admin-content space-y-6 p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       {/* Header with Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">

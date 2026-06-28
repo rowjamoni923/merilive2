@@ -275,7 +275,8 @@ const AdminChatInspector = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
