@@ -223,7 +223,7 @@ const AdminHelperOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-pro-shell">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
         <div className="flex items-center gap-3">
