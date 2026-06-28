@@ -2904,7 +2904,7 @@ export default function AdminLayout() {
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group/item relative overflow-hidden",
                                 isActive
                                   ? "bg-gradient-to-r from-blue-50 via-blue-50/60 to-transparent text-blue-700 border border-blue-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_8px_-4px_rgba(59,130,246,0.25)]"
-                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
+                                  : "text-slate-600 hover:text-blue-700 hover:bg-blue-50 border border-transparent hover:border-blue-200/60"
                               )}
                             >
                               {isActive && (
