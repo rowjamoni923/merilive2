@@ -193,6 +193,13 @@ export default function AdminErrorLogs() {
 
   useAdminRealtime(['system_error_logs'], () => fetchErrors());
 
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => fetchErrors(), refreshInterval * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, refreshInterval, filterType, filterLevel, filterResolved, searchQuery, dateFrom, dateTo]);
+
   const handleResolve = async (errorId: string) => {
     try {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
