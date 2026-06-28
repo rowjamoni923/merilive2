@@ -400,7 +400,7 @@ export default function AdminRatingRewards() {
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-          <TabsList className="bg-slate-900/80 border border-slate-800">
+          <TabsList className="bg-slate-100 border border-slate-200">
             <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300 gap-1">
               <Clock className="w-3.5 h-3.5" /> Pending
             </TabsTrigger>
@@ -425,7 +425,7 @@ export default function AdminRatingRewards() {
             placeholder="Search user..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-slate-900/50 border-slate-800 text-white"
+            className="pl-9 bg-white border-slate-200 text-slate-900"
           />
         </div>
       </div>
@@ -466,7 +466,7 @@ export default function AdminRatingRewards() {
           ) : (
             <div className="rounded-xl border border-slate-800 overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
+              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-50 text-[11px] text-slate-600 font-medium uppercase tracking-wider border-b border-slate-800">
                 <div>#</div>
                 <div>Recipient</div>
                 <div>Reward</div>
