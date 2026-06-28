@@ -3163,7 +3163,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-visible lg:overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-auto lg:overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
+        <main ref={adminScrollRootRef} data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-visible lg:overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content admin-pro-shell overscroll-auto lg:overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh] w-full flex items-center justify-center">
               <PremiumSpinner size="lg" labelClassName="text-slate-400" />
