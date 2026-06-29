@@ -1,30 +1,44 @@
-# Visual Regression Tests
+# Visual Regression — User System (admin-pro-shell)
 
-Playwright pixel-diff snapshots for public surfaces. Catches contrast and layout regressions that the static contrast guard cannot see (e.g. white-on-white only after a runtime style swap).
+Captures all 15 User System pages on **mobile (390px)**, **tablet (820px)**, and **desktop (1440px)** to catch color-token drift, 3D shadow gaps, and border/radius regressions across the admin shell.
 
-## Run locally
+## Run
 
 ```bash
-# First run / after an intentional UI change — generate baselines
-npm run test:visual:update
+# 1. First run — write baselines (commit these PNGs)
+node tests/visual/user-system.spec.mjs --update
 
-# Verify nothing regressed
-npm run test:visual
-
-# Open last diff report
-npm run test:visual:report
+# 2. After any UI change — diff vs baselines
+node tests/visual/user-system.spec.mjs
 ```
 
-Baselines live in `tests/visual/__screenshots__/` and **must be committed** with the PR that changed the visual.
+Exit code `1` on regression. Per-page diffs go to `tests/visual/diff/`, machine report to `tests/visual/report.json`.
 
-## Adding routes
+## Tuning
 
-Edit `PUBLIC_ROUTES` in `public-surfaces.spec.ts`. Only **unauthenticated** routes work in CI today; authenticated coverage requires a seeded test user (TBD).
+| Env var     | Default | Purpose                                                      |
+| ----------- | ------- | ------------------------------------------------------------ |
+| `BASE_URL`  | `http://localhost:8080` | Where the dev server is running.                  |
+| `THRESHOLD` | `0.12`  | Per-pixel color tolerance (lower = stricter).                |
+| `MAX_DIFF`  | `0.5`   | Max % of pixels allowed to differ before failing the page.   |
 
-## CI behavior
+## Diff color legend
 
-`.github/workflows/visual-regression.yml` runs on every PR. On failure, the diff HTML report and screenshot triplets (expected / actual / diff) are uploaded as the `playwright-report` artifact for 14 days.
+- **Red pixels** → likely color-token mismatch (background/text/badge).
+- **Blue pixels** → likely shadow / 3D-elevation gap (border, hover-lift, radius).
 
-## Determinism
+## Auth
 
-The spec disables animations, transitions, caret blinking, and video playback before each shot, and waits for `networkidle`. Allowed pixel drift is `0.2%` (`maxDiffPixelRatio: 0.002`) to absorb sub-pixel font noise across machines.
+Uses the sandbox-injected `LOVABLE_BROWSER_SUPABASE_*` env vars to restore the admin session before navigating. Without it, RouteGuard pages will render as login redirects (still useful for catching shell regressions on the guard surface itself).
+
+## Stabilisation tricks
+
+- All CSS animations + transitions are frozen via `addStyleTag` before each shot.
+- Elements with `data-volatile`, `<time>`, and `.relative-time` are hidden to avoid clock-driven false positives. Add `data-volatile` to any new dynamic atom you want excluded.
+
+## CI hook (optional)
+
+```bash
+# In CI, run after build + preview start:
+node tests/visual/user-system.spec.mjs || exit 1
+```
