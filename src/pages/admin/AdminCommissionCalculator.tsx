@@ -152,7 +152,7 @@ const AdminCommissionCalculator = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="admin-pro-shell min-h-screen bg-slate-50 pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
