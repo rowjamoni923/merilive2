@@ -1,0 +1,6 @@
+# Visual regression artifacts
+current/
+diff/
+report.json
+# Keep baselines under VCS
+!baseline/
