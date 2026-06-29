@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import {
   EpayGlobalBanner,
   LocalCurrencyBanner,
@@ -147,9 +148,10 @@ const policyBanners: PolicyBannerItem[] = [
 
 const PoliciesAndBenefits = () => {
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden" style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0">
         <div className="flex items-center justify-between h-14 px-4">

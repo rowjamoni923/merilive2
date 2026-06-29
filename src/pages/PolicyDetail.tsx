@@ -1,10 +1,13 @@
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { policyDetails } from "@/data/policyContent";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 const PolicyDetail = () => {
   const { policyId } = useParams<{ policyId: string }>();
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
+
 
   if (policyId?.toLowerCase() === "levels") {
     return <Navigate to="/policies/levels" replace />;

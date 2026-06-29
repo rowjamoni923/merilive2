@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 import { 
   ArrowLeft, 
@@ -142,6 +143,7 @@ const STRUCTURED_KEYS = new Set([
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
   // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
   // Instant cached render; background refresh keeps content fresh.
   const [policyData, setPolicyData, hadPolicyCache] = usePersistedCache<PolicyData>("agencyPolicy:data");

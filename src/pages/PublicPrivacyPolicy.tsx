@@ -3,9 +3,12 @@
  * Accessible without authentication — required by Google Play Store
  * URL: /privacy-policy
  */
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
-const PublicPrivacyPolicy = () => (
-  <div className="min-h-screen bg-white text-gray-900">
+const PublicPrivacyPolicy = () => {
+  useEnableBrowserPageInteraction();
+  return (
+  <div className="min-h-screen bg-white text-gray-900" style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
     {/* Header */}
     <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 py-6 px-4 text-center">
       <h1 className="text-2xl font-bold text-white">Privacy Policy</h1>
@@ -264,6 +267,7 @@ const PublicPrivacyPolicy = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PublicPrivacyPolicy;

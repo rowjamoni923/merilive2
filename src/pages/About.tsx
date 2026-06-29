@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
 import {
@@ -30,6 +31,7 @@ const CREAM = "#f5ecd7";     // body text on dark
 const MUTED = "#a3a9c2";     // secondary text
 
 const About = () => {
+  useEnableBrowserPageInteraction();
   useEffect(() => {
     document.title = "MeriLive — Live Streaming, Video Call & Entertainment App | Download Now";
     const meta = document.querySelector('meta[name="description"]');
@@ -77,7 +79,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: INK, color: CREAM, touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: INK, color: CREAM, touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       {/* JSON-LD */}
       <script
         type="application/ld+json"
