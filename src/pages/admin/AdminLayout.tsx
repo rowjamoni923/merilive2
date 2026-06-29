@@ -1256,6 +1256,13 @@ const navGroups: NavGroup[] = [
         description: "Live log of every update check: device version vs server version, modal shown, force-update triggered, store opened.",
       },
       {
+        label: "App Update Test Mode",
+        icon: Smartphone,
+        path: "/admin/app-update-test",
+        hubKey: "settings-hub",
+        description: "Simulate a forced or optional update on this device to verify the modal, dismiss, and store-open flow without publishing a new APK.",
+      },
+      {
         label: "Device Management",
         icon: Smartphone,
         path: "/admin/device-management",

@@ -12,6 +12,33 @@ const DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
 const LAST_CHECK_KEY = 'app_update_last_check';
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes between checks
 
+// Admin test-mode override key. When this localStorage entry exists, the
+// hook bypasses the native check and renders the modal using the override
+// payload — lets admins QA the modal/dismiss/store-open flow in any browser
+// without publishing a new version.
+export const APP_UPDATE_TEST_OVERRIDE_KEY = 'app_update_test_override';
+export const APP_UPDATE_TEST_TRIGGER_EVENT = 'app-update-test-trigger';
+
+interface TestOverridePayload {
+  forceUpdate?: boolean;
+  currentVersion?: string;
+  availableVersion?: string;
+  currentVersionCode?: number;
+  availableVersionCode?: number;
+  updateMessage?: string;
+  playStoreUrl?: string;
+}
+
+const readTestOverride = (): TestOverridePayload | null => {
+  try {
+    const raw = localStorage.getItem(APP_UPDATE_TEST_OVERRIDE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as TestOverridePayload;
+  } catch {
+    return null;
+  }
+};
+
 interface AppUpdateInfo {
   updateAvailable: boolean;
   forceUpdate: boolean;
@@ -378,8 +405,31 @@ export const useAppUpdate = () => {
     setShowUpdateModal(false);
   }, [updateInfo]);
 
+  // Apply test-mode override (admin QA). Bypasses native check + dismissal.
+  const applyTestOverride = useCallback(() => {
+    const override = readTestOverride();
+    if (!override) return false;
+    const info: AppUpdateInfo = {
+      updateAvailable: true,
+      forceUpdate: !!override.forceUpdate,
+      currentVersion: override.currentVersion ?? '0.0.0',
+      availableVersion: override.availableVersion ?? '99.99.99',
+      currentVersionCode: override.currentVersionCode ?? 1,
+      availableVersionCode: override.availableVersionCode ?? 999999,
+      updateMessage: override.updateMessage ?? '[TEST MODE] Simulated update — verify modal + dismiss + store-open flow.',
+      playStoreUrl: override.playStoreUrl ?? 'https://play.google.com/store/apps/details?id=com.merilive.app',
+    };
+    setUpdateInfo(info);
+    setShowUpdateModal(true);
+    console.log('[AppUpdate] TEST MODE override applied:', info);
+    return true;
+  }, []);
+
   // Check for updates on mount (only once)
   useEffect(() => {
+    // Test override fires on every platform (web + native) so admin can QA in browser.
+    if (applyTestOverride()) return;
+
     if (!Capacitor.isNativePlatform()) return;
 
     // Delay to ensure app is fully loaded
@@ -388,7 +438,14 @@ export const useAppUpdate = () => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [checkForUpdate]);
+  }, [checkForUpdate, applyTestOverride]);
+
+  // Listen for runtime trigger from the admin test page (same tab).
+  useEffect(() => {
+    const handler = () => applyTestOverride();
+    window.addEventListener(APP_UPDATE_TEST_TRIGGER_EVENT, handler);
+    return () => window.removeEventListener(APP_UPDATE_TEST_TRIGGER_EVENT, handler);
+  }, [applyTestOverride]);
 
   return {
     updateInfo,

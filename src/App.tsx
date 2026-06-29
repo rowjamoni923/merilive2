@@ -282,6 +282,7 @@ const AdminReels = lazy(lazyRetry(() => import("./pages/admin/AdminReels")));
 const AdminPartyBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPartyBanners")));
 const AdminAppVersion = lazy(lazyRetry(() => import("./pages/admin/AdminAppVersion")));
 const AdminAppUpdateLogs = lazy(lazyRetry(() => import("./pages/admin/AdminAppUpdateLogs")));
+const AdminAppUpdateTest = lazy(lazyRetry(() => import("./pages/admin/AdminAppUpdateTest")));
 const AdminThemeManager = lazy(lazyRetry(() => import("./pages/admin/AdminThemeManager")));
 const AdminRoleFrames = lazy(lazyRetry(() => import("./pages/admin/AdminRoleFrames")));
 const AdminChatBubbles = lazy(lazyRetry(() => import("./pages/admin/AdminChatBubbles")));
@@ -1600,6 +1601,7 @@ const App = () => {
                   <Route path="party-banners" element={<AdminRouteGuard routeSegment="party-banners"><AdminPartyBanners /></AdminRouteGuard>} />
                   <Route path="app-version" element={<AdminRouteGuard routeSegment="app-version"><AdminAppVersion /></AdminRouteGuard>} />
                   <Route path="app-update-logs" element={<AdminRouteGuard routeSegment="app-update-logs"><AdminAppUpdateLogs /></AdminRouteGuard>} />
+                  <Route path="app-update-test" element={<AdminRouteGuard routeSegment="app-update-test"><AdminAppUpdateTest /></AdminRouteGuard>} />
                   <Route path="frames" element={<AdminRouteGuard routeSegment="frames"><AdminFrames /></AdminRouteGuard>} />
                   <Route path="role-frames" element={<AdminRouteGuard routeSegment="role-frames"><AdminRoleFrames /></AdminRouteGuard>} />
                   <Route path="chat-bubbles" element={<AdminRouteGuard routeSegment="chat-bubbles"><AdminChatBubbles /></AdminRouteGuard>} />
