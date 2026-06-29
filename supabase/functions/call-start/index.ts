@@ -117,14 +117,14 @@ serve(async (req) => {
     let platformPct: number = Number(call.platform_cut_percent ?? 0);
 
     if (!viewerRate || !hostRate || !platformPct) {
-      // Look up commission %
+      // Look up commission % — Admin Single Source of Truth (NO hardcoded fallback)
       const { data: setting } = await admin
         .from("app_settings")
         .select("setting_value")
         .eq("setting_key", "call_rates")
         .maybeSingle();
 
-      let commissionPct = 70;
+      let commissionPct: number | null = null;
       try {
         const raw = setting?.setting_value;
         if (raw) {
@@ -132,9 +132,29 @@ serve(async (req) => {
           const c = Number(parsed?.host_commission_percent);
           if (Number.isFinite(c) && c >= 0 && c <= 100) commissionPct = c;
         }
-      } catch (_) { /* default */ }
+      } catch (_) { /* ignored */ }
 
-      viewerRate = Math.max(Number(call.coins_per_minute ?? 60) || 60, 0);
+      if (commissionPct === null) {
+        console.error("[call-start] host_commission_percent not configured in app_settings.call_rates");
+        return new Response(JSON.stringify({
+          ok: false,
+          reason: "billing_not_configured",
+          detail: "Call pricing is not configured by admin. Please contact support.",
+        }), {
+          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      viewerRate = Math.max(Number(call.coins_per_minute ?? 0) || 0, 0);
+      if (!viewerRate) {
+        return new Response(JSON.stringify({
+          ok: false,
+          reason: "billing_not_configured",
+          detail: "Per-minute rate is not configured by admin.",
+        }), {
+          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       hostRate = Math.floor((viewerRate * commissionPct) / 100);
       platformPct = 100 - commissionPct;
 
@@ -148,6 +168,7 @@ serve(async (req) => {
         })
         .eq("id", callId);
     }
+
 
     const minRequired = viewerRate * MIN_PREPAY_MINUTES;
 
