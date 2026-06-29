@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect, useRef } from "react";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
@@ -564,24 +565,27 @@ export default function AdminWithdrawals() {
             <p className="text-sm text-slate-600">Manage agency withdrawal requests</p>
           </div>
           <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-700 text-xs md:text-sm">
-                  <Download className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white border-slate-200">
-                <DropdownMenuItem onClick={exportToCSV} className="text-slate-700 hover:bg-slate-100 cursor-pointer">
-                  <FileSpreadsheet className="w-4 h-4 mr-2 text-green-500" />
-                  Excel (CSV)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToPDF} className="text-slate-700 hover:bg-slate-100 cursor-pointer">
-                  <FileText className="w-4 h-4 mr-2 text-red-500" />
-                  Print PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ReportExportMenu
+              rows={withdrawals as any}
+              columns={[
+                { key: "id", label: "ID", weight: 1.3 },
+                { key: "agency_name", label: "Agency", weight: 1.4, format: (_, r: any) => r.agency_name || r.agency?.name || "—" },
+                { key: "amount", label: "Amount (USD)", weight: 1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "method", label: "Method", weight: 1 },
+                { key: "status", label: "Status", weight: 0.9 },
+                { key: "requested_at", label: "Requested", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "processed_at", label: "Processed", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+              ]}
+              meta={{
+                title: "Agency Withdrawal Report",
+                subtitle: `Status: ${filterStatus} • ${withdrawals.length} requests`,
+                fileName: "withdrawals",
+                summary: [
+                  { label: "Pending", value: pendingCount },
+                  { label: "Total Rows", value: withdrawals.length },
+                ],
+              }}
+            />
             <Button
               variant="outline"
               size="sm"

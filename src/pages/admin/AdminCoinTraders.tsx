@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
@@ -312,6 +313,35 @@ const AdminCoinTraders = () => {
             <p className="text-white/80 text-sm">Diamond Trader Management</p>
           </div>
           <div className="flex gap-2">
+            <ReportExportMenu
+              rows={(activeTab === "helpers" ? helpers : transactions) as any}
+              columns={activeTab === "helpers" ? [
+                { key: "user", label: "Trader", weight: 1.4, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
+                { key: "wallet_balance", label: "Balance", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "0" },
+                { key: "total_bought", label: "Total Bought", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "0" },
+                { key: "trader_level", label: "Level", weight: 0.6 },
+                { key: "is_active", label: "Active", weight: 0.6, format: (v) => v ? "Yes" : "No" },
+                { key: "is_verified", label: "Verified", weight: 0.7, format: (v) => v ? "Yes" : "No" },
+                { key: "country_code", label: "Country", weight: 0.7, format: (_, r: any) => r.user?.country_code || "—" },
+              ] : [
+                { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "transaction_type", label: "Type", weight: 1.1 },
+                { key: "helper", label: "Trader", weight: 1.3, format: (_, r: any) => r.helper?.user?.display_name || "—" },
+                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "status", label: "Status", weight: 0.9 },
+              ]}
+              meta={{
+                title: activeTab === "helpers" ? "Diamond Traders" : "Trader Transactions",
+                subtitle: `${activeTab === "helpers" ? helpers.length : transactions.length} records`,
+                fileName: activeTab === "helpers" ? "diamond-traders" : "diamond-trader-transactions",
+                summary: [
+                  { label: "Total Traders", value: stats.totalHelpers },
+                  { label: "Active", value: stats.activeHelpers },
+                  { label: "Pending Txns", value: stats.pendingTransactions },
+                  { label: "Diamonds Traded", value: stats.totalCoinsTraded.toLocaleString() },
+                ],
+              }}
+            />
             <Button 
               onClick={() => {
                 const activeHelper = helpers.find(h => h.is_active);

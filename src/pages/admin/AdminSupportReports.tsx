@@ -5,6 +5,7 @@
  * Each row carries: user ID/UID, original ticket subject + reported message,
  * the support admin's display name, the reason, and a status owner can update.
  */
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useEffect, useState, useCallback } from "react";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
@@ -114,9 +115,31 @@ export default function AdminSupportReports() {
             <Badge variant="destructive">{counts.open} new</Badge>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <ReportExportMenu
+            rows={rows as any}
+            columns={[
+              { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+              { key: "subject", label: "Subject", weight: 1.6 },
+              { key: "category", label: "Category", weight: 1 },
+              { key: "user_id", label: "User", weight: 1.1 },
+              { key: "status", label: "Status", weight: 0.9 },
+              { key: "priority", label: "Priority", weight: 0.8 },
+            ]}
+            meta={{
+              title: "Support Reports",
+              subtitle: `Tab: ${tab} • ${rows.length} reports`,
+              fileName: "support-reports",
+              summary: [
+                { label: "Open", value: counts.open },
+                { label: "Total Shown", value: rows.length },
+              ],
+            }}
+          />
+          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>

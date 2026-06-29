@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect, useCallback } from "react";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
@@ -162,9 +163,34 @@ export default function AdminGiftTransactions() {
               {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Tap refresh to update` : 'All gift transactions today'}
             </p>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <ReportExportMenu
+              rows={transactions as any}
+              columns={[
+                { key: "created_at", label: "Time", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "sender_name", label: "Sender", weight: 1.2, format: (_, r: any) => r.sender_name || r.sender?.display_name || r.sender_id || "—" },
+                { key: "receiver_name", label: "Receiver", weight: 1.2, format: (_, r: any) => r.receiver_name || r.receiver?.display_name || r.receiver_id || "—" },
+                { key: "gift_name", label: "Gift", weight: 1 },
+                { key: "quantity", label: "Qty", weight: 0.5 },
+                { key: "beans", label: "Beans", weight: 0.9, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "context", label: "Context", weight: 1 },
+              ]}
+              meta={{
+                title: "Gift Activity Report",
+                subtitle: `Today • ${transactions.length} transactions`,
+                fileName: "gift-transactions",
+                summary: [
+                  { label: "Total Beans", value: todayTotal.toLocaleString() },
+                  { label: "Gifts Sent", value: todayCount },
+                  { label: "Senders", value: uniqueSenders },
+                  { label: "Receivers", value: uniqueReceivers },
+                ],
+              }}
+            />
+            <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={fetchTransactions}>
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

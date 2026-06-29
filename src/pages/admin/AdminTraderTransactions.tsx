@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
@@ -129,9 +130,34 @@ const AdminTraderTransactions = () => {
             <h1 className="font-bold text-xl text-white">Trader Transactions</h1>
             <p className="text-white/80 text-sm">All Diamond transactions</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
-            <RefreshCw className="w-5 h-5" />
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <ReportExportMenu
+              rows={transactions as any}
+              columns={[
+                { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "transaction_type", label: "Type", weight: 1.1 },
+                { key: "user_id", label: "User", weight: 1.2, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
+                { key: "helper_id", label: "Helper", weight: 1.2, format: (_, r: any) => (r.helper as any)?.user?.display_name || r.helper_id || "—" },
+                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "status", label: "Status", weight: 0.9 },
+              ]}
+              meta={{
+                title: "Trader Transactions Report",
+                subtitle: `${transactions.length} transactions`,
+                fileName: "trader-transactions",
+                summary: [
+                  { label: "Bought", value: stats.totalBought.toLocaleString() },
+                  { label: "Sold", value: stats.totalSold.toLocaleString() },
+                  { label: "Transferred", value: stats.totalTransferred.toLocaleString() },
+                  { label: "Pending $", value: `$${stats.pendingValue.toFixed(0)}` },
+                ],
+              }}
+            />
+            <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={fetchTransactions}>
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

@@ -281,16 +281,20 @@ export default function AdminPayoutsAnalytics() {
               <RefreshCw className={cn("h-4 w-4 mr-1.5", loading && "animate-spin")} />
               Refresh
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              disabled={!rows.length}
-              className="border-slate-200 text-slate-900 hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              Export CSV
-            </Button>
+            <ReportExportMenu
+              rows={rows as any}
+              columns={[
+                { key: "category", label: "Category", weight: 1.4 },
+                { key: "amount", label: "Amount (USD)", weight: 1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "count", label: "Count", weight: 0.8 },
+                { key: "period", label: "Period", weight: 1 },
+              ]}
+              meta={{
+                title: "Payouts Analytics",
+                subtitle: "Money + diamond outflow • agencies, helpers, hosts, exchanges",
+                fileName: "payouts-analytics",
+              }}
+            />
           </div>
         </div>
 

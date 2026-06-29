@@ -381,16 +381,21 @@ export default function AdminProfitAnalytics() {
               <RefreshCw className={cn("h-4 w-4 mr-1.5", loading && "animate-spin")} />
               Refresh
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              disabled={!sectors.length}
-              className="border-slate-200 text-slate-900 hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              Export CSV
-            </Button>
+            <ReportExportMenu
+              rows={sectors as any}
+              columns={[
+                { key: "sector", label: "Sector", weight: 1.4 },
+                { key: "revenue", label: "Revenue (USD)", weight: 1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "payout", label: "Payout (USD)", weight: 1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "profit", label: "Net Profit (USD)", weight: 1.1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "margin", label: "Margin %", weight: 0.8, format: (v) => v != null ? `${Number(v).toFixed(1)}%` : "—" },
+              ]}
+              meta={{
+                title: "Profit Analytics",
+                subtitle: "Sector-wise revenue, payouts and net profit",
+                fileName: "profit-analytics",
+              }}
+            />
           </div>
         </div>
 

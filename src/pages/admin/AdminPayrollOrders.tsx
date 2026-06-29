@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
@@ -342,9 +343,34 @@ const AdminPayrollOrders = () => {
             <h1 className="font-bold text-xl text-white">Payroll Orders History</h1>
             <p className="text-white/80 text-sm">Complete payroll order history</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchOrders}>
-            <RefreshCw className="w-5 h-5" />
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <ReportExportMenu
+              rows={orders as any}
+              columns={[
+                { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "id", label: "Order ID", weight: 1.4 },
+                { key: "user_id", label: "User", weight: 1.2, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
+                { key: "helper_id", label: "Helper", weight: 1.2, format: (_, r: any) => r.helper?.user?.display_name || r.helper_id || "—" },
+                { key: "amount", label: "Amount", weight: 1, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "status", label: "Status", weight: 1 },
+                { key: "user_country_code", label: "Country", weight: 0.7 },
+              ]}
+              meta={{
+                title: "Payroll Orders Report",
+                subtitle: `${orders.length} orders`,
+                fileName: "payroll-orders",
+                summary: [
+                  { label: "Total", value: stats.total },
+                  { label: "Completed", value: stats.completed },
+                  { label: "Pending", value: stats.pending },
+                  { label: "Today $", value: `$${stats.todayTotal.toFixed(0)}` },
+                ],
+              }}
+            />
+            <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={fetchOrders}>
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
