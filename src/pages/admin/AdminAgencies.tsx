@@ -949,13 +949,13 @@ export default function AdminAgencies() {
               size="sm"
               onClick={fetchAgencies}
               disabled={loading}
-              className="bg-white/20 hover:bg-white/30 text-slate-900 border-0"
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
             <Button
               onClick={() => setShowCreateAgencyDialog(true)}
-              className="bg-white/20 hover:bg-white/30 text-slate-900 border-0"
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -1375,7 +1375,7 @@ export default function AdminAgencies() {
 
         {/* Level System Tab */}
         <TabsContent value="levels" className="space-y-6">
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-slate-50 border-slate-200">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white flex items-center gap-2">
@@ -1386,13 +1386,13 @@ export default function AdminAgencies() {
                   onClick={recalculateAllLevels}
                   variant="outline"
                   size="sm"
-                  className="bg-white/5 border-white/10 text-slate-900"
+                  className="bg-slate-50 border-slate-200 text-slate-900"
                 >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Recalculate All Levels
                 </Button>
               </div>
-              <p className="text-white/60 text-sm">
+              <p className="text-slate-500 text-sm">
                 Agency levels and commissions auto-update based on weekly earnings
               </p>
             </CardHeader>
@@ -1400,7 +1400,7 @@ export default function AdminAgencies() {
               {levelTiers.map((tier, index) => (
                 <div 
                   key={tier.id}
-                  className={`p-4 rounded-lg border border-white/10 bg-gradient-to-r ${getBadgeColorClass(tier.badge_color)}/10`}
+                  className={`p-4 rounded-lg border border-slate-200 bg-gradient-to-r ${getBadgeColorClass(tier.badge_color)}/10`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -1411,9 +1411,9 @@ export default function AdminAgencies() {
                         <Input
                           value={tier.level_name}
                           onChange={(e) => updateTier(tier.id, "level_name", e.target.value)}
-                          className="bg-white/5 border-white/10 text-slate-900 font-medium h-8 w-40"
+                          className="bg-slate-50 border-slate-200 text-slate-900 font-medium h-8 w-40"
                         />
-                        <p className="text-white/50 text-xs mt-1">Level Code: {tier.level_code}</p>
+                        <p className="text-slate-500 text-xs mt-1">Level Code: {tier.level_code}</p>
                       </div>
                     </div>
                     <Switch
@@ -1424,51 +1424,51 @@ export default function AdminAgencies() {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <Label className="text-white/70 text-xs">Weekly Min Income ($)</Label>
+                      <Label className="text-slate-600 text-xs">Weekly Min Income ($)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 font-bold text-sm">$</span>
                         <Input
                           type="number"
                           value={tier.min_weekly_income}
                           onChange={(e) => updateTier(tier.id, "min_weekly_income", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-slate-900 h-8 pl-7"
+                          className="bg-slate-50 border-slate-200 text-slate-900 h-8 pl-7"
                         />
                       </div>
                     </div>
                     <div>
-                      <Label className="text-white/70 text-xs">Weekly Max Income ($)</Label>
+                      <Label className="text-slate-600 text-xs">Weekly Max Income ($)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 font-bold text-sm">$</span>
                         <Input
                           type="number"
                           value={tier.max_weekly_income}
                           onChange={(e) => updateTier(tier.id, "max_weekly_income", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-slate-900 h-8 pl-7"
+                          className="bg-slate-50 border-slate-200 text-slate-900 h-8 pl-7"
                         />
                       </div>
                     </div>
                     <div>
-                      <Label className="text-white/70 text-xs">Commission Rate (%)</Label>
+                      <Label className="text-slate-600 text-xs">Commission Rate (%)</Label>
                       <Input
                         type="number"
                         step="0.1"
                         value={tier.commission_rate}
                         onChange={(e) => updateTier(tier.id, "commission_rate", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-slate-900 h-8"
+                        className="bg-slate-50 border-slate-200 text-slate-900 h-8"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/70 text-xs">Badge Color</Label>
+                      <Label className="text-slate-600 text-xs">Badge Color</Label>
                       <div className="flex items-center gap-2">
                         <div
-                          className="h-8 w-8 rounded-md border border-white/10 shrink-0"
+                          className="h-8 w-8 rounded-md border border-slate-200 shrink-0"
                           style={{ backgroundColor: normalizeAgencyBadgeColor(tier.badge_color, tier.level_code) }}
                         />
                         <Select
                           value={normalizeAgencyBadgeColor(tier.badge_color, tier.level_code)}
                           onValueChange={(val) => updateTier(tier.id, "badge_color", val)}
                         >
-                          <SelectTrigger className="bg-white/5 border-white/10 text-slate-900 h-8">
+                          <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1490,8 +1490,8 @@ export default function AdminAgencies() {
                   </div>
 
                   {/* Example calculation */}
-                  <div className="mt-3 p-2 bg-white/5 rounded-lg">
-                    <p className="text-white/50 text-xs">
+                  <div className="mt-3 p-2 bg-slate-50 rounded-lg">
+                    <p className="text-slate-500 text-xs">
                       Example: If host earns $100, agency receives{" "}
                       <span className="text-green-400 font-bold">
                         ${(100 * tier.commission_rate / 100).toFixed(2)}
@@ -1521,13 +1521,13 @@ export default function AdminAgencies() {
           </Card>
 
           {/* How it works info */}
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-slate-50 border-slate-200">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Calculator className="w-5 h-5 text-blue-400 mt-0.5" />
                 <div>
                   <p className="text-white font-medium text-sm">How Auto Level System Works</p>
-                  <ul className="text-white/60 text-xs mt-2 space-y-1 list-disc list-inside">
+                  <ul className="text-slate-500 text-xs mt-2 space-y-1 list-disc list-inside">
                     <li>Total host earnings are calculated weekly for each agency</li>
                     <li>Agency level is auto-determined based on earnings</li>
                     <li>Commission rate is set according to the level</li>
@@ -1593,7 +1593,7 @@ export default function AdminAgencies() {
               className="space-y-6"
             >
               {/* Host Profile Card */}
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Avatar */}
@@ -1632,38 +1632,38 @@ export default function AdminAgencies() {
                             {hostSearchResult.is_online ? "Online" : "Offline"}
                           </Badge>
                         </div>
-                        <p className="text-white/50 mt-1">{hostSearchResult.country_flag} {hostSearchResult.username}</p>
+                        <p className="text-slate-500 mt-1">{hostSearchResult.country_flag} {hostSearchResult.username}</p>
                       </div>
 
                       {/* Full ID */}
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-white/50 text-sm mb-1">Host ID (UID)</p>
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <p className="text-slate-500 text-sm mb-1">Host ID (UID)</p>
                         <p className="text-white font-mono text-sm break-all">{hostSearchResult.id}</p>
                       </div>
 
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <Coins className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
                           <p className="text-white font-bold">{hostSearchResult.total_earnings?.toLocaleString() || 0}</p>
-                          <p className="text-xs text-white/50">Total Earnings</p>
+                          <p className="text-xs text-slate-500">Total Earnings</p>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <Phone className="w-5 h-5 text-green-400 mx-auto mb-1" />
                           <p className="text-white font-bold">{hostSearchResult.total_calls_received || 0}</p>
-                          <p className="text-xs text-white/50">Total Calls</p>
+                          <p className="text-xs text-slate-500">Total Calls</p>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
                           <p className="text-white font-bold">{hostSearchResult.total_call_minutes?.toLocaleString() || 0}</p>
-                          <p className="text-xs text-white/50">Call Minutes</p>
+                          <p className="text-xs text-slate-500">Call Minutes</p>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <Calendar className="w-5 h-5 text-purple-400 mx-auto mb-1" />
                           <p className="text-white font-bold text-sm">
                             {hostSearchResult.created_at ? format(new Date(hostSearchResult.created_at), "dd MMM yy") : "N/A"}
                           </p>
-                          <p className="text-xs text-white/50">Joined</p>
+                          <p className="text-xs text-slate-500">Joined</p>
                         </div>
                       </div>
                     </div>
@@ -1672,7 +1672,7 @@ export default function AdminAgencies() {
               </Card>
 
               {/* Agency Info Card */}
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
@@ -1682,13 +1682,13 @@ export default function AdminAgencies() {
                 <CardContent>
                   {hostAgency ? (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl">
+                      <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
                         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
                           <Building2 className="w-7 h-7 text-white" />
                         </div>
                         <div className="flex-1">
                           <p className="text-white font-bold text-lg">{hostAgency.name}</p>
-                          <p className="text-white/50">#{hostAgency.agency_code}</p>
+                          <p className="text-slate-500">#{hostAgency.agency_code}</p>
                         </div>
                         <Badge className="bg-yellow-500/20 text-yellow-400">
                           {hostAgency.level || "A1"} Level
@@ -1697,7 +1697,7 @@ export default function AdminAgencies() {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/admin/agencies/${hostAgency.id}`)}
-                          className="bg-white/5 border-white/10 text-slate-900"
+                          className="bg-slate-50 border-slate-200 text-slate-900"
                         >
                           View Agency
                         </Button>
@@ -1706,8 +1706,8 @@ export default function AdminAgencies() {
                       {/* Join Details */}
                       {hostAgencyInfo && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="bg-white/5 rounded-lg p-4">
-                            <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                          <div className="bg-slate-50 rounded-lg p-4">
+                            <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                               <Calendar className="w-4 h-4" /> Joining Date
                             </p>
                             <p className="text-white font-medium">
@@ -1717,8 +1717,8 @@ export default function AdminAgencies() {
                               }
                             </p>
                           </div>
-                          <div className="bg-white/5 rounded-lg p-4">
-                            <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                          <div className="bg-slate-50 rounded-lg p-4">
+                            <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                               <Clock className="w-4 h-4" /> Duration
                             </p>
                             <p className="text-white font-medium">
@@ -1728,8 +1728,8 @@ export default function AdminAgencies() {
                               }
                             </p>
                           </div>
-                          <div className="bg-white/5 rounded-lg p-4">
-                            <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                          <div className="bg-slate-50 rounded-lg p-4">
+                            <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                               <UserCheck className="w-4 h-4" /> Join Method
                             </p>
                             <p className="text-white font-medium capitalize">
@@ -1741,7 +1741,7 @@ export default function AdminAgencies() {
 
                       {/* Agency Owner */}
                       {hostAgency.owner && (
-                        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                           <Crown className="w-5 h-5 text-yellow-400" />
                           <Avatar className="w-8 h-8">
                             <UserAvatarImage seed={(((hostAgency.owner) as any)?.id ?? ((hostAgency.owner) as any)?.user_id ?? ((hostAgency.owner) as any)?.host_id)} gender={((hostAgency.owner) as any)?.gender} src={hostAgency.owner.avatar_url || undefined} />
@@ -1751,13 +1751,13 @@ export default function AdminAgencies() {
                           </Avatar>
                           <div>
                             <p className="text-white text-sm">{hostAgency.owner.display_name || "Unknown"}</p>
-                            <p className="text-xs text-white/50">Agency Owner</p>
+                            <p className="text-xs text-slate-500">Agency Owner</p>
                           </div>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-center py-10 text-white/50">
+                    <div className="text-center py-10 text-slate-500">
                       <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>This host is not associated with any agency</p>
                     </div>
@@ -1770,20 +1770,20 @@ export default function AdminAgencies() {
 
         {/* Agencies List Tab */}
         <TabsContent value="agencies" className="space-y-6">
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-slate-50 border-slate-200">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Search by name or code..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-slate-900"
+                className="pl-10 bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full md:w-48 bg-white/5 border-white/10 text-slate-900">
+              <SelectTrigger className="w-full md:w-48 bg-slate-50 border-slate-200 text-slate-900">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
@@ -1824,8 +1824,8 @@ export default function AdminAgencies() {
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : agencies.length === 0 ? (
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="flex flex-col items-center justify-center h-64 text-white/50">
+        <Card className="bg-slate-50 border-slate-200">
+          <CardContent className="flex flex-col items-center justify-center h-64 text-slate-500">
             <Building2 className="w-12 h-12 mb-4" />
             <p>No agencies found</p>
           </CardContent>
@@ -1855,18 +1855,18 @@ export default function AdminAgencies() {
                         <p className="text-white font-bold text-lg flex items-center gap-2">
                           {agency.name}
                         </p>
-                        <p className="text-sm text-white/40 font-mono">#{agency.agency_code}</p>
+                        <p className="text-sm text-slate-400 font-mono">#{agency.agency_code}</p>
                       </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="text-slate-900/40 hover:text-slate-900 hover:bg-white/10 rounded-xl">
+                        <Button variant="ghost" size="icon" className="text-slate-900/40 hover:text-slate-900 hover:bg-slate-100 rounded-xl">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-50 border-white/10">
+                      <DropdownMenuContent align="end" className="bg-slate-50 border-slate-200">
                         <DropdownMenuItem 
-                          className="text-white/70 hover:text-white cursor-pointer"
+                          className="text-slate-600 hover:text-white cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAgency(agency);
@@ -1876,7 +1876,7 @@ export default function AdminAgencies() {
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuSeparator className="bg-slate-100" />
                         <DropdownMenuItem 
                           className="text-cyan-400 hover:text-cyan-300 cursor-pointer"
                           onClick={(e) => {
@@ -1888,7 +1888,7 @@ export default function AdminAgencies() {
                           <Shield className="w-4 h-4 mr-2" />
                           Make Payroll Helper
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuSeparator className="bg-slate-100" />
                         <DropdownMenuItem
                           className="text-amber-300 hover:text-amber-200 cursor-pointer"
                           onClick={(e) => {
@@ -1934,7 +1934,7 @@ export default function AdminAgencies() {
                           <Shield className="w-4 h-4 mr-2" />
                           {(agency as any).is_permanent ? "Remove Permanent Status" : "Mark as Permanent"}
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuSeparator className="bg-slate-100" />
                         <DropdownMenuItem 
                           className={`cursor-pointer ${agency.is_active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}`}
                           onClick={(e) => {
@@ -1961,7 +1961,7 @@ export default function AdminAgencies() {
                   </div>
 
                   {/* Owner Info */}
-                  <div className="flex items-center gap-3 mb-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-3 mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <Avatar className="w-9 h-9 ring-2 ring-yellow-500/30">
                       <UserAvatarImage seed={(((agency.owner) as any)?.id ?? ((agency.owner) as any)?.user_id ?? ((agency.owner) as any)?.host_id)} gender={((agency.owner) as any)?.gender} src={agency.owner?.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-sm">
@@ -1973,14 +1973,14 @@ export default function AdminAgencies() {
                         <Crown className="w-3 h-3 text-yellow-400" />
                         {agency.owner?.display_name || "Unknown"}
                       </p>
-                      <p className="text-xs text-white/40">
+                      <p className="text-xs text-slate-400">
                         {agency.owner?.app_uid ? `ID: ${agency.owner.app_uid} • ` : ''}Owner
                       </p>
                     </div>
                     {agency.owner?.country_flag && (
-                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-lg shrink-0">
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg shrink-0">
                         <span className="text-base">{agency.owner.country_flag}</span>
-                        <span className="text-[10px] text-white/60 uppercase font-medium">{agency.owner.country_code || ''}</span>
+                        <span className="text-[10px] text-slate-500 uppercase font-medium">{agency.owner.country_code || ''}</span>
                       </div>
                     )}
                   </div>
@@ -2021,20 +2021,20 @@ export default function AdminAgencies() {
 
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="text-center p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-center p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <Users className="w-4 h-4 text-blue-400 mx-auto mb-1.5" />
                       <p className="text-white font-bold">{agency.total_hosts || 0}</p>
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider">Hosts</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Hosts</p>
                     </div>
-                    <div className="text-center p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-center p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <Coins className="w-4 h-4 text-yellow-400 mx-auto mb-1.5" />
                       <p className="text-white font-bold">{agency.wallet_balance?.toLocaleString() || 0}</p>
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider">Balance</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Balance</p>
                     </div>
-                    <div className="text-center p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-center p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <TrendingUp className="w-4 h-4 text-green-400 mx-auto mb-1.5" />
                       <p className="text-white font-bold">{getEffectiveCommission(agency)}%</p>
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider">Commission</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Commission</p>
                     </div>
                   </div>
 
@@ -2062,11 +2062,11 @@ export default function AdminAgencies() {
             size="icon"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => p - 1)}
-            className="bg-white/5 border-white/10 text-slate-900"
+            className="bg-slate-50 border-slate-200 text-slate-900"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-white/60 px-4">
+          <span className="text-slate-500 px-4">
             {currentPage} / {totalPages}
           </span>
           <Button
@@ -2074,7 +2074,7 @@ export default function AdminAgencies() {
             size="icon"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(p => p + 1)}
-            className="bg-white/5 border-white/10 text-slate-900"
+            className="bg-slate-50 border-slate-200 text-slate-900"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -2102,12 +2102,12 @@ export default function AdminAgencies() {
 
       {/* Cancel/Activate Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="bg-slate-50 border-white/10">
+        <DialogContent className="bg-slate-50 border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white">
               {selectedAgency?.is_active ? "Cancel Agency" : selectedAgency?.activation_status === "closed" ? "Reactivate Agency" : "Activate Agency"}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-500">
               Are you sure you want to {selectedAgency?.is_active ? "cancel" : selectedAgency?.activation_status === "closed" ? "reactivate" : "activate"} "{selectedAgency?.name}"?
             </DialogDescription>
           </DialogHeader>
@@ -2116,14 +2116,14 @@ export default function AdminAgencies() {
               placeholder="Reason for cancellation (optional)"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              className="bg-white/5 border-white/10 text-slate-900"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             />
           )}
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowCancelDialog(false)}
-              className="bg-white/5 border-white/10 text-slate-900"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             >
               Cancel
             </Button>
@@ -2141,18 +2141,18 @@ export default function AdminAgencies() {
 
       {/* Payroll Helper Dialog */}
       <Dialog open={showPayrollDialog} onOpenChange={setShowPayrollDialog}>
-        <DialogContent className="bg-slate-50 border-white/10">
+        <DialogContent className="bg-slate-50 border-slate-200">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Shield className="w-5 h-5 text-cyan-400" />
               Make Payroll Helper
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-500">
               Assign Level 5 Payroll Helper role to the owner of &quot;{selectedAgency?.name}&quot;?
             </DialogDescription>
           </DialogHeader>
           {selectedAgency?.owner && (
-            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <Avatar className="w-10 h-10 border-2 border-cyan-500/50">
                 <UserAvatarImage seed={(((selectedAgency.owner) as any)?.id ?? ((selectedAgency.owner) as any)?.user_id ?? ((selectedAgency.owner) as any)?.host_id)} gender={((selectedAgency.owner) as any)?.gender} src={selectedAgency.owner.avatar_url || ""} />
                 <AvatarFallback className="bg-cyan-600 text-white">
@@ -2165,7 +2165,7 @@ export default function AdminAgencies() {
               </div>
             </div>
           )}
-          <div className="text-sm text-white/50 space-y-1">
+          <div className="text-sm text-slate-500 space-y-1">
             <p>• Trader Level will be set to <strong className="text-white">5</strong></p>
             <p>• Payroll will be <strong className="text-green-400">enabled</strong></p>
             <p>• Country code will be synced from profile</p>
@@ -2174,7 +2174,7 @@ export default function AdminAgencies() {
             <Button
               variant="outline"
               onClick={() => setShowPayrollDialog(false)}
-              className="bg-white/5 border-white/10 text-slate-900"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             >
               Cancel
             </Button>
@@ -2195,7 +2195,7 @@ export default function AdminAgencies() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="bg-slate-50 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-50 border-slate-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Agency Details</DialogTitle>
           </DialogHeader>
@@ -2207,30 +2207,30 @@ export default function AdminAgencies() {
                 </div>
                 <div>
                   <p className="text-white font-bold text-lg">{selectedAgency.name}</p>
-                  <p className="text-white/50">#{selectedAgency.agency_code}</p>
+                  <p className="text-slate-500">#{selectedAgency.agency_code}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Total Hosts</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-sm">Total Hosts</p>
                   <p className="text-blue-400 font-bold">{selectedAgency.total_hosts || 0}</p>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Wallet Balance</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-sm">Wallet Balance</p>
                   <p className="text-yellow-400 font-bold">{selectedAgency.wallet_balance?.toLocaleString() || 0}</p>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Commission Rate</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-sm">Commission Rate</p>
                   <p className="text-green-400 font-bold">{getEffectiveCommission(selectedAgency)}%</p>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Level</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-sm">Level</p>
                   <Select 
                     value={selectedAgency.level || "A1"}
                     onValueChange={(val) => handleUpdateLevel(selectedAgency.id, val)}
                   >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-slate-900 h-8">
+                    <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -2247,7 +2247,7 @@ export default function AdminAgencies() {
               {selectedAgency.blocked_reason && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm font-medium">Cancellation Reason:</p>
-                  <p className="text-white/70 text-sm">{selectedAgency.blocked_reason}</p>
+                  <p className="text-slate-600 text-sm">{selectedAgency.blocked_reason}</p>
                 </div>
               )}
             </div>
@@ -2257,13 +2257,13 @@ export default function AdminAgencies() {
 
       {/* Create Agency Dialog */}
       <Dialog open={showCreateAgencyDialog} onOpenChange={setShowCreateAgencyDialog}>
-        <DialogContent className="bg-slate-50 border-white/10 max-w-lg">
+        <DialogContent className="bg-slate-50 border-slate-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Plus className="w-5 h-5 text-emerald-400" />
               Create New Agency
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-500">
               Manually create a new agency and assign an owner
             </DialogDescription>
           </DialogHeader>
@@ -2277,7 +2277,7 @@ export default function AdminAgencies() {
                   value={ownerSearchQuery}
                   onChange={(e) => setOwnerSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleOwnerSearch()}
-                  className="bg-white/5 border-white/10 text-slate-900"
+                  className="bg-slate-50 border-slate-200 text-slate-900"
                 />
                 <Button
                   onClick={handleOwnerSearch}
@@ -2304,7 +2304,7 @@ export default function AdminAgencies() {
                   </Avatar>
                   <div className="flex-1">
                     <p className="text-white font-medium">{ownerSearchResult.display_name || "Unknown"}</p>
-                    <p className="text-white/50 text-sm"><CopyableUid value={ownerSearchResult.username || ownerSearchResult.id?.slice(0, 8)} /></p>
+                    <p className="text-slate-500 text-sm"><CopyableUid value={ownerSearchResult.username || ownerSearchResult.id?.slice(0, 8)} /></p>
                   </div>
                   <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
                     <CheckCircle className="w-3 h-3 mr-1" />
@@ -2320,7 +2320,7 @@ export default function AdminAgencies() {
                 placeholder="Enter agency name..."
                 value={newAgencyName}
                 onChange={(e) => setNewAgencyName(e.target.value)}
-                className="bg-white/5 border-white/10 text-slate-900"
+                className="bg-slate-50 border-slate-200 text-slate-900"
               />
             </div>
 
@@ -2328,7 +2328,7 @@ export default function AdminAgencies() {
               <div className="space-y-2">
                 <Label className="text-white">Level</Label>
                 <Select value={newAgencyLevel} onValueChange={setNewAgencyLevel}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-slate-900">
+                  <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -2349,7 +2349,7 @@ export default function AdminAgencies() {
                   max="100"
                   value={newAgencyCommission}
                   onChange={(e) => setNewAgencyCommission(e.target.value)}
-                  className="bg-white/5 border-white/10 text-slate-900"
+                  className="bg-slate-50 border-slate-200 text-slate-900"
                 />
               </div>
             </div>
@@ -2364,7 +2364,7 @@ export default function AdminAgencies() {
                 setOwnerSearchResult(null);
                 setNewAgencyName("");
               }}
-              className="bg-white/5 border-white/10 text-slate-900"
+              className="bg-slate-50 border-slate-200 text-slate-900"
             >
               Cancel
             </Button>
