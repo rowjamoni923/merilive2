@@ -2230,7 +2230,7 @@ const FaceVerification = () => {
         setVerificationStatus('verified');
         setRejectionReason(null);
         setRetryRequired(null);
-        toast({ title: '✅ Face verification approved', description: 'You are verified. Redirecting…' });
+        toast({ title: 'Verified ✓', description: 'Your identity is approved. Redirecting…' });
         if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
         setTimeout(() => navigate('/profile', { replace: true }), 700);
         return 'approved';
