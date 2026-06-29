@@ -102,7 +102,7 @@ const AdminAgencyHub = () => {
       </div>
 
       {/* Quick Cross-Hub Links (single source of truth) */}
-      <Card className="bg-white/40 border-slate-200/50">
+      <Card className="admin-surface/40 admin-border/50">
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Related Sections (managed in other hubs)</p>
           <div className="flex flex-wrap gap-2">
@@ -124,7 +124,7 @@ const AdminAgencyHub = () => {
 
       {/* Main Tabs — agency-specific only */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="flex w-full overflow-x-auto scrollbar-hide bg-white/50 p-1 h-auto">
+        <TabsList className="flex w-full overflow-x-auto scrollbar-hide admin-surface/50 p-1 h-auto">
           <TabsTrigger 
             value="agencies" 
             className="min-w-fit data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white py-3 text-xs px-4 relative"
@@ -132,7 +132,7 @@ const AdminAgencyHub = () => {
             <Building2 className="w-4 h-4 mr-1" />
             Agencies
             {stats.inactiveAgencies > 0 && (
-              <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] h-5 min-w-5 flex items-center justify-center p-0">
+              <Badge className="absolute -top-1 -right-1 admin-bg-danger text-white text-[10px] h-5 min-w-5 flex items-center justify-center p-0">
                 {stats.inactiveAgencies}
               </Badge>
             )}

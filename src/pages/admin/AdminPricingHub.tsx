@@ -866,8 +866,8 @@ export default function AdminPricingHub() {
                 </Field>
               </div>
               {autoWithdrawalFee.enabled && (autoWithdrawalFee.flat_usd !== "" || autoWithdrawalFee.percent !== "") && (
-                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs space-y-1">
-                  <div className="font-semibold text-amber-700">Live Preview</div>
+                <div className="rounded-md border border-amber-200 admin-chip-warning p-3 text-xs space-y-1">
+                  <div className="font-semibold admin-accent-warning">Live Preview</div>
                   {(() => {
                     const flat = Number(autoWithdrawalFee.flat_usd) || 0;
                     const pct = Number(autoWithdrawalFee.percent) || 0;
