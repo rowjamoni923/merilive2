@@ -53,6 +53,8 @@ const banners = [
 
 const PublicPolicies = () => {
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
+  
   
   return (
   <div className="min-h-screen bg-background text-foreground" style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
