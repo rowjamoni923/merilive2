@@ -1601,6 +1601,7 @@ const App = () => {
                   <Route path="party-banners" element={<AdminRouteGuard routeSegment="party-banners"><AdminPartyBanners /></AdminRouteGuard>} />
                   <Route path="app-version" element={<AdminRouteGuard routeSegment="app-version"><AdminAppVersion /></AdminRouteGuard>} />
                   <Route path="app-update-logs" element={<AdminRouteGuard routeSegment="app-update-logs"><AdminAppUpdateLogs /></AdminRouteGuard>} />
+                  <Route path="app-update-test" element={<AdminRouteGuard routeSegment="app-update-test"><AdminAppUpdateTest /></AdminRouteGuard>} />
                   <Route path="frames" element={<AdminRouteGuard routeSegment="frames"><AdminFrames /></AdminRouteGuard>} />
                   <Route path="role-frames" element={<AdminRouteGuard routeSegment="role-frames"><AdminRoleFrames /></AdminRouteGuard>} />
                   <Route path="chat-bubbles" element={<AdminRouteGuard routeSegment="chat-bubbles"><AdminChatBubbles /></AdminRouteGuard>} />
