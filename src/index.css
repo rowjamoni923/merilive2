@@ -7557,3 +7557,82 @@ aside [class*="text-"] > span:not(.shrink-0) {
     border-radius: 14px !important;
   }
 }
+
+/* ============================================================
+   Admin tables — sticky headers + touch scroll hinting
+   ============================================================ */
+.admin-pro-shell table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #ffffff;
+  box-shadow: inset 0 -1px 0 hsl(214 32% 91%);
+  backdrop-filter: saturate(180%) blur(6px);
+}
+
+/* Scroll containers wrapping admin tables: hinting + momentum */
+.admin-pro-shell :where(.overflow-x-auto, .overflow-x-scroll, [data-slot="table-container"]) {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(214 32% 80%) transparent;
+}
+.admin-pro-shell :where(.overflow-x-auto, .overflow-x-scroll, [data-slot="table-container"])::-webkit-scrollbar {
+  height: 6px;
+}
+.admin-pro-shell :where(.overflow-x-auto, .overflow-x-scroll, [data-slot="table-container"])::-webkit-scrollbar-thumb {
+  background: hsl(214 32% 80%);
+  border-radius: 6px;
+}
+
+/* Edge-fade hint: subtle gradient on right edge signals more content */
+@media (hover: none) and (pointer: coarse), (max-width: 768px) {
+  .admin-pro-shell :where(.overflow-x-auto, [data-slot="table-container"]) {
+    position: relative;
+    background-image:
+      linear-gradient(to right, #ffffff 30%, rgba(255,255,255,0)),
+      linear-gradient(to right, rgba(255,255,255,0), #ffffff 70%),
+      radial-gradient(farthest-side at 0 50%, rgba(15,23,42,0.12), rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(15,23,42,0.12), rgba(0,0,0,0));
+    background-position: left center, right center, left center, right center;
+    background-repeat: no-repeat;
+    background-size: 28px 100%, 28px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  /* Swipe hint animation on first paint */
+  .admin-pro-shell :where(.overflow-x-auto, [data-slot="table-container"])::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to left, rgba(59,130,246,0.10), rgba(59,130,246,0) 40%);
+    animation: admin-swipe-hint 1.8s ease-out 0.4s 2;
+    opacity: 0;
+  }
+
+  /* First column sticky on mobile for context while scrolling horizontally */
+  .admin-pro-shell table :where(thead, tbody) tr > :where(th, td):first-child {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: #ffffff;
+    box-shadow: 1px 0 0 hsl(214 32% 91%);
+  }
+  .admin-pro-shell table thead tr > th:first-child {
+    z-index: 6;
+  }
+}
+
+@keyframes admin-swipe-hint {
+  0%   { opacity: 0; transform: translateX(0); }
+  40%  { opacity: 1; transform: translateX(-14px); }
+  100% { opacity: 0; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-pro-shell :where(.overflow-x-auto, [data-slot="table-container"])::after {
+    animation: none;
+  }
+}
+
