@@ -267,6 +267,7 @@ const PublicPrivacyPolicy = () => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PublicPrivacyPolicy;
