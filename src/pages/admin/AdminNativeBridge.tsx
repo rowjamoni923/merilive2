@@ -104,6 +104,7 @@ const AdminNativeBridge = () => {
         </p>
       </CardContent>
     </Card>
+    </div>
   );
 };
 
