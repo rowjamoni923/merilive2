@@ -2854,7 +2854,7 @@ export default function AdminLayout() {
 
         {/* Navigation Groups */}
         <ScrollArea className="flex-1 min-h-0 [&>div>div]:!block">
-          <nav className="p-2 pb-6">
+          <nav ref={sidebarNavRef} className="p-2 pb-6">
             {filteredNavGroups.map((group) => {
               const isExpanded = expandedGroups.includes(group.title);
               const accent = getGroupAccent(group.title);
