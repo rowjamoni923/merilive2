@@ -89,6 +89,7 @@ const AdminAppUpdateLogs = () => {
   const [platform, setPlatform] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<CheckLog | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     shown: 0,
