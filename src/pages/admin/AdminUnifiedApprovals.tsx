@@ -109,19 +109,18 @@ export default function AdminUnifiedApprovals() {
   return (
     <div className="admin-pro-shell min-h-screen p-4 md:p-6 space-y-4">
       {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-violet-900/50 via-slate-50 to-emerald-900/40 border border-violet-500/30 p-5 relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-violet-500/20 blur-3xl" />
+      <div className="rounded-2xl bg-white border border-slate-200 p-5 relative overflow-hidden shadow-[var(--admin-shadow-3d)]">
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-200 via-fuchsia-200 to-emerald-200 bg-clip-text text-transparent flex items-center gap-2">
-              <Inbox className="w-7 h-7 text-violet-300" /> Owner Approvals Hub
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <Inbox className="w-7 h-7 text-violet-600" /> Owner Approvals Hub
             </h1>
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-sm text-slate-600 mt-1">
               Every financial / admin action queued by Sub-Admins, Support Admins and Country Super Admins lands here for your final approval.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="bg-rose-500/20 text-rose-200 border-rose-500/40 text-sm px-3 py-1">
+            <Badge className="bg-rose-100 text-rose-700 border border-rose-200 text-sm px-3 py-1">
               {totalPending} pending
             </Badge>
           </div>
@@ -130,12 +129,12 @@ export default function AdminUnifiedApprovals() {
 
       {/* Two top-level sources */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
-        <TabsList className="bg-white/80 border border-white/10 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
-          <TabsTrigger value="subadmin" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white gap-2">
+        <TabsList className="bg-slate-100 border border-slate-200 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
+          <TabsTrigger value="subadmin" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm gap-2">
             <ShieldCheck className="w-4 h-4" /> Sub-Admin & Support
             {counts.sub > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.sub}</Badge>}
           </TabsTrigger>
-          <TabsTrigger value="csa" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black gap-2">
+          <TabsTrigger value="csa" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm gap-2">
             <Globe2 className="w-4 h-4" /> Country Super Admin
             {counts.csa > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.csa}</Badge>}
           </TabsTrigger>
@@ -144,7 +143,7 @@ export default function AdminUnifiedApprovals() {
         {/* SUB-ADMIN / SUPPORT */}
         <TabsContent value="subadmin" className="space-y-3">
           <Tabs value={subStatus} onValueChange={(v) => setSubStatus(v as any)}>
-            <TabsList className="bg-white/60 border border-white/10">
+            <TabsList className="bg-slate-100 border border-slate-200">
               <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="approved">Approved</TabsTrigger>
               <TabsTrigger value="rejected">Rejected</TabsTrigger>
@@ -152,46 +151,46 @@ export default function AdminUnifiedApprovals() {
           </Tabs>
 
           {loading ? (
-            <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-violet-300" /></div>
+            <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-violet-600" /></div>
           ) : subRows.length === 0 ? (
-            <Card className="bg-white/60 border-white/10 p-10 text-center">
-              <Clock className="w-10 h-10 text-white/30 mx-auto mb-2" />
-              <p className="text-white/50 text-sm">No {subStatus} sub-admin requests</p>
+            <Card className="p-10 text-center">
+              <Clock className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">No {subStatus} sub-admin requests</p>
             </Card>
           ) : (
             <div className="space-y-3">
               {subRows.map((r) => {
                 const color = ACTION_COLOR[r.action_type] || ACTION_COLOR.default;
                 return (
-                  <Card key={r.id} className="bg-white/60 border-white/10 p-4 hover:border-violet-500/40 transition">
+                  <Card key={r.id} className="p-4 hover:border-violet-300 transition">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className={color}>{r.action_type.replace(/_/g, " ")}</Badge>
-                          <span className="text-xs text-white/40">
-                            by <b className="text-white/70">{r.requested_by_name || "—"}</b>
+                          <span className="text-xs text-slate-500">
+                            by <b className="text-slate-700">{r.requested_by_name || "—"}</b>
                             {" · "}{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                           </span>
                         </div>
-                        {r.reason && <p className="text-sm text-white/70 mt-2">{r.reason}</p>}
+                        {r.reason && <p className="text-sm text-slate-700 mt-2">{r.reason}</p>}
                         {r.payload && (
-                          <pre className="mt-2 text-[11px] bg-black/40 border border-white/10 rounded p-2 max-h-32 overflow-auto text-emerald-200/80">
+                          <pre className="mt-2 text-[11px] bg-slate-50 border border-slate-200 rounded p-2 max-h-32 overflow-auto text-slate-700">
                             {JSON.stringify(r.payload, null, 2)}
                           </pre>
                         )}
                         {r.owner_notes && (
-                          <p className="text-[11px] text-amber-300/80 mt-2">Owner note: {r.owner_notes}</p>
+                          <p className="text-[11px] text-amber-700 mt-2">Owner note: {r.owner_notes}</p>
                         )}
                       </div>
                       {r.status === "pending" && (
                         <div className="flex flex-col gap-2 shrink-0">
                           <Button size="sm" onClick={() => approveSub(r.id)} disabled={busy === r.id}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400">
+                            className="bg-emerald-600 text-white hover:bg-emerald-700">
                             {busy === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5 mr-1" />}
                             Approve
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => rejectSub(r.id)} disabled={busy === r.id}
-                            className="bg-rose-500/10 border-rose-500/40 text-rose-300 hover:bg-rose-500/20">
+                            className="border-rose-200 text-rose-700 hover:bg-rose-50">
                             <X className="w-3.5 h-3.5 mr-1" /> Reject
                           </Button>
                         </div>
