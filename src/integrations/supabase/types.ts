@@ -23269,6 +23269,7 @@ export type Database = {
         Args: { _since?: string }
         Returns: Json
       }
+      process_billing_tick: { Args: never; Returns: Json }
       process_contact_violation: {
         Args: {
           p_detected_content: string
