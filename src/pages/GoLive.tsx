@@ -59,17 +59,22 @@ const isApprovedLiveHost = (profile?: {
   host_status?: string | null;
   gender?: string | null;
   is_face_verified?: boolean | null;
+  face_verification_status?: string | null;
 }) => {
-  // POLICY: Both male and female can go live. Face verification is MANDATORY for everyone.
-  // Approved female hosts retain their host_status flow; other face-verified users can also stream.
-  if (!profile?.is_face_verified) return false;
-  // Approved female host path (host_status='approved')
-  if (Boolean(profile?.is_host) && String(profile?.host_status ?? '').toLowerCase() === 'approved') {
-    return true;
+  // Mirrors server `can_user_go_live`:
+  //   1. Face must be verified (or face_verification_status='approved').
+  //   2. If the profile is marked is_host, host_status MUST be 'approved'
+  //      (otherwise host_not_approved / agency_required blocks the stream).
+  // Non-host face-verified users may still go live (server allows it).
+  const faceOk = Boolean(profile?.is_face_verified)
+    || String(profile?.face_verification_status ?? '').toLowerCase() === 'approved';
+  if (!faceOk) return false;
+  if (Boolean(profile?.is_host)) {
+    return String(profile?.host_status ?? '').toLowerCase() === 'approved';
   }
-  // Any other face-verified user (male or female) can also go live
   return true;
 };
+
 
 
 
@@ -351,6 +356,7 @@ const GoLive = () => {
     host_status?: string | null;
     gender: string | null;
     is_face_verified?: boolean;
+    face_verification_status?: string | null;
     face_verification_image?: string | null;
   } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -926,10 +932,65 @@ const GoLive = () => {
     }
 
     // Approved hosts can go live directly; regular users still need face verification.
-    if (!isHost && !resolvedProfile?.is_face_verified) {
+    if (!isHost && !resolvedProfile?.is_face_verified
+        && String(resolvedProfile?.face_verification_status ?? '').toLowerCase() !== 'approved') {
       setShowFaceVerificationRequired(true);
       return;
     }
+
+    // 🔒 Authoritative server-side preflight gate. Mirrors RPC `can_user_go_live`
+    // so the user gets the exact same denial reason the DB will return — no
+    // confusing generic "Failed to start live stream" after the camera handoff.
+    try {
+      const { data: gateData, error: gateErr } = await supabase.rpc('can_user_go_live');
+      if (gateErr) throw gateErr;
+      const gate = (gateData as any) || {};
+      if (gate?.allowed !== true) {
+        const code = String(gate?.code || 'denied');
+        const reason = String(gate?.reason || 'You cannot go live right now.');
+        switch (code) {
+          case 'face':
+            setShowFaceVerificationRequired(true);
+            return;
+          case 'host_not_approved':
+            toast.error('Your host approval is not active yet. Please wait for admin approval.', { duration: 6000 });
+            return;
+          case 'agency_required':
+            toast.error('Join an agency before going live as a registered host.', { duration: 6000 });
+            return;
+          case 'account_blocked':
+            toast.error('Your account cannot start live streams.', { duration: 6000 });
+            return;
+          case 'banned':
+            toast.error('You have an active live ban.', { duration: 6000 });
+            return;
+          case 'already_live':
+            toast.error('You already have an active live stream. Please end it first.', { duration: 6000 });
+            return;
+          case 'disabled':
+            toast.error('Live streaming is temporarily disabled by admin.', { duration: 6000 });
+            return;
+          case 'level': {
+            const req = gate?.required_level ?? '?';
+            const cur = gate?.current_level ?? 0;
+            toast.error(`Level ${req} required to go live. Your current level is ${cur}.`, { duration: 7000 });
+            return;
+          }
+          case 'auth':
+            toast.error('Please sign in again.');
+            navigate('/auth');
+            return;
+          default:
+            toast.error(reason, { duration: 6000 });
+            return;
+        }
+      }
+    } catch (gateException) {
+      console.warn('[GoLive] preflight can_user_go_live failed, letting server RPC enforce:', gateException);
+      // Soft-fail: don't block the user on a transient RPC error — the
+      // start_live_stream RPC will re-check and surface the reason.
+    }
+
 
     const nativePermissionsReady = isNativeAndroid && permissionsGranted.camera && permissionsGranted.microphone;
     if (!nativePermissionsReady && !streamRef.current?.getVideoTracks().some((track) => track.readyState === 'live')) {
