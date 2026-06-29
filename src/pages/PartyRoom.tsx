@@ -1363,6 +1363,27 @@ const PartyRoom = () => {
       void (async () => {
         if (explicitLeaveRef.current) {
           await leaveRoomForCleanup(roomId);
+        } else {
+          // SPA navigation (back button / route change) without explicit Leave —
+          // still free the participant's seat so the 90s stale-cleanup cron
+          // doesn't keep it blocked. Host case is skipped: host SPA-leaving
+          // should NOT auto-close the room (matches Chamet/Bigo behaviour).
+          try {
+            const user = currentUserRef.current;
+            const activeRoom = roomRef.current;
+            const isHostNow = activeRoom?.host_id === user?.id;
+            if (user?.id && roomId && !isHostNow) {
+              const leftAt = new Date().toISOString();
+              await supabase
+                .from('party_room_participants')
+                .update({ left_at: leftAt, seat_number: null })
+                .eq('room_id', roomId)
+                .eq('user_id', user.id)
+                .is('left_at', null);
+            }
+          } catch (e) {
+            console.warn('[PartyRoom] SPA-unmount seat release failed:', e);
+          }
         }
         cleanupNativeLiveKit();
       })();
