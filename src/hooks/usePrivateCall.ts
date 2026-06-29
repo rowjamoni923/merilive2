@@ -1427,6 +1427,10 @@ export function usePrivateCall(userId: string | null) {
       if (!activeId) return;
       if (detail?.callId && detail.callId !== activeId) return;
       reconnectingRef.current = true;
+      // Phase 3 polish: silent user feedback (no new UI, uses existing toast system)
+      try {
+        toast({ title: 'Reconnecting…', description: 'Network is unstable. Billing paused.', duration: 4000 });
+      } catch (_) {}
       // Backend P1: tell the server to PAUSE billing while we reconnect.
       // bill_call_minute() reads private_calls.is_reconnecting and skips.
       supabase.rpc('mark_call_reconnecting', {
@@ -1442,6 +1446,9 @@ export function usePrivateCall(userId: string | null) {
       if (!activeId) return;
       if (detail?.callId && detail.callId !== activeId) return;
       reconnectingRef.current = false;
+      try {
+        toast({ title: 'Reconnected ✓', description: 'Call resumed.', duration: 2500 });
+      } catch (_) {}
       // Backend P1: resume server-side billing.
       supabase.rpc('mark_call_reconnecting', {
         p_call_id: activeId,
