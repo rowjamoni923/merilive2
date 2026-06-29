@@ -8,8 +8,8 @@ const FALLBACK_VERSION_CODE = 100;
 const FALLBACK_VERSION_NAME = '8.2.1';
 
 // Storage key for dismissed updates
-const DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
-const UPDATE_PROMPT_STATE_KEY = 'app_update_prompt_state';
+export const APP_UPDATE_DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
+export const APP_UPDATE_PROMPT_STATE_KEY = 'app_update_prompt_state';
 const LAST_CHECK_KEY = 'app_update_last_check';
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes between checks
 const STORE_OPEN_SUPPRESSION_MS = 12 * 60 * 60 * 1000; // optional prompts stay quiet after Store open
@@ -122,7 +122,7 @@ const toComparableCode = (
 
 const readPromptMemory = (): PromptMemory | null => {
   try {
-    const raw = localStorage.getItem(UPDATE_PROMPT_STATE_KEY);
+    const raw = localStorage.getItem(APP_UPDATE_PROMPT_STATE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as PromptMemory;
   } catch {
@@ -132,8 +132,8 @@ const readPromptMemory = (): PromptMemory | null => {
 
 const clearPromptMemory = () => {
   try {
-    localStorage.removeItem(UPDATE_PROMPT_STATE_KEY);
-    localStorage.removeItem(DISMISSED_VERSION_KEY);
+    localStorage.removeItem(APP_UPDATE_PROMPT_STATE_KEY);
+    localStorage.removeItem(APP_UPDATE_DISMISSED_VERSION_KEY);
   } catch {}
 };
 
@@ -152,8 +152,8 @@ const savePromptMemory = (info: AppUpdateInfo, action: PromptAction) => {
       updatedAt: now,
       suppressUntil: action === 'store_opened' ? now + STORE_OPEN_SUPPRESSION_MS : undefined,
     };
-    localStorage.setItem(UPDATE_PROMPT_STATE_KEY, JSON.stringify(memory));
-    localStorage.setItem(DISMISSED_VERSION_KEY, String(info.availableComparable || info.availableVersionCode));
+    localStorage.setItem(APP_UPDATE_PROMPT_STATE_KEY, JSON.stringify(memory));
+    localStorage.setItem(APP_UPDATE_DISMISSED_VERSION_KEY, String(info.availableComparable || info.availableVersionCode));
   } catch {}
 };
 
@@ -170,7 +170,7 @@ const shouldSuppressPrompt = (info: AppUpdateInfo): boolean => {
       return false;
     }
 
-    const legacyDismissed = parseInt(localStorage.getItem(DISMISSED_VERSION_KEY) || '0', 10) || 0;
+    const legacyDismissed = parseInt(localStorage.getItem(APP_UPDATE_DISMISSED_VERSION_KEY) || '0', 10) || 0;
     const legacyCoversTarget = legacyDismissed >= info.availableComparable || legacyDismissed >= info.availableVersionCode;
     const memory = readPromptMemory();
     const sameTarget = memory?.targetComparable === info.availableComparable;
@@ -196,20 +196,6 @@ export const useAppUpdate = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const hasCheckedRef = useRef(false);
   const currentVersionRef = useRef<{ versionCode: number; versionName: string } | null>(null);
-
-  // Check if this version was already dismissed
-  const isDismissedVersion = useCallback((versionCode: number): boolean => {
-    try {
-      const dismissed = localStorage.getItem(DISMISSED_VERSION_KEY);
-      if (dismissed) {
-        const dismissedVersion = parseInt(dismissed, 10);
-        return dismissedVersion >= versionCode;
-      }
-    } catch (e) {
-      console.log('[AppUpdate] Could not read localStorage');
-    }
-    return false;
-  }, []);
 
   // Check if we should skip check (too recent)
   const shouldSkipCheck = useCallback((): boolean => {
