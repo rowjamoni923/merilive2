@@ -414,7 +414,7 @@ class LiveKitPlugin : Plugin() {
                     // layout while preserving the CameraX track itself.
                     if (boundedSurfaces) {
                         boundedMode = true
-                        detachRenderer()
+                        detachRenderer(restoreWebView = false)
                     } else {
                         boundedMode = false
                     }
@@ -537,7 +537,7 @@ class LiveKitPlugin : Plugin() {
      * Bug-fix 2026-06-17 (Private-call white-screen):
      *
      * `connect()` / `promotePreviewToSession()` publishes the camera but never
-     * mounts a fullscreen SurfaceViewRenderer behind the WebView. JS used to
+     * mounts a fullscreen TextureViewRenderer behind the WebView. JS used to
      * call `attachLocal()` here but there was no native handler — the call
      * silently no-op'd through the Capacitor Proxy. Result: camera publishes
      * to LiveKit, but the WebView's opaque white background covers the empty
@@ -1115,7 +1115,6 @@ class LiveKitPlugin : Plugin() {
             return existing
         }
         val renderer = TextureViewRenderer(act).apply {
-            setEnableHardwareScaler(true)
             setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
             setMirror(mirror)
         }
@@ -1394,7 +1393,6 @@ class LiveKitPlugin : Plugin() {
 
                 if (previewRenderer == null) {
                     val renderer = TextureViewRenderer(act).apply {
-                        setEnableHardwareScaler(true)
                         setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                         setMirror(mirror)
                     }
