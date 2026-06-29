@@ -182,6 +182,12 @@ class NativeLiveKitController {
         broadcastMode: opts.broadcastMode,
         roomScope: opts.roomScope,
         isHost: opts.isHost,
+        // When JS will render video through bounded <NativeVideoView /> slots
+        // (party seats, private-call remote fullscreen + local PiP), tell
+        // Kotlin to remove any prejoin fullscreen preview renderer before the
+        // session is promoted. This keeps native video behind the React shell
+        // without an old full-screen local Surface competing with the slots.
+        boundedSurfaces: opts.attachLocal === false,
       };
 
       try {

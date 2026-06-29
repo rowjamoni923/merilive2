@@ -470,7 +470,12 @@ export function useLiveKitCall(
                   // faster Camera2 first frame and lower encoder warmup than
                   // cold 1080p; quality can adapt upward after connection.
                   resolution: '720p',
-                  attachLocal: true,
+                  // Private-call video is rendered through React-positioned
+                  // <NativeVideoView /> slots (remote fullscreen + local PiP).
+                  // Do NOT mount the legacy native fullscreen local renderer:
+                  // it can sit over/compete with the remote slot and recreate
+                  // the “connecting / no overlay” issue on OEM EGL stacks.
+                  attachLocal: false,
                   callType: 'Video Call',
                   audioProfile: 'voice',
                   roomScope: 'call',

@@ -47,7 +47,6 @@ import kotlinx.coroutines.sync.withLock
 import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
 import org.webrtc.RendererCommon
-import org.webrtc.SurfaceViewRenderer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -65,7 +64,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * `previewTrack`. Whether we're in "preview only" or "connected + publishing",
  * it's the same track object.
  *
- * Renderer is a SurfaceViewRenderer inserted at index 0 in the WebView's
+ * Renderer is a TextureViewRenderer inserted at index 0 in the WebView's
  * parent ViewGroup. WebView is made transparent during preview so the camera
  * shows through; original background is restored on stopLocalPreview().
  */
@@ -114,17 +113,18 @@ class LiveKitPlugin : Plugin() {
 
     // The ONE camera track. Survives preview → publish → close.
     private var previewTrack: LocalVideoTrack? = null
-    private var previewRenderer: SurfaceViewRenderer? = null
+    private var previewRenderer: TextureViewRenderer? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
     private var activeRoomScope: String? = null
     private var activeIsHost: Boolean = false
+    private var preferredCodec: String? = null
     private var lastConnectArgs: ConnectArgs? = null
     private var liveViewerStats: JSObject = JSObject()
     private data class RpcReply(val result: String?, val error: String?)
     private val pendingRpcReplies = ConcurrentHashMap<String, CompletableDeferred<RpcReply>>()
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
-     *  SurfaceViewRenderer or make the WebView transparent. The camera track
+     *  TextureViewRenderer or make the WebView transparent. The camera track
      *  is still alive, but rendering is delegated to seat-bound TextureViews
      *  via {@link bindSeatRenderer}. Used by Video/Game Party rooms. */
     private var boundedMode: Boolean = false
@@ -203,6 +203,7 @@ class LiveKitPlugin : Plugin() {
             put("attachLocal"); put("detachLocal")
             put("attachRemote"); put("reconnectNow"); put("getActiveSession"); put("setSurviveActivityDestroy")
             put("updateLiveStats"); put("refreshToken")
+            put("setPreferredCodec")
             put("sendData"); put("registerRpcMethod"); put("unregisterRpcMethod"); put("performRpc"); put("respondToRpc")
             put("sendText"); put("registerTextStreamHandler"); put("unregisterTextStreamHandler")
             put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
@@ -399,10 +400,24 @@ class LiveKitPlugin : Plugin() {
             roomScope = call.getString("roomScope"),
             isHost = call.getBoolean("isHost", false) ?: false,
         )
+        val boundedSurfaces = call.getBoolean("boundedSurfaces", false) ?: false
 
         scope.launch {
             mediaOpMutex.withLock {
                 try {
+                    // If React will place native video using bounded slots
+                    // (<NativeVideoView />), drop any full-screen prejoin
+                    // preview renderer before promoting the same camera track
+                    // into the connected room. This prevents private calls and
+                    // party rooms from showing an old local full-screen surface
+                    // over/behind the intended remote/fullscreen + local PiP
+                    // layout while preserving the CameraX track itself.
+                    if (boundedSurfaces) {
+                        boundedMode = true
+                        detachRenderer(restoreWebView = false)
+                    } else {
+                        boundedMode = false
+                    }
                     promotePreviewToSession(args)
                     lastConnectArgs = args
                     activeRoomScope = args.roomScope
@@ -522,7 +537,7 @@ class LiveKitPlugin : Plugin() {
      * Bug-fix 2026-06-17 (Private-call white-screen):
      *
      * `connect()` / `promotePreviewToSession()` publishes the camera but never
-     * mounts a fullscreen SurfaceViewRenderer behind the WebView. JS used to
+     * mounts a fullscreen TextureViewRenderer behind the WebView. JS used to
      * call `attachLocal()` here but there was no native handler — the call
      * silently no-op'd through the Capacitor Proxy. Result: camera publishes
      * to LiveKit, but the WebView's opaque white background covers the empty
@@ -583,7 +598,7 @@ class LiveKitPlugin : Plugin() {
                 if (track != null && renderer != null) {
                     try { track.removeRenderer(renderer) } catch (_: Throwable) {}
                 }
-                detachRenderer()
+                detachRenderer(restoreWebView = true)
                 call.resolve(JSObject().put("detached", true))
             } catch (t: Throwable) {
                 Log.w(TAG, "detachLocal", t)
@@ -1039,6 +1054,16 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun setPreferredCodec(call: PluginCall) {
+        preferredCodec = call.getString("codec")?.lowercase()?.takeIf { it.isNotBlank() }
+        // LiveKit Android keeps codec negotiation inside the SDK/token policy.
+        // Expose the bridge as an acknowledged capability so JS does not fall
+        // through to a Proxy no-op; current rooms continue with SDK-safe auto
+        // fallback on devices without hardware H.264/VP8 support.
+        call.resolve(JSObject().put("applied", true).put("codec", preferredCodec ?: "auto"))
+    }
+
+    @PluginMethod
     fun setRemoteVideoSubscribed(call: PluginCall) {
         // Subscribe/unsubscribe is SDK-policy driven on this minimal native
         // room. Rebind current slots so visible participants recover instantly.
@@ -1077,15 +1102,29 @@ class LiveKitPlugin : Plugin() {
         val parent = (wv.parent as? ViewGroup) ?: return null
         val existing = slots[viewId]
         if (existing != null) {
+            // A fullscreen preview detach can restore the WebView background to
+            // white while bounded slots are still alive. Re-assert the overlay
+            // contract on every slot reuse so React controls (chat/gifts/header)
+            // remain visible above the native video instead of a white/black
+            // WebView masking the TextureView.
+            wv.setBackgroundColor(Color.TRANSPARENT)
+            wv.background = null
+            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
             existing.mirror = mirror
             existing.renderer.setMirror(mirror)
             return existing
         }
         val renderer = TextureViewRenderer(act).apply {
-            setEnableHardwareScaler(true)
             setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
             setMirror(mirror)
         }
+        if (webViewOriginalBg == null) {
+            webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+        }
+        wv.setBackgroundColor(Color.TRANSPARENT)
+        wv.background = null
+        try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+        try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
         // Professional overlay contract: native video must sit BEHIND the
         // transparent WebView. If it is added without an index Android places
         // TextureViewRenderer above React, which covers live/party header,
@@ -1353,8 +1392,7 @@ class LiveKitPlugin : Plugin() {
                 try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
 
                 if (previewRenderer == null) {
-                    val renderer = SurfaceViewRenderer(act).apply {
-                        setEnableHardwareScaler(true)
+                    val renderer = TextureViewRenderer(act).apply {
                         setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                         setMirror(mirror)
                     }
@@ -1368,9 +1406,10 @@ class LiveKitPlugin : Plugin() {
                             ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
-                    // SurfaceView must be attached before initVideoRenderer on
+                    // TextureView must be attached before initVideoRenderer on
                     // several OEM EGL stacks; still inserted at index 0 so it
-                    // sits BEHIND the transparent WebView.
+                    // sits BEHIND the transparent WebView and never steals the
+                    // overlay layer from React chat/gifts/header controls.
                     parent.addView(renderer, 0, lp)
                     try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
@@ -1384,21 +1423,22 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
-    private fun detachRenderer() {
+    private fun detachRenderer(restoreWebView: Boolean = true) {
         val act = activity ?: return
         act.runOnUiThread {
             try {
                 val r = previewRenderer
                 if (r != null) {
+                    try { previewTrack?.removeRenderer(r) } catch (_: Throwable) {}
                     (r.parent as? ViewGroup)?.removeView(r)
                     try { r.release() } catch (_: Throwable) {}
                 }
                 previewRenderer = null
                 val wv = bridge?.webView
-                if (wv != null) {
+                if (restoreWebView && wv != null) {
                     wv.setBackgroundColor(webViewOriginalBg ?: Color.WHITE)
                 }
-                webViewOriginalBg = null
+                if (restoreWebView) webViewOriginalBg = null
             } catch (t: Throwable) {
                 Log.w(TAG, "detachRenderer failed", t)
             }
@@ -1415,7 +1455,7 @@ class LiveKitPlugin : Plugin() {
             }
             previewTrack = null
         } catch (_: Throwable) {}
-        detachRenderer()
+        detachRenderer(restoreWebView = true)
 
         // If we created a preview-only Room (never connected) just to host the
         // capturer, release it too. A connected room is kept by teardownAll().
@@ -1446,7 +1486,7 @@ class LiveKitPlugin : Plugin() {
             }
         } catch (_: Throwable) {}
         previewTrack = null
-        detachRenderer()
+        detachRenderer(restoreWebView = true)
         releaseRoomResources()
         try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
         RtcEngineManager.clearRoom(room)

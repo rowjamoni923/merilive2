@@ -10,7 +10,7 @@ import { createPortal } from "react-dom";
 import { isNativeAndroidApp, hapticFeedback } from "@/utils/nativeUtils";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { NativeCall } from "@/plugins/NativeCall";
-import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -384,7 +384,8 @@ export function ActiveCallScreen({
   }, [remoteVideoTrack]);
 
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
-  const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
+  const showNativeRemoteSurface = isNativeMediaActive && isConnected && !!nativeRemoteSid && !remoteVideoTrack;
+  const showNativeLocalSurface = isNativeMediaActive && isConnected && !localVideoTrack;
   const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
@@ -1193,10 +1194,15 @@ export function ActiveCallScreen({
         style={{ contain: 'layout' }}
       >
         {/* ===== CALLING/RINGING STATE: Show local camera feed immediately ===== */}
-        {!isLiveConnected && !showNativeCallingSurface && (
+        {!isLiveConnected && (
           <div className="absolute inset-0 z-[2]">
             {/* Show local camera feed as background during calling/ringing */}
-            {localVideoTrack ? (
+            {showNativeCallingSurface ? (
+              <div className="absolute inset-0">
+                <NativeVideoView kind="local" mirror={true} className="absolute inset-0 w-full h-full pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+              </div>
+            ) : localVideoTrack ? (
               <div className="absolute inset-0">
                 <LiveKitVideoPlayer
                   videoTrack={localVideoTrack}
@@ -1275,7 +1281,9 @@ export function ActiveCallScreen({
           <div className="absolute inset-0 z-[3]">
             {/* Full-screen primary (remote) video */}
             <div className="absolute inset-0">
-              {showNativeCallSurface && nativeRemoteSid ? (
+              {isSwapped && showNativeLocalSurface ? (
+                <NativeVideoView kind="local" mirror={true} className="w-full h-full" />
+              ) : !isSwapped && showNativeRemoteSurface && nativeRemoteSid ? (
                 <NativeVideoView kind="remote" sid={nativeRemoteSid} className="w-full h-full" />
               ) : primaryHasVideo && primaryVideoTrack ? (
                 <LiveKitVideoPlayer
@@ -1363,7 +1371,11 @@ export function ActiveCallScreen({
                   '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }}
             >
-              {secondaryHasVideo && secondaryVideoTrack ? (
+              {!isSwapped && showNativeLocalSurface ? (
+                <NativeVideoView kind="local" mirror={true} className="w-full h-full" />
+              ) : isSwapped && showNativeRemoteSurface && nativeRemoteSid ? (
+                <NativeVideoView kind="remote" sid={nativeRemoteSid} className="w-full h-full" />
+              ) : secondaryHasVideo && secondaryVideoTrack ? (
                 <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
@@ -1391,16 +1403,6 @@ export function ActiveCallScreen({
                 }}
               >
                 {secondaryLabel}
-              </div>
-              <div
-                aria-hidden
-                className="absolute right-1.5 bottom-1.5 w-5 h-5 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-md"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(20,10,40,0.55))',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
-                }}
-              >
-                <SwitchCamera className="w-3 h-3 text-white/85" />
               </div>
             </motion.div>
           </div>
