@@ -1067,6 +1067,12 @@ export function usePrivateCall(userId: string | null) {
       } else {
         toast({ title: "Call Ended", description: `Duration: ${durationStr}` });
       }
+      // Phase 3 polish: subtle end-call haptic (native-only no-op on web)
+      try {
+        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+          Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+        }).catch(() => {});
+      } catch (_) {}
 
       // 🔵 NON-BLOCKING: Background tasks (finalize, conversation) - fire and forget
       const bgOtherUserId = cs.remoteUserId;
