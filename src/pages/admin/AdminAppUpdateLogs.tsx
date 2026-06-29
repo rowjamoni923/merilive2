@@ -302,6 +302,7 @@ const AdminAppUpdateLogs = () => {
                   className="cursor-pointer hover:bg-slate-50"
                   onClick={() => setSelected(l)}
                 >
+                  <TableCell className="text-xs text-slate-600">
                     {format(new Date(l.created_at), "MMM dd, HH:mm:ss")}
                   </TableCell>
                   <TableCell><Badge variant="outline">{l.platform}</Badge></TableCell>
