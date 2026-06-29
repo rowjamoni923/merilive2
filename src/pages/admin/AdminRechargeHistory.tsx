@@ -493,9 +493,34 @@ const AdminRechargeHistory = () => {
             <p className="text-sm text-muted-foreground">All recharges: Google Play, Local Agent, Gateway, Admin Manual, Trader & Diamond Transfer</p>
           </div>
         </div>
-        <Button onClick={fetchRecords} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <ReportExportMenu
+            rows={records as any}
+            columns={[
+              { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+              { key: "user_name", label: "User", weight: 1.3, format: (_, r: any) => r.user_name || r.user?.display_name || r.user_id || "—" },
+              { key: "source", label: "Source", weight: 1 },
+              { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+              { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+              { key: "status", label: "Status", weight: 0.9 },
+              { key: "method", label: "Method", weight: 1 },
+            ]}
+            meta={{
+              title: "Recharge History Report",
+              subtitle: `${records.length} records • All sources`,
+              fileName: "recharge-history",
+              summary: [
+                { label: "Total Orders", value: stats.total },
+                { label: "Completed", value: stats.completed },
+                { label: "Pending", value: stats.pending },
+                { label: "Revenue", value: `$${stats.totalUsd.toFixed(2)}` },
+              ],
+            }}
+          />
+          <Button onClick={fetchRecords} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

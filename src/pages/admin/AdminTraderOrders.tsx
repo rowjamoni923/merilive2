@@ -184,9 +184,35 @@ const AdminTraderOrders = () => {
             <h1 className="font-bold text-xl text-white">Trader Orders</h1>
             <p className="text-white/80 text-sm">Manage all diamond orders</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20 ml-auto" onClick={fetchOrders}>
-            <RefreshCw className="w-5 h-5" />
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <ReportExportMenu
+              rows={orders as any}
+              columns={[
+                { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+                { key: "id", label: "Order ID", weight: 1.3 },
+                { key: "user_id", label: "User", weight: 1.2, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
+                { key: "helper_id", label: "Helper", weight: 1.2, format: (_, r: any) => (r.helper as any)?.user?.display_name || r.helper_id || "—" },
+                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
+                { key: "status", label: "Status", weight: 0.9 },
+                { key: "user_country_code", label: "Country", weight: 0.7 },
+              ]}
+              meta={{
+                title: "Trader Orders Report",
+                subtitle: `${orders.length} orders`,
+                fileName: "trader-orders",
+                summary: [
+                  { label: "Total", value: stats.total },
+                  { label: "Completed", value: stats.completed },
+                  { label: "Pending", value: stats.pending },
+                  { label: "Today $", value: `$${stats.todayTotal.toFixed(0)}` },
+                ],
+              }}
+            />
+            <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={fetchOrders}>
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

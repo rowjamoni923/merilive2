@@ -179,14 +179,38 @@ export default function AdminUserReports() {
           </h1>
           <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
         </div>
-        <Button
-          onClick={() => fetchReports()}
-          disabled={loading}
-          className="bg-white/15 hover:bg-white/25 text-slate-900 border border-white/30"
-          size="sm"
-        >
-          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <ReportExportMenu
+            rows={reports as any}
+            columns={[
+              { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
+              { key: "reporter", label: "Reporter", weight: 1.2, format: (_, r: any) => r.reporter?.display_name || r.reporter_id || "—" },
+              { key: "reported_user", label: "Reported", weight: 1.2, format: (_, r: any) => r.reported_user?.display_name || r.reported_user_id || "—" },
+              { key: "category", label: "Category", weight: 1 },
+              { key: "reason", label: "Reason", weight: 1.6 },
+              { key: "status", label: "Status", weight: 0.9 },
+              { key: "action_taken", label: "Action", weight: 1 },
+            ]}
+            meta={{
+              title: "User Reports",
+              subtitle: `${reports.length} reports`,
+              fileName: "user-reports",
+              summary: [
+                { label: "Total", value: stats.total },
+                { label: "Pending", value: stats.pending },
+                { label: "Resolved", value: stats.resolved },
+              ],
+            }}
+          />
+          <Button
+            onClick={() => fetchReports()}
+            disabled={loading}
+            className="bg-white/15 hover:bg-white/25 text-slate-900 border border-white/30"
+            size="sm"
+          >
+            <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
