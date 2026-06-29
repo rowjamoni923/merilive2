@@ -979,7 +979,7 @@ export default function AdminAgencies() {
             <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             <span className="hidden md:inline">Closed</span>
             <span className="md:hidden">Closed</span>
-            {closedCount > 0 && <span className="ml-1 rounded admin-bg-danger/20 px-1.5 py-0.5 text-[10px] text-rose-200">{closedCount}</span>}
+            {closedCount > 0 && <span className="ml-1 rounded admin-chip-danger px-1.5 py-0.5 text-[10px]">{closedCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="hostsearch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white admin-text-muted font-medium text-xs md:text-sm">
             <Search className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -1890,7 +1890,7 @@ export default function AdminAgencies() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="admin-surface-sunken" />
                         <DropdownMenuItem
-                          className="admin-accent-warning hover:text-amber-200 cursor-pointer"
+                          className="admin-accent-warning hover:opacity-80 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAgency(agency);
@@ -1901,7 +1901,7 @@ export default function AdminAgencies() {
                           {(agency as any).is_country_super_admin ? "Re-grant Country Super Admin" : "Grant Country Super Admin"}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className={(agency as any).is_permanent ? "admin-accent-danger hover:admin-accent-danger cursor-pointer" : "admin-accent-warning hover:text-yellow-200 cursor-pointer"}
+                          className={(agency as any).is_permanent ? "admin-accent-danger hover:admin-accent-danger cursor-pointer" : "admin-accent-warning hover:opacity-80 cursor-pointer"}
                           onClick={async (e) => {
                             e.stopPropagation();
                             const isPerm = !!(agency as any).is_permanent;
