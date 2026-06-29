@@ -7633,7 +7633,9 @@ aside [class*="text-"] > span:not(.shrink-0) {
 @media (prefers-reduced-motion: reduce) {
   .admin-pro-shell :where(.overflow-x-auto, [data-slot="table-container"])::after {
     animation: none;
+  }
 }
+
 
 /* ============================================================
    ADMIN UNIFIED TOKEN SYSTEM — single light theme
