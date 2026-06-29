@@ -2269,6 +2269,12 @@ const FaceVerification = () => {
         return 'retry';
       }
       // else: manual review — leave Under Review badge as-is, admin will decide.
+      try {
+        toast({
+          title: 'Under review',
+          description: 'Submission received. Auto-check inconclusive — admin will review (usually under 2 hours).',
+        });
+      } catch (_) {}
       return 'manual';
     } catch (err) {
       console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
