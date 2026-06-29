@@ -1086,9 +1086,11 @@ class LiveKitPlugin : Plugin() {
             setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
             setMirror(mirror)
         }
-        // Mount ABOVE the WebView so the camera tile is visible on top of the
-        // (opaque) React seat tile. React layer still renders empty-seat UI,
-        // gradients, badges, etc — only the inner video region is covered.
+        // Professional overlay contract: native video must sit BEHIND the
+        // transparent WebView. If it is added without an index Android places
+        // TextureViewRenderer above React, which covers live/party header,
+        // chat, gifts, entry bars and causes the exact fullscreen smear shown
+        // in the audit videos.
         // Parent of the WebView in Capacitor BridgeActivity may be a
         // CoordinatorLayout (Material) or a plain FrameLayout/ContentFrameLayout.
         // Using FrameLayout.LayoutParams inside a CoordinatorLayout crashes the
@@ -1100,7 +1102,7 @@ class LiveKitPlugin : Plugin() {
         // Pkg501: addView BEFORE initVideoRenderer so the EglBase context binds
         // to a fully-attached surface. Reversing the order causes scrambled
         // frames on first attach (Defect #3, video 2026-06-18).
-        parent.addView(renderer, lp)
+        parent.addView(renderer, 0, lp)
         try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
