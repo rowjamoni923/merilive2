@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import heroBanner from "@/assets/banners/policy-hero-banner.jpg";
 import hostPolicyBanner from "@/assets/banners/host-policy-banner.jpg";
 import hostRegistrationBanner from "@/assets/banners/host-registration-banner.jpg";
