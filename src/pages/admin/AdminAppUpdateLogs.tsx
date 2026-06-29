@@ -19,8 +19,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RefreshCw, Smartphone, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { RefreshCw, Smartphone, AlertTriangle, CheckCircle2, Clock, Info } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+// Mirror of the client-side normaliser in src/hooks/useAppUpdate.ts so the
+// admin dashboard explains exactly the same comparison the device performed.
+const versionNameToCode = (version: string | null | undefined): number => {
+  const raw = String(version ?? "").trim();
+  if (!raw) return 0;
+  if (!raw.includes(".")) {
+    const n = parseInt(raw.replace(/\D/g, ""), 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+  const parts = raw.split(".").map((p) => parseInt(p.replace(/\D/g, ""), 10) || 0);
+  return (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+};
+const toComparable = (code: number | null | undefined, name: string | null | undefined) => {
+  const c = Number(code);
+  const fromCode = Number.isFinite(c) && c > 0 ? c : 0;
+  return Math.max(fromCode, versionNameToCode(name));
+};
 
 interface CheckLog {
   id: string;
