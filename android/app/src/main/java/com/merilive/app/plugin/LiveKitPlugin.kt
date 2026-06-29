@@ -399,10 +399,24 @@ class LiveKitPlugin : Plugin() {
             roomScope = call.getString("roomScope"),
             isHost = call.getBoolean("isHost", false) ?: false,
         )
+        val boundedSurfaces = call.getBoolean("boundedSurfaces", false) ?: false
 
         scope.launch {
             mediaOpMutex.withLock {
                 try {
+                    // If React will place native video using bounded slots
+                    // (<NativeVideoView />), drop any full-screen prejoin
+                    // preview renderer before promoting the same camera track
+                    // into the connected room. This prevents private calls and
+                    // party rooms from showing an old local full-screen surface
+                    // over/behind the intended remote/fullscreen + local PiP
+                    // layout while preserving the CameraX track itself.
+                    if (boundedSurfaces) {
+                        boundedMode = true
+                        detachRenderer()
+                    } else {
+                        boundedMode = false
+                    }
                     promotePreviewToSession(args)
                     lastConnectArgs = args
                     activeRoomScope = args.roomScope
@@ -1077,6 +1091,14 @@ class LiveKitPlugin : Plugin() {
         val parent = (wv.parent as? ViewGroup) ?: return null
         val existing = slots[viewId]
         if (existing != null) {
+            // A fullscreen preview detach can restore the WebView background to
+            // white while bounded slots are still alive. Re-assert the overlay
+            // contract on every slot reuse so React controls (chat/gifts/header)
+            // remain visible above the native video instead of a white/black
+            // WebView masking the TextureView.
+            wv.setBackgroundColor(Color.TRANSPARENT)
+            wv.background = null
+            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
             existing.mirror = mirror
             existing.renderer.setMirror(mirror)
             return existing
@@ -1086,6 +1108,13 @@ class LiveKitPlugin : Plugin() {
             setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
             setMirror(mirror)
         }
+        if (webViewOriginalBg == null) {
+            webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+        }
+        wv.setBackgroundColor(Color.TRANSPARENT)
+        wv.background = null
+        try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+        try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
         // Professional overlay contract: native video must sit BEHIND the
         // transparent WebView. If it is added without an index Android places
         // TextureViewRenderer above React, which covers live/party header,
@@ -1390,6 +1419,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 val r = previewRenderer
                 if (r != null) {
+                    try { previewTrack?.removeRenderer(r) } catch (_: Throwable) {}
                     (r.parent as? ViewGroup)?.removeView(r)
                     try { r.release() } catch (_: Throwable) {}
                 }
