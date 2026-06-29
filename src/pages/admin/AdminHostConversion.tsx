@@ -142,7 +142,7 @@ const AdminHostConversion = () => {
   const pendingCount = requests.filter(r => r.status === 'pending').length;
 
   return (
-    <div className="space-y-6">
+    <div className="admin-pro-shell space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Host Conversion Requests</h1>
