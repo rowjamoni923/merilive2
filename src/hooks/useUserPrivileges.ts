@@ -32,6 +32,8 @@ export interface EquippedPrivileges {
   entrance_effect: UserPrivilege | null;
 }
 
+type EquipPatch = Record<string, string | null>;
+
 export const useUserPrivileges = (userId: string | null) => {
   const [privileges, setPrivileges] = useState<UserPrivilege[]>([]);
   const [equippedPrivileges, setEquippedPrivileges] = useState<EquippedPrivileges>({
@@ -263,7 +265,7 @@ export const useUserPrivileges = (userId: string | null) => {
       if (category === 'entrance_effect' || (category as string) === 'entry_banner' || category === 'entrance') slot = 'entrance';
       if (category === 'entry_bar' || category === 'entry_name_bar') slot = 'entry_name_bar';
 
-      const updateData: any = {};
+      const updateData: EquipPatch = {};
       if (slot === 'frame') updateData.equipped_frame_id = itemId;
       else if (slot === 'entrance') {
         updateData.equipped_entrance_id = itemId;
@@ -276,9 +278,9 @@ export const useUserPrivileges = (userId: string | null) => {
       else if (slot === 'noble_card') updateData.equipped_noble_card_id = itemId;
 
       const currentEquip = profileEquipRef.current;
-      const changedUpdateData = Object.fromEntries(
+      const changedUpdateData: EquipPatch = Object.fromEntries(
         Object.entries(updateData).filter(([key, value]) => currentEquip[key] !== value)
-      );
+      ) as EquipPatch;
 
       if (Object.keys(changedUpdateData).length > 0) {
         await supabase.from('profiles').update(changedUpdateData).eq('id', userId);
@@ -337,7 +339,7 @@ export const useUserPrivileges = (userId: string | null) => {
       if (category === 'portrait_frame' || category === 'frame') slot = 'frame';
       if (category === 'entrance_effect' || (category as string) === 'entry_banner' || category === 'entrance') slot = 'entrance';
 
-      const updateData: any = {};
+      const updateData: EquipPatch = {};
       if (slot === 'frame') updateData.equipped_frame_id = null;
       else if (slot === 'entrance') {
         updateData.equipped_entrance_id = null;
@@ -350,9 +352,9 @@ export const useUserPrivileges = (userId: string | null) => {
       else if (slot === 'noble_card') updateData.equipped_noble_card_id = null;
 
       const currentEquip = profileEquipRef.current;
-      const changedUpdateData = Object.fromEntries(
+      const changedUpdateData: EquipPatch = Object.fromEntries(
         Object.entries(updateData).filter(([key, value]) => currentEquip[key] !== value)
-      );
+      ) as EquipPatch;
 
       if (Object.keys(changedUpdateData).length > 0) {
         await supabase.from('profiles').update(changedUpdateData).eq('id', userId);
