@@ -3,10 +3,6 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { supabase } from '@/integrations/supabase/client';
 
-// Fallback version (only used if native version can't be read)
-const FALLBACK_VERSION_CODE = 80213;
-const FALLBACK_VERSION_NAME = '8.2.13';
-
 // Storage key for dismissed updates
 export const APP_UPDATE_DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
 export const APP_UPDATE_PROMPT_STATE_KEY = 'app_update_prompt_state';
@@ -71,9 +67,9 @@ interface PromptMemory {
 }
 
 // Get the actual app version from native platform
-const getAppVersion = async (): Promise<{ versionCode: number; versionName: string }> => {
+const getAppVersion = async (): Promise<{ versionCode: number; versionName: string } | null> => {
   if (!Capacitor.isNativePlatform()) {
-    return { versionCode: FALLBACK_VERSION_CODE, versionName: FALLBACK_VERSION_NAME };
+    return null;
   }
   
   try {
@@ -82,13 +78,17 @@ const getAppVersion = async (): Promise<{ versionCode: number; versionName: stri
     
     // info.version is the version name (e.g., "5.7.0")
     // info.build is the version code (e.g., "57")
-    const versionCode = parseInt(info.build, 10) || FALLBACK_VERSION_CODE;
-    const versionName = info.version || FALLBACK_VERSION_NAME;
+    const versionCode = parseInt(info.build, 10);
+    const versionName = info.version?.trim();
+    if (!Number.isFinite(versionCode) || versionCode <= 0 || !versionName) {
+      console.warn('[AppUpdate] Native app version unavailable, skipping update prompt');
+      return null;
+    }
     
     return { versionCode, versionName };
   } catch (error) {
     console.error('[AppUpdate] Failed to get native app info:', error);
-    return { versionCode: FALLBACK_VERSION_CODE, versionName: FALLBACK_VERSION_NAME };
+    return null;
   }
 };
 
