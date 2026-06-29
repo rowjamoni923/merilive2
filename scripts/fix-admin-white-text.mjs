@@ -19,10 +19,16 @@
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const json = execSync("node scripts/audit-admin-theme.mjs --json --quiet", {
-  encoding: "utf8",
-  maxBuffer: 50 * 1024 * 1024,
-});
+let json;
+try {
+  json = execSync("node scripts/audit-admin-theme.mjs --json --quiet", {
+    encoding: "utf8",
+    maxBuffer: 50 * 1024 * 1024,
+  });
+} catch (e) {
+  // audit exits non-zero when errors exist; stdout still holds the JSON
+  json = e.stdout?.toString() || "";
+}
 const data = JSON.parse(json);
 const targets = data.findings.filter(
   (f) => f.rule === "white-on-light" && f.line > 0,
