@@ -1,3 +1,4 @@
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect, useRef } from "react";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
@@ -577,7 +578,7 @@ export default function AdminWithdrawals() {
               ]}
               meta={{
                 title: "Agency Withdrawal Report",
-                subtitle: `Status: ${statusFilter} • ${withdrawals.length} requests`,
+                subtitle: `Status: ${filterStatus} • ${withdrawals.length} requests`,
                 fileName: "withdrawals",
                 summary: [
                   { label: "Pending", value: pendingCount },

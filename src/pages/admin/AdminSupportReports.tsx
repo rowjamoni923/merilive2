@@ -5,6 +5,7 @@
  * Each row carries: user ID/UID, original ticket subject + reported message,
  * the support admin's display name, the reason, and a status owner can update.
  */
+import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useEffect, useState, useCallback } from "react";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
