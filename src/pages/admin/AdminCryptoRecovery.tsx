@@ -147,10 +147,10 @@ const AdminCryptoRecovery = () => {
   }, [rows, search]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 text-white p-4 md:p-6">
+    <div className="admin-pro-shell min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 text-slate-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-5">
         <div className="flex items-center justify-between gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-white/80">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-slate-700">
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
           </Button>
           <Button size="sm" variant="outline" onClick={() => { loadRows(); loadStats(); }} disabled={loading}>
