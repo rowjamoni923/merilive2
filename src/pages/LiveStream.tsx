@@ -80,6 +80,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppSetting } from "@/utils/appSettingsCache";
 import { hapticFeedback } from "@/utils/nativeUtils";
+import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { toast } from "@/utils/hybridToast";
 
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
@@ -1070,6 +1071,14 @@ const LiveStream = () => {
       }
     },
   });
+
+  // Android native LiveKit renders the camera/video layer behind the WebView.
+  // Keep the WebView transparent for every native live session (host + viewer)
+  // so React chat/gifts/header stay above native video without blank fallback.
+  useEffect(() => {
+    setNativeMediaSurface(isNativeMediaActive);
+    return () => clearNativeMediaSurface();
+  }, [isNativeMediaActive]);
 
   const liveStreamCamera = useProCamera('live-stream', sessionState?.isHost === true || (isHost && isHostVerified));
 

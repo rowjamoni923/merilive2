@@ -384,7 +384,8 @@ export function ActiveCallScreen({
   }, [remoteVideoTrack]);
 
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
-  const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
+  const showNativeRemoteSurface = isNativeMediaActive && isConnected && !!nativeRemoteSid && !remoteVideoTrack;
+  const showNativeLocalSurface = isNativeMediaActive && isConnected && !localVideoTrack;
   const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
@@ -1275,7 +1276,9 @@ export function ActiveCallScreen({
           <div className="absolute inset-0 z-[3]">
             {/* Full-screen primary (remote) video */}
             <div className="absolute inset-0">
-              {showNativeCallSurface && nativeRemoteSid ? (
+              {isSwapped && showNativeLocalSurface ? (
+                <NativeVideoView kind="local" mirror={true} className="w-full h-full" />
+              ) : !isSwapped && showNativeRemoteSurface && nativeRemoteSid ? (
                 <NativeVideoView kind="remote" sid={nativeRemoteSid} className="w-full h-full" />
               ) : primaryHasVideo && primaryVideoTrack ? (
                 <LiveKitVideoPlayer
@@ -1363,7 +1366,11 @@ export function ActiveCallScreen({
                   '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }}
             >
-              {secondaryHasVideo && secondaryVideoTrack ? (
+              {!isSwapped && showNativeLocalSurface ? (
+                <NativeVideoView kind="local" mirror={true} className="w-full h-full" />
+              ) : isSwapped && showNativeRemoteSurface && nativeRemoteSid ? (
+                <NativeVideoView kind="remote" sid={nativeRemoteSid} className="w-full h-full" />
+              ) : secondaryHasVideo && secondaryVideoTrack ? (
                 <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
