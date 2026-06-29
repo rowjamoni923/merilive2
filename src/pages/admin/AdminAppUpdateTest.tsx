@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { FlaskConical, Rocket, Trash2, PlayCircle, AlertTriangle } from "lucide-react";
 import {
+  APP_UPDATE_DISMISSED_VERSION_KEY,
+  APP_UPDATE_PROMPT_STATE_KEY,
   APP_UPDATE_TEST_OVERRIDE_KEY,
   APP_UPDATE_TEST_TRIGGER_EVENT,
 } from "@/hooks/useAppUpdate";
@@ -69,8 +71,10 @@ const AdminAppUpdateTest = () => {
 
   const handleClear = () => {
     localStorage.removeItem(APP_UPDATE_TEST_OVERRIDE_KEY);
+    localStorage.removeItem(APP_UPDATE_PROMPT_STATE_KEY);
+    localStorage.removeItem(APP_UPDATE_DISMISSED_VERSION_KEY);
     setActive(false);
-    toast.success("Test mode cleared. Reload the app to restore normal flow.");
+    toast.success("Test mode and prompt memory cleared. Reload the app to restore normal flow.");
   };
 
   const setField = <K extends keyof TestOverride>(key: K, value: TestOverride[K]) =>
@@ -205,7 +209,7 @@ const AdminAppUpdateTest = () => {
           <p>3. Tap <strong>Update Now</strong> → Play Store URL must open; the dismissed-version flag is persisted so the modal won't re-appear immediately.</p>
           <p>4. Turn force OFF, re-enable test mode, reload → modal should appear with a working Dismiss button.</p>
           <p>5. Check the <strong>App Update Logs</strong> page to confirm the store-open / dismiss outcomes are recorded.</p>
-          <p>6. Click <strong>Clear test mode</strong> and reload — the modal must disappear and real version logic resumes.</p>
+          <p>6. Click <strong>Clear test mode</strong> and reload — all test override / prompt memory clears and real version logic resumes.</p>
         </CardContent>
       </Card>
     </div>
