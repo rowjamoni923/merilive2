@@ -458,7 +458,7 @@ export default function AdminAuth() {
   // ============================================
   if (flow === 'pending_approval') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="admin-pro-shell min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <Card className="border-amber-500/20 bg-white/80 backdrop-blur-xl">
             <CardHeader className="text-center">
