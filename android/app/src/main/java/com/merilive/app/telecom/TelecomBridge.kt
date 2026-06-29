@@ -67,9 +67,12 @@ object TelecomBridge {
             val h = handle(ctx) ?: return false
             try {
                 val capabilities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    PhoneAccount.CAPABILITY_SELF_MANAGED or
-                        PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING or
-                        PhoneAccount.CAPABILITY_VIDEO_CALLING
+                    // Do NOT advertise video-call capabilities. Samsung/MIUI may
+                    // route those through the OEM in-call UI, hiding MeriLive's
+                    // React chat/gifts/controls. We keep only self-managed audio
+                    // focus/account plumbing; incoming UI is our own fullscreen
+                    // React activity delivered by high-priority FCM.
+                    PhoneAccount.CAPABILITY_SELF_MANAGED
                 } else 0
                 val account = PhoneAccount.builder(h, "MeriLive")
                     .setCapabilities(capabilities)
