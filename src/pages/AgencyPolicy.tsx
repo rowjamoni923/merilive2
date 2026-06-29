@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 import { 
   ArrowLeft, 
