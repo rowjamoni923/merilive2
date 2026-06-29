@@ -2895,12 +2895,15 @@ export default function AdminLayout() {
                             <Link
                               key={item.path}
                               to={item.path}
+                              data-admin-nav-item={item.path}
+                              data-admin-nav-active={isActive ? 'true' : 'false'}
                               onMouseEnter={() => prefetchAdminRoute(item.path)}
                               onFocus={() => prefetchAdminRoute(item.path)}
                               onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
                               }}
+
 
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group/item relative overflow-hidden",
