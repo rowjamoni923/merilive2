@@ -35,6 +35,7 @@ import {
   isLiveKitEnabled,
 } from './livekitSignaling';
 import { nativeLiveKitController } from './nativeLiveKitController';
+import { supabase } from '@/integrations/supabase/client';
 
 export type ChatScope = 'call' | 'live' | 'party';
 
@@ -210,6 +211,28 @@ export async function publishChatMessage(
         room?.localParticipant?.identity ?? payload.userId,
     );
     const bytes = encodeEnvelope(env);
+
+    // Pkg-CallChatAudit: best-effort 7-day audit persistence for private-call
+    // in-room chat. Fire-and-forget; never blocks the LiveKit publish.
+    // Server (RLS) enforces sender == auth.uid() and call participation.
+    if (scope === 'call' && payload.messageType !== 'system') {
+      void supabase
+        .from('call_chat_messages')
+        .insert({
+          call_id: id,
+          message_id: payload.messageId,
+          sender_id: payload.userId,
+          message: payload.message,
+          message_type: payload.messageType ?? 'text',
+        })
+        .then(({ error }) => {
+          if (error && error.code !== '23505') {
+            // 23505 = unique violation (idempotent retry). Anything else → warn only.
+            console.warn('[Pkg-CallChatAudit] persist failed:', error.message);
+          }
+        });
+    }
+
     if (!room || room.state !== 'connected') {
       return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'chat' });
     }

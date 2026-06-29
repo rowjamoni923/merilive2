@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     await supabase.rpc("supersede_random_enqueue", { p_user_id: userId, p_new_device_id: deviceId });
 
 
-    // Load settings
+    // Load settings (random-call feature config)
     const { data: settings } = await supabase
       .from("random_call_settings")
       .select("*")
@@ -73,6 +73,27 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Ring-timeout is governed globally by `app_settings.call_ring_timeout_seconds`
+    // (single admin source — same value used by private calls / call-deliver).
+    // Falls back to random_call_settings.ring_timeout_seconds only if the
+    // master row is unset, so legacy admin pages keep working.
+    let masterRingTimeoutSec: number | null = null;
+    try {
+      const { data: ringRow } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "call_ring_timeout_seconds")
+        .maybeSingle();
+      const raw = (ringRow as any)?.setting_value;
+      const n = typeof raw === "number" ? raw : parseInt(String(raw ?? ""), 10);
+      if (Number.isFinite(n) && n >= 5 && n <= 120) masterRingTimeoutSec = n;
+    } catch (e) {
+      console.warn("[random-call-enqueue] master ring timeout read failed", e);
+    }
+    if (masterRingTimeoutSec != null) {
+      (settings as any).ring_timeout_seconds = masterRingTimeoutSec;
     }
 
     // Profile lookup (gender, VIP, balance). Use only core wallet columns:
