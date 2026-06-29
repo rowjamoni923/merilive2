@@ -1865,15 +1865,16 @@ serve(async (req) => {
     } else if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
-    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "liveness_provider_missing" };
       console.error("[face-verification-analyze] ⚠️ VERIFY_FACE_API_KEY not configured — auto-approve blocked, manual review required");
-    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
-    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "duplicate_search_unverified" };
       console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
+
     } else {
       if (!isDuplicate && faceProvider && frontB64ForProvider && !frontError) {
         faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
