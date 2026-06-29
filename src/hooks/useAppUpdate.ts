@@ -190,6 +190,29 @@ const shouldSuppressPrompt = (info: AppUpdateInfo): boolean => {
   }
 };
 
+const logUpdateOutcome = async (info: AppUpdateInfo | null, outcome: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    supabase.from('app_update_check_log').insert({
+      user_id: user?.id ?? null,
+      platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
+      current_version_name: info?.currentVersion,
+      current_version_code: info?.currentVersionCode,
+      server_version_name: info?.availableVersion,
+      server_version_code: info?.availableVersionCode,
+      min_version_code: info?.minimumComparable,
+      update_available: info?.updateAvailable ?? true,
+      force_update: info?.forceUpdate ?? false,
+      modal_shown: outcome === 'shown' || outcome === 'store_opened' || outcome === 'updated',
+      outcome,
+    }).then(({ error }) => {
+      if (error) console.warn('[AppUpdate] log insert failed:', error.message);
+    });
+  } catch (e) {
+    console.warn('[AppUpdate] could not log outcome:', e);
+  }
+};
+
 export const useAppUpdate = () => {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -322,26 +345,7 @@ export const useAppUpdate = () => {
       }
 
       // 🔍 LOG THE CHECK to admin dashboard (fire-and-forget)
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        supabase.from('app_update_check_log').insert({
-          user_id: user?.id ?? null,
-          platform: platform === 'web' ? 'android' : platform,
-          current_version_name: CURRENT_VERSION_NAME,
-          current_version_code: CURRENT_VERSION_CODE,
-          server_version_name: serverVersionName,
-          server_version_code: serverVersionCode,
-          min_version_code: minimumVersionCode,
-          update_available: updateAvailable,
-          force_update: isForceUpdate,
-          modal_shown: modalWillShow,
-          outcome: modalWillShow ? 'shown' : (dismissed ? 'dismissed' : 'checked'),
-        }).then(({ error: logErr }) => {
-          if (logErr) console.warn('[AppUpdate] log insert failed:', logErr.message);
-        });
-      } catch (e) {
-        console.warn('[AppUpdate] could not log check:', e);
-      }
+      logUpdateOutcome(info, modalWillShow ? 'shown' : (dismissed ? 'dismissed' : 'checked'));
 
     } catch (error) {
       console.error('[AppUpdate] Error checking for update:', error);
@@ -401,19 +405,7 @@ export const useAppUpdate = () => {
 
     // Log outcome
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      supabase.from('app_update_check_log').insert({
-        user_id: user?.id ?? null,
-        platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
-        current_version_name: updateInfo?.currentVersion,
-        current_version_code: updateInfo?.currentVersionCode,
-        server_version_name: updateInfo?.availableVersion,
-        server_version_code: updateInfo?.availableVersionCode,
-        update_available: true,
-        force_update: updateInfo?.forceUpdate ?? false,
-        modal_shown: true,
-        outcome: 'store_opened',
-      }).then(() => {});
+      logUpdateOutcome(updateInfo, 'store_opened');
     } catch (e) {}
 
     try {
@@ -443,19 +435,7 @@ export const useAppUpdate = () => {
       await AppUpdate.performImmediateUpdate();
       // Log success
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        supabase.from('app_update_check_log').insert({
-          user_id: user?.id ?? null,
-          platform: Capacitor.getPlatform(),
-          current_version_name: updateInfo?.currentVersion,
-          current_version_code: updateInfo?.currentVersionCode,
-          server_version_name: updateInfo?.availableVersion,
-          server_version_code: updateInfo?.availableVersionCode,
-          update_available: true,
-          force_update: updateInfo?.forceUpdate ?? false,
-          modal_shown: true,
-          outcome: 'updated',
-        }).then(() => {});
+          logUpdateOutcome(updateInfo, 'updated');
       } catch (e) {}
     } catch (error) {
       console.error('[AppUpdate] Immediate update failed, opening store:', error);
