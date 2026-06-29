@@ -34,16 +34,17 @@ for (const t of targets) {
 }
 
 const REPLACEMENTS = [
-  // fractional opacities first (most specific)
-  [/\btext-white\/(?:40|50)\b/g, "text-slate-500"],
-  [/\btext-white\/(?:60|70)\b/g, "text-slate-600"],
-  [/\btext-white\/80\b/g, "text-slate-700"],
-  [/\btext-white\/90\b/g, "text-slate-800"],
+  // fractional opacities (specific buckets)
+  [/\btext-white\/(?:20|25|30|35|40|45|50)\b/g, "text-slate-500"],
+  [/\btext-white\/(?:55|60|65|70|75)\b/g, "text-slate-600"],
+  [/\btext-white\/(?:80|85)\b/g, "text-slate-700"],
+  [/\btext-white\/(?:90|95)\b/g, "text-slate-800"],
   // hover/state variants
-  [/\bhover:text-white\/(?:60|70)\b/g, "hover:text-slate-600"],
-  [/\bhover:text-white\/(?:80|90)\b/g, "hover:text-slate-800"],
+  [/\bhover:text-white\/\d+\b/g, "hover:text-slate-700"],
   [/\bhover:text-white\b/g, "hover:text-slate-900"],
   [/(\bdata-\[[^\]]+\]):text-white\b/g, "$1:text-slate-900"],
+  // catch-all for any other text-white/NN
+  [/\btext-white\/\d+\b/g, "text-slate-600"],
   // plain (last)
   [/\btext-white\b(?!\/)/g, "text-slate-900"],
 ];
