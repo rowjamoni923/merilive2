@@ -303,7 +303,6 @@ export const useAppUpdate = () => {
       const currentComparable = toComparableCode(CURRENT_VERSION_CODE, CURRENT_VERSION_NAME);
       const serverComparable = toComparableCode(data.current_version_code, serverVersionName);
       const minimumComparable = toComparableCode(data.min_version_code, data.minimum_version);
-      const minimumVersionCode = minimumComparable; // for logging compatibility
 
       console.log('[AppUpdate] Server version:', serverVersionName, '(', serverVersionCode, ')');
       console.log('[AppUpdate] Comparable scale → current:', currentComparable, 'server:', serverComparable, 'min:', minimumComparable);
