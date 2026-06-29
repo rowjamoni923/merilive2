@@ -185,7 +185,13 @@ const AdminGmailSupport = () => {
       if (attachedImage) {
         const arrayBuffer = await attachedImage.arrayBuffer();
         const bytes = new Uint8Array(arrayBuffer);
-        imageBase64 = btoa(String.fromCharCode(...bytes));
+        // Chunked base64 encode to avoid call-stack overflow on large images
+        let binary = '';
+        const CHUNK = 0x8000;
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
+        }
+        imageBase64 = btoa(binary);
         imageName = attachedImage.name;
         imageMimeType = attachedImage.type;
       }
