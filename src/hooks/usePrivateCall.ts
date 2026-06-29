@@ -681,11 +681,24 @@ export function usePrivateCall(userId: string | null) {
               body: deliveryBody,
             });
             if (error) throw error;
-            const fcmOk = !!(data && (data as any).fcmDelivered);
-            const notificationOk = !!(data && (data as any).notifInsertOk);
+            const payload = (data ?? {}) as Record<string, any>;
+            const fcmOk = !!payload.fcmDelivered;
+            const notificationOk = !!payload.notifInsertOk;
+            const fcmConfigured = payload.fcmConfigured !== false; // undefined = configured
             console.log(
-              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} notification=${notificationOk}`,
+              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} notification=${notificationOk} configured=${fcmConfigured}`,
             );
+            // Warn caller once if server says push is not configured — recipient
+            // will only ring if app is in foreground. (Admin must add the
+            // FIREBASE_SERVICE_ACCOUNT_JSON secret to enable background ringing.)
+            if (!fcmConfigured && i === 0) {
+              toast({
+                title: 'Push not configured',
+                description:
+                  payload.warning ||
+                  'Recipient will only ring if their app is open. Admin must enable push.',
+              });
+            }
             if (fcmOk || notificationOk) return;
           } catch (pushError) {
             console.warn(
