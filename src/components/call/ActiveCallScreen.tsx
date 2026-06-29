@@ -29,6 +29,7 @@ import StickerOverlay from "@/components/live/StickerOverlay";
 
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { NativeVideoView } from "@/components/NativeVideoView";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
@@ -133,6 +134,7 @@ export function ActiveCallScreen({
   });
   const chatInputRef = useRef<HTMLInputElement>(null);
   const [nativeInCallOpen, setNativeInCallOpen] = useState(false);
+  const [nativeRemoteSid, setNativeRemoteSid] = useState<string | null>(null);
   const nativeInCallOpenedForRef = useRef<string | null>(null);
   const [myDisplayName, setMyDisplayName] = useState<string>("You");
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
@@ -400,48 +402,38 @@ export function ActiveCallScreen({
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
 
-  // Android professional path: JS connects/signals the LiveKit Room, then the
-  // native PrivateCallActivity adopts that SAME Room and owns the visible call
-  // UI. React must not also render a second call chrome/video surface on top.
+  // Android private-call UI must stay in our React premium shell so chat, gifts,
+  // balance warnings and host/user controls remain visible. The old opaque
+  // PrivateCallActivity had no chat surface and made the receiver see an OEM-
+  // looking screen, so we now keep rendering React and use native video slots
+  // behind the transparent WebView.
   useEffect(() => {
     if (!isOpen || !callId) {
       setNativeInCallOpen(false);
       nativeInCallOpenedForRef.current = null;
       return;
     }
-    if (!isNativeAndroidApp() || !remoteUserId || !isNativeMediaActive || !isConnected || !nativeSession) return;
-    if (nativeInCallOpenedForRef.current === callId) return;
+    setNativeInCallOpen(false);
+    nativeInCallOpenedForRef.current = null;
+  }, [isOpen, callId]);
 
+  useEffect(() => {
+    if (!isOpen || !isNativeAndroidApp() || !isNativeMediaActive || !isConnected) {
+      setNativeRemoteSid(null);
+      return;
+    }
     let cancelled = false;
-    (async () => {
-      const available = await hasNativeInCallActivity().catch(() => false);
-      if (!available || cancelled) {
-        if (!cancelled) setNativeInCallOpen(false);
-        return;
-      }
+    const poll = async () => {
       try {
-        nativeInCallOpenedForRef.current = callId;
-        // Suppress the duplicate React/WebView call chrome before launching
-        // the Activity. Otherwise one or two frames of Home/party UI can bleed
-        // through while Android is animating the native surface in.
-        setNativeInCallOpen(true);
-        await NativeCall.openInCallActivity({
-          callId,
-          peerId: remoteUserId || '',
-          peerName: remoteUserName || 'Calling…',
-          peerAvatar: remoteUserAvatar || null,
-          isCaller: !isHost,
-          livekitUrl: nativeSession.url,
-          livekitToken: nativeSession.token,
-        });
-      } catch (e) {
-        nativeInCallOpenedForRef.current = null;
-        if (!cancelled) setNativeInCallOpen(false);
-        if (!cancelled) console.warn('[ActiveCall] native PrivateCallActivity open failed:', e);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [isOpen, callId, remoteUserId, remoteUserName, remoteUserAvatar, isHost, isNativeMediaActive, isConnected, nativeSession]);
+        const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+        const participants = await nativeLiveKitController.getRemoteParticipants();
+        if (!cancelled) setNativeRemoteSid(participants[0]?.sid || null);
+      } catch { /* old APK/no native room */ }
+    };
+    void poll();
+    const timer = window.setInterval(poll, 700);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [isOpen, isNativeMediaActive, isConnected]);
 
   // Pkg207 — Auto-shrink to native Android PiP when user presses home
   // mid-call (WhatsApp / Google Meet parity). 9:16 for video calls, 1:1
@@ -1280,11 +1272,13 @@ export function ActiveCallScreen({
         )}
 
         {/* ===== LIVE CONNECTED VIDEO LAYOUT - Vertical Top/Bottom ===== */}
-        {isLiveConnected && !showNativeCallSurface && (
+        {isLiveConnected && (
           <div className="absolute inset-0 z-[3]">
             {/* Full-screen primary (remote) video */}
             <div className="absolute inset-0">
-              {primaryHasVideo && primaryVideoTrack ? (
+              {showNativeCallSurface && nativeRemoteSid ? (
+                <NativeVideoView kind="remote" sid={nativeRemoteSid} className="w-full h-full" />
+              ) : primaryHasVideo && primaryVideoTrack ? (
                 <LiveKitVideoPlayer
                   videoTrack={primaryVideoTrack}
                   mirror={primaryMirror}
