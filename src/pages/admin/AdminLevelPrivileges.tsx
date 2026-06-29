@@ -374,11 +374,11 @@ const AdminLevelPrivileges = () => {
       <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-white" />
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-slate-900" />
               Level Privilege Management
             </h1>
-            <p className="text-white/80">Upload animations and manage settings for each category</p>
+            <p className="text-slate-700">Upload animations and manage settings for each category</p>
           </div>
           <Button onClick={fetchData} variant="outline" size="icon" className="border-white/30 text-slate-900 hover:bg-white/20">
             <RefreshCw className="w-4 h-4" />

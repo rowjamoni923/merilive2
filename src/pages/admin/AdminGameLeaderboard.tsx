@@ -396,7 +396,7 @@ export default function AdminGameLeaderboard() {
               "gap-1.5",
               category === cat.id
                 ? `bg-gradient-to-r ${cat.color} text-white border-0`
-                : "border-slate-200 text-slate-400 hover:text-white"
+                : "border-slate-200 text-slate-400 hover:text-slate-900"
             )}
           >
             {cat.icon} {cat.label}
@@ -416,7 +416,7 @@ export default function AdminGameLeaderboard() {
               "gap-1",
               period === p.id
                 ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black border-0"
-                : "border-slate-200 text-slate-400 hover:text-white"
+                : "border-slate-200 text-slate-400 hover:text-slate-900"
             )}
           >
             {p.icon} {p.label}
@@ -452,7 +452,7 @@ export default function AdminGameLeaderboard() {
         <TabsContent value="leaderboard" className="mt-3">
           <Card className="bg-white/50 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 {currentCat.icon}
                 {currentCat.label} — {PERIODS.find(p => p.id === period)?.label}
                 <Badge variant="outline" className="text-slate-400 border-slate-200 ml-2">
@@ -492,7 +492,7 @@ export default function AdminGameLeaderboard() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <div className="text-white text-sm font-medium truncate">{entry.name}</div>
+                            <div className="text-slate-900 text-sm font-medium truncate">{entry.name}</div>
                             <div className="text-slate-400 text-xs">
                               {entry.stat_value.toLocaleString()} {entry.stat_label}
                               {entry.extra_info && ` • ${entry.extra_info}`}
@@ -525,7 +525,7 @@ export default function AdminGameLeaderboard() {
         <TabsContent value="config" className="mt-3">
           <Card className="bg-white/50 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Gift className="w-5 h-5 text-pink-400" />
                 Reward Config — {currentCat.label} ({period})
               </CardTitle>

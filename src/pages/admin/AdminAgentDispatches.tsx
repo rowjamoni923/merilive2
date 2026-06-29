@@ -211,11 +211,11 @@ export default function AdminAgentDispatches() {
       <div className="bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Bot className="w-6 h-6" />
               LiveKit Agents (Voice AI)
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">
               Dispatch registered agent workers into any room. Kill-switch
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">agent</code>.
             </p>
@@ -237,7 +237,7 @@ export default function AdminAgentDispatches() {
         <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Total</p>
-            <p className="text-white font-bold text-xl">{stats.total}</p>
+            <p className="text-slate-900 font-bold text-xl">{stats.total}</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-50 border-slate-200">
@@ -304,7 +304,7 @@ export default function AdminAgentDispatches() {
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         {statusBadge(r.status)}
                         {scopeBadge(r.scope)}
-                        <span className="text-sm text-white font-medium truncate">
+                        <span className="text-sm text-slate-900 font-medium truncate">
                           {r.agent_name || "—"}
                         </span>
                         <span className="text-xs text-slate-500">·</span>

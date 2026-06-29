@@ -212,19 +212,19 @@ const AdminManualTopup = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-             <h1 className="font-bold text-xl text-white">Manual Top-Up</h1>
-              <p className="text-white/80 text-sm">Add diamonds to any user</p>
+             <h1 className="font-bold text-xl text-slate-900">Manual Top-Up</h1>
+              <p className="text-slate-700 text-sm">Add diamonds to any user</p>
           </div>
         </div>
 
         <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center">
-              <Diamond className="w-6 h-6 text-white" />
+              <Diamond className="w-6 h-6 text-slate-900" />
             </div>
             <div>
-               <p className="text-white/80 text-sm">Admin Diamond Management</p>
-                <p className="text-white font-bold">Search user & add diamonds</p>
+               <p className="text-slate-700 text-sm">Admin Diamond Management</p>
+                <p className="text-slate-900 font-bold">Search user & add diamonds</p>
             </div>
           </div>
         </div>

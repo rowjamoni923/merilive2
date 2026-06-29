@@ -54,11 +54,11 @@ const AdminVisualAssetsHub = () => {
       <div className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Palette className="w-8 h-8 text-white" />
+            <Palette className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Visual Assets Hub</h1>
-            <p className="text-white/80">Frames, Animations, Gifts & Shop Items</p>
+            <h1 className="text-2xl font-bold text-slate-900">Visual Assets Hub</h1>
+            <p className="text-slate-700">Frames, Animations, Gifts & Shop Items</p>
           </div>
         </div>
       </div>

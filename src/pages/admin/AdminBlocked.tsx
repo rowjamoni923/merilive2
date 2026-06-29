@@ -167,11 +167,11 @@ export default function AdminBlocked() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 md:gap-3">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2 md:gap-3">
             <Ban className="w-5 h-5 md:w-7 md:h-7" />
             Block List
           </h1>
-          <p className="text-white/80 text-xs md:text-sm mt-1">Blocked users and agencies</p>
+          <p className="text-slate-700 text-xs md:text-sm mt-1">Blocked users and agencies</p>
         </div>
       </div>
 
@@ -181,7 +181,7 @@ export default function AdminBlocked() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-red-500 flex items-center justify-center shadow-lg">
-                <Users className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
               </div>
               <div>
                 <p className="text-red-300 text-xs md:text-sm font-medium">Blocked Users</p>
@@ -194,7 +194,7 @@ export default function AdminBlocked() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg">
-                <Building2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                <Building2 className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
               </div>
               <div>
                 <p className="text-orange-300 text-xs md:text-sm font-medium">Blocked Agencies</p>
@@ -271,7 +271,7 @@ export default function AdminBlocked() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-white font-medium">{user.display_name}</p>
+                              <p className="text-slate-900 font-medium">{user.display_name}</p>
                               <p className="text-slate-400 text-xs">{user.id.slice(0, 8)}...</p>
                             </div>
                           </div>
@@ -345,10 +345,10 @@ export default function AdminBlocked() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-white" />
+                              <Building2 className="w-5 h-5 text-slate-900" />
                             </div>
                             <div>
-                              <p className="text-white font-medium">{agency.name}</p>
+                              <p className="text-slate-900 font-medium">{agency.name}</p>
                               <p className="text-slate-400 text-xs">
                                 Owner: {agency.owner?.display_name || "N/A"}
                               </p>
@@ -361,7 +361,7 @@ export default function AdminBlocked() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className="text-white font-medium">{agency.total_hosts}</span>
+                          <span className="text-slate-900 font-medium">{agency.total_hosts}</span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2 text-slate-300">

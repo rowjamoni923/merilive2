@@ -49,11 +49,11 @@ const AdminVIPManagement = () => {
       <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Crown className="w-8 h-8 text-white" />
+            <Crown className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">VIP & Noble System</h1>
-            <p className="text-white/80">Manage VIP tiers, medals, and noble cards in one place</p>
+            <h1 className="text-2xl font-bold text-slate-900">VIP & Noble System</h1>
+            <p className="text-slate-700">Manage VIP tiers, medals, and noble cards in one place</p>
           </div>
         </div>
       </div>

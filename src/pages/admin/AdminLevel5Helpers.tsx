@@ -560,11 +560,11 @@ const AdminLevel5Helpers = () => {
       <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Gem className="w-5 h-5 md:w-6 md:h-6" />
               Level 5 Helper Management
             </h1>
-            <p className="text-white/90 text-sm mt-1">Manage Diamond Helpers with Payroll Access</p>
+            <p className="text-slate-800 text-sm mt-1">Manage Diamond Helpers with Payroll Access</p>
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -592,7 +592,7 @@ const AdminLevel5Helpers = () => {
                 <Gem className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.totalHelpers}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalHelpers}</p>
                 <p className="text-xs text-slate-400">Level 5 Helpers</p>
               </div>
             </div>
@@ -606,7 +606,7 @@ const AdminLevel5Helpers = () => {
                 <Clock className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.pendingWithdrawals}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.pendingWithdrawals}</p>
                 <p className="text-xs text-slate-400">Pending Review</p>
               </div>
             </div>
@@ -620,7 +620,7 @@ const AdminLevel5Helpers = () => {
                 <CheckCircle className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.completedToday}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.completedToday}</p>
                 <p className="text-xs text-slate-400">Completed Today</p>
               </div>
             </div>
@@ -631,7 +631,7 @@ const AdminLevel5Helpers = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-amber-500/30 rounded-xl flex items-center justify-center">
-                <Gem className="w-5 h-5 text-white" />
+                <Gem className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-yellow-700">{stats.totalDiamondsAwarded.toLocaleString()}</p>
@@ -838,7 +838,7 @@ const AdminLevel5Helpers = () => {
                           </Badge>
                           <Badge 
                             className={cn(
-                              "text-white text-xs",
+                              "text-slate-900 text-xs",
                               app.payroll_status === 'pending' ? "bg-orange-500" :
                               app.payroll_status === 'approved' ? "bg-green-500" : "bg-red-500"
                             )}
@@ -1122,7 +1122,7 @@ const AdminLevel5Helpers = () => {
                       config.level_number === 5 ? "bg-cyan-500" : "bg-slate-500"
                     )}>
                       {getLevelIcon(config.level_number)}
-                      <span className="text-white text-xs ml-1">{config.level_number}</span>
+                      <span className="text-slate-900 text-xs ml-1">{config.level_number}</span>
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900">{config.level_name}</p>

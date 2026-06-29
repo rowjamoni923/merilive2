@@ -252,7 +252,7 @@ export default function AdminPermanentBan() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 shadow-lg shadow-rose-500/30 ring-2 ring-rose-400/20">
-          <Skull className="h-6 w-6 text-white" />
+          <Skull className="h-6 w-6 text-slate-900" />
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Permanent Ban Center</h1>

@@ -497,7 +497,7 @@ const AdminNoticeBroadcast = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold text-white pr-7">
+          <h1 className="flex-1 text-center text-lg font-semibold text-slate-900 pr-7">
             Notice Broadcast
           </h1>
         </div>
@@ -786,7 +786,7 @@ const AdminNoticeBroadcast = () => {
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg`}>
-                          <Icon className="w-4 h-4 text-white" />
+                          <Icon className="w-4 h-4 text-slate-900" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{option.label}</p>
@@ -992,7 +992,7 @@ const AdminNoticeBroadcast = () => {
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                   priority === 'urgent' ? 'bg-red-500' : priority === 'high' ? 'bg-orange-500' : 'bg-primary'
                 }`}>
-                  <Megaphone className="w-6 h-6 text-white" />
+                  <Megaphone className="w-6 h-6 text-slate-900" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">

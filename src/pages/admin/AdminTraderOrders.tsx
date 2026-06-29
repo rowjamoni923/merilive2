@@ -182,8 +182,8 @@ const AdminTraderOrders = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white">Trader Orders</h1>
-            <p className="text-white/80 text-sm">Manage all diamond orders</p>
+            <h1 className="font-bold text-xl text-slate-900">Trader Orders</h1>
+            <p className="text-slate-700 text-sm">Manage all diamond orders</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <ReportExportMenu
@@ -219,24 +219,24 @@ const AdminTraderOrders = () => {
         {/* Stats */}
         <div className="grid grid-cols-5 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">{stats.total}</p>
-            <p className="text-white/80 text-xs">Total</p>
+            <p className="text-xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-slate-700 text-xs">Total</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-yellow-200">{stats.pending}</p>
-            <p className="text-white/80 text-xs">Pending</p>
+            <p className="text-slate-700 text-xs">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-green-200">{stats.completed}</p>
-            <p className="text-white/80 text-xs">Completed</p>
+            <p className="text-slate-700 text-xs">Completed</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-red-200">{stats.cancelled}</p>
-            <p className="text-white/80 text-xs">Cancelled</p>
+            <p className="text-slate-700 text-xs">Cancelled</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">${stats.todayTotal.toFixed(0)}</p>
-            <p className="text-white/80 text-xs">Today</p>
+            <p className="text-xl font-bold text-slate-900">${stats.todayTotal.toFixed(0)}</p>
+            <p className="text-slate-700 text-xs">Today</p>
           </div>
         </div>
       </div>

@@ -165,7 +165,7 @@ export default function AdminLiveKitWebhook() {
       >
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center shadow-md">
-            <Webhook className="h-5 w-5 text-white" />
+            <Webhook className="h-5 w-5 text-slate-900" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">

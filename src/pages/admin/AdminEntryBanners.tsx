@@ -277,11 +277,11 @@ export default function AdminEntryBanners() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Zap className="w-7 h-7 text-yellow-400" />
             Premium Entry Effects
           </h1>
-          <p className="text-white/60 mt-1">
+          <p className="text-slate-600 mt-1">
             Heavy VIP entrance animations (car, dragon, phoenix, etc.) — unlocked by VIP/Noble tier
           </p>
         </div>
@@ -296,7 +296,7 @@ export default function AdminEntryBanners() {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
         <Input
           placeholder="Search banners..."
           value={searchQuery}
@@ -340,7 +340,7 @@ export default function AdminEntryBanners() {
             {/* Info */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-white font-semibold truncate">{banner.name}</h3>
+                <h3 className="text-slate-900 font-semibold truncate">{banner.name}</h3>
                 <div className="flex items-center gap-1">
                   {banner.is_premium && (
                     <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black text-[10px]">
@@ -355,7 +355,7 @@ export default function AdminEntryBanners() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-white/50">
+              <div className="flex items-center gap-3 text-xs text-slate-500">
                 <span>Min Lv: {banner.min_level}</span>
                 <span>VIP: {banner.min_vip_tier}</span>
                 <span>💎 {banner.price_diamonds}</span>
@@ -394,7 +394,7 @@ export default function AdminEntryBanners() {
       </div>
 
       {filteredBanners.length === 0 && !loading && (
-        <div className="text-center py-12 text-white/50">
+        <div className="text-center py-12 text-slate-500">
           <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>No entry banners found</p>
         </div>
@@ -404,7 +404,7 @@ export default function AdminEntryBanners() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="bg-gradient-to-br from-white to-purple-900/50 border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-400" />
               {selectedBanner ? 'Edit Entry Banner' : 'Add Entry Banner'}
             </DialogTitle>
@@ -495,14 +495,14 @@ export default function AdminEntryBanners() {
                   checked={formData.is_active}
                   onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
                 />
-                <Label className="text-white/70">Active</Label>
+                <Label className="text-slate-600">Active</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.is_premium}
                   onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_premium: v }))}
                 />
-                <Label className="text-white/70">Premium</Label>
+                <Label className="text-slate-600">Premium</Label>
               </div>
             </div>
           </div>
@@ -523,7 +523,7 @@ export default function AdminEntryBanners() {
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500/20 max-w-md w-[95vw] rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Preview: {selectedBanner?.name}</DialogTitle>
+            <DialogTitle className="text-slate-900">Preview: {selectedBanner?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-8">
             {selectedBanner && (
@@ -543,7 +543,7 @@ export default function AdminEntryBanners() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-white border-red-500/20">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Entry Banner?</AlertDialogTitle>
+            <AlertDialogTitle className="text-slate-900">Delete Entry Banner?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete "{selectedBanner?.name}". This action cannot be undone.
             </AlertDialogDescription>

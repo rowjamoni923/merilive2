@@ -72,12 +72,12 @@ const AdminUserHub = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 shadow-lg shadow-violet-500/30 ring-2 ring-violet-400/20">
-                <Users className="h-7 w-7 text-white" />
+                <Users className="h-7 w-7 text-slate-900" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#0f0a1a] animate-pulse" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">User Management Hub</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">User Management Hub</h1>
               <p className="text-sm text-violet-300/50 font-medium">Real-time user monitoring & control center</p>
             </div>
           </div>

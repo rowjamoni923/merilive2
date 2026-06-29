@@ -650,7 +650,7 @@ const AdminFrames = () => {
                 {/* Info */}
                 <div className="p-3 space-y-2">
                   {/* Frame Name - Full Display */}
-                  <p className="font-semibold text-sm text-white leading-tight line-clamp-2" title={frame.name}>
+                  <p className="font-semibold text-sm text-slate-900 leading-tight line-clamp-2" title={frame.name}>
                     {frame.name}
                   </p>
                   
@@ -825,7 +825,7 @@ const AdminFrames = () => {
               <div className="flex items-center gap-3">
                 <Wand2 className="w-5 h-5 text-purple-400" />
                 <div>
-                  <p className="text-sm font-medium text-white">Auto Background Remove</p>
+                  <p className="text-sm font-medium text-slate-900">Auto Background Remove</p>
                   <p className="text-xs text-slate-400">Auto-remove black background from GIF/JPG/PNG</p>
                 </div>
               </div>
@@ -1044,7 +1044,7 @@ const AdminFrames = () => {
             ✕
           </button>
           <div className="text-center" onClick={e => e.stopPropagation()}>
-            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
+            <p className="text-slate-900 font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
               <div className="relative" style={{ width: 256, height: 256 }}>
                 <Avatar className="absolute inset-0 w-full h-full border-4 border-white shadow-lg z-10">

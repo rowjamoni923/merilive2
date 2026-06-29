@@ -622,28 +622,28 @@ const AdminPaymentGateways = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white">Payment System</h1>
-            <p className="text-white/80 text-sm">Gateway & Transaction Management</p>
+            <h1 className="font-bold text-xl text-slate-900">Payment System</h1>
+            <p className="text-slate-700 text-sm">Gateway & Transaction Management</p>
           </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-white">{stats.totalTransactions}</p>
-            <p className="text-white/80 text-xs">Total</p>
+            <p className="text-2xl font-bold text-slate-900">{stats.totalTransactions}</p>
+            <p className="text-slate-700 text-xs">Total</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-yellow-200">{stats.pendingTransactions}</p>
-            <p className="text-white/80 text-xs">Pending</p>
+            <p className="text-slate-700 text-xs">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-green-200">{stats.completedTransactions}</p>
-            <p className="text-white/80 text-xs">Completed</p>
+            <p className="text-slate-700 text-xs">Completed</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-white">${stats.totalRevenue.toFixed(0)}</p>
-            <p className="text-white/80 text-xs">Revenue</p>
+            <p className="text-2xl font-bold text-slate-900">${stats.totalRevenue.toFixed(0)}</p>
+            <p className="text-slate-700 text-xs">Revenue</p>
           </div>
         </div>
       </div>
@@ -672,7 +672,7 @@ const AdminPaymentGateways = () => {
           <TabsContent value="gateways" className="mt-4">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-white/70" />
+                <Globe className="w-4 h-4 text-slate-600" />
                 <select
                   value={countryFilter}
                   onChange={(e) => setCountryFilter(e.target.value)}
@@ -683,7 +683,7 @@ const AdminPaymentGateways = () => {
                     <option key={c.code} value={c.code}>{c.name}</option>
                   ))}
                 </select>
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-slate-500">
                   {(() => {
                     const visible = countryFilter === 'all'
                       ? gateways.length
@@ -699,11 +699,11 @@ const AdminPaymentGateways = () => {
             </div>
 
             {loading ? (
-              <div className="text-center py-12 text-white/60">Loading...</div>
+              <div className="text-center py-12 text-slate-600">Loading...</div>
             ) : gateways.length === 0 ? (
               <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200">
                 <CreditCard className="w-12 h-12 mx-auto mb-3 text-slate-600" />
-                <p className="text-white/60">No payment gateways found</p>
+                <p className="text-slate-600">No payment gateways found</p>
                 <Button onClick={handleAdd} className="mt-4 bg-pink-500 hover:bg-pink-600">
                   Add First Gateway
                 </Button>
@@ -750,13 +750,13 @@ const AdminPaymentGateways = () => {
                           </div>
                           {/* Upload Overlay on Hover */}
                           <div className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Camera className="w-5 h-5 text-white" />
+                            <Camera className="w-5 h-5 text-slate-900" />
                           </div>
                         </label>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-bold text-white">{gateway.name}</h3>
+                            <h3 className="font-bold text-slate-900">{gateway.name}</h3>
                             <Badge variant={gateway.is_active ? "default" : "secondary"} className={gateway.is_active ? "bg-green-500" : "bg-slate-600"}>
                               {gateway.is_active ? "Active" : "Inactive"}
                             </Badge>
@@ -770,7 +770,7 @@ const AdminPaymentGateways = () => {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-white/60 mb-2">{gateway.description}</p>
+                          <p className="text-sm text-slate-600 mb-2">{gateway.description}</p>
                           
                           <div className="flex flex-wrap gap-2 text-xs">
                             {(gateway.country_codes || []).length > 0 ? (
@@ -817,7 +817,7 @@ const AdminPaymentGateways = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEdit(gateway)}
-                            className="text-white/60 hover:text-white"
+                            className="text-slate-600 hover:text-slate-900"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -843,7 +843,7 @@ const AdminPaymentGateways = () => {
             {/* Search & Filter */}
             <div className="flex gap-2 mb-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <Input
                   placeholder="Search by Transaction ID or user..."
                   value={searchQuery}
@@ -868,7 +868,7 @@ const AdminPaymentGateways = () => {
               {filteredTransactions.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200">
                   <FileText className="w-12 h-12 mx-auto mb-3 text-slate-600" />
-                  <p className="text-white/60">No transactions found</p>
+                  <p className="text-slate-600">No transactions found</p>
                 </div>
               ) : (
                 filteredTransactions.map((txn) => (
@@ -882,17 +882,17 @@ const AdminPaymentGateways = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-white">
+                              <span className="font-semibold text-slate-900">
                                 {txn.user?.display_name || 'Unknown User'}
                               </span>
                               {txn.user?.app_uid && (
-                                <span className="text-xs text-white/40">#{txn.user.app_uid}</span>
+                                <span className="text-xs text-slate-500">#{txn.user.app_uid}</span>
                               )}
                             </div>
                             {getStatusBadge(txn.status || 'pending')}
                           </div>
                           
-                          <div className="flex items-center gap-4 text-sm text-white/70 mb-2">
+                          <div className="flex items-center gap-4 text-sm text-slate-600 mb-2">
                             <span className="font-medium text-pink-400">
                               💎 {Number(txn.diamonds_amount || 0).toLocaleString()} diamonds
                             </span>
@@ -901,7 +901,7 @@ const AdminPaymentGateways = () => {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <div className="text-xs text-white/40">
+                            <div className="text-xs text-slate-500">
                               <span>Ref: {txn.transaction_ref || 'N/A'}</span>
                               <span className="mx-2">•</span>
                               <span>{txn.created_at ? new Date(txn.created_at).toLocaleString('en-US') : '-'}</span>

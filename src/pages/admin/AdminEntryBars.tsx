@@ -293,7 +293,7 @@ const AdminEntryBars = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Entry Bar Animations</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Entry Bar Animations</h1>
           <p className="text-muted-foreground">Manage Entry Bar animations by level</p>
         </div>
         <div className="flex gap-2">
@@ -316,7 +316,7 @@ const AdminEntryBars = () => {
               <Play className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-white">How Entry Bars Work?</h3>
+              <h3 className="font-semibold text-slate-900">How Entry Bars Work?</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 When a user enters a Live or Party Room, Entry Bars are displayed based on their level.
                 Higher level users get custom SVGA/Lottie animations.
@@ -337,7 +337,7 @@ const AdminEntryBars = () => {
             <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
               <Play className="w-8 h-8 text-purple-500" />
             </div>
-            <h3 className="text-lg font-semibold text-white">No Entry Bars Found</h3>
+            <h3 className="text-lg font-semibold text-slate-900">No Entry Bars Found</h3>
             <p className="text-muted-foreground text-sm mt-1">Click the button above to add a new Entry Bar</p>
           </CardContent>
         </Card>
@@ -382,7 +382,7 @@ const AdminEntryBars = () => {
                   {item.animation_url && (
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                       <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                        <Play className="w-6 h-6 text-white fill-white" />
+                        <Play className="w-6 h-6 text-slate-900 fill-white" />
                       </div>
                     </div>
                   )}
@@ -402,9 +402,9 @@ const AdminEntryBars = () => {
                   
                   {/* Bottom Info Bar */}
                   <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-white font-semibold text-sm truncate">{item.name}</p>
+                    <p className="text-slate-900 font-semibold text-sm truncate">{item.name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-white/70">{item.duration_ms / 1000}s</span>
+                      <span className="text-xs text-slate-600">{item.duration_ms / 1000}s</span>
                       {item.sound_url && (
                         <span className="flex items-center gap-1 text-xs text-green-400">
                           <Volume2 className="w-3 h-3" /> Sound

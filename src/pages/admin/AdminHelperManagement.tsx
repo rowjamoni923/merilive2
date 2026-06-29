@@ -573,11 +573,11 @@ const AdminHelperManagement = () => {
       <div className="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-violet-700 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl border-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Users className="w-5 h-5 md:w-6 md:h-6" />
               Helper Management
             </h1>
-            <p className="text-white/80 text-sm mt-1">Manage all helper-related operations</p>
+            <p className="text-slate-700 text-sm mt-1">Manage all helper-related operations</p>
           </div>
           <Button variant="outline" onClick={loadData} className="bg-white/20 border-white/30 text-slate-900 hover:bg-white/30 self-start md:self-auto">
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -595,7 +595,7 @@ const AdminHelperManagement = () => {
                 <Clock className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.pendingApplications}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.pendingApplications}</p>
                 <p className="text-xs text-slate-400">Pending Apps</p>
               </div>
             </div>
@@ -609,7 +609,7 @@ const AdminHelperManagement = () => {
                 <Users className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.activeHelpers}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.activeHelpers}</p>
                 <p className="text-xs text-slate-400">Active Helpers</p>
               </div>
             </div>
@@ -623,7 +623,7 @@ const AdminHelperManagement = () => {
                 <Gem className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.level5Helpers}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.level5Helpers}</p>
                 <p className="text-xs text-slate-400">Level 5 Helpers</p>
               </div>
             </div>
@@ -637,7 +637,7 @@ const AdminHelperManagement = () => {
                 <FileText className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{stats.pendingUpgrades + stats.pendingTopups}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.pendingUpgrades + stats.pendingTopups}</p>
                 <p className="text-xs text-slate-400">Pending Requests</p>
               </div>
             </div>
@@ -1031,7 +1031,7 @@ const AdminHelperManagement = () => {
             <CardContent className="space-y-4">
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Gem className="w-8 h-8 text-white" />
+                  <Gem className="w-8 h-8 text-slate-900" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Level 5 Helper Management</h3>
                 <p className="text-muted-foreground mb-4 max-w-md mx-auto">
@@ -1097,7 +1097,7 @@ const AdminHelperManagement = () => {
                               "w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r",
                               levelInfo.color
                             )}>
-                              <LevelIcon className="w-4 h-4 text-white" />
+                              <LevelIcon className="w-4 h-4 text-slate-900" />
                             </div>
                             <span>{levelInfo.label}</span>
                           </div>

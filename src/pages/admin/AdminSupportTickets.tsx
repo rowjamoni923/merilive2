@@ -1144,11 +1144,11 @@ const AdminSupportTickets = () => {
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Headphones className="w-8 h-8 text-white" />
+            <Headphones className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Support Tickets</h1>
-            <p className="text-white/80">Manage user support requests and conversations</p>
+            <h1 className="text-2xl font-bold text-slate-900">Support Tickets</h1>
+            <p className="text-slate-700">Manage user support requests and conversations</p>
           </div>
         </div>
       </div>
@@ -1690,16 +1690,16 @@ const AdminSupportTickets = () => {
                                     <div className="space-y-1.5">
                                       <div>
                                         <div className="flex items-center gap-1 mb-0.5">
-                                          <Globe className="w-2.5 h-2.5 text-white/50" />
-                                          <span className="text-[8px] text-white/45 font-medium uppercase tracking-wider">User sees</span>
+                                          <Globe className="w-2.5 h-2.5 text-slate-500" />
+                                          <span className="text-[8px] text-slate-500 font-medium uppercase tracking-wider">User sees</span>
                                         </div>
                                         <span>{(msg as any).translated_content}</span>
                                       </div>
                                       <div className="border-t border-white/10 pt-1.5">
                                         <div className="flex items-center gap-1 mb-0.5">
-                                          <span className="text-[8px] text-white/35 font-medium">🇧🇩 Bengali (Original)</span>
+                                          <span className="text-[8px] text-slate-500 font-medium">🇧🇩 Bengali (Original)</span>
                                         </div>
-                                        <span className="text-[11px] text-white/55">{msg.content}</span>
+                                        <span className="text-[11px] text-slate-600">{msg.content}</span>
                                       </div>
                                     </div>
                                   ) : (
@@ -1721,7 +1721,7 @@ const AdminSupportTickets = () => {
                               )}
                               <span className={cn(
                                 "text-[8px] ml-2 float-right mt-1",
-                                isAdmin ? "text-white/35" : "text-muted-foreground/35"
+                                isAdmin ? "text-slate-500" : "text-muted-foreground/35"
                               )}>
                                 {format(new Date(msg.created_at), 'HH:mm')}
                                 {isAdmin && msg.is_read && ' ✓✓'}
@@ -1729,7 +1729,7 @@ const AdminSupportTickets = () => {
                             </div>
                             {isAdmin && (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shrink-0 ml-0.5 mt-auto mb-0.5 shadow-sm shadow-purple-500/20">
-                                <Shield className="w-3 h-3 text-white" />
+                                <Shield className="w-3 h-3 text-slate-900" />
                               </div>
                             )}
                           </div>

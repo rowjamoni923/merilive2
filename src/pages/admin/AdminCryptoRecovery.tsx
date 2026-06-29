@@ -160,7 +160,7 @@ const AdminCryptoRecovery = () => {
 
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Crypto Top-up Recovery</h1>
-          <p className="text-white/60 text-sm mt-1">
+          <p className="text-slate-600 text-sm mt-1">
             Reopen expired Swift Pay deposits and force a fresh balance check. Use this when a user paid on-chain
             but didn't get credited automatically.
           </p>
@@ -191,7 +191,7 @@ const AdminCryptoRecovery = () => {
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-3 flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <Input
                 placeholder="Search by user ID, topup ID, payment ID, or address"
                 value={search}
@@ -217,9 +217,9 @@ const AdminCryptoRecovery = () => {
 
         {/* Rows */}
         <div className="space-y-2">
-          {loading && <div className="text-center text-white/50 py-10">Loading…</div>}
+          {loading && <div className="text-center text-slate-500 py-10">Loading…</div>}
           {!loading && filtered.length === 0 && (
-            <div className="text-center text-white/50 py-10">No rows match.</div>
+            <div className="text-center text-slate-500 py-10">No rows match.</div>
           )}
           {filtered.map((row) => {
             const meta = STATUS_META[row.status] || STATUS_META.expired;
@@ -245,14 +245,14 @@ const AdminCryptoRecovery = () => {
                           {row.target_type}
                         </Badge>
                       </div>
-                      <div className="text-xs text-white/60 flex flex-wrap gap-x-3 gap-y-0.5">
+                      <div className="text-xs text-slate-600 flex flex-wrap gap-x-3 gap-y-0.5">
                         <span>User: <CopyableUid value={row.user_id} label="" /></span>
                         <span>Created: {format(new Date(row.created_at), "yyyy-MM-dd HH:mm")}</span>
                         {row.last_polled_at && <span>Last poll: {format(new Date(row.last_polled_at), "HH:mm")}</span>}
                         {row.credited_at && <span className="text-emerald-300">Credited: {format(new Date(row.credited_at), "yyyy-MM-dd HH:mm")}</span>}
                       </div>
                       {row.pay_address && (
-                        <div className="text-[11px] text-white/40 font-mono truncate">addr: {row.pay_address}</div>
+                        <div className="text-[11px] text-slate-500 font-mono truncate">addr: {row.pay_address}</div>
                       )}
                       {row.error_message && (
                         <div className="text-[11px] text-rose-300/80">⚠ {row.error_message}</div>

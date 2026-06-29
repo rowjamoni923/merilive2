@@ -503,11 +503,11 @@ export default function AdminStreams() {
       <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-slate-900" />
               Live Stream Monitoring
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">Real-time stream observation & recordings</p>
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">Real-time stream observation & recordings</p>
           </div>
           <Button onClick={fetchStreams} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20 w-full sm:w-auto">
             <RefreshCw className="w-4 h-4 mr-2" /> Refresh
@@ -719,7 +719,7 @@ export default function AdminStreams() {
       <Dialog open={!!watchingStream} onOpenChange={() => setWatchingStream(null)}>
         <DialogContent className="max-w-4xl w-[95vw] p-0 bg-black border-0 overflow-hidden">
           <DialogHeader className="p-4 pb-0 absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent">
-            <DialogTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+            <DialogTitle className="text-slate-900 flex items-center gap-2 text-sm sm:text-base">
               <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">🔴 LIVE</Badge>
               {watchingStream?.host?.display_name} — {watchingStream?.title || "Live Stream"}
             </DialogTitle>

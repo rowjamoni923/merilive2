@@ -366,7 +366,7 @@ export default function AdminLiveBans() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
-              <Shield className="w-6 h-6 text-white" />
+              <Shield className="w-6 h-6 text-slate-900" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Live Stream Moderation</h1>

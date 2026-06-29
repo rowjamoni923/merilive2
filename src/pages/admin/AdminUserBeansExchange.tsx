@@ -156,10 +156,10 @@
        <div className="flex items-center justify-between">
          <div className="flex items-center gap-3">
            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
-             <Coins className="w-5 h-5 text-white" />
+             <Coins className="w-5 h-5 text-slate-900" />
            </div>
            <div>
-             <h2 className="text-lg font-bold text-white">User Beans Exchange Rates</h2>
+             <h2 className="text-lg font-bold text-slate-900">User Beans Exchange Rates</h2>
              <p className="text-slate-400 text-xs">Set exchange rates for regular users (non-hosts, non-agency)</p>
            </div>
          </div>
@@ -284,7 +284,7 @@
        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
          <DialogContent className="bg-white border-slate-200">
            <DialogHeader>
-             <DialogTitle className="text-white">
+             <DialogTitle className="text-slate-900">
                {editingTier ? "Edit Exchange Tier" : "Add Exchange Tier"}
              </DialogTitle>
            </DialogHeader>

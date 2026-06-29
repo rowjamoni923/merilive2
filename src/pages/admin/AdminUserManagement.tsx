@@ -1578,7 +1578,7 @@ export default function AdminUserManagement() {
       <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-white/80 via-purple-900/40 to-slate-100/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Users className="w-6 h-6 text-purple-400" />
               User Management
             </h1>
@@ -2081,7 +2081,7 @@ export default function AdminUserManagement() {
                   <ScanFace className="w-8 h-8 text-emerald-300" />
                   <div>
                     <p className="text-emerald-200/90 text-xs font-medium">Total Verified Users</p>
-                    <p className="text-white font-bold text-xl">{verifiedUserStats.total}</p>
+                    <p className="text-slate-900 font-bold text-xl">{verifiedUserStats.total}</p>
                   </div>
                 </div>
               </CardContent>
@@ -2092,7 +2092,7 @@ export default function AdminUserManagement() {
                   <CheckCircle className="w-8 h-8 text-green-300" />
                   <div>
                     <p className="text-green-200/90 text-xs font-medium">Active</p>
-                    <p className="text-white font-bold text-xl">{verifiedUserStats.active}</p>
+                    <p className="text-slate-900 font-bold text-xl">{verifiedUserStats.active}</p>
                   </div>
                 </div>
               </CardContent>
@@ -2103,7 +2103,7 @@ export default function AdminUserManagement() {
                   <Ban className="w-8 h-8 text-red-300" />
                   <div>
                     <p className="text-red-200/90 text-xs font-medium">Blocked</p>
-                    <p className="text-white font-bold text-xl">{verifiedUserStats.blocked}</p>
+                    <p className="text-slate-900 font-bold text-xl">{verifiedUserStats.blocked}</p>
                   </div>
                 </div>
               </CardContent>
@@ -3051,7 +3051,7 @@ export default function AdminUserManagement() {
               <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center shadow-lg">
-                    <Users className="w-6 h-6 text-white" />
+                    <Users className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <p className="text-red-600 text-sm font-medium">Blocked Users</p>
@@ -3064,7 +3064,7 @@ export default function AdminUserManagement() {
               <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg">
-                    <Building2 className="w-6 h-6 text-white" />
+                    <Building2 className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <p className="text-orange-600 text-sm font-medium">Blocked Agencies</p>
@@ -3292,7 +3292,7 @@ export default function AdminUserManagement() {
       <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white font-bold">
+            <DialogTitle className="text-slate-900 font-bold">
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
             </DialogTitle>
             <DialogDescription className="text-slate-400">
@@ -3324,7 +3324,7 @@ export default function AdminUserManagement() {
       <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
         <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white font-bold flex items-center gap-2">
+            <DialogTitle className="text-slate-900 font-bold flex items-center gap-2">
               <Unlock className="w-5 h-5 text-orange-500" />
               Reset User Password
             </DialogTitle>
@@ -3407,7 +3407,7 @@ export default function AdminUserManagement() {
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
         <DialogContent className="bg-white border-slate-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">User Details</DialogTitle>
+            <DialogTitle className="text-slate-900">User Details</DialogTitle>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-4">
@@ -3419,7 +3419,7 @@ export default function AdminUserManagement() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-bold text-lg text-white">{selectedUser.display_name}</p>
+                  <p className="font-bold text-lg text-slate-900">{selectedUser.display_name}</p>
                   <p className="text-slate-400">@{selectedUser.username || selectedUser.id.slice(0, 8)}</p>
                   {selectedUser.app_uid && (
                     <Badge className="mt-1 bg-purple-500/20 text-purple-300 border-purple-500/30">{selectedUser.app_uid}</Badge>
@@ -3533,7 +3533,7 @@ export default function AdminUserManagement() {
       <Dialog open={showAppDetailDialog} onOpenChange={setShowAppDetailDialog}>
         <DialogContent className="bg-white border-slate-200 max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">Host Application Details</DialogTitle>
+            <DialogTitle className="text-slate-900">Host Application Details</DialogTitle>
           </DialogHeader>
           {selectedApplication && (
             <div className="space-y-4">
@@ -3545,7 +3545,7 @@ export default function AdminUserManagement() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-bold text-lg text-white">{selectedApplication.full_name}</p>
+                  <p className="font-bold text-lg text-slate-900">{selectedApplication.full_name}</p>
                   <p className="text-slate-400"><CopyableUid value={selectedApplication.profiles?.app_uid} /></p>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge className="bg-purple-500/20 text-purple-300">{selectedApplication.age} yrs</Badge>
@@ -3575,7 +3575,7 @@ export default function AdminUserManagement() {
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">Rejection Reason</DialogTitle>
+            <DialogTitle className="text-slate-900">Rejection Reason</DialogTitle>
             <DialogDescription className="text-slate-400">
               Enter the reason for rejection
             </DialogDescription>
@@ -3599,7 +3599,7 @@ export default function AdminUserManagement() {
       <Dialog open={showFaceDetailModal} onOpenChange={setShowFaceDetailModal}>
         <DialogContent className="bg-white border-slate-200 max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <ScanFace className="w-5 h-5 text-purple-400" />
               Verification Details
             </DialogTitle>
@@ -3620,7 +3620,7 @@ export default function AdminUserManagement() {
                   <AvatarFallback>{selectedFaceSubmission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-bold text-lg text-white">{selectedFaceSubmission.profile?.display_name}</h3>
+                  <h3 className="font-bold text-lg text-slate-900">{selectedFaceSubmission.profile?.display_name}</h3>
                   <p className="text-sm text-slate-400"><CopyableUid value={selectedFaceSubmission.profile?.app_uid} /></p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={selectedFaceSubmission.verification_type === 'host' ? "bg-pink-500/20 text-pink-300" : "bg-blue-500/20 text-blue-300"}>
@@ -3669,7 +3669,7 @@ export default function AdminUserManagement() {
       <Dialog open={showFaceActionModal} onOpenChange={setShowFaceActionModal}>
         <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-slate-900">
               {faceActionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
             </DialogTitle>
           </DialogHeader>
@@ -3713,7 +3713,7 @@ export default function AdminUserManagement() {
       <Dialog open={showBlockedUserDetailDialog} onOpenChange={setShowBlockedUserDetailDialog}>
         <DialogContent className="bg-white border-slate-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white font-bold flex items-center gap-2">
+            <DialogTitle className="text-slate-900 font-bold flex items-center gap-2">
               <Ban className="w-5 h-5 text-red-400" />
               Banned User Details
             </DialogTitle>
@@ -3733,7 +3733,7 @@ export default function AdminUserManagement() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-bold text-xl text-white">{selectedBlockedUser.display_name}</p>
+                  <p className="font-bold text-xl text-slate-900">{selectedBlockedUser.display_name}</p>
                   <p className="text-slate-400">@{selectedBlockedUser.username || selectedBlockedUser.id.slice(0, 8)}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedBlockedUser.app_uid && (
@@ -3898,7 +3898,7 @@ export default function AdminUserManagement() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-white">{selectedBlockedUser.display_name}</p>
+                <p className="font-medium text-slate-900">{selectedBlockedUser.display_name}</p>
                 <p className="text-sm text-slate-400">{selectedBlockedUser.app_uid || selectedBlockedUser.email}</p>
               </div>
             </div>

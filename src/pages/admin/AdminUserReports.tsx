@@ -174,11 +174,11 @@ export default function AdminUserReports() {
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-3">
             <ShieldAlert className="w-6 h-6" />
             User Reports
           </h1>
-          <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
+          <p className="text-slate-700 text-xs md:text-sm mt-1">Review and manage user reports</p>
         </div>
         <div className="flex items-center gap-2">
           <ReportExportMenu
@@ -311,7 +311,7 @@ export default function AdminUserReports() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <p className="text-white text-sm font-medium truncate">{report.reported_user?.display_name || "Unknown"}</p>
+                            <p className="text-slate-900 text-sm font-medium truncate">{report.reported_user?.display_name || "Unknown"}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Badge className={`text-[10px] ${report.reported_user?.is_host ? "bg-pink-600" : "bg-blue-600"} text-white`}>
                                 {report.reported_user?.is_host ? "Host" : "User"}
@@ -359,7 +359,7 @@ export default function AdminUserReports() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-slate-200 text-white h-7 px-2"
+                            className="border-slate-200 text-slate-900 h-7 px-2"
                             onClick={() => {
                               setSelectedReport(report);
                               setAdminNotes(report.admin_notes || "");
@@ -392,14 +392,14 @@ export default function AdminUserReports() {
       <Dialog open={!!selectedReport} onOpenChange={(o) => !o && setSelectedReport(null)}>
         <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Report Details</DialogTitle>
+            <DialogTitle className="text-slate-900">Report Details</DialogTitle>
           </DialogHeader>
           {selectedReport && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-slate-400">Reported User</p>
-                  <p className="text-white font-medium">{selectedReport.reported_user?.display_name || "Unknown"}</p>
+                  <p className="text-slate-900 font-medium">{selectedReport.reported_user?.display_name || "Unknown"}</p>
                   {selectedReport.reported_user?.app_uid && (
                     <button
                       onClick={() => copyId(selectedReport.reported_user?.app_uid)}
@@ -411,7 +411,7 @@ export default function AdminUserReports() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Reporter</p>
-                  <p className="text-white font-medium">{selectedReport.reporter?.display_name || "Unknown"}</p>
+                  <p className="text-slate-900 font-medium">{selectedReport.reporter?.display_name || "Unknown"}</p>
                   {selectedReport.reporter?.app_uid && (
                     <button
                       onClick={() => copyId(selectedReport.reporter?.app_uid)}
@@ -429,7 +429,7 @@ export default function AdminUserReports() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Context</p>
-                  <p className="text-white text-sm">{selectedReport.context_type}</p>
+                  <p className="text-slate-900 text-sm">{selectedReport.context_type}</p>
                 </div>
               </div>
               {selectedReport.description && (

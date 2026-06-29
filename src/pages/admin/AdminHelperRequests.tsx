@@ -327,8 +327,8 @@ const AdminHelperRequests = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="font-bold text-xl text-white">Helper Requests</h1>
-            <p className="text-white/80 text-sm">Manage upgrade & top-up requests</p>
+            <h1 className="font-bold text-xl text-slate-900">Helper Requests</h1>
+            <p className="text-slate-700 text-sm">Manage upgrade & top-up requests</p>
           </div>
           <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={loadRequests}>
             <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
@@ -340,16 +340,16 @@ const AdminHelperRequests = () => {
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center gap-2">
               <ArrowUpCircle className="w-5 h-5 text-yellow-300" />
-              <span className="text-white/80 text-sm">Upgrade Pending</span>
+              <span className="text-slate-700 text-sm">Upgrade Pending</span>
             </div>
-            <p className="text-2xl font-bold text-white mt-1">{pendingUpgradeCount}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{pendingUpgradeCount}</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-green-300" />
-              <span className="text-white/80 text-sm">Top-up Pending</span>
+              <span className="text-slate-700 text-sm">Top-up Pending</span>
             </div>
-            <p className="text-2xl font-bold text-white mt-1">{pendingTopupCount}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{pendingTopupCount}</p>
           </div>
         </div>
       </div>

@@ -665,7 +665,7 @@ export default function AdminCoins() {
                     {liveRates.map((rate) => (
                       <div key={rate.code} className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
                         <p className="text-xs text-blue-400 font-medium">{rate.code}</p>
-                        <p className="text-lg font-bold text-white">
+                        <p className="text-lg font-bold text-slate-900">
                           {rate.symbol}{rate.adjustedRate.toFixed(2)}
                         </p>
                         <p className="text-xs text-slate-500 line-through">
@@ -720,7 +720,7 @@ export default function AdminCoins() {
                   {Object.entries(internationalRates).slice(0, 12).map(([code, info]) => (
                     <div key={code} className="bg-slate-50 rounded-lg p-2 text-center border border-slate-200">
                       <p className="text-green-400 font-medium">{code}</p>
-                      <p className="font-bold text-white">
+                      <p className="font-bold text-slate-900">
                         {info.symbol}{Math.max(info.rate - 5, info.rate * 0.95).toFixed(2)}
                       </p>
                     </div>
@@ -744,7 +744,7 @@ export default function AdminCoins() {
             <CardContent>
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 text-white">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-white/80 text-sm">Exchange Rate</span>
+                  <span className="text-slate-700 text-sm">Exchange Rate</span>
                 </div>
                 <p className="text-lg font-bold">
                   {beansToUsdRate.toLocaleString()} Beans = $1 | $1 = Tk {(currencies.find(c => c.country_code === 'BD')?.rate_to_usd ?? 110.5).toFixed(2)}
@@ -814,7 +814,7 @@ export default function AdminCoins() {
                   <CardContent className="p-5">
                     <div className="text-center mb-4">
                       <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mb-3 shadow-lg">
-                        <Diamond className="w-7 h-7 text-white" />
+                        <Diamond className="w-7 h-7 text-slate-900" />
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">
                         {formatCoins(pkg.coins)}
@@ -959,7 +959,7 @@ export default function AdminCoins() {
                 <CardContent className="p-5">
                   <div className="text-center mb-4">
                     <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-3 shadow-lg">
-                      <span className="text-2xl text-white font-bold">{currency.currency_symbol}</span>
+                      <span className="text-2xl text-slate-900 font-bold">{currency.currency_symbol}</span>
                     </div>
                     <h3 className="text-lg font-bold text-slate-800">
                       {currency.currency_code}
@@ -1093,16 +1093,16 @@ export default function AdminCoins() {
             {packageForm.base_coins > 0 && (
               <div className="rounded-xl overflow-hidden border border-purple-200 shadow-lg">
                 <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-4 py-2.5">
-                  <p className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Live Preview — User Will See</p>
+                  <p className="text-slate-700 text-[10px] font-medium tracking-wider uppercase">Live Preview — User Will See</p>
                 </div>
                 <div className="bg-gradient-to-br from-white via-purple-900/30 to-slate-100 p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                        <Diamond className="w-6 h-6 text-white" />
+                        <Diamond className="w-6 h-6 text-slate-900" />
                       </div>
                       <div>
-                        <div className="text-white font-bold text-xl">
+                        <div className="text-slate-900 font-bold text-xl">
                           {formatCoins(packageForm.coins)}
                         </div>
                         {packageForm.bonus_percentage > 0 && (
@@ -1130,12 +1130,12 @@ export default function AdminCoins() {
                   {/* Local currency examples */}
                   {currencies.filter(c => c.is_active && ['BD', 'IN', 'PK'].includes(c.country_code)).length > 0 && (
                     <div className="mt-3 pt-3 border-t border-white/10">
-                      <p className="text-white/40 text-[10px] mb-2 uppercase tracking-wider">Local Currency Preview</p>
+                      <p className="text-slate-500 text-[10px] mb-2 uppercase tracking-wider">Local Currency Preview</p>
                       <div className="flex gap-2 flex-wrap">
                         {currencies.filter(c => c.is_active && ['BD', 'IN', 'PK', 'AE', 'SA'].includes(c.country_code)).slice(0, 4).map(c => (
                           <div key={c.id} className="bg-white/5 rounded-lg px-2.5 py-1.5 border border-white/10">
-                            <span className="text-white/50 text-[10px]">{c.country_code}</span>
-                            <span className="text-white font-bold text-xs ml-1.5">
+                            <span className="text-slate-500 text-[10px]">{c.country_code}</span>
+                            <span className="text-slate-900 font-bold text-xs ml-1.5">
                               {c.currency_symbol}{Math.round(packageForm.price_usd * c.rate_to_usd).toLocaleString()}
                             </span>
                           </div>

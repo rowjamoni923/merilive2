@@ -158,8 +158,8 @@ export default function AdminGiftTransactions() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white">Today's Gift Activity</h1>
-            <p className="text-white/80 text-sm">
+            <h1 className="font-bold text-xl text-slate-900">Today's Gift Activity</h1>
+            <p className="text-slate-700 text-sm">
               {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Tap refresh to update` : 'All gift transactions today'}
             </p>
           </div>
@@ -196,22 +196,22 @@ export default function AdminGiftTransactions() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">
+            <p className="text-xl font-bold text-slate-900">
               {todayTotal >= 1000000 ? `${(todayTotal / 1000000).toFixed(1)}M` : todayTotal.toLocaleString()}
             </p>
-            <p className="text-white/80 text-xs">Total Beans</p>
+            <p className="text-slate-700 text-xs">Total Beans</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-yellow-200">{todayCount}</p>
-            <p className="text-white/80 text-xs">🎁 Gifts Sent</p>
+            <p className="text-slate-700 text-xs">🎁 Gifts Sent</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-cyan-200">{uniqueSenders}</p>
-            <p className="text-white/80 text-xs">👤 Senders</p>
+            <p className="text-slate-700 text-xs">👤 Senders</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-green-200">{uniqueReceivers}</p>
-            <p className="text-white/80 text-xs">🌟 Receivers</p>
+            <p className="text-slate-700 text-xs">🌟 Receivers</p>
           </div>
         </div>
       </div>
@@ -278,7 +278,7 @@ export default function AdminGiftTransactions() {
                       </Avatar>
                       
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold truncate">{receiver.display_name}</p>
+                        <p className="text-slate-900 font-semibold truncate">{receiver.display_name}</p>
                         <p className="text-slate-400 text-xs">ID: {receiver.app_uid}</p>
                       </div>
                       
@@ -319,7 +319,7 @@ export default function AdminGiftTransactions() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 text-xs">
-                          <span className="text-white font-medium truncate max-w-[80px]">{t.sender?.display_name}</span>
+                          <span className="text-slate-900 font-medium truncate max-w-[80px]">{t.sender?.display_name}</span>
                           <span className="text-slate-500">→</span>
                           <span className="text-fuchsia-300 font-medium truncate max-w-[80px]">{t.receiver?.display_name}</span>
                         </div>

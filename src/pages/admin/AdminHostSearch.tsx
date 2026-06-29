@@ -205,8 +205,8 @@ export default function AdminHostSearch() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-white">Host Search</h1>
-            <p className="text-white/80">View complete host info by UID</p>
+            <h1 className="text-2xl font-bold text-slate-900">Host Search</h1>
+            <p className="text-slate-700">View complete host info by UID</p>
           </div>
         </div>
       </div>
@@ -285,7 +285,7 @@ export default function AdminHostSearch() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h2 className="text-2xl font-bold text-white">
+                      <h2 className="text-2xl font-bold text-slate-900">
                         {host.display_name || host.username || "Unknown"}
                       </h2>
                       {host.is_verified && (
@@ -302,38 +302,38 @@ export default function AdminHostSearch() {
                         {host.is_online ? "Online" : "Offline"}
                       </Badge>
                     </div>
-                    <p className="text-white/50 mt-1">{host.country_flag} {host.username}</p>
+                    <p className="text-slate-500 mt-1">{host.country_flag} {host.username}</p>
                   </div>
 
                   {/* Full ID */}
                   <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-white/50 text-sm mb-1">Host ID (UID)</p>
-                    <p className="text-white font-mono text-sm break-all">{host.id}</p>
+                    <p className="text-slate-500 text-sm mb-1">Host ID (UID)</p>
+                    <p className="text-slate-900 font-mono text-sm break-all">{host.id}</p>
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white/5 rounded-lg p-3 text-center">
                       <Coins className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">{host.total_earnings?.toLocaleString() || 0}</p>
-                      <p className="text-xs text-white/50">Total Earnings</p>
+                      <p className="text-slate-900 font-bold">{host.total_earnings?.toLocaleString() || 0}</p>
+                      <p className="text-xs text-slate-500">Total Earnings</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
                       <Phone className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">{host.total_calls_received || 0}</p>
-                      <p className="text-xs text-white/50">Total Calls</p>
+                      <p className="text-slate-900 font-bold">{host.total_calls_received || 0}</p>
+                      <p className="text-xs text-slate-500">Total Calls</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
                       <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                      <p className="text-white font-bold">{host.total_call_minutes?.toLocaleString() || 0}</p>
-                      <p className="text-xs text-white/50">Call Minutes</p>
+                      <p className="text-slate-900 font-bold">{host.total_call_minutes?.toLocaleString() || 0}</p>
+                      <p className="text-xs text-slate-500">Call Minutes</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
                       <Calendar className="w-5 h-5 text-purple-400 mx-auto mb-1" />
-                      <p className="text-white font-bold text-sm">
+                      <p className="text-slate-900 font-bold text-sm">
                         {host.created_at ? format(new Date(host.created_at), "dd MMM yy", { locale: enUS }) : "N/A"}
                       </p>
-                      <p className="text-xs text-white/50">Joined</p>
+                      <p className="text-xs text-slate-500">Joined</p>
                     </div>
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export default function AdminHostSearch() {
           {/* Agency Info Card */}
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Building2 className="w-5 h-5" />
                 Agency Info
               </CardTitle>
@@ -354,11 +354,11 @@ export default function AdminHostSearch() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl">
                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-                      <Building2 className="w-7 h-7 text-white" />
+                      <Building2 className="w-7 h-7 text-slate-900" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-bold text-lg">{agency.name}</p>
-                      <p className="text-white/50">#{agency.agency_code}</p>
+                      <p className="text-slate-900 font-bold text-lg">{agency.name}</p>
+                      <p className="text-slate-500">#{agency.agency_code}</p>
                     </div>
                     <Badge className="bg-yellow-500/20 text-yellow-400 capitalize">
                       {agency.level || "Bronze"} Level
@@ -377,10 +377,10 @@ export default function AdminHostSearch() {
                   {agencyHostInfo && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-white/5 rounded-lg p-4">
-                        <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                        <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                           <Calendar className="w-4 h-4" /> Join Date
                         </p>
-                        <p className="text-white font-medium">
+                        <p className="text-slate-900 font-medium">
                           {agencyHostInfo.joined_at 
                             ? format(new Date(agencyHostInfo.joined_at), "dd MMMM yyyy", { locale: enUS })
                             : "N/A"
@@ -388,10 +388,10 @@ export default function AdminHostSearch() {
                         </p>
                       </div>
                       <div className="bg-white/5 rounded-lg p-4">
-                        <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                        <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                           <Clock className="w-4 h-4" /> Duration
                         </p>
-                        <p className="text-white font-medium">
+                        <p className="text-slate-900 font-medium">
                           {agencyHostInfo.joined_at 
                             ? formatDistanceToNow(new Date(agencyHostInfo.joined_at), { locale: enUS })
                             : "N/A"
@@ -399,10 +399,10 @@ export default function AdminHostSearch() {
                         </p>
                       </div>
                       <div className="bg-white/5 rounded-lg p-4">
-                        <p className="text-white/50 text-sm mb-1 flex items-center gap-2">
+                        <p className="text-slate-500 text-sm mb-1 flex items-center gap-2">
                           <UserCheck className="w-4 h-4" /> Join Method
                         </p>
-                        <p className="text-white font-medium capitalize">
+                        <p className="text-slate-900 font-medium capitalize">
                           {agencyHostInfo.joined_via || "Invitation"}
                         </p>
                       </div>
@@ -420,14 +420,14 @@ export default function AdminHostSearch() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-white text-sm">{agency.owner.display_name || "Unknown"}</p>
-                        <p className="text-xs text-white/50">Agency Owner</p>
+                        <p className="text-slate-900 text-sm">{agency.owner.display_name || "Unknown"}</p>
+                        <p className="text-xs text-slate-500">Agency Owner</p>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-10 text-white/50">
+                <div className="text-center py-10 text-slate-500">
                   <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>This host is not associated with any agency</p>
                 </div>

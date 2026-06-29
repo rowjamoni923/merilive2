@@ -127,8 +127,8 @@ const AdminTraderTransactions = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white">Trader Transactions</h1>
-            <p className="text-white/80 text-sm">All Diamond transactions</p>
+            <h1 className="font-bold text-xl text-slate-900">Trader Transactions</h1>
+            <p className="text-slate-700 text-sm">All Diamond transactions</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <ReportExportMenu
@@ -164,19 +164,19 @@ const AdminTraderTransactions = () => {
         <div className="grid grid-cols-4 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-green-200">{(stats.totalBought / 1000).toFixed(0)}K</p>
-            <p className="text-white/80 text-xs">Bought</p>
+            <p className="text-slate-700 text-xs">Bought</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-blue-200">{(stats.totalSold / 1000).toFixed(0)}K</p>
-            <p className="text-white/80 text-xs">Sold</p>
+            <p className="text-slate-700 text-xs">Sold</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-purple-200">{(stats.totalTransferred / 1000).toFixed(0)}K</p>
-            <p className="text-white/80 text-xs">Transferred</p>
+            <p className="text-slate-700 text-xs">Transferred</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-yellow-200">${stats.pendingValue.toFixed(0)}</p>
-            <p className="text-white/80 text-xs">Pending</p>
+            <p className="text-slate-700 text-xs">Pending</p>
           </div>
         </div>
       </div>

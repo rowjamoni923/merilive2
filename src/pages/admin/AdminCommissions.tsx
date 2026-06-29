@@ -254,11 +254,11 @@ export default function AdminCommissions() {
       {/* Header - Mobile Optimized */}
       <div className="flex items-center justify-between bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div>
-          <h1 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2 md:gap-3">
+          <h1 className="text-lg md:text-2xl font-bold text-slate-900 flex items-center gap-2 md:gap-3">
             <Percent className="w-5 h-5 md:w-7 md:h-7" />
             Commission Settings
           </h1>
-          <p className="text-white/80 mt-1 text-xs md:text-sm">Manage all platform commissions</p>
+          <p className="text-slate-700 mt-1 text-xs md:text-sm">Manage all platform commissions</p>
         </div>
       </div>
 
@@ -303,11 +303,11 @@ export default function AdminCommissions() {
         <TabsContent value="call">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Phone className="w-5 h-5 text-blue-400" />
                 Call Rate & Commission Settings
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Set beans rate per minute and host commission for private calls
               </CardDescription>
             </CardHeader>
@@ -316,9 +316,9 @@ export default function AdminCommissions() {
               <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20">
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-5 h-5 text-cyan-400" />
-                  <h3 className="text-white font-medium">Beans Per Minute Rate</h3>
+                  <h3 className="text-slate-900 font-medium">Beans Per Minute Rate</h3>
                 </div>
-                <p className="text-white/60 text-sm mb-4">
+                <p className="text-slate-600 text-sm mb-4">
                   Set how many beans user pays per minute of call
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,7 +334,7 @@ export default function AdminCommissions() {
                       onChange={(e) => handleCallRateChange("default_rate", parseInt(e.target.value) || 0)}
                       className="bg-white/5 border-white/10 text-slate-900 text-lg font-bold"
                     />
-                    <p className="text-xs text-white/50 mt-1">Deducted from user</p>
+                    <p className="text-xs text-slate-500 mt-1">Deducted from user</p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -349,7 +349,7 @@ export default function AdminCommissions() {
                       onChange={(e) => handleCallRateChange("host_commission_percent", 100 - (parseInt(e.target.value) || 0))}
                       className="bg-white/5 border-white/10 text-slate-900 text-lg font-bold"
                     />
-                    <p className="text-xs text-white/50 mt-1">Host gets remaining %</p>
+                    <p className="text-xs text-slate-500 mt-1">Host gets remaining %</p>
                   </div>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function AdminCommissions() {
               <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-white font-medium">Real-time Calculator</h3>
+                  <h3 className="text-slate-900 font-medium">Real-time Calculator</h3>
                 </div>
                 
                 {(() => {
@@ -376,26 +376,26 @@ export default function AdminCommissions() {
                             <Coins className="w-5 h-5 text-red-400" />
                           </div>
                           <p className="text-red-400 font-bold text-2xl">-{beansPerMinute}</p>
-                          <p className="text-white/50 text-xs mt-1">Deducted from user</p>
+                          <p className="text-slate-500 text-xs mt-1">Deducted from user</p>
                         </div>
                         <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
                           <div className="flex items-center justify-center gap-2 mb-2">
                             <Building2 className="w-5 h-5 text-green-400" />
                           </div>
                           <p className="text-green-400 font-bold text-2xl">+{companyEarns}</p>
-                          <p className="text-white/50 text-xs mt-1">Company gets ({companyPercent}%)</p>
+                          <p className="text-slate-500 text-xs mt-1">Company gets ({companyPercent}%)</p>
                         </div>
                         <div className="bg-amber-500/10 rounded-lg p-4 border border-amber-500/20">
                           <div className="flex items-center justify-center gap-2 mb-2">
                             <Users className="w-5 h-5 text-amber-400" />
                           </div>
                           <p className="text-amber-400 font-bold text-2xl">+{hostEarns}</p>
-                          <p className="text-white/50 text-xs mt-1">Host gets ({hostPercent}%)</p>
+                          <p className="text-slate-500 text-xs mt-1">Host gets ({hostPercent}%)</p>
                         </div>
                       </div>
                       
                       <div className="bg-white/5 rounded-lg p-3 text-center">
-                        <p className="text-white/70 text-sm">
+                        <p className="text-slate-600 text-sm">
                           <span className="text-cyan-400 font-medium">1 Minute Call:</span>{' '}
                           User pays <span className="text-red-400 font-bold">{beansPerMinute}</span> beans, 
                           Company gets <span className="text-green-400 font-bold">{companyEarns}</span> beans ({companyPercent}%), 
@@ -423,11 +423,11 @@ export default function AdminCommissions() {
         <TabsContent value="gift">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Gift className="w-5 h-5 text-pink-400" />
                 Gift Commission Settings
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Percentage of gift value the host receives
               </CardDescription>
             </CardHeader>
@@ -435,14 +435,14 @@ export default function AdminCommissions() {
               <div className="p-4 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-lg border border-pink-500/20">
                 <div className="flex items-center gap-2 mb-4">
                   <Gift className="w-5 h-5 text-pink-400" />
-                  <h3 className="text-white font-medium">Host Gift Commission</h3>
+                  <h3 className="text-slate-900 font-medium">Host Gift Commission</h3>
                 </div>
-                <p className="text-white/60 text-sm mb-4">
+                <p className="text-slate-600 text-sm mb-4">
                   Set what percentage of beans the host receives from gifts
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-white/60">Host Gift Commission (%)</Label>
+                    <Label className="text-slate-600">Host Gift Commission (%)</Label>
                     <Input
                       type="number"
                       min={0}
@@ -454,16 +454,16 @@ export default function AdminCommissions() {
                   </div>
                   <div className="flex items-center justify-center p-4 bg-white/5 rounded-lg">
                     <div className="text-center">
-                      <p className="text-white/60 text-sm">Preview (1000 coin gift)</p>
+                      <p className="text-slate-600 text-sm">Preview (1000 coin gift)</p>
                       <div className="flex items-center justify-center gap-4 mt-2">
                         <div>
                           <p className="text-red-400 font-bold text-lg">-1000</p>
-                          <p className="text-white/40 text-xs">User pays</p>
+                          <p className="text-slate-500 text-xs">User pays</p>
                         </div>
-                        <span className="text-white/40">→</span>
+                        <span className="text-slate-500">→</span>
                         <div>
                           <p className="text-green-400 font-bold text-lg">+{Math.floor(1000 * (settings?.gift_commission.host_percent || 40) / 100)}</p>
-                          <p className="text-white/40 text-xs">Host gets (Beans)</p>
+                          <p className="text-slate-500 text-xs">Host gets (Beans)</p>
                         </div>
                       </div>
                     </div>
@@ -488,18 +488,18 @@ export default function AdminCommissions() {
           {/* Base Commission Card */}
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-purple-400" />
                 Agency Base Commission
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Percentage of host earnings the agency receives (Default)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label className="text-white/60">Base Commission (%)</Label>
+                  <Label className="text-slate-600">Base Commission (%)</Label>
                   <Input
                     type="number"
                     min={0}
@@ -508,10 +508,10 @@ export default function AdminCommissions() {
                     onChange={(e) => handleAgencyCommissionChange("agency_percent", parseInt(e.target.value) || 0)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">Default 2% for new agencies</p>
+                  <p className="text-xs text-slate-500 mt-1">Default 2% for new agencies</p>
                 </div>
                 <div>
-                  <Label className="text-white/60">Minimum Payout (Beans)</Label>
+                  <Label className="text-slate-600">Minimum Payout (Beans)</Label>
                   <Input
                     type="number"
                     min={0}
@@ -519,10 +519,10 @@ export default function AdminCommissions() {
                     onChange={(e) => handleAgencyCommissionChange("min_payout", parseInt(e.target.value) || 0)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">Minimum to withdraw</p>
+                  <p className="text-xs text-slate-500 mt-1">Minimum to withdraw</p>
                 </div>
                 <div>
-                  <Label className="text-white/60">Beans → Dollar Rate</Label>
+                  <Label className="text-slate-600">Beans → Dollar Rate</Label>
                   <Input
                     type="number"
                     min={100}
@@ -530,7 +530,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleAgencyCommissionChange("coins_to_dollar_rate", parseInt(e.target.value) || 10000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">{settings?.agency_commission.coins_to_dollar_rate || 10000} Beans = $1</p>
+                  <p className="text-xs text-slate-500 mt-1">{settings?.agency_commission.coins_to_dollar_rate || 10000} Beans = $1</p>
                 </div>
               </div>
             </CardContent>
@@ -539,19 +539,19 @@ export default function AdminCommissions() {
           {/* Tiered Commission Card - Now managed centrally in Agency Management */}
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-green-400" />
                 Tiered Commission System
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Commission tiers are now managed centrally in Agency Management
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 text-center">
                 <TrendingUp className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-white font-medium mb-2">Commission Tiers Centralized</h3>
-                <p className="text-white/60 text-sm mb-4">
+                <h3 className="text-slate-900 font-medium mb-2">Commission Tiers Centralized</h3>
+                <p className="text-slate-600 text-sm mb-4">
                   To prevent duplicate data and ensure consistency, commission tiers are now managed in a single location.
                   Any changes made there will automatically apply everywhere.
                 </p>
@@ -565,8 +565,8 @@ export default function AdminCommissions() {
               </div>
               
               <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <p className="text-white/60 text-sm mb-2">How it works:</p>
-                <ul className="text-white/50 text-xs space-y-1">
+                <p className="text-slate-600 text-sm mb-2">How it works:</p>
+                <ul className="text-slate-500 text-xs space-y-1">
                   <li>• Commission rates are based on host's weekly earnings</li>
                   <li>• Tiers are defined in USD (e.g., $0-500 = 3%, $500-1000 = 5%)</li>
                   <li>• Agency receives the matching tier's commission percentage</li>
@@ -578,18 +578,18 @@ export default function AdminCommissions() {
           {/* Transfer Schedule Card */}
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-blue-400" />
                 Weekly Transfer Schedule
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 When host beans are automatically transferred to agencies
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label className="text-white/60">Transfer Day</Label>
+                  <Label className="text-slate-600">Transfer Day</Label>
                   <select
                     value={settings?.transfer_schedule?.day || 'sunday'}
                     onChange={(e) => handleTransferScheduleChange('day', e.target.value)}
@@ -605,7 +605,7 @@ export default function AdminCommissions() {
                   </select>
                 </div>
                 <div>
-                  <Label className="text-white/60">Transfer Time</Label>
+                  <Label className="text-slate-600">Transfer Time</Label>
                   <Input
                     type="time"
                     value={settings?.transfer_schedule?.time || '00:00'}
@@ -628,9 +628,9 @@ export default function AdminCommissions() {
               <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-blue-400" />
-                  <p className="text-white/80 text-sm font-medium">Automatic Transfer</p>
+                  <p className="text-slate-700 text-sm font-medium">Automatic Transfer</p>
                 </div>
-                <p className="text-white/50 text-xs">
+                <p className="text-slate-500 text-xs">
                   All host beans will be automatically transferred to agency wallets at the scheduled time each week.
                   Agencies can then withdraw their earnings.
                 </p>
@@ -663,11 +663,11 @@ export default function AdminCommissions() {
         <TabsContent value="party">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <PartyPopper className="w-5 h-5 text-yellow-400" />
                 Party Room Defaults
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Default configuration for party rooms
               </CardDescription>
             </CardHeader>
@@ -677,9 +677,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Camera className="w-5 h-5 text-blue-400" />
-                    <h3 className="text-white font-medium">Video Room</h3>
+                    <h3 className="text-slate-900 font-medium">Video Room</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Max Participants</Label>
+                  <Label className="text-slate-600 text-sm">Max Participants</Label>
                   <Input
                     type="number"
                     min={2}
@@ -693,9 +693,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Music className="w-5 h-5 text-purple-400" />
-                    <h3 className="text-white font-medium">Audio Room</h3>
+                    <h3 className="text-slate-900 font-medium">Audio Room</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Max Participants</Label>
+                  <Label className="text-slate-600 text-sm">Max Participants</Label>
                   <Input
                     type="number"
                     min={2}
@@ -709,9 +709,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Gamepad2 className="w-5 h-5 text-green-400" />
-                    <h3 className="text-white font-medium">Game Room</h3>
+                    <h3 className="text-slate-900 font-medium">Game Room</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Max Participants</Label>
+                  <Label className="text-slate-600 text-sm">Max Participants</Label>
                   <Input
                     type="number"
                     min={2}
@@ -726,7 +726,7 @@ export default function AdminCommissions() {
               {/* Entry Requirements */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white/60">Default Entry Fee (Diamonds)</Label>
+                  <Label className="text-slate-600">Default Entry Fee (Diamonds)</Label>
                   <Input
                     type="number"
                     min={0}
@@ -734,10 +734,10 @@ export default function AdminCommissions() {
                     onChange={(e) => handlePartyDefaultsChange("default_entry_fee", parseInt(e.target.value) || 0)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">0 means free entry</p>
+                  <p className="text-xs text-slate-500 mt-1">0 means free entry</p>
                 </div>
                 <div>
-                  <Label className="text-white/60">Minimum Level Required</Label>
+                  <Label className="text-slate-600">Minimum Level Required</Label>
                   <Input
                     type="number"
                     min={0}
@@ -746,7 +746,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handlePartyDefaultsChange("min_level_required", parseInt(e.target.value) || 0)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">0 means everyone can join</p>
+                  <p className="text-xs text-slate-500 mt-1">0 means everyone can join</p>
                 </div>
               </div>
 
@@ -766,11 +766,11 @@ export default function AdminCommissions() {
         <TabsContent value="exchange">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-amber-400" />
                 Diamond Exchange Settings
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Set conversion rates for beans to diamonds and sales to users
               </CardDescription>
             </CardHeader>
@@ -779,9 +779,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg border border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Coins className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-white font-medium">Exchange Rate</h3>
+                    <h3 className="text-slate-900 font-medium">Exchange Rate</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Beans → Diamonds Rate</Label>
+                  <Label className="text-slate-600 text-sm">Beans → Diamonds Rate</Label>
                   <Input
                     type="number"
                     min={1}
@@ -789,7 +789,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleDiamondExchangeChange("beans_to_diamonds_rate", parseInt(e.target.value) || 100)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {settings?.coin_exchange.beans_to_diamonds_rate || 100} Beans = 1 Diamond
                   </p>
                 </div>
@@ -797,9 +797,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-lg border border-red-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Percent className="w-5 h-5 text-red-400" />
-                    <h3 className="text-white font-medium">Exchange Fee</h3>
+                    <h3 className="text-slate-900 font-medium">Exchange Fee</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Fee Percentage (%)</Label>
+                  <Label className="text-slate-600 text-sm">Fee Percentage (%)</Label>
                   <Input
                     type="number"
                     min={0}
@@ -808,7 +808,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleDiamondExchangeChange("exchange_fee_percent", parseInt(e.target.value) || 5)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {settings?.coin_exchange.exchange_fee_percent || 5}% deducted during exchange
                   </p>
                 </div>
@@ -816,9 +816,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Diamond className="w-5 h-5 text-cyan-400" />
-                    <h3 className="text-white font-medium">Minimum Exchange</h3>
+                    <h3 className="text-slate-900 font-medium">Minimum Exchange</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Minimum Beans</Label>
+                  <Label className="text-slate-600 text-sm">Minimum Beans</Label>
                   <Input
                     type="number"
                     min={100}
@@ -826,7 +826,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleDiamondExchangeChange("min_exchange_amount", parseInt(e.target.value) || 1000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Minimum {settings?.coin_exchange.min_exchange_amount || 1000} beans to exchange
                   </p>
                 </div>
@@ -836,12 +836,12 @@ export default function AdminCommissions() {
               <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg border border-amber-500/20">
                 <div className="flex items-center gap-2 mb-4">
                   <ArrowRightLeft className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-white font-medium">Real-time Calculator</h3>
+                  <h3 className="text-slate-900 font-medium">Real-time Calculator</h3>
                 </div>
                 
                 {/* Calculator Input */}
                 <div className="mb-4">
-                  <Label className="text-white/60 text-sm">Enter Beans Amount</Label>
+                  <Label className="text-slate-600 text-sm">Enter Beans Amount</Label>
                   <Input
                     type="number"
                     min={0}
@@ -866,41 +866,41 @@ export default function AdminCommissions() {
                         <div className="p-3 bg-amber-500/10 rounded-lg">
                           <Coins className="w-5 h-5 text-amber-400 mx-auto mb-1" />
                           <p className="text-amber-400 font-bold text-lg">{calcBeansInput.toLocaleString()}</p>
-                          <p className="text-white/40 text-xs">Input Beans</p>
+                          <p className="text-slate-500 text-xs">Input Beans</p>
                         </div>
 
                         {/* Fee Deduction */}
                         <div className="p-3 bg-red-500/10 rounded-lg">
                           <Percent className="w-4 h-4 text-red-400 mx-auto mb-1" />
                           <p className="text-red-400 font-bold text-lg">-{feeAmount.toLocaleString()}</p>
-                          <p className="text-white/40 text-xs">Fee ({fee}%)</p>
+                          <p className="text-slate-500 text-xs">Fee ({fee}%)</p>
                         </div>
 
                         {/* After Fee */}
                         <div className="p-3 bg-green-500/10 rounded-lg">
                           <TrendingUp className="w-5 h-5 text-green-400 mx-auto mb-1" />
                           <p className="text-green-400 font-bold text-lg">{afterFee.toLocaleString()}</p>
-                          <p className="text-white/40 text-xs">Beans after Fee</p>
+                          <p className="text-slate-500 text-xs">Beans after Fee</p>
                         </div>
 
                         {/* Diamonds Output */}
                         <div className="p-3 bg-cyan-500/10 rounded-lg">
                           <Diamond className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
                           <p className="text-cyan-400 font-bold text-lg">{diamonds.toLocaleString()}</p>
-                          <p className="text-white/40 text-xs">Diamonds Receive</p>
+                          <p className="text-slate-500 text-xs">Diamonds Receive</p>
                         </div>
 
                         {/* Company Earnings */}
                         <div className="p-3 bg-purple-500/10 rounded-lg">
                           <Building2 className="w-5 h-5 text-purple-400 mx-auto mb-1" />
                           <p className="text-purple-400 font-bold text-lg">{feeAmount.toLocaleString()}</p>
-                          <p className="text-white/40 text-xs">Company Receives</p>
+                          <p className="text-slate-500 text-xs">Company Receives</p>
                         </div>
                       </div>
 
                       {/* Summary */}
                       <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-white/70 text-sm text-center">
+                        <p className="text-slate-600 text-sm text-center">
                           From <span className="text-amber-400 font-bold">{calcBeansInput.toLocaleString()}</span> beans,{" "}
                           after <span className="text-red-400 font-bold">{fee}%</span> ({feeAmount.toLocaleString()}) fee,{" "}
                           <span className="text-green-400 font-bold">{afterFee.toLocaleString()}</span> beans remain,{" "}
@@ -928,11 +928,11 @@ export default function AdminCommissions() {
         <TabsContent value="trader">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-slate-900 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-emerald-400" />
                 Diamond Trader Settings
               </CardTitle>
-              <CardDescription className="text-white/60">
+              <CardDescription className="text-slate-600">
                 Set buy/sell rates for agencies trading coins with users
               </CardDescription>
             </CardHeader>
@@ -940,8 +940,8 @@ export default function AdminCommissions() {
               {/* Enable/Disable */}
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                 <div>
-                  <h3 className="text-white font-medium">Diamond Trader System</h3>
-                  <p className="text-white/60 text-sm">Buy/Sell facility for agencies</p>
+                  <h3 className="text-slate-900 font-medium">Diamond Trader System</h3>
+                  <p className="text-slate-600 text-sm">Buy/Sell facility for agencies</p>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -950,7 +950,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleCoinTraderChange("enabled", e.target.checked)}
                     className="w-5 h-5 rounded"
                   />
-                  <span className="text-white/70 text-sm">{settings?.coin_trader.enabled ? 'Active' : 'Inactive'}</span>
+                  <span className="text-slate-600 text-sm">{settings?.coin_trader.enabled ? 'Active' : 'Inactive'}</span>
                 </label>
               </div>
 
@@ -959,9 +959,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="w-5 h-5 text-blue-400" />
-                    <h3 className="text-white font-medium">Buy Rate</h3>
+                    <h3 className="text-slate-900 font-medium">Buy Rate</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Beans / $1 USD</Label>
+                  <Label className="text-slate-600 text-sm">Beans / $1 USD</Label>
                   <Input
                     type="number"
                     min={1}
@@ -969,7 +969,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleCoinTraderChange("buy_rate", parseInt(e.target.value) || 9500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Agency buys from users at this rate
                   </p>
                 </div>
@@ -978,9 +978,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="w-5 h-5 text-green-400" />
-                    <h3 className="text-white font-medium">Sell Rate</h3>
+                    <h3 className="text-slate-900 font-medium">Sell Rate</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Beans / $1 USD</Label>
+                  <Label className="text-slate-600 text-sm">Beans / $1 USD</Label>
                   <Input
                     type="number"
                     min={1}
@@ -988,7 +988,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleCoinTraderChange("sell_rate", parseInt(e.target.value) || 10500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Agency sells to users at this rate
                   </p>
                 </div>
@@ -997,9 +997,9 @@ export default function AdminCommissions() {
                 <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg border border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Coins className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-white font-medium">Minimum Amount</h3>
+                    <h3 className="text-slate-900 font-medium">Minimum Amount</h3>
                   </div>
-                  <Label className="text-white/60 text-sm">Minimum Beans</Label>
+                  <Label className="text-slate-600 text-sm">Minimum Beans</Label>
                   <Input
                     type="number"
                     min={100}
@@ -1007,7 +1007,7 @@ export default function AdminCommissions() {
                     onChange={(e) => handleCoinTraderChange("min_trade_amount", parseInt(e.target.value) || 1000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-white/40 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Minimum {settings?.coin_trader.min_trade_amount || 1000} beans to trade
                   </p>
                 </div>
@@ -1017,24 +1017,24 @@ export default function AdminCommissions() {
               <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-lg border border-emerald-500/20">
                 <div className="flex items-center gap-2 mb-4">
                   <DollarSign className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-white font-medium">Agency Profit Calculator</h3>
+                  <h3 className="text-slate-900 font-medium">Agency Profit Calculator</h3>
                 </div>
                 <div className="bg-white/5 p-4 rounded-lg">
-                  <p className="text-white/60 text-sm text-center mb-3">Agency Profit per $10 Trade</p>
+                  <p className="text-slate-600 text-sm text-center mb-3">Agency Profit per $10 Trade</p>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <p className="text-blue-400 font-bold text-lg">{((settings?.coin_trader.buy_rate || 9500) * 10).toLocaleString()}</p>
-                      <p className="text-white/40 text-xs">Bought Beans ($10)</p>
+                      <p className="text-slate-500 text-xs">Bought Beans ($10)</p>
                     </div>
                     <div>
                       <p className="text-green-400 font-bold text-lg">{((settings?.coin_trader.sell_rate || 10500) * 10).toLocaleString()}</p>
-                      <p className="text-white/40 text-xs">Sold Beans ($10)</p>
+                      <p className="text-slate-500 text-xs">Sold Beans ($10)</p>
                     </div>
                     <div>
                       <p className="text-amber-400 font-bold text-lg">
                         {(((settings?.coin_trader.sell_rate || 10500) - (settings?.coin_trader.buy_rate || 9500)) * 10).toLocaleString()}
                       </p>
-                      <p className="text-white/40 text-xs">Profit Beans</p>
+                      <p className="text-slate-500 text-xs">Profit Beans</p>
                     </div>
                   </div>
                 </div>

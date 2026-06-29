@@ -178,11 +178,11 @@ export default function AdminSipInbound() {
       <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <PhoneIncoming className="w-6 h-6" />
               SIP Inbound Routes
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">
               PSTN phone numbers (DIDs) → LiveKit rooms. Kill-switch
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">sip_inbound</code>.
             </p>
@@ -204,7 +204,7 @@ export default function AdminSipInbound() {
         <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Routes</p>
-            <p className="text-white font-bold text-xl">{rows.length}</p>
+            <p className="text-slate-900 font-bold text-xl">{rows.length}</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-50 border-slate-200">
@@ -268,12 +268,12 @@ export default function AdminSipInbound() {
                         <Badge variant="outline" className="border-cyan-500/50 text-cyan-300 text-[10px]">
                           {r.rule_type}
                         </Badge>
-                        <span className="text-sm font-medium text-white truncate">{r.name}</span>
+                        <span className="text-sm font-medium text-slate-900 truncate">{r.name}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 flex flex-wrap gap-x-3 gap-y-0.5">
                         <span>
                           {r.rule_type === "direct" ? "room" : "prefix"}:{" "}
-                          <span className="font-mono text-white">
+                          <span className="font-mono text-slate-900">
                             {r.rule_type === "direct" ? (r.room_name || "—") : (r.room_prefix || "—")}
                           </span>
                         </span>

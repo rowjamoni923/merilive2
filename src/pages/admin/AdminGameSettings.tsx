@@ -375,7 +375,7 @@ export default function AdminGameSettings() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
-              <Gamepad2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <Gamepad2 className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
             </div>
             Game Settings
           </h1>
