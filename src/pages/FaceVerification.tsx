@@ -747,7 +747,7 @@ const FaceVerification = () => {
             setProfile((prev: any) => ({ ...(prev || {}), ...next }));
             setVerificationStatus('verified');
             setRejectionReason(null);
-            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            toast({ title: 'Verified ✓', description: 'Approved by admin. Redirecting…' });
             setTimeout(() => navigate('/profile', { replace: true }), 900);
           } else if (next && next.is_face_verified === false && next.face_verification_status === 'pending_face') {
             // Admin removed verification → keep user on this page to re-submit.
