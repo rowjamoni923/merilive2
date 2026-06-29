@@ -172,12 +172,18 @@ export const useAppUpdate = () => {
 
       const serverVersionName = data.current_version_name || data.current_version || '1.0.0';
       const serverVersionCode = Number(data.current_version_code) || versionNameToCode(serverVersionName);
-      const minimumVersionCode = Number(data.min_version_code) || versionNameToCode(data.minimum_version || serverVersionName);
-      console.log('[AppUpdate] Server version:', serverVersionName, '(', serverVersionCode, ')');
 
-      const currentComparableCode = Math.max(CURRENT_VERSION_CODE, versionNameToCode(CURRENT_VERSION_NAME));
-      const updateAvailable = serverVersionCode > currentComparableCode;
-      const isForceUpdate = Boolean(data.force_update) && minimumVersionCode > currentComparableCode;
+      // Normalise EVERYTHING through the same comparable scale.
+      const currentComparable = toComparableCode(CURRENT_VERSION_CODE, CURRENT_VERSION_NAME);
+      const serverComparable = toComparableCode(data.current_version_code, serverVersionName);
+      const minimumComparable = toComparableCode(data.min_version_code, data.minimum_version);
+      const minimumVersionCode = minimumComparable; // for logging compatibility
+
+      console.log('[AppUpdate] Server version:', serverVersionName, '(', serverVersionCode, ')');
+      console.log('[AppUpdate] Comparable scale → current:', currentComparable, 'server:', serverComparable, 'min:', minimumComparable);
+
+      const updateAvailable = serverComparable > currentComparable;
+      const isForceUpdate = Boolean(data.force_update) && minimumComparable > currentComparable;
 
       const info: AppUpdateInfo = {
         updateAvailable,
