@@ -615,8 +615,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         setNativeActive(true);
         setIsNativeMediaActive(true);
         await refreshNativeParticipants();
-        setTimeout(() => { if (usingNativeRef.current) refreshNativeParticipants().catch(() => {}); }, 120);
-        setTimeout(() => { if (usingNativeRef.current) refreshNativeParticipants().catch(() => {}); }, 450);
         if (options.liveSignalingStreamId) {
           try {
             const mod = await import('@/lib/livekitLiveSignaling');
