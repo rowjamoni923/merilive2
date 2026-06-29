@@ -1,8 +1,10 @@
 import { Mail, MessageCircle, Globe, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
 const PublicContact = () => {
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={{ touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
