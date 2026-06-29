@@ -747,7 +747,7 @@ const FaceVerification = () => {
             setProfile((prev: any) => ({ ...(prev || {}), ...next }));
             setVerificationStatus('verified');
             setRejectionReason(null);
-            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            toast({ title: 'Verified ✓', description: 'Approved by admin. Redirecting…' });
             setTimeout(() => navigate('/profile', { replace: true }), 900);
           } else if (next && next.is_face_verified === false && next.face_verification_status === 'pending_face') {
             // Admin removed verification → keep user on this page to re-submit.
@@ -766,13 +766,13 @@ const FaceVerification = () => {
             setVerificationStatus('verified');
             setRejectionReason(null);
             setRetryRequired(null);
-            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            toast({ title: 'Verified ✓', description: 'Approved by admin. Redirecting…' });
             setTimeout(() => navigate('/profile', { replace: true }), 900);
           } else if (status === 'rejected') {
             setVerificationStatus('rejected');
             setRejectionReason(next?.rejection_reason || null);
             setRetryRequired(null);
-            toast({ title: 'Face verification rejected', description: next?.rejection_reason || 'Please re-submit.', variant: 'destructive' });
+            toast({ title: 'Verification rejected', description: next?.rejection_reason || 'Please review the reason and re-submit.', variant: 'destructive' });
           } else if (status === 'needs_retry') {
             const currentProfileStatus = String((profile as any)?.face_verification_status || '').toLowerCase();
             if ((profile as any)?.is_face_verified === true || currentProfileStatus === 'approved' || currentProfileStatus === 'verified') {
@@ -2230,7 +2230,7 @@ const FaceVerification = () => {
         setVerificationStatus('verified');
         setRejectionReason(null);
         setRetryRequired(null);
-        toast({ title: '✅ Face verification approved', description: 'You are verified. Redirecting…' });
+        toast({ title: 'Verified ✓', description: 'Your identity is approved. Redirecting…' });
         if (profileRedirectTimerRef.current) clearTimeout(profileRedirectTimerRef.current);
         setTimeout(() => navigate('/profile', { replace: true }), 700);
         return 'approved';
@@ -2243,6 +2243,11 @@ const FaceVerification = () => {
         setVerificationStatus('rejected');
         setRejectionReason(String(payload?.rejection_reason || autoFinalize?.reason || blocker));
         setRetryRequired(null);
+        toast({
+          title: 'Verification rejected',
+          description: String(payload?.rejection_reason || autoFinalize?.reason || blocker),
+          variant: 'destructive',
+        });
         // Keep user here so they can read the reason (duplicate info, gender, etc.).
         navigate('/face-verification', { replace: true });
         return 'rejected';
@@ -2264,6 +2269,12 @@ const FaceVerification = () => {
         return 'retry';
       }
       // else: manual review — leave Under Review badge as-is, admin will decide.
+      try {
+        toast({
+          title: 'Under review',
+          description: 'Submission received. Auto-check inconclusive — admin will review (usually under 2 hours).',
+        });
+      } catch (_) {}
       return 'manual';
     } catch (err) {
       console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', err);
