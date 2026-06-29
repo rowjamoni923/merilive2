@@ -19,16 +19,8 @@
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
-let json;
-try {
-  json = execSync("node scripts/audit-admin-theme.mjs --json --quiet", {
-    encoding: "utf8",
-    maxBuffer: 50 * 1024 * 1024,
-  });
-} catch (e) {
-  // audit exits non-zero when errors exist; stdout still holds the JSON
-  json = e.stdout?.toString() || "";
-}
+execSync("node scripts/audit-admin-theme.mjs --json --quiet > /tmp/_admin_audit.json 2>/dev/null || true", { stdio: "inherit", shell: "/bin/bash" });
+const json = readFileSync("/tmp/_admin_audit.json", "utf8");
 const data = JSON.parse(json);
 const targets = data.findings.filter(
   (f) => f.rule === "white-on-light" && f.line > 0,
