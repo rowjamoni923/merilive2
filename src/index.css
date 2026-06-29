@@ -8080,3 +8080,169 @@ aside [class*="text-"] > span:not(.shrink-0) {
     transform: none !important;
   }
 }
+
+/* ================================================================
+   ADMIN-PRO-SHELL — FINAL 3D POLISH PASS
+   Unifies every remaining interactive surface so no component feels
+   visually orphaned next to the cards: buttons, inputs, selects,
+   tabs, badges, dialogs, dropdowns, popovers, separators, tables.
+   ================================================================ */
+
+/* ---- 1. BUTTONS (shadcn data-slot="button") -------------------- */
+.admin-pro-shell [data-slot="button"]:not([data-no-card-fx]) {
+  border-radius: 10px !important;
+  transition: transform 160ms cubic-bezier(0.16,1,0.3,1),
+              box-shadow 160ms cubic-bezier(0.16,1,0.3,1),
+              background-color 160ms ease,
+              border-color 160ms ease !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 1px 2px rgba(15,23,42,0.06),
+    0 1px 3px rgba(15,23,42,0.08) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-pro-shell [data-slot="button"]:not([disabled]):not([data-no-card-fx]):hover {
+    transform: translateY(-1px) !important;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 4px 10px rgba(15,23,42,0.10),
+      0 8px 18px -8px rgba(15,23,42,0.18) !important;
+  }
+}
+.admin-pro-shell [data-slot="button"]:not([disabled]):not([data-no-card-fx]):active {
+  transform: translateY(1px) !important;
+  box-shadow:
+    0 1px 2px rgba(15,23,42,0.10) inset,
+    0 1px 1px rgba(15,23,42,0.04) !important;
+  transition-duration: 70ms !important;
+}
+.admin-pro-shell [data-slot="button"]:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 4px 10px rgba(15,23,42,0.10),
+    0 0 0 3px hsl(var(--admin-card-ring) / 0.28) !important;
+}
+
+/* ---- 2. INPUTS / TEXTAREA / SELECT TRIGGER --------------------- */
+.admin-pro-shell [data-slot="input"],
+.admin-pro-shell [data-slot="textarea"],
+.admin-pro-shell [data-slot="select-trigger"],
+.admin-pro-shell input.flex,
+.admin-pro-shell textarea.flex {
+  border-radius: 10px !important;
+  border: 1px solid hsl(214 32% 88%) !important;
+  background: #FFFFFF !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 1px 2px rgba(15,23,42,0.05) !important;
+  transition: border-color 140ms ease, box-shadow 140ms ease !important;
+}
+.admin-pro-shell [data-slot="input"]:hover,
+.admin-pro-shell [data-slot="textarea"]:hover,
+.admin-pro-shell [data-slot="select-trigger"]:hover {
+  border-color: hsl(var(--admin-card-ring) / 0.40) !important;
+}
+.admin-pro-shell [data-slot="input"]:focus-visible,
+.admin-pro-shell [data-slot="textarea"]:focus-visible,
+.admin-pro-shell [data-slot="select-trigger"]:focus-visible,
+.admin-pro-shell [data-slot="select-trigger"][data-state="open"] {
+  outline: none !important;
+  border-color: hsl(var(--admin-card-ring)) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 0 0 3px hsl(var(--admin-card-ring) / 0.22) !important;
+}
+
+/* ---- 3. TABS --------------------------------------------------- */
+.admin-pro-shell [data-slot="tabs-list"] {
+  background: hsl(210 40% 96%) !important;
+  border: 1px solid hsl(214 32% 91%) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,0.04) !important;
+}
+.admin-pro-shell [data-slot="tabs-trigger"] {
+  border-radius: 8px !important;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease !important;
+}
+.admin-pro-shell [data-slot="tabs-trigger"][data-state="active"] {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 1px 2px rgba(15,23,42,0.06),
+    0 2px 6px -2px rgba(15,23,42,0.10) !important;
+}
+
+/* ---- 4. BADGES ------------------------------------------------- */
+.admin-pro-shell [data-slot="badge"] {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset, 0 1px 1px rgba(15,23,42,0.06) !important;
+}
+
+/* ---- 5. DIALOG / SHEET / POPOVER / DROPDOWN -------------------- */
+.admin-pro-shell [data-slot="dialog-content"],
+.admin-pro-shell [data-slot="sheet-content"],
+.admin-pro-shell [data-slot="alert-dialog-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"],
+[data-slot="hover-card-content"],
+[data-slot="command-dialog"] {
+  border-radius: 16px !important;
+  border: 1px solid hsl(214 32% 91%) !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 12px 32px -12px rgba(15,23,42,0.22),
+    0 24px 60px -20px rgba(15,23,42,0.28) !important;
+}
+
+/* ---- 6. SEPARATORS -------------------------------------------- */
+.admin-pro-shell [data-slot="separator"] {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(214 32% 88%) 18%,
+    hsl(214 32% 88%) 82%,
+    transparent 100%) !important;
+}
+
+/* ---- 7. TABLES — unified header + row interactions ------------- */
+.admin-pro-shell table thead th {
+  background: hsl(210 40% 98%) !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid hsl(214 32% 91%) !important;
+  box-shadow: inset 0 -1px 0 hsl(214 32% 91%) !important;
+}
+.admin-pro-shell table tbody tr {
+  transition: background-color 120ms ease !important;
+}
+.admin-pro-shell table tbody tr:hover {
+  background: hsl(214 32% 97%) !important;
+}
+
+/* ---- 8. SWITCH / CHECKBOX / RADIO — soft 3D ring -------------- */
+.admin-pro-shell [data-slot="switch"],
+.admin-pro-shell [data-slot="checkbox"],
+.admin-pro-shell [data-slot="radio-group-item"] {
+  box-shadow: 0 1px 1px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+  transition: background-color 140ms ease, box-shadow 140ms ease !important;
+}
+.admin-pro-shell [data-slot="switch"]:focus-visible,
+.admin-pro-shell [data-slot="checkbox"]:focus-visible,
+.admin-pro-shell [data-slot="radio-group-item"]:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px hsl(var(--admin-card-ring) / 0.25), 0 1px 1px rgba(15,23,42,0.06) !important;
+}
+
+/* ---- 9. NO-GAP layout normalizer ------------------------------- */
+.admin-pro-shell > *:first-child { margin-top: 0 !important; }
+.admin-pro-shell > *:last-child  { margin-bottom: 0 !important; }
+.admin-pro-shell section + section,
+.admin-pro-shell [data-slot="card"] + [data-slot="card"] {
+  margin-top: 1rem;
+}
