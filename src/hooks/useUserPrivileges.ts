@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface UserPrivilege {
@@ -54,6 +54,8 @@ export const useUserPrivileges = (userId: string | null) => {
   });
   const [loading, setLoading] = useState(true);
   const [userLevel, setUserLevel] = useState(0);
+  const profileEquipRef = useRef<Record<string, string | null>>({});
+  const equipInFlightRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!userId) {
@@ -91,6 +93,16 @@ export const useUserPrivileges = (userId: string | null) => {
 
       const level = profile?.user_level || 0;
       setUserLevel(level);
+      profileEquipRef.current = {
+        equipped_frame_id: profile?.equipped_frame_id ?? null,
+        equipped_entrance_id: profile?.equipped_entrance_id ?? null,
+        equipped_entry_banner_id: profile?.equipped_entry_banner_id ?? null,
+        equipped_entry_name_bar_id: profile?.equipped_entry_name_bar_id ?? null,
+        equipped_bubble_id: profile?.equipped_bubble_id ?? null,
+        equipped_vehicle_id: profile?.equipped_vehicle_id ?? null,
+        equipped_medal_id: profile?.equipped_medal_id ?? null,
+        equipped_noble_card_id: profile?.equipped_noble_card_id ?? null,
+      };
 
       const { data: purchases } = await supabase
         .from('user_purchases')
@@ -241,8 +253,11 @@ export const useUserPrivileges = (userId: string | null) => {
 
   const equipPrivilege = async (itemId: string, category: string, source: 'shop' | 'level' = 'shop') => {
     if (!userId) return false;
+    const requestKey = `${userId}:equip:${category}:${itemId}:${source}`;
+    if (equipInFlightRef.current.has(requestKey)) return true;
 
     try {
+      equipInFlightRef.current.add(requestKey);
       let slot = category;
       if (category === 'portrait_frame' || category === 'frame') slot = 'frame';
       if (category === 'entrance_effect' || (category as string) === 'entry_banner' || category === 'entrance') slot = 'entrance';
@@ -260,8 +275,19 @@ export const useUserPrivileges = (userId: string | null) => {
       else if (slot === 'medal') updateData.equipped_medal_id = itemId;
       else if (slot === 'noble_card') updateData.equipped_noble_card_id = itemId;
 
+      const currentEquip = profileEquipRef.current;
+      const changedUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([key, value]) => currentEquip[key] !== value)
+      );
+
+      if (Object.keys(changedUpdateData).length > 0) {
+        await supabase.from('profiles').update(changedUpdateData).eq('id', userId);
+        profileEquipRef.current = { ...profileEquipRef.current, ...changedUpdateData };
+      }
+
       if (Object.keys(updateData).length > 0) {
-        await supabase.from('profiles').update(updateData).eq('id', userId);
+        // Nothing else to do here. Profile updates are guarded above so the same
+        // equipped item cannot be re-written on every render/mount.
       }
 
       if (source === 'shop') {
@@ -298,6 +324,8 @@ export const useUserPrivileges = (userId: string | null) => {
     } catch (error) {
       console.error('Error equipping privilege:', error);
       return false;
+    } finally {
+      equipInFlightRef.current.delete(requestKey);
     }
   };
 
@@ -321,7 +349,15 @@ export const useUserPrivileges = (userId: string | null) => {
       else if (slot === 'medal') updateData.equipped_medal_id = null;
       else if (slot === 'noble_card') updateData.equipped_noble_card_id = null;
 
-      await supabase.from('profiles').update(updateData).eq('id', userId);
+      const currentEquip = profileEquipRef.current;
+      const changedUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([key, value]) => currentEquip[key] !== value)
+      );
+
+      if (Object.keys(changedUpdateData).length > 0) {
+        await supabase.from('profiles').update(changedUpdateData).eq('id', userId);
+        profileEquipRef.current = { ...profileEquipRef.current, ...changedUpdateData };
+      }
       await supabase.from('user_purchases').update({ is_equipped: false }).eq('user_id', userId);
 
       await fetchPrivileges();
