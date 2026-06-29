@@ -34,6 +34,14 @@ export interface EquippedPrivileges {
 
 type EquipPatch = Record<string, string | null>;
 
+const stablePrivilegesKey = (items: UserPrivilege[]) => JSON.stringify(
+  items.map((item) => [item.id, item.category, item.is_equipped, item.expires_at, item.item_type])
+);
+
+const stableEquippedKey = (equipped: EquippedPrivileges) => JSON.stringify(
+  Object.entries(equipped).map(([slot, item]) => [slot, item?.id ?? null])
+);
+
 export const useUserPrivileges = (userId: string | null) => {
   const [privileges, setPrivileges] = useState<UserPrivilege[]>([]);
   const [equippedPrivileges, setEquippedPrivileges] = useState<EquippedPrivileges>({
@@ -58,6 +66,8 @@ export const useUserPrivileges = (userId: string | null) => {
   const [userLevel, setUserLevel] = useState(0);
   const profileEquipRef = useRef<Record<string, string | null>>({});
   const equipInFlightRef = useRef<Set<string>>(new Set());
+  const privilegesKeyRef = useRef<string>('');
+  const equippedKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (!userId) {
@@ -193,7 +203,11 @@ export const useUserPrivileges = (userId: string | null) => {
         }
       }
 
-      setPrivileges(allPrivileges);
+      const nextPrivilegesKey = stablePrivilegesKey(allPrivileges);
+      if (privilegesKeyRef.current !== nextPrivilegesKey) {
+        privilegesKeyRef.current = nextPrivilegesKey;
+        setPrivileges(allPrivileges);
+      }
 
       const equipped: EquippedPrivileges = {
         frame: null,
@@ -228,7 +242,11 @@ export const useUserPrivileges = (userId: string | null) => {
         }
       }
 
-      setEquippedPrivileges(equipped);
+      const nextEquippedKey = stableEquippedKey(equipped);
+      if (equippedKeyRef.current !== nextEquippedKey) {
+        equippedKeyRef.current = nextEquippedKey;
+        setEquippedPrivileges(equipped);
+      }
     } catch (error) {
       console.error('Error fetching privileges:', error);
     } finally {
@@ -285,11 +303,6 @@ export const useUserPrivileges = (userId: string | null) => {
       if (Object.keys(changedUpdateData).length > 0) {
         await supabase.from('profiles').update(changedUpdateData).eq('id', userId);
         profileEquipRef.current = { ...profileEquipRef.current, ...changedUpdateData };
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        // Nothing else to do here. Profile updates are guarded above so the same
-        // equipped item cannot be re-written on every render/mount.
       }
 
       if (source === 'shop') {
