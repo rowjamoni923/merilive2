@@ -250,7 +250,7 @@ export default function AdminCommissions() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+    <div className="admin-pro-shell space-y-4 md:space-y-6 p-2 md:p-0">
       {/* Header - Mobile Optimized */}
       <div className="flex items-center justify-between bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div>
