@@ -356,6 +356,7 @@ const GoLive = () => {
     host_status?: string | null;
     gender: string | null;
     is_face_verified?: boolean;
+    face_verification_status?: string | null;
     face_verification_image?: string | null;
   } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
