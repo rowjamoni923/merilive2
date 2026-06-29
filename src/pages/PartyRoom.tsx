@@ -237,7 +237,7 @@ const PartyRoom = () => {
       return out.length === prev.length ? prev : out;
     });
   }, [messages]);
-  const [message, setMessage] = useState("");
+  // NOTE: chat input state lives inside <UnifiedPartyRoom/>; do not duplicate here.
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
