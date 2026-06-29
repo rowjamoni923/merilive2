@@ -79,7 +79,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: INK, color: CREAM, touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: INK, color: CREAM, touchAction: 'pan-y pinch-zoom', overscrollBehaviorY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       {/* JSON-LD */}
       <script
         type="application/ld+json"
