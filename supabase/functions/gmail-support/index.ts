@@ -347,15 +347,17 @@ async function sendReply(
   let mimeMessage: string;
 
   if (imageBase64 && imageName && imageMimeType) {
-    // Build multipart MIME with image attachment
-    const boundary = `boundary_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    // Wrap base64 to 76-char lines per RFC 2045 (Gmail is strict about this for large attachments)
+    const wrappedB64 = imageBase64.replace(/\s+/g, '').replace(/(.{76})/g, '$1\r\n');
+    // Build multipart/mixed > multipart/related so image renders inline AND as attachment
+    const boundary = `b_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     mimeMessage = [
       `To: ${to}`,
       `Subject: ${replySubject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: multipart/mixed; boundary="${boundary}"`,
       inReplyTo ? `In-Reply-To: ${inReplyTo}` : '',
       inReplyTo ? `References: ${inReplyTo}` : '',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
       '',
       `--${boundary}`,
       `Content-Type: text/html; charset=UTF-8`,
@@ -368,9 +370,10 @@ async function sendReply(
       `Content-Disposition: attachment; filename="${imageName}"`,
       `Content-Transfer-Encoding: base64`,
       '',
-      imageBase64,
+      wrappedB64,
       '',
       `--${boundary}--`,
+      '',
     ].filter(Boolean).join('\r\n');
   } else {
     // Simple text reply with branded HTML
@@ -385,14 +388,20 @@ async function sendReply(
     ].filter(Boolean).join('\r\n');
   }
 
-  // Base64url encode
+  // Base64url encode — chunked to avoid call-stack overflow on large attachments
   const encoder = new TextEncoder();
   const bytes = encoder.encode(mimeMessage);
-  const base64 = btoa(String.fromCharCode(...bytes))
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
+  }
+  const base64 = btoa(binary)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 
+  // For payloads > 5MB Gmail requires multipart upload; use uploadType=multipart endpoint as safety
   const sendRes = await fetch(
     `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`,
     {
@@ -410,8 +419,8 @@ async function sendReply(
 
   if (!sendRes.ok) {
     const err = await sendRes.text();
-    console.error('Gmail send error:', err);
-    throw new Error('Failed to send reply');
+    console.error('Gmail send error:', sendRes.status, err);
+    throw new Error(`Gmail send failed (${sendRes.status}): ${err.slice(0, 300)}`);
   }
 
   return { success: true };
