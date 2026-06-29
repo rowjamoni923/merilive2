@@ -35,7 +35,18 @@ function json(body: unknown, status = 200) {
 // Allow client (user) to poll only their own topup; cron/admin can poll all.
 async function resolveScope(req: Request) {
   const url = new URL(req.url);
-  const topupId = url.searchParams.get("topup_id");
+  let topupId = url.searchParams.get("topup_id");
+  if (!topupId && (req.method === "POST" || req.method === "PUT")) {
+    try {
+      const body = await req.clone().json();
+      const bodyTopupId = body?.topup_id ?? body?.topupId;
+      if (typeof bodyTopupId === "string" && bodyTopupId.trim()) {
+        topupId = bodyTopupId.trim();
+      }
+    } catch {
+      // No JSON body is fine for scheduled/admin polling.
+    }
+  }
   const authHeader = req.headers.get("Authorization") ?? "";
   if (authHeader.startsWith("Bearer ")) {
     const c = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
