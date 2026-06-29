@@ -361,6 +361,135 @@ const AdminAppUpdateLogs = () => {
           </Button>
         </div>
       </div>
+
+      {/* Per-log detail dialog: explains the exact version comparison */}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-2xl bg-white">
+          {selected && (() => {
+            const cur = toComparable(selected.current_version_code, selected.current_version_name);
+            const srv = toComparable(selected.server_version_code, selected.server_version_name);
+            const min = toComparable(selected.min_version_code, null);
+            const updateExplain = srv > cur
+              ? `Server comparable (${srv}) > device comparable (${cur}) → update available.`
+              : `Server comparable (${srv}) ≤ device comparable (${cur}) → no update needed.`;
+            const forceExplain = selected.force_update
+              ? `force_update flag = ON in admin AND minimum (${min}) > device (${cur}) → forced.`
+              : min > cur
+                ? `Minimum (${min}) > device (${cur}) but admin force_update flag is OFF → not forced.`
+                : `Minimum (${min}) ≤ device (${cur}) → device is above the floor, not forced.`;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Info className="w-5 h-5 text-blue-600" />
+                    Update Check Detail
+                  </DialogTitle>
+                  <DialogDescription>
+                    {format(new Date(selected.created_at), "PPpp")} · {selected.platform}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 text-sm">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-slate-500">Device</div>
+                      <div className="font-mono text-sm mt-1">
+                        {selected.current_version_name ?? "?"}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        code: {selected.current_version_code ?? "?"}
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">comparable: {cur}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-slate-500">Server target</div>
+                      <div className="font-mono text-sm mt-1">
+                        {selected.server_version_name ?? "?"}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        code: {selected.server_version_code ?? "?"}
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">comparable: {srv}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-[11px] uppercase tracking-wide text-slate-500">Minimum (force)</div>
+                      <div className="font-mono text-sm mt-1">
+                        {selected.min_version_code ?? "—"}
+                      </div>
+                      <div className="text-xs text-slate-500">raw build code</div>
+                      <div className="text-xs text-blue-600 mt-1">comparable: {min}</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2">
+                    <div>
+                      <div className="font-semibold text-slate-800 mb-1">Update available?</div>
+                      <div className="text-slate-600">{updateExplain}</div>
+                      <div className="mt-1">
+                        Result:{" "}
+                        {selected.update_available ? (
+                          <Badge className="bg-blue-500 text-white">Yes</Badge>
+                        ) : (
+                          <Badge variant="secondary">No</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-slate-800 mb-1 mt-2">Force update triggered?</div>
+                      <div className="text-slate-600">{forceExplain}</div>
+                      <div className="mt-1">
+                        Result:{" "}
+                        {selected.force_update ? (
+                          <Badge className="bg-red-500 text-white">Forced</Badge>
+                        ) : (
+                          <Badge variant="secondary">Not forced</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-slate-500">Outcome</div>
+                      <div className="mt-1">{outcomeBadge(selected.outcome)}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-slate-500">Modal shown</div>
+                      <div className="mt-1 font-medium text-slate-800">
+                        {selected.modal_shown ? "Yes" : "No"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-slate-500">Device model</div>
+                      <div className="mt-1 font-mono text-slate-800">
+                        {selected.device_model ?? "—"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3">
+                      <div className="text-slate-500">App build</div>
+                      <div className="mt-1 font-mono text-slate-800">
+                        {selected.app_build ?? "—"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-3 col-span-2">
+                      <div className="text-slate-500">User</div>
+                      <div className="mt-1 font-mono text-slate-800 break-all">
+                        {selected.user_id ?? "anonymous"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    "Comparable" normalises versionCode (raw build number) and versionName (dotted)
+                    onto one scale (max of both) so device, server target, and minimum can be compared
+                    consistently — the same logic the client uses to decide whether to show the modal.
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
