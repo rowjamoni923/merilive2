@@ -35,6 +35,7 @@ import {
   isLiveKitEnabled,
 } from './livekitSignaling';
 import { nativeLiveKitController } from './nativeLiveKitController';
+import { supabase } from '@/integrations/supabase/client';
 
 export type ChatScope = 'call' | 'live' | 'party';
 
