@@ -162,7 +162,7 @@ export default function AdminGameServer() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
             <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500">
-              <Server className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <Server className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
             </div>
             Game Server Control
             {settings?.is_active && !settings?.maintenance_mode && (

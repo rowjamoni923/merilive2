@@ -227,11 +227,11 @@ export default function AdminPartyRooms() {
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <PartyPopper className="w-5 h-5 md:w-7 md:h-7" />
               Party Room Management
             </h1>
-            <p className="text-white/80 text-xs md:text-sm mt-1">Total {totalRooms} party rooms</p>
+            <p className="text-slate-700 text-xs md:text-sm mt-1">Total {totalRooms} party rooms</p>
           </div>
         </div>
       </div>
@@ -316,7 +316,7 @@ export default function AdminPartyRooms() {
                           "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center",
                           getRoomTypeColor(room.room_type)
                         )}>
-                          <TypeIcon className="w-6 h-6 text-white" />
+                          <TypeIcon className="w-6 h-6 text-slate-900" />
                         </div>
                         <div>
                           <p className="text-slate-900 font-bold">{room.name}</p>
@@ -454,7 +454,7 @@ export default function AdminPartyRooms() {
       <Dialog open={showEndDialog} onOpenChange={setShowEndDialog}>
         <DialogContent className="bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white">Close Party Room</DialogTitle>
+            <DialogTitle className="text-slate-900">Close Party Room</DialogTitle>
             <DialogDescription className="text-slate-400">
               Are you sure you want to close "{selectedRoom?.name}"? All participants will be removed.
             </DialogDescription>
@@ -482,7 +482,7 @@ export default function AdminPartyRooms() {
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Party Room Details</DialogTitle>
+            <DialogTitle className="text-slate-900">Party Room Details</DialogTitle>
           </DialogHeader>
           {selectedRoom && (
             <div className="space-y-4">
@@ -493,11 +493,11 @@ export default function AdminPartyRooms() {
                 )}>
                   {(() => {
                     const Icon = getRoomTypeIcon(selectedRoom.room_type);
-                    return <Icon className="w-8 h-8 text-white" />;
+                    return <Icon className="w-8 h-8 text-slate-900" />;
                   })()}
                 </div>
                 <div>
-                  <p className="text-white font-bold text-lg">{selectedRoom.name}</p>
+                  <p className="text-slate-900 font-bold text-lg">{selectedRoom.name}</p>
                   <p className="text-slate-400">#{selectedRoom.room_code}</p>
                 </div>
               </div>
@@ -505,15 +505,15 @@ export default function AdminPartyRooms() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Type</p>
-                  <p className="text-white font-bold capitalize">{selectedRoom.room_type}</p>
+                  <p className="text-slate-900 font-bold capitalize">{selectedRoom.room_type}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Participants</p>
-                  <p className="text-white font-bold">{selectedRoom.current_participants}/{selectedRoom.max_participants}</p>
+                  <p className="text-slate-900 font-bold">{selectedRoom.current_participants}/{selectedRoom.max_participants}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Game Mode</p>
-                  <p className="text-white font-bold">{selectedRoom.game_mode || "-"}</p>
+                  <p className="text-slate-900 font-bold">{selectedRoom.game_mode || "-"}</p>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3">
                   <p className="text-slate-400 text-sm">Status</p>
@@ -531,8 +531,8 @@ export default function AdminPartyRooms() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-medium">{selectedRoom.host?.display_name || "Unknown"}</p>
-                  <p className="text-xs text-white/50">Room Host</p>
+                  <p className="text-slate-900 font-medium">{selectedRoom.host?.display_name || "Unknown"}</p>
+                  <p className="text-xs text-slate-500">Room Host</p>
                 </div>
               </div>
             </div>

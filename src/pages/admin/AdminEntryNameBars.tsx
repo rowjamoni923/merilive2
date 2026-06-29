@@ -237,7 +237,7 @@ const AdminEntryNameBars = () => {
   const FormFields = () => (
     <div className="space-y-4">
       <div>
-        <Label className="text-white">Name *</Label>
+        <Label className="text-slate-900">Name *</Label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -247,7 +247,7 @@ const AdminEntryNameBars = () => {
       </div>
 
       <div>
-        <Label className="text-white">Description</Label>
+        <Label className="text-slate-900">Description</Label>
         <Input
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -274,7 +274,7 @@ const AdminEntryNameBars = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-white">Min Level</Label>
+          <Label className="text-slate-900">Min Level</Label>
           <Input
             type="number"
             value={formData.min_level}
@@ -283,7 +283,7 @@ const AdminEntryNameBars = () => {
           />
         </div>
         <div>
-          <Label className="text-white">Price (Diamonds)</Label>
+          <Label className="text-slate-900">Price (Diamonds)</Label>
           <Input
             type="number"
             value={formData.price_diamonds}
@@ -295,7 +295,7 @@ const AdminEntryNameBars = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-white">Duration (ms)</Label>
+          <Label className="text-slate-900">Duration (ms)</Label>
           <Input
             type="number"
             value={formData.duration_ms}
@@ -304,7 +304,7 @@ const AdminEntryNameBars = () => {
           />
         </div>
         <div>
-          <Label className="text-white">Display Order</Label>
+          <Label className="text-slate-900">Display Order</Label>
           <Input
             type="number"
             value={formData.display_order}
@@ -320,20 +320,20 @@ const AdminEntryNameBars = () => {
             checked={formData.is_active}
             onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
           />
-          <Label className="text-white">Active</Label>
+          <Label className="text-slate-900">Active</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch
             checked={formData.is_premium}
             onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_premium: checked }))}
           />
-          <Label className="text-white">Premium</Label>
+          <Label className="text-slate-900">Premium</Label>
         </div>
       </div>
 
       {formData.animation_url && (
         <div className="mt-4 p-4 bg-black/30 rounded-lg">
-          <Label className="text-white mb-2 block">Preview</Label>
+          <Label className="text-slate-900 mb-2 block">Preview</Label>
           <div className="flex justify-center">
             <Suspense fallback={<div className="w-80 h-20 bg-purple-600/30 animate-pulse rounded" />}>
               <SVGAPreviewWithMuteToggle
@@ -361,7 +361,7 @@ const AdminEntryNameBars = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-yellow-400" />
             Flying Name Bars
           </h1>
@@ -378,7 +378,7 @@ const AdminEntryNameBars = () => {
           </DialogTrigger>
           <DialogContent className="bg-white border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">Add Entry Name Bar</DialogTitle>
+              <DialogTitle className="text-slate-900">Add Entry Name Bar</DialogTitle>
             </DialogHeader>
             <FormFields />
             <div className="flex justify-end gap-2 mt-4">
@@ -408,7 +408,7 @@ const AdminEntryNameBars = () => {
           <Card key={nameBar.id} className="bg-slate-50/50 border-purple-500/20 overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
+                <CardTitle className="text-slate-900 text-lg flex items-center gap-2">
                   {nameBar.name}
                   {nameBar.is_premium && (
                     <span className="px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-400 rounded">Premium</span>
@@ -454,7 +454,7 @@ const AdminEntryNameBars = () => {
 
               {/* Info */}
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-gray-400">Min Level: <span className="text-white">{nameBar.min_level}</span></div>
+                <div className="text-gray-400">Min Level: <span className="text-slate-900">{nameBar.min_level}</span></div>
                 <div className="text-gray-400">Price: <span className="text-purple-400">{nameBar.price_diamonds} 💎</span></div>
               </div>
 
@@ -509,7 +509,7 @@ const AdminEntryNameBars = () => {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="bg-white border-purple-500/20 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Entry Name Bar</DialogTitle>
+            <DialogTitle className="text-slate-900">Edit Entry Name Bar</DialogTitle>
           </DialogHeader>
           <FormFields />
           <div className="flex justify-end gap-2 mt-4">
@@ -525,7 +525,7 @@ const AdminEntryNameBars = () => {
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="bg-gradient-to-br from-purple-900 to-indigo-900 border-purple-500/20 max-w-md w-[95vw] rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Preview: {selectedNameBar?.name}</DialogTitle>
+            <DialogTitle className="text-slate-900">Preview: {selectedNameBar?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-8 flex justify-center">
             {selectedNameBar && (
@@ -548,7 +548,7 @@ const AdminEntryNameBars = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-white border-red-500/20">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Entry Name Bar?</AlertDialogTitle>
+            <AlertDialogTitle className="text-slate-900">Delete Entry Name Bar?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete "{selectedNameBar?.name}". This action cannot be undone.
             </AlertDialogDescription>

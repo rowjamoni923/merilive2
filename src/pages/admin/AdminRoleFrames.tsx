@@ -385,7 +385,7 @@ const AdminRoleFrames = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <UserCog className="w-7 h-7 text-purple-400" />
             Role-Based Frames
           </h1>
@@ -421,8 +421,8 @@ const AdminRoleFrames = () => {
               onClick={() => setSelectedRole(role.value)}
             >
               <div className="bg-white rounded-xl p-3 h-full">
-                <role.icon className="w-6 h-6 text-white mb-1" />
-                <p className="text-xl font-bold text-white">{count}</p>
+                <role.icon className="w-6 h-6 text-slate-900 mb-1" />
+                <p className="text-xl font-bold text-slate-900">{count}</p>
                 <p className="text-xs text-slate-400">{role.label}</p>
               </div>
             </div>
@@ -482,7 +482,7 @@ const AdminRoleFrames = () => {
                       )}
                     </div>
                     
-                    <h4 className="text-white font-semibold truncate">{frame.frame_name}</h4>
+                    <h4 className="text-slate-900 font-semibold truncate">{frame.frame_name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
                         {roleConfig.label}
@@ -551,7 +551,7 @@ const AdminRoleFrames = () => {
                               )}
                             </div>
                             <div>
-                              <p className="text-white text-sm">{assignment.user?.display_name || 'Unknown'}</p>
+                              <p className="text-slate-900 text-sm">{assignment.user?.display_name || 'Unknown'}</p>
                               <p className="text-slate-500 text-xs">{assignment.user?.app_uid}</p>
                             </div>
                           </div>
@@ -567,7 +567,7 @@ const AdminRoleFrames = () => {
                                 />
                               )}
                             </div>
-                            <span className="text-white text-sm">{assignment.frame?.frame_name}</span>
+                            <span className="text-slate-900 text-sm">{assignment.frame?.frame_name}</span>
                           </div>
                         </td>
                         <td className="p-3">
@@ -602,7 +602,7 @@ const AdminRoleFrames = () => {
       <Dialog open={frameDialogOpen} onOpenChange={setFrameDialogOpen}>
         <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Crown className="w-5 h-5 text-purple-400" />
               {editingFrame ? 'Edit Frame' : 'Add Role Frame'}
             </DialogTitle>
@@ -688,14 +688,14 @@ const AdminRoleFrames = () => {
                   checked={frameForm.is_active !== false}
                   onCheckedChange={(c) => setFrameForm(prev => ({ ...prev, is_active: c }))}
                 />
-                <span className="text-white text-sm">Active</span>
+                <span className="text-slate-900 text-sm">Active</span>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={frameForm.is_default === true}
                   onCheckedChange={(c) => setFrameForm(prev => ({ ...prev, is_default: c }))}
                 />
-                <span className="text-white text-sm">Auto-Assign Default</span>
+                <span className="text-slate-900 text-sm">Auto-Assign Default</span>
               </div>
             </div>
 
@@ -725,7 +725,7 @@ const AdminRoleFrames = () => {
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="bg-white border-slate-200 max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <User className="w-5 h-5 text-green-400" />
               Manual Frame Assignment
             </DialogTitle>
@@ -770,7 +770,7 @@ const AdminRoleFrames = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-medium">{user.display_name || 'Unknown'}</p>
+                      <p className="text-slate-900 font-medium">{user.display_name || 'Unknown'}</p>
                       <p className="text-slate-500 text-xs"><CopyableUid value={user.app_uid} /></p>
                     </div>
                     {selectedUser?.id === user.id && (

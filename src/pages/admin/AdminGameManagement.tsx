@@ -52,10 +52,10 @@ export default function AdminGameManagement() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
-            <Gamepad2 className="w-6 h-6 text-white" />
+            <Gamepad2 className="w-6 h-6 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Game Management</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Game Management</h1>
             <p className="text-slate-400 text-sm">
               Manage all game settings, providers, server & leaderboard
             </p>
@@ -72,7 +72,7 @@ export default function AdminGameManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Active Games</p>
-              <p className="text-white font-bold text-xl">{stats.activeGames}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeGames}</p>
             </div>
           </CardContent>
         </Card>
@@ -84,7 +84,7 @@ export default function AdminGameManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Providers</p>
-              <p className="text-white font-bold text-xl">{stats.providers}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.providers}</p>
             </div>
           </CardContent>
         </Card>
@@ -96,7 +96,7 @@ export default function AdminGameManagement() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Server</p>
-              <p className="text-white font-bold text-xl capitalize">{stats.serverStatus}</p>
+              <p className="text-slate-900 font-bold text-xl capitalize">{stats.serverStatus}</p>
             </div>
           </CardContent>
         </Card>
@@ -138,7 +138,7 @@ export default function AdminGameManagement() {
         <TabsContent value="settings" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Settings2 className="w-5 h-5 text-blue-400" />
                 Game Settings
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">
@@ -161,7 +161,7 @@ export default function AdminGameManagement() {
         <TabsContent value="providers" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Globe className="w-5 h-5 text-green-400" />
                 Game Providers
                 <Badge variant="outline" className="ml-2 text-green-400 border-green-500/50">
@@ -178,7 +178,7 @@ export default function AdminGameManagement() {
         <TabsContent value="server" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Server className="w-5 h-5 text-orange-400" />
                 Game Server
                 <Badge variant="outline" className="ml-2 text-orange-400 border-orange-500/50">

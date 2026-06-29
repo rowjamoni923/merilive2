@@ -145,7 +145,7 @@ const AdminHelperDiamondPricing = () => {
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
+              <TrendingUp className="w-5 h-5 text-slate-900" />
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Level-Based Diamond Benefits</h3>
@@ -190,7 +190,7 @@ const AdminHelperDiamondPricing = () => {
                           "w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r",
                           levelInfo.color
                         )}>
-                          <LevelIcon className="w-4 h-4 text-white" />
+                          <LevelIcon className="w-4 h-4 text-slate-900" />
                         </div>
                         <div>
                           <p className="font-medium">Level {pkg.level_number}</p>
@@ -275,7 +275,7 @@ const AdminHelperDiamondPricing = () => {
                     "w-12 h-12 rounded-xl mx-auto flex items-center justify-center bg-gradient-to-r mb-3",
                     levelInfo.color
                   )}>
-                    <LevelIcon className="w-6 h-6 text-white" />
+                    <LevelIcon className="w-6 h-6 text-slate-900" />
                   </div>
                   <h4 className="font-semibold">{levelInfo.label}</h4>
                   <p className="text-xs text-muted-foreground mb-2">Level {pkg.level_number}</p>

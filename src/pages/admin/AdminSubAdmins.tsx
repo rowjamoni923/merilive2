@@ -451,11 +451,11 @@ const AdminSubAdmins = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-              <Shield className="w-8 h-8 text-white" />
+              <Shield className="w-8 h-8 text-slate-900" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Sub-Admin Management</h1>
-              <p className="text-white/80">Sector-based Access Control</p>
+              <h1 className="text-2xl font-bold text-slate-900">Sub-Admin Management</h1>
+              <p className="text-slate-700">Sector-based Access Control</p>
             </div>
           </div>
 

@@ -309,8 +309,8 @@ const AdminCoinTraders = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="font-bold text-xl text-white">Diamond Traders</h1>
-            <p className="text-white/80 text-sm">Diamond Trader Management</p>
+            <h1 className="font-bold text-xl text-slate-900">Diamond Traders</h1>
+            <p className="text-slate-700 text-sm">Diamond Trader Management</p>
           </div>
           <div className="flex gap-2">
             <ReportExportMenu
@@ -371,19 +371,19 @@ const AdminCoinTraders = () => {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">{stats.totalHelpers}</p><p className="text-white/80 text-xs">Total</p>
+            <p className="text-xl font-bold text-slate-900">{stats.totalHelpers}</p><p className="text-slate-700 text-xs">Total</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-green-200">{stats.activeHelpers}</p><p className="text-white/80 text-xs">Active</p>
+            <p className="text-xl font-bold text-green-200">{stats.activeHelpers}</p><p className="text-slate-700 text-xs">Active</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-emerald-200">{stats.visibleTraders}</p><p className="text-white/80 text-xs">Visible</p>
+            <p className="text-xl font-bold text-emerald-200">{stats.visibleTraders}</p><p className="text-slate-700 text-xs">Visible</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-yellow-200">{stats.pendingTransactions}</p><p className="text-white/80 text-xs">Pending</p>
+            <p className="text-xl font-bold text-yellow-200">{stats.pendingTransactions}</p><p className="text-slate-700 text-xs">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">{(stats.totalCoinsTraded / 1000).toFixed(0)}K</p><p className="text-white/80 text-xs">Diamonds</p>
+            <p className="text-xl font-bold text-slate-900">{(stats.totalCoinsTraded / 1000).toFixed(0)}K</p><p className="text-slate-700 text-xs">Diamonds</p>
           </div>
         </div>
       </div>

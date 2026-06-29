@@ -406,7 +406,7 @@ export default function AdminPartyBanners() {
 
             {/* Preview */}
             <div className="p-4 bg-black/50 rounded-xl">
-              <p className="text-xs text-white/60 mb-2">Preview:</p>
+              <p className="text-xs text-slate-600 mb-2">Preview:</p>
               <div className="flex justify-end">
                 <motion.div
                   className="relative overflow-hidden rounded-xl"
@@ -421,10 +421,10 @@ export default function AdminPartyBanners() {
                     }}
                   >
                     <div className="flex flex-col items-center">
-                      <span className="text-[10px] font-bold text-white/90">{formData.title || 'TITLE'}</span>
+                      <span className="text-[10px] font-bold text-slate-800">{formData.title || 'TITLE'}</span>
                       <div className="flex items-center gap-1">
                         <span className="text-sm">{formData.icon_emoji}</span>
-                        <span className="text-sm font-bold text-white">{formatAmount(formData.amount)}</span>
+                        <span className="text-sm font-bold text-slate-900">{formatAmount(formData.amount)}</span>
                       </div>
                     </div>
                   </div>
@@ -467,8 +467,8 @@ export default function AdminPartyBanners() {
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{banner.icon_emoji}</span>
                       <div>
-                        <p className="text-white font-bold text-sm">{banner.title}</p>
-                        <p className="text-white/80 text-xs">{formatAmount(banner.amount)}</p>
+                        <p className="text-slate-900 font-bold text-sm">{banner.title}</p>
+                        <p className="text-slate-700 text-xs">{formatAmount(banner.amount)}</p>
                       </div>
                     </div>
                   </div>

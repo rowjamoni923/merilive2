@@ -44,11 +44,11 @@ const AdminLevelManagement = () => {
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Crown className="w-8 h-8 text-white" />
+            <Crown className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Level Management System</h1>
-            <p className="text-white/80">Unified control for all level-related settings</p>
+            <h1 className="text-2xl font-bold text-slate-900">Level Management System</h1>
+            <p className="text-slate-700">Unified control for all level-related settings</p>
           </div>
         </div>
       </div>

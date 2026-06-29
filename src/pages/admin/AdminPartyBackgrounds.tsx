@@ -465,7 +465,7 @@ const AdminPartyBackgrounds = () => {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-              <Image className="w-5 h-5 text-white" />
+              <Image className="w-5 h-5 text-slate-900" />
             </div>
             Party Backgrounds
           </h1>
@@ -618,7 +618,7 @@ const AdminPartyBackgrounds = () => {
                         if (!parent.querySelector('[data-fallback]')) {
                           const ph = document.createElement('div');
                           ph.dataset.fallback = '1';
-                          ph.className = 'absolute inset-0 flex items-center justify-center text-xs text-white/70';
+                          ph.className = 'absolute inset-0 flex items-center justify-center text-xs text-slate-600';
                           ph.textContent = 'Image unavailable';
                           parent.appendChild(ph);
                         }
@@ -665,8 +665,8 @@ const AdminPartyBackgrounds = () => {
 
                 {/* Name */}
                 <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-white font-medium text-sm truncate">{bg.name}</p>
-                  <p className="text-white/70 text-xs capitalize">{bg.category}</p>
+                  <p className="text-slate-900 font-medium text-sm truncate">{bg.name}</p>
+                  <p className="text-slate-600 text-xs capitalize">{bg.category}</p>
                 </div>
               </div>
               <CardContent className="p-2">

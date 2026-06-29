@@ -60,11 +60,11 @@ const AdminAgencyHub = () => {
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-white" />
+            <Building2 className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Agency Management Hub</h1>
-            <p className="text-white/80">Agencies & Policy Management</p>
+            <h1 className="text-2xl font-bold text-slate-900">Agency Management Hub</h1>
+            <p className="text-slate-700">Agencies & Policy Management</p>
           </div>
         </div>
       </div>

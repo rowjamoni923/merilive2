@@ -307,7 +307,7 @@ const AdminHelperApplications = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-white" />
+                  <Clock className="w-5 h-5 text-slate-900" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-yellow-700">{stats.pending}</p>
@@ -321,7 +321,7 @@ const AdminHelperApplications = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-white" />
+                  <CheckCircle className="w-5 h-5 text-slate-900" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-green-700">{stats.approved}</p>
@@ -335,7 +335,7 @@ const AdminHelperApplications = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
-                  <XCircle className="w-5 h-5 text-white" />
+                  <XCircle className="w-5 h-5 text-slate-900" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-red-700">{stats.rejected}</p>
@@ -349,7 +349,7 @@ const AdminHelperApplications = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
-                  <Banknote className="w-5 h-5 text-white" />
+                  <Banknote className="w-5 h-5 text-slate-900" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-purple-700">{stats.pendingPayroll}</p>
@@ -924,7 +924,7 @@ const AdminHelperApplications = () => {
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
                                   onClick={() => imageViewer.openImage(selectedApp.id_card_front_url!)} fallbackSrc="/placeholder.svg" />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <ExternalLink className="w-5 h-5 text-white" />
+                                  <ExternalLink className="w-5 h-5 text-slate-900" />
                                 </div>
                               </div>
                             </div>
@@ -939,7 +939,7 @@ const AdminHelperApplications = () => {
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
                                   onClick={() => imageViewer.openImage(selectedApp.id_card_back_url!)} fallbackSrc="/placeholder.svg" />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <ExternalLink className="w-5 h-5 text-white" />
+                                  <ExternalLink className="w-5 h-5 text-slate-900" />
                                 </div>
                               </div>
                             </div>

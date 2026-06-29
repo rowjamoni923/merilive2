@@ -223,11 +223,11 @@ export default function AdminRecordings() {
       <div className="bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <Film className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Film className="w-6 h-6 sm:w-7 sm:h-7 text-slate-900" />
               Live Recording Archive
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">Recordings stored for 15 days</p>
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">Recordings stored for 15 days</p>
           </div>
           <Button onClick={fetchRecordings} variant="outline" className="border-white/30 text-slate-900 hover:bg-white/20 w-full sm:w-auto">
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -246,7 +246,7 @@ export default function AdminRecordings() {
               </div>
               <div>
                 <p className="text-slate-400 text-[10px] sm:text-xs">Total Recordings</p>
-                <p className="text-white font-bold text-lg sm:text-2xl">{stats.totalRecordings}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{stats.totalRecordings}</p>
               </div>
             </div>
           </CardContent>
@@ -259,7 +259,7 @@ export default function AdminRecordings() {
               </div>
               <div>
                 <p className="text-slate-400 text-[10px] sm:text-xs">Ready</p>
-                <p className="text-white font-bold text-lg sm:text-2xl">{stats.readyRecordings}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{stats.readyRecordings}</p>
               </div>
             </div>
           </CardContent>
@@ -272,7 +272,7 @@ export default function AdminRecordings() {
               </div>
               <div>
                 <p className="text-slate-400 text-[10px] sm:text-xs">Total Duration</p>
-                <p className="text-white font-bold text-lg sm:text-2xl">{formatDuration(stats.totalDuration)}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{formatDuration(stats.totalDuration)}</p>
               </div>
             </div>
           </CardContent>
@@ -285,7 +285,7 @@ export default function AdminRecordings() {
               </div>
               <div>
                 <p className="text-slate-400 text-[10px] sm:text-xs">Expiring Soon</p>
-                <p className="text-white font-bold text-lg sm:text-2xl">{stats.expiringToday}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{stats.expiringToday}</p>
               </div>
             </div>
           </CardContent>
@@ -363,7 +363,7 @@ export default function AdminRecordings() {
                           onClick={() => handlePlayRecording(recording)}
                           className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity"
                         >
-                          <Play className="w-12 h-12 text-white" fill="white" />
+                          <Play className="w-12 h-12 text-slate-900" fill="white" />
                         </button>
                       )}
                       <div className="absolute top-2 left-2">
@@ -382,7 +382,7 @@ export default function AdminRecordings() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-white font-medium">
+                            <p className="text-slate-900 font-medium">
                               {recording.host?.display_name || recording.host_name || "Unknown Host"}
                             </p>
                             <p className="text-slate-400 text-xs flex items-center gap-1">
@@ -405,22 +405,22 @@ export default function AdminRecordings() {
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                         <div className="bg-white rounded-lg p-2 text-center">
                           <Clock className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-                          <p className="text-white text-sm font-medium">{formatDuration(recording.duration_seconds)}</p>
+                          <p className="text-slate-900 text-sm font-medium">{formatDuration(recording.duration_seconds)}</p>
                           <p className="text-slate-500 text-[10px]">Duration</p>
                         </div>
                         <div className="bg-white rounded-lg p-2 text-center">
                           <Users className="w-4 h-4 text-green-400 mx-auto mb-1" />
-                          <p className="text-white text-sm font-medium">{recording.total_viewers}</p>
+                          <p className="text-slate-900 text-sm font-medium">{recording.total_viewers}</p>
                           <p className="text-slate-500 text-[10px]">Viewers</p>
                         </div>
                         <div className="bg-white rounded-lg p-2 text-center">
                           <Gift className="w-4 h-4 text-pink-400 mx-auto mb-1" />
-                          <p className="text-white text-sm font-medium">{recording.total_gifts}</p>
+                          <p className="text-slate-900 text-sm font-medium">{recording.total_gifts}</p>
                           <p className="text-slate-500 text-[10px]">Gifts</p>
                         </div>
                         <div className="bg-white rounded-lg p-2 text-center">
                           <Diamond className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                          <p className="text-white text-sm font-medium">{recording.total_coins}</p>
+                          <p className="text-slate-900 text-sm font-medium">{recording.total_coins}</p>
                           <p className="text-slate-500 text-[10px]">Diamonds</p>
                         </div>
                       </div>
@@ -470,7 +470,7 @@ export default function AdminRecordings() {
       <Dialog open={isPlayerOpen} onOpenChange={setIsPlayerOpen}>
         <DialogContent className="max-w-4xl bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Film className="w-5 h-5 text-purple-400" />
               Recording - {selectedRecording?.host?.display_name || selectedRecording?.host_name}
             </DialogTitle>

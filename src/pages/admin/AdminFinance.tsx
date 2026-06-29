@@ -50,11 +50,11 @@ const AdminFinance = () => {
       <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <DollarSign className="w-8 h-8 text-white" />
+            <DollarSign className="w-8 h-8 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Finance Management</h1>
-            <p className="text-white/80">Unified control for all financial operations</p>
+            <h1 className="text-2xl font-bold text-slate-900">Finance Management</h1>
+            <p className="text-slate-700">Unified control for all financial operations</p>
           </div>
         </div>
       </div>

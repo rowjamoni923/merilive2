@@ -2896,7 +2896,7 @@ export default function AdminLayout() {
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
               <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-blue-400/30">
-                <Shield className="w-5 h-5 text-white drop-shadow" />
+                <Shield className="w-5 h-5 text-slate-900 drop-shadow" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-lg shadow-emerald-500/40 animate-pulse" />
             </div>
@@ -3016,7 +3016,7 @@ export default function AdminLayout() {
                                   ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_4px_10px_-2px_rgba(59,130,246,0.5),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-blue-400/40"
                                   : "bg-slate-100 group-hover/item:bg-white group-hover/item:shadow-[0_1px_2px_rgba(15,23,42,0.06),0_2px_6px_-2px_rgba(15,23,42,0.08)] group-hover/item:ring-1 group-hover/item:ring-slate-200"
                               )}>
-                                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-slate-500 group-hover/item:text-blue-600")} />
+                                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-slate-900" : "text-slate-500 group-hover/item:text-blue-600")} />
                                 {!isSidebarOpen && badgeCount > 0 && (
                                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center px-0.5 bg-gradient-to-r from-rose-500 to-red-600 rounded-full text-[8px] text-white font-bold ring-2 ring-white shadow">
                                     {formatBadgeCount(badgeCount)}
@@ -3143,9 +3143,9 @@ export default function AdminLayout() {
                       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-violet-500/[0.06] to-transparent border-b border-white/[0.06]">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-                            <Bell className="w-4 h-4 text-white" />
+                            <Bell className="w-4 h-4 text-slate-900" />
                           </div>
-                          <span className="font-bold text-white text-sm">Notifications</span>
+                          <span className="font-bold text-slate-900 text-sm">Notifications</span>
                           {totalUnreadCount > 0 && (
                             <Badge className="bg-violet-500/20 text-violet-300 border border-violet-500/20 text-[10px] px-1.5 py-0">
                               {formatBadgeCount(totalUnreadCount)}
@@ -3191,7 +3191,7 @@ export default function AdminLayout() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
-                                    <p className={cn("text-sm", !notification.is_read ? "font-bold text-white" : "text-slate-400 font-medium")}>
+                                    <p className={cn("text-sm", !notification.is_read ? "font-bold text-slate-900" : "text-slate-400 font-medium")}>
                                       {notification.title}
                                     </p>
                                     <div className="flex items-center gap-1.5">

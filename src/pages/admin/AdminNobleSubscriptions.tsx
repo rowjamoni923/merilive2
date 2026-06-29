@@ -157,7 +157,7 @@ const AdminNobleSubscriptions = () => {
     <div className="admin-pro-shell p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Crown className="w-6 h-6 text-amber-400" />
             Noble Subscriptions
           </h1>
@@ -196,7 +196,7 @@ const AdminNobleSubscriptions = () => {
                   <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                 )}
                 <div>
-                  <div className="text-white font-bold">{card.rank_name}</div>
+                  <div className="text-slate-900 font-bold">{card.rank_name}</div>
                   <div className="text-xs text-slate-400">{card.rank_code} · #{card.rank_order}</div>
                 </div>
               </div>
@@ -219,7 +219,7 @@ const AdminNobleSubscriptions = () => {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-400">Duration</span>
-                <span className="text-white">{card.duration_days} days</span>
+                <span className="text-slate-900">{card.duration_days} days</span>
               </div>
               <div className="flex flex-wrap gap-1 pt-2">
                 {card.anti_kick_protection && <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">Anti-Kick</Badge>}
@@ -260,7 +260,7 @@ const AdminNobleSubscriptions = () => {
           style={{ resize: 'both', minWidth: '320px', minHeight: '400px' }}
         >
           <DialogHeader className="p-4 border-b border-slate-200 shrink-0">
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Crown className="w-5 h-5 text-amber-400" />
               {editing ? `Edit ${editing.rank_name}` : 'Create Noble Rank'}
             </DialogTitle>
@@ -336,7 +336,7 @@ const AdminNobleSubscriptions = () => {
                     />
                   </div>
                   <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
-                    <span className="text-white">Active</span>
+                    <span className="text-slate-900">Active</span>
                     <Switch
                       checked={form.is_active !== false}
                       onCheckedChange={checked => setForm(p => ({ ...p, is_active: checked }))}
@@ -363,7 +363,7 @@ const AdminNobleSubscriptions = () => {
                     </div>
                   </div>
                   <div className="bg-slate-50 p-3 rounded-lg">
-                    <label className="text-sm text-white block mb-2">Username Color</label>
+                    <label className="text-sm text-slate-900 block mb-2">Username Color</label>
                     <div className="flex gap-2 items-center">
                       <Input
                         type="color"
@@ -387,7 +387,7 @@ const AdminNobleSubscriptions = () => {
                     { key: 'profile_background_url', label: 'Profile Background URL' },
                   ].map(({ key, label }) => (
                     <div key={key} className="bg-slate-50 p-3 rounded-lg">
-                      <label className="text-sm text-white block mb-2">{label}</label>
+                      <label className="text-sm text-slate-900 block mb-2">{label}</label>
                       <Input
                         value={(form as any)[key] || ''}
                         onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
@@ -418,7 +418,7 @@ const AdminNobleSubscriptions = () => {
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
                       <div className="flex items-center gap-3">
                         <Icon className={`w-5 h-5 ${color}`} />
-                        <span className="text-white">{label}</span>
+                        <span className="text-slate-900">{label}</span>
                       </div>
                       <Switch
                         checked={(form as any)[key] || false}
@@ -440,7 +440,7 @@ const AdminNobleSubscriptions = () => {
                       { key: 'entry_effect_duration_seconds', label: 'Entry Duration (s)', icon: Zap, color: 'text-yellow-400' },
                     ].map(({ key, label, icon: Icon, color }) => (
                       <div key={key} className="bg-slate-50 p-3 rounded-lg">
-                        <label className="text-sm text-white flex items-center gap-2 mb-2">
+                        <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
                           <Icon className={`w-4 h-4 ${color}`} />
                           {label}
                         </label>

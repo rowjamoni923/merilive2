@@ -682,7 +682,7 @@ export default function AdminRechargeCampaigns() {
                         />
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-lg">
-                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                            <Check className="w-3 h-3 text-slate-900" strokeWidth={3} />
                           </div>
                         )}
                       </button>

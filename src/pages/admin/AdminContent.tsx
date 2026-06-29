@@ -210,7 +210,7 @@ export default function AdminContent() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-slate-800 flex items-center gap-2 text-base sm:text-lg">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900" />
                   </div>
                   <span className="truncate">{page.title}</span>
                 </CardTitle>

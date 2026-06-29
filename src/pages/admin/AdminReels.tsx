@@ -445,11 +445,11 @@ const AdminReels = () => {
                       }}
                       className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
                     >
-                      <Play className="w-12 h-12 text-white" fill="white" />
+                      <Play className="w-12 h-12 text-slate-900" fill="white" />
                     </button>
 
                     {/* Stats */}
-                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs">
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-slate-900 text-xs">
                       <span className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
                         {reel.view_count}
@@ -661,7 +661,7 @@ const AdminReels = () => {
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="sm:max-w-lg p-0 bg-black">
           <DialogHeader className="p-4">
-            <DialogTitle className="text-white">Preview</DialogTitle>
+            <DialogTitle className="text-slate-900">Preview</DialogTitle>
           </DialogHeader>
           {selectedReel && (
             <video 

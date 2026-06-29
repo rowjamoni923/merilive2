@@ -306,10 +306,10 @@ const AdminLevelTiers = () => {
   return (
     <div className={`admin-pro-shell ${adminStyles.pageContainer}`}>
       {/* Header */}
-      <div className={adminStyles.headerGradient(`${gradients.purple} text-white`)}>
+      <div className={adminStyles.headerGradient(`${gradients.purple} text-slate-900`)}>
         <div className="flex items-center gap-3">
           <div className={adminStyles.iconContainerLg('bg-white/20')}>
-            <Crown className="w-8 h-8 text-white" />
+            <Crown className="w-8 h-8 text-slate-900" />
           </div>
           <div>
             <h1 className={adminStyles.headerTitleWhite}>Level Tier Management</h1>

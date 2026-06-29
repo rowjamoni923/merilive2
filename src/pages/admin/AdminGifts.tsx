@@ -911,7 +911,7 @@ export default function AdminGifts() {
                       {/* Animation indicator */}
                       {gift.animation_url && (
                         <div className="absolute top-0 right-0 p-1 bg-purple-500 rounded-bl-lg">
-                          <Play className="w-2.5 h-2.5 text-white" />
+                          <Play className="w-2.5 h-2.5 text-slate-900" />
                         </div>
                       )}
                     </div>
@@ -1030,7 +1030,7 @@ export default function AdminGifts() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="bg-white border-slate-200 shadow-2xl w-screen sm:w-[95vw] max-w-2xl h-[100dvh] sm:h-[90vh] max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg flex flex-col p-0">
           <DialogHeader className="p-4 md:p-6 pb-2 flex-shrink-0 border-b border-slate-200">
-            <DialogTitle className="text-white text-lg md:text-xl font-bold">
+            <DialogTitle className="text-slate-900 text-lg md:text-xl font-bold">
               {editingGift ? "Edit Gift" : "Create New Gift"}
             </DialogTitle>
           </DialogHeader>
@@ -1394,7 +1394,7 @@ export default function AdminGifts() {
 
             {/* Active Toggle */}
             <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-slate-50 to-purple-500/10 rounded-lg md:rounded-xl border border-slate-200">
-              <Label className="text-white font-medium text-sm md:text-base">Active</Label>
+              <Label className="text-slate-900 font-medium text-sm md:text-base">Active</Label>
               <Switch
                 checked={formData.is_active}
                 onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
@@ -1440,7 +1440,7 @@ export default function AdminGifts() {
       <Dialog open={showLuckyConfig} onOpenChange={setShowLuckyConfig}>
         <DialogContent className="bg-white border-slate-200 w-screen sm:w-[95vw] max-w-lg h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               🎰 Lucky Gift Lottery Config
             </DialogTitle>
           </DialogHeader>
@@ -1491,7 +1491,7 @@ export default function AdminGifts() {
               <Upload className="w-6 h-6 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <div className="text-center">
-              <p className="text-white font-medium text-lg">Uploading...</p>
+              <p className="text-slate-900 font-medium text-lg">Uploading...</p>
               <p className="text-slate-400 text-sm mt-1">
                 {uploadProgress > 0 ? `${uploadProgress}% complete` : 'Large files may take some time'}
               </p>
@@ -1520,11 +1520,11 @@ export default function AdminGifts() {
             <X className="w-6 h-6" />
           </Button>
           <div className="text-center" onClick={e => e.stopPropagation()}>
-            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewGift.name}</p>
+            <p className="text-slate-900 font-bold text-lg mb-4">{fullscreenPreviewGift.name}</p>
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
               {(() => {
                 const url = fullscreenPreviewGift.animation_url;
-                if (!url) return <p className="text-white/50">No animation file</p>;
+                if (!url) return <p className="text-slate-500">No animation file</p>;
                 const fmt = ((fullscreenPreviewGift as any).animation_format || '').toLowerCase();
                 const configUrl = (fullscreenPreviewGift as any).animation_config_url || undefined;
                 if (fmt === 'vap') return <FixedAnimationFrame src={url} type="vap" configSrc={configUrl} size="fill" center={false} loop muted={false} volume={1.0} soundUrl={fullscreenPreviewGift.sound_url} />;

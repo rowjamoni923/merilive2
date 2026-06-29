@@ -340,8 +340,8 @@ const AdminPayrollOrders = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white">Payroll Orders History</h1>
-            <p className="text-white/80 text-sm">Complete payroll order history</p>
+            <h1 className="font-bold text-xl text-slate-900">Payroll Orders History</h1>
+            <p className="text-slate-700 text-sm">Complete payroll order history</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <ReportExportMenu
@@ -376,28 +376,28 @@ const AdminPayrollOrders = () => {
         {/* Stats */}
         <div className="grid grid-cols-6 gap-2">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">{stats.total}</p>
-            <p className="text-white/80 text-xs">Total</p>
+            <p className="text-xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-slate-700 text-xs">Total</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-yellow-200">{stats.pending}</p>
-            <p className="text-white/80 text-xs">Pending</p>
+            <p className="text-slate-700 text-xs">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-blue-200">{stats.processing}</p>
-            <p className="text-white/80 text-xs">Processing</p>
+            <p className="text-slate-700 text-xs">Processing</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-green-200">{stats.completed}</p>
-            <p className="text-white/80 text-xs">Completed</p>
+            <p className="text-slate-700 text-xs">Completed</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-red-200">{stats.cancelled}</p>
-            <p className="text-white/80 text-xs">Cancelled</p>
+            <p className="text-slate-700 text-xs">Cancelled</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-white">${stats.todayTotal.toFixed(0)}</p>
-            <p className="text-white/80 text-xs">Today</p>
+            <p className="text-xl font-bold text-slate-900">${stats.todayTotal.toFixed(0)}</p>
+            <p className="text-slate-700 text-xs">Today</p>
           </div>
         </div>
       </div>
@@ -800,7 +800,7 @@ const AdminPayrollOrders = () => {
                         alt="Payment Proof" 
                         className="w-full h-48 object-cover" fallbackSrc="/placeholder.svg" />
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Eye className="w-8 h-8 text-white" />
+                        <Eye className="w-8 h-8 text-slate-900" />
                       </div>
                     </div>
                     <Button 

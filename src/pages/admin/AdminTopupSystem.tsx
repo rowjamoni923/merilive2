@@ -656,7 +656,7 @@ const AdminTopupSystem = () => {
               </div>
               <div>
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalCoinsTraded.toLocaleString()}</p>
-                <p className="text-xs text-white/80">Total Traded</p>
+                <p className="text-xs text-slate-700">Total Traded</p>
               </div>
             </div>
           </CardContent>
@@ -670,7 +670,7 @@ const AdminTopupSystem = () => {
               </div>
               <div>
                 <p className="text-lg sm:text-2xl font-bold">{stats.activeHelpers}</p>
-                <p className="text-xs text-white/80">Active Traders</p>
+                <p className="text-xs text-slate-700">Active Traders</p>
               </div>
             </div>
           </CardContent>
@@ -684,7 +684,7 @@ const AdminTopupSystem = () => {
               </div>
               <div>
                 <p className="text-lg sm:text-2xl font-bold">{stats.pendingOrders}</p>
-                <p className="text-xs text-white/80">Pending Orders</p>
+                <p className="text-xs text-slate-700">Pending Orders</p>
               </div>
             </div>
           </CardContent>
@@ -698,7 +698,7 @@ const AdminTopupSystem = () => {
               </div>
               <div>
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalManualTopups}</p>
-                <p className="text-xs text-white/80">Manual Topups</p>
+                <p className="text-xs text-slate-700">Manual Topups</p>
               </div>
             </div>
           </CardContent>
@@ -712,7 +712,7 @@ const AdminTopupSystem = () => {
               </div>
               <div>
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalHelpers}</p>
-                <p className="text-xs text-white/80">Total Traders</p>
+                <p className="text-xs text-slate-700">Total Traders</p>
               </div>
             </div>
           </CardContent>
@@ -1267,7 +1267,7 @@ const AdminTopupSystem = () => {
                           </div>
                           <div>
                             <h3 className="font-bold text-lg">{tier.level_name}</h3>
-                            <p className="text-sm text-white/80">{tier.description}</p>
+                            <p className="text-sm text-slate-700">{tier.description}</p>
                           </div>
                         </div>
                         <Button

@@ -245,7 +245,7 @@ export default function AdminSettings() {
             <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <PartyPopper className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <PartyPopper className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900" />
                 </div>
                 <div>
                   <CardTitle className="text-slate-800 text-base sm:text-lg">Party Room Limits</CardTitle>
@@ -313,7 +313,7 @@ export default function AdminSettings() {
             <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100 p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900" />
                 </div>
                 <div>
                   <CardTitle className="text-slate-800 text-base sm:text-lg">System Settings</CardTitle>
@@ -392,7 +392,7 @@ export default function AdminSettings() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
-                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900" />
                   </div>
                   <div>
                     <CardTitle className="text-slate-800 text-base sm:text-lg">Withdrawal Settings</CardTitle>
@@ -412,7 +412,7 @@ export default function AdminSettings() {
               <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl border border-blue-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-900" />
                   </div>
                   <h3 className="text-slate-800 font-semibold text-sm sm:text-base">Exchange Rate</h3>
                 </div>
@@ -444,7 +444,7 @@ export default function AdminSettings() {
               <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg sm:rounded-xl border border-amber-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
-                    <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-900" />
                   </div>
                   <h3 className="text-slate-800 font-semibold text-sm sm:text-base">Withdrawal Limits</h3>
                 </div>
@@ -477,7 +477,7 @@ export default function AdminSettings() {
               <div className="p-4 sm:p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg sm:rounded-xl border border-purple-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                    <Percent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <Percent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-900" />
                   </div>
                   <h3 className="text-slate-800 font-semibold text-sm sm:text-base">Fee Tiers</h3>
                 </div>
@@ -578,7 +578,7 @@ export default function AdminSettings() {
               <div className="p-4 sm:p-5 bg-gradient-to-r from-cyan-50 to-teal-50 rounded-lg sm:rounded-xl border border-cyan-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center">
-                    <Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-900" />
                   </div>
                   <h3 className="text-slate-800 font-semibold text-sm sm:text-base">💎 Helper Diamond Reward Fee</h3>
                 </div>
@@ -664,7 +664,7 @@ export default function AdminSettings() {
             <CardHeader className="bg-gradient-to-r from-violet-50 to-pink-50 border-b border-violet-100 p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center shadow-lg">
-                  <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900" />
                 </div>
                 <div>
                   <CardTitle className="text-slate-800 text-base sm:text-lg">Landing Page Settings</CardTitle>
@@ -678,7 +678,7 @@ export default function AdminSettings() {
               <div className="p-4 sm:p-5 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg sm:rounded-xl border border-violet-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center">
-                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-900" />
                   </div>
                   <h3 className="text-slate-800 font-semibold text-sm sm:text-base">📥 Play Store Downloads</h3>
                 </div>

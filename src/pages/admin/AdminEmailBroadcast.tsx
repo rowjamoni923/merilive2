@@ -242,25 +242,25 @@ const AdminEmailBroadcast = () => {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
 
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Edit3 className="w-5 h-5 text-purple-400" />
               Edit Email Template
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Template Name</Label>
+              <Label className="text-sm font-medium text-slate-700">Template Name</Label>
               <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Description</Label>
+              <Label className="text-sm font-medium text-slate-700">Description</Label>
               <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">HTML Content</Label>
+              <Label className="text-sm font-medium text-slate-700">HTML Content</Label>
               <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-slate-900 font-mono text-xs" />
             </div>
             <div className="flex gap-3 pt-2">
@@ -275,24 +275,24 @@ const AdminEmailBroadcast = () => {
 
       {/* Add Template Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg w-screen sm:w-[96vw] md:w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Plus className="w-5 h-5 text-green-400" />
               Add Email Template
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Template Name *</Label>
+              <Label className="text-sm font-medium text-slate-700">Template Name *</Label>
               <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="e.g. 📢 General Announcement" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Description</Label>
+              <Label className="text-sm font-medium text-slate-700">Description</Label>
               <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">HTML Content *</Label>
+              <Label className="text-sm font-medium text-slate-700">HTML Content *</Label>
               <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[200px] bg-white/5 border-white/10 text-slate-900 font-mono text-xs" placeholder="Paste HTML email content..." />
             </div>
             <div className="flex gap-3 pt-2">

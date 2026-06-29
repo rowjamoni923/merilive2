@@ -174,11 +174,11 @@ export default function AdminLiveKitSip() {
       <div className="bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Phone className="w-6 h-6" />
               LiveKit SIP
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">
               Pkg138 — read-only SIP trunk / dispatch rule inspection. Kill-switch
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">
                 sip_ops
@@ -300,7 +300,7 @@ export default function AdminLiveKitSip() {
                           <Badge className="bg-slate-600 text-white text-[10px]">
                             {tab}
                           </Badge>
-                          <span className="text-sm text-white font-mono truncate">
+                          <span className="text-sm text-slate-900 font-mono truncate">
                             {item.name || id}
                           </span>
                         </div>
@@ -436,7 +436,7 @@ export default function AdminLiveKitSip() {
               Confirm Delete
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Remove <span className="text-white font-mono">{confirmDelete?.name}</span>? This cannot be undone.
+              Remove <span className="text-slate-900 font-mono">{confirmDelete?.name}</span>? This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">

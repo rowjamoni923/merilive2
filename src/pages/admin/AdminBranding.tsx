@@ -524,20 +524,20 @@ export default function AdminBranding() {
                           {settings.logo_text_primary}
                         </h1>
                         {/* Decorative diamond accents */}
-                        <span className="absolute -left-4 top-1/2 -translate-y-1/2 text-white/60 text-xs">◆</span>
-                        <span className="absolute -right-4 top-1/2 -translate-y-1/2 text-white/60 text-xs">◆</span>
+                        <span className="absolute -left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs">◆</span>
+                        <span className="absolute -right-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs">◆</span>
                       </div>
                       
                       {/* Elegant Divider */}
                       <div className="flex items-center gap-3 my-2">
                         <div className="h-[1px] w-8 bg-gradient-to-r from-transparent via-white/60 to-white/60" />
-                        <span className="text-white/80 text-[10px] tracking-[0.3em]">★</span>
+                        <span className="text-slate-700 text-[10px] tracking-[0.3em]">★</span>
                         <div className="h-[1px] w-8 bg-gradient-to-l from-transparent via-white/60 to-white/60" />
                       </div>
                       
                       {/* Premium Secondary Text */}
                       <h2 
-                        className="text-2xl font-light text-white/90 tracking-[0.5em] uppercase"
+                        className="text-2xl font-light text-slate-800 tracking-[0.5em] uppercase"
                         style={{ 
                           fontFamily: 'Georgia, serif',
                           textShadow: '0 2px 10px rgba(255,255,255,0.2)'
@@ -550,7 +550,7 @@ export default function AdminBranding() {
                   
                   {/* Elegant Tagline */}
                   <p 
-                    className="text-white/50 text-[10px] mt-4 tracking-[0.4em] uppercase font-light"
+                    className="text-slate-500 text-[10px] mt-4 tracking-[0.4em] uppercase font-light"
                     style={{ fontFamily: 'Georgia, serif' }}
                   >
                     {settings.tagline}

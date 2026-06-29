@@ -441,13 +441,13 @@ export default function AdminHostApplications() {
         <div className="relative p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
                 <div className="p-2 bg-white/15 rounded-lg backdrop-blur-sm">
                   <UserCheck className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 Host Application Management
               </h1>
-              <p className="text-white/70 text-sm mt-1.5">
+              <p className="text-slate-600 text-sm mt-1.5">
                 {statusCounts.pending + statusCounts.approved + statusCounts.rejected} submissions
                 {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
               </p>
@@ -487,7 +487,7 @@ export default function AdminHostApplications() {
             >
               <Icon className={`w-5 h-5 md:w-6 md:h-6 text-${color}-400 mb-1`} />
               <p className={`text-lg md:text-2xl font-bold text-${color}-400`}>{count}</p>
-              <p className="text-[10px] md:text-xs text-white/50 font-medium">{label}</p>
+              <p className="text-[10px] md:text-xs text-slate-500 font-medium">{label}</p>
             </button>
           );
         })}
@@ -524,7 +524,7 @@ export default function AdminHostApplications() {
           <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : applications.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-white/40">
+        <div className="flex flex-col items-center justify-center h-64 text-slate-500">
           <FileText className="w-16 h-16 mb-4 opacity-50" />
           <p className="text-lg font-medium">No applications found</p>
           <p className="text-sm mt-1">New applications will appear here</p>
@@ -563,24 +563,24 @@ export default function AdminHostApplications() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-white font-semibold truncate text-sm md:text-base">
+                        <p className="text-slate-900 font-semibold truncate text-sm md:text-base">
                           {app.full_name || app.profile?.display_name || 'Unknown'}
                         </p>
                         {getStatusBadge(app.status)}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-white/40 font-mono flex items-center gap-1">
+                        <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
                           <Hash className="w-3 h-3" />
                           {app.profile?.app_uid || app.user_id.slice(0, 8)}
                         </span>
                         {app.age && (
-                          <span className="text-xs text-white/40 flex items-center gap-1">
+                          <span className="text-xs text-slate-500 flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {app.age} yrs
                           </span>
                         )}
                         {app.language && (
-                          <span className="text-xs text-white/40 flex items-center gap-1">
+                          <span className="text-xs text-slate-500 flex items-center gap-1">
                             <Languages className="w-3 h-3" />
                             {app.language}
                           </span>
@@ -670,7 +670,7 @@ export default function AdminHostApplications() {
           <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             <ChevronLeft className="w-4 h-4 mr-1" /> Prev
           </Button>
-          <span className="text-white/40 text-sm font-mono">{currentPage}/{totalPages}</span>
+          <span className="text-slate-500 text-sm font-mono">{currentPage}/{totalPages}</span>
           <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-slate-900/70 h-8">
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
@@ -685,8 +685,8 @@ export default function AdminHostApplications() {
               <AlertTriangle className="w-5 h-5 text-orange-400" />
             </div>
             <div>
-              <h2 className="text-white font-bold text-base">Pending Hosts — No Verification Submitted</h2>
-              <p className="text-white/50 text-xs">{pendingHostsCount} hosts registered as female but haven't submitted face verification yet</p>
+              <h2 className="text-slate-900 font-bold text-base">Pending Hosts — No Verification Submitted</h2>
+              <p className="text-slate-500 text-xs">{pendingHostsCount} hosts registered as female but haven't submitted face verification yet</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -701,8 +701,8 @@ export default function AdminHostApplications() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm truncate">{host.display_name || 'Unknown'}</p>
-                      <p className="text-white/40 text-xs font-mono">#{host.app_uid || host.id.slice(0, 8)}</p>
+                      <p className="text-slate-900 font-semibold text-sm truncate">{host.display_name || 'Unknown'}</p>
+                      <p className="text-slate-500 text-xs font-mono">#{host.app_uid || host.id.slice(0, 8)}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className="bg-orange-500/15 text-orange-400 border-0 text-[10px]">
                           <Clock className="w-2.5 h-2.5 mr-1" />Pending
@@ -713,7 +713,7 @@ export default function AdminHostApplications() {
                           </Badge>
                         )}
                         {host.country_code && (
-                          <span className="text-[10px] text-white/40">{host.country_code}</span>
+                          <span className="text-[10px] text-slate-500">{host.country_code}</span>
                         )}
                       </div>
                     </div>
@@ -774,8 +774,8 @@ export default function AdminHostApplications() {
                     }`} />
                   </div>
                   <div className="mb-1">
-                    <h2 className="text-white font-bold text-lg">{sel.full_name || sel.profile?.display_name || 'Unknown'}</h2>
-                    <p className="text-white/50 text-sm font-mono">#{sel.profile?.app_uid || sel.user_id.slice(0, 8)}</p>
+                    <h2 className="text-slate-900 font-bold text-lg">{sel.full_name || sel.profile?.display_name || 'Unknown'}</h2>
+                    <p className="text-slate-500 text-sm font-mono">#{sel.profile?.app_uid || sel.user_id.slice(0, 8)}</p>
                   </div>
                 </div>
                 <div className="absolute top-3 right-3">
@@ -860,7 +860,7 @@ export default function AdminHostApplications() {
                         <div key={idx} className="relative group/photo aspect-square">
                           <AdminMediaFrame src={photo} alt={`Photo ${idx + 1}`} kind="image" className="h-full w-full rounded-xl border border-white/10 group-hover/photo:border-pink-500/40 transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(photo)} />
                           <div className="pointer-events-none absolute inset-0 bg-background/0 group-hover/photo:bg-background/30 transition-all rounded-xl flex items-center justify-center">
-                            <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                            <ZoomIn className="w-6 h-6 text-slate-900 opacity-0 group-hover/photo:opacity-100 transition-opacity" />
                           </div>
                           <span className="absolute bottom-1.5 right-1.5 text-[10px] text-white/60 bg-black/50 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                             {idx + 1}
@@ -953,7 +953,7 @@ export default function AdminHostApplications() {
 
                     {/* Direct Convert Buttons - Click = Instant Approve & Convert */}
                     <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10">
-                      <p className="text-xs text-white/50 font-semibold text-center mb-3 uppercase tracking-wider">
+                      <p className="text-xs text-slate-500 font-semibold text-center mb-3 uppercase tracking-wider">
                         ⚡ Click to Convert ID
                       </p>
                       <div className="grid grid-cols-2 gap-3">
@@ -1022,11 +1022,11 @@ export default function AdminHostApplications() {
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent className="bg-slate-50 border-white/10 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <XCircle className="w-5 h-5 text-rose-400" />
               Reject Application
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription className="text-slate-500">
               Enter rejection reason
             </DialogDescription>
           </DialogHeader>
@@ -1061,9 +1061,9 @@ function InfoCard({ icon: Icon, label, value, small }: { icon: any; label: strin
     <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="w-3.5 h-3.5 text-white/30" />
-        <p className="text-[10px] text-white/40 uppercase tracking-wider font-medium">{label}</p>
+        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
       </div>
-      <p className={`text-white font-semibold ${small ? 'text-xs' : 'text-sm'}`}>{value}</p>
+      <p className={`text-slate-900 font-semibold ${small ? 'text-xs' : 'text-sm'}`}>{value}</p>
     </div>
   );
 }
@@ -1074,7 +1074,7 @@ function SectionHeader({ icon: Icon, title, count }: { icon: any; title: string;
       <div className="p-1.5 bg-white/[0.06] rounded-lg">
         <Icon className="w-4 h-4 text-pink-400" />
       </div>
-      <h3 className="text-white font-semibold text-sm">{title}</h3>
+      <h3 className="text-slate-900 font-semibold text-sm">{title}</h3>
       {count !== undefined && count > 0 && (
         <Badge className="bg-pink-500/15 text-pink-400 border-0 text-[10px] h-5">{count}</Badge>
       )}

@@ -632,11 +632,11 @@ const AdminShop = () => {
             <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-base md:text-2xl font-bold text-white flex items-center gap-2 truncate">
+            <h1 className="text-base md:text-2xl font-bold text-slate-900 flex items-center gap-2 truncate">
               <ShoppingBag className="w-4 h-4 md:w-6 md:h-6 text-purple-400 shrink-0" />
               <span className="truncate">Shop Management</span>
             </h1>
-            <p className="text-white/60 text-xs md:text-sm hidden sm:block">Manage shop items - Frames, Effects, Backgrounds & more</p>
+            <p className="text-slate-600 text-xs md:text-sm hidden sm:block">Manage shop items - Frames, Effects, Backgrounds & more</p>
           </div>
         </div>
         <Button
@@ -654,23 +654,23 @@ const AdminShop = () => {
       {/* Stats - Mobile optimized grid */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 mb-4 md:mb-6">
         <div className={adminCardStyles}>
-          <p className="text-white/60 text-[10px] md:text-xs">Total Items</p>
-          <p className="text-lg md:text-2xl font-bold text-white">{totalItems}</p>
+          <p className="text-slate-600 text-[10px] md:text-xs">Total Items</p>
+          <p className="text-lg md:text-2xl font-bold text-slate-900">{totalItems}</p>
         </div>
         <div className={adminCardStyles}>
-          <p className="text-white/60 text-[10px] md:text-xs">Active</p>
+          <p className="text-slate-600 text-[10px] md:text-xs">Active</p>
           <p className="text-lg md:text-2xl font-bold text-green-400">{activeItems}</p>
         </div>
         <div className={`${adminCardStyles} cursor-pointer hover:ring-1 hover:ring-red-400/50`} onClick={() => setStatusFilter(statusFilter === 'hidden' ? 'all' : 'hidden')}>
-          <p className="text-white/60 text-[10px] md:text-xs">Hidden</p>
+          <p className="text-slate-600 text-[10px] md:text-xs">Hidden</p>
           <p className="text-lg md:text-2xl font-bold text-red-400">{hiddenItems}</p>
         </div>
         <div className={adminCardStyles}>
-          <p className="text-white/60 text-[10px] md:text-xs">Featured</p>
+          <p className="text-slate-600 text-[10px] md:text-xs">Featured</p>
           <p className="text-lg md:text-2xl font-bold text-amber-400">{featuredItems}</p>
         </div>
         <div className={adminCardStyles}>
-          <p className="text-white/60 text-[10px] md:text-xs">Total Sold</p>
+          <p className="text-slate-600 text-[10px] md:text-xs">Total Sold</p>
           <p className="text-lg md:text-2xl font-bold text-purple-400">{totalSold}</p>
         </div>
       </div>
@@ -679,7 +679,7 @@ const AdminShop = () => {
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <Input
               placeholder="Search items..."
               value={searchQuery}
@@ -784,7 +784,7 @@ const AdminShop = () => {
                 {/* Info */}
               <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-white font-semibold truncate">{item.name}</h3>
+                    <h3 className="text-slate-900 font-semibold truncate">{item.name}</h3>
                     {!item.is_active && <Badge className="bg-red-500/80 text-white text-[10px] px-1.5 py-0">HIDDEN</Badge>}
                     {item.is_featured && <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />}
                   </div>
@@ -805,8 +805,8 @@ const AdminShop = () => {
 
                   <div className="flex items-center gap-3 text-sm flex-wrap">
                     <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold px-2 py-0.5 rounded-md text-xs shadow-sm">💎 {item.price_diamonds?.toLocaleString()}</span>
-                    <span className="text-white/70 font-medium">Lv.{item.min_level}+</span>
-                    <span className="text-white/50">{item.total_sold} sold</span>
+                    <span className="text-slate-600 font-medium">Lv.{item.min_level}+</span>
+                    <span className="text-slate-500">{item.total_sold} sold</span>
                   </div>
                 </div>
               </div>
@@ -836,7 +836,7 @@ const AdminShop = () => {
                     size="icon"
                     variant="ghost"
                     onClick={() => toggleFeatured(item)}
-                    className={item.is_featured ? "text-amber-400" : "text-white/40"}
+                    className={item.is_featured ? "text-amber-400" : "text-slate-500"}
                   >
                     <Star className="w-4 h-4" />
                   </Button>
@@ -870,7 +870,7 @@ const AdminShop = () => {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="bg-white border-white/10 w-[95vw] max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-xl">
           <DialogHeader className="p-3 md:p-6 pb-0 flex-shrink-0 border-b border-white/10">
-            <DialogTitle className="text-white text-base md:text-lg">
+            <DialogTitle className="text-slate-900 text-base md:text-lg">
               {editingItem ? "Edit Item" : "Add New Shop Item"}
             </DialogTitle>
           </DialogHeader>
@@ -909,7 +909,7 @@ const AdminShop = () => {
 
               {/* File Upload Section - Mobile optimized */}
               <div className="border-2 border-dashed border-white/20 rounded-lg md:rounded-xl p-3 md:p-4">
-                <Label className="text-white/80 mb-2 block text-sm">Upload Animation/Image</Label>
+                <Label className="text-slate-700 mb-2 block text-sm">Upload Animation/Image</Label>
                 
                 {previewFile ? (
                   <div className="relative">
@@ -985,7 +985,7 @@ const AdminShop = () => {
                         <Upload className="w-5 h-5" />
                         <div className="text-center md:text-left">
                           <p className="text-sm">Click to upload</p>
-                          <p className="text-[10px] md:text-xs text-white/50 hidden sm:block">SVGA, PNG, GIF, WebP, Lottie JSON, MP4, WebM (max 100MB)</p>
+                          <p className="text-[10px] md:text-xs text-slate-500 hidden sm:block">SVGA, PNG, GIF, WebP, Lottie JSON, MP4, WebM (max 100MB)</p>
                         </div>
                       </>
                     )}
@@ -1045,7 +1045,7 @@ const AdminShop = () => {
 
               <div className="grid grid-cols-2 gap-2 md:gap-4">
                 <div className="col-span-2">
-                  <Label className="text-white/80 text-sm">Name *</Label>
+                  <Label className="text-slate-700 text-sm">Name *</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -1055,7 +1055,7 @@ const AdminShop = () => {
                 </div>
 
                 <div className="col-span-2">
-                  <Label className="text-white/80">Description</Label>
+                  <Label className="text-slate-700">Description</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1066,7 +1066,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Category</Label>
+                  <Label className="text-slate-700">Category</Label>
                   <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
                     <SelectTrigger className={adminInputStyles}>
                       <SelectValue />
@@ -1080,7 +1080,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Rarity</Label>
+                  <Label className="text-slate-700">Rarity</Label>
                   <Select value={formData.rarity} onValueChange={(v) => setFormData({ ...formData, rarity: v })}>
                     <SelectTrigger className={adminInputStyles}>
                       <SelectValue />
@@ -1094,7 +1094,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">File Type</Label>
+                  <Label className="text-slate-700">File Type</Label>
                   <Select value={formData.file_type} onValueChange={(v) => setFormData({ ...formData, file_type: v })}>
                     <SelectTrigger className={adminInputStyles}>
                       <SelectValue />
@@ -1108,7 +1108,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Animation Type</Label>
+                  <Label className="text-slate-700">Animation Type</Label>
                   <Select value={formData.animation_type} onValueChange={(v) => setFormData({ ...formData, animation_type: v })}>
                     <SelectTrigger className={adminInputStyles}>
                       <SelectValue />
@@ -1122,7 +1122,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Price (Diamonds)</Label>
+                  <Label className="text-slate-700">Price (Diamonds)</Label>
                   <Input
                     type="number"
                     value={formData.price_diamonds}
@@ -1132,7 +1132,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Duration (Days)</Label>
+                  <Label className="text-slate-700">Duration (Days)</Label>
                   <Input
                     type="number"
                     placeholder="Empty = Permanent"
@@ -1143,7 +1143,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Min Level</Label>
+                  <Label className="text-slate-700">Min Level</Label>
                   <Input
                     type="number"
                     value={formData.min_level}
@@ -1153,7 +1153,7 @@ const AdminShop = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white/80">Display Order</Label>
+                  <Label className="text-slate-700">Display Order</Label>
                   <Input
                     type="number"
                     value={formData.display_order}
@@ -1164,7 +1164,7 @@ const AdminShop = () => {
 
                 {/* Preview Image Upload */}
                 <div className="col-span-2">
-                  <Label className="text-white/80 flex items-center gap-2">
+                  <Label className="text-slate-700 flex items-center gap-2">
                     <Image className="h-4 w-4 text-blue-400" />
                     Preview Photo (Optional)
                   </Label>
@@ -1191,12 +1191,12 @@ const AdminShop = () => {
                       onClick={() => previewInputRef.current?.click()}
                     >
                       {uploadingPreview ? (
-                        <p className="text-white/60 text-sm">Uploading preview...</p>
+                        <p className="text-slate-600 text-sm">Uploading preview...</p>
                       ) : (
                         <>
-                          <Upload className="h-5 w-5 mx-auto text-white/40 mb-1" />
-                          <p className="text-white/60 text-sm">Upload Preview Photo</p>
-                          <p className="text-white/40 text-xs">PNG, JPG, GIF, WebP (max 20MB)</p>
+                          <Upload className="h-5 w-5 mx-auto text-slate-500 mb-1" />
+                          <p className="text-slate-600 text-sm">Upload Preview Photo</p>
+                          <p className="text-slate-500 text-xs">PNG, JPG, GIF, WebP (max 20MB)</p>
                         </>
                       )}
                     </div>
@@ -1224,21 +1224,21 @@ const AdminShop = () => {
                       checked={formData.is_active}
                       onCheckedChange={(v) => setFormData({ ...formData, is_active: v })}
                     />
-                    <Label className="text-white/80">Active</Label>
+                    <Label className="text-slate-700">Active</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={formData.is_featured}
                       onCheckedChange={(v) => setFormData({ ...formData, is_featured: v })}
                     />
-                    <Label className="text-white/80">Featured</Label>
+                    <Label className="text-slate-700">Featured</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={formData.is_premium}
                       onCheckedChange={(v) => setFormData({ ...formData, is_premium: v })}
                     />
-                    <Label className="text-white/80">Premium</Label>
+                    <Label className="text-slate-700">Premium</Label>
                   </div>
                 </div>
               </div>
@@ -1246,7 +1246,7 @@ const AdminShop = () => {
               <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
-                  className="flex-1 border-white/20 text-white"
+                  className="flex-1 border-white/20 text-slate-900"
                   onClick={() => {
                     setShowAddDialog(false);
                     setEditingItem(null);
@@ -1272,7 +1272,7 @@ const AdminShop = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
           <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl border border-white/10">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-             <p className="text-white font-medium">Uploading...</p>
+             <p className="text-slate-900 font-medium">Uploading...</p>
              <Button 
                variant="outline" 
                size="sm"
@@ -1296,11 +1296,11 @@ const AdminShop = () => {
             <X className="w-6 h-6" />
           </Button>
           <div className="text-center">
-            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewItem.name}</p>
+            <p className="text-slate-900 font-bold text-lg mb-4">{fullscreenPreviewItem.name}</p>
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto" onClick={e => e.stopPropagation()}>
               {(() => {
                 const url = getAnimationUrl(fullscreenPreviewItem);
-                if (!url) return <p className="text-white/50">No animation file</p>;
+                if (!url) return <p className="text-slate-500">No animation file</p>;
                 if (isSVGA(url)) return (
                   <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );

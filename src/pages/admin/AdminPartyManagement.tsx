@@ -56,7 +56,7 @@ export default function AdminPartyManagement() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500">
-            <PartyPopper className="w-6 h-6 text-white" />
+            <PartyPopper className="w-6 h-6 text-slate-900" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Party Management</h1>

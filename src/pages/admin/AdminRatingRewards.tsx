@@ -654,7 +654,7 @@ export default function AdminRatingRewards() {
                   >
                     <SmartImage src={claim.screenshot_signed || claim.screenshot_url} alt="Screenshot" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Eye className="w-4 h-4 text-white" />
+                      <Eye className="w-4 h-4 text-slate-900" />
                     </div>
                   </button>
 
@@ -706,7 +706,7 @@ export default function AdminRatingRewards() {
       <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="max-w-lg p-2 bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white text-sm">Rating Screenshot</DialogTitle>
+            <DialogTitle className="text-slate-900 text-sm">Rating Screenshot</DialogTitle>
           </DialogHeader>
           {previewImage && (
             <SmartImage src={previewImage} alt="Rating Screenshot" className="w-full rounded-lg" fallbackSrc="/placeholder.svg" />
@@ -718,7 +718,7 @@ export default function AdminRatingRewards() {
       <Dialog open={!!auditClaim} onOpenChange={(o) => { if (!o) { setAuditClaim(null); setAuditEntries([]); } }}>
         <DialogContent className="max-w-2xl bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Shield className="w-4 h-4 text-purple-400" />
               Decision Audit Log
               {auditClaim?.profile?.display_name && (

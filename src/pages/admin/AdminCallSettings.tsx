@@ -252,7 +252,7 @@ export default function AdminCallSettings() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-900">
             <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-              <Phone className="w-6 h-6 text-white" />
+              <Phone className="w-6 h-6 text-slate-900" />
             </div>
             Call Settings
           </h1>
@@ -276,7 +276,7 @@ export default function AdminCallSettings() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500 rounded-lg">
-                <PhoneCall className="w-5 h-5 text-white" />
+                <PhoneCall className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-sm text-blue-600 font-medium">Total Calls</p>
@@ -290,7 +290,7 @@ export default function AdminCallSettings() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-500 rounded-lg">
-                <Phone className="w-5 h-5 text-white" />
+                <Phone className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-sm text-green-600 font-medium">Active</p>
@@ -304,7 +304,7 @@ export default function AdminCallSettings() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-500 rounded-lg">
-                <Clock className="w-5 h-5 text-white" />
+                <Clock className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-sm text-purple-600 font-medium">Total Minutes</p>
@@ -318,7 +318,7 @@ export default function AdminCallSettings() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500 rounded-lg">
-                <Diamond className="w-5 h-5 text-white" />
+                <Diamond className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-sm text-amber-600 font-medium">Total Earnings</p>

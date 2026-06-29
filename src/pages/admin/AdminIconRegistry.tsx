@@ -268,8 +268,8 @@ const AdminIconRegistry = () => {
             <Package className="w-7 h-7 text-[hsl(var(--admin-gold))]" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white">App Icon Registry</h1>
-            <p className="text-sm text-white/60">Manage all icons used across the app • Native apps load icons from here</p>
+            <h1 className="text-2xl font-bold text-slate-900">App Icon Registry</h1>
+            <p className="text-sm text-slate-600">Manage all icons used across the app • Native apps load icons from here</p>
           </div>
           <Badge variant="outline" className="border-[hsl(var(--admin-gold)/0.4)] text-[hsl(var(--admin-gold))]">
             {icons.length} Icons
@@ -315,7 +315,7 @@ const AdminIconRegistry = () => {
         <Card className="bg-white border-slate-200">
           <CardContent className="p-12 text-center">
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-white font-medium">No icons found</p>
+            <p className="text-slate-900 font-medium">No icons found</p>
             <p className="text-sm text-muted-foreground mt-1">Add icons to build your app's icon registry</p>
             <Button onClick={handleAdd} className="mt-4 gap-2"><Plus className="w-4 h-4" /> Add First Icon</Button>
           </CardContent>
@@ -328,7 +328,7 @@ const AdminIconRegistry = () => {
             <div key={category} className="space-y-3">
               <div className="flex items-center gap-2 px-1">
                 <CatIcon className="w-4 h-4 text-[hsl(var(--admin-gold))]" />
-                <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+                <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">
                   {catConfig?.label || category}
                 </h2>
                 <Badge variant="outline" className="text-xs border-slate-200 text-slate-400">{categoryIcons.length}</Badge>
@@ -348,7 +348,7 @@ const AdminIconRegistry = () => {
                       <div className="flex flex-col items-center gap-2">
                         {renderIconPreview(icon)}
                         <div className="text-center w-full">
-                          <p className="text-xs font-medium text-white truncate">{icon.icon_name}</p>
+                          <p className="text-xs font-medium text-slate-900 truncate">{icon.icon_name}</p>
                           <p className="text-[10px] text-muted-foreground truncate">{icon.icon_key}</p>
                         </div>
                       </div>
@@ -384,7 +384,7 @@ const AdminIconRegistry = () => {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg bg-white border-slate-200 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-slate-900">
               {editingIcon ? 'Edit Icon' : 'Add New Icon'}
             </DialogTitle>
           </DialogHeader>
@@ -402,7 +402,7 @@ const AdminIconRegistry = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-white/70">Icon Key *</Label>
+                <Label className="text-slate-600">Icon Key *</Label>
                 <Input
                   value={form.icon_key}
                   onChange={e => setForm(f => ({ ...f, icon_key: e.target.value }))}
@@ -412,7 +412,7 @@ const AdminIconRegistry = () => {
                 />
               </div>
               <div>
-                <Label className="text-white/70">Display Name *</Label>
+                <Label className="text-slate-600">Display Name *</Label>
                 <Input
                   value={form.icon_name}
                   onChange={e => setForm(f => ({ ...f, icon_name: e.target.value }))}
@@ -424,7 +424,7 @@ const AdminIconRegistry = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-white/70">Category</Label>
+                <Label className="text-slate-600">Category</Label>
                 <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
@@ -437,7 +437,7 @@ const AdminIconRegistry = () => {
                 </Select>
               </div>
               <div>
-                <Label className="text-white/70">Icon Type</Label>
+                <Label className="text-slate-600">Icon Type</Label>
                 <Select value={form.icon_type} onValueChange={v => setForm(f => ({ ...f, icon_type: v }))}>
                   <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue />
@@ -454,7 +454,7 @@ const AdminIconRegistry = () => {
             {/* Lucide icon picker */}
             {form.icon_type === 'lucide' && (
               <div>
-                <Label className="text-white/70">Lucide Icon Name</Label>
+                <Label className="text-slate-600">Lucide Icon Name</Label>
                 <Input
                   value={lucideSearch || form.lucide_name}
                   onChange={e => { setLucideSearch(e.target.value); setForm(f => ({ ...f, lucide_name: e.target.value })); }}
@@ -482,7 +482,7 @@ const AdminIconRegistry = () => {
             {/* Custom icon upload */}
             {(form.icon_type === 'custom' || form.icon_type === 'lottie' || form.icon_type === 'svga') && (
               <div>
-                <Label className="text-white/70">
+                <Label className="text-slate-600">
                   {form.icon_type === 'custom' ? 'Icon Image (PNG/SVG)' : 'Animation File URL'}
                 </Label>
                 {form.icon_type === 'custom' ? (
@@ -513,7 +513,7 @@ const AdminIconRegistry = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-white/70">Emoji</Label>
+                <Label className="text-slate-600">Emoji</Label>
                 <Input
                   value={form.fallback_emoji}
                   onChange={e => setForm(f => ({ ...f, fallback_emoji: e.target.value }))}
@@ -522,7 +522,7 @@ const AdminIconRegistry = () => {
                 />
               </div>
               <div>
-                <Label className="text-white/70">Color</Label>
+                <Label className="text-slate-600">Color</Label>
                 <div className="flex gap-1">
                   <Input
                     value={form.color_hex}
@@ -536,7 +536,7 @@ const AdminIconRegistry = () => {
                 </div>
               </div>
               <div>
-                <Label className="text-white/70">Order</Label>
+                <Label className="text-slate-600">Order</Label>
                 <Input
                   type="number"
                   value={form.display_order}
@@ -547,7 +547,7 @@ const AdminIconRegistry = () => {
             </div>
 
             <div>
-              <Label className="text-white/70">Description (where is this used?)</Label>
+              <Label className="text-slate-600">Description (where is this used?)</Label>
               <Textarea
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -564,7 +564,7 @@ const AdminIconRegistry = () => {
                 onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))}
                 className="rounded"
               />
-              <Label className="text-white/70">Active</Label>
+              <Label className="text-slate-600">Active</Label>
             </div>
           </div>
 

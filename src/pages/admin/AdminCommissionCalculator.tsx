@@ -165,31 +165,31 @@ const AdminCommissionCalculator = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="font-bold text-xl text-white flex items-center gap-2">
+            <h1 className="font-bold text-xl text-slate-900 flex items-center gap-2">
               <Calculator className="w-6 h-6" />
               Commission Calculator
             </h1>
-            <p className="text-white/80 text-sm">AI-Powered Earnings Calculator</p>
+            <p className="text-slate-700 text-sm">AI-Powered Earnings Calculator</p>
           </div>
         </div>
         
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 text-white/80 text-sm mb-1">
+            <div className="flex items-center gap-2 text-slate-700 text-sm mb-1">
               <Gift className="w-4 h-4" />
               Gift Commission
             </div>
-            <p className="text-white font-bold text-lg">
+            <p className="text-slate-900 font-bold text-lg">
               Host {100 - giftCompanyPercent}% • Company {giftCompanyPercent}%
             </p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 text-white/80 text-sm mb-1">
+            <div className="flex items-center gap-2 text-slate-700 text-sm mb-1">
               <Phone className="w-4 h-4" />
               Call Commission
             </div>
-            <p className="text-white font-bold text-lg">
+            <p className="text-slate-900 font-bold text-lg">
               Host {100 - callCompanyPercent}% • {callPerMinuteRate}/min
             </p>
           </div>
@@ -246,14 +246,14 @@ const AdminCommissionCalculator = () => {
                 <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
                   <div className="text-center">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 mx-auto flex items-center justify-center mb-2">
-                      <Users className="w-6 h-6 text-white" />
+                      <Users className="w-6 h-6 text-slate-900" />
                     </div>
                     <p className="text-sm text-slate-600">Host Gets</p>
                     <p className="text-2xl font-bold text-pink-600">{100 - giftCompanyPercent}%</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 mx-auto flex items-center justify-center mb-2">
-                      <Building2 className="w-6 h-6 text-white" />
+                      <Building2 className="w-6 h-6 text-slate-900" />
                     </div>
                     <p className="text-sm text-slate-600">Company Gets</p>
                     <p className="text-2xl font-bold text-purple-600">{giftCompanyPercent}%</p>
@@ -425,14 +425,14 @@ const AdminCommissionCalculator = () => {
                 <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
                   <div className="text-center">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 mx-auto flex items-center justify-center mb-2">
-                      <Users className="w-6 h-6 text-white" />
+                      <Users className="w-6 h-6 text-slate-900" />
                     </div>
                     <p className="text-sm text-slate-600">Host Gets</p>
                     <p className="text-2xl font-bold text-blue-600">{100 - callCompanyPercent}%</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 mx-auto flex items-center justify-center mb-2">
-                      <Building2 className="w-6 h-6 text-white" />
+                      <Building2 className="w-6 h-6 text-slate-900" />
                     </div>
                     <p className="text-sm text-slate-600">Company Gets</p>
                     <p className="text-2xl font-bold text-violet-600">{callCompanyPercent}%</p>
@@ -456,7 +456,7 @@ const AdminCommissionCalculator = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white rounded-lg p-4 shadow-sm text-center">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 mx-auto flex items-center justify-center mb-2">
-                        <Users className="w-5 h-5 text-white" />
+                        <Users className="w-5 h-5 text-slate-900" />
                       </div>
                       <p className="text-xs text-slate-500">Host Gets</p>
                       <p className="text-2xl font-bold text-blue-600">
@@ -468,7 +468,7 @@ const AdminCommissionCalculator = () => {
                     </div>
                     <div className="bg-white rounded-lg p-4 shadow-sm text-center">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 mx-auto flex items-center justify-center mb-2">
-                        <Building2 className="w-5 h-5 text-white" />
+                        <Building2 className="w-5 h-5 text-slate-900" />
                       </div>
                       <p className="text-xs text-slate-500">Company Gets</p>
                       <p className="text-2xl font-bold text-violet-600">

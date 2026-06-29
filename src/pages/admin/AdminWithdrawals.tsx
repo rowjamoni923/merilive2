@@ -805,7 +805,7 @@ export default function AdminWithdrawals() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-white/50 hover:text-white"
+                              className="text-slate-500 hover:text-slate-900"
                               onClick={() => {
                                 setSelectedWithdrawal(withdrawal);
                                 setShowDetailDialog(true);
@@ -875,7 +875,7 @@ export default function AdminWithdrawals() {
                   })}
                   {filteredWithdrawals.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-10 text-white/50">
+                      <TableCell colSpan={8} className="text-center py-10 text-slate-500">
                         No withdrawals found
                       </TableCell>
                     </TableRow>
@@ -898,22 +898,22 @@ export default function AdminWithdrawals() {
             <div className="space-y-4">
               <div className="bg-white/5 rounded-lg p-4 space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-white/60">Agency:</span>
+                  <span className="text-slate-600">Agency:</span>
                   <span className="font-medium">{selectedWithdrawal.agency?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Payable Beans:</span>
+                  <span className="text-slate-600">Payable Beans:</span>
                   <span className="font-bold text-yellow-400">{formatBeans(resolveNetWithdrawalBeans(selectedWithdrawal))} Beans</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Payable USD:</span>
+                  <span className="text-slate-600">Payable USD:</span>
                   <span className="font-bold text-green-400">
                     ${resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate).toFixed(2)}
                   </span>
                 </div>
                 {selectedWithdrawal.payment_details?.currency_code && (
                   <div className="flex justify-between">
-                    <span className="text-white/60">Payable Local:</span>
+                    <span className="text-slate-600">Payable Local:</span>
                     <span className="font-bold text-cyan-400">
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code).flag}{" "}
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code).symbol}
@@ -923,43 +923,43 @@ export default function AdminWithdrawals() {
                 )}
                 {selectedWithdrawal.payment_details?.exchange_rate && (
                   <div className="flex justify-between">
-                    <span className="text-white/60">Exchange Rate:</span>
+                    <span className="text-slate-600">Exchange Rate:</span>
                     <span>$1 = {selectedWithdrawal.payment_details.exchange_rate}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-white/60">Status:</span>
+                  <span className="text-slate-600">Status:</span>
                   {getStatusBadge(selectedWithdrawal.status)}
                 </div>
               </div>
 
               <div className="bg-white/5 rounded-lg p-4 space-y-3">
-                <p className="text-white/60 text-sm font-medium flex items-center gap-2">
+                <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
                   <CreditCard className="w-4 h-4" />
                   Payment Info
                 </p>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Payment Method:</span>
+                  <span className="text-slate-600">Payment Method:</span>
                   <span className="capitalize">{selectedWithdrawal.payment_method}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Account Name:</span>
+                  <span className="text-slate-600">Account Name:</span>
                   <span>{selectedWithdrawal.payment_details?.account_name || "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Account Number:</span>
+                  <span className="text-slate-600">Account Number:</span>
                   <span className="font-mono text-primary">{selectedWithdrawal.payment_details?.account_number || "N/A"}</span>
                 </div>
                 {selectedWithdrawal.payment_details?.bank_name && (
                   <div className="flex justify-between">
-                    <span className="text-white/60">Bank:</span>
+                    <span className="text-slate-600">Bank:</span>
                     <span>{selectedWithdrawal.payment_details.bank_name}</span>
                   </div>
                 )}
                 {selectedWithdrawal.payment_details?.additional_info && (
                   <div>
-                    <span className="text-white/60 text-sm">Additional Info:</span>
-                    <p className="text-white/80 mt-1">{selectedWithdrawal.payment_details.additional_info}</p>
+                    <span className="text-slate-600 text-sm">Additional Info:</span>
+                    <p className="text-slate-700 mt-1">{selectedWithdrawal.payment_details.additional_info}</p>
                   </div>
                 )}
               </div>
@@ -981,7 +981,7 @@ export default function AdminWithdrawals() {
                     
                     {helperTransactionId && (
                       <div className="bg-slate-50/50 rounded-lg p-3">
-                        <span className="text-white/60 text-xs block mb-1">Transaction ID:</span>
+                        <span className="text-slate-600 text-xs block mb-1">Transaction ID:</span>
                         <span className="text-yellow-400 font-mono text-lg font-bold break-all">
                           {helperTransactionId}
                         </span>
@@ -990,14 +990,14 @@ export default function AdminWithdrawals() {
                     
                     {helperPaymentNotes && (
                       <div className="bg-slate-50/50 rounded-lg p-3">
-                        <span className="text-white/60 text-xs block mb-1">Helper Notes:</span>
-                        <span className="text-white/80 whitespace-pre-wrap break-words">{helperPaymentNotes}</span>
+                        <span className="text-slate-600 text-xs block mb-1">Helper Notes:</span>
+                        <span className="text-slate-700 whitespace-pre-wrap break-words">{helperPaymentNotes}</span>
                       </div>
                     )}
                     
                     {helperPaymentScreenshot && (
                       <div>
-                        <span className="text-white/60 text-xs block mb-2">📸 Payment Screenshot:</span>
+                        <span className="text-slate-600 text-xs block mb-2">📸 Payment Screenshot:</span>
                         <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 cursor-pointer"
                              onClick={() => imageViewer.openImage(helperPaymentScreenshot)}>
                           <SmartImage 
@@ -1014,8 +1014,8 @@ export default function AdminWithdrawals() {
 
               {selectedWithdrawal.notes && (
                 <div className="bg-white/5 rounded-lg p-4">
-                  <p className="text-white/60 text-sm">Notes:</p>
-                  <p className="text-white/80">{selectedWithdrawal.notes}</p>
+                  <p className="text-slate-600 text-sm">Notes:</p>
+                  <p className="text-slate-700">{selectedWithdrawal.notes}</p>
                 </div>
               )}
             </div>
@@ -1079,7 +1079,7 @@ export default function AdminWithdrawals() {
               {actionType === 'reject' && 'Reject Withdrawal'}
               {actionType === 'complete' && 'Complete Withdrawal'}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-600">
               {selectedWithdrawal?.agency?.name} - {formatBeans(selectedWithdrawal ? resolveNetWithdrawalBeans(selectedWithdrawal) : 0)} Beans
               <span className="text-green-400 ml-2">
                 (${(selectedWithdrawal ? resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate) : 0).toFixed(2)})
@@ -1091,16 +1091,16 @@ export default function AdminWithdrawals() {
             <div className="space-y-3">
               <div className="bg-white/5 rounded-lg p-3 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-white/60">Payment:</span>
+                  <span className="text-slate-600">Payment:</span>
                   <span className="capitalize">{selectedWithdrawal.payment_method}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Account:</span>
+                  <span className="text-slate-600">Account:</span>
                   <span className="font-mono">{selectedWithdrawal.payment_details?.account_number}</span>
                 </div>
                 {selectedWithdrawal.payment_details?.local_amount && (
                   <div className="flex justify-between">
-                    <span className="text-white/60">Amount to Pay:</span>
+                    <span className="text-slate-600">Amount to Pay:</span>
                     <span className="text-cyan-400 font-bold">
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code || "USD").symbol}
                       {resolveNetWithdrawalLocal(selectedWithdrawal).toLocaleString()}
@@ -1117,8 +1117,8 @@ export default function AdminWithdrawals() {
                   </p>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-white/60">Total Diamond Reward:</span>
-                      <span className="text-white font-bold">{selectedWithdrawal.diamond_reward.toLocaleString()} 💎</span>
+                      <span className="text-slate-600">Total Diamond Reward:</span>
+                      <span className="text-slate-900 font-bold">{selectedWithdrawal.diamond_reward.toLocaleString()} 💎</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-red-400">Platform Fee ({helperPlatformFee}%):</span>
@@ -1136,7 +1136,7 @@ export default function AdminWithdrawals() {
 
           <div className="space-y-4">
             <div>
-              <label className="text-white/60 text-sm mb-2 block">Notes (Optional)</label>
+              <label className="text-slate-600 text-sm mb-2 block">Notes (Optional)</label>
               <Textarea
                 value={actionNotes}
                 onChange={(e) => setActionNotes(e.target.value)}

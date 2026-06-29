@@ -124,7 +124,7 @@ export default function AdminRoomWelcomeMessages() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-            <MessageSquare className="w-6 h-6 text-white" />
+            <MessageSquare className="w-6 h-6 text-slate-900" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Room Welcome Messages</h1>

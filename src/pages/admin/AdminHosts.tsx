@@ -267,11 +267,11 @@ export default function AdminHosts() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 md:gap-3">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2 md:gap-3">
             <UserCheck className="w-5 h-5 md:w-7 md:h-7" />
             Host Management
           </h1>
-          <p className="text-white/80 text-xs md:text-sm mt-1">Manage all hosts</p>
+          <p className="text-slate-700 text-xs md:text-sm mt-1">Manage all hosts</p>
         </div>
         <Button className="bg-white text-green-600 hover:bg-green-50 shadow-md w-full md:w-auto" size="sm">
           <Download className="w-4 h-4 mr-2" />
@@ -285,7 +285,7 @@ export default function AdminHosts() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow">
-                <UserCheck className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                <UserCheck className="w-4 h-4 md:w-5 md:h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-blue-600 text-[10px] md:text-xs font-medium">Total Hosts</p>
@@ -298,7 +298,7 @@ export default function AdminHosts() {
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500 flex items-center justify-center shadow">
-                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-green-600 text-[10px] md:text-xs font-medium">Active</p>
@@ -311,7 +311,7 @@ export default function AdminHosts() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-yellow-500 flex items-center justify-center shadow">
-                <Clock className="w-5 h-5 text-white" />
+                <Clock className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-yellow-600 text-xs font-medium">Pending</p>
@@ -324,7 +324,7 @@ export default function AdminHosts() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center shadow">
-                <Ban className="w-5 h-5 text-white" />
+                <Ban className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-red-600 text-xs font-medium">Blocked</p>
@@ -337,7 +337,7 @@ export default function AdminHosts() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center shadow">
-                <Coins className="w-5 h-5 text-white" />
+                <Coins className="w-5 h-5 text-slate-900" />
               </div>
               <div>
                 <p className="text-purple-600 text-xs font-medium">Total Earnings</p>
@@ -414,26 +414,26 @@ export default function AdminHosts() {
           <div className="w-full overflow-x-auto"><Table>
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-white/70">Host</TableHead>
-                <TableHead className="text-white/70">Level</TableHead>
-                <TableHead className="text-white/70">Status</TableHead>
-                <TableHead className="text-white/70">Rate/Min</TableHead>
-                <TableHead className="text-white/70">Total Earnings</TableHead>
-                <TableHead className="text-white/70">Call Minutes</TableHead>
-                <TableHead className="text-white/70">Agency</TableHead>
-                <TableHead className="text-white/70 text-right">Actions</TableHead>
+                <TableHead className="text-slate-600">Host</TableHead>
+                <TableHead className="text-slate-600">Level</TableHead>
+                <TableHead className="text-slate-600">Status</TableHead>
+                <TableHead className="text-slate-600">Rate/Min</TableHead>
+                <TableHead className="text-slate-600">Total Earnings</TableHead>
+                <TableHead className="text-slate-600">Call Minutes</TableHead>
+                <TableHead className="text-slate-600">Agency</TableHead>
+                <TableHead className="text-slate-600 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-white/60 py-10">
+                  <TableCell colSpan={8} className="text-center text-slate-600 py-10">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : filteredHosts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-white/60 py-10">
+                  <TableCell colSpan={8} className="text-center text-slate-600 py-10">
                     No hosts found
                   </TableCell>
                 </TableRow>
@@ -453,18 +453,18 @@ export default function AdminHosts() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-white font-medium flex items-center gap-1">
+                          <p className="text-slate-900 font-medium flex items-center gap-1">
                             {host.display_name}
                             {host.is_verified && <CheckCircle className="w-4 h-4 text-blue-400" />}
                           </p>
-                          <p className="text-white/50 text-xs">{host.id.slice(0, 8)}...</p>
+                          <p className="text-slate-500 text-xs">{host.id.slice(0, 8)}...</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400" />
-                        <span className="text-white">{host.host_level || 1}</span>
+                        <span className="text-slate-900">{host.host_level || 1}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -491,7 +491,7 @@ export default function AdminHosts() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-white">
+                      <span className="text-slate-900">
                         {host.total_call_minutes || 0} mins
                       </span>
                     </TableCell>
@@ -499,7 +499,7 @@ export default function AdminHosts() {
                       {host.agencies ? (
                         <span className="text-purple-400">{host.agencies.name}</span>
                       ) : (
-                        <span className="text-white/40">-</span>
+                        <span className="text-slate-500">-</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -511,7 +511,7 @@ export default function AdminHosts() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-slate-50 border-white/10">
                           <DropdownMenuItem
-                            className="text-white/70 hover:text-white"
+                            className="text-slate-600 hover:text-slate-900"
                             onClick={() => { setSelectedHost(host); setShowDetails(true); }}
                           >
                             <Eye className="w-4 h-4 mr-2" />
@@ -581,7 +581,7 @@ export default function AdminHosts() {
                 </Avatar>
                 <div>
                   <h3 className="text-xl font-bold">{selectedHost.display_name}</h3>
-                  <p className="text-white/50 text-sm">ID: {selectedHost.id}</p>
+                  <p className="text-slate-500 text-sm">ID: {selectedHost.id}</p>
                   <div className="flex items-center gap-2 mt-2">
                     {selectedHost.is_verified && (
                       <Badge className="bg-blue-500/20 text-blue-400">Verified</Badge>
@@ -596,31 +596,31 @@ export default function AdminHosts() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white/5 rounded-lg p-4 text-center">
                   <Phone className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{selectedHost.total_calls_received || 0}</p>
-                  <p className="text-white/50 text-xs">Total Calls</p>
+                  <p className="text-2xl font-bold text-slate-900">{selectedHost.total_calls_received || 0}</p>
+                  <p className="text-slate-500 text-xs">Total Calls</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center">
                   <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{selectedHost.total_call_minutes || 0}</p>
-                  <p className="text-white/50 text-xs">Call Minutes</p>
+                  <p className="text-2xl font-bold text-slate-900">{selectedHost.total_call_minutes || 0}</p>
+                  <p className="text-slate-500 text-xs">Call Minutes</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center">
                   <Coins className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{formatCoins(selectedHost.total_earnings || 0)}</p>
-                  <p className="text-white/50 text-xs">Total Earnings</p>
+                  <p className="text-2xl font-bold text-slate-900">{formatCoins(selectedHost.total_earnings || 0)}</p>
+                  <p className="text-slate-500 text-xs">Total Earnings</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center">
                   <TrendingUp className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{getHostRate(selectedHost).toLocaleString()}</p>
-                  <p className="text-white/50 text-xs">Rate/Min</p>
+                  <p className="text-2xl font-bold text-slate-900">{getHostRate(selectedHost).toLocaleString()}</p>
+                  <p className="text-slate-500 text-xs">Rate/Min</p>
                 </div>
               </div>
 
               {selectedHost.agencies && (
                 <div className="bg-white/5 rounded-lg p-4">
-                  <h4 className="text-white/70 text-sm mb-2">Agency Info</h4>
-                  <p className="text-white font-medium">{selectedHost.agencies.name}</p>
-                  <p className="text-white/50 text-sm">Code: {selectedHost.agencies.agency_code}</p>
+                  <h4 className="text-slate-600 text-sm mb-2">Agency Info</h4>
+                  <p className="text-slate-900 font-medium">{selectedHost.agencies.name}</p>
+                  <p className="text-slate-500 text-sm">Code: {selectedHost.agencies.agency_code}</p>
                 </div>
               )}
 

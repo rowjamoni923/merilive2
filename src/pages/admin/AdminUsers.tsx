@@ -513,7 +513,7 @@ export default function AdminUsers() {
       <Dialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <DialogContent className="bg-white border-slate-200 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white font-bold">
+            <DialogTitle className="text-slate-900 font-bold">
               {selectedUser?.is_blocked ? "Unblock User" : "Block User"}
             </DialogTitle>
             <DialogDescription className="text-slate-400 font-semibold">
@@ -562,7 +562,7 @@ export default function AdminUsers() {
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
         <DialogContent className="bg-slate-50 border-white/10 max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">User Details</DialogTitle>
+            <DialogTitle className="text-slate-900">User Details</DialogTitle>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-4">
@@ -577,8 +577,8 @@ export default function AdminUsers() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-white font-bold text-lg">{selectedUser.display_name}</p>
-                  <p className="text-white/50">@{selectedUser.username || selectedUser.id.slice(0, 8)}</p>
+                  <p className="text-slate-900 font-bold text-lg">{selectedUser.display_name}</p>
+                  <p className="text-slate-500">@{selectedUser.username || selectedUser.id.slice(0, 8)}</p>
                   {/* App UID with Copy Button */}
                   {selectedUser.app_uid && (
                     <div className="flex items-center gap-2 mt-1">
@@ -588,7 +588,7 @@ export default function AdminUsers() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-6 h-6 text-white/50 hover:text-white"
+                        className="w-6 h-6 text-slate-500 hover:text-slate-900"
                         onClick={() => {
                           navigator.clipboard.writeText(selectedUser.app_uid || "");
                           toast.success("App UID copied");
@@ -603,20 +603,20 @@ export default function AdminUsers() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Diamonds</p>
+                  <p className="text-slate-500 text-sm">Diamonds</p>
                   <p className="text-yellow-400 font-bold">{selectedUser.coins?.toLocaleString() || 0}</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Level</p>
+                  <p className="text-slate-500 text-sm">Level</p>
                   <p className="text-purple-400 font-bold">Lv. {selectedUser.user_level || 0}</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Earnings</p>
+                  <p className="text-slate-500 text-sm">Earnings</p>
                   <p className="text-green-400 font-bold">{selectedUser.total_earnings?.toLocaleString() || 0}</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-white/50 text-sm">Country</p>
-                  <p className="text-white font-bold">{selectedUser.country_name || "-"}</p>
+                  <p className="text-slate-500 text-sm">Country</p>
+                  <p className="text-slate-900 font-bold">{selectedUser.country_name || "-"}</p>
                 </div>
               </div>
 
@@ -644,7 +644,7 @@ export default function AdminUsers() {
               {selectedUser.blocked_reason && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm font-medium">Block Reason:</p>
-                  <p className="text-white/70 text-sm">{selectedUser.blocked_reason}</p>
+                  <p className="text-slate-600 text-sm">{selectedUser.blocked_reason}</p>
                 </div>
               )}
             </div>

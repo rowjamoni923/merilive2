@@ -68,10 +68,10 @@ export default function AdminDiamondTraderHub() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
-            <Coins className="w-6 h-6 text-white" />
+            <Coins className="w-6 h-6 text-slate-900" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Diamond Trader Hub</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Diamond Trader Hub</h1>
             <p className="text-slate-400 text-sm">
               Manage traders, orders, transactions & payment methods
             </p>
@@ -88,7 +88,7 @@ export default function AdminDiamondTraderHub() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Active Helpers</p>
-              <p className="text-white font-bold text-xl">{stats.activeHelpers}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.activeHelpers}</p>
             </div>
           </CardContent>
         </Card>
@@ -100,7 +100,7 @@ export default function AdminDiamondTraderHub() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Pending Orders</p>
-              <p className="text-white font-bold text-xl">{stats.pendingOrders}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.pendingOrders}</p>
             </div>
           </CardContent>
         </Card>
@@ -112,7 +112,7 @@ export default function AdminDiamondTraderHub() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Today's Txns</p>
-              <p className="text-white font-bold text-xl">{stats.todayTransactions}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.todayTransactions}</p>
             </div>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export default function AdminDiamondTraderHub() {
             </div>
             <div>
               <p className="text-slate-400 text-xs">Payment Methods</p>
-              <p className="text-white font-bold text-xl">{stats.paymentMethods}</p>
+              <p className="text-slate-900 font-bold text-xl">{stats.paymentMethods}</p>
             </div>
           </CardContent>
         </Card>
@@ -214,7 +214,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="traders" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Users className="w-5 h-5 text-green-400" />
                 Diamond Traders
                 <Badge variant="outline" className="ml-2 text-green-400 border-green-500/50">
@@ -231,7 +231,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="orders" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Package className="w-5 h-5 text-yellow-400" />
                 Trader Orders
                 <Badge variant="outline" className="ml-2 text-yellow-400 border-yellow-500/50">
@@ -248,7 +248,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="transactions" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Activity className="w-5 h-5 text-blue-400" />
                 Trader Transactions
                 <Badge variant="outline" className="ml-2 text-blue-400 border-blue-500/50">
@@ -265,7 +265,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="payment-methods" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <CreditCard className="w-5 h-5 text-purple-400" />
                 Payment Methods
                 <Badge variant="outline" className="ml-2 text-purple-400 border-purple-500/50">
@@ -282,7 +282,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="manual-topup" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Wallet className="w-5 h-5 text-orange-400" />
                 Manual Topup
                 <Badge variant="outline" className="ml-2 text-orange-400 border-orange-500/50">
@@ -299,7 +299,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="coin-packages" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Coins className="w-5 h-5 text-cyan-400" />
                 Diamond Packages
                 <Badge variant="outline" className="ml-2 text-cyan-400 border-cyan-500/50">
@@ -316,7 +316,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="topup-system" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <DollarSign className="w-5 h-5 text-teal-400" />
                 Top-up System
                 <Badge variant="outline" className="ml-2 text-teal-400 border-teal-500/50">
@@ -333,7 +333,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="gateways" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Settings className="w-5 h-5 text-pink-400" />
                 Payment Gateways
                 <Badge variant="outline" className="ml-2 text-pink-400 border-pink-500/50">
@@ -350,7 +350,7 @@ export default function AdminDiamondTraderHub() {
         <TabsContent value="helper-methods" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                 <Phone className="w-5 h-5 text-cyan-400" />
                 Level 5 Helper Payment Methods
                 <Badge variant="outline" className="ml-2 text-cyan-400 border-cyan-500/50">
@@ -367,7 +367,7 @@ export default function AdminDiamondTraderHub() {
          <TabsContent value="user-exchange" className="mt-0">
            <Card className="bg-white/30 border-slate-200">
              <CardHeader className="pb-2">
-               <CardTitle className="text-lg flex items-center gap-2 text-white">
+               <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
                  <Coins className="w-5 h-5 text-amber-400" />
                  User Beans Exchange Rates
                  <Badge variant="outline" className="ml-2 text-amber-400 border-amber-500/50">

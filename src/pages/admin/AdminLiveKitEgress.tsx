@@ -188,11 +188,11 @@ export default function AdminLiveKitEgress() {
       <div className="bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Film className="w-6 h-6" />
               LiveKit Egress
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">
               Pkg136 — every active recording / HLS / RTMP simulcast job. Kill-switch
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">
                 egress_ops
@@ -229,7 +229,7 @@ export default function AdminLiveKitEgress() {
         <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Total</p>
-            <p className="text-white font-bold text-xl">{stats.total}</p>
+            <p className="text-slate-900 font-bold text-xl">{stats.total}</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-50 border-slate-200">
@@ -313,7 +313,7 @@ export default function AdminLiveKitEgress() {
                         <div className="flex flex-wrap items-center gap-2 mb-1">
                           <Badge className="bg-slate-600 text-white text-[10px]">{kind}</Badge>
                           {statusBadge(e.status)}
-                          <span className="text-sm text-white font-mono truncate">
+                          <span className="text-sm text-slate-900 font-mono truncate">
                             {e.roomName || "—"}
                           </span>
                         </div>
@@ -375,11 +375,11 @@ export default function AdminLiveKitEgress() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                 <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Room</p>
-                  <p className="font-mono text-white truncate">{detail.roomName || "—"}</p>
+                  <p className="font-mono text-slate-900 truncate">{detail.roomName || "—"}</p>
                 </div>
                 <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Started</p>
-                  <p className="text-white">
+                  <p className="text-slate-900">
                     {detail.startedAt
                       ? format(new Date(detail.startedAt), "dd MMM HH:mm")
                       : "—"}
@@ -387,7 +387,7 @@ export default function AdminLiveKitEgress() {
                 </div>
                 <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Updated</p>
-                  <p className="text-white">
+                  <p className="text-slate-900">
                     {detail.updatedAt
                       ? format(new Date(detail.updatedAt), "HH:mm:ss")
                       : "—"}
@@ -395,7 +395,7 @@ export default function AdminLiveKitEgress() {
                 </div>
                 <div className="bg-slate-50 rounded p-2">
                   <p className="text-slate-500">Ended</p>
-                  <p className="text-white">
+                  <p className="text-slate-900">
                     {detail.endedAt
                       ? format(new Date(detail.endedAt), "HH:mm:ss")
                       : "—"}
@@ -419,7 +419,7 @@ export default function AdminLiveKitEgress() {
                   <div className="space-y-1">
                     {detail.fileResults.map((f, i) => (
                       <div key={i} className="bg-slate-50 rounded p-2 text-[11px]">
-                        <p className="font-mono text-white truncate">{f.location || "—"}</p>
+                        <p className="font-mono text-slate-900 truncate">{f.location || "—"}</p>
                         <p className="text-slate-500">
                           {formatBytes(f.size)} · {formatDuration(f.duration)}
                         </p>
@@ -441,7 +441,7 @@ export default function AdminLiveKitEgress() {
                         key={i}
                         className="bg-slate-50 rounded p-2 text-[11px] flex items-center justify-between gap-2"
                       >
-                        <p className="font-mono text-white truncate flex-1 min-w-0">
+                        <p className="font-mono text-slate-900 truncate flex-1 min-w-0">
                           {s.url || "—"}
                         </p>
                         {statusBadge(s.status)}
@@ -460,7 +460,7 @@ export default function AdminLiveKitEgress() {
                   <div className="space-y-1">
                     {detail.segmentResults.map((s, i) => (
                       <div key={i} className="bg-slate-50 rounded p-2 text-[11px]">
-                        <p className="font-mono text-white truncate">
+                        <p className="font-mono text-slate-900 truncate">
                           {s.playlistLocation || s.playlistName || "—"}
                         </p>
                         <p className="text-slate-500">

@@ -265,7 +265,7 @@ const AdminTopupPaymentMethods = () => {
     <div className="admin-pro-shell p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Top-up Payment Methods</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Top-up Payment Methods</h1>
           <p className="text-slate-400">Manage payment methods for manual top-up & helper dashboard</p>
         </div>
         <div className="flex gap-2">
@@ -321,7 +321,7 @@ const AdminTopupPaymentMethods = () => {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-white font-semibold">{method.name}</p>
+                        <p className="text-slate-900 font-semibold">{method.name}</p>
                         <Badge className={getMethodColor(method.method_type)}>
                           {method.method_type?.replace('_', ' ')}
                         </Badge>
@@ -374,7 +374,7 @@ const AdminTopupPaymentMethods = () => {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="bg-white border-slate-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-slate-900">
               {editingMethod ? 'Edit Payment Method' : 'Add Payment Method'}
             </DialogTitle>
           </DialogHeader>
@@ -382,7 +382,7 @@ const AdminTopupPaymentMethods = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white">Method Name *</Label>
+                <Label className="text-slate-900">Method Name *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -391,7 +391,7 @@ const AdminTopupPaymentMethods = () => {
                 />
               </div>
               <div>
-                <Label className="text-white">Type *</Label>
+                <Label className="text-slate-900">Type *</Label>
                 <Select value={formData.method_type} onValueChange={(v) => setFormData({ ...formData, method_type: v })}>
                   <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                     <SelectValue />
@@ -406,7 +406,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Account Name</Label>
+              <Label className="text-slate-900">Account Name</Label>
               <Input
                 value={formData.account_name}
                 onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
@@ -416,7 +416,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Account Number / ID</Label>
+              <Label className="text-slate-900">Account Number / ID</Label>
               <Input
                 value={formData.account_number}
                 onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
@@ -426,7 +426,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Payment Number / Pay ID</Label>
+              <Label className="text-slate-900">Payment Number / Pay ID</Label>
               <Input
                 value={formData.payment_number}
                 onChange={(e) => setFormData({ ...formData, payment_number: e.target.value })}
@@ -436,7 +436,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Payment Instructions</Label>
+              <Label className="text-slate-900">Payment Instructions</Label>
               <Textarea
                 value={formData.payment_instructions}
                 onChange={(e) => setFormData({ ...formData, payment_instructions: e.target.value })}
@@ -447,7 +447,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Logo Image</Label>
+              <Label className="text-slate-900">Logo Image</Label>
               <p className="text-xs text-slate-400 mb-2">Upload PNG / JPG / SVG / WebP (under 2 MB). Shown in user Recharge page & Helper Dashboard.</p>
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
@@ -493,7 +493,7 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Allowed Countries (ISO codes, comma-separated)</Label>
+              <Label className="text-slate-900">Allowed Countries (ISO codes, comma-separated)</Label>
               <p className="text-xs text-slate-400 mb-2">
                 e.g. <span className="text-emerald-300">BD</span> = Bangladesh only, <span className="text-emerald-300">BD,IN</span> = both, blank = global (crypto/USDT). Helpers & users will only see methods matching their country.
               </p>

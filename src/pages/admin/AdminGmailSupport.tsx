@@ -677,7 +677,7 @@ const AdminGmailSupport = () => {
                         )}>
                           {/* Sender + timestamp inline */}
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className={cn("text-[10px] font-medium truncate", isOur ? "text-white/70" : "text-muted-foreground")}>
+                            <span className={cn("text-[10px] font-medium truncate", isOur ? "text-slate-600" : "text-muted-foreground")}>
                               {isOur ? 'MeriLive Support' : extractName(msg.from)}
                             </span>
                             <span className="flex-1" />
@@ -713,14 +713,14 @@ const AdminGmailSupport = () => {
                             )}
                           </div>
                           {/* Floating timestamp */}
-                          <span className={cn("text-[9px] float-right mt-1 ml-3", isOur ? "text-white/40" : "text-muted-foreground/40")}>
+                          <span className={cn("text-[9px] float-right mt-1 ml-3", isOur ? "text-slate-500" : "text-muted-foreground/40")}>
                             {format(parseDate(msg.date), 'hh:mm a')}
                             {isOur && ' ✓✓'}
                           </span>
                         </div>
                         {isOur && (
                           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shrink-0 mt-auto mb-0.5 shadow-sm shadow-purple-500/20">
-                            <Send className="w-3 h-3 text-white" />
+                            <Send className="w-3 h-3 text-slate-900" />
                           </div>
                         )}
                       </div>

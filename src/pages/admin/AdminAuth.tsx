@@ -463,9 +463,9 @@ export default function AdminAuth() {
           <Card className="border-amber-500/20 bg-white/80 backdrop-blur-xl">
             <CardHeader className="text-center">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
-                <Smartphone className="w-10 h-10 text-white" />
+                <Smartphone className="w-10 h-10 text-slate-900" />
               </div>
-              <CardTitle className="text-2xl text-white">Awaiting Owner Approval</CardTitle>
+              <CardTitle className="text-2xl text-slate-900">Awaiting Owner Approval</CardTitle>
               <CardDescription className="text-slate-400">
                 Your device is new. The Owner needs to approve it before you can access the admin panel.
               </CardDescription>
@@ -483,11 +483,11 @@ export default function AdminAuth() {
               <div className="rounded-xl bg-slate-50/50 border border-white/5 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Email:</span>
-                  <span className="text-white font-medium">{email}</span>
+                  <span className="text-slate-900 font-medium">{email}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Device:</span>
-                  <span className="text-white text-xs truncate ml-4">{getDeviceFingerprint().deviceName}</span>
+                  <span className="text-slate-900 text-xs truncate ml-4">{getDeviceFingerprint().deviceName}</span>
                 </div>
               </div>
               <div className="flex items-center justify-center gap-2 text-amber-400">
@@ -515,9 +515,9 @@ export default function AdminAuth() {
           <Card className="border-red-500/20 bg-white/80 backdrop-blur-xl">
             <CardHeader className="text-center">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/30">
-                <X className="w-10 h-10 text-white" />
+                <X className="w-10 h-10 text-slate-900" />
               </div>
-              <CardTitle className="text-2xl text-white">Access Denied</CardTitle>
+              <CardTitle className="text-2xl text-slate-900">Access Denied</CardTitle>
               <CardDescription className="text-slate-400">
                 {rejectionReason || 'Your device access was rejected by the Owner.'}
               </CardDescription>
@@ -543,9 +543,9 @@ export default function AdminAuth() {
         <Card className="border-violet-500/20 bg-white/80 backdrop-blur-xl shadow-2xl">
           <CardHeader className="text-center">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/30">
-              <Shield className="w-10 h-10 text-white" />
+              <Shield className="w-10 h-10 text-slate-900" />
             </div>
-            <CardTitle className="text-3xl text-white font-bold">Admin Panel</CardTitle>
+            <CardTitle className="text-3xl text-slate-900 font-bold">Admin Panel</CardTitle>
             <CardDescription className="text-slate-400">
               Independent admin login — no user account needed
             </CardDescription>
@@ -586,7 +586,7 @@ export default function AdminAuth() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>

@@ -122,11 +122,11 @@ export default function AdminTrackRecordings() {
       <div className="bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <Film className="w-6 h-6" />
               Track Recordings (Moderation)
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-1">
+            <p className="text-slate-700 text-xs sm:text-sm mt-1">
               Per-participant audio/video evidence. Admin-only — kill-switch
               <code className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px]">track_egress</code>.
             </p>
@@ -142,7 +142,7 @@ export default function AdminTrackRecordings() {
         <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-3 text-center">
             <p className="text-slate-400 text-xs">Total</p>
-            <p className="text-white font-bold text-xl">{rows.length}</p>
+            <p className="text-slate-900 font-bold text-xl">{rows.length}</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-50 border-slate-200">
@@ -213,7 +213,7 @@ export default function AdminTrackRecordings() {
                           {r.room_name || "—"}
                         </span>
                         <span className="text-xs text-slate-500">·</span>
-                        <span className="text-xs text-white truncate">
+                        <span className="text-xs text-slate-900 truncate">
                           {r.participant_identity || "—"}
                         </span>
                       </div>

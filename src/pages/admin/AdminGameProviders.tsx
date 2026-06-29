@@ -367,7 +367,7 @@ export default function AdminGameProviders() {
               </div>
               Third-Party Game Providers
             </h1>
-            <p className="text-white/80 mt-1">
+            <p className="text-slate-700 mt-1">
               Connect external game APIs like SOFTSWISS, Spribe, Evolution & more
             </p>
           </div>
@@ -387,21 +387,21 @@ export default function AdminGameProviders() {
               <Server className="w-5 h-5" />
               <span className="text-lg font-bold">{providers.length}</span>
             </div>
-            <p className="text-sm text-white/70">Total Providers</p>
+            <p className="text-sm text-slate-600">Total Providers</p>
           </div>
           <div className="rounded-xl p-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-green-300" />
               <span className="text-lg font-bold">{providers.filter(p => p.is_active).length}</span>
             </div>
-            <p className="text-sm text-white/70">Active</p>
+            <p className="text-sm text-slate-600">Active</p>
           </div>
           <div className="rounded-xl p-4">
             <div className="flex items-center gap-2">
               <Gamepad2 className="w-5 h-5" />
               <span className="text-lg font-bold">{providerGames.length}</span>
             </div>
-            <p className="text-sm text-white/70">Total Games</p>
+            <p className="text-sm text-slate-600">Total Games</p>
           </div>
         </div>
       </div>

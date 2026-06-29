@@ -251,7 +251,7 @@ const AdminVIPPrivileges = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Crown className="w-7 h-7 text-amber-400" />
             VIP Privileges
           </h1>
@@ -272,12 +272,12 @@ const AdminVIPPrivileges = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
           <Crown className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-white">{tiers.length}</p>
+          <p className="text-2xl font-bold text-slate-900">{tiers.length}</p>
           <p className="text-sm text-slate-400">VIP Tiers</p>
         </div>
         <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
           <Gem className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-white">{tiers.filter(t => t.is_active).length}</p>
+          <p className="text-2xl font-bold text-slate-900">{tiers.filter(t => t.is_active).length}</p>
           <p className="text-sm text-slate-400">Active</p>
         </div>
       </div>
@@ -297,12 +297,12 @@ const AdminVIPPrivileges = () => {
                         loop
                       />
                     ) : (
-                      <Crown className="w-6 h-6 text-white" />
+                      <Crown className="w-6 h-6 text-slate-900" />
                     )}
                   </div>
                   <div>
-                    <h4 className="text-white font-bold">{tier.tier_name}</h4>
-                    <p className="text-white/80 text-sm">{tier.duration_days} Days • {tier.price_diamonds?.toLocaleString()} 💎</p>
+                    <h4 className="text-slate-900 font-bold">{tier.tier_name}</h4>
+                    <p className="text-slate-700 text-sm">{tier.duration_days} Days • {tier.price_diamonds?.toLocaleString()} 💎</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -399,7 +399,7 @@ const AdminVIPPrivileges = () => {
           style={{ resize: 'both', minWidth: '320px', minHeight: '400px' }}
         >
           <DialogHeader className="p-4 border-b border-slate-200 shrink-0">
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-900 flex items-center gap-2">
               <Crown className="w-5 h-5 text-amber-400" />
               {editingTier ? `Edit ${editingTier.tier_name}` : "Create VIP Tier"}
             </DialogTitle>
@@ -480,7 +480,7 @@ const AdminVIPPrivileges = () => {
                   </div>
 
                   <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
-                    <span className="text-white">Active</span>
+                    <span className="text-slate-900">Active</span>
                     <Switch
                       checked={tierForm.is_active !== false}
                       onCheckedChange={(checked) => setTierForm(prev => ({ ...prev, is_active: checked }))}
@@ -505,7 +505,7 @@ const AdminVIPPrivileges = () => {
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
                       <div className="flex items-center gap-3">
                         <Icon className={`w-5 h-5 ${color}`} />
-                        <span className="text-white">{label}</span>
+                        <span className="text-slate-900">{label}</span>
                       </div>
                       <Switch
                         checked={(tierForm as any)[key] || false}
@@ -533,7 +533,7 @@ const AdminVIPPrivileges = () => {
                       <div className="flex items-center gap-3">
                         <Icon className={`w-5 h-5 ${color}`} />
                         <div>
-                          <div className="text-white">{label}</div>
+                          <div className="text-slate-900">{label}</div>
                           <div className="text-xs text-slate-500">{desc}</div>
                         </div>
                       </div>
@@ -545,7 +545,7 @@ const AdminVIPPrivileges = () => {
                   ))}
 
                   <div className="bg-slate-50 p-3 rounded-lg">
-                    <label className="text-sm text-white block mb-2">Max Kick Tier Level (Anti-Kick threshold)</label>
+                    <label className="text-sm text-slate-900 block mb-2">Max Kick Tier Level (Anti-Kick threshold)</label>
                     <p className="text-xs text-slate-500 mb-2">Moderators with tier_level ≤ this value cannot kick this VIP. Set 0 to disable.</p>
                     <Input
                       type="number"
@@ -565,7 +565,7 @@ const AdminVIPPrivileges = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-50 p-3 rounded-lg">
-                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                      <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
                         <Coins className="w-4 h-4 text-amber-400" />
                         Recharge Bonus %
                       </label>
@@ -581,7 +581,7 @@ const AdminVIPPrivileges = () => {
                     </div>
 
                     <div className="bg-slate-50 p-3 rounded-lg">
-                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                      <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
                         <Gem className="w-4 h-4 text-cyan-400" />
                         Daily Free Diamonds
                       </label>
@@ -596,7 +596,7 @@ const AdminVIPPrivileges = () => {
                     </div>
 
                     <div className="bg-slate-50 p-3 rounded-lg">
-                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                      <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-emerald-400" />
                         Free Name Changes / Month
                       </label>
@@ -610,7 +610,7 @@ const AdminVIPPrivileges = () => {
                     </div>
 
                     <div className="bg-slate-50 p-3 rounded-lg">
-                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                      <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
                         <Sparkles className="w-4 h-4 text-pink-400" />
                         Entry Effect Duration (sec)
                       </label>
@@ -626,7 +626,7 @@ const AdminVIPPrivileges = () => {
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-lg">
-                    <label className="text-sm text-white block mb-2">Username Color (hex)</label>
+                    <label className="text-sm text-slate-900 block mb-2">Username Color (hex)</label>
                     <div className="flex gap-2 items-center">
                       <Input
                         type="color"
@@ -644,7 +644,7 @@ const AdminVIPPrivileges = () => {
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-lg">
-                    <label className="text-sm text-white block mb-2">Profile Background URL</label>
+                    <label className="text-sm text-slate-900 block mb-2">Profile Background URL</label>
                     <Input
                       value={tierForm.profile_background_url || ''}
                       onChange={(e) => setTierForm(prev => ({ ...prev, profile_background_url: e.target.value }))}
@@ -664,7 +664,7 @@ const AdminVIPPrivileges = () => {
                   <div className="bg-slate-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Crown className="w-5 h-5 text-amber-400" />
-                      <span className="text-white font-medium">Pro Animation (VAP / SVGA / Lottie / WebP / MP4)</span>
+                      <span className="text-slate-900 font-medium">Pro Animation (VAP / SVGA / Lottie / WebP / MP4)</span>
                     </div>
                     <AnimationUploader
                       label=""
@@ -690,7 +690,7 @@ const AdminVIPPrivileges = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Crown className="w-5 h-5 text-purple-400" />
-                        <span className="text-white font-medium">Avatar Frame</span>
+                        <span className="text-slate-900 font-medium">Avatar Frame</span>
                       </div>
                       <label className="cursor-pointer">
                         <div className={`px-3 py-1.5 rounded-lg flex items-center gap-2 ${
@@ -743,7 +743,7 @@ const AdminVIPPrivileges = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-cyan-400" />
-                        <span className="text-white font-medium">Entry Effect</span>
+                        <span className="text-slate-900 font-medium">Entry Effect</span>
                       </div>
                       <label className="cursor-pointer">
                         <div className={`px-3 py-1.5 rounded-lg flex items-center gap-2 ${
@@ -796,7 +796,7 @@ const AdminVIPPrivileges = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <MessageCircle className="w-5 h-5 text-amber-400" />
-                        <span className="text-white font-medium">Chat Bubble</span>
+                        <span className="text-slate-900 font-medium">Chat Bubble</span>
                       </div>
                       <label className="cursor-pointer">
                         <div className={`px-3 py-1.5 rounded-lg flex items-center gap-2 ${

@@ -908,7 +908,7 @@ export default function AdminBalanceDeduction() {
               </div>
               <div>
                 <h1 className={adminStyles.headerTitleWhite}>Balance Deduction</h1>
-                <p className="text-white/80 text-sm">Deduct balance from users, hosts, agencies and helpers</p>
+                <p className="text-slate-700 text-sm">Deduct balance from users, hosts, agencies and helpers</p>
               </div>
             </div>
             
@@ -1005,7 +1005,7 @@ export default function AdminBalanceDeduction() {
                       </div>
                       {result.isBlocked && (
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                          <Ban className="w-3 h-3 text-white" />
+                          <Ban className="w-3 h-3 text-slate-900" />
                         </div>
                       )}
                     </div>

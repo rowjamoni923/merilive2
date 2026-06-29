@@ -84,7 +84,7 @@ export default function AdminOnlineUsers() {
     <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
             <Eye className="w-6 h-6 text-emerald-400" />
             Online Users
             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 ml-2">
@@ -113,7 +113,7 @@ export default function AdminOnlineUsers() {
       {hosts.length > 0 && (
         <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-emerald-500/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white text-lg flex items-center gap-2">
+            <CardTitle className="text-slate-900 text-lg flex items-center gap-2">
               <Star className="w-5 h-5 text-amber-400" />
               Online Hosts ({hosts.length})
             </CardTitle>
@@ -138,7 +138,7 @@ export default function AdminOnlineUsers() {
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-200" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{user.display_name || "Unknown"}</p>
                     <p className="text-[10px] text-slate-400"><CopyableUid value={user.app_uid || "N/A"} /> • Lv.{user.user_level || 0}</p>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">Host</Badge>
@@ -152,7 +152,7 @@ export default function AdminOnlineUsers() {
       {/* Online Regular Users (current page) */}
       <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white text-lg flex items-center gap-2">
+          <CardTitle className="text-slate-900 text-lg flex items-center gap-2">
             <User className="w-5 h-5 text-blue-400" />
             Online Users ({regular.length})
           </CardTitle>
@@ -180,7 +180,7 @@ export default function AdminOnlineUsers() {
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-200" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{user.display_name || "Unknown"}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{user.display_name || "Unknown"}</p>
                     <p className="text-[10px] text-slate-400"><CopyableUid value={user.app_uid || "N/A"} /> • Lv.{user.user_level || 0}</p>
                   </div>
                 </motion.div>

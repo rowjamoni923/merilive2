@@ -855,27 +855,27 @@ const AdminFaceVerification = () => {
 
           <TabsTrigger value="pending" className="relative overflow-visible" data-testid="tab-pending">
             Pending
-            <span data-testid="tab-count-pending" className={pendingCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#F59E0B", color: "#fff" }}>{pendingCount}</span>
+            <span data-testid="tab-count-pending" className={pendingCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F59E0B", color: "#fff" }}>{pendingCount}</span>
           </TabsTrigger>
           <TabsTrigger value="auto_approved" className="relative overflow-visible text-xs" data-testid="tab-auto_approved">
             Auto Approved
-            <span data-testid="tab-count-auto_approved" className={autoApprovedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#06B6D4", color: "#fff" }}>{autoApprovedCount}</span>
+            <span data-testid="tab-count-auto_approved" className={autoApprovedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#06B6D4", color: "#fff" }}>{autoApprovedCount}</span>
           </TabsTrigger>
           <TabsTrigger value="auto_rejected" className="relative overflow-visible text-xs" data-testid="tab-auto_rejected">
             Auto Rejected
-            <span data-testid="tab-count-auto_rejected" className={autoRejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#F97316", color: "#fff" }}>{autoRejectedCount}</span>
+            <span data-testid="tab-count-auto_rejected" className={autoRejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F97316", color: "#fff" }}>{autoRejectedCount}</span>
           </TabsTrigger>
           <TabsTrigger value="approved" className="relative overflow-visible" data-testid="tab-approved">
             Approved
-            <span data-testid="tab-count-approved" className={approvedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#10B981", color: "#fff" }}>{approvedCount}</span>
+            <span data-testid="tab-count-approved" className={approvedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#10B981", color: "#fff" }}>{approvedCount}</span>
           </TabsTrigger>
           <TabsTrigger value="rejected" className="relative overflow-visible" data-testid="tab-rejected">
             Rejected
-            <span data-testid="tab-count-rejected" className={rejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#EF4444", color: "#fff" }}>{rejectedCount}</span>
+            <span data-testid="tab-count-rejected" className={rejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#EF4444", color: "#fff" }}>{rejectedCount}</span>
           </TabsTrigger>
           <TabsTrigger value="all" className="relative overflow-visible" data-testid="tab-all">
             All
-            <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow" : "sr-only"} style={{ backgroundColor: "#8B5CF6", color: "#fff" }}>{visibleCounts.total || visiblePool.length}</span>
+            <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#8B5CF6", color: "#fff" }}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1297,7 +1297,7 @@ const AdminFaceVerification = () => {
                         return (
                           <div key={index} className="relative group">
                             <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-[3/4] rounded-lg border border-[#E2E8F0] bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center" mediaClassName="w-full h-full object-contain" onOpen={() => setExpandedPhoto(url)} />
-                            <span className="absolute top-1.5 left-1.5 bg-[#2563EB] text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">{index + 1}</span>
+                            <span className="absolute top-1.5 left-1.5 bg-[#2563EB] text-slate-900 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">{index + 1}</span>
                           </div>
                         );
                       })}
@@ -1553,7 +1553,7 @@ const AdminFaceVerification = () => {
                       </div>
                       {approveGender === 'female' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center">
-                          <CheckCircle2 className="w-3 h-3 text-white" />
+                          <CheckCircle2 className="w-3 h-3 text-slate-900" />
                         </div>
                       )}
                     </button>
@@ -1565,7 +1565,7 @@ const AdminFaceVerification = () => {
                       </div>
                       {approveGender === 'male' && (
                         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                          <CheckCircle2 className="w-3 h-3 text-white" />
+                          <CheckCircle2 className="w-3 h-3 text-slate-900" />
                         </div>
                       )}
                     </button>
