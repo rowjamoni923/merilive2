@@ -19394,6 +19394,10 @@ export type Database = {
         Returns: number
       }
       _secure_random: { Args: never; Returns: number }
+      _service_auto_finalize_face_verification_impl: {
+        Args: { p_submission_id: string }
+        Returns: Json
+      }
       _teen_patti_score: {
         Args: { p_ranks: number[]; p_suits: string[] }
         Returns: number
