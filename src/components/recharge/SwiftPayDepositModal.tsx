@@ -95,6 +95,8 @@ type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 const MINIMUM_DEPOSIT_MESSAGE =
   "This amount is below every supported crypto network's minimum deposit. Please choose a bigger diamond package and try again.";
 
+const SWIFT_PAY_POLL_INTERVAL_MS = 30_000;
+
 // Detect upstream gateway "currency not enabled / not supported" errors so we can
 // automatically fall back to another enabled crypto network instead of failing.
 const isCurrencyDisabledError = (payload: any, fallback?: string | null) => {
@@ -327,14 +329,14 @@ export default function SwiftPayDepositModal({
             : `${fmt(deposit.coins_amount)} diamonds added to your balance.`,
         });
         onCredited?.(deposit.coins_amount, deposit.topup_id);
-      } else {
+      } else if (data?.status === "pending" || data?.status === "paid" || data?.status === "expired") {
         supabase.functions.invoke("swift-pay-poll-deposits", {
           body: { topup_id: deposit.topup_id },
         }).catch(() => {});
       }
     };
     tick();
-    const id = setInterval(tick, 15000);
+    const id = setInterval(tick, SWIFT_PAY_POLL_INTERVAL_MS);
     return () => {
       active = false;
       clearInterval(id);
