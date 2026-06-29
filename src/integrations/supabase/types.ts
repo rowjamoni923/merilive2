@@ -21733,6 +21733,7 @@ export type Database = {
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
       cleanup_login_attempts: { Args: never; Returns: undefined }
+      cleanup_monitoring_tables: { Args: never; Returns: undefined }
       cleanup_old_gift_combos: { Args: never; Returns: number }
       cleanup_old_security_alerts: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
