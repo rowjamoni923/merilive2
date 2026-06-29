@@ -23994,6 +23994,10 @@ export type Database = {
         Returns: Json
       }
       trigger_weekly_agency_schedule: { Args: never; Returns: Json }
+      try_lock_face_submission_for_analysis: {
+        Args: { p_submission_id: string }
+        Returns: boolean
+      }
       unmute_all_speakers: { Args: { p_room_id: string }; Returns: Json }
       unpin_group_message: {
         Args: { p_message_id: string }
