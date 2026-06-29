@@ -298,7 +298,7 @@ const AgencyCommissionHistory = () => {
                 <Percent className="w-5 h-5 text-success-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-success-700 dark:text-success-400 text-sm">Company Commission Bonus</h3>
+ <h3 className="font-semibold text-success-700 text-sm">Company Commission Bonus</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Based on your hosts' weekly earnings, the company provides level-based commission bonuses. This commission is not deducted from host earnings.
                 </p>

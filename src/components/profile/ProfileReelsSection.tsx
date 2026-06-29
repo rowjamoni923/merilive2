@@ -185,7 +185,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ delay: index * 0.05 }}
-                className="relative flex-shrink-0 w-20 h-28 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-950/50 dark:to-purple-950/50 cursor-pointer group overflow-hidden rounded-xl border border-pink-200 dark:border-pink-800/30"
+ className="relative flex-shrink-0 w-20 h-28 bg-gradient-to-br from-pink-100 to-purple-100 cursor-pointer group overflow-hidden rounded-xl border border-pink-200 "
               >
                 {/* Clickable area for viewing */}
                 <div 

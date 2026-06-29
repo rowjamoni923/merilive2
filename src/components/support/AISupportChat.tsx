@@ -964,7 +964,7 @@ const AISupportChat = ({
                     <div className={cn(
                       "rounded-full px-4 py-2 text-xs text-center max-w-[90%] flex items-center gap-2",
                       isLiveChatMode
-                        ? "bg-gradient-to-r from-green-500/15 to-emerald-500/10 border border-green-500/20 text-green-600 dark:text-green-400"
+ ? "bg-gradient-to-r from-green-500/15 to-emerald-500/10 border border-green-500/20 text-green-600 "
                         : "bg-muted/50 text-muted-foreground"
                     )}>
                       {isLiveChatMode && <Zap className="w-3 h-3" />}
@@ -1024,7 +1024,7 @@ const AISupportChat = ({
                         </div>
                       )}
                       {!isUser ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none [&_a]:text-primary [&_a]:underline [&_a]:font-semibold">
+ <div className="prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline [&_a]:font-semibold">
                           <ReactMarkdown
                             components={{
                               a: ({ href, children }) => (
@@ -1085,7 +1085,7 @@ const AISupportChat = ({
         <div className="px-4 pb-2">
           <button
             onClick={() => activateLiveChat()}
-            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-green-500/10 to-emerald-500/5 hover:from-green-500/20 hover:to-emerald-500/10 border border-green-500/20 rounded-xl transition-all text-xs text-green-600 dark:text-green-400 font-medium"
+ className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-green-500/10 to-emerald-500/5 hover:from-green-500/20 hover:to-emerald-500/10 border border-green-500/20 rounded-xl transition-all text-xs text-green-600 font-medium"
           >
             <Headphones className="w-3.5 h-3.5" />
             Not resolved? Connect to Live Chat

@@ -330,7 +330,7 @@ const FollowingList = () => {
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
             <span>{profile.country_flag}</span>
             <span
-              className={`inline-flex items-center gap-1 ${profile.is_online ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}
+ className={`inline-flex items-center gap-1 ${profile.is_online ? 'text-emerald-600 font-medium' : ''}`}
             >
               {profile.is_online && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
               {profile.is_online ? 'Online now' : 'Offline'}
@@ -393,7 +393,7 @@ const FollowingList = () => {
         aria-hidden
       />
       <div
-        className="relative w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-100 via-fuchsia-50 to-pink-100 dark:from-purple-900/40 dark:via-fuchsia-900/30 dark:to-pink-900/40 border border-border flex items-center justify-center"
+ className="relative w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-100 via-fuchsia-50 to-pink-100 border border-border flex items-center justify-center"
         style={{
           boxShadow:
             '0 10px 24px -10px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 4px rgba(168,85,247,0.1)',
@@ -442,7 +442,7 @@ const FollowingList = () => {
   );
 
   return (
-    <div data-page="following" className="mobile-page bg-gradient-to-b from-purple-50/40 via-background to-background dark:from-purple-950/20">
+ <div data-page="following" className="mobile-page bg-gradient-to-b from-purple-50/40 via-background to-background ">
       {/* Premium gradient header */}
       <header className="sticky top-0 z-40 safe-area-top">
         <div
