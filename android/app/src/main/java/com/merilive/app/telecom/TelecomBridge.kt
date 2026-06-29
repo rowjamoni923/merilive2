@@ -101,30 +101,15 @@ object TelecomBridge {
         callerName: String,
         callType: String,
     ): Boolean {
-        if (!isSupported()) return false
-        if (!ensurePhoneAccount(ctx)) return false
-        val tm = ctx.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
-        val h = handle(ctx) ?: return false
-        return try {
-            val extras = Bundle().apply {
-                putString(EXTRA_CALL_ID, callId)
-                putString(EXTRA_CALLER_ID, callerId)
-                putString(EXTRA_CALLER_NAME, callerName)
-                putString(EXTRA_CALL_TYPE, callType)
-                putParcelable(
-                    TelecomManager.EXTRA_INCOMING_CALL_ADDRESS,
-                    Uri.fromParts("merilive", callerId.ifEmpty { callerName }, null),
-                )
-            }
-            tm.addNewIncomingCall(h, extras)
-            true
-        } catch (t: Throwable) {
-            // SecurityException on devices where the user has revoked
-            // the self-managed permission, or where the PhoneAccount
-            // hasn't been enabled in Settings → Calling accounts.
-            Log.w(TAG, "addNewIncomingCall failed: ${t.message}")
-            false
-        }
+        // 2026-06 audit fix: never push private calls into Android Telecom's
+        // incoming-call pipeline. On Samsung/OEM builds addNewIncomingCall()
+        // opens the system in-call UI above MeriLive, which hides our chat/gift
+        // controls, races media adoption, leaves calls visually stuck on
+        // "Connecting", and can leave a zombie OS call after hangup. Incoming
+        // delivery is handled by MeriFirebaseMessagingService's high-priority
+        // full-screen IncomingCallActivity + React call screen instead.
+        Log.i(TAG, "reportIncoming bypassed for custom MeriLive UI: $callId")
+        return false
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
