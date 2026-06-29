@@ -1356,8 +1356,10 @@ export default function AdminLayout() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
   const sidebarSearchRef = useRef<HTMLInputElement>(null);
+  const sidebarNavRef = useRef<HTMLElement | null>(null);
   const adminScrollRootRef = useRef<HTMLElement | null>(null);
   const adminTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+
   // Admin access hook for permission-based filtering
   const { isOwner: hookIsOwner, hasHubAccess, adminUser, isLoading: accessLoading } = useAdminAccess();
   
