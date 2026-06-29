@@ -1249,6 +1249,13 @@ const navGroups: NavGroup[] = [
         description: "Force-update threshold, latest version, changelog, and maintenance-mode toggle for native apps.",
       },
       {
+        label: "App Update Logs",
+        icon: Smartphone,
+        path: "/admin/app-update-logs",
+        hubKey: "settings-hub",
+        description: "Live log of every update check: device version vs server version, modal shown, force-update triggered, store opened.",
+      },
+      {
         label: "Device Management",
         icon: Smartphone,
         path: "/admin/device-management",

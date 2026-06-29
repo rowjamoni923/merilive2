@@ -2310,6 +2310,60 @@ export type Database = {
         }
         Relationships: []
       }
+      app_update_check_log: {
+        Row: {
+          app_build: string | null
+          created_at: string
+          current_version_code: number | null
+          current_version_name: string | null
+          device_model: string | null
+          force_update: boolean
+          id: string
+          min_version_code: number | null
+          modal_shown: boolean
+          outcome: string
+          platform: string
+          server_version_code: number | null
+          server_version_name: string | null
+          update_available: boolean
+          user_id: string | null
+        }
+        Insert: {
+          app_build?: string | null
+          created_at?: string
+          current_version_code?: number | null
+          current_version_name?: string | null
+          device_model?: string | null
+          force_update?: boolean
+          id?: string
+          min_version_code?: number | null
+          modal_shown?: boolean
+          outcome?: string
+          platform?: string
+          server_version_code?: number | null
+          server_version_name?: string | null
+          update_available?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          app_build?: string | null
+          created_at?: string
+          current_version_code?: number | null
+          current_version_name?: string | null
+          device_model?: string | null
+          force_update?: boolean
+          id?: string
+          min_version_code?: number | null
+          modal_shown?: boolean
+          outcome?: string
+          platform?: string
+          server_version_code?: number | null
+          server_version_name?: string | null
+          update_available?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       app_version_settings: {
         Row: {
           changelog: string | null

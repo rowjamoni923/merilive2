@@ -170,23 +170,44 @@ export const useAppUpdate = () => {
       setUpdateInfo(info);
 
       // Check if this version was already dismissed (only for non-force updates)
-      if (updateAvailable && !isForceUpdate && isDismissedVersion(serverVersionCode)) {
-        console.log('[AppUpdate] This version was already dismissed by user');
-        setShowUpdateModal(false);
-        return;
-      }
+      const dismissed = updateAvailable && !isForceUpdate && isDismissedVersion(serverVersionCode);
+      let modalWillShow = false;
 
-      // Show modal if update is available
-      if (updateAvailable) {
+      if (updateAvailable && !dismissed) {
         console.log('[AppUpdate] Update available! Showing modal.');
         setShowUpdateModal(true);
+        modalWillShow = true;
+      } else if (updateAvailable && dismissed) {
+        console.log('[AppUpdate] This version was already dismissed by user');
+        setShowUpdateModal(false);
       } else {
         console.log('[AppUpdate] App is up to date.');
         setShowUpdateModal(false);
-        // Clear any dismissed version if app is up to date
         try {
           localStorage.removeItem(DISMISSED_VERSION_KEY);
         } catch (e) {}
+      }
+
+      // 🔍 LOG THE CHECK to admin dashboard (fire-and-forget)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        supabase.from('app_update_check_log').insert({
+          user_id: user?.id ?? null,
+          platform: platform === 'web' ? 'android' : platform,
+          current_version_name: CURRENT_VERSION_NAME,
+          current_version_code: CURRENT_VERSION_CODE,
+          server_version_name: serverVersionName,
+          server_version_code: serverVersionCode,
+          min_version_code: minimumVersionCode,
+          update_available: updateAvailable,
+          force_update: isForceUpdate,
+          modal_shown: modalWillShow,
+          outcome: modalWillShow ? 'shown' : (dismissed ? 'dismissed' : 'checked'),
+        }).then(({ error: logErr }) => {
+          if (logErr) console.warn('[AppUpdate] log insert failed:', logErr.message);
+        });
+      } catch (e) {
+        console.warn('[AppUpdate] could not log check:', e);
       }
 
     } catch (error) {
@@ -233,9 +254,32 @@ export const useAppUpdate = () => {
 
   const openPlayStore = useCallback(async () => {
     const url = updateInfo?.playStoreUrl || 'https://play.google.com/store/apps/details?id=com.merilive.app';
-    
+
+    // Save dismissal so user isn't re-prompted before install completes
+    if (updateInfo?.availableVersionCode) {
+      try {
+        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
+      } catch (e) {}
+    }
+
+    // Log outcome
     try {
-      // Try using Capacitor App Update plugin first
+      const { data: { user } } = await supabase.auth.getUser();
+      supabase.from('app_update_check_log').insert({
+        user_id: user?.id ?? null,
+        platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
+        current_version_name: updateInfo?.currentVersion,
+        current_version_code: updateInfo?.currentVersionCode,
+        server_version_name: updateInfo?.availableVersion,
+        server_version_code: updateInfo?.availableVersionCode,
+        update_available: true,
+        force_update: updateInfo?.forceUpdate ?? false,
+        modal_shown: true,
+        outcome: 'store_opened',
+      }).then(() => {});
+    } catch (e) {}
+
+    try {
       const { AppUpdate } = await import('@capawesome/capacitor-app-update');
       await AppUpdate.openAppStore();
     } catch (error) {
@@ -253,14 +297,37 @@ export const useAppUpdate = () => {
   const performImmediateUpdate = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
+    // Save dismissal too
+    if (updateInfo?.availableVersionCode) {
+      try {
+        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
+      } catch (e) {}
+    }
+
     try {
       const { AppUpdate } = await import('@capawesome/capacitor-app-update');
       await AppUpdate.performImmediateUpdate();
+      // Log success
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        supabase.from('app_update_check_log').insert({
+          user_id: user?.id ?? null,
+          platform: Capacitor.getPlatform(),
+          current_version_name: updateInfo?.currentVersion,
+          current_version_code: updateInfo?.currentVersionCode,
+          server_version_name: updateInfo?.availableVersion,
+          server_version_code: updateInfo?.availableVersionCode,
+          update_available: true,
+          force_update: updateInfo?.forceUpdate ?? false,
+          modal_shown: true,
+          outcome: 'updated',
+        }).then(() => {});
+      } catch (e) {}
     } catch (error) {
       console.error('[AppUpdate] Immediate update failed, opening store:', error);
       openPlayStore();
     }
-  }, [openPlayStore]);
+  }, [openPlayStore, updateInfo]);
 
   const dismissUpdate = useCallback(() => {
     // Don't allow dismiss if force update is required
