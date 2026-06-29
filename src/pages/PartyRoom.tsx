@@ -2481,24 +2481,7 @@ const PartyRoom = () => {
     setShowSettings(false);
   };
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      user_id: currentUser?.id,
-      message: message.trim(),
-      created_at: new Date().toISOString(),
-      type: 'message',
-      user: {
-        display_name: currentUser?.profile?.display_name,
-        avatar_url: currentUser?.profile?.avatar_url
-      }
-    }]);
-    // 🔥 AWS Comprehend toxic content moderation (background)
-    checkToxic(message.trim(), { contextType: 'party_room', roomId }).catch(() => {});
-    setMessage("");
-  };
+  // sendMessage removed — chat handled by <UnifiedPartyRoom/> with persisted party_room_messages.
 
   const sendHeart = () => {
     const newHeart = Date.now();
