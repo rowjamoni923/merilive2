@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import CompanyHealthGauge from "@/components/admin/CompanyHealthGauge";
+import { ReportExportMenu } from "@/components/admin/ReportExportMenu";
 
 type Preset = "today" | "yesterday" | "week" | "month" | "custom";
 
