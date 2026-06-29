@@ -469,6 +469,23 @@ serve(async (req) => {
     }
     activeSubmissionId = submissionId;
 
+    // C-3: idempotency lock — prevent two concurrent invocations from
+    // double-spending Rekognition + double-finalizing the same submission.
+    try {
+      const { data: lockOk, error: lockErr } = await supabaseAdmin
+        .rpc("try_lock_face_submission_for_analysis", { p_submission_id: submissionId });
+      if (lockErr) {
+        console.warn("[face-verification-analyze] lock RPC error (continuing):", lockErr.message);
+      } else if (lockOk === false) {
+        return new Response(
+          JSON.stringify({ success: true, deferred: true, reason: "another_worker_processing" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    } catch (e) {
+      console.warn("[face-verification-analyze] lock attempt failed (continuing):", e instanceof Error ? e.message : e);
+    }
+
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
       .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url,ai_analysis")
