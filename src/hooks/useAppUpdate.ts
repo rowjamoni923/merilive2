@@ -12,6 +12,33 @@ const DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
 const LAST_CHECK_KEY = 'app_update_last_check';
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes between checks
 
+// Admin test-mode override key. When this localStorage entry exists, the
+// hook bypasses the native check and renders the modal using the override
+// payload — lets admins QA the modal/dismiss/store-open flow in any browser
+// without publishing a new version.
+export const APP_UPDATE_TEST_OVERRIDE_KEY = 'app_update_test_override';
+export const APP_UPDATE_TEST_TRIGGER_EVENT = 'app-update-test-trigger';
+
+interface TestOverridePayload {
+  forceUpdate?: boolean;
+  currentVersion?: string;
+  availableVersion?: string;
+  currentVersionCode?: number;
+  availableVersionCode?: number;
+  updateMessage?: string;
+  playStoreUrl?: string;
+}
+
+const readTestOverride = (): TestOverridePayload | null => {
+  try {
+    const raw = localStorage.getItem(APP_UPDATE_TEST_OVERRIDE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as TestOverridePayload;
+  } catch {
+    return null;
+  }
+};
+
 interface AppUpdateInfo {
   updateAvailable: boolean;
   forceUpdate: boolean;
