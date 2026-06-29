@@ -3,14 +3,12 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { supabase } from '@/integrations/supabase/client';
 
-// Fallback version (only used if native version can't be read)
-const FALLBACK_VERSION_CODE = 100;
-const FALLBACK_VERSION_NAME = '8.2.1';
-
 // Storage key for dismissed updates
-const DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
+export const APP_UPDATE_DISMISSED_VERSION_KEY = 'app_update_dismissed_version';
+export const APP_UPDATE_PROMPT_STATE_KEY = 'app_update_prompt_state';
 const LAST_CHECK_KEY = 'app_update_last_check';
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes between checks
+const STORE_OPEN_SUPPRESSION_MS = 12 * 60 * 60 * 1000; // optional prompts stay quiet after Store open
 
 // Admin test-mode override key. When this localStorage entry exists, the
 // hook bypasses the native check and renders the modal using the override
@@ -46,14 +44,32 @@ interface AppUpdateInfo {
   availableVersion: string;
   currentVersionCode: number;
   availableVersionCode: number;
+  currentComparable: number;
+  availableComparable: number;
+  minimumComparable: number;
   updateMessage: string;
   playStoreUrl: string;
 }
 
+type PromptAction = 'dismissed' | 'store_opened' | 'updated';
+
+interface PromptMemory {
+  action: PromptAction;
+  forceUpdate: boolean;
+  targetComparable: number;
+  targetVersionCode: number;
+  targetVersionName: string;
+  installedComparableAtAction: number;
+  installedVersionCode: number;
+  installedVersionName: string;
+  updatedAt: number;
+  suppressUntil?: number;
+}
+
 // Get the actual app version from native platform
-const getAppVersion = async (): Promise<{ versionCode: number; versionName: string }> => {
+const getAppVersion = async (): Promise<{ versionCode: number; versionName: string } | null> => {
   if (!Capacitor.isNativePlatform()) {
-    return { versionCode: FALLBACK_VERSION_CODE, versionName: FALLBACK_VERSION_NAME };
+    return null;
   }
   
   try {
@@ -62,13 +78,17 @@ const getAppVersion = async (): Promise<{ versionCode: number; versionName: stri
     
     // info.version is the version name (e.g., "5.7.0")
     // info.build is the version code (e.g., "57")
-    const versionCode = parseInt(info.build, 10) || FALLBACK_VERSION_CODE;
-    const versionName = info.version || FALLBACK_VERSION_NAME;
+    const versionCode = parseInt(info.build, 10);
+    const versionName = info.version?.trim();
+    if (!Number.isFinite(versionCode) || versionCode <= 0 || !versionName) {
+      console.warn('[AppUpdate] Native app version unavailable, skipping update prompt');
+      return null;
+    }
     
     return { versionCode, versionName };
   } catch (error) {
     console.error('[AppUpdate] Failed to get native app info:', error);
-    return { versionCode: FALLBACK_VERSION_CODE, versionName: FALLBACK_VERSION_NAME };
+    return null;
   }
 };
 
@@ -100,26 +120,105 @@ const toComparableCode = (
   return Math.max(fromCode, fromName);
 };
 
+const readPromptMemory = (): PromptMemory | null => {
+  try {
+    const raw = localStorage.getItem(APP_UPDATE_PROMPT_STATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PromptMemory;
+  } catch {
+    return null;
+  }
+};
+
+const clearPromptMemory = () => {
+  try {
+    localStorage.removeItem(APP_UPDATE_PROMPT_STATE_KEY);
+    localStorage.removeItem(APP_UPDATE_DISMISSED_VERSION_KEY);
+  } catch {}
+};
+
+const savePromptMemory = (info: AppUpdateInfo, action: PromptAction) => {
+  try {
+    const now = Date.now();
+    const memory: PromptMemory = {
+      action,
+      forceUpdate: info.forceUpdate,
+      targetComparable: info.availableComparable,
+      targetVersionCode: info.availableVersionCode,
+      targetVersionName: info.availableVersion,
+      installedComparableAtAction: info.currentComparable,
+      installedVersionCode: info.currentVersionCode,
+      installedVersionName: info.currentVersion,
+      updatedAt: now,
+      suppressUntil: action === 'store_opened' ? now + STORE_OPEN_SUPPRESSION_MS : undefined,
+    };
+    localStorage.setItem(APP_UPDATE_PROMPT_STATE_KEY, JSON.stringify(memory));
+    localStorage.setItem(APP_UPDATE_DISMISSED_VERSION_KEY, String(info.availableComparable || info.availableVersionCode));
+  } catch {}
+};
+
+const clearAdminTestOverrideAfterAction = () => {
+  try {
+    localStorage.removeItem(APP_UPDATE_TEST_OVERRIDE_KEY);
+  } catch {}
+};
+
+const shouldSuppressPrompt = (info: AppUpdateInfo): boolean => {
+  try {
+    if (!info.updateAvailable || info.currentComparable >= info.availableComparable) {
+      clearPromptMemory();
+      return false;
+    }
+
+    const legacyDismissed = parseInt(localStorage.getItem(APP_UPDATE_DISMISSED_VERSION_KEY) || '0', 10) || 0;
+    const legacyCoversTarget = legacyDismissed >= info.availableComparable || legacyDismissed >= info.availableVersionCode;
+    const memory = readPromptMemory();
+    const sameTarget = memory?.targetComparable === info.availableComparable;
+
+    // Forced updates should never be bypassed by a previous dismiss/store action.
+    if (info.forceUpdate) return false;
+
+    if (sameTarget && memory?.action === 'dismissed') return true;
+    if (sameTarget && memory?.action === 'updated') return true;
+    if (sameTarget && memory?.action === 'store_opened') {
+      return !memory.suppressUntil || Date.now() <= memory.suppressUntil;
+    }
+
+    return legacyCoversTarget;
+  } catch {
+    return false;
+  }
+};
+
+const logUpdateOutcome = async (info: AppUpdateInfo | null, outcome: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    supabase.from('app_update_check_log').insert({
+      user_id: user?.id ?? null,
+      platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
+      current_version_name: info?.currentVersion,
+      current_version_code: info?.currentVersionCode,
+      server_version_name: info?.availableVersion,
+      server_version_code: info?.availableVersionCode,
+      min_version_code: info?.minimumComparable,
+      update_available: info?.updateAvailable ?? false,
+      force_update: info?.forceUpdate ?? false,
+      modal_shown: outcome === 'shown' || outcome === 'store_opened' || outcome === 'updated',
+      outcome,
+    }).then(({ error }) => {
+      if (error) console.warn('[AppUpdate] log insert failed:', error.message);
+    });
+  } catch (e) {
+    console.warn('[AppUpdate] could not log outcome:', e);
+  }
+};
+
 export const useAppUpdate = () => {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const hasCheckedRef = useRef(false);
   const currentVersionRef = useRef<{ versionCode: number; versionName: string } | null>(null);
-
-  // Check if this version was already dismissed
-  const isDismissedVersion = useCallback((versionCode: number): boolean => {
-    try {
-      const dismissed = localStorage.getItem(DISMISSED_VERSION_KEY);
-      if (dismissed) {
-        const dismissedVersion = parseInt(dismissed, 10);
-        return dismissedVersion >= versionCode;
-      }
-    } catch (e) {
-      console.log('[AppUpdate] Could not read localStorage');
-    }
-    return false;
-  }, []);
 
   // Check if we should skip check (too recent)
   const shouldSkipCheck = useCallback((): boolean => {
@@ -165,6 +264,12 @@ export const useAppUpdate = () => {
       if (!currentVersionRef.current) {
         currentVersionRef.current = await getAppVersion();
       }
+      if (!currentVersionRef.current) {
+        console.warn('[AppUpdate] Native version unavailable; skipping update check to avoid false repeated prompts.');
+        setShowUpdateModal(false);
+        logUpdateOutcome(null, 'native_version_unavailable');
+        return;
+      }
       const { versionCode: CURRENT_VERSION_CODE, versionName: CURRENT_VERSION_NAME } = currentVersionRef.current;
       
       console.log('[AppUpdate] Checking for updates...');
@@ -204,7 +309,6 @@ export const useAppUpdate = () => {
       const currentComparable = toComparableCode(CURRENT_VERSION_CODE, CURRENT_VERSION_NAME);
       const serverComparable = toComparableCode(data.current_version_code, serverVersionName);
       const minimumComparable = toComparableCode(data.min_version_code, data.minimum_version);
-      const minimumVersionCode = minimumComparable; // for logging compatibility
 
       console.log('[AppUpdate] Server version:', serverVersionName, '(', serverVersionCode, ')');
       console.log('[AppUpdate] Comparable scale → current:', currentComparable, 'server:', serverComparable, 'min:', minimumComparable);
@@ -219,14 +323,17 @@ export const useAppUpdate = () => {
         availableVersion: serverVersionName,
         currentVersionCode: CURRENT_VERSION_CODE,
         availableVersionCode: serverVersionCode,
+        currentComparable,
+        availableComparable: serverComparable,
+        minimumComparable,
         updateMessage: data.update_message || data.changelog || 'New update available!',
         playStoreUrl: data.play_store_url || data.update_url || 'https://play.google.com/store/apps/details?id=com.merilive.app',
       };
 
       setUpdateInfo(info);
 
-      // Check if this version was already dismissed (only for non-force updates)
-      const dismissed = updateAvailable && !isForceUpdate && isDismissedVersion(serverVersionCode);
+      // Check if this target was already dismissed/store-opened (only for non-force updates)
+      const dismissed = updateAvailable && shouldSuppressPrompt(info);
       let modalWillShow = false;
 
       if (updateAvailable && !dismissed) {
@@ -239,32 +346,11 @@ export const useAppUpdate = () => {
       } else {
         console.log('[AppUpdate] App is up to date.');
         setShowUpdateModal(false);
-        try {
-          localStorage.removeItem(DISMISSED_VERSION_KEY);
-        } catch (e) {}
+        clearPromptMemory();
       }
 
       // 🔍 LOG THE CHECK to admin dashboard (fire-and-forget)
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        supabase.from('app_update_check_log').insert({
-          user_id: user?.id ?? null,
-          platform: platform === 'web' ? 'android' : platform,
-          current_version_name: CURRENT_VERSION_NAME,
-          current_version_code: CURRENT_VERSION_CODE,
-          server_version_name: serverVersionName,
-          server_version_code: serverVersionCode,
-          min_version_code: minimumVersionCode,
-          update_available: updateAvailable,
-          force_update: isForceUpdate,
-          modal_shown: modalWillShow,
-          outcome: modalWillShow ? 'shown' : (dismissed ? 'dismissed' : 'checked'),
-        }).then(({ error: logErr }) => {
-          if (logErr) console.warn('[AppUpdate] log insert failed:', logErr.message);
-        });
-      } catch (e) {
-        console.warn('[AppUpdate] could not log check:', e);
-      }
+      logUpdateOutcome(info, modalWillShow ? 'shown' : (dismissed ? 'dismissed' : 'checked'));
 
     } catch (error) {
       console.error('[AppUpdate] Error checking for update:', error);
@@ -273,7 +359,7 @@ export const useAppUpdate = () => {
     } finally {
       setIsChecking(false);
     }
-  }, [isDismissedVersion, shouldSkipCheck]);
+  }, [shouldSkipCheck]);
 
   // Fallback: Check Play Store directly
   const checkPlayStoreUpdate = useCallback(async () => {
@@ -281,6 +367,10 @@ export const useAppUpdate = () => {
       // Get current version if not already loaded
       if (!currentVersionRef.current) {
         currentVersionRef.current = await getAppVersion();
+      }
+      if (!currentVersionRef.current) {
+        console.warn('[AppUpdate] Native version unavailable; skipping Play Store fallback to avoid false repeated prompts.');
+        return;
       }
       const { versionCode: CURRENT_VERSION_CODE, versionName: CURRENT_VERSION_NAME } = currentVersionRef.current;
       
@@ -290,18 +380,25 @@ export const useAppUpdate = () => {
       console.log('[AppUpdate] Play Store result:', result);
       
       if (result.updateAvailability === 2) { // UPDATE_AVAILABLE
+        const availableVersionName = result.availableVersionName || 'New Version';
+        const availableVersionCode = parseInt(result.availableVersionCode || '0', 10) || versionNameToCode(availableVersionName);
+        const currentComparable = toComparableCode(CURRENT_VERSION_CODE, CURRENT_VERSION_NAME);
+        const availableComparable = toComparableCode(availableVersionCode, availableVersionName);
         const info: AppUpdateInfo = {
           updateAvailable: true,
           forceUpdate: false,
           currentVersion: CURRENT_VERSION_NAME,
-          availableVersion: result.availableVersionName || 'New Version',
+          availableVersion: availableVersionName,
           currentVersionCode: CURRENT_VERSION_CODE,
-          availableVersionCode: parseInt(result.availableVersionCode || '0'),
+          availableVersionCode,
+          currentComparable,
+          availableComparable,
+          minimumComparable: 0,
           updateMessage: 'New update available! Update now to get new features and bug fixes.',
           playStoreUrl: 'https://play.google.com/store/apps/details?id=com.merilive.app',
         };
         setUpdateInfo(info);
-        setShowUpdateModal(true);
+        setShowUpdateModal(!shouldSuppressPrompt(info));
       }
     } catch (error) {
       console.error('[AppUpdate] Play Store check failed:', error);
@@ -311,28 +408,13 @@ export const useAppUpdate = () => {
   const openPlayStore = useCallback(async () => {
     const url = updateInfo?.playStoreUrl || 'https://play.google.com/store/apps/details?id=com.merilive.app';
 
-    // Save dismissal so user isn't re-prompted before install completes
-    if (updateInfo?.availableVersionCode) {
-      try {
-        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
-      } catch (e) {}
-    }
+    // Save action so the same optional target is not re-prompted while the user is updating.
+    if (updateInfo?.availableVersionCode) savePromptMemory(updateInfo, 'store_opened');
+    clearAdminTestOverrideAfterAction();
 
     // Log outcome
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      supabase.from('app_update_check_log').insert({
-        user_id: user?.id ?? null,
-        platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
-        current_version_name: updateInfo?.currentVersion,
-        current_version_code: updateInfo?.currentVersionCode,
-        server_version_name: updateInfo?.availableVersion,
-        server_version_code: updateInfo?.availableVersionCode,
-        update_available: true,
-        force_update: updateInfo?.forceUpdate ?? false,
-        modal_shown: true,
-        outcome: 'store_opened',
-      }).then(() => {});
+      logUpdateOutcome(updateInfo, 'store_opened');
     } catch (e) {}
 
     try {
@@ -353,31 +435,16 @@ export const useAppUpdate = () => {
   const performImmediateUpdate = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // Save dismissal too
-    if (updateInfo?.availableVersionCode) {
-      try {
-        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
-      } catch (e) {}
-    }
+    // Save action too, then clear it automatically after the installed version catches up.
+    if (updateInfo?.availableVersionCode) savePromptMemory(updateInfo, 'updated');
+    clearAdminTestOverrideAfterAction();
 
     try {
       const { AppUpdate } = await import('@capawesome/capacitor-app-update');
       await AppUpdate.performImmediateUpdate();
       // Log success
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        supabase.from('app_update_check_log').insert({
-          user_id: user?.id ?? null,
-          platform: Capacitor.getPlatform(),
-          current_version_name: updateInfo?.currentVersion,
-          current_version_code: updateInfo?.currentVersionCode,
-          server_version_name: updateInfo?.availableVersion,
-          server_version_code: updateInfo?.availableVersionCode,
-          update_available: true,
-          force_update: updateInfo?.forceUpdate ?? false,
-          modal_shown: true,
-          outcome: 'updated',
-        }).then(() => {});
+          logUpdateOutcome(updateInfo, 'updated');
       } catch (e) {}
     } catch (error) {
       console.error('[AppUpdate] Immediate update failed, opening store:', error);
@@ -392,23 +459,22 @@ export const useAppUpdate = () => {
       return;
     }
     
-    // Save dismissed version to localStorage so it doesn't show again
+    // Save dismissed target so the same optional version doesn't show again.
     if (updateInfo?.availableVersionCode) {
-      try {
-        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
-        console.log('[AppUpdate] Dismissed version saved:', updateInfo.availableVersionCode);
-      } catch (e) {
-        console.log('[AppUpdate] Could not save to localStorage');
-      }
+      savePromptMemory(updateInfo, 'dismissed');
+      clearAdminTestOverrideAfterAction();
+      console.log('[AppUpdate] Dismissed target saved:', updateInfo.availableComparable);
     }
     
     setShowUpdateModal(false);
   }, [updateInfo]);
 
   // Apply test-mode override (admin QA). Bypasses native check + dismissal.
-  const applyTestOverride = useCallback(() => {
+  const applyTestOverride = useCallback((forceShow = false) => {
     const override = readTestOverride();
     if (!override) return false;
+    const currentComparable = toComparableCode(override.currentVersionCode ?? 1, override.currentVersion ?? '0.0.0');
+    const availableComparable = toComparableCode(override.availableVersionCode ?? 999999, override.availableVersion ?? '99.99.99');
     const info: AppUpdateInfo = {
       updateAvailable: true,
       forceUpdate: !!override.forceUpdate,
@@ -416,11 +482,14 @@ export const useAppUpdate = () => {
       availableVersion: override.availableVersion ?? '99.99.99',
       currentVersionCode: override.currentVersionCode ?? 1,
       availableVersionCode: override.availableVersionCode ?? 999999,
+      currentComparable,
+      availableComparable,
+      minimumComparable: override.forceUpdate ? availableComparable : 0,
       updateMessage: override.updateMessage ?? '[TEST MODE] Simulated update — verify modal + dismiss + store-open flow.',
       playStoreUrl: override.playStoreUrl ?? 'https://play.google.com/store/apps/details?id=com.merilive.app',
     };
     setUpdateInfo(info);
-    setShowUpdateModal(true);
+    setShowUpdateModal(forceShow ? true : !shouldSuppressPrompt(info));
     console.log('[AppUpdate] TEST MODE override applied:', info);
     return true;
   }, []);
@@ -442,10 +511,30 @@ export const useAppUpdate = () => {
 
   // Listen for runtime trigger from the admin test page (same tab).
   useEffect(() => {
-    const handler = () => applyTestOverride();
+    const handler = () => applyTestOverride(true);
     window.addEventListener(APP_UPDATE_TEST_TRIGGER_EVENT, handler);
     return () => window.removeEventListener(APP_UPDATE_TEST_TRIGGER_EVENT, handler);
   }, [applyTestOverride]);
+
+  // When the app returns from Play Store, refresh the native version and force a
+  // fresh comparison so users who completed the update are not prompted again.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let removeListener: (() => void) | undefined;
+    App.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive) return;
+      currentVersionRef.current = null;
+      hasCheckedRef.current = false;
+      checkForUpdate(true);
+    }).then((handle) => {
+      removeListener = () => handle.remove();
+    });
+
+    return () => {
+      removeListener?.();
+    };
+  }, [checkForUpdate]);
 
   return {
     updateInfo,

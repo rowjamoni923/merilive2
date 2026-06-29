@@ -1,41 +1,16 @@
-# Admin Financial Reports — HTML + PDF Export
+# App Update Prompt Repeat Guard
 
 ## Goal
-Every financial admin page gets a unified **"Export ▾"** button (HTML / PDF / CSV) in its header. One reusable utility + one shared button, dropped into each page — same look, same behavior, same branding.
+Prevent the app-update modal from appearing incorrectly after a user has already updated, opened Play Store, or dismissed an optional prompt.
 
-## Pages covered (19)
-Finance · Reports · Profit Analytics · Payouts Analytics · Withdrawals · Manual Topup · Topup System · Topup Payment Methods · Recharge History · Recharge Campaigns · Payroll Orders · Trader Orders · Trader Transactions · Topup Trader Approvals · Coin Trader Hub · Coin Traders · Gift Transactions · User Reports · Support Reports
+## Research notes
+- Google Play in-app updates rely on update availability, staleness, and priority; apps should re-check state when returning from the store instead of blindly showing stale prompts: https://developer.android.com/guide/playcore/in-app-updates
+- Capawesome exposes native Play Store update state through `getAppUpdateInfo()` and store launch helpers, but app-side version/admin comparison still needs deterministic local suppression: https://capawesome.io/docs/plugins/app-update/
 
-## What ships
-
-### 1. Shared utility — `src/utils/reportExport.ts`
-Pure, framework-agnostic. Accepts any array-of-objects.
-- `exportReportCSV(rows, columns, fileName)`
-- `exportReportHTML(rows, columns, { title, subtitle, fileName, summary, brand })`
-- `exportReportPDF(rows, columns, { title, subtitle, fileName, summary, brand, orientation })`
-- HTML output = standalone, self-styled, print-ready (Meri Live branding, blue accent, slate ink, totals row, generated-at timestamp, page header on print).
-- PDF output = same template rendered via `jsPDF` + `jspdf-autotable` (already in project from earlier log-export work; reuse).
-- All three filenames are date-stamped (`finance-report-2026-06-28.pdf`).
-
-### 2. Shared component — `src/components/admin/ReportExportMenu.tsx`
-Drop-in `<DropdownMenu>` button: "Export ▾" with HTML / PDF / CSV items. Cloud-white 3D admin styling, matches existing log-export menu. Props: `{ rows, columns, title, subtitle, fileName, summary?, orientation? }`.
-
-### 3. Page integration
-In each of the 19 pages, place `<ReportExportMenu …/>` in the existing page header (next to filters / refresh). Wire it to whatever filtered dataset the page already renders — no new state, no new fetches, just expose what's on screen. Column maps defined per page (e.g. Withdrawals: User, Amount, Method, Status, Requested At, Processed At).
-
-### 4. Branding
-Header block on every export:
-- Logo text "Meri Live — Admin Financial Report"
-- Report title + subtitle (e.g. "Withdrawals · Status: Pending · Jun 1 – Jun 28")
-- Generated-at timestamp + exporting admin email
-- Footer with page numbers (PDF) / print CSS (HTML)
-
-## Out of scope
-- Server-side scheduled exports (can add later if requested)
-- Excel (.xlsx) — CSV opens in Excel; add only if asked
-- Non-financial admin pages (logs already have their own exporter)
-
-## Tech notes
-- Reuses already-installed `jspdf` from `src/utils/exportLogs.ts`; adds `jspdf-autotable` if missing.
-- HTML export uses a Blob + anchor download (no extra deps).
-- No DB / edge function changes. Pure frontend, additive — no risk to existing flows.
+## Fix plan
+1. Normalize device, server, and minimum versions through the same comparable scale.
+2. Store prompt memory with target version + installed version at action time, not only a raw versionCode.
+3. Clear prompt memory automatically when installed version is now equal/newer than server target.
+4. Suppress same-target optional prompts after dismiss and same-target store-open prompts during the install-return window.
+5. On native app resume from Play Store, refresh native version info and force a fresh update check.
+6. Test-mode override must respect store-open suppression on reload, but still allow manual retrigger from Admin Test Mode.

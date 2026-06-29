@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { InAppUpdate, type InstallStatus } from "@/plugins/InAppUpdate";
+import { APP_UPDATE_DISMISSED_VERSION_KEY } from "@/hooks/useAppUpdate";
 
-const DISMISS_KEY = "meri_iau_dismissed_version";
+const DISMISS_KEY = APP_UPDATE_DISMISSED_VERSION_KEY;
 const IMMEDIATE_THRESHOLD_DAYS = 14; // force immediate if 2+ weeks stale
 
 /**
