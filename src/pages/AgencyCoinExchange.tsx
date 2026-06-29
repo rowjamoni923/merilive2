@@ -601,7 +601,7 @@ const AgencyCoinExchange = () => {
   if (isLoading) {
     return (
       <PageSkeleton
-        className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20 overflow-hidden"
+ className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background overflow-hidden"
         headerClassName="bg-gradient-to-r from-amber-500 to-orange-600"
         tabs
       />
@@ -611,7 +611,7 @@ const AgencyCoinExchange = () => {
   if (!agency) {
     return (
       <PageSkeleton
-        className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20 overflow-hidden"
+ className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background overflow-hidden"
         headerClassName="bg-gradient-to-r from-amber-500 to-orange-600"
         rows={4}
         tabs
@@ -620,7 +620,7 @@ const AgencyCoinExchange = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background dark:from-amber-950/20">
+ <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-background to-background ">
       {/* Premium gradient header */}
       <header className="flex-shrink-0 sticky top-0 z-40 safe-area-top">
         <div

@@ -930,7 +930,7 @@ const Discover = () => {
 
                 {/* Fee warning */}
                 {entryPreview.entry_fee > 0 && (
-                  <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-300 mb-4 text-center">
+ <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-700 mb-4 text-center">
                     Entry fee <strong>{entryPreview.entry_fee} <Diamond className="w-3 h-3 inline -mt-0.5" /></strong> will be deducted.
                   </div>
                 )}

@@ -199,12 +199,12 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           </div>
 
           {/* Key Advantages */}
-          <div className="bg-gradient-to-r from-success-50 to-success-50 dark:from-success-900/30 dark:to-success-900/30 rounded-xl p-3 border border-success-200 dark:border-success-800">
-            <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-success-900 dark:text-success-100">
+ <div className="bg-gradient-to-r from-success-50 to-success-50 rounded-xl p-3 border border-success-200 ">
+ <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-success-900 ">
               <Zap className="w-4 h-4 text-success-600" />
               Key Advantages
             </h4>
-            <ul className="space-y-1.5 text-success-800 dark:text-success-200">
+ <ul className="space-y-1.5 text-success-800 ">
               <li className="flex items-start gap-2 text-xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Earn commission on every top-up, withdrawal, and diamond transaction</span>
@@ -230,8 +230,8 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
 
           {/* Commission Tiers */}
           {helperTiers.length > 0 && (
-            <div className="bg-gradient-to-r from-warning-50 to-warning-50 dark:from-warning-900/30 dark:to-warning-900/30 rounded-xl p-3 border border-warning-200 dark:border-warning-800">
-              <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-warning-900 dark:text-warning-100">
+ <div className="bg-gradient-to-r from-warning-50 to-warning-50 rounded-xl p-3 border border-warning-200 ">
+ <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-warning-900 ">
                 <TrendingUp className="w-4 h-4 text-warning-600" />
                 Commission Tiers (Level Up & Earn More!)
               </h4>
@@ -240,13 +240,13 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
                   <Badge 
                     key={tier.level_number}
                     variant="outline" 
-                    className="bg-white dark:bg-white/80 border-warning-300 dark:border-warning-700 text-warning-700 dark:text-warning-300 text-[10px]"
+ className="bg-white border-warning-300 text-warning-700 text-[10px]"
                   >
                     L{tier.level_number}: {tier.commission_rate}%
                   </Badge>
                 ))}
               </div>
-              <p className="text-[10px] text-warning-700 dark:text-warning-300 mt-2">
+ <p className="text-[10px] text-warning-700 mt-2">
                 Start at Level 1 and progress by completing more transactions!
               </p>
             </div>

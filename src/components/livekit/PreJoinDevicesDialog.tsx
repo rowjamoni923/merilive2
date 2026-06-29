@@ -362,7 +362,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               </ul>
             )}
             {ccStatus === 'success' && (
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+ <p className="text-[11px] text-emerald-600 ">
                 All checks passed — you're ready to go live.
               </p>
             )}

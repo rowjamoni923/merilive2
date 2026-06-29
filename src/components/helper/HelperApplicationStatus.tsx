@@ -24,7 +24,7 @@ const HelperApplicationStatus = ({
           <div className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-4">
             <Clock className="w-10 h-10 text-white animate-pulse" />
           </div>
-          <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-300">
+ <h2 className="text-xl font-bold text-yellow-800 ">
             Application Under Review
           </h2>
           <p className="text-sm text-muted-foreground mt-2">
@@ -32,11 +32,11 @@ const HelperApplicationStatus = ({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-800">
-          <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-3">
+ <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200 ">
+ <h4 className="font-semibold text-yellow-800 mb-3">
             What happens next?
           </h4>
-          <ul className="space-y-2 text-sm text-yellow-700 dark:text-yellow-400">
+ <ul className="space-y-2 text-sm text-yellow-700 ">
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <span>Admin will review your application</span>
@@ -105,7 +105,7 @@ const HelperApplicationStatus = ({
           <div className="w-20 h-20 mx-auto bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mb-4">
             <XCircle className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-red-800 dark:text-red-300">
+ <h2 className="text-xl font-bold text-red-800 ">
             Application Rejected
           </h2>
           <p className="text-sm text-muted-foreground mt-2">
@@ -114,9 +114,9 @@ const HelperApplicationStatus = ({
         </div>
 
         {(rejectionReason || adminNotes) && (
-          <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-4 border border-red-200 dark:border-red-800">
-            <h4 className="font-semibold text-red-800 dark:text-red-300 mb-2">Reason</h4>
-            <p className="text-sm text-red-700 dark:text-red-400">
+ <div className="bg-red-50 rounded-xl p-4 border border-red-200 ">
+ <h4 className="font-semibold text-red-800 mb-2">Reason</h4>
+ <p className="text-sm text-red-700 ">
               {rejectionReason || adminNotes || "No reason provided"}
             </p>
           </div>

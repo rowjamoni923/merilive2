@@ -22,7 +22,7 @@ export default function AdminTencentBeautySettings() {
             </p>
           </div>
         </div>
-        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] p-2">
+ <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 text-[11px] p-2">
           <AlertTriangle className="w-3.5 h-3.5 mt-[2px] shrink-0" />
           <span>Native beauty was removed from the APK. Live, party, and private call now use only the LiveKit camera path.</span>
         </div>
@@ -39,7 +39,7 @@ export default function AdminTencentBeautySettings() {
               video so viewers also see the processed face — not just the
               host. When OFF (default), beauty is preview-only.
             </p>
-            <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] p-2">
+ <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 text-[11px] p-2">
               <AlertTriangle className="w-3.5 h-3.5 mt-[2px] shrink-0" />
               <span>
                 Test on a single device first. If you see black frames or

@@ -20,16 +20,16 @@ import { toast } from "sonner";
 type Row = Record<string, any>;
 
 const STATUS_COLOR: Record<string, string> = {
-  completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  active: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  starting: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  ending: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  failed: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  aborted: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  limit_reached: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  recording: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  processing: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  ready: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+ completed: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+ active: "bg-sky-500/15 text-sky-700 border-sky-500/30",
+ starting: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+ ending: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+ failed: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+ aborted: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+ limit_reached: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+ recording: "bg-sky-500/15 text-sky-700 border-sky-500/30",
+ processing: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+ ready: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
   expired: "bg-muted text-muted-foreground border-border",
 };
 

@@ -500,7 +500,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         {misconfiguredLevels.length > 0 && (
           <div
             role="alert"
-            className="flex gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-red-700 dark:text-red-300"
+ className="flex gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-red-700 "
           >
             <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <div className="space-y-1 text-[12px] leading-snug">

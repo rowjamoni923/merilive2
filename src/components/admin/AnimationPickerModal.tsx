@@ -24,14 +24,14 @@ export interface LevelAnimation {
 }
 
 const tierColors: Record<string, { bg: string; border: string; text: string; gradient: string }> = {
-  basic: { bg: 'bg-slate-100 dark:bg-slate-800', border: 'border-slate-300', text: 'text-slate-600', gradient: 'from-slate-400 to-slate-600' },
-  bronze: { bg: 'bg-amber-100 dark:bg-amber-900/30', border: 'border-amber-400', text: 'text-amber-700', gradient: 'from-amber-600 to-amber-800' },
-  silver: { bg: 'bg-gray-100 dark:bg-gray-800', border: 'border-gray-400', text: 'text-gray-600', gradient: 'from-gray-400 to-gray-600' },
-  gold: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', border: 'border-yellow-500', text: 'text-yellow-700', gradient: 'from-yellow-400 to-amber-500' },
-  platinum: { bg: 'bg-blue-100 dark:bg-blue-900/30', border: 'border-blue-400', text: 'text-blue-600', gradient: 'from-blue-300 to-blue-500' },
-  diamond: { bg: 'bg-cyan-100 dark:bg-cyan-900/30', border: 'border-cyan-400', text: 'text-cyan-600', gradient: 'from-cyan-300 to-cyan-500' },
-  legendary: { bg: 'bg-purple-100 dark:bg-purple-900/30', border: 'border-purple-500', text: 'text-purple-600', gradient: 'from-purple-500 to-pink-500' },
-  mythic: { bg: 'bg-rose-100 dark:bg-rose-900/30', border: 'border-rose-500', text: 'text-rose-600', gradient: 'from-rose-500 to-orange-500' }
+ basic: { bg: 'bg-slate-100 ', border: 'border-slate-300', text: 'text-slate-600', gradient: 'from-slate-400 to-slate-600' },
+ bronze: { bg: 'bg-amber-100 ', border: 'border-amber-400', text: 'text-amber-700', gradient: 'from-amber-600 to-amber-800' },
+ silver: { bg: 'bg-gray-100 ', border: 'border-gray-400', text: 'text-gray-600', gradient: 'from-gray-400 to-gray-600' },
+ gold: { bg: 'bg-yellow-100 ', border: 'border-yellow-500', text: 'text-yellow-700', gradient: 'from-yellow-400 to-amber-500' },
+ platinum: { bg: 'bg-blue-100 ', border: 'border-blue-400', text: 'text-blue-600', gradient: 'from-blue-300 to-blue-500' },
+ diamond: { bg: 'bg-cyan-100 ', border: 'border-cyan-400', text: 'text-cyan-600', gradient: 'from-cyan-300 to-cyan-500' },
+ legendary: { bg: 'bg-purple-100 ', border: 'border-purple-500', text: 'text-purple-600', gradient: 'from-purple-500 to-pink-500' },
+ mythic: { bg: 'bg-rose-100 ', border: 'border-rose-500', text: 'text-rose-600', gradient: 'from-rose-500 to-orange-500' }
 };
 
 const tierLabels: Record<string, { en: string; bn: string }> = {

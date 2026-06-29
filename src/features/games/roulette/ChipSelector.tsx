@@ -9,12 +9,12 @@ interface ChipSelectorProps {
 }
 
 const CHIPS = [
-  { value: 500, bg: "from-slate-400 to-slate-600", ring: "#94a3b8", text: "500", dark: false },
-  { value: 1000, bg: "from-green-500 to-green-700", ring: "#22c55e", text: "1K", dark: false },
-  { value: 5000, bg: "from-red-500 to-red-700", ring: "#ef4444", text: "5K", dark: false },
-  { value: 10000, bg: "from-blue-500 to-blue-700", ring: "#3b82f6", text: "10K", dark: false },
-  { value: 50000, bg: "from-orange-500 to-orange-700", ring: "#f97316", text: "50K", dark: false },
-  { value: 100000, bg: "from-purple-500 to-purple-700", ring: "#a855f7", text: "100K", dark: false },
+ { value: 500, bg: "from-slate-400 to-slate-600", ring: "#94a3b8", text: "500", dark: false },
+ { value: 1000, bg: "from-green-500 to-green-700", ring: "#22c55e", text: "1K", dark: false },
+ { value: 5000, bg: "from-red-500 to-red-700", ring: "#ef4444", text: "5K", dark: false },
+ { value: 10000, bg: "from-blue-500 to-blue-700", ring: "#3b82f6", text: "10K", dark: false },
+ { value: 50000, bg: "from-orange-500 to-orange-700", ring: "#f97316", text: "50K", dark: false },
+ { value: 100000, bg: "from-purple-500 to-purple-700", ring: "#a855f7", text: "100K", dark: false },
 ];
 
 export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelectorProps) => {

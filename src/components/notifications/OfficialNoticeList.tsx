@@ -448,7 +448,7 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
                 className={cn(
                   "text-[13px] whitespace-pre-wrap leading-[1.6] rounded-xl p-3 mt-1",
                   !isRead 
-                    ? "text-foreground/85 bg-white/80 dark:bg-white/5" 
+ ? "text-foreground/85 bg-white/80 " 
                     : "text-muted-foreground bg-muted/30"
                 )}
               >

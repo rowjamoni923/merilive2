@@ -133,7 +133,7 @@ const ContentPageView = () => {
 
       {/* Content */}
       <div className="p-4">
-        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+ <div className="prose prose-sm max-w-none text-foreground">
           {renderMarkdown(pageData.content)}
         </div>
       </div>

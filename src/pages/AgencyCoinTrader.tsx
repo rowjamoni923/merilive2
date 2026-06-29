@@ -453,7 +453,7 @@ const AgencyCoinTrader = () => {
   const tradeCalc = calculateTrade();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-emerald-50/40 via-background to-background dark:from-emerald-950/20">
+ <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-emerald-50/40 via-background to-background ">
       {/* Premium gradient header */}
       <header className="flex-shrink-0 sticky top-0 z-40 safe-area-top">
         <div
@@ -523,30 +523,30 @@ const AgencyCoinTrader = () => {
         {/* Trade Rates */}
         <div className="grid grid-cols-2 gap-3">
           <div
-            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 dark:from-sky-950/40 dark:via-cyan-950/30 dark:to-blue-950/40 border border-sky-200/60 dark:border-sky-800/40 transition-all hover:-translate-y-0.5"
+ className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 border border-sky-200/60 transition-all hover:-translate-y-0.5"
             style={{ boxShadow: '0 8px 20px -10px rgba(14,165,233,0.35), inset 0 1px 0 rgba(255,255,255,0.5)' }}
           >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white" style={{ boxShadow: '0 4px 10px -2px rgba(14,165,233,0.5)' }}>
                 <ShoppingCart className="w-4 h-4" />
               </div>
-              <span className="text-xs text-sky-700 dark:text-sky-300 font-semibold uppercase tracking-wide">Buy Rate</span>
+ <span className="text-xs text-sky-700 font-semibold uppercase tracking-wide">Buy Rate</span>
             </div>
-            <p className="text-2xl font-extrabold text-sky-700 dark:text-sky-200">{tradeSettings.buy_rate.toLocaleString()}</p>
-            <p className="text-[11px] text-sky-600/80 dark:text-sky-400/80">Diamonds / $1</p>
+ <p className="text-2xl font-extrabold text-sky-700 ">{tradeSettings.buy_rate.toLocaleString()}</p>
+ <p className="text-[11px] text-sky-600/80 ">Diamonds / $1</p>
           </div>
           <div
-            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/40 dark:via-green-950/30 dark:to-teal-950/40 border border-emerald-200/60 dark:border-emerald-800/40 transition-all hover:-translate-y-0.5"
+ className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 border border-emerald-200/60 transition-all hover:-translate-y-0.5"
             style={{ boxShadow: '0 8px 20px -10px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.5)' }}
           >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white" style={{ boxShadow: '0 4px 10px -2px rgba(16,185,129,0.5)' }}>
                 <Banknote className="w-4 h-4" />
               </div>
-              <span className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold uppercase tracking-wide">Sell Rate</span>
+ <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wide">Sell Rate</span>
             </div>
-            <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-200">{tradeSettings.sell_rate.toLocaleString()}</p>
-            <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">Diamonds / $1</p>
+ <p className="text-2xl font-extrabold text-emerald-700 ">{tradeSettings.sell_rate.toLocaleString()}</p>
+ <p className="text-[11px] text-emerald-600/80 ">Diamonds / $1</p>
           </div>
         </div>
 
