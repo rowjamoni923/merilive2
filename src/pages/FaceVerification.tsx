@@ -2243,6 +2243,11 @@ const FaceVerification = () => {
         setVerificationStatus('rejected');
         setRejectionReason(String(payload?.rejection_reason || autoFinalize?.reason || blocker));
         setRetryRequired(null);
+        toast({
+          title: 'Verification rejected',
+          description: String(payload?.rejection_reason || autoFinalize?.reason || blocker),
+          variant: 'destructive',
+        });
         // Keep user here so they can read the reason (duplicate info, gender, etc.).
         navigate('/face-verification', { replace: true });
         return 'rejected';
