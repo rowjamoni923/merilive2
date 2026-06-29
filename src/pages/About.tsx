@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
 import {
