@@ -279,7 +279,7 @@ const AdminPaymentGatewayMethodConfig = () => {
   };
 
   return (
-    <div className="space-y-6 admin-content">
+    <div className="admin-pro-shell space-y-6 admin-content">
       <AdminPageHeader
         title="Payment Gateway Method Config"
         subtitle="Admin-controlled L5 helper country payment methods, auto/manual routing, fraud controls and logo policy"
