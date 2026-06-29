@@ -914,9 +914,25 @@ const VIP = () => {
       }
 
       if (Object.keys(updateData).length > 0) {
+        const { data: currentProfile } = await supabase
+          .from("profiles")
+          .select(Object.keys(updateData).join(","))
+          .eq("id", user.id)
+          .maybeSingle();
+
+        const changedUpdateData = Object.fromEntries(
+          Object.entries(updateData).filter(([key, value]) => (currentProfile as any)?.[key] !== value)
+        );
+
+        if (Object.keys(changedUpdateData).length === 0) {
+          console.log('[VIP] Profile equip already up to date; skipping no-op write');
+          fetchData();
+          return;
+        }
+
         const { error: profileError } = await supabase
           .from("profiles")
-          .update(updateData)
+          .update(changedUpdateData)
           .eq("id", user.id);
         if (profileError) throw profileError;
       }
