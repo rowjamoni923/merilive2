@@ -8001,3 +8001,82 @@ aside [class*="text-"] > span:not(.shrink-0) {
 .admin-pro-shell .admin-chip-warning { background: hsl(var(--admin-pro-warning) / 0.14) !important; color: hsl(38 92% 32%) !important; border: 1px solid hsl(var(--admin-pro-warning) / 0.32) !important; }
 .admin-pro-shell .admin-chip-danger  { background: hsl(var(--admin-pro-danger)  / 0.12) !important; color: hsl(var(--admin-pro-danger))  !important; border: 1px solid hsl(var(--admin-pro-danger)  / 0.24) !important; }
 .admin-pro-shell .admin-chip-neutral { background: hsl(var(--admin-pro-surface-sunken)) !important; color: hsl(var(--admin-pro-text-soft)) !important; border: 1px solid hsl(var(--admin-pro-border)) !important; }
+
+/* ================================================================
+   UNIFIED CARD INTERACTION RECIPE — single source of truth
+   Every card-like surface (shadcn Card, .admin-card, nested
+   tile-style div.border+rounded) inside .admin-pro-shell shares
+   ONE hover-lift, ONE active-press, ONE focus-ring behaviour.
+   ================================================================ */
+:root {
+  --admin-card-lift-y: -2px;
+  --admin-card-press-y: 1px;
+  --admin-card-ring-width: 3px;
+  --admin-card-anim: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-pro-shell [data-slot="card"],
+.admin-pro-shell .admin-card,
+.admin-pro-shell [class*="rounded-xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]),
+.admin-pro-shell [class*="rounded-2xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]) {
+  transition:
+    transform        var(--admin-card-anim),
+    box-shadow       var(--admin-card-anim),
+    border-color     var(--admin-card-anim),
+    background-color var(--admin-card-anim) !important;
+  will-change: transform, box-shadow;
+}
+
+/* HOVER — lift + deepen shadow + brighten edge */
+@media (hover: hover) and (pointer: fine) {
+  .admin-pro-shell [data-slot="card"]:hover,
+  .admin-pro-shell .admin-card:hover,
+  .admin-pro-shell [class*="rounded-xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):hover,
+  .admin-pro-shell [class*="rounded-2xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):hover {
+    transform: translateY(var(--admin-card-lift-y)) !important;
+    box-shadow: var(--admin-shadow-3d-hover) !important;
+    border-color: hsl(var(--admin-card-ring) / 0.40) !important;
+  }
+}
+
+/* ACTIVE — press in, soften shadow */
+.admin-pro-shell [data-slot="card"]:active,
+.admin-pro-shell .admin-card:active,
+.admin-pro-shell [class*="rounded-xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):active,
+.admin-pro-shell [class*="rounded-2xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):active {
+  transform: translateY(var(--admin-card-press-y)) !important;
+  box-shadow: var(--admin-shadow-sm) !important;
+  border-color: hsl(var(--admin-card-ring) / 0.55) !important;
+  transition-duration: 80ms !important;
+}
+
+/* FOCUS-VISIBLE — keyboard ring, identical halo everywhere */
+.admin-pro-shell [data-slot="card"]:focus-visible,
+.admin-pro-shell .admin-card:focus-visible,
+.admin-pro-shell [class*="rounded-xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):focus-visible,
+.admin-pro-shell [class*="rounded-2xl"][class*="border"]:not([role="tab"]):not(button):not([data-no-card-fx]):focus-visible {
+  outline: none !important;
+  border-color: hsl(var(--admin-card-ring)) !important;
+  box-shadow:
+    var(--admin-shadow-3d-hover),
+    0 0 0 var(--admin-card-ring-width) hsl(var(--admin-card-ring) / 0.28) !important;
+  transform: translateY(var(--admin-card-lift-y)) !important;
+}
+
+/* Respect users who don't want motion */
+@media (prefers-reduced-motion: reduce) {
+  .admin-pro-shell [data-slot="card"],
+  .admin-pro-shell .admin-card,
+  .admin-pro-shell [class*="rounded-xl"][class*="border"],
+  .admin-pro-shell [class*="rounded-2xl"][class*="border"] {
+    transition: box-shadow 80ms linear, border-color 80ms linear !important;
+  }
+  .admin-pro-shell [data-slot="card"]:hover,
+  .admin-pro-shell .admin-card:hover,
+  .admin-pro-shell [data-slot="card"]:active,
+  .admin-pro-shell .admin-card:active,
+  .admin-pro-shell [data-slot="card"]:focus-visible,
+  .admin-pro-shell .admin-card:focus-visible {
+    transform: none !important;
+  }
+}
