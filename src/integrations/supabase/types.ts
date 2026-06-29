@@ -3015,6 +3015,39 @@ export type Database = {
         }
         Relationships: []
       }
+      call_chat_messages: {
+        Row: {
+          call_id: string
+          created_at: string
+          id: string
+          message: string
+          message_id: string
+          message_type: string
+          receiver_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          id?: string
+          message: string
+          message_id: string
+          message_type?: string
+          receiver_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          message_id?: string
+          message_type?: string
+          receiver_id?: string | null
+          sender_id?: string
+        }
+        Relationships: []
+      }
       call_delivery_log: {
         Row: {
           attempt_number: number
@@ -21638,6 +21671,7 @@ export type Database = {
           system_error_logs_deleted: number
         }[]
       }
+      cleanup_call_chat_messages: { Args: never; Returns: number }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
       cleanup_expired_call_reservations: { Args: never; Returns: number }
       cleanup_expired_otps: { Args: never; Returns: undefined }
