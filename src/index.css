@@ -7955,3 +7955,49 @@ aside [class*="text-"] > span:not(.shrink-0) {
 
 
 
+
+/* ================================================================
+   ADMIN SEMANTIC TOKEN UTILITIES — Agency System & beyond
+   Consume ONLY these classes for chrome (surface/border/text/radius/
+   shadow). Status accents use --admin-pro-success/warning/danger so
+   pages never carry raw palette utilities.
+   ================================================================ */
+.admin-pro-shell .admin-canvas         { background: hsl(var(--admin-pro-canvas)) !important; }
+.admin-pro-shell .admin-surface        { background: hsl(var(--admin-pro-surface)) !important; }
+.admin-pro-shell .admin-surface-soft   { background: hsl(var(--admin-pro-surface-soft)) !important; }
+.admin-pro-shell .admin-surface-sunken { background: hsl(var(--admin-pro-surface-sunken)) !important; }
+
+.admin-pro-shell .admin-border         { border-color: hsl(var(--admin-pro-border)) !important; }
+.admin-pro-shell .admin-border-strong  { border-color: hsl(var(--admin-pro-border-strong)) !important; }
+.admin-pro-shell .admin-divide > * + * { border-color: hsl(var(--admin-pro-border)) !important; }
+
+.admin-pro-shell .admin-text           { color: hsl(var(--admin-pro-text)) !important; }
+.admin-pro-shell .admin-text-soft      { color: hsl(var(--admin-pro-text-soft)) !important; }
+.admin-pro-shell .admin-text-muted     { color: hsl(var(--admin-pro-text-muted)) !important; }
+.admin-pro-shell .admin-text-on-accent { color: hsl(var(--admin-pro-primary-foreground)) !important; }
+
+.admin-pro-shell .admin-radius-sm { border-radius: var(--admin-radius-sm) !important; }
+.admin-pro-shell .admin-radius    { border-radius: var(--admin-radius) !important; }
+.admin-pro-shell .admin-radius-lg { border-radius: var(--admin-radius-lg) !important; }
+
+.admin-pro-shell .admin-shadow-3d        { box-shadow: var(--admin-shadow-3d) !important; }
+.admin-pro-shell .admin-shadow-3d-hover  { transition: box-shadow 180ms ease, transform 180ms ease; }
+.admin-pro-shell .admin-shadow-3d-hover:hover { box-shadow: var(--admin-shadow-3d-hover) !important; transform: translateY(-1px); }
+
+/* Status accents — solid */
+.admin-pro-shell .admin-accent-primary  { color: hsl(var(--admin-pro-primary)) !important; }
+.admin-pro-shell .admin-accent-success  { color: hsl(var(--admin-pro-success)) !important; }
+.admin-pro-shell .admin-accent-warning  { color: hsl(38 92% 35%) !important; }
+.admin-pro-shell .admin-accent-danger   { color: hsl(var(--admin-pro-danger)) !important; }
+
+.admin-pro-shell .admin-bg-primary { background: hsl(var(--admin-pro-primary)) !important; color: hsl(var(--admin-pro-primary-foreground)) !important; }
+.admin-pro-shell .admin-bg-success { background: hsl(var(--admin-pro-success)) !important; color: #fff !important; }
+.admin-pro-shell .admin-bg-warning { background: hsl(var(--admin-pro-warning)) !important; color: #fff !important; }
+.admin-pro-shell .admin-bg-danger  { background: hsl(var(--admin-pro-danger))  !important; color: #fff !important; }
+
+/* Status accents — soft chips */
+.admin-pro-shell .admin-chip-primary { background: hsl(var(--admin-pro-primary) / 0.12) !important; color: hsl(var(--admin-pro-primary)) !important; border: 1px solid hsl(var(--admin-pro-primary) / 0.24) !important; }
+.admin-pro-shell .admin-chip-success { background: hsl(var(--admin-pro-success) / 0.12) !important; color: hsl(var(--admin-pro-success)) !important; border: 1px solid hsl(var(--admin-pro-success) / 0.24) !important; }
+.admin-pro-shell .admin-chip-warning { background: hsl(var(--admin-pro-warning) / 0.14) !important; color: hsl(38 92% 32%) !important; border: 1px solid hsl(var(--admin-pro-warning) / 0.32) !important; }
+.admin-pro-shell .admin-chip-danger  { background: hsl(var(--admin-pro-danger)  / 0.12) !important; color: hsl(var(--admin-pro-danger))  !important; border: 1px solid hsl(var(--admin-pro-danger)  / 0.24) !important; }
+.admin-pro-shell .admin-chip-neutral { background: hsl(var(--admin-pro-surface-sunken)) !important; color: hsl(var(--admin-pro-text-soft)) !important; border: 1px solid hsl(var(--admin-pro-border)) !important; }

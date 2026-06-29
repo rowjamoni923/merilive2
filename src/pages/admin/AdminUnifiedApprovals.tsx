@@ -34,12 +34,12 @@ type SubAdminRow = {
 };
 
 const ACTION_COLOR: Record<string, string> = {
-  user_ban: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-  user_unban: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-  balance_adjust: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  agency_close: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-  agency_reactivate: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-  default: "bg-violet-500/20 text-violet-300 border-violet-500/40",
+  user_ban: "admin-bg-danger/20 admin-accent-danger admin-border-strong/40",
+  user_unban: "admin-bg-success/20 admin-accent-success admin-border-strong/40",
+  balance_adjust: "admin-bg-warning/20 admin-accent-warning admin-border-strong/40",
+  agency_close: "admin-bg-danger/20 admin-accent-danger admin-border-strong/40",
+  agency_reactivate: "admin-bg-success/20 admin-accent-success admin-border-strong/40",
+  default: "admin-bg-primary/20 admin-accent-primary admin-border-strong/40",
 };
 
 export default function AdminUnifiedApprovals() {
@@ -109,18 +109,18 @@ export default function AdminUnifiedApprovals() {
   return (
     <div className="admin-pro-shell min-h-screen p-4 md:p-6 space-y-4">
       {/* Header */}
-      <div className="rounded-2xl bg-white border border-slate-200 p-5 relative overflow-hidden shadow-[var(--admin-shadow-3d)]">
+      <div className="rounded-2xl admin-surface border admin-border p-5 relative overflow-hidden shadow-[var(--admin-shadow-3d)]">
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-              <Inbox className="w-7 h-7 text-violet-600" /> Owner Approvals Hub
+            <h1 className="text-2xl md:text-3xl font-bold admin-text flex items-center gap-2">
+              <Inbox className="w-7 h-7 admin-accent-primary" /> Owner Approvals Hub
             </h1>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm admin-text-soft mt-1">
               Every financial / admin action queued by Sub-Admins, Support Admins and Country Super Admins lands here for your final approval.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="bg-rose-100 text-rose-700 border border-rose-200 text-sm px-3 py-1">
+            <Badge className="admin-chip-danger admin-accent-danger border admin-border text-sm px-3 py-1">
               {totalPending} pending
             </Badge>
           </div>
@@ -129,21 +129,21 @@ export default function AdminUnifiedApprovals() {
 
       {/* Two top-level sources */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
-        <TabsList className="bg-slate-100 border border-slate-200 p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
-          <TabsTrigger value="subadmin" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm gap-2">
+        <TabsList className="admin-surface-sunken border admin-border p-1 grid grid-cols-2 w-full md:w-auto md:inline-flex">
+          <TabsTrigger value="subadmin" className="data-[state=active]:admin-surface data-[state=active]:admin-accent-primary data-[state=active]:shadow-sm gap-2">
             <ShieldCheck className="w-4 h-4" /> Sub-Admin & Support
-            {counts.sub > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.sub}</Badge>}
+            {counts.sub > 0 && <Badge className="admin-bg-danger text-white ml-1">{counts.sub}</Badge>}
           </TabsTrigger>
-          <TabsTrigger value="csa" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm gap-2">
+          <TabsTrigger value="csa" className="data-[state=active]:admin-surface data-[state=active]:admin-accent-warning data-[state=active]:shadow-sm gap-2">
             <Globe2 className="w-4 h-4" /> Country Super Admin
-            {counts.csa > 0 && <Badge className="bg-rose-500 text-white ml-1">{counts.csa}</Badge>}
+            {counts.csa > 0 && <Badge className="admin-bg-danger text-white ml-1">{counts.csa}</Badge>}
           </TabsTrigger>
         </TabsList>
 
         {/* SUB-ADMIN / SUPPORT */}
         <TabsContent value="subadmin" className="space-y-3">
           <Tabs value={subStatus} onValueChange={(v) => setSubStatus(v as any)}>
-            <TabsList className="bg-slate-100 border border-slate-200">
+            <TabsList className="admin-surface-sunken border admin-border">
               <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="approved">Approved</TabsTrigger>
               <TabsTrigger value="rejected">Rejected</TabsTrigger>
@@ -151,46 +151,46 @@ export default function AdminUnifiedApprovals() {
           </Tabs>
 
           {loading ? (
-            <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin text-violet-600" /></div>
+            <div className="flex items-center justify-center h-40"><Loader2 className="w-6 h-6 animate-spin admin-accent-primary" /></div>
           ) : subRows.length === 0 ? (
             <Card className="p-10 text-center">
-              <Clock className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">No {subStatus} sub-admin requests</p>
+              <Clock className="w-10 h-10 admin-text-muted mx-auto mb-2" />
+              <p className="admin-text-muted text-sm">No {subStatus} sub-admin requests</p>
             </Card>
           ) : (
             <div className="space-y-3">
               {subRows.map((r) => {
                 const color = ACTION_COLOR[r.action_type] || ACTION_COLOR.default;
                 return (
-                  <Card key={r.id} className="p-4 hover:border-violet-300 transition">
+                  <Card key={r.id} className="p-4 hover:admin-border transition">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className={color}>{r.action_type.replace(/_/g, " ")}</Badge>
-                          <span className="text-xs text-slate-500">
-                            by <b className="text-slate-700">{r.requested_by_name || "—"}</b>
+                          <span className="text-xs admin-text-muted">
+                            by <b className="admin-text-soft">{r.requested_by_name || "—"}</b>
                             {" · "}{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                           </span>
                         </div>
-                        {r.reason && <p className="text-sm text-slate-700 mt-2">{r.reason}</p>}
+                        {r.reason && <p className="text-sm admin-text-soft mt-2">{r.reason}</p>}
                         {r.payload && (
-                          <pre className="mt-2 text-[11px] bg-slate-50 border border-slate-200 rounded p-2 max-h-32 overflow-auto text-slate-700">
+                          <pre className="mt-2 text-[11px] admin-surface-soft border admin-border rounded p-2 max-h-32 overflow-auto admin-text-soft">
                             {JSON.stringify(r.payload, null, 2)}
                           </pre>
                         )}
                         {r.owner_notes && (
-                          <p className="text-[11px] text-amber-700 mt-2">Owner note: {r.owner_notes}</p>
+                          <p className="text-[11px] admin-accent-warning mt-2">Owner note: {r.owner_notes}</p>
                         )}
                       </div>
                       {r.status === "pending" && (
                         <div className="flex flex-col gap-2 shrink-0">
                           <Button size="sm" onClick={() => approveSub(r.id)} disabled={busy === r.id}
-                            className="bg-emerald-600 text-white hover:bg-emerald-700">
+                            className="admin-bg-success text-white hover:admin-bg-success">
                             {busy === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5 mr-1" />}
                             Approve
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => rejectSub(r.id)} disabled={busy === r.id}
-                            className="border-rose-200 text-rose-700 hover:bg-rose-50">
+                            className="admin-border admin-accent-danger hover:admin-chip-danger">
                             <X className="w-3.5 h-3.5 mr-1" /> Reject
                           </Button>
                         </div>
