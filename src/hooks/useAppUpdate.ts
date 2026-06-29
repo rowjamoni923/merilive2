@@ -45,9 +45,32 @@ const getAppVersion = async (): Promise<{ versionCode: number; versionName: stri
   }
 };
 
+// Convert a version string ("8.2.13") to comparable code (80213).
+// If the string contains no dot, treat it as a raw build code ("58" -> 58)
+// so admins can enter either form in the `minimum_version` field.
 const versionNameToCode = (version: string | null | undefined): number => {
-  const parts = String(version || '0').split('.').map((part) => parseInt(part.replace(/\D/g, ''), 10) || 0);
+  const raw = String(version ?? '').trim();
+  if (!raw) return 0;
+  if (!raw.includes('.')) {
+    const n = parseInt(raw.replace(/\D/g, ''), 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+  const parts = raw.split('.').map((part) => parseInt(part.replace(/\D/g, ''), 10) || 0);
   return (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+};
+
+// Single canonical comparable code derived from (versionCode, versionName).
+// Picks the LARGER of the two interpretations so device, server target, and
+// minimum target are all normalised onto one scale regardless of whether the
+// admin entered a raw build code or a dotted version name.
+const toComparableCode = (
+  versionCode: number | string | null | undefined,
+  versionName: string | null | undefined,
+): number => {
+  const codeNum = Number(versionCode);
+  const fromCode = Number.isFinite(codeNum) && codeNum > 0 ? codeNum : 0;
+  const fromName = versionNameToCode(versionName);
+  return Math.max(fromCode, fromName);
 };
 
 export const useAppUpdate = () => {
