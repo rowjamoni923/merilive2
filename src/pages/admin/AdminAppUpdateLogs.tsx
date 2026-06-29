@@ -297,8 +297,11 @@ const AdminAppUpdateLogs = () => {
                 </TableRow>
               )}
               {filtered.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell className="text-xs text-slate-600">
+                <TableRow
+                  key={l.id}
+                  className="cursor-pointer hover:bg-slate-50"
+                  onClick={() => setSelected(l)}
+                >
                     {format(new Date(l.created_at), "MMM dd, HH:mm:ss")}
                   </TableCell>
                   <TableCell><Badge variant="outline">{l.platform}</Badge></TableCell>
