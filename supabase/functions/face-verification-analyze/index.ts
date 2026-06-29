@@ -1822,7 +1822,20 @@ serve(async (req) => {
       && !hostNoFaceInGallery
       && !replaySuspected
       && !livenessFailed;
-    const passiveManualReviewReason = isPassivePhotoVideoLiveScan
+    // ★ SUPER-STRONG IDENTITY OVERRIDE (2026-06-29, owner mandate):
+    // When the passive photo↔live and faceVideo↔live similarity scores are
+    // BOTH ≥ 85% (Rekognition's high-confidence band), the user has proven
+    // same-person identity beyond reasonable doubt. In that case we override
+    // softer signals — liveness provider hiccups, replay heuristics, outdated
+    // host-gallery photos, stale profile avatars — and still allow auto-finalize.
+    // Hard fraud gates (duplicate face, banned hash, account_gender_mismatch,
+    // no_face_in_front, underage) are NOT overridden — those returned earlier.
+    const photoLiveScoreNum = Number(rekognition.photo_live_score ?? 0);
+    const faceVideoLiveScoreNum = Number(rekognition.face_video_live_score ?? 0);
+    const passiveSuperStrongEvidence = isPassivePhotoVideoLiveScan
+      && photoLiveScoreNum >= 85
+      && faceVideoLiveScoreNum >= 85;
+    const passiveManualReviewReason = (isPassivePhotoVideoLiveScan && !passiveSuperStrongEvidence)
       ? !evidenceComplete
         ? "photo_video_live_evidence_missing"
         : !evidenceSamePerson
@@ -1842,6 +1855,7 @@ serve(async (req) => {
                       : ""
       : "";
 
+
     if (duplicateCandidateReview) {
       autoResult = { success: false, reason: "duplicate_candidate_manual_review" };
       console.log("[face-verification-analyze] duplicate candidate is not an approved identity → manual review");
@@ -1851,15 +1865,16 @@ serve(async (req) => {
     } else if (hostPhotosMismatch) {
       autoResult = { success: false, reason: "host_photos_mismatch" };
       console.log("[face-verification-analyze] host_photos_mismatch → manual review");
-    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!livenessProviderAvailable && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "liveness_provider_missing" };
       console.error("[face-verification-analyze] ⚠️ VERIFY_FACE_API_KEY not configured — auto-approve blocked, manual review required");
-    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!livenessActuallyRan && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "liveness_provider_unreachable" };
       console.error("[face-verification-analyze] ⚠️ liveness provider did not return a status — auto-approve blocked, manual review required");
-    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence) {
+    } else if (!duplicateSearchCompleted && !frontError && !passiveStrongPhotoVideoLiveEvidence && !passiveSuperStrongEvidence) {
       autoResult = { success: false, reason: "duplicate_search_unverified" };
       console.error("[face-verification-analyze] ⚠️ duplicate search did not complete — auto-approve blocked, manual review required");
+
     } else {
       if (!isDuplicate && faceProvider && frontB64ForProvider && !frontError) {
         faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
