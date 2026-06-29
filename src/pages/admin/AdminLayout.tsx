@@ -2530,6 +2530,82 @@ export default function AdminLayout() {
     };
   }, [location.pathname]);
 
+  // ────────────────────────────────────────────────────────────────────────────
+  // Sidebar scroll persistence + auto-scroll active item into view
+  // (Owner mandate 2026-06-29): clicking a sidebar item or refreshing the page
+  // must NEVER reset the sidebar back to the top — the active item should stay
+  // visible and the admin should never have to hunt for it again.
+  // ────────────────────────────────────────────────────────────────────────────
+  const SIDEBAR_SCROLL_STORAGE_KEY = 'admin:sidebar-scroll-top:v1';
+
+  const getSidebarViewport = useCallback((): HTMLElement | null => {
+    const nav = sidebarNavRef.current;
+    if (!nav) return null;
+    return nav.closest('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+  }, []);
+
+  // Restore sidebar scroll position on first mount (survives full page refresh)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let restored = false;
+    const tryRestore = () => {
+      if (restored) return;
+      const viewport = getSidebarViewport();
+      if (!viewport) return;
+      const raw = sessionStorage.getItem(SIDEBAR_SCROLL_STORAGE_KEY);
+      const savedTop = raw ? Number(raw) : NaN;
+      if (Number.isFinite(savedTop) && savedTop > 0) {
+        viewport.scrollTop = savedTop;
+      }
+      restored = true;
+    };
+    // Two-pass: immediate + next frame, because Radix viewport mounts async
+    tryRestore();
+    const raf = window.requestAnimationFrame(tryRestore);
+    return () => window.cancelAnimationFrame(raf);
+  }, [getSidebarViewport]);
+
+  // Persist sidebar scroll position whenever the admin scrolls the menu
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = getSidebarViewport();
+    if (!viewport) return;
+    let saveTimer: number | undefined;
+    const onScroll = () => {
+      if (saveTimer) window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => {
+        try { sessionStorage.setItem(SIDEBAR_SCROLL_STORAGE_KEY, String(viewport.scrollTop)); } catch { /* quota */ }
+      }, 120);
+    };
+    viewport.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      viewport.removeEventListener('scroll', onScroll);
+      if (saveTimer) window.clearTimeout(saveTimer);
+    };
+  }, [getSidebarViewport, location.pathname]);
+
+  // Auto-scroll active sidebar item into view (only when it's actually off-screen)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raf = window.requestAnimationFrame(() => {
+      const viewport = getSidebarViewport();
+      if (!viewport) return;
+      const active = viewport.querySelector<HTMLElement>('[data-admin-nav-active="true"]');
+      if (!active) return;
+      const vpRect = viewport.getBoundingClientRect();
+      const itRect = active.getBoundingClientRect();
+      const isVisible = itRect.top >= vpRect.top - 4 && itRect.bottom <= vpRect.bottom + 4;
+      if (isVisible) return;
+      // Compute target scrollTop that centers the active item within the viewport
+      const offsetWithinViewport = active.offsetTop - viewport.offsetTop;
+      const target = Math.max(0, offsetWithinViewport - viewport.clientHeight / 2 + active.clientHeight / 2);
+      viewport.scrollTo({ top: target, behavior: 'smooth' });
+      try { sessionStorage.setItem(SIDEBAR_SCROLL_STORAGE_KEY, String(Math.round(target))); } catch { /* quota */ }
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [location.pathname, getSidebarViewport, expandedGroups]);
+
+
   // Zero-refresh admin UX: route changes handled by useAdminRealtime bootstrap refresh
   // No wildcard dispatch needed — each page's useAdminRealtime does its own initial fetch
   useEffect(() => {
