@@ -772,7 +772,7 @@ const FaceVerification = () => {
             setVerificationStatus('rejected');
             setRejectionReason(next?.rejection_reason || null);
             setRetryRequired(null);
-            toast({ title: 'Face verification rejected', description: next?.rejection_reason || 'Please re-submit.', variant: 'destructive' });
+            toast({ title: 'Verification rejected', description: next?.rejection_reason || 'Please review the reason and re-submit.', variant: 'destructive' });
           } else if (status === 'needs_retry') {
             const currentProfileStatus = String((profile as any)?.face_verification_status || '').toLowerCase();
             if ((profile as any)?.is_face_verified === true || currentProfileStatus === 'approved' || currentProfileStatus === 'verified') {
