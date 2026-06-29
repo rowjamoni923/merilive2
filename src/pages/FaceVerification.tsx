@@ -766,7 +766,7 @@ const FaceVerification = () => {
             setVerificationStatus('verified');
             setRejectionReason(null);
             setRetryRequired(null);
-            toast({ title: '✅ Face verification approved', description: 'Approved by admin. Redirecting…' });
+            toast({ title: 'Verified ✓', description: 'Approved by admin. Redirecting…' });
             setTimeout(() => navigate('/profile', { replace: true }), 900);
           } else if (status === 'rejected') {
             setVerificationStatus('rejected');
