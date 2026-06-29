@@ -423,12 +423,34 @@ export default function MatchCall() {
     } catch (e: any) {
       if (timerRef.current) window.clearInterval(timerRef.current);
       const payload = await extractEdgeFnErrorPayload(e);
-      if (payload?.error === "insufficient_coins") {
+      const code = payload?.error;
+      if (code === "insufficient_coins") {
         setPhase("prep");
         navigate("/recharge", { replace: true });
         return;
       }
-      const msg = String(e?.message ?? e);
+      if (code === "skip_cooldown") {
+        const secs = payload?.cooldown_seconds_remaining ?? 0;
+        toast.error(`You're skipping too fast. Try again in ${secs}s.`);
+        setPhase("prep");
+        return;
+      }
+      if (code === "daily_skip_limit_reached") {
+        toast.error(`Daily skip limit reached (${payload?.daily_used}/${payload?.daily_limit}).`);
+        setPhase("prep");
+        return;
+      }
+      // Friendly mapping for all known server error codes.
+      const friendly: Record<string, string> = {
+        unauthorized: "Please sign in again to continue.",
+        feature_disabled: "Random Call is temporarily disabled by admin. Please try later.",
+        profile_not_found: "Your profile could not be loaded. Please reopen the app.",
+        broadcast_insert_failed: "Could not start matching. Please try again.",
+        queue_insert_failed: "Could not join the queue. Please try again.",
+        session_insert_failed: "Match found but session could not start. Please retry.",
+        internal_error: "Something went wrong on our side. Please try again.",
+      };
+      const msg = (code && friendly[code]) || friendly.internal_error;
       setErrorMsg(msg);
       setPhase("error");
     }
