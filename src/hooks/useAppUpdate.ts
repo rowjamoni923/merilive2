@@ -254,9 +254,32 @@ export const useAppUpdate = () => {
 
   const openPlayStore = useCallback(async () => {
     const url = updateInfo?.playStoreUrl || 'https://play.google.com/store/apps/details?id=com.merilive.app';
-    
+
+    // Save dismissal so user isn't re-prompted before install completes
+    if (updateInfo?.availableVersionCode) {
+      try {
+        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
+      } catch (e) {}
+    }
+
+    // Log outcome
     try {
-      // Try using Capacitor App Update plugin first
+      const { data: { user } } = await supabase.auth.getUser();
+      supabase.from('app_update_check_log').insert({
+        user_id: user?.id ?? null,
+        platform: Capacitor.getPlatform() === 'web' ? 'android' : Capacitor.getPlatform(),
+        current_version_name: updateInfo?.currentVersion,
+        current_version_code: updateInfo?.currentVersionCode,
+        server_version_name: updateInfo?.availableVersion,
+        server_version_code: updateInfo?.availableVersionCode,
+        update_available: true,
+        force_update: updateInfo?.forceUpdate ?? false,
+        modal_shown: true,
+        outcome: 'store_opened',
+      }).then(() => {});
+    } catch (e) {}
+
+    try {
       const { AppUpdate } = await import('@capawesome/capacitor-app-update');
       await AppUpdate.openAppStore();
     } catch (error) {
@@ -274,14 +297,37 @@ export const useAppUpdate = () => {
   const performImmediateUpdate = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
+    // Save dismissal too
+    if (updateInfo?.availableVersionCode) {
+      try {
+        localStorage.setItem(DISMISSED_VERSION_KEY, updateInfo.availableVersionCode.toString());
+      } catch (e) {}
+    }
+
     try {
       const { AppUpdate } = await import('@capawesome/capacitor-app-update');
       await AppUpdate.performImmediateUpdate();
+      // Log success
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        supabase.from('app_update_check_log').insert({
+          user_id: user?.id ?? null,
+          platform: Capacitor.getPlatform(),
+          current_version_name: updateInfo?.currentVersion,
+          current_version_code: updateInfo?.currentVersionCode,
+          server_version_name: updateInfo?.availableVersion,
+          server_version_code: updateInfo?.availableVersionCode,
+          update_available: true,
+          force_update: updateInfo?.forceUpdate ?? false,
+          modal_shown: true,
+          outcome: 'updated',
+        }).then(() => {});
+      } catch (e) {}
     } catch (error) {
       console.error('[AppUpdate] Immediate update failed, opening store:', error);
       openPlayStore();
     }
-  }, [openPlayStore]);
+  }, [openPlayStore, updateInfo]);
 
   const dismissUpdate = useCallback(() => {
     // Don't allow dismiss if force update is required
