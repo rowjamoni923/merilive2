@@ -811,7 +811,7 @@ export default function AdminPricingHub() {
             </CardContent>
           </Card>
 
-          <Card className="border-amber-500/40">
+          <Card className="admin-border-strong/40">
             <CardHeader>
               <CardTitle className="text-base">Auto Withdrawal Fee (Foreign Agencies)</CardTitle>
               <CardDescription>
@@ -866,7 +866,7 @@ export default function AdminPricingHub() {
                 </Field>
               </div>
               {autoWithdrawalFee.enabled && (autoWithdrawalFee.flat_usd !== "" || autoWithdrawalFee.percent !== "") && (
-                <div className="rounded-md border border-amber-200 admin-chip-warning p-3 text-xs space-y-1">
+                <div className="rounded-md border admin-border admin-chip-warning p-3 text-xs space-y-1">
                   <div className="font-semibold admin-accent-warning">Live Preview</div>
                   {(() => {
                     const flat = Number(autoWithdrawalFee.flat_usd) || 0;

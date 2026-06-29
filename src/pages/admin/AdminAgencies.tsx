@@ -1039,16 +1039,16 @@ export default function AdminAgencies() {
               <Card className="admin-surface admin-border shadow-md">
                 <CardHeader>
                   <CardTitle className="admin-text flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-blue-500" />
+                    <Building2 className="w-5 h-5 admin-accent-primary" />
                     Agency Commission
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Fixed Rate */}
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border admin-border">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <Percent className="w-5 h-5 text-blue-500" />
+                        <Percent className="w-5 h-5 admin-accent-primary" />
                         <span className="admin-text font-medium">Fixed Commission Rate</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1159,7 +1159,7 @@ export default function AdminAgencies() {
                             />
                           </div>
                           <div className="flex items-end">
-                            <div className="admin-bg-warning/20 text-amber-400 px-3 py-1 rounded text-sm">
+                            <div className="admin-bg-warning/20 admin-accent-warning px-3 py-1 rounded text-sm">
                               {commissionSettings.tiered_rates.tier1.rate}%
                             </div>
                           </div>
@@ -1213,7 +1213,7 @@ export default function AdminAgencies() {
                             />
                           </div>
                           <div className="flex items-end">
-                            <div className="bg-gray-500 text-white px-3 py-1 rounded text-sm font-medium">
+                            <div className="admin-chip-neutral text-white px-3 py-1 rounded text-sm font-medium">
                               {commissionSettings.tiered_rates.tier2.rate}%
                             </div>
                           </div>
@@ -1336,7 +1336,7 @@ export default function AdminAgencies() {
                   </div>
 
                   {/* Info Box */}
-                  <div className="admin-chip-primary border border-blue-200 rounded-lg p-4">
+                  <div className="admin-chip-primary border admin-border rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <Calculator className="w-5 h-5 admin-accent-primary mt-0.5" />
                       <div>
@@ -1379,7 +1379,7 @@ export default function AdminAgencies() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Crown className="w-5 h-5 text-yellow-400" />
+                  <Crown className="w-5 h-5 admin-accent-warning" />
                   Agency Level System
                 </CardTitle>
                 <Button
@@ -1524,7 +1524,7 @@ export default function AdminAgencies() {
           <Card className="admin-surface-soft admin-border">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <Calculator className="w-5 h-5 text-blue-400 mt-0.5" />
+                <Calculator className="w-5 h-5 admin-accent-primary mt-0.5" />
                 <div>
                   <p className="text-white font-medium text-sm">How Auto Level System Works</p>
                   <ul className="admin-text-muted text-xs mt-2 space-y-1 list-disc list-inside">
@@ -1619,7 +1619,7 @@ export default function AdminAgencies() {
                             {hostSearchResult.display_name || hostSearchResult.username || "Unknown"}
                           </h2>
                           {hostSearchResult.is_verified && (
-                            <Badge className="bg-blue-500/20 text-blue-400 gap-1">
+                            <Badge className="admin-bg-primary/20 admin-accent-primary gap-1">
                               <CheckCircle className="w-3 h-3" /> Verified
                             </Badge>
                           )}
@@ -1628,7 +1628,7 @@ export default function AdminAgencies() {
                               <Ban className="w-3 h-3" /> Blocked
                             </Badge>
                           )}
-                          <Badge className={hostSearchResult.is_online ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}>
+                          <Badge className={hostSearchResult.is_online ? "bg-green-500/20 text-green-400" : "admin-chip-neutral/20 admin-text-muted"}>
                             {hostSearchResult.is_online ? "Online" : "Offline"}
                           </Badge>
                         </div>
@@ -1644,7 +1644,7 @@ export default function AdminAgencies() {
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div className="admin-surface-soft rounded-lg p-3 text-center">
-                          <Coins className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
+                          <Coins className="w-5 h-5 admin-accent-warning mx-auto mb-1" />
                           <p className="text-white font-bold">{hostSearchResult.total_earnings?.toLocaleString() || 0}</p>
                           <p className="text-xs admin-text-muted">Total Earnings</p>
                         </div>
@@ -1654,7 +1654,7 @@ export default function AdminAgencies() {
                           <p className="text-xs admin-text-muted">Total Calls</p>
                         </div>
                         <div className="admin-surface-soft rounded-lg p-3 text-center">
-                          <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+                          <Clock className="w-5 h-5 admin-accent-primary mx-auto mb-1" />
                           <p className="text-white font-bold">{hostSearchResult.total_call_minutes?.toLocaleString() || 0}</p>
                           <p className="text-xs admin-text-muted">Call Minutes</p>
                         </div>
@@ -1690,7 +1690,7 @@ export default function AdminAgencies() {
                           <p className="text-white font-bold text-lg">{hostAgency.name}</p>
                           <p className="admin-text-muted">#{hostAgency.agency_code}</p>
                         </div>
-                        <Badge className="admin-bg-warning/20 text-yellow-400">
+                        <Badge className="admin-bg-warning/20 admin-accent-warning">
                           {hostAgency.level || "A1"} Level
                         </Badge>
                         <Button
@@ -1742,10 +1742,10 @@ export default function AdminAgencies() {
                       {/* Agency Owner */}
                       {hostAgency.owner && (
                         <div className="flex items-center gap-3 p-3 admin-surface-soft rounded-lg">
-                          <Crown className="w-5 h-5 text-yellow-400" />
+                          <Crown className="w-5 h-5 admin-accent-warning" />
                           <Avatar className="w-8 h-8">
                             <UserAvatarImage seed={(((hostAgency.owner) as any)?.id ?? ((hostAgency.owner) as any)?.user_id ?? ((hostAgency.owner) as any)?.host_id)} gender={((hostAgency.owner) as any)?.gender} src={hostAgency.owner.avatar_url || undefined} />
-                            <AvatarFallback className="admin-bg-warning/20 text-yellow-400 text-sm">
+                            <AvatarFallback className="admin-bg-warning/20 admin-accent-warning text-sm">
                               {hostAgency.owner.display_name?.charAt(0) || "O"}
                             </AvatarFallback>
                           </Avatar>
@@ -1802,17 +1802,17 @@ export default function AdminAgencies() {
       {/* Inactive Agencies Warning Banner */}
       {inactiveCount > 0 && filterType !== "cancelled" && (
         <div 
-          className="flex items-center gap-3 p-3 rounded-xl admin-bg-danger/10 border border-red-500/30 cursor-pointer hover:admin-bg-danger/20 transition-colors"
+          className="flex items-center gap-3 p-3 rounded-xl admin-bg-danger/10 border admin-border-strong/30 cursor-pointer hover:admin-bg-danger/20 transition-colors"
           onClick={() => setFilterType("cancelled")}
         >
           <div className="w-8 h-8 rounded-lg admin-bg-danger/20 flex items-center justify-center shrink-0">
-            <Building2 className="w-4 h-4 text-red-400" />
+            <Building2 className="w-4 h-4 admin-accent-danger" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-300">
+            <p className="text-sm font-medium admin-accent-danger">
               {inactiveCount} Closed/Cancelled/Inactive agencies found
             </p>
-            <p className="text-xs text-red-400/70">Click to view</p>
+            <p className="text-xs admin-accent-danger/70">Click to view</p>
           </div>
           <Badge className="admin-bg-danger text-white">{inactiveCount}</Badge>
         </div>
@@ -1890,7 +1890,7 @@ export default function AdminAgencies() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="admin-surface-sunken" />
                         <DropdownMenuItem
-                          className="text-amber-300 hover:text-amber-200 cursor-pointer"
+                          className="admin-accent-warning hover:text-amber-200 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAgency(agency);
@@ -1901,7 +1901,7 @@ export default function AdminAgencies() {
                           {(agency as any).is_country_super_admin ? "Re-grant Country Super Admin" : "Grant Country Super Admin"}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className={(agency as any).is_permanent ? "text-rose-400 hover:text-rose-300 cursor-pointer" : "text-yellow-300 hover:text-yellow-200 cursor-pointer"}
+                          className={(agency as any).is_permanent ? "admin-accent-danger hover:admin-accent-danger cursor-pointer" : "admin-accent-warning hover:text-yellow-200 cursor-pointer"}
                           onClick={async (e) => {
                             e.stopPropagation();
                             const isPerm = !!(agency as any).is_permanent;
@@ -1936,7 +1936,7 @@ export default function AdminAgencies() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="admin-surface-sunken" />
                         <DropdownMenuItem 
-                          className={`cursor-pointer ${agency.is_active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}`}
+                          className={`cursor-pointer ${agency.is_active ? "admin-accent-danger hover:admin-accent-danger" : "text-green-400 hover:text-green-300"}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAgency(agency);
@@ -1970,7 +1970,7 @@ export default function AdminAgencies() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium flex items-center gap-1">
-                        <Crown className="w-3 h-3 text-yellow-400" />
+                        <Crown className="w-3 h-3 admin-accent-warning" />
                         {agency.owner?.display_name || "Unknown"}
                       </p>
                       <p className="text-xs admin-text-muted">
@@ -1989,9 +1989,9 @@ export default function AdminAgencies() {
                   {(agency.email || agency.whatsapp_number) && (
                     <div className="mb-3 space-y-1.5">
                       {agency.email && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                          <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                          <span className="text-xs text-blue-300 truncate">{agency.email}</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 admin-bg-primary/10 rounded-lg border admin-border-strong/20">
+                          <Mail className="w-3.5 h-3.5 admin-accent-primary shrink-0" />
+                          <span className="text-xs admin-accent-primary truncate">{agency.email}</span>
                         </div>
                       )}
                       {agency.whatsapp_number && (
@@ -2022,12 +2022,12 @@ export default function AdminAgencies() {
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center p-3 admin-surface-soft rounded-xl border admin-border">
-                      <Users className="w-4 h-4 text-blue-400 mx-auto mb-1.5" />
+                      <Users className="w-4 h-4 admin-accent-primary mx-auto mb-1.5" />
                       <p className="text-white font-bold">{agency.total_hosts || 0}</p>
                       <p className="text-[10px] admin-text-muted uppercase tracking-wider">Hosts</p>
                     </div>
                     <div className="text-center p-3 admin-surface-soft rounded-xl border admin-border">
-                      <Coins className="w-4 h-4 text-yellow-400 mx-auto mb-1.5" />
+                      <Coins className="w-4 h-4 admin-accent-warning mx-auto mb-1.5" />
                       <p className="text-white font-bold">{agency.wallet_balance?.toLocaleString() || 0}</p>
                       <p className="text-[10px] admin-text-muted uppercase tracking-wider">Balance</p>
                     </div>
@@ -2043,7 +2043,7 @@ export default function AdminAgencies() {
                     <Badge className={`${getLevelColor(agency.level)} text-white border-0 capitalize shadow-md`}>
                       {agency.level || "Bronze"} Level
                     </Badge>
-                      <Badge className={agency.is_active ? "admin-bg-success/20 text-emerald-400 border border-emerald-500/30" : "admin-bg-danger/20 text-red-400 border border-red-500/30"}>
+                      <Badge className={agency.is_active ? "admin-bg-success/20 admin-accent-success border admin-border-strong/30" : "admin-bg-danger/20 admin-accent-danger border admin-border-strong/30"}>
                        {agency.is_active ? "Active" : agency.activation_status === "closed" ? "Closed" : "Cancelled"}
                     </Badge>
                   </div>
@@ -2214,11 +2214,11 @@ export default function AdminAgencies() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="admin-surface-soft rounded-lg p-3">
                   <p className="admin-text-muted text-sm">Total Hosts</p>
-                  <p className="text-blue-400 font-bold">{selectedAgency.total_hosts || 0}</p>
+                  <p className="admin-accent-primary font-bold">{selectedAgency.total_hosts || 0}</p>
                 </div>
                 <div className="admin-surface-soft rounded-lg p-3">
                   <p className="admin-text-muted text-sm">Wallet Balance</p>
-                  <p className="text-yellow-400 font-bold">{selectedAgency.wallet_balance?.toLocaleString() || 0}</p>
+                  <p className="admin-accent-warning font-bold">{selectedAgency.wallet_balance?.toLocaleString() || 0}</p>
                 </div>
                 <div className="admin-surface-soft rounded-lg p-3">
                   <p className="admin-text-muted text-sm">Commission Rate</p>
@@ -2245,8 +2245,8 @@ export default function AdminAgencies() {
               </div>
 
               {selectedAgency.blocked_reason && (
-                <div className="admin-bg-danger/10 border border-red-500/30 rounded-lg p-3">
-                  <p className="text-red-400 text-sm font-medium">Cancellation Reason:</p>
+                <div className="admin-bg-danger/10 border admin-border-strong/30 rounded-lg p-3">
+                  <p className="admin-accent-danger text-sm font-medium">Cancellation Reason:</p>
                   <p className="admin-text-soft text-sm">{selectedAgency.blocked_reason}</p>
                 </div>
               )}
@@ -2260,7 +2260,7 @@ export default function AdminAgencies() {
         <DialogContent className="admin-surface-soft admin-border max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
-              <Plus className="w-5 h-5 text-emerald-400" />
+              <Plus className="w-5 h-5 admin-accent-success" />
               Create New Agency
             </DialogTitle>
             <DialogDescription className="admin-text-muted">
@@ -2294,11 +2294,11 @@ export default function AdminAgencies() {
             </div>
 
             {ownerSearchResult && (
-              <div className="p-3 admin-bg-success/10 border border-emerald-500/30 rounded-lg">
+              <div className="p-3 admin-bg-success/10 border admin-border-strong/30 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
+                  <Avatar className="w-10 h-10 border-2 admin-border-strong/50">
                     <UserAvatarImage gender={((ownerSearchResult) as any)?.gender} seed={((ownerSearchResult) as any)?.id ?? ((ownerSearchResult) as any)?.user_id ?? ((ownerSearchResult) as any)?.host_id} src={ownerSearchResult.avatar_url || undefined} />
-                    <AvatarFallback className="admin-bg-success/20 text-emerald-400">
+                    <AvatarFallback className="admin-bg-success/20 admin-accent-success">
                       {ownerSearchResult.display_name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -2306,7 +2306,7 @@ export default function AdminAgencies() {
                     <p className="text-white font-medium">{ownerSearchResult.display_name || "Unknown"}</p>
                     <p className="admin-text-muted text-sm"><CopyableUid value={ownerSearchResult.username || ownerSearchResult.id?.slice(0, 8)} /></p>
                   </div>
-                  <Badge className="admin-bg-success/20 text-emerald-400 border-0">
+                  <Badge className="admin-bg-success/20 admin-accent-success border-0">
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Selected
                   </Badge>

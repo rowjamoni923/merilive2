@@ -71,9 +71,9 @@ const AdminAgencyHub = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 admin-border-strong/20">
           <CardContent className="p-4 text-center">
-            <Building2 className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+            <Building2 className="w-8 h-8 mx-auto mb-2 admin-accent-primary" />
             <p className="text-2xl font-bold text-foreground">{stats.totalAgencies}</p>
             <p className="text-xs text-muted-foreground">Total Agencies</p>
           </CardContent>
@@ -92,9 +92,9 @@ const AdminAgencyHub = () => {
             <p className="text-xs text-muted-foreground">Active Helpers</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
+        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 admin-border-strong/20">
           <CardContent className="p-4 text-center">
-            <Star className="w-8 h-8 mx-auto mb-2 text-amber-400" />
+            <Star className="w-8 h-8 mx-auto mb-2 admin-accent-warning" />
             <p className="text-2xl font-bold text-foreground">{stats.level5Helpers}</p>
             <p className="text-xs text-muted-foreground">Level 5 Helpers</p>
           </CardContent>

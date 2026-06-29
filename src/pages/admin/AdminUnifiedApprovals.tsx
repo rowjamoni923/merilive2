@@ -34,12 +34,12 @@ type SubAdminRow = {
 };
 
 const ACTION_COLOR: Record<string, string> = {
-  user_ban: "admin-bg-danger/20 text-rose-300 border-rose-500/40",
-  user_unban: "admin-bg-success/20 text-emerald-300 border-emerald-500/40",
-  balance_adjust: "admin-bg-warning/20 text-amber-300 border-amber-500/40",
-  agency_close: "admin-bg-danger/20 text-rose-300 border-rose-500/40",
-  agency_reactivate: "admin-bg-success/20 text-emerald-300 border-emerald-500/40",
-  default: "bg-violet-500/20 text-violet-300 border-violet-500/40",
+  user_ban: "admin-bg-danger/20 admin-accent-danger admin-border-strong/40",
+  user_unban: "admin-bg-success/20 admin-accent-success admin-border-strong/40",
+  balance_adjust: "admin-bg-warning/20 admin-accent-warning admin-border-strong/40",
+  agency_close: "admin-bg-danger/20 admin-accent-danger admin-border-strong/40",
+  agency_reactivate: "admin-bg-success/20 admin-accent-success admin-border-strong/40",
+  default: "admin-bg-primary/20 admin-accent-primary admin-border-strong/40",
 };
 
 export default function AdminUnifiedApprovals() {
@@ -120,7 +120,7 @@ export default function AdminUnifiedApprovals() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="admin-chip-danger admin-accent-danger border border-rose-200 text-sm px-3 py-1">
+            <Badge className="admin-chip-danger admin-accent-danger border admin-border text-sm px-3 py-1">
               {totalPending} pending
             </Badge>
           </div>
@@ -162,7 +162,7 @@ export default function AdminUnifiedApprovals() {
               {subRows.map((r) => {
                 const color = ACTION_COLOR[r.action_type] || ACTION_COLOR.default;
                 return (
-                  <Card key={r.id} className="p-4 hover:border-violet-300 transition">
+                  <Card key={r.id} className="p-4 hover:admin-border transition">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -190,7 +190,7 @@ export default function AdminUnifiedApprovals() {
                             Approve
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => rejectSub(r.id)} disabled={busy === r.id}
-                            className="border-rose-200 admin-accent-danger hover:admin-chip-danger">
+                            className="admin-border admin-accent-danger hover:admin-chip-danger">
                             <X className="w-3.5 h-3.5 mr-1" /> Reject
                           </Button>
                         </div>
