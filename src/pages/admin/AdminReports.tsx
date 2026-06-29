@@ -194,10 +194,28 @@ export default function AdminReports() {
               <SelectItem value="quarter">Last 90 Days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="border-slate-200 text-slate-900 bg-slate-50 hover:bg-slate-50">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+          <ReportExportMenu
+            rows={chartData as any}
+            columns={[
+              { key: "date", label: "Date", weight: 1 },
+              { key: "users", label: "Users", weight: 0.8 },
+              { key: "coins", label: "Diamonds Spent", weight: 1.2 },
+              { key: "streams", label: "Streams", weight: 0.8 },
+            ]}
+            meta={{
+              title: "Platform Performance Report",
+              subtitle: `Period: ${period === "week" ? "Last 7 Days" : period === "month" ? "Last 30 Days" : "Last 90 Days"}`,
+              fileName: `reports-${period}`,
+              summary: [
+                { label: "Total Users", value: stats.totalUsers.toLocaleString() },
+                { label: "New Today", value: stats.newUsersToday },
+                { label: "Diamonds (90d)", value: stats.totalCoinsSpent.toLocaleString() },
+                { label: "Gifts", value: stats.totalGiftsSent.toLocaleString() },
+                { label: "Streams", value: stats.totalStreams.toLocaleString() },
+                { label: "Calls", value: stats.totalCalls.toLocaleString() },
+              ],
+            }}
+          />
         </div>
       </div>
 
