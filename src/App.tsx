@@ -282,6 +282,7 @@ const AdminReels = lazy(lazyRetry(() => import("./pages/admin/AdminReels")));
 const AdminPartyBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPartyBanners")));
 const AdminAppVersion = lazy(lazyRetry(() => import("./pages/admin/AdminAppVersion")));
 const AdminAppUpdateLogs = lazy(lazyRetry(() => import("./pages/admin/AdminAppUpdateLogs")));
+const AdminAppUpdateTest = lazy(lazyRetry(() => import("./pages/admin/AdminAppUpdateTest")));
 const AdminThemeManager = lazy(lazyRetry(() => import("./pages/admin/AdminThemeManager")));
 const AdminRoleFrames = lazy(lazyRetry(() => import("./pages/admin/AdminRoleFrames")));
 const AdminChatBubbles = lazy(lazyRetry(() => import("./pages/admin/AdminChatBubbles")));
