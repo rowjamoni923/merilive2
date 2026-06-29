@@ -201,7 +201,7 @@ const logUpdateOutcome = async (info: AppUpdateInfo | null, outcome: string) => 
       server_version_name: info?.availableVersion,
       server_version_code: info?.availableVersionCode,
       min_version_code: info?.minimumComparable,
-      update_available: info?.updateAvailable ?? true,
+      update_available: info?.updateAvailable ?? false,
       force_update: info?.forceUpdate ?? false,
       modal_shown: outcome === 'shown' || outcome === 'store_opened' || outcome === 'updated',
       outcome,
@@ -263,6 +263,12 @@ export const useAppUpdate = () => {
       // Get actual app version from native platform
       if (!currentVersionRef.current) {
         currentVersionRef.current = await getAppVersion();
+      }
+      if (!currentVersionRef.current) {
+        console.warn('[AppUpdate] Native version unavailable; skipping update check to avoid false repeated prompts.');
+        setShowUpdateModal(false);
+        logUpdateOutcome(null, 'native_version_unavailable');
+        return;
       }
       const { versionCode: CURRENT_VERSION_CODE, versionName: CURRENT_VERSION_NAME } = currentVersionRef.current;
       
@@ -361,6 +367,10 @@ export const useAppUpdate = () => {
       // Get current version if not already loaded
       if (!currentVersionRef.current) {
         currentVersionRef.current = await getAppVersion();
+      }
+      if (!currentVersionRef.current) {
+        console.warn('[AppUpdate] Native version unavailable; skipping Play Store fallback to avoid false repeated prompts.');
+        return;
       }
       const { versionCode: CURRENT_VERSION_CODE, versionName: CURRENT_VERSION_NAME } = currentVersionRef.current;
       
