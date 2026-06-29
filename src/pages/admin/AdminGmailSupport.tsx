@@ -702,7 +702,7 @@ const AdminGmailSupport = () => {
                           )}
 
                           {/* Message body */}
-                          <div className={cn("text-[13px] whitespace-pre-wrap break-words overflow-hidden leading-[1.5]", isOur ? "text-white/95" : "text-foreground/90")}>
+                          <div className={cn("text-[13px] whitespace-pre-wrap break-words overflow-hidden leading-[1.5]", isOur ? "text-slate-800" : "text-foreground/90")}>
                             {msg.body.includes('<') ? (
                               <div 
                                 dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(msg.body) }} 

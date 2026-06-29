@@ -496,7 +496,7 @@ export default function AdminHostApplications() {
       {/* Search */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <Input
             placeholder="Search by name or UID..."
             value={searchQuery}
@@ -618,7 +618,7 @@ export default function AdminHostApplications() {
 
                     {/* Time */}
                     <div className="shrink-0 text-right hidden md:block">
-                      <p className="text-[10px] text-white/30">{formatDate(app.created_at)}</p>
+                      <p className="text-[10px] text-slate-500">{formatDate(app.created_at)}</p>
                     </div>
                   </div>
 
@@ -718,7 +718,7 @@ export default function AdminHostApplications() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-[10px] text-white/30 mt-2">
+                  <p className="text-[10px] text-slate-500 mt-2">
                     Registered: {host.created_at ? new Date(host.created_at).toLocaleDateString() : '-'}
                     {' • '}No face verification submitted yet
                   </p>
@@ -1060,7 +1060,7 @@ function InfoCard({ icon: Icon, label, value, small }: { icon: any; label: strin
   return (
     <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
       <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="w-3.5 h-3.5 text-white/30" />
+        <Icon className="w-3.5 h-3.5 text-slate-500" />
         <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
       </div>
       <p className={`text-slate-900 font-semibold ${small ? 'text-xs' : 'text-sm'}`}>{value}</p>
