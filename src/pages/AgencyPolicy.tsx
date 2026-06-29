@@ -142,6 +142,7 @@ const STRUCTURED_KEYS = new Set([
 
 const AgencyPolicy = () => {
   const navigate = useNavigate();
+  useEnableBrowserPageInteraction();
   // Pkg421 — agency policy is fully GLOBAL data, safe to share across users.
   // Instant cached render; background refresh keeps content fresh.
   const [policyData, setPolicyData, hadPolicyCache] = usePersistedCache<PolicyData>("agencyPolicy:data");
