@@ -49,7 +49,7 @@ export default function AdminGooglePlayHealth() {
   const meta = data?.result;
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl space-y-4">
+    <div className="admin-pro-shell container mx-auto p-4 max-w-4xl space-y-4">
       
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Google Play Billing Health</h1>

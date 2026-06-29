@@ -60,7 +60,7 @@ const AdminUserHub = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#0f0a1a] via-[#0d0815] to-[#080510] p-6 shadow-[0_20px_60px_-20px_rgba(139,92,246,0.3)]"
+        className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-6 shadow-[0_20px_60px_-20px_rgba(99,102,241,0.18)]"
       >
         {/* Decorative elements */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.08),transparent_70%)]" />

@@ -58,6 +58,7 @@ const AdminNativeBridge = () => {
   };
 
   return (
+    <div className="admin-pro-shell">
     <Card className="border-[hsl(var(--admin-border-light)/0.7)] bg-[hsl(var(--admin-card)/0.68)]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[hsl(var(--admin-text))]">
@@ -103,6 +104,7 @@ const AdminNativeBridge = () => {
         </p>
       </CardContent>
     </Card>
+    </div>
   );
 };
 

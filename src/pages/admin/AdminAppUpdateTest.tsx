@@ -81,7 +81,7 @@ const AdminAppUpdateTest = () => {
     setOverride((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="p-4 md:p-6 space-y-6 bg-white min-h-screen">
+    <div className="admin-pro-shell p-4 md:p-6 space-y-6 bg-white min-h-screen">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
