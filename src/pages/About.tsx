@@ -31,6 +31,7 @@ const CREAM = "#f5ecd7";     // body text on dark
 const MUTED = "#a3a9c2";     // secondary text
 
 const About = () => {
+  useEnableBrowserPageInteraction();
   useEffect(() => {
     document.title = "MeriLive — Live Streaming, Video Call & Entertainment App | Download Now";
     const meta = document.querySelector('meta[name="description"]');
