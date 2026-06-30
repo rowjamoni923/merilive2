@@ -140,7 +140,7 @@ export function useNativeGiftDispatcher() {
 
       // (3) Realtime bridge — safety net for gifts that bypass LiveKit signaling.
       channel = supabase
-        .channel('native-gift-dispatcher')
+        .channel(`native-gift-dispatcher-${Math.random().toString(36).slice(2, 8)}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'gift_transactions' },
