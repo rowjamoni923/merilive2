@@ -1432,6 +1432,27 @@ const AdminSupportTickets = () => {
                       ♂→User
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] px-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                    onClick={handleApproveFaceFromSupport}
+                    disabled={faceActionLoading}
+                    title="Approve face verification for this user"
+                  >
+                    ✅ Verify Face
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] px-2 border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                    onClick={handleAllowFaceReapply}
+                    disabled={faceActionLoading}
+                    title="Reset rejection so the user can submit face verification again"
+                  >
+                    ♻️ Allow Re-Verify
+                  </Button>
+
                   <Select value={selectedTicket.status} onValueChange={updateTicketStatus} disabled={statusUpdating}>
                     <SelectTrigger className="w-24 h-7 text-[10px]">
                       <SelectValue />
