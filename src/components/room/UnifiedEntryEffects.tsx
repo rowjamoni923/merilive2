@@ -129,7 +129,8 @@ export const UnifiedEntryEffects: React.FC<UnifiedEntryEffectsProps> = ({
       {/* Uses SVGA/GIF/Image as background if equipped, gradient fallback otherwise */}
       {hasNameBarData && entryNameBarInfo && (
         <EntryNameBarAnimation
-          key={`namebar-${entryNameBarInfo.userName}`}
+          key={`namebar-${(entryNameBarInfo as any).userId || entryNameBarInfo.userName}-${Date.now()}`}
+          userId={(entryNameBarInfo as any).userId}
           userName={entryNameBarInfo.userName}
           userLevel={entryNameBarInfo.userLevel}
           avatarUrl={entryNameBarInfo.avatarUrl}
