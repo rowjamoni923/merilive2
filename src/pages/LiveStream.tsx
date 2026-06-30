@@ -4518,7 +4518,7 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Premium 3D Design */}
-        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] md:pb-[calc(env(safe-area-inset-bottom)+1rem)]"
+        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-5 md:pb-4"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.28) 65%, transparent 100%)' }}
         >
           {/* Chat Input — Glass pill with gradient send FAB */}
