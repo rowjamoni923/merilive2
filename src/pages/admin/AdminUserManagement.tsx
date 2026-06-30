@@ -633,17 +633,13 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const targetGender = isHost ? 'male' : 'female';
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      const toHost = !isHost;
+      const { error } = await supabase.rpc('admin_convert_user_role', {
         _user_id: userId,
-        _gender: targetGender,
+        _to_host: toHost,
       });
       if (error) throw error;
-      // Send notification to user when converted to Host
-      if (!isHost) {
-        await adminSendNotification(userId, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system')
-      }
-      toast.success(isHost ? "Converted to User (Male)" : "Converted to Host (Female)");
+      toast.success(toHost ? "Converted to Host" : "Converted to User");
       fetchUsers();
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorUpdatingHostStatus", message: formatAdminError(error)});

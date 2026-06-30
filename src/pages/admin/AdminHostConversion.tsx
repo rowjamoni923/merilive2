@@ -77,10 +77,10 @@ const AdminHostConversion = () => {
     try {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
-      // Convert user gender and host status
-      const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
+      // Instant role conversion: sets is_host + host_status='approved'/NULL + gender + notification
+      const { error: rpcError } = await supabase.rpc('admin_convert_user_role', {
         _user_id: req.user_id,
-        _gender: toHost ? 'female' : 'male',
+        _to_host: toHost,
       });
 
       if (rpcError) throw rpcError;

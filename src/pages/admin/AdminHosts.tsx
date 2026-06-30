@@ -206,9 +206,9 @@ export default function AdminHosts() {
 
   const handleApproveHost = async (hostId: string) => {
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      const { error } = await supabase.rpc('admin_convert_user_role', {
         _user_id: hostId,
-        _gender: 'female',
+        _to_host: true,
       });
 
       if (error) throw error;
@@ -222,9 +222,9 @@ export default function AdminHosts() {
 
   const handleRejectHost = async (hostId: string) => {
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      const { error } = await supabase.rpc('admin_convert_user_role', {
         _user_id: hostId,
-        _gender: 'male',
+        _to_host: false,
       });
 
       if (error) throw error;
