@@ -2020,14 +2020,11 @@ export default function AdminLayout() {
         body,
         icon: '/lovable-uploads/d1c47fc4-f6f4-4ad1-bb1d-1babb0154638.png',
         tag: `admin-${Date.now()}`,
-        requireInteraction: false,
+        requireInteraction: true, // Persist until admin interacts — no auto-vanish
         silent: false, // Let the browser play its default sound
       });
-      
-      // Auto-close after 8 seconds
-      setTimeout(() => notification.close(), 8000);
-      
-      // Focus tab when clicked
+
+      // Focus tab when clicked (notification only closes on user action)
       notification.onclick = () => {
         window.focus();
         notification.close();
@@ -2171,7 +2168,7 @@ export default function AdminLayout() {
         }
         playSoundViaRef();
         showBrowserNotifViaRef(n.title, n.message);
-        toast.info(n.title, { description: n.message, duration: 5000 });
+        toast.info(n.title, { description: n.message, duration: Infinity, closeButton: true });
         return;
       }
 
@@ -2188,7 +2185,8 @@ export default function AdminLayout() {
         toast('💬 New Support Message', {
           description: 'User sent a new message',
           action: { label: '👉 View', onClick: () => navigate('/admin/support-tickets') },
-          duration: 8000,
+          duration: Infinity,
+          closeButton: true,
         });
         return;
       }
@@ -2205,7 +2203,8 @@ export default function AdminLayout() {
           toast.error(payload.title || '🚨 Admin Alert', {
             description: (payload.message || '').slice(0, 120) || 'A new admin notice was posted',
             action: { label: '👉 View', onClick: () => navigate('/admin/notice-broadcast') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
         return;
@@ -2221,7 +2220,8 @@ export default function AdminLayout() {
         toast(title, {
           description: desc,
           action: { label: '👉 View', onClick: () => navigate(isHost ? '/admin/host-applications' : '/admin/face-verification') },
-          duration: 8000,
+          duration: Infinity,
+          closeButton: true,
         });
         return;
       }
@@ -2234,7 +2234,8 @@ export default function AdminLayout() {
           toast.error('⚠️ Chat Violation Detected', {
             description: 'A new chat moderation event was logged',
             action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         } else if (payload.violation_type && payload.violation_type !== 'user_report') {
           playSoundViaRef(); fetchPendingCounts();
@@ -2250,7 +2251,8 @@ export default function AdminLayout() {
           toast.error(`${label} Detected!`, {
             description: `Content: ${payload.detected_content || 'Unknown'} | Action: ${payload.action_taken || 'detected'}`,
             action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
         return;
@@ -2303,7 +2305,8 @@ export default function AdminLayout() {
                     else navigate('/admin/notifications');
                   },
                 },
-                duration: 8000,
+                duration: Infinity,
+                closeButton: true,
               });
             });
         }
@@ -2328,7 +2331,8 @@ export default function AdminLayout() {
           toast(config.toast, {
             description: config.desc,
             action: { label: '👉 View', onClick: () => navigate(config.path) },
-            duration: 8000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
       }
