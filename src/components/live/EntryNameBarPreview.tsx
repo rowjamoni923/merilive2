@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { getLevelBadgeBg, getLevelTextColor, ensureValidLevel } from "@/features/shared/level";
-import { getDisplayAvatar } from "@/utils/getDisplayAvatar";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { cn } from "@/lib/utils";
 
