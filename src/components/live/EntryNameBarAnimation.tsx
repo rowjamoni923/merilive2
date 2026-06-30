@@ -251,73 +251,78 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 2: Avatar + Name + Level — engraved into the ribbon's
-                  inner content slot. Level is attached to the avatar, not a
-                  separate oversized flex item, so the identity reads as one
-                  professional unit with the animation. */}
-              <div
-                className={cn(
-                  "absolute z-[2] flex items-center pointer-events-none",
-                  hasAnimation
-                    ? "top-[31%] bottom-[31%] left-[7.25%] right-[47%] gap-[4%]"
-                    : "inset-0 gap-2 px-3"
-                )}
-              >
-                <div className={cn("relative flex-shrink-0", hasAnimation ? "h-full aspect-square" : "w-9 h-9")}>
-                  <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
-                    <AvatarImage
-                      src={avatarUrl || getDisplayAvatar(userName)}
-                      alt={userName}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
-                      {userName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+              {/* Layer 2: Avatar + Name + Level overlay.
+                  SVGA path: identity is engraved INSIDE the canvas via
+                  dynamic slot injection (Chamet/BIGO parity), so we render
+                  NO HTML overlay — otherwise the user sees a duplicate,
+                  oversized avatar/name floating above the ribbon.
+                  GIF/image/no-animation path: keep the overlay so the
+                  user's identity is still visible. */}
+              {!hasSvga && (
+                <div
+                  className={cn(
+                    "absolute z-[2] flex items-center pointer-events-none",
+                    hasAnimation
+                      ? "top-[31%] bottom-[31%] left-[7.25%] right-[47%] gap-[4%]"
+                      : "inset-0 gap-2 px-3"
+                  )}
+                >
+                  <div className={cn("relative flex-shrink-0", hasAnimation ? "h-full aspect-square" : "w-9 h-9")}>
+                    <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
+                      <AvatarImage
+                        src={avatarUrl || getDisplayAvatar(userName)}
+                        alt={userName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
+                        {userName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div
-                    className={cn(
-                      "absolute rounded-full font-black flex items-center justify-center shadow-md ring-1 ring-white/80",
-                      hasAnimation
-                        ? "-right-[10%] bottom-[-5%] h-[43%] aspect-square text-[9px] leading-none"
-                        : "-right-1 -bottom-0.5 px-1.5 py-0.5 text-[9px]",
-                      getLevelBadgeBg(level),
-                      getLevelTextColor(level)
+                    <div
+                      className={cn(
+                        "absolute rounded-full font-black flex items-center justify-center shadow-md ring-1 ring-white/80",
+                        hasAnimation
+                          ? "-right-[10%] bottom-[-5%] h-[43%] aspect-square text-[9px] leading-none"
+                          : "-right-1 -bottom-0.5 px-1.5 py-0.5 text-[9px]",
+                        getLevelBadgeBg(level),
+                        getLevelTextColor(level)
+                      )}
+                    >
+                      {String(level ?? 1)}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
+                    <span
+                      className={cn(
+                        "text-primary-foreground font-black truncate leading-tight",
+                        hasAnimation ? "text-[12px]" : "text-sm max-w-[140px]"
+                      )}
+                      style={
+                        hasAnimation
+                          ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }
+                          : undefined
+                      }
+                    >
+                      {userName}
+                    </span>
+
+                    {!hasAnimation ? (
+                      <span className="text-primary-foreground/90 font-bold drop-shadow-sm leading-none text-[10px]">
+                        Welcome to the room! 🎉
+                      </span>
+                    ) : (
+                      <span
+                        className="text-primary-foreground/95 font-semibold truncate text-[10px] leading-tight"
+                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                      >
+                        Joined the room
+                      </span>
                     )}
-                  >
-                    {String(level ?? 1)}
                   </div>
                 </div>
-
-                <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
-                  <span
-                    className={cn(
-                      "text-primary-foreground font-black truncate leading-tight",
-                      hasAnimation ? "text-[12px]" : "text-sm max-w-[140px]"
-                    )}
-                    style={
-                      hasAnimation
-                        ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }
-                        : undefined
-                    }
-                  >
-                    {userName}
-                  </span>
-
-                  {!hasAnimation ? (
-                    <span className="text-primary-foreground/90 font-bold drop-shadow-sm leading-none text-[10px]">
-                      Welcome to the room! 🎉
-                    </span>
-                  ) : (
-                    <span
-                      className="text-primary-foreground/95 font-semibold truncate text-[10px] leading-tight"
-                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
-                    >
-                      Joined the room
-                    </span>
-                  )}
-                </div>
-              </div>
+              )}
 
             </div>
           </motion.div>
