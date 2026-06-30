@@ -32,6 +32,10 @@ import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
 import io.livekit.android.room.track.VideoTrackPublishOptions
+import io.livekit.android.room.track.VideoEncoding
+import io.livekit.android.room.track.VideoCaptureParameter
+import io.livekit.android.room.track.CustomVideoPreset
+import io.livekit.android.room.track.VideoPreset
 import io.livekit.android.room.track.video.CameraCapturerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
