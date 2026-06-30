@@ -86,20 +86,24 @@ class LiveKitPlugin : Plugin() {
         // (540p + 360p) are still published so weak viewers get a lighter
         // layer instead of the BASE — but the BASE encoding itself is
         // LOCKED and never re-tuned at runtime.
-        const val LOCK_CAPTURE_W = 720
-        const val LOCK_CAPTURE_H = 1280
+        // Locked publish quality — base layer 1080p portrait, simulcast 720/540/360
+        // so every viewer gets a layer in the 720→1080 range or auto-falls to a
+        // smaller relay. Owner directive 2026-06-30: never let viewers pick manually.
+        const val LOCK_CAPTURE_W = 1080
+        const val LOCK_CAPTURE_H = 1920
         const val LOCK_CAPTURE_FPS = 30
-        const val LOCK_BASE_BITRATE = 2_500_000   // 2.5 Mbps
+        const val LOCK_BASE_BITRATE = 3_200_000   // 3.2 Mbps — 1080p portrait sweet spot
         const val LOCK_BASE_FPS = 30
-        // Lower simulcast layers (the SFU picks one for weak viewers).
-        const val LOCK_SIM_MID_W = 540
-        const val LOCK_SIM_MID_H = 960
+        // Mid relay = 720p (the floor of the user's required 720→1080 range).
+        const val LOCK_SIM_MID_W = 720
+        const val LOCK_SIM_MID_H = 1280
         const val LOCK_SIM_MID_FPS = 30
-        const val LOCK_SIM_MID_BITRATE = 900_000
-        const val LOCK_SIM_LOW_W = 360
-        const val LOCK_SIM_LOW_H = 640
-        const val LOCK_SIM_LOW_FPS = 15
-        const val LOCK_SIM_LOW_BITRATE = 300_000
+        const val LOCK_SIM_MID_BITRATE = 1_800_000
+        // Low relay = 540p for weak networks; SFU auto-selects, no user toggle.
+        const val LOCK_SIM_LOW_W = 540
+        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_FPS = 24
+        const val LOCK_SIM_LOW_BITRATE = 700_000
 
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 

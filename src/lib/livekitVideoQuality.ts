@@ -18,29 +18,24 @@ export const VIDEO_QUALITY_CHANGED_EVENT = "livekit-video-quality-changed";
 
 const VALID: ReadonlySet<VideoQualityChoice> = new Set(["auto", "low", "medium", "high"]);
 
+/**
+ * 2026-06-30 — Manual quality selection PERMANENTLY DISABLED (owner directive).
+ *
+ * Pro live-streaming apps (Chamet/Bigo/Olamet/Poppo) never expose a video-
+ * resolution picker to viewers. Quality adapts automatically via simulcast +
+ * the network/thermal quality-hint auto-tuner. Any stale localStorage value
+ * from older builds is ignored and cleared on read so users coming back
+ * from a previous version don't get stuck on a forced low layer.
+ */
 export function getVideoQualityChoice(): VideoQualityChoice {
-  if (typeof window === "undefined") return "auto";
-  try {
-    const v = window.localStorage.getItem(STORAGE_KEY) as VideoQualityChoice | null;
-    return v && VALID.has(v) ? v : "auto";
-  } catch {
-    return "auto";
+  if (typeof window !== "undefined") {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }
+  return "auto";
 }
 
-export function setVideoQualityChoice(choice: VideoQualityChoice): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (choice === "auto") window.localStorage.removeItem(STORAGE_KEY);
-    else window.localStorage.setItem(STORAGE_KEY, choice);
-  } catch {
-    // ignore
-  }
-  try {
-    window.dispatchEvent(new CustomEvent(VIDEO_QUALITY_CHANGED_EVENT, { detail: { choice } }));
-  } catch {
-    // ignore
-  }
+export function setVideoQualityChoice(_choice: VideoQualityChoice): void {
+  // No-op: manual selection disabled. Auto-tuner is the only quality authority.
 }
 
 /** Map UI choice → LiveKit VideoQuality enum. 'auto' falls back to HIGH so the SFU adapts via simulcast. */
