@@ -99,20 +99,14 @@ export function useSeatRendererBinding(opts: {
 }) {
   const { enabled, seatIndex, identity, anchorRef, mirror } = opts;
   const lastIdentityRef = useRef<string | null>(null);
-  const activeSeatRef = useRef<number | null>(null);
+  const bindingVersionRef = useRef(0);
 
   useEffect(() => {
-    if (!enabled || !identity || !anchorRef.current) {
-      activeSeatRef.current = null;
-      return;
-    }
-    if (!isNativeSeatRendererAvailable()) {
-      activeSeatRef.current = null;
-      return;
-    }
+    if (!enabled || !identity || !anchorRef.current) return;
+    if (!isNativeSeatRendererAvailable()) return;
     const el = anchorRef.current;
     lastIdentityRef.current = identity;
-    activeSeatRef.current = seatIndex;
+    const bindingVersion = ++bindingVersionRef.current;
 
     let raf = 0;
     const apply = () => {
@@ -144,10 +138,11 @@ export function useSeatRendererBinding(opts: {
       window.removeEventListener('scroll', reapply, true);
       window.removeEventListener('orientationchange', reapply);
       window.setTimeout(() => {
-        // If the same seat immediately rebound to a new identity, do not let
-        // the old cleanup unbind the new renderer. If the seat was disabled or
-        // unmounted, activeSeatRef is null/different and we release it.
-        if (activeSeatRef.current !== seatIndex) void unbindSeatRenderer(seatIndex);
+        // If the same seat immediately rebound to a new identity, the new
+        // effect increments the version before this timeout fires, so the old
+        // cleanup cannot unbind the fresh native renderer. On true unmount it
+        // still releases the renderer.
+        if (bindingVersionRef.current === bindingVersion) void unbindSeatRenderer(seatIndex);
       }, 0);
     };
   }, [enabled, seatIndex, identity, mirror, anchorRef]);
