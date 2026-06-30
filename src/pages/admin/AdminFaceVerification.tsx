@@ -931,6 +931,11 @@ const AdminFaceVerification = () => {
                         </p>
                       </div>
 
+                      <Button asChild variant="ghost" size="icon" title="View audit timeline">
+                        <a href={`/admin/face-verification/timeline/${submission.user_id}`}>
+                          <Clock className="w-4 h-4" />
+                        </a>
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => { setSelectedSubmission(submission); setShowDetailModal(true); }}>
                         <Eye className="w-4 h-4" />
                       </Button>
