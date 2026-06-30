@@ -1661,6 +1661,8 @@ const App = () => {
                   <Route path="push-broadcast" element={<AdminRouteGuard routeSegment="push-broadcast"><AdminPushBroadcast /></AdminRouteGuard>} />
                   <Route path="notice-broadcast" element={<AdminRouteGuard routeSegment="notice-broadcast"><AdminNoticeBroadcast /></AdminRouteGuard>} />
                   <Route path="email-broadcast" element={<AdminRouteGuard routeSegment="email-broadcast"><AdminEmailBroadcast /></AdminRouteGuard>} />
+                  <Route path="otp-providers" element={<AdminRouteGuard routeSegment="otp-providers"><AdminOtpProviders /></AdminRouteGuard>} />
+
                   <Route path="leaderboard-management" element={<AdminRouteGuard routeSegment="leaderboard-management"><AdminLeaderboardManagement /></AdminRouteGuard>} />
                   <Route path="allowed-links" element={<AdminRouteGuard routeSegment="allowed-links"><AdminAllowedLinks /></AdminRouteGuard>} />
                   
