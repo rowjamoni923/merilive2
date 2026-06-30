@@ -138,6 +138,8 @@ interface Entry {
 }
 
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 const FAMILY = 'party' as const;
 const PARTY_EVENT_TYPES: ReadonlySet<string> = new Set<PartyEventType>([
