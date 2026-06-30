@@ -174,6 +174,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'push-broadcast': 'settings-hub',
   'notice-broadcast': 'settings-hub',
   'email-broadcast': 'settings-hub',
+  'otp-providers': 'settings-hub',
   'notification-templates': 'settings-hub',
   'ai-image-studio': 'settings-hub',
   'app-settings-hub': 'settings-hub',
