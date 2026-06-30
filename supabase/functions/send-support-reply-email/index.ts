@@ -65,13 +65,12 @@ serve(async (req: Request) => {
     const { data: invokeData, error: invokeError } = await supabase.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'support-reply',
-        to: userEmail,
-        data: {
+        recipientEmail: userEmail,
+        templateData: {
           ticketNumber: ticket.ticket_number,
           ticketSubject: ticket.subject,
           replyContent,
         },
-        purpose: 'transactional',
         idempotencyKey: `support-reply-${ticketId}-${Date.now()}`,
       },
     });
