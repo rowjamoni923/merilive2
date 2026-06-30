@@ -484,6 +484,7 @@ export function usePartyRoomNativeLiveKit(
             registerNativeChatRoom('party', roomId);
             registerNativeGiftRoom('party', roomId);
             registerNativeReactionRoom('party', roomId);
+            registerNativePartyEventsRoom(roomId);
             await refreshNativeParticipants();
             setState((prev) => ({
               ...prev,
