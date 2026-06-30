@@ -140,10 +140,17 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .single();
         if (!cancelled) setIsHost(profile?.is_host === true);
 
-        // Check if host was manually offline — regular users always go online
-        if (localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true' || !profile?.is_host) {
-          void (async () => { try { await supabase.rpc('sync_host_online_status', { p_user_id: user.id, p_is_online: true }); } catch {} })();
-        }
+        // 🟢 Auto-online on every app entry — even if host previously tapped "Go Offline".
+        // Rule (user-locked): re-opening the app must INSTANTLY flip them back online.
+        // Clear the manual-offline flag and also flip host_availability back to 'online'
+        // so the homepage feed shows them immediately.
+        try { localStorage.removeItem(MANUAL_OFFLINE_KEY); } catch {}
+        void (async () => {
+          try { await supabase.rpc('sync_host_online_status', { p_user_id: user.id, p_is_online: true }); } catch {}
+          if (profile?.is_host) {
+            try { await supabase.from('profiles').update({ host_availability: 'online' }).eq('id', user.id); } catch {}
+          }
+        })();
 
         // Register FCM push notification token after first screens are smooth.
         if (!fcmInitialized.current) {
