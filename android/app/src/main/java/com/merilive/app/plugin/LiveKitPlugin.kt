@@ -32,6 +32,10 @@ import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoTrack
 import io.livekit.android.room.track.VideoTrackPublishOptions
+import io.livekit.android.room.track.VideoEncoding
+import io.livekit.android.room.track.VideoCaptureParameter
+import io.livekit.android.room.track.CustomVideoPreset
+import io.livekit.android.room.track.VideoPreset
 import io.livekit.android.room.track.video.CameraCapturerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +78,29 @@ class LiveKitPlugin : Plugin() {
     companion object {
         private const val TAG = "LiveKitPlugin"
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
+
+        // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
+        // Portrait 9:16, 720p base, 30 fps, ~2.5 Mbps. Picked to stay sharp
+        // on mid-tier Android uplinks without ever falling to the blurry
+        // 270p/360p layer when no quality hint is supplied. Simulcast layers
+        // (540p + 360p) are still published so weak viewers get a lighter
+        // layer instead of the BASE — but the BASE encoding itself is
+        // LOCKED and never re-tuned at runtime.
+        const val LOCK_CAPTURE_W = 720
+        const val LOCK_CAPTURE_H = 1280
+        const val LOCK_CAPTURE_FPS = 30
+        const val LOCK_BASE_BITRATE = 2_500_000   // 2.5 Mbps
+        const val LOCK_BASE_FPS = 30
+        // Lower simulcast layers (the SFU picks one for weak viewers).
+        const val LOCK_SIM_MID_W = 540
+        const val LOCK_SIM_MID_H = 960
+        const val LOCK_SIM_MID_FPS = 30
+        const val LOCK_SIM_MID_BITRATE = 900_000
+        const val LOCK_SIM_LOW_W = 360
+        const val LOCK_SIM_LOW_H = 640
+        const val LOCK_SIM_LOW_FPS = 15
+        const val LOCK_SIM_LOW_BITRATE = 300_000
+
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 
         @JvmStatic
@@ -248,6 +275,9 @@ class LiveKitPlugin : Plugin() {
 
                     val opts = LocalVideoTrackOptions(
                         position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
+                        captureParams = VideoCaptureParameter(
+                            LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS,
+                        ),
                     )
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
                     track.startCapture()
@@ -302,6 +332,13 @@ class LiveKitPlugin : Plugin() {
         val publishAudio: Boolean,
         val roomScope: String?,
         val isHost: Boolean,
+        // ─── Locked publish quality (per-connect overrides allowed) ─────
+        val captureWidth: Int = LOCK_CAPTURE_W,
+        val captureHeight: Int = LOCK_CAPTURE_H,
+        val captureFps: Int = LOCK_CAPTURE_FPS,
+        val baseBitrate: Int = LOCK_BASE_BITRATE,
+        val baseFps: Int = LOCK_BASE_FPS,
+        val simulcast: Boolean = true,
     )
 
     // Standalone "warmup" rooms used by the JS connection pool (Phase 5/6).
@@ -399,6 +436,13 @@ class LiveKitPlugin : Plugin() {
             publishAudio = call.getBoolean("audio", false) ?: false,
             roomScope = call.getString("roomScope"),
             isHost = call.getBoolean("isHost", false) ?: false,
+            // Locked-quality overrides (JS may pin tighter, never looser).
+            captureWidth = call.getInt("captureWidth", LOCK_CAPTURE_W) ?: LOCK_CAPTURE_W,
+            captureHeight = call.getInt("captureHeight", LOCK_CAPTURE_H) ?: LOCK_CAPTURE_H,
+            captureFps = call.getInt("captureFps", LOCK_CAPTURE_FPS) ?: LOCK_CAPTURE_FPS,
+            baseBitrate = call.getInt("maxBitrate", LOCK_BASE_BITRATE) ?: LOCK_BASE_BITRATE,
+            baseFps = call.getInt("maxFps", LOCK_BASE_FPS) ?: LOCK_BASE_FPS,
+            simulcast = call.getBoolean("simulcast", true) ?: true,
         )
         val boundedSurfaces = call.getBoolean("boundedSurfaces", false) ?: false
 
@@ -448,7 +492,11 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: withContext(Dispatchers.IO) {
             LiveKit.create(
                 appContext = context.applicationContext,
-                options = RoomOptions(adaptiveStream = true, dynacast = true),
+                // dynacast=false: SFU MUST keep the host's base layer hot at
+                // all times — otherwise viewers joining mid-stream see a
+                // blurry lower layer until the encoder ramps back up.
+                // adaptiveStream=true: viewer-side simulcast switching only.
+                options = RoomOptions(adaptiveStream = true, dynacast = false),
             )
         }
         room = r
@@ -460,7 +508,15 @@ class LiveKitPlugin : Plugin() {
         // added directly to first camera frame, producing the 5–10s blank/ dark
         // surface seen in party rooms and private calls.
         if (args.publishVideo && previewTrack == null) {
-            val opts = LocalVideoTrackOptions(position = CameraPosition.FRONT)
+            val captureParams = VideoCaptureParameter(
+                args.captureWidth,
+                args.captureHeight,
+                args.captureFps,
+            )
+            val opts = LocalVideoTrackOptions(
+                position = CameraPosition.FRONT,
+                captureParams = captureParams,
+            )
             val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
             track.startCapture()
             previewTrack = track
@@ -471,7 +527,7 @@ class LiveKitPlugin : Plugin() {
                 }
             }
             rebindSeatSlotsForLocalTrack(track)
-            Log.i(TAG, "promotePreviewToSession: prewarmed local camera before room.connect")
+            Log.i(TAG, "promotePreviewToSession: prewarmed local camera @ ${args.captureWidth}x${args.captureHeight}@${args.captureFps}")
         }
 
         r.connect(args.url, args.token, ConnectOptions())
@@ -484,9 +540,30 @@ class LiveKitPlugin : Plugin() {
         if (args.publishVideo) {
             val ptrack = previewTrack
             if (ptrack != null) {
-                val videoPublishOptions = VideoTrackPublishOptions(source = Track.Source.CAMERA)
+                // LOCKED publish encoding: base layer pinned to args.baseBitrate
+                // @ args.baseFps so neither the publisher SDK nor the SFU can
+                // silently drop the host into a 200 kbps blur. Simulcast still
+                // publishes 540p + 360p relays so weak viewers get a small
+                // layer instead of dragging the base down.
+                val baseEncoding = VideoEncoding(args.baseBitrate, args.baseFps)
+                val simLayers: List<VideoPreset> = if (args.simulcast) listOf(
+                    CustomVideoPreset(
+                        VideoCaptureParameter(LOCK_SIM_MID_W, LOCK_SIM_MID_H, LOCK_SIM_MID_FPS),
+                        VideoEncoding(LOCK_SIM_MID_BITRATE, LOCK_SIM_MID_FPS),
+                    ),
+                    CustomVideoPreset(
+                        VideoCaptureParameter(LOCK_SIM_LOW_W, LOCK_SIM_LOW_H, LOCK_SIM_LOW_FPS),
+                        VideoEncoding(LOCK_SIM_LOW_BITRATE, LOCK_SIM_LOW_FPS),
+                    ),
+                ) else emptyList()
+                val videoPublishOptions = VideoTrackPublishOptions(
+                    source = Track.Source.CAMERA,
+                    videoEncoding = baseEncoding,
+                    simulcast = args.simulcast,
+                    simulcastLayers = simLayers,
+                )
                 r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
-                Log.i(TAG, "promotePreviewToSession: republished preview track (no reopen)")
+                Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}bps @${args.baseFps}fps simulcast=${args.simulcast}")
             } else {
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
