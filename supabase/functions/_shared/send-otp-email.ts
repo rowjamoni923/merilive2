@@ -219,6 +219,54 @@ async function sendOtpViaGmail(args: SendOtpEmailArgs, subject: string, html: st
 }
 
 // ---------------------------------------------------------------------------
+// Admin config loader — single source of truth from otp_provider_config table
+// ---------------------------------------------------------------------------
+type ProviderConfigRow = {
+  provider: string;
+  enabled: boolean;
+  priority: number;
+  daily_quota: number | null;
+  daily_sent: number;
+  last_reset_date: string;
+};
+
+type OrchestratorSettings = { mode: "race" | "sequential"; per_provider_timeout_ms: number };
+
+async function loadAdminConfig(supabase: any): Promise<{
+  providers: Record<string, ProviderConfigRow>;
+  settings: OrchestratorSettings;
+}> {
+  const defaults: OrchestratorSettings = { mode: "race", per_provider_timeout_ms: 4000 };
+  try {
+    const [cfgRes, setRes] = await Promise.all([
+      supabase.from("otp_provider_config").select("*"),
+      supabase.from("otp_orchestrator_settings").select("*").maybeSingle(),
+    ]);
+    const providers: Record<string, ProviderConfigRow> = {};
+    for (const row of (cfgRes.data ?? []) as ProviderConfigRow[]) {
+      // Reset counter if day rolled over (in-memory; DB updated by RPC on increment)
+      const today = new Date().toISOString().slice(0, 10);
+      if (row.last_reset_date !== today) row.daily_sent = 0;
+      providers[row.provider] = row;
+    }
+    const settings: OrchestratorSettings = setRes.data
+      ? { mode: setRes.data.mode, per_provider_timeout_ms: setRes.data.per_provider_timeout_ms }
+      : defaults;
+    return { providers, settings };
+  } catch (_e) {
+    return { providers: {}, settings: defaults };
+  }
+}
+
+function providerEligible(name: string, cfg: Record<string, ProviderConfigRow>): boolean {
+  const row = cfg[name];
+  if (!row) return true; // No admin row yet → allow (backward compat)
+  if (!row.enabled) return false;
+  if (row.daily_quota != null && row.daily_sent >= row.daily_quota) return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Race runner — wraps a provider with timeout + telemetry
 // ---------------------------------------------------------------------------
 function runProvider(
@@ -226,9 +274,10 @@ function runProvider(
   fn: (signal: AbortSignal) => Promise<void>,
   controller: AbortController,
   telemetry: Record<string, { ok: boolean; ms: number; error?: string }>,
+  timeoutMs: number,
 ): Promise<ProviderName> {
   const started = Date.now();
-  const timer = setTimeout(() => controller.abort(`${name}_TIMEOUT`), PROVIDER_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(`${name}_TIMEOUT`), timeoutMs);
 
   return fn(controller.signal)
     .then(() => {
@@ -245,7 +294,7 @@ function runProvider(
 }
 
 // ---------------------------------------------------------------------------
-// MAIN: race all configured providers in parallel
+// MAIN
 // ---------------------------------------------------------------------------
 export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmailResult> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -260,6 +309,10 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
     await supabase.from("suppressed_emails").delete().eq("email", args.to.toLowerCase());
   } catch (_e) { /* non-fatal */ }
 
+  // Admin-controlled config
+  const { providers: cfg, settings } = await loadAdminConfig(supabase);
+  const timeoutMs = settings.per_provider_timeout_ms || PROVIDER_TIMEOUT_MS;
+
   const expiryMinutes = args.expiryMinutes ?? 5;
   const subject = `Your MeriLive ${purposeLabel(args.purpose)} code`;
   const text = `Your MeriLive verification code is: ${args.otp}\n\nThis code expires in ${expiryMinutes} minutes. MeriLive staff will never ask for this code.`;
@@ -267,78 +320,103 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
   const messageId = args.idempotencyKey ?? crypto.randomUUID();
   const telemetry: Record<string, { ok: boolean; ms: number; error?: string }> = {};
 
-  // Each provider gets its own AbortController so the winner can cancel losers.
-  const resendCtl = new AbortController();
-  const brevoCtl = new AbortController();
-  const gmailCtl = new AbortController();
+  // Build candidate list — respect admin enable/quota + env-var presence
+  type Candidate = {
+    name: ProviderName;
+    dbKey: string;
+    priority: number;
+    run: (sig: AbortSignal) => Promise<void>;
+    ctl: AbortController;
+  };
+  const all: Candidate[] = [];
 
-  const candidates: Promise<ProviderName>[] = [];
+  if (Deno.env.get("RESEND_API_KEY") && Deno.env.get("LOVABLE_API_KEY") && providerEligible("resend", cfg)) {
+    all.push({
+      name: "resend", dbKey: "resend",
+      priority: cfg["resend"]?.priority ?? 1,
+      run: (sig) => sendOtpViaResend(args, subject, html, text, sig),
+      ctl: new AbortController(),
+    });
+  }
+  if (Deno.env.get("BREVO_API_KEY") && Deno.env.get("BREVO_FROM_EMAIL") && providerEligible("brevo", cfg)) {
+    all.push({
+      name: "brevo", dbKey: "brevo",
+      priority: cfg["brevo"]?.priority ?? 2,
+      run: (sig) => sendOtpViaBrevo(args, subject, html, text, sig),
+      ctl: new AbortController(),
+    });
+  }
+  if (Deno.env.get("GMAIL_USER") && Deno.env.get("GMAIL_APP_PASSWORD") && providerEligible("gmail", cfg)) {
+    all.push({
+      name: "gmail-smtp", dbKey: "gmail",
+      priority: cfg["gmail"]?.priority ?? 3,
+      run: (_sig) => sendOtpViaGmail(args, subject, html, text),
+      ctl: new AbortController(),
+    });
+  }
 
-  // Resend
-  if (Deno.env.get("RESEND_API_KEY") && Deno.env.get("LOVABLE_API_KEY")) {
-    candidates.push(runProvider("resend",
-      (sig) => sendOtpViaResend(args, subject, html, text, sig), resendCtl, telemetry));
-  }
-  // Brevo
-  if (Deno.env.get("BREVO_API_KEY") && Deno.env.get("BREVO_FROM_EMAIL")) {
-    candidates.push(runProvider("brevo",
-      (sig) => sendOtpViaBrevo(args, subject, html, text, sig), brevoCtl, telemetry));
-  }
-  // Gmail (nodemailer doesn't support AbortSignal — runs to completion but loses race)
-  if (Deno.env.get("GMAIL_USER") && Deno.env.get("GMAIL_APP_PASSWORD")) {
-    candidates.push(runProvider("gmail-smtp",
-      () => sendOtpViaGmail(args, subject, html, text), gmailCtl, telemetry));
+  all.sort((a, b) => a.priority - b.priority);
+
+  if (all.length === 0) {
+    return { success: false, error: "No eligible OTP provider (check admin panel / quotas / env)", code: "NO_PROVIDER", status: 503 };
   }
 
-  if (candidates.length === 0) {
-    return { success: false, error: "No OTP email provider is configured", code: "NO_PROVIDER", status: 503 };
-  }
-
-  // Log pending entry once for the whole race.
+  // Log pending entry once for the whole attempt.
   try {
     await supabase.from("email_send_log").insert({
       message_id: messageId,
       template_name: "otp-code",
       recipient_email: args.to,
       status: "pending",
-      metadata: { providers: candidates.length, mode: "race" },
+      metadata: { providers: all.map((c) => c.name), mode: settings.mode },
     });
   } catch (_e) { /* non-fatal */ }
 
-  try {
-    const winner = await Promise.any(candidates);
-    // Cancel losers (fire-and-forget — they may already be done).
-    resendCtl.abort("WINNER_DECIDED");
-    brevoCtl.abort("WINNER_DECIDED");
-    gmailCtl.abort("WINNER_DECIDED");
-
-    // Log success with full race telemetry for admin dashboard.
+  const finalize = async (winner: ProviderName, dbKey: string) => {
+    try { await supabase.rpc("increment_otp_provider_sent", { _provider: dbKey }); } catch (_e) {}
     try {
       await supabase.from("email_send_log").insert({
-        message_id: messageId,
-        template_name: "otp-code",
-        recipient_email: args.to,
-        status: "sent",
-        metadata: { provider: winner, mode: "race", race: telemetry },
+        message_id: messageId, template_name: "otp-code", recipient_email: args.to,
+        status: "sent", metadata: { provider: winner, mode: settings.mode, race: telemetry },
       });
-    } catch (_e) { /* non-fatal */ }
+    } catch (_e) {}
+    console.log(`[sendOtpEmail] WINNER=${winner} mode=${settings.mode} race=${JSON.stringify(telemetry)}`);
+  };
 
-    console.log(`[sendOtpEmail] WINNER=${winner} race=${JSON.stringify(telemetry)}`);
-    return { success: true, provider: winner, raceResults: telemetry };
-  } catch (aggregateErr) {
-    // Promise.any only rejects if ALL providers fail.
-    const errMsg = `All providers failed: ${JSON.stringify(telemetry)}`;
-    console.error("[sendOtpEmail] " + errMsg);
+  // ---- SEQUENTIAL MODE: try in priority order, stop at first success ------
+  if (settings.mode === "sequential") {
+    for (const c of all) {
+      try {
+        await runProvider(c.name, c.run, c.ctl, telemetry, timeoutMs);
+        await finalize(c.name, c.dbKey);
+        return { success: true, provider: c.name, raceResults: telemetry };
+      } catch (_e) { /* try next */ }
+    }
+    // All failed
+  } else {
+    // ---- RACE MODE: parallel, first success wins -------------------------
+    const promises = all.map((c) => runProvider(c.name, c.run, c.ctl, telemetry, timeoutMs)
+      .then((winnerName) => ({ winnerName, dbKey: c.dbKey })));
     try {
-      await supabase.from("email_send_log").insert({
-        message_id: messageId,
-        template_name: "otp-code",
-        recipient_email: args.to,
-        status: "failed",
-        error_message: "ALL_PROVIDERS_FAILED",
-        metadata: { mode: "race", race: telemetry },
-      });
-    } catch (_e) { /* non-fatal */ }
-    return { success: false, error: errMsg, code: "ALL_PROVIDERS_FAILED", status: 503, raceResults: telemetry };
+      const winner = await Promise.any(promises);
+      // Cancel losers
+      for (const c of all) c.ctl.abort("WINNER_DECIDED");
+      await finalize(winner.winnerName, winner.dbKey);
+      return { success: true, provider: winner.winnerName, raceResults: telemetry };
+    } catch (_aggErr) {
+      // fallthrough to all-failed handler
+    }
   }
+
+  // ---- ALL FAILED -----------------------------------------------------------
+  const errMsg = `All providers failed: ${JSON.stringify(telemetry)}`;
+  console.error("[sendOtpEmail] " + errMsg);
+  try {
+    await supabase.from("email_send_log").insert({
+      message_id: messageId, template_name: "otp-code", recipient_email: args.to,
+      status: "failed", error_message: "ALL_PROVIDERS_FAILED",
+      metadata: { mode: settings.mode, race: telemetry },
+    });
+  } catch (_e) {}
+  return { success: false, error: errMsg, code: "ALL_PROVIDERS_FAILED", status: 503, raceResults: telemetry };
 }
