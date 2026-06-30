@@ -4035,7 +4035,7 @@ const LiveStream = () => {
                   <LiveKitVideoPlayer
                     videoTrack={localVideoTrack}
                     mirror={true}
-                    fit="cover"
+                    fit="contain"
                     className="absolute inset-0 w-full h-full"
                   />
                 </div>
@@ -4044,7 +4044,7 @@ const LiveStream = () => {
                   <LiveKitVideoPlayer
                     videoTrack={remoteVideoTrack}
                     mirror={false}
-                    fit="cover"
+                    fit="contain"
                     onVideoStalled={() => retrySubscription()}
                     className="absolute inset-0 w-full h-full"
                   />
@@ -4062,7 +4062,7 @@ const LiveStream = () => {
               <LiveKitVideoPlayer
                 videoTrack={opponentRoom.videoTrack}
                 mirror={false}
-                fit="cover"
+                fit="contain"
                 className="absolute inset-0 w-full h-full"
               />
               {/* Opponent label */}
@@ -4096,7 +4096,7 @@ const LiveStream = () => {
                 x5-playsinline="true"
                 webkit-playsinline="true"
                 x-webkit-airplay="deny"
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked"
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none camera-locked"
                 style={{
                   transform: 'scaleX(-1)',
                   filter: combinedFilterCSS || undefined,
@@ -4108,7 +4108,7 @@ const LiveStream = () => {
               <LiveKitVideoPlayer
                 videoTrack={localVideoTrack}
                 mirror={true}
-                fit="cover"
+                fit="contain"
                 onVideoReady={() => setHostLiveKitVideoReady(true)}
                 className="absolute inset-0 w-full h-full"
               />
@@ -4240,7 +4240,7 @@ const LiveStream = () => {
             <LiveKitVideoPlayer
               videoTrack={remoteVideoTrack}
               mirror={false}
-              fit="cover"
+              fit="contain"
               onVideoStalled={() => {
                 console.log('⚠️ Remote video stalled, forcing resubscribe...');
                 retrySubscription();
