@@ -252,75 +252,72 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 2: Avatar + Name + Level — engraved into the template's
-                  content slot. Percentage-based so it scales with the banner. */}
+              {/* Layer 2: Avatar + Name + Level — engraved into the ribbon's
+                  inner content slot. Tight percentages match the SVGA
+                  template's left-side ribbon and never overflow into the
+                  right-side decoration. Plain circular avatar (no privilege
+                  frame) to mirror the professional reference. */}
               <div
                 className={cn(
                   "absolute z-[2] flex items-center pointer-events-none",
                   hasAnimation
-                    ? "top-[16%] bottom-[16%] left-[22%] right-[28%] gap-[2.5%]"
+                    ? "top-[28%] bottom-[28%] left-[7%] right-[48%] gap-[3%]"
                     : "inset-0 gap-2 px-3"
                 )}
               >
-                {userId ? (
-                  <FramedAvatarWithPrivileges
-                    userId={userId}
-                    src={avatarUrl}
-                    name={userName}
-                    level={level}
-                    size={hasAnimation ? "md" : "sm"}
-                    showFrame
-                    showGlow={false}
-                    showAnimation={false}
-                    className={cn(
-                      "flex-shrink-0",
-                      hasAnimation && "h-full aspect-square"
-                    )}
+                <Avatar className={cn(
+                  "flex-shrink-0 ring-2 ring-white/70 shadow-md",
+                  hasAnimation ? "h-full aspect-square" : "w-9 h-9"
+                )}>
+                  <AvatarImage
+                    src={avatarUrl || getDisplayAvatar(userName)}
+                    alt={userName}
+                    className="object-cover"
                   />
-                ) : (
-                  <Avatar className={cn(
-                    "flex-shrink-0 ring-2 ring-white/60 shadow-lg",
-                    hasAnimation ? "h-full aspect-square" : "w-9 h-9"
-                  )}>
-                    <AvatarImage
-                      src={avatarUrl || getDisplayAvatar(userName)}
-                      alt={userName}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-xs font-bold">
-                      {userName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
+                  <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-[10px] font-bold">
+                    {userName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+
+                {/* Compact level chip — small round badge like pro reference */}
+                <div
+                  className={cn(
+                    "flex-shrink-0 rounded-full font-black flex items-center justify-center shadow-md",
+                    hasAnimation
+                      ? "h-[55%] aspect-square text-[10px] leading-none"
+                      : "px-1.5 py-0.5 text-[9px]",
+                    getLevelBadgeBg(level),
+                    getLevelTextColor(level)
+                  )}
+                >
+                  {String(level ?? 1)}
+                </div>
 
                 <div className="flex flex-col justify-center min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={cn(
-                        "text-white font-black truncate",
-                        hasAnimation ? "text-[15px] leading-tight" : "text-sm max-w-[140px]"
-                      )}
-                      style={
-                        hasAnimation
-                          ? { textShadow: '0 2px 6px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.6)' }
-                          : undefined
-                      }
-                    >
-                      {userName}
-                    </span>
-                    <div className={cn(
-                      "px-1.5 py-0.5 rounded-md font-black flex-shrink-0 shadow-md",
-                      hasAnimation ? "text-[10px]" : "text-[9px]",
-                      getLevelBadgeBg(level),
-                      getLevelTextColor(level)
-                    )}>
-                      {formatLevel(level)}
-                    </div>
-                  </div>
+                  <span
+                    className={cn(
+                      "text-white font-black truncate leading-tight",
+                      hasAnimation ? "text-[13px]" : "text-sm max-w-[140px]"
+                    )}
+                    style={
+                      hasAnimation
+                        ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }
+                        : undefined
+                    }
+                  >
+                    {userName}
+                  </span>
 
-                  {!hasAnimation && (
+                  {!hasAnimation ? (
                     <span className="text-white/90 font-bold drop-shadow-sm leading-none text-[10px]">
                       Welcome to the room! 🎉
+                    </span>
+                  ) : (
+                    <span
+                      className="text-white/95 font-semibold truncate text-[10px] leading-tight"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                    >
+                      Joined the room
                     </span>
                   )}
                 </div>
