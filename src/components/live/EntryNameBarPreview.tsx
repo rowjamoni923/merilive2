@@ -100,59 +100,47 @@ const EntryNameBarPreview = memo(({
         />
       ) : null}
 
-      {/* HTML overlay — ONLY for non-SVGA branches (SVGA engraves natively).
-          The whole composite slides in together with the animation as one
-          unit, then loops, so the user sees synchronized motion — never a
-          static name sitting on top of a moving animation. */}
-      {!isSvga && (
-        <motion.div
-          className="absolute top-[28%] bottom-[28%] left-[7%] right-[48%] flex items-center gap-[3%] pointer-events-none"
-          initial={{ x: "-30%", opacity: 0 }}
-          animate={{ x: ["-30%", "0%", "0%", "-30%"], opacity: [0, 1, 1, 0] }}
-          transition={{
-            duration: 3.2,
-            times: [0, 0.18, 0.85, 1],
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+      {/* HTML overlay — ALWAYS rendered, sitting engraved INSIDE the ribbon's
+          left content slot. Static position (not a separate slide-in) so it
+          reads as one unit with the SVGA sparkles/flowers animating around
+          it — exactly like the pro reference (17ae). */}
+      <div className="absolute top-[28%] bottom-[28%] left-[7%] right-[48%] flex items-center gap-[3%] pointer-events-none">
+        <Avatar className="flex-shrink-0 h-full aspect-square ring-2 ring-white/70 shadow-md">
+          <AvatarImage
+            src={avatarUrl || getDisplayAvatar(userName)}
+            alt={userName}
+            className="object-cover"
+          />
+          <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-[10px] font-bold">
+            {userName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
+        <div
+          className={cn(
+            "flex-shrink-0 h-[55%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[10px] leading-none",
+            getLevelBadgeBg(lvl),
+            getLevelTextColor(lvl),
+          )}
         >
-          <Avatar className="flex-shrink-0 h-full aspect-square ring-2 ring-white/70 shadow-md">
-            <AvatarImage
-              src={avatarUrl || getDisplayAvatar(userName)}
-              alt={userName}
-              className="object-cover"
-            />
-            <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-[10px] font-bold">
-              {userName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {String(lvl)}
+        </div>
 
-          <div
-            className={cn(
-              "flex-shrink-0 h-[55%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[10px] leading-none",
-              getLevelBadgeBg(lvl),
-              getLevelTextColor(lvl),
-            )}
+        <div className="flex flex-col justify-center min-w-0 flex-1">
+          <span
+            className="text-white font-black truncate leading-tight text-[13px]"
+            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)" }}
           >
-            {String(lvl)}
-          </div>
-
-          <div className="flex flex-col justify-center min-w-0 flex-1">
-            <span
-              className="text-white font-black truncate leading-tight text-[13px]"
-              style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)" }}
-            >
-              {userName}
-            </span>
-            <span
-              className="text-white/95 font-semibold truncate text-[10px] leading-tight"
-              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
-            >
-              Joined the room
-            </span>
-          </div>
-        </motion.div>
-      )}
+            {userName}
+          </span>
+          <span
+            className="text-white/95 font-semibold truncate text-[10px] leading-tight"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+          >
+            Joined the room
+          </span>
+        </div>
+      </div>
     </div>
   );
 });
