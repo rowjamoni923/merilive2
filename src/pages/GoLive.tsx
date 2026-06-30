@@ -394,10 +394,16 @@ const GoLive = () => {
     if (userProfile && !featureLevelLoading && !resolvedLevelLoading) {
       // Host profiles (is_host=true OR female accounts) can go live from Level 0
       // — they are NEVER blocked by the level gate. Face verification is the
-      // only requirement for hosts; that flow is handled separately below.
+      // only requirement for hosts; auto-surface that popup on page open if
+      // the host has not completed verification yet.
       const isHostProfile = Boolean(userProfile.is_host) || userProfile.gender === 'female';
       if (isHostProfile) {
         setShowLevelRestricted(false);
+        const faceOk = Boolean(userProfile.is_face_verified)
+          || String(userProfile.face_verification_status ?? '').toLowerCase() === 'approved';
+        if (!faceOk) {
+          setShowFaceVerificationRequired(true);
+        }
         return;
       }
 
@@ -419,6 +425,7 @@ const GoLive = () => {
       }
     }
   }, [userProfile, featureLevelLoading, resolvedLevelLoading, resolvedUserLevel, checkFeatureAccess]);
+
 
 
   const loadUserProfile = useCallback(async (userId: string) => {
