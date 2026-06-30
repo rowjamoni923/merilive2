@@ -539,11 +539,15 @@ class NativeGiftAnimationPlugin : Plugin() {
             )
             isClickable = false
             isFocusable = false
+            // Tag so LiveKitPlugin's z-order enforcer keeps gifts ABOVE the
+            // LiveKit TextureViewRenderer on every renderer reuse.
+            tag = "merilive.overlay.gift"
         }
         // Insert ABOVE WebView so gifts cover UI; webview events still fire
         // because giftRoot is non-interactive (clickable=false).
         parent.addView(fl)
         giftRoot = fl
+        try { fl.bringToFront() } catch (_: Throwable) {}
     }
 
     private fun attachSlotView(slot: Slot, view: View) {
@@ -551,6 +555,7 @@ class NativeGiftAnimationPlugin : Plugin() {
         val root = giftRoot ?: return
         slot.rootView = view
         root.addView(view)
+        try { root.bringToFront(); (root.parent as? View)?.invalidate() } catch (_: Throwable) {}
     }
 
     private fun tearDown(slot: Slot) {
