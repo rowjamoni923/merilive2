@@ -529,22 +529,14 @@ const Index = () => {
       : (user.user_level ?? 1);
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
-    const getBorderGlow = () => {
-      if (user.isLive) return "border-brand/45";
-      if (displayLevel >= 40) return "border-warning/55";
-      if (displayLevel >= 20) return "border-brand/45";
-      if (displayLevel >= 10) return "border-info/45";
-      return "border-border";
-    };
-
     const getCardShadow = (): string => {
       if (user.isLive)
-        return '0 10px 24px -8px hsl(var(--brand) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.6)';
+        return '0 10px 24px -8px hsl(var(--brand) / 0.24), 0 4px 10px -4px rgba(15,23,42,0.10)';
       if (displayLevel >= 40)
-        return '0 10px 24px -8px hsl(var(--warning) / 0.32), 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.6)';
+        return '0 10px 24px -8px hsl(var(--warning) / 0.24), 0 4px 10px -4px rgba(15,23,42,0.08)';
       if (displayLevel >= 20)
-        return '0 8px 20px -8px hsl(var(--brand) / 0.28), 0 3px 8px -3px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.55)';
-      return '0 6px 16px -6px rgba(15,23,42,0.14), 0 2px 4px -2px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.55)';
+        return '0 8px 20px -8px hsl(var(--brand) / 0.20), 0 3px 8px -3px rgba(15,23,42,0.06)';
+      return '0 6px 16px -6px rgba(15,23,42,0.12), 0 2px 4px -2px rgba(15,23,42,0.05)';
     };
 
     const cardImageUrl = getHostCardImageUrl(user);
@@ -556,26 +548,13 @@ const Index = () => {
         data-stream-id={user.liveStreamId}
         className={cn(
           "relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90",
-          "bg-card border",
-          getBorderGlow()
+          "bg-card"
         )}
         style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
 
-        <div className="relative aspect-[3/4] bg-muted overflow-hidden">
-          {/* Blurred fill behind the contained image so portrait/landscape
-              photos are shown in full (no cropping) without ugly letterbox. */}
-          <img
-            src={cardImageUrl}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-60"
-            loading="eager"
-            decoding="async"
-          />
-          {/* Show live thumbnail when host is streaming, otherwise avatar.
-              Live streams use object-cover (cinematic full-bleed). Static
-              avatar photos use object-contain so the entire photo is shown. */}
+        <div className="relative aspect-[3/4] bg-card overflow-hidden">
+          {/* Show the thumbnail as one uninterrupted professional media tile — no letterbox fill, color block, or border. */}
           <img 
             key={cardImageUrl}
             src={cardImageUrl}
@@ -584,7 +563,7 @@ const Index = () => {
               "relative w-full h-full transition-opacity duration-75",
               user.isLive && user.liveThumbnailUrl
                 ? "object-cover live-card-kenburns opacity-0"
-                : "object-contain"
+                : "object-cover"
             )}
             style={{
               filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined,
