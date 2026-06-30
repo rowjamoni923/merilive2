@@ -22,6 +22,7 @@ import {
   type NativeRoomScope,
 } from '@/plugins/NativeLiveKit';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
+import { recordCallDiag } from '@/lib/callDiagnostics';
 import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface NativeJoinOptions {
@@ -86,7 +87,15 @@ class NativeLiveKitController {
         lastResult = res as { attached?: boolean; reason?: string } | undefined;
         // bounded (party seat) mode reports attached=false with reason=bounded;
         // that's a successful no-op — don't keep retrying.
-        if (!res || res.attached !== false || res.reason === 'bounded') return;
+        if (!res || res.attached !== false || res.reason === 'bounded') {
+          recordCallDiag('native-attach', 'attachLocal', {
+            mode: res?.reason === 'bounded' ? 'bounded' : 'fullscreen',
+            reason: res?.reason ?? 'ok',
+            scope: this.activeFeature ?? this.previewFeature,
+            delayMs: delay,
+          });
+          return;
+        }
         // attached=false with reason=no_track → camera track not ready yet,
         // fall through to retry after the next delay.
       } catch (e) {
@@ -94,6 +103,10 @@ class NativeLiveKitController {
       }
     }
 
+    recordCallDiag('error', 'attachLocal:exhausted', {
+      lastResult, lastError: String((lastError as Error)?.message ?? lastError ?? ''),
+      scope: this.activeFeature ?? this.previewFeature,
+    }, 'error');
     console.warn('[NativeLiveKitController] attachLocal incomplete after retries:', lastResult, lastError);
   }
 
@@ -214,6 +227,19 @@ class NativeLiveKitController {
         this.previewFeature = null;
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
+        recordCallDiag('session', 'connect', {
+          scope: requestedFeature,
+          callType: opts.callType,
+          boundedSurfaces: payload.boundedSurfaces === true,
+          surfaceMode: payload.boundedSurfaces ? 'bounded' : 'fullscreen',
+          captureW: payload.captureWidth,
+          captureH: payload.captureHeight,
+          maxBitrate: payload.maxBitrate,
+        });
+        recordCallDiag('surface-mode', payload.boundedSurfaces ? 'bounded' : 'fullscreen', {
+          scope: requestedFeature, callType: opts.callType,
+        });
+
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
 
         return { sid: res.sid, identity: res.identity };
@@ -262,6 +288,7 @@ class NativeLiveKitController {
 
   async disconnect(): Promise<void> {
     this.mediaEpoch += 1;
+    recordCallDiag('media-epoch', 'bump', { epoch: this.mediaEpoch, reason: 'disconnect' });
     try {
       await this.waitForIdle('disconnect handoff', 5000);
     } catch (error) {
@@ -272,11 +299,14 @@ class NativeLiveKitController {
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
+      const prevScope = this.activeFeature;
       this.connected = false;
       this.activeFeature = null;
       this.previewFeature = null;
       this.autoAttachLocalRenderer = true;
       this.busy = false;
+      recordCallDiag('session', 'disconnect', { scope: prevScope });
+      recordCallDiag('native-detach', 'detachAll', { scope: prevScope });
     }
   }
 

@@ -17,6 +17,7 @@
  */
 import { useEffect, useId, useLayoutEffect, useRef } from 'react';
 import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
+import { recordCallDiag } from '@/lib/callDiagnostics';
 
 const MAX_NATIVE_SURFACE_BIND_RETRIES = 80;
 
@@ -94,18 +95,34 @@ export const NativeVideoView = ({
             });
             surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
+              recordCallDiag('native-attach', 'attachLocalSurface:pending', {
+                viewId, mode: 'bounded', w: b.w, h: b.h,
+                reason: (res as any)?.reason ?? 'no_track',
+                retry: retryCountRef.current,
+              }, 'warn');
               scheduleAttachRetry();
               return;
             }
+            recordCallDiag('native-attach', 'attachLocalSurface', {
+              viewId, mode: 'bounded', w: b.w, h: b.h, mirror: mirror ?? true,
+            });
           } else {
             const res = await NativeLiveKit.attachRemoteSurface({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
             surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
+              recordCallDiag('native-attach', 'attachRemoteSurface:pending', {
+                viewId, sid, mode: 'bounded', w: b.w, h: b.h,
+                reason: (res as any)?.reason ?? 'no_track',
+                retry: retryCountRef.current,
+              }, 'warn');
               scheduleAttachRetry();
               return;
             }
+            recordCallDiag('native-attach', 'attachRemoteSurface', {
+              viewId, sid, mode: 'bounded', w: b.w, h: b.h,
+            });
           }
           if (cancelled) return;
           attachedRef.current = true;
@@ -118,13 +135,18 @@ export const NativeVideoView = ({
           });
           lastBoundsRef.current = b;
         }
-      } catch {
+      } catch (err) {
         // Plugin/Room/track may not be ready yet. Keep retrying on a bounded
         // short cadence instead of waiting for resize/scroll; otherwise party
         // seats can sit blank until another layout signal happens.
         if (!cancelled && !attachedRef.current) {
           retryCountRef.current += 1;
           if (retryCountRef.current <= MAX_NATIVE_SURFACE_BIND_RETRIES) schedule(true);
+          if (retryCountRef.current === MAX_NATIVE_SURFACE_BIND_RETRIES) {
+            recordCallDiag('error', 'native-surface-bind-exhausted', {
+              viewId, kind, sid, error: String((err as Error)?.message ?? err),
+            }, 'error');
+          }
         }
       } finally {
         inflight = false;
@@ -171,6 +193,9 @@ export const NativeVideoView = ({
         // live/party/call UI slot.
         NativeLiveKit.updateSurfaceBounds({ viewId, x: 0, y: 0, width: 1, height: 1 }).catch(() => { /* noop */ });
         NativeLiveKit.detachSurface({ viewId }).catch(() => { /* noop */ });
+        recordCallDiag('native-detach', 'detachSurface', {
+          viewId, kind, sid, wasAttached: attachedRef.current,
+        });
         attachedRef.current = false;
         surfaceCreatedRef.current = false;
       }
