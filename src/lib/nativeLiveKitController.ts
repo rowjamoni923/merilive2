@@ -21,6 +21,7 @@ import {
   type AudioInterruptionEvent,
   type NativeRoomScope,
 } from '@/plugins/NativeLiveKit';
+import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface NativeJoinOptions {
