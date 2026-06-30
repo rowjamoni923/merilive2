@@ -433,6 +433,13 @@ class LiveKitPlugin : Plugin() {
             publishAudio = call.getBoolean("audio", false) ?: false,
             roomScope = call.getString("roomScope"),
             isHost = call.getBoolean("isHost", false) ?: false,
+            // Locked-quality overrides (JS may pin tighter, never looser).
+            captureWidth = call.getInt("captureWidth", LOCK_CAPTURE_W) ?: LOCK_CAPTURE_W,
+            captureHeight = call.getInt("captureHeight", LOCK_CAPTURE_H) ?: LOCK_CAPTURE_H,
+            captureFps = call.getInt("captureFps", LOCK_CAPTURE_FPS) ?: LOCK_CAPTURE_FPS,
+            baseBitrate = call.getInt("maxBitrate", LOCK_BASE_BITRATE) ?: LOCK_BASE_BITRATE,
+            baseFps = call.getInt("maxFps", LOCK_BASE_FPS) ?: LOCK_BASE_FPS,
+            simulcast = call.getBoolean("simulcast", true) ?: true,
         )
         val boundedSurfaces = call.getBoolean("boundedSurfaces", false) ?: false
 
