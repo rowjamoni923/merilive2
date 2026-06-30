@@ -169,6 +169,7 @@ const AdminSupportTickets = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [userGender, setUserGender] = useState<string | null>(null);
   const [changingGender, setChangingGender] = useState(false);
+  const [faceActionLoading, setFaceActionLoading] = useState(false);
   const [userContact, setUserContact] = useState<{ whatsapp?: string; email?: string } | null>(null);
   // Purchase recovery
   const [showPurchaseRecovery, setShowPurchaseRecovery] = useState(false);
