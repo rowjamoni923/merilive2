@@ -243,6 +243,7 @@ const AdminFaceVerification = () => {
   const [approveGender, setApproveGender] = useState<'female' | 'male'>('male');
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
+  const [showDuplicateExplainer, setShowDuplicateExplainer] = useState(false);
   const actionInFlightRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
   const optimisticTerminalRowsRef = useRef<Map<string, Submission>>(new Map());
