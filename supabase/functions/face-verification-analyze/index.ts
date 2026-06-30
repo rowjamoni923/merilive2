@@ -1483,9 +1483,18 @@ serve(async (req) => {
         })
         .eq("id", userId);
 
-      // In-app + push notification (English) with reason + deep link.
+      // In-app + push notification (English) with reason + stage + deep link.
       // push-on-notification fans out to FCM; tap routes to /face-verification.
       try {
+        // Map reason_code → human stage label so the user (and admin reviewing
+        // the notification) sees exactly WHICH gate triggered the rejection.
+        const stageMap: Record<string, { stage: string; stage_label: string }> = {
+          duplicate_face: { stage: "duplicate_check", stage_label: "Duplicate Identity Check" },
+          banned_face: { stage: "ban_list_check", stage_label: "Ban List Check" },
+          gender_mismatch: { stage: "gender_check", stage_label: "Account Gender Check" },
+        };
+        const stageInfo = stageMap[hardAutoReject] ?? { stage: "policy_check", stage_label: "Policy Check" };
+
         let publicMessage = "Your face verification was rejected.";
         if (hardAutoReject === "duplicate_face") {
           const dName = (duplicateBlock as any)?.previous_display_name || "another account";
@@ -1497,14 +1506,21 @@ serve(async (req) => {
           const expectedLabel = expectedGender === "female" ? "Host (female)" : "User (male)";
           publicMessage = `Your account type is ${expectedLabel}, but our AI detected a different gender. Please create the correct account type or contact Support.`;
         }
+
+        // Prepend a clear "[Stage] Reason:" prefix so the rejection cause is
+        // legible even in collapsed/preview notification rows.
+        const titledMessage = `[${stageInfo.stage_label} • ${hardAutoReject}] ${publicMessage}`;
+
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
           type: "face_verification_rejected",
-          title: "Face Verification Rejected",
-          message: publicMessage,
+          title: `Face Verification Rejected — ${stageInfo.stage_label}`,
+          message: titledMessage,
           data: {
             action_url: "/face-verification",
             reason_code: hardAutoReject,
+            stage: stageInfo.stage,
+            stage_label: stageInfo.stage_label,
             submission_id: submissionId,
           },
           is_read: false,
@@ -1512,6 +1528,7 @@ serve(async (req) => {
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] reject notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
+
 
       return new Response(
         JSON.stringify({
@@ -1592,16 +1609,24 @@ serve(async (req) => {
       const alreadyApprovedForRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
 
       // In-app + push notification (English) — tap routes to /face-verification.
+      // Stage = evidence_quality (photo/video/live didn't confidently match).
       try {
         if (!alreadyApprovedForRetry) {
           const itemsList = failedEvidence.map((f) => f.human_name).join(", ");
+          const stage = "evidence_quality";
+          const stageLabel = "Evidence Quality Check";
+          const reasonCode = "identity_mismatch_needs_retry";
           await supabaseAdmin.from("notifications").insert({
             user_id: userId,
             type: "face_verification_retry",
-            title: "Verification Needs Retry",
-            message: `${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
+            title: `Verification Needs Retry — ${stageLabel}`,
+            message: `[${stageLabel} • ${reasonCode}] ${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
             data: {
               action_url: "/face-verification",
+              reason_code: reasonCode,
+              stage,
+              stage_label: stageLabel,
+              failed_evidence: failedEvidence.map((f) => f.label),
               steps: retryRequired.steps,
               submission_id: submissionId,
             },
@@ -1611,6 +1636,7 @@ serve(async (req) => {
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
+
 
       return new Response(
         JSON.stringify({
