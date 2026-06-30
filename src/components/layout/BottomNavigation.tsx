@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, Video } from "lucide-react";
+import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, PhoneCall } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
