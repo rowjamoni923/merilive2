@@ -833,7 +833,7 @@ video {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
-  z-index: 1 !important;
+  z-index: 2 !important;
   pointer-events: none !important;
   background: transparent !important;
 }

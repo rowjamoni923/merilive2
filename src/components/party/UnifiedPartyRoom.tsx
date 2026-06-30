@@ -481,12 +481,15 @@ const VideoGridSeat = ({
     >
       {/* Video or Avatar */}
       {canRenderNativeVideo ? (
-        <NativeVideoView
-          kind={isMyself ? 'local' : 'remote'}
-          sid={isMyself ? undefined : nativeParticipant?.sid}
-          mirror={isMyself}
-          className="absolute inset-0 w-full h-full"
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          <NativeVideoView
+            kind={isMyself ? 'local' : 'remote'}
+            sid={isMyself ? undefined : nativeParticipant?.sid}
+            mirror={isMyself}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ zIndex: 0 }}
+          />
+        </div>
       ) : canRenderVideo ? (
         <LiveKitVideoPlayer 
           videoTrack={videoTrack}
@@ -511,11 +514,11 @@ const VideoGridSeat = ({
       )}
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" style={{ zIndex: 1 }} />
 
       {/* Host Crown */}
       {participant.isHost && (
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2 left-2" style={{ zIndex: 2 }}>
           <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
             <Crown className="w-3.5 h-3.5 text-yellow-900" />
           </div>
@@ -525,6 +528,7 @@ const VideoGridSeat = ({
       {/* Bean Count - Clickable for host to show contributors */}
       <button 
         className="absolute top-2 right-2"
+        style={{ zIndex: 2 }}
         onClick={(e) => {
           e.stopPropagation();
           if (participant.isHost && onBeansClick) {
@@ -1420,11 +1424,20 @@ export function UnifiedPartyRoom({
     return num.toLocaleString();
   };
 
+  // Android native LiveKit video is a TextureView behind the WebView. For
+  // video/game party rooms, the room background must stay transparent so the
+  // camera seats remain visible while controls/chat/gifts float above them.
+  const exposeNativePartyVideo = Boolean(isNativeMediaActive && roomType !== 'audio');
+
   return (
     <div
-      className="room-viewport z-[2147483000] isolate flex flex-col overflow-hidden"
+      className={cn(
+        "room-viewport z-[2147483000] isolate flex flex-col overflow-hidden",
+        exposeNativePartyVideo ? "bg-transparent" : undefined
+      )}
       data-room-shell
       style={{ 
+        background: exposeNativePartyVideo ? 'transparent' : undefined,
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))'
       }}
@@ -1467,10 +1480,12 @@ export function UnifiedPartyRoom({
             className={cn(
               "absolute inset-0",
               // Apply Tailwind gradient class directly if it's a gradient class
-              isGradientClass && effectiveBg
+              !exposeNativePartyVideo && isGradientClass && effectiveBg
             )}
             style={
-              isImageUrl 
+              exposeNativePartyVideo
+                ? { background: 'transparent' }
+                : isImageUrl 
                 ? { 
                     backgroundImage: `url(${effectiveBg})`, 
                     backgroundSize: 'cover', 

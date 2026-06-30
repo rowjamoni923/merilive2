@@ -4002,7 +4002,7 @@ const LiveStream = () => {
         }}
       >
         {/* Instant blurred host avatar background — visible only until video track arrives */}
-        {!isHost && (!remoteVideoTrack || isRemoteHostCameraOff) && hostInfo?.avatar && (
+        {!isNativeMediaActive && !isHost && (!remoteVideoTrack || isRemoteHostCameraOff) && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
             <img loading="lazy" decoding="async"
               src={hostInfo.avatar}
@@ -4121,7 +4121,8 @@ const LiveStream = () => {
           <div className="absolute inset-0 z-0 pointer-events-none bg-transparent">
 
             <div className={cn(
-              "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
+              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300",
+              isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#14071f] via-[#050208] to-black",
               nativeHostSurfaceAttached ? "opacity-0" : "opacity-100"
             )}>
               {hostInfo?.avatar && (
@@ -4160,7 +4161,8 @@ const LiveStream = () => {
           <div className="absolute inset-0 z-0 pointer-events-none bg-transparent">
 
             <div className={cn(
-              "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
+              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300",
+              isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#14071f] via-[#050208] to-black",
               nativeViewerSurfaceAttached ? "opacity-0" : "opacity-100"
             )}>
               {hostInfo?.avatar && (
@@ -4298,7 +4300,7 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed left-0 right-0 z-[90] px-2.5 sm:px-3"
+        className="absolute left-0 right-0 z-[90] px-2.5 sm:px-3"
         data-testid="live-host-identity-header"
         style={{
           top: 'max(calc(env(safe-area-inset-top, 0px) + 8px), 12px)',
