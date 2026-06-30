@@ -102,8 +102,11 @@ public class CallForegroundService extends Service {
                 // never claim CallStyle for hosts; avoids "Call in progress" leak).
                 ? ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-                : ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-                    | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                // Private/random calls also stay camera+mic only.  We do not
+                // claim PHONE_CALL because Samsung/MIUI can surface a system
+                // in-call chip/chronometer that visually survives after React
+                // hangup. MeriLive's ActiveCallScreen is the only call UI.
+                : ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
             ServiceCompat.startForeground(this, FOREGROUND_NOTIFICATION_ID, notification, fgsType);
         } else {
@@ -228,7 +231,7 @@ public class CallForegroundService extends Service {
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
             .setColorized(true)
-            .setContentTitle("Call in progress")
+            .setContentTitle("MeriLive private call")
             .setContentText(callType + " with " + callerName)
             .setOngoing(true)
             .setUsesChronometer(false)
