@@ -564,7 +564,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         if (cameraOwner !== 'livekit') {
           await releaseAndroidWebViewCameraNow('live:native-before-connect');
         }
-        if (config.role === 'host') setNativeMediaSurface(true);
+        // Activate transparent shell for BOTH host and viewer — viewers need
+        // the WebView background transparent so the native LiveKit renderer
+        // (mounted behind the WebView) showing the host's camera becomes
+        // visible. Without this, viewers saw a solid background covering
+        // the host video on party/live rooms.
+        setNativeMediaSurface(true);
 
         // Native LiveKit publish with one quick retry — Camera2 device may
         // be transiently held by the previous CameraX preview during the
