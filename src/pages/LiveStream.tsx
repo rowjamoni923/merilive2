@@ -7,6 +7,7 @@ import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
+import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { PublishLayersDialog } from "@/components/livekit/PublishLayersDialog";
@@ -3939,6 +3940,8 @@ const LiveStream = () => {
         id={id ?? null}
         onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
       />
+      {/* Pkg201: viewer-side autoplay unblock prompt (iOS Safari / Android WebView). */}
+      {!isHost && <AudioUnlockOverlay />}
       {/* UI hide/show disabled: header/chat/footer remain mounted above video. */}
 
       {/* Swipe navigation works via touch gestures - no visible indicators */}
@@ -4260,14 +4263,14 @@ const LiveStream = () => {
 
       {/* New Host Bonus Card - Host Only, positioned above chat - HIDE when stream ended */}
       {isHost && currentUserId && !showLiveEndSummary && (
-        <div className="absolute left-3 z-35" style={{ bottom: '280px' }}>
+        <div className="absolute left-3 z-[35]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 260px)' }}>
           <NewHostBonusCard hostId={currentUserId} isStreamActive={!showLiveEndSummary} onBeansClaimed={(amount) => setTotalBeans(prev => prev + amount)} />
         </div>
       )}
 
       {/* Live Tasks Card - Bottom left, above chat - HIDE when stream ended */}
       {isHost && currentUserId && !showLiveEndSummary && (
-        <div className="absolute left-3 z-35" style={{ bottom: '200px', maxWidth: '280px', width: '75%' }}>
+        <div className="absolute left-3 z-[35]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 180px)', maxWidth: '280px', width: '75%' }}>
           <LiveTasksCard hostId={currentUserId} />
         </div>
       )}
@@ -4467,167 +4470,7 @@ const LiveStream = () => {
           per Bigo/Chamet/Olamet reference. Do NOT mount it at the
           true top of the screen — that crowded the host header. */}
 
-      {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
-      {false && (
-      <motion.div 
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="relative z-20 px-3 pt-2 pb-1"
-        style={{ pointerEvents: 'auto' }}
-      >
-        <div className="flex items-center justify-between">
-          {/* Left Section - Live Badge + Host Info */}
-          <div className="flex items-center gap-1.5">
-            {/* Host Info Pill with embedded LIVE indicator */}
-            {hostInfo && (
-              <motion.div 
-                className="flex items-center gap-1.5 rounded-full p-[3px] pr-2"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(30,20,50,0.75) 100%)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
-                }}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", damping: 20, stiffness: 150 }}
-              >
-                {/* LIVE indicator dot - positioned on avatar */}
-                <div className="relative">
-                  <div 
-                    className="cursor-pointer"
-                    onClick={() => navigate(`/profile/${hostInfo.id}`)}
-                  >
-                    <AvatarWithFrame
-                      userId={hostInfo.id}
-                      src={hostInfo.avatar}
-                      name={hostInfo.name}
-                      level={hostInfo.level}
-                      isHost={true}
-                      size="xs"
-                      showFrame={true}
-                      showAnimation={true}
-                      showGlow={hostInfo.level >= 10}
-                    />
-                  </div>
-                  {/* Live pulse dot on avatar */}
-                  <div className="absolute -top-0.5 -left-0.5 z-20">
-                    <div className="relative flex items-center gap-[2px] px-[5px] py-[1px] rounded-full" 
-                      style={{ background: 'linear-gradient(135deg, #ff3b5c, #ff1744)' }}>
-                      <div className="w-[4px] h-[4px] bg-white rounded-full animate-pulse" />
-                      <span className="text-white text-[6px] font-black tracking-wider">LIVE</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  className="flex flex-col min-w-0 cursor-pointer"
-                  onClick={() => navigate(`/profile/${hostInfo.id}`)}
-                >
-                  <span className="text-white font-semibold text-[11px] truncate max-w-[55px] leading-tight">{hostInfo.name}</span>
-                  {/* Beans Display */}
-                  <div className="flex items-center gap-0.5">
-                    <BeansIcon size={10} />
-                    <span className="text-[9px] font-bold leading-tight" style={{ color: '#ffb74d' }}>
-                      {totalBeans >= 1000 ? `${(totalBeans / 1000).toFixed(1)}K` : totalBeans}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Follow/Love Button */}
-                {!isFollowingHost ? (
-                  <motion.button
-                    whileTap={{ scale: 0.85 }}
-                    onClick={handleFollowHost}
-                    className="relative w-[22px] h-[22px] flex items-center justify-center rounded-full overflow-hidden ml-0.5"
-                    style={{
-                      background: 'linear-gradient(135deg, #ec4899, #f43f5e)',
-                      boxShadow: '0 2px 8px rgba(236,72,153,0.5)',
-                    }}
-                  >
-                    <Heart className="w-3 h-3 text-white relative z-10" strokeWidth={2.5} />
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center ml-0.5"
-                    style={{ background: 'linear-gradient(135deg, #34d399, #10b981)' }}
-                  >
-                    <Heart className="w-3 h-3 text-white fill-white" strokeWidth={0} />
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Right Section - Viewer Avatars + Count + Close */}
-          <div className="flex items-center gap-1">
-            {/* Recent Viewer Avatars + Count combined pill */}
-            <button
-              onClick={() => setShowViewerList(true)}
-              className="flex items-center gap-0.5 px-1 py-[3px] rounded-full"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,15,35,0.7))',
-                border: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-              }}
-            >
-              {/* Viewer Avatars inside the pill */}
-              <div className="flex items-center -space-x-1.5 ml-0.5">
-                {recentViewerAvatars.length > 0 ? (
-                  recentViewerAvatars.slice(0, 3).map((viewer, i) => (
-                    <div 
-                      key={viewer.id}
-                      className="relative"
-                      style={{ 
-                        zIndex: 4 - i,
-                        width: 34,
-                        height: 34,
-                      }}
-                    >
-                      <AvatarWithFrame
-                        userId={viewer.id}
-                        src={viewer.avatar_url}
-                        name={viewer.name}
-                        level={viewer.user_level}
-                        size="xs"
-                        showAnimation={false}
-                        showFrame={true}
-                        showGlow={false}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-                    <Users className="w-3 h-3 text-white/50" />
-                  </div>
-                )}
-              </div>
-              {/* Count */}
-              <div className="flex items-center gap-[3px] px-1.5">
-                <div className="w-[5px] h-[5px] rounded-full" style={{ background: connectionState === 'CONNECTED' ? '#4ade80' : '#facc15', boxShadow: connectionState === 'CONNECTED' ? '0 0 6px #4ade80' : '0 0 6px #facc15' }} />
-                <AnimatedViewerCount value={viewerCount} connected={connectionState === 'CONNECTED'} />
-              </div>
-            </button>
-
-            {/* Close Button — 36px tap target */}
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={isHost ? handleEndStream : handleLeaveStream}
-              aria-label={isHost ? 'End live stream' : 'Leave live stream'}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,15,35,0.7))',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-              }}
-            >
-              <X className="w-4 h-4 text-white/85" />
-            </motion.button>
-          </div>
-        </div>
-      </motion.div>
-      )}
+      {/* Legacy top-bar copy removed — the active header above is the only top bar. */}
 
       {/* ==================== MESSAGES AREA - ABOVE INPUT BOX ==================== */}
       {/* Public chat area visible to all viewers */}
@@ -4675,7 +4518,7 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Premium 3D Design */}
-        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] md:pb-[calc(env(safe-area-inset-bottom)+1rem)]"
+        <div className="px-1.5 md:px-6 flex items-center gap-1 md:gap-3 pt-3 pb-5 md:pb-4"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.28) 65%, transparent 100%)' }}
         >
           {/* Chat Input — Glass pill with gradient send FAB */}
@@ -5216,7 +5059,7 @@ const LiveStream = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80"
+            className="absolute inset-0 z-[95] flex flex-col items-center justify-center bg-black/80"
           >
             {/* Host Avatar */}
             <div className="relative mb-6">
