@@ -17,10 +17,45 @@ const COOLDOWN_MS = 5_000;
 
 const PUBLIC_PATHS = ['/auth', '/reset-password', '/unsubscribe', '/~oauth'];
 
+// Admin panel uses a fully isolated supabase client (`adminSupabase` with
+// `x-admin-token` header). The main-app supabase session is irrelevant there,
+// so a missing/expired main-app JWT must NEVER bounce an admin user to /auth.
+// Also exclude all standalone public/legal/share/landing routes so background
+// JWT errors on those pages don't yank visitors into the app login form.
+const PUBLIC_PATH_PREFIXES = [
+  '/admin',
+  '/csa-login',
+  '/country-admin',
+  '/super-admin',
+  '/share',
+  '/link',
+  '/smart-link',
+  '/policies',
+  '/policies-benefits',
+  '/privacy',
+  '/privacy-policy',
+  '/terms',
+  '/account-deletion',
+  '/delete-account',
+  '/google-library-order-rules',
+  '/about',
+  '/contact',
+  '/support',
+  '/agency-policy',
+  '/helper-policy',
+  '/create-agency',
+  '/agency-signup',
+  '/become-sub-agent',
+  '/payroll-helper-guide',
+  '/landing',
+  '/download',
+];
+
 function isOnPublicPath(): boolean {
   if (typeof window === 'undefined') return true;
   const path = window.location.pathname;
-  return PUBLIC_PATHS.some(p => path.startsWith(p));
+  if (PUBLIC_PATHS.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p + '?'))) return true;
+  return PUBLIC_PATH_PREFIXES.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p + '?'));
 }
 
 /**
