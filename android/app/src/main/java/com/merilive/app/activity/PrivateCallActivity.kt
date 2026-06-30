@@ -626,7 +626,7 @@ class PrivateCallActivity : ComponentActivity() {
         remoteRenderer?.let { return it }
         val r = TextureViewRenderer(this).apply {
             setEnableHardwareScaler(true)
-            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
         }
         remoteVideoContainer.addView(
             r,
@@ -643,8 +643,8 @@ class PrivateCallActivity : ComponentActivity() {
         localRenderer?.let { return it }
         val r = TextureViewRenderer(this).apply {
             setEnableHardwareScaler(true)
-            // Local PiP is small + cropped to portrait — FILL avoids letterbox.
-            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            // Keep the full local frame visible; never crop/zoom in calls.
+            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
             setMirror(true) // selfie convention
         }
         localPreviewContainer.addView(

@@ -363,12 +363,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           cameraStabilizeTimerRef.current = null;
         }
         toast.dismiss('lk-live-camera-stabilize');
-        nativeLiveKitController.attachLocal().catch(() => {});
+        if (nativeLiveKitController.canAttachFullscreenLocal()) {
+          nativeLiveKitController.attachLocal().catch(() => {});
+        }
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         // Phase 9B: debounce 2s — transient stalls (beauty toggle, autofocus,
         // single dropped frame) self-recover before the toast ever appears.
-        nativeLiveKitController.attachLocal().catch(() => {});
+        if (nativeLiveKitController.canAttachFullscreenLocal()) {
+          nativeLiveKitController.attachLocal().catch(() => {});
+        }
         nativeLiveKitController.attachAllRemotes().catch(() => {});
         if (cameraStabilizeTimerRef.current) return;
         cameraStabilizeTimerRef.current = setTimeout(() => {
@@ -381,7 +385,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     onVideoStall: (s, isLocal) => {
       if (isLeavingRef.current || !usingNativeRef.current) return;
       if (s === 'failed' && isLocal) {
-        nativeLiveKitController.attachLocal().catch(() => {});
+        if (nativeLiveKitController.canAttachFullscreenLocal()) {
+          nativeLiveKitController.attachLocal().catch(() => {});
+        }
         nativeLiveKitController.attachAllRemotes().catch(() => {});
         if (cameraStabilizeTimerRef.current) return;
         cameraStabilizeTimerRef.current = setTimeout(() => {

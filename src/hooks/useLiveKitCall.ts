@@ -189,7 +189,9 @@ export function useLiveKitCall(
         nativeLiveKitController.attachAllRemotes().catch(() => {});
       } else {
         // Phase 9B: 2s debounce — transient stalls self-recover before toast.
-        nativeLiveKitController.attachLocal().catch(() => {});
+        if (nativeLiveKitController.canAttachFullscreenLocal()) {
+          nativeLiveKitController.attachLocal().catch(() => {});
+        }
         nativeLiveKitController.attachAllRemotes().catch(() => {});
         if (callCameraStabilizeTimerRef.current) return;
         callCameraStabilizeTimerRef.current = setTimeout(() => {
@@ -202,7 +204,9 @@ export function useLiveKitCall(
     onVideoStall: (s, isLocal) => {
       if (deadRef.current) return;
       if (s === 'failed' && isLocal) {
-        nativeLiveKitController.attachLocal().catch(() => {});
+        if (nativeLiveKitController.canAttachFullscreenLocal()) {
+          nativeLiveKitController.attachLocal().catch(() => {});
+        }
         nativeLiveKitController.attachAllRemotes().catch(() => {});
         if (callCameraStabilizeTimerRef.current) return;
         callCameraStabilizeTimerRef.current = setTimeout(() => {
