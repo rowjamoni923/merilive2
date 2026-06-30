@@ -224,7 +224,7 @@ public class CallForegroundService extends Service {
             this, ("hangup:" + callId).hashCode(), hangupIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALL_SERVICE)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
             .setColorized(true)
