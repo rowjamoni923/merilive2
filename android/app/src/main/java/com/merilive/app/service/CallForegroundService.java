@@ -152,9 +152,13 @@ public class CallForegroundService extends Service {
             new Thread(() -> {
                 Bitmap bmp = loadBitmapFromUrl(avatarUrl);
                 if (bmp == null) return;
+                // 🚨 Ghost-fix: drop re-notify if the service was stopped or
+                // a newer call cycle started while we were downloading.
+                if (sServiceStopped || sGeneration != myGeneration) return;
                 try {
                     Notification withAvatar = buildNotification(
                         snapName, snapType, snapCallId, snapCallerId, bmp);
+                    if (sServiceStopped || sGeneration != myGeneration) return;
                     NotificationManagerCompat.from(getApplicationContext())
                         .notify(FOREGROUND_NOTIFICATION_ID, withAvatar);
                 } catch (Throwable t) {
