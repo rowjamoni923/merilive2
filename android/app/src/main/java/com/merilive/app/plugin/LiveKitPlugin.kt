@@ -329,6 +329,13 @@ class LiveKitPlugin : Plugin() {
         val publishAudio: Boolean,
         val roomScope: String?,
         val isHost: Boolean,
+        // ─── Locked publish quality (per-connect overrides allowed) ─────
+        val captureWidth: Int = LOCK_CAPTURE_W,
+        val captureHeight: Int = LOCK_CAPTURE_H,
+        val captureFps: Int = LOCK_CAPTURE_FPS,
+        val baseBitrate: Int = LOCK_BASE_BITRATE,
+        val baseFps: Int = LOCK_BASE_FPS,
+        val simulcast: Boolean = true,
     )
 
     // Standalone "warmup" rooms used by the JS connection pool (Phase 5/6).
