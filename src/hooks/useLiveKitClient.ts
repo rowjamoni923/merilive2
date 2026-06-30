@@ -585,7 +585,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               audio: config.role === 'host',
               lens: 'front',
               resolution: '1080p',
-              attachLocal: config.role === 'host',
+              // Android live host is rendered by the full-screen bounded
+              // <NativeVideoView /> in LiveStream, not by the legacy fullscreen
+              // native renderer. This keeps chat/gifts/header/entry bars above
+              // video and prevents native TextureView from taking over the UI.
+              attachLocal: false,
               // Phase I — Bigo/Chamet-style LIVE foreground notification
               // ("🔴 LIVE · {viewers} watching" + "End Live" action) instead
               // of the call-style "Call in progress" UI used for 1:1 calls.
