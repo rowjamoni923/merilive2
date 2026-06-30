@@ -180,29 +180,48 @@ export function prefetchAdminRoute(path: string): void {
   setTimeout(() => importer().catch(() => prefetched.delete(clean)), 0);
 }
 
-/** Bulk prefetch — warms EVERY registered admin route so navigation is instant.
- *  Runs in idle slices to avoid blocking the main thread / network. */
+/** Bulk prefetch — warms admin route chunks in TRUE idle time so it never
+ *  competes with the active page download.
+ *
+ *  Previously this fired immediately on AdminLayout mount and aggressively
+ *  downloaded all 162 admin route chunks (batch of 8). On real-world
+ *  connections that saturated the HTTP/2 connection and starved the actual
+ *  page chunk the user just clicked → every admin page felt slow.
+ *
+ *  New behavior:
+ *    • Wait 4s after mount before starting (let current page settle).
+ *    • Only warm a small set of high-traffic routes eagerly.
+ *    • Everything else is prefetched on hover/touch via prefetchAdminRoute().
+ *    • Batches of 2 via requestIdleCallback. */
+const HIGH_TRAFFIC_ROUTES = [
+  '/admin/dashboard',
+  '/admin/user-hub',
+  '/admin/users',
+  '/admin/agencies',
+  '/admin/withdrawals',
+  '/admin/recharge-history',
+  '/admin/support-tickets',
+  '/admin/pending-approvals',
+];
+
 export function prefetchCommonAdminRoutes(): void {
-  const all = Object.keys(ROUTE_IMPORTERS);
   const idleWindow: IdleCapableWindow | undefined = typeof window !== 'undefined' ? window : undefined;
-  
-  // Pkg381 optimization: Aggressive prefetching for admin routes.
-  // Instead of waiting for idle, we start prefetching immediately in small batches.
   const schedule = (cb: () => void) => {
-    // If requestIdleCallback is available, use it but with a shorter timeout.
     if (idleWindow?.requestIdleCallback) {
-      idleWindow.requestIdleCallback(cb, { timeout: 1000 });
+      idleWindow.requestIdleCallback(cb, { timeout: 4000 });
     } else {
-      setTimeout(cb, 10);
+      setTimeout(cb, 200);
     }
   };
 
-  let i = 0;
-  const step = () => {
-    // Increased batch size from 4 to 8 for faster warmup.
-    const end = Math.min(i + 8, all.length);
-    for (; i < end; i++) prefetchAdminRoute(all[i]);
-    if (i < all.length) schedule(step);
-  };
-  schedule(step);
+  // Wait until after the current page chunk has loaded + first paint settled.
+  setTimeout(() => {
+    let i = 0;
+    const step = () => {
+      const end = Math.min(i + 2, HIGH_TRAFFIC_ROUTES.length);
+      for (; i < end; i++) prefetchAdminRoute(HIGH_TRAFFIC_ROUTES[i]);
+      if (i < HIGH_TRAFFIC_ROUTES.length) schedule(step);
+    };
+    schedule(step);
+  }, 4000);
 }
