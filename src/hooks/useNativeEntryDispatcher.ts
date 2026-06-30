@@ -115,7 +115,7 @@ export function useNativeEntryDispatcher(currentUserId: string | null) {
         window.removeEventListener('merilive:native-entry-dispatch', onWindow as EventListener);
 
       channel = supabase
-        .channel('native-entry-dispatcher')
+        .channel(`native-entry-dispatcher-${Math.random().toString(36).slice(2, 8)}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'stream_viewers' },
