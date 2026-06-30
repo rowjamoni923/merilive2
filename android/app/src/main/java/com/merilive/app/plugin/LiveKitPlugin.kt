@@ -1110,6 +1110,7 @@ class LiveKitPlugin : Plugin() {
             wv.setBackgroundColor(Color.TRANSPARENT)
             wv.background = null
             try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+            try { wv.bringToFront() } catch (_: Throwable) {}
             existing.mirror = mirror
             existing.renderer.setMirror(mirror)
             return existing
