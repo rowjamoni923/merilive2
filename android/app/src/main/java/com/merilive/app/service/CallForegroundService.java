@@ -90,6 +90,8 @@ public class CallForegroundService extends Service {
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
 
+        try { NotificationHelper.createNotificationChannels(getApplicationContext()); } catch (Throwable ignored) {}
+
         Notification notification = "live".equals(mode)
             ? buildLiveNotification(callerName, viewerCount, coinCount)
             : buildNotification(callerName, callType, callId, callerId, null);
