@@ -392,6 +392,15 @@ const GoLive = () => {
   // Check feature level access when user profile is loaded
   useEffect(() => {
     if (userProfile && !featureLevelLoading && !resolvedLevelLoading) {
+      // Host profiles (is_host=true OR female accounts) can go live from Level 0
+      // — they are NEVER blocked by the level gate. Face verification is the
+      // only requirement for hosts; that flow is handled separately below.
+      const isHostProfile = Boolean(userProfile.is_host) || userProfile.gender === 'female';
+      if (isHostProfile) {
+        setShowLevelRestricted(false);
+        return;
+      }
+
       const isHost = isApprovedLiveHost(userProfile);
       // Use highest known level — never block a user whose stored level already qualifies
       const currentLevel = Math.max(
@@ -410,6 +419,7 @@ const GoLive = () => {
       }
     }
   }, [userProfile, featureLevelLoading, resolvedLevelLoading, resolvedUserLevel, checkFeatureAccess]);
+
 
   const loadUserProfile = useCallback(async (userId: string) => {
     const { data: profile, error } = await supabase
