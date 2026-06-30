@@ -740,17 +740,21 @@ export function ActiveCallScreen({
     // while CallProvider's prejoin ref is still logically alive. Rely on
     // the hook's cleanup as the single source of truth — the CallEnded
     // modal unmount is the same tick window in practice.
-    // Release camera/native renderers immediately so the UI and device never
-    // stay visually "running" after hangup; provider still finalizes DB/billing.
-    try { cleanup(); } catch { /* noop */ }
+    // Finalize app/server/native call state first, then tear down LiveKit.
+    // This prevents double-end races where LiveKit closes early and the
+    // provider loses the chance to settle billing/notifications cleanly.
     try {
       await Promise.resolve(onEndCall());
     } catch (error) {
       console.warn('[ActiveCall] endCall finalize failed:', error);
+    } finally {
+      // Release camera/native renderers after finalize attempt so the screen
+      // never stays visually "running" after hangup, even on network failure.
+      try { cleanup(); } catch { /* noop */ }
     }
   };
   useEffect(() => {
-    if (!isOpen || callEnded) return;
+    if (!isOpen || callEnded || endingRef.current) return;
     if (connectionState === 'failed' || connectionState === 'closed') {
       console.log('[ActiveCall] ☠️ LiveKit (Android native) died - auto-ending call (NO reconnect)');
       handleEndCall();
@@ -1017,7 +1021,7 @@ export function ActiveCallScreen({
     return createPortal(
       <RequireNativeAndroidGate feature="call">
         {resilienceNotifier}
-        <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
+        <div aria-hidden className="fixed inset-0 z-[2147483600] isolate pointer-events-none" style={{ background: 'transparent' }} />
       </RequireNativeAndroidGate>,
       document.body,
     );
@@ -1029,7 +1033,7 @@ export function ActiveCallScreen({
   const callUi = (
     <div
       data-room-shell="call"
-      className="fixed inset-0 z-[2147483600] flex select-none overflow-hidden"
+      className="fixed inset-0 z-[2147483600] isolate flex select-none overflow-hidden"
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none',
@@ -1080,7 +1084,7 @@ export function ActiveCallScreen({
 
       {!isInNativePip && (
         <div 
-          className="absolute top-0 left-0 right-0 z-10 safe-area-top"
+          className="absolute top-0 left-0 right-0 z-[90] safe-area-top"
           style={{ contain: 'layout' }}
         >
           <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
@@ -1241,7 +1245,27 @@ export function ActiveCallScreen({
               </div>
             ) : (
               <div className="absolute inset-0">
-                <div className={cn("absolute inset-0", shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]")} />
+                <div
+                  className={cn(
+                    "absolute inset-0 overflow-hidden",
+                    shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#1a0526] via-[#230733] to-[#07020d]"
+                  )}
+                >
+                  {!shouldExposeNativePreview && remoteUserAvatar && (
+                    <>
+                      <img
+                        src={remoteUserAvatar}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover opacity-35 blur-2xl scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/45 to-black/70" />
+                    </>
+                  )}
+                  {!shouldExposeNativePreview && (
+                    <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/20 blur-3xl" />
+                  )}
+                </div>
               </div>
             )}
             
@@ -1428,7 +1452,7 @@ export function ActiveCallScreen({
       {chatMessages.length > 0 && !isInNativePip && (
         <div
           ref={callChatScroll.scrollRef}
-          className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
+        className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-[90] max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
           style={{ bottom: 'calc(var(--kb-h, 0px) + 108px)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           <div className="space-y-1.5 pb-1">
@@ -1493,7 +1517,7 @@ export function ActiveCallScreen({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="absolute bottom-24 right-3 z-30 backdrop-blur-xl"
+            className="absolute bottom-24 right-3 z-[100] backdrop-blur-xl"
             style={{
               background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(25,12,50,0.88) 100%)',
               border: '1px solid rgba(255,255,255,0.18)',
@@ -1531,7 +1555,7 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       {!isInNativePip && (
-        <div className="absolute bottom-kb left-0 right-0 z-20 safe-area-bottom chat-composer-stable">
+        <div className="absolute bottom-kb left-0 right-0 z-[90] safe-area-bottom chat-composer-stable">
           <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">

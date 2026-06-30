@@ -107,6 +107,7 @@ public class CallActionReceiver extends BroadcastReceiver {
                     Intent.FLAG_ACTIVITY_NEW_TASK
                     | Intent.FLAG_ACTIVITY_CLEAR_TOP
                     | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                 );
                 open.putExtra("action", "accept_call");
                 open.putExtra("open_call", true);

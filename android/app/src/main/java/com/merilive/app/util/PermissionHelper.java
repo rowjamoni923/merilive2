@@ -52,7 +52,6 @@ public class PermissionHelper {
         // Android 14+ permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             String[] android14 = {
-                Manifest.permission.FOREGROUND_SERVICE_PHONE_CALL,
                 Manifest.permission.FOREGROUND_SERVICE_CAMERA,
                 Manifest.permission.FOREGROUND_SERVICE_MICROPHONE,
                 Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK,

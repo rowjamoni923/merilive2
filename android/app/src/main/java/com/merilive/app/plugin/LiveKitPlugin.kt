@@ -1267,7 +1267,12 @@ class LiveKitPlugin : Plugin() {
     }
 
     private fun scheduleOverlayContractWatchdog(reason: String) {
-        val delays = longArrayOf(0L, 250L, 1000L, 3000L, 8000L, 12000L, 15000L)
+        val delays = longArrayOf(
+            0L, 250L, 500L,
+            1000L, 2000L, 3000L, 4000L, 5000L,
+            6000L, 7000L, 8000L, 9000L, 10000L,
+            11000L, 12000L, 13000L, 14000L, 15000L
+        )
         delays.forEach { delay ->
             overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)
         }
@@ -1278,9 +1283,9 @@ class LiveKitPlugin : Plugin() {
             override fun run() {
                 if (slots.isEmpty() && previewRenderer == null) return
                 enforceOverlayContract("watchdog:$reason")
-                overlayHandler.postDelayed(this, 2000L)
+                overlayHandler.postDelayed(this, 1000L)
             }
-        }, 2000L)
+        }, 1000L)
     }
 
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {

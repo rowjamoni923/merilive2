@@ -34,7 +34,6 @@
 
     <!-- Foreground Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <!-- Step 34 — screen-share via MediaProjection (Android 14+ requires the dedicated FGS type) -->
@@ -52,11 +51,9 @@
          screen-off DM/call delivery. Triggers system dialog (not auto-granted). -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <!-- Pkg208 — self-managed ConnectionService (WhatsApp/Signal pattern).
-         Lets BT headset Answer/End hardware buttons reach our call code,
-         puts MeriLive calls in the system call log, and lets Telecom
-         route audio (BT > wired > speaker) without us micromanaging it. -->
-    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <!-- OEM dialer / Telecom integration is intentionally disabled.
+         Do NOT request MANAGE_OWN_CALLS: Samsung/MIUI can turn it into a
+         system in-call UI / persistent call counter above MeriLive. -->
 
 
     <!-- Media (Android 13+) -->
@@ -220,7 +217,7 @@
         </service>
 
         <service android:name=".service.CallForegroundService" android:exported="false"
-            android:foregroundServiceType="phoneCall|camera|microphone" />
+            android:foregroundServiceType="camera|microphone" />
 
         <!-- Pkg-bgcontinuity — viewer-side audio/subscriber keep-alive FGS. -->
         <service android:name=".service.MediaPlaybackForegroundService" android:exported="false"

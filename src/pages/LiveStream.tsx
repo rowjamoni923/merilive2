@@ -907,14 +907,14 @@ const LiveStream = () => {
     totalStreams,
   } = useLiveStreamSwipe(id);
 
-  // ===== HORIZONTAL SWIPE: Hide/Show UI overlay (Chamet-style full-screen toggle) =====
+  // ===== PERMANENT CHROME: Header/chat/footer must stay visible for every viewer/host =====
   // ===== TOP-EDGE SWIPE-DOWN: Exit live stream (Bigo/Chamet pattern) =====
   //
   // Gesture priority (highest first):
   //   1. Top-edge swipe-down (start in top 80px, deltaY > 120, mostly vertical) → exit stream
-  //   2. Horizontal swipe (|deltaX| > |deltaY|, |deltaX| > 60)                  → hide/show UI
-  //   3. Vertical swipe (existing TikTok-style up=next, down=prev)              → useLiveStreamSwipe
-  const [isUIHidden, setIsUIHidden] = useState(false);
+  //   2. Vertical swipe (existing TikTok-style up=next, down=prev)              → useLiveStreamSwipe
+  // NOTE: Tap/horizontal hide-show was removed because it let native video look
+  // like it had taken over the whole screen and hid chat/gifts/footer.
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
   const hSwipeStartT = useRef(0);
@@ -959,25 +959,18 @@ const LiveStream = () => {
       return;
     }
 
-    // 2) Tap on dead space → toggle chrome (Bigo/Chamet modern pattern).
-    //    Interactive chrome elements have their own pointer handlers; tap only
-    //    reaches this root when the touch landed on the stream surface itself.
+    // 2) Dead-space tap keeps chrome visible.  Never hide header/chat/footer.
     if (
       Math.abs(deltaX) < TAP_MAX_DELTA &&
       Math.abs(deltaY) < TAP_MAX_DELTA &&
       duration < TAP_MAX_DURATION
     ) {
-      setIsUIHidden(prev => !prev);
       return;
     }
 
-    // 3) Horizontal swipe = hide/show UI (kept as a secondary gesture).
+    // 3) Horizontal swipe used to hide/show UI. Disabled permanently so live
+    // viewers always see host header, viewer count, welcome banner, chat, gifts.
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
-      if (deltaX > 0) {
-        setIsUIHidden(true);
-      } else {
-        setIsUIHidden(false);
-      }
       return;
     }
 
@@ -3930,7 +3923,7 @@ const LiveStream = () => {
     <div 
       data-room-shell
       className={cn(
-        "room-viewport flex flex-col overflow-hidden",
+        "room-viewport z-[2147483000] isolate flex flex-col overflow-hidden",
         isNativeMediaActive ? "bg-transparent" : "bg-muted"
       )}
       style={{ 
@@ -3946,16 +3939,7 @@ const LiveStream = () => {
         id={id ?? null}
         onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
       />
-      {/* Tap anywhere to restore UI when hidden */}
-      {isUIHidden && (
-        <div 
-          className="fixed inset-0 z-[100]" 
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            setIsUIHidden(false);
-          }}
-        />
-      )}
+      {/* UI hide/show disabled: header/chat/footer remain mounted above video. */}
 
       {/* Swipe navigation works via touch gestures - no visible indicators */}
       {/* ==================== UNIFIED ENTRY ANIMATION ====================
@@ -4297,13 +4281,13 @@ const LiveStream = () => {
 
       {/* Top Bar - Premium Professional Design */}
       <motion.div 
-        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="fixed left-0 right-0 z-[90] px-2.5 sm:px-3"
         data-testid="live-host-identity-header"
         style={{
           top: 'max(calc(env(safe-area-inset-top, 0px) + 8px), 12px)',
-          pointerEvents: isUIHidden ? 'none' : 'auto',
+          pointerEvents: 'auto',
         }}
       >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-1.5 w-full">
@@ -4474,10 +4458,10 @@ const LiveStream = () => {
       {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
       {false && (
       <motion.div 
-        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="relative z-20 px-3 pt-2 pb-1"
-        style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
+        style={{ pointerEvents: 'auto' }}
       >
         <div className="flex items-center justify-between">
           {/* Left Section - Live Badge + Host Info */}
@@ -4637,12 +4621,12 @@ const LiveStream = () => {
       {/* Public chat area visible to all viewers */}
       {/* Welcome message at bottom, messages stack upward - SAME as Party Room */}
       <motion.div 
-        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none overflow-hidden chat-composer-stable"
-        style={{ bottom: chatStackBottom, maxHeight: '34vh', pointerEvents: isUIHidden ? 'none' : undefined }}
+        style={{ bottom: chatStackBottom, maxHeight: '34vh' }}
       >
-        <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
+        <div className="px-3 pointer-events-auto">
           {/* UNIFIED Chat Overlay - ONE LINK for Live + Party */}
           {/* Change RoomChatOverlay in shared/room = Change here + Party Room */}
           {/* All messages are PUBLIC and visible to everyone */}
@@ -4669,10 +4653,10 @@ const LiveStream = () => {
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 
         ref={bottomControlsRef}
-        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute bottom-kb left-0 right-0 z-20 chat-composer-stable"
-        style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
+        className="absolute bottom-kb left-0 right-0 z-40 chat-composer-stable"
+        style={{ pointerEvents: 'auto' }}
       >
 
         {/* Host Filter Controls - Ultra Compact */}

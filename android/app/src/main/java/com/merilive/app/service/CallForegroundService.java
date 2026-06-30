@@ -36,7 +36,7 @@ public class CallForegroundService extends Service {
     private static final String TAG = "CallFGS";
     public static final String ACTION_START = "com.merilive.app.START_CALL_SERVICE";
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
-    private static final int FOREGROUND_NOTIFICATION_ID = 9001;
+    public static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
     private void stopAndRemoveForegroundNotification() {
         try {
@@ -102,8 +102,11 @@ public class CallForegroundService extends Service {
                 // never claim CallStyle for hosts; avoids "Call in progress" leak).
                 ? ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-                : ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-                    | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                // Private/random calls also stay camera+mic only.  We do not
+                // claim PHONE_CALL because Samsung/MIUI can surface a system
+                // in-call chip/chronometer that visually survives after React
+                // hangup. MeriLive's ActiveCallScreen is the only call UI.
+                : ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
             ServiceCompat.startForeground(this, FOREGROUND_NOTIFICATION_ID, notification, fgsType);
         } else {
@@ -180,8 +183,11 @@ public class CallForegroundService extends Service {
             .setContentTitle("🔴 LIVE · " + safeTitle)
             .setContentText(subtitle)
             .setOngoing(true)
-            .setUsesChronometer(true)
-            .setShowWhen(true)
+            // Owner fix: no Android/OEM status-bar timer for live/party/call.
+            // The app UI owns all counters; OEM chronometers can visually
+            // survive teardown and look like the call/live is still running.
+            .setUsesChronometer(false)
+            .setShowWhen(false)
             .setPriority(NotificationCompat.PRIORITY_LOW) // never heads-up for live (user is the host)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -228,7 +234,7 @@ public class CallForegroundService extends Service {
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
             .setColorized(true)
-            .setContentTitle("Call in progress")
+            .setContentTitle("MeriLive private call")
             .setContentText(callType + " with " + callerName)
             .setOngoing(true)
             .setUsesChronometer(false)
