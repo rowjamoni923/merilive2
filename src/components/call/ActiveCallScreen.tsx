@@ -402,6 +402,7 @@ export function ActiveCallScreen({
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(userId);
   const isLiveConnected = callStatus === 'connected' && isConnected;
+  const revealNativeConnectedCanvas = isNativeMediaActive && isLiveConnected;
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
 
@@ -1042,7 +1043,7 @@ export function ActiveCallScreen({
     >
       <div
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
-        style={{ opacity: (showNativeCallingSurface || shouldExposeNativePreview) && !isPreviewWeb ? 0 : 1 }}
+        style={{ opacity: revealNativeConnectedCanvas && !isPreviewWeb ? 0 : 1 }}
       />
 
       {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
@@ -1439,7 +1440,7 @@ export function ActiveCallScreen({
                   className="w-full h-full"
                 />
               ) : (
-                <div className={cn("w-full h-full flex flex-col items-center justify-center", isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black")}>
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
                   { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
                     <img loading="lazy" decoding="async"
                       src={enhanceThumbnail(isSwapped ? remoteUserAvatar : myAvatarUrl, { width: 64, quality: 60 })}
