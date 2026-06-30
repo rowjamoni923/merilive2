@@ -385,11 +385,6 @@ export function ActiveCallScreen({
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
   const showNativeRemoteSurface = isNativeMediaActive && isConnected && !!nativeRemoteSid && !remoteVideoTrack;
   const showNativeLocalSurface = isNativeMediaActive && isConnected && !localVideoTrack;
-  // Private-call accept/connecting must NEVER expose the local camera as the
-  // full-screen background. That was the “third-class full-screen camera” the
-  // receiver saw after accepting. Native video is only allowed in bounded slots:
-  // remote = main connected canvas, local = small PiP.
-  const showNativeCallingSurface = false;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
