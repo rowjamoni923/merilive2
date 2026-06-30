@@ -1226,18 +1226,18 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // LiveKit/WebRTC scalingType affects the renderer's measured size, not
-        // only pixels drawn inside a MATCH_PARENT view. Therefore every native
-        // camera view lives inside a fixed slot/container while the renderer
-        // itself stays WRAP_CONTENT + CENTER. This is the documented fix for
-        // "SCALE_ASPECT_FIT still looks zoomed" on Android TextureViewRenderer.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        // Chamet/Bigo/Olamet all use SCALE_ASPECT_FILL on the viewer + host preview
+        // surface: the camera always fills the entire screen edge-to-edge, cropping
+        // the longer axis instead of showing black letterbox bars. Switching from
+        // ASPECT_FIT → ASPECT_FILL + MATCH_PARENT layout removes the dark top/bottom
+        // strips the user reported (Chamet-class full-screen camera).
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
             if (lp is FrameLayout.LayoutParams) {
-                lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT
                 lp.gravity = Gravity.CENTER
                 renderer.layoutParams = lp
             }
