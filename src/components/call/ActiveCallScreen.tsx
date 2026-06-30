@@ -1345,7 +1345,7 @@ export function ActiveCallScreen({
               <motion.div
                 whileTap={{ scale: 0.93 }}
                 onClick={handleSwapVideos}
-                className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-[8] cursor-pointer bg-black"
+                className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-[8] cursor-pointer bg-transparent"
                 style={{
                   boxShadow:
                     '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
@@ -1385,9 +1385,12 @@ export function ActiveCallScreen({
                 />
 
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#17051f] via-[#0b0312] to-[#050208]">
+                <div className={cn(
+                  "w-full h-full flex flex-col items-center justify-center",
+                  isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#17051f] via-[#0b0312] to-[#050208]"
+                )}>
                   {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
-                  { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
+                  { !isNativeMediaActive && (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
                     <img loading="lazy" decoding="async" 
                       src={enhanceThumbnail(isSwapped ? myAvatarUrl : remoteUserAvatar, { width: 64, quality: 60 })} 
                       alt="" 
@@ -1474,8 +1477,11 @@ export function ActiveCallScreen({
                   className="w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
-                  { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
+                <div className={cn(
+                  "w-full h-full flex flex-col items-center justify-center",
+                  isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black"
+                )}>
+                  { !isNativeMediaActive && (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
                     <img loading="lazy" decoding="async"
                       src={enhanceThumbnail(isSwapped ? remoteUserAvatar : myAvatarUrl, { width: 64, quality: 60 })}
                       alt=""
