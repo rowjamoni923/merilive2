@@ -941,14 +941,15 @@ const GoLive = () => {
       return;
     }
 
-    // Owner rule (2026-06-30): if the user hasn't completed face verification
-    // yet, jump them STRAIGHT to /face-verification. No intermediate dialog —
-    // the verification page itself explains the rules.
-    if (!isHost && !resolvedProfile?.is_face_verified
+    // Owner rule (2026-06-30 updated): face verification incomplete → show the
+    // premium popup modal (Verify Now / Later) instead of auto-redirect. Applies
+    // to hosts and non-hosts alike. Verified users skip this block entirely.
+    if (!resolvedProfile?.is_face_verified
         && String(resolvedProfile?.face_verification_status ?? '').toLowerCase() !== 'approved') {
-      void navigateAwayFromGoLive("/face-verification");
+      setShowFaceVerificationRequired(true);
       return;
     }
+
 
     // 🔒 Authoritative server-side preflight gate. Mirrors RPC `can_user_go_live`
     // so the user gets the exact same denial reason the DB will return — no
