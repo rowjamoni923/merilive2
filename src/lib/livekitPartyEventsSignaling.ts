@@ -36,6 +36,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export type PartyEventType =
   | 'participant_joined'
