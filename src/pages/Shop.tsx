@@ -40,6 +40,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryNameBarPreview from "@/components/live/EntryNameBarPreview";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
