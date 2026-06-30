@@ -153,7 +153,32 @@ export function FullScreenPromoBanners() {
 
     const prepareBanner = async () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
-      if (localStorage.getItem(RATING_PENDING_KEY) === "true") return;
+      // If the user tapped the banner before but never submitted proof, the
+      // RATING_PENDING_KEY would block the banner forever. Clear it whenever
+      // the user has no existing claim row — the banner should keep nudging
+      // until they actually rate + submit proof.
+      if (localStorage.getItem(RATING_PENDING_KEY) === "true") {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: existing } = await supabase
+              .from("rating_reward_claims")
+              .select("id")
+              .eq("user_id", user.id)
+              .limit(1);
+            if ((existing?.length ?? 0) === 0) {
+              localStorage.removeItem(RATING_PENDING_KEY);
+            } else {
+              return;
+            }
+          } else {
+            return;
+          }
+        } catch {
+          return;
+        }
+      }
+
 
       // Top-priority Event Popup must show first. Defer until it dismisses.
       const eventActive = (() => {
