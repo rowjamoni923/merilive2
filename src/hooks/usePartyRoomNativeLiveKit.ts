@@ -27,7 +27,7 @@ import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
-import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
+import { registerPartyEventsRoom, registerNativePartyEventsRoom, unregisterPartyEventsRoom, unregisterNativePartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
@@ -289,6 +289,7 @@ export function usePartyRoomNativeLiveKit(
     try { unregisterNativeChatRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterNativeGiftRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterNativeReactionRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativePartyEventsRoom(roomId); } catch { /* ignore */ }
     try { unregisterViewerCountRoom(roomId); } catch { /* ignore */ }
 
     if (tokenRefreshDetachRef.current) {
@@ -483,6 +484,7 @@ export function usePartyRoomNativeLiveKit(
             registerNativeChatRoom('party', roomId);
             registerNativeGiftRoom('party', roomId);
             registerNativeReactionRoom('party', roomId);
+            registerNativePartyEventsRoom(roomId);
             await refreshNativeParticipants();
             setState((prev) => ({
               ...prev,
