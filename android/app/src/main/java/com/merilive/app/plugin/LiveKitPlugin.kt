@@ -78,6 +78,29 @@ class LiveKitPlugin : Plugin() {
     companion object {
         private const val TAG = "LiveKitPlugin"
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
+
+        // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
+        // Portrait 9:16, 720p base, 30 fps, ~2.5 Mbps. Picked to stay sharp
+        // on mid-tier Android uplinks without ever falling to the blurry
+        // 270p/360p layer when no quality hint is supplied. Simulcast layers
+        // (540p + 360p) are still published so weak viewers get a lighter
+        // layer instead of the BASE — but the BASE encoding itself is
+        // LOCKED and never re-tuned at runtime.
+        const val LOCK_CAPTURE_W = 720
+        const val LOCK_CAPTURE_H = 1280
+        const val LOCK_CAPTURE_FPS = 30
+        const val LOCK_BASE_BITRATE = 2_500_000   // 2.5 Mbps
+        const val LOCK_BASE_FPS = 30
+        // Lower simulcast layers (the SFU picks one for weak viewers).
+        const val LOCK_SIM_MID_W = 540
+        const val LOCK_SIM_MID_H = 960
+        const val LOCK_SIM_MID_FPS = 30
+        const val LOCK_SIM_MID_BITRATE = 900_000
+        const val LOCK_SIM_LOW_W = 360
+        const val LOCK_SIM_LOW_H = 640
+        const val LOCK_SIM_LOW_FPS = 15
+        const val LOCK_SIM_LOW_BITRATE = 300_000
+
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 
         @JvmStatic
