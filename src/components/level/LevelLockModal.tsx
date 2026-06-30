@@ -89,10 +89,15 @@ export const LevelLockModal = ({
             </div>
 
             {levelsToGo > 0 && (
-              <p className="mb-4 px-6 text-center text-xs text-white/70">
+              <p className="mb-2 px-6 text-center text-xs text-white/70">
                 Reach <span className="font-semibold text-amber-300">{levelsToGo} more level{levelsToGo > 1 ? "s" : ""}</span> to unlock this privilege
               </p>
             )}
+
+            <p className="mb-4 px-6 text-center text-[10px] font-medium tracking-wide text-amber-200/70">
+              Hosts can go live from Level 0 — exclusive privilege
+            </p>
+
 
             {/* CTAs */}
             <div className="relative flex gap-2.5 px-5 pb-6">
@@ -106,7 +111,7 @@ export const LevelLockModal = ({
               <Button
                 onClick={() => {
                   onClose();
-                  navigate("/level");
+                  navigate("/recharge");
                 }}
                 className="group flex-1 h-12 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 text-[#1a0f06] font-bold shadow-[0_8px_24px_-6px_rgba(251,191,36,0.6)] hover:from-amber-300 hover:to-yellow-500"
               >
