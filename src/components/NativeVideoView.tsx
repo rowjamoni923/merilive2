@@ -79,6 +79,10 @@ export const NativeVideoView = ({
       }
       inflight = true;
       try {
+        const scheduleAttachRetry = () => {
+          retryCountRef.current += 1;
+          if (!cancelled && retryCountRef.current <= 18) schedule(true);
+        };
         if (!attachedRef.current) {
           if (kind === 'local') {
             const res = await NativeLiveKit.attachLocalSurface({
@@ -86,7 +90,7 @@ export const NativeVideoView = ({
               mirror: mirror ?? true,
             });
             if ((res as any)?.attached === false) {
-              if (!cancelled) schedule(true);
+              scheduleAttachRetry();
               return;
             }
           } else {
@@ -94,7 +98,7 @@ export const NativeVideoView = ({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
             if ((res as any)?.attached === false) {
-              if (!cancelled) schedule(true);
+              scheduleAttachRetry();
               return;
             }
           }
