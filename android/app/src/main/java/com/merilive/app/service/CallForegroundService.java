@@ -41,6 +41,19 @@ public class CallForegroundService extends Service {
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
     private static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
+    private void stopAndRemoveForegroundNotification() {
+        try {
+            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+        } catch (Throwable ignored) {}
+        try {
+            NotificationManagerCompat.from(getApplicationContext()).cancel(FOREGROUND_NOTIFICATION_ID);
+        } catch (Throwable ignored) {}
+        try {
+            NotificationManagerCompat.from(getApplicationContext()).cancel(NotificationHelper.NOTIFICATION_CALL);
+        } catch (Throwable ignored) {}
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Honest-private-call fix (S-1): OS-restart with null intent must NOT
@@ -48,14 +61,12 @@ public class CallForegroundService extends Service {
         // and switch the service to non-sticky so the OS won't keep relaunching.
         if (intent == null) {
             Log.w(TAG, "onStartCommand: null intent (OS restart) — stopping service");
-            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+            stopAndRemoveForegroundNotification();
             stopSelf();
             return START_NOT_STICKY;
         }
         if (ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+            stopAndRemoveForegroundNotification();
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -222,27 +233,17 @@ public class CallForegroundService extends Service {
             .setOngoing(true)
             .setUsesChronometer(true)
             .setShowWhen(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            // Our React ActiveCallScreen is the only visible in-call UI.  Keep
+            // this as a quiet foreground-service requirement instead of a
+            // CallStyle heads-up/chip that looks like an OEM/World-Cup overlay
+            // and can visually outlive the app UI on some Android 12+ skins.
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(returnPI);
 
-        boolean styleApplied = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                Person.Builder pb = new Person.Builder().setName(callerName).setImportant(true);
-                if (avatar != null) pb.setIcon(IconCompat.createWithBitmap(avatar));
-                Person person = pb.build();
-                builder.setStyle(NotificationCompat.CallStyle.forOngoingCall(person, hangupPI));
-                styleApplied = true;
-            } catch (Throwable t) {
-                Log.w(TAG, "CallStyle.forOngoingCall unavailable: " + t.getMessage());
-            }
-        }
-        if (!styleApplied) {
-            builder.addAction(R.drawable.ic_call_decline, "End Call", hangupPI);
-            if (avatar != null) builder.setLargeIcon(avatar);
-        }
+        builder.addAction(R.drawable.ic_call_decline, "End Call", hangupPI);
+        if (avatar != null) builder.setLargeIcon(avatar);
 
         return builder.build();
     }
@@ -300,7 +301,7 @@ public class CallForegroundService extends Service {
 
     @Override
     public void onDestroy() {
+        stopAndRemoveForegroundNotification();
         super.onDestroy();
-        stopForeground(true);
     }
 }
