@@ -105,7 +105,7 @@ export default function AdminSuperAdminManagement() {
   // Realtime: instantly refresh when a helper submits / updates an application
   useEffect(() => {
     const channel = supabase
-      .channel('admin-super-admin-apps')
+      .channel(`admin-super-admin-apps-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'country_super_admin_applications' },

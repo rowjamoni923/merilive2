@@ -33,7 +33,7 @@ export default function ConnectionStatus() {
 
   useEffect(() => {
     // Tiny presence channel just to observe transport health.
-    const channel = supabase.channel('app:connection-health', {
+    const channel = supabase.channel(`app:connection-health-${Math.random().toString(36).slice(2, 8)}`, {
       config: { broadcast: { self: false } },
     });
     let lastOk = Date.now();

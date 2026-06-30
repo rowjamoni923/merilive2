@@ -110,7 +110,7 @@ export default function LiveStreamFeed() {
 
     // Instant-close: drop streams the moment the host marks them inactive.
     const instantCloseChannel = supabase
-      .channel('live-feed-instant-close')
+      .channel(`live-feed-instant-close-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'live_streams' },

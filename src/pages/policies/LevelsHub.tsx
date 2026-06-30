@@ -30,7 +30,7 @@ export default function LevelsHub() {
     })();
 
     const channel = supabase
-      .channel("policy_documents_hub")
+      .channel(`policy_documents_hub-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "policy_documents" },

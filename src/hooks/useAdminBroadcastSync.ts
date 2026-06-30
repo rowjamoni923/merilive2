@@ -288,7 +288,7 @@ export function useAdminBroadcastSync() {
       if (cancelled || globalChannel) return;
 
       globalChannel = supabase
-        .channel('admin-broadcast-global')
+        .channel(`admin-broadcast-global-${Math.random().toString(36).slice(2, 8)}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'admin_broadcast' },
