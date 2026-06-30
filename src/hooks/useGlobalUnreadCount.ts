@@ -296,7 +296,20 @@ export const useGlobalUnreadCount = () => {
     };
 
     window.addEventListener('global-unread:refresh', handleRefresh);
-    return () => window.removeEventListener('global-unread:refresh', handleRefresh);
+
+    const handleAdminTableUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ table?: string; topic?: string }>).detail || {};
+      const table = detail.table || detail.topic;
+      if (table === 'admin_notices') {
+        scheduleSharedCountsRefresh(450);
+      }
+    };
+
+    window.addEventListener('admin-table-update', handleAdminTableUpdate as EventListener);
+    return () => {
+      window.removeEventListener('global-unread:refresh', handleRefresh);
+      window.removeEventListener('admin-table-update', handleAdminTableUpdate as EventListener);
+    };
   }, []);
 
   return counts;
