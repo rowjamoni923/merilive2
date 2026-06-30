@@ -40,6 +40,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import EntryNameBarPreview from "@/components/live/EntryNameBarPreview";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -129,7 +130,12 @@ const categories = [
 
 // Entry animation categories that need full-width display
 const isEntryAnimationCategory = (category: string) => 
-  ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
+  ['entrance', 'entrance_effect', 'entry_bar', 'entry_banner', 'entry_name_bar', 'vehicle'].includes(category);
+
+// Entry NAME BAR variants — these get the engraved avatar+name+level overlay
+// (matches in-room EntryNameBarAnimation). Cars/vehicles do NOT.
+const isEntryNameBarCategory = (category: string) =>
+  ['entry_bar', 'entry_banner', 'entry_name_bar', 'entry_bar_effect'].includes(category);
 
 const shouldClearEntryAnimationCache = (category: string) =>
   ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
@@ -140,13 +146,19 @@ const ShopItemCard = ({
   index, 
   owned, 
   onPreview,
-  isFullWidth = false
+  isFullWidth = false,
+  viewerName,
+  viewerAvatar,
+  viewerLevel,
 }: { 
   item: ShopItem; 
   index: number; 
   owned: boolean; 
   onPreview: () => void;
   isFullWidth?: boolean;
+  viewerName: string;
+  viewerAvatar: string | null;
+  viewerLevel: number;
 }) => {
   const [imageError, setImageError] = useState(false);
   // Viewport gate — only mount heavy animation players for cards that are
@@ -229,7 +241,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? (isEntryNameBarCategory(item.category) ? 'aspect-[1024/280]' : 'aspect-[16/10] min-h-[160px]') : 'aspect-square'} flex items-center justify-center ${isEntryNameBarCategory(item.category) ? 'p-0' : 'p-3'} relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -242,6 +254,21 @@ const ShopItemCard = ({
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
           const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
+
+          // PRIORITY 0 — Entry Name Bar: composited preview with engraved
+          // avatar + name + level + animation (matches in-room exactly).
+          if (isEntryNameBarCategory(item.category) && inView) {
+            return (
+              <EntryNameBarPreview
+                animationUrl={animSrc || null}
+                previewUrl={item.preview_url}
+                userName={viewerName}
+                avatarUrl={viewerAvatar}
+                level={viewerLevel}
+                className="absolute inset-0"
+              />
+            );
+          }
 
           // PRIORITY 1 — Admin-uploaded static logo wins (centered, uniform size).
           if (previewIsStatic && !imageError) {
@@ -295,6 +322,7 @@ const ShopItemCard = ({
           );
         })()}
       </div>
+
 
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
@@ -371,6 +399,7 @@ const Shop = () => {
     return 0;
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("You");
   const [userFrameId, setUserFrameId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(!(hadItemsCache && hadPurchasesCache));
@@ -408,7 +437,7 @@ const Shop = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id")
+        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id, display_name, username")
         .eq("id", user.id)
         .single();
 
@@ -417,7 +446,9 @@ const Shop = () => {
         setUserLevel(profile.user_level || 0);
         setUserAvatar(profile.avatar_url);
         setUserFrameId(profile.frame_id);
+        setUserName((profile as any).display_name || (profile as any).username || "You");
       }
+
 
       const { data: shopItems } = await supabase
         .from("shop_items")
@@ -693,6 +724,9 @@ const Shop = () => {
                 owned={isOwned(item.id)}
                 onPreview={() => setSelectedItem(item)}
                 isFullWidth={isEntryAnimationCategory(item.category)}
+                viewerName={userName}
+                viewerAvatar={userAvatar}
+                viewerLevel={userLevel}
               />
             ))}
           </div>
@@ -726,10 +760,12 @@ const Shop = () => {
                 {/* Preview */}
                 <div
                   className={`${
-                    isEntryAnimationCategory(selectedItem.category)
-                      ? 'aspect-[9/16] min-h-[260px] max-h-[50dvh]'
-                      : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
+                    isEntryNameBarCategory(selectedItem.category)
+                      ? 'aspect-[1024/280]'
+                      : isEntryAnimationCategory(selectedItem.category)
+                        ? 'aspect-[9/16] min-h-[260px] max-h-[50dvh]'
+                        : 'aspect-square'
+                  } rounded-2xl flex items-center justify-center ${isEntryNameBarCategory(selectedItem.category) ? 'p-0' : 'p-6'} relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
@@ -738,6 +774,22 @@ const Shop = () => {
                   {(() => {
                     const animType = pickAnimType(selectedItem);
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
+
+                    // Entry Name Bar: composited preview (animation + engraved
+                    // avatar + name + level) — matches in-room render 1:1.
+                    if (isEntryNameBarCategory(selectedItem.category)) {
+                      return (
+                        <EntryNameBarPreview
+                          animationUrl={animSrc || null}
+                          previewUrl={selectedItem.preview_url}
+                          userName={userName}
+                          avatarUrl={userAvatar}
+                          level={userLevel}
+                          className="absolute inset-0"
+                        />
+                      );
+                    }
+
                     if (animSrc && isAnimatedType(animType)) {
                       return (
                         <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
