@@ -247,14 +247,16 @@
                 android:value="false" />
         </service>
 
-        <!-- Pkg208 — Self-managed ConnectionService for Telecom integration. -->
-        <service android:name=".telecom.MeriConnectionService"
-            android:exported="true"
-            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
-            <intent-filter>
-                <action android:name="android.telecom.ConnectionService" />
-            </intent-filter>
-        </service>
+        <!-- 2026-06-30: Self-managed ConnectionService FULLY REMOVED from manifest.
+             Samsung / MIUI / OEM dialers were hijacking incoming + outgoing calls
+             into the system in-call UI, hiding MeriLive's React chat/gift/controls,
+             showing a third-class "Phone" screen and a stray video icon. Without
+             this <service> declaration the OS cannot route any Telecom call to us,
+             so the OEM in-call UI is structurally impossible. All call delivery
+             goes through high-priority FCM → IncomingCallActivity → React
+             ActiveCallScreen exclusively. MeriConnectionService.kt is kept on
+             disk for git history but is unreachable code. -->
+
 
 
         <receiver android:name=".receiver.BootReceiver" android:exported="true">
