@@ -169,6 +169,7 @@ const AdminSupportTickets = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [userGender, setUserGender] = useState<string | null>(null);
   const [changingGender, setChangingGender] = useState(false);
+  const [faceActionLoading, setFaceActionLoading] = useState(false);
   const [userContact, setUserContact] = useState<{ whatsapp?: string; email?: string } | null>(null);
   // Purchase recovery
   const [showPurchaseRecovery, setShowPurchaseRecovery] = useState(false);
@@ -648,6 +649,36 @@ const AdminSupportTickets = () => {
       toast({ title: 'Error', description: err.message || 'Failed to update gender', variant: 'destructive' });
     } finally {
       setChangingGender(false);
+    }
+  };
+
+  const handleApproveFaceFromSupport = async () => {
+    if (!selectedTicket || faceActionLoading) return;
+    if (!window.confirm('Approve face verification for this user? They will be marked as verified and can immediately go live / receive calls.')) return;
+    setFaceActionLoading(true);
+    try {
+      const { error } = await supabase.rpc('support_approve_face_verification', { _user_id: selectedTicket.user_id });
+      if (error) throw error;
+      toast({ title: '✅ Face Verified', description: 'User is now marked as face-verified.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to approve face verification', variant: 'destructive' });
+    } finally {
+      setFaceActionLoading(false);
+    }
+  };
+
+  const handleAllowFaceReapply = async () => {
+    if (!selectedTicket || faceActionLoading) return;
+    if (!window.confirm('Reopen face verification so this user can submit a fresh application?')) return;
+    setFaceActionLoading(true);
+    try {
+      const { error } = await supabase.rpc('support_allow_host_reapply', { _user_id: selectedTicket.user_id });
+      if (error) throw error;
+      toast({ title: '♻️ Reopened', description: 'User can now re-apply for face verification.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to reopen verification', variant: 'destructive' });
+    } finally {
+      setFaceActionLoading(false);
     }
   };
 
@@ -1401,6 +1432,27 @@ const AdminSupportTickets = () => {
                       ♂→User
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] px-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                    onClick={handleApproveFaceFromSupport}
+                    disabled={faceActionLoading}
+                    title="Approve face verification for this user"
+                  >
+                    ✅ Verify Face
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] px-2 border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                    onClick={handleAllowFaceReapply}
+                    disabled={faceActionLoading}
+                    title="Reset rejection so the user can submit face verification again"
+                  >
+                    ♻️ Allow Re-Verify
+                  </Button>
+
                   <Select value={selectedTicket.status} onValueChange={updateTicketStatus} disabled={statusUpdating}>
                     <SelectTrigger className="w-24 h-7 text-[10px]">
                       <SelectValue />
