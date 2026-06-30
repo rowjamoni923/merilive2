@@ -476,6 +476,7 @@ const VideoGridSeat = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       className="relative overflow-hidden rounded-2xl h-full"
+      style={{ background: canRenderNativeVideo ? 'transparent' : undefined }}
       onClick={onTap}
     >
       {/* Video or Avatar */}
@@ -494,7 +495,7 @@ const VideoGridSeat = ({
           className="w-full h-full"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+        <div className={cn("absolute inset-0 flex flex-col items-center justify-center", isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black")}>
           {participant.avatarUrl && (
             <img loading="lazy" decoding="async" 
               src={participant.avatarUrl} 
