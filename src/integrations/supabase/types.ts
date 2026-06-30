@@ -23279,6 +23279,10 @@ export type Database = {
         Args: { _url: string }
         Returns: string
       }
+      notice_target_audiences_for_user: {
+        Args: { p_user_id: string }
+        Returns: string[]
+      }
       party_mute_all: {
         Args: { p_muted: boolean; p_room_id: string }
         Returns: Json
