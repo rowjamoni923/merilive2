@@ -38,7 +38,18 @@ public class CallForegroundService extends Service {
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
     public static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
+    // 🚨 Ghost-notification fix (2026-06-30): the avatar enrichment thread
+    // could finish AFTER stopForeground()/cancel() ran and re-post the
+    // notification under the same id — leaving a "Call in progress" entry
+    // in the shade even though JS endCall() had torn everything down.
+    // Two-layer guard: (a) generation counter so a stale thread's re-notify
+    // is dropped, (b) explicit cancel + re-cancel-after-delay after stop.
+    private static volatile int sGeneration = 0;
+    private static volatile boolean sServiceStopped = true;
+
     private void stopAndRemoveForegroundNotification() {
+        sServiceStopped = true;
+        sGeneration++; // any in-flight avatar thread is now stale
         try {
             stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
@@ -49,7 +60,16 @@ public class CallForegroundService extends Service {
         try {
             NotificationManagerCompat.from(getApplicationContext()).cancel(NotificationHelper.NOTIFICATION_CALL);
         } catch (Throwable ignored) {}
+        // Belt-and-braces: re-cancel after the avatar thread's worst-case
+        // completion window so any race-window re-notify is wiped instantly.
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                NotificationManagerCompat.from(getApplicationContext()).cancel(FOREGROUND_NOTIFICATION_ID);
+                NotificationManagerCompat.from(getApplicationContext()).cancel(NotificationHelper.NOTIFICATION_CALL);
+            } catch (Throwable ignored) {}
+        }, 900);
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -69,6 +89,11 @@ public class CallForegroundService extends Service {
         }
 
 
+        // Mark service alive + bump generation so any in-flight avatar
+        // thread from a previous call cycle is invalidated.
+        sServiceStopped = false;
+        final int myGeneration = ++sGeneration;
+
         String callerName = intent != null ? intent.getStringExtra("caller_name") : null;
         String callType = intent != null ? intent.getStringExtra("call_type") : null;
         String callerAvatar = intent != null ? intent.getStringExtra("caller_avatar") : null;
@@ -86,6 +111,7 @@ public class CallForegroundService extends Service {
         if (callType == null || callType.isEmpty()) callType = "Call";
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
+
 
         try { NotificationHelper.createNotificationChannels(getApplicationContext()); } catch (Throwable ignored) {}
 
@@ -126,9 +152,13 @@ public class CallForegroundService extends Service {
             new Thread(() -> {
                 Bitmap bmp = loadBitmapFromUrl(avatarUrl);
                 if (bmp == null) return;
+                // 🚨 Ghost-fix: drop re-notify if the service was stopped or
+                // a newer call cycle started while we were downloading.
+                if (sServiceStopped || sGeneration != myGeneration) return;
                 try {
                     Notification withAvatar = buildNotification(
                         snapName, snapType, snapCallId, snapCallerId, bmp);
+                    if (sServiceStopped || sGeneration != myGeneration) return;
                     NotificationManagerCompat.from(getApplicationContext())
                         .notify(FOREGROUND_NOTIFICATION_ID, withAvatar);
                 } catch (Throwable t) {
