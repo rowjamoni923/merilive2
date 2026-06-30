@@ -14,9 +14,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.Person;
 import androidx.core.app.ServiceCompat;
-import androidx.core.graphics.drawable.IconCompat;
 
 import com.merilive.app.MainActivity;
 import com.merilive.app.R;
@@ -28,11 +26,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Pkg220 — M15 CallStyle (ongoing).
- * Active-call foreground notification now uses Android 12+ CallStyle.forOngoingCall
- * so the heads-up matches the system call UI (large avatar, chronometer, CallKit-style
- * hang-up button). Hang-up routes through CallActionReceiver so JS + Telecom learn
- * about the end and the call is properly torn down everywhere.
+ * Active-call foreground service.
+ * The accepted-call screen is React ActiveCallScreen only; this service keeps
+ * camera/mic alive quietly and never posts Android CallStyle/OEM in-call UI.
+ * Hang-up routes through CallActionReceiver so JS learns about the end.
  */
 public class CallForegroundService extends Service {
 
