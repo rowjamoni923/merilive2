@@ -275,6 +275,7 @@ const AdminShop = lazy(lazyRetry(() => import("./pages/admin/AdminShop")));
 const AdminPushBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminPushBroadcast")));
 const AdminNoticeBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminNoticeBroadcast")));
 const AdminEmailBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminEmailBroadcast")));
+const AdminOtpProviders = lazy(lazyRetry(() => import("./pages/admin/AdminOtpProviders")));
 const AdminLeaderboardManagement = lazy(lazyRetry(() => import("./pages/admin/AdminLeaderboardManagement")));
 const AdminBalanceDeduction = lazy(lazyRetry(() => import("./pages/admin/AdminBalanceDeduction")));
 const AdminFeatureLevels = lazy(lazyRetry(() => import("./pages/admin/AdminFeatureLevels")));
@@ -1660,6 +1661,8 @@ const App = () => {
                   <Route path="push-broadcast" element={<AdminRouteGuard routeSegment="push-broadcast"><AdminPushBroadcast /></AdminRouteGuard>} />
                   <Route path="notice-broadcast" element={<AdminRouteGuard routeSegment="notice-broadcast"><AdminNoticeBroadcast /></AdminRouteGuard>} />
                   <Route path="email-broadcast" element={<AdminRouteGuard routeSegment="email-broadcast"><AdminEmailBroadcast /></AdminRouteGuard>} />
+                  <Route path="otp-providers" element={<AdminRouteGuard routeSegment="otp-providers"><AdminOtpProviders /></AdminRouteGuard>} />
+
                   <Route path="leaderboard-management" element={<AdminRouteGuard routeSegment="leaderboard-management"><AdminLeaderboardManagement /></AdminRouteGuard>} />
                   <Route path="allowed-links" element={<AdminRouteGuard routeSegment="allowed-links"><AdminAllowedLinks /></AdminRouteGuard>} />
                   

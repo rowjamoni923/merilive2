@@ -10775,6 +10775,66 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_orchestrator_settings: {
+        Row: {
+          id: boolean
+          mode: string
+          per_provider_timeout_ms: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          mode?: string
+          per_provider_timeout_ms?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          mode?: string
+          per_provider_timeout_ms?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      otp_provider_config: {
+        Row: {
+          created_at: string
+          daily_quota: number | null
+          daily_sent: number
+          enabled: boolean
+          id: string
+          last_reset_date: string
+          notes: string | null
+          priority: number
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_quota?: number | null
+          daily_sent?: number
+          enabled?: boolean
+          id?: string
+          last_reset_date?: string
+          notes?: string | null
+          priority?: number
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_quota?: number | null
+          daily_sent?: number
+          enabled?: boolean
+          id?: string
+          last_reset_date?: string
+          notes?: string | null
+          priority?: number
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parcel_claims: {
         Row: {
           claimed_at: string | null
@@ -23027,6 +23087,10 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: number
       }
+      increment_otp_provider_sent: {
+        Args: { _provider: string }
+        Returns: undefined
+      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
@@ -23739,6 +23803,7 @@ export type Database = {
         Returns: undefined
       }
       reset_my_call_status: { Args: never; Returns: undefined }
+      reset_otp_provider_daily_counters: { Args: never; Returns: undefined }
       resolve_agency_commission_rate: {
         Args: { _agency_id: string }
         Returns: number

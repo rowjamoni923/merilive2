@@ -1122,6 +1122,13 @@ const navGroups: NavGroup[] = [
         description: "Bulk email campaigns sent via Gmail SMTP to users with verified emails.",
       },
       {
+        label: "OTP Email Providers",
+        icon: Mail,
+        path: "/admin/otp-providers",
+        hubKey: "settings-hub",
+        description: "Multi-provider OTP failover: Resend + Brevo + Gmail SMTP. Race mode, daily quotas, success-rate dashboard.",
+      },
+      {
         label: "Notification Templates",
         icon: Bell,
         path: "/admin/notification-templates",
