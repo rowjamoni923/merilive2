@@ -1257,7 +1257,25 @@ class LiveKitPlugin : Plugin() {
      * React design.  This method is intentionally idempotent and is called both
      * immediately and on delayed watchdog ticks around slot creation/rebind.
      */
-    private fun enforceOverlayContract(reason: String = "") {
+    /**
+     * Pkg-FIX 2026-06-30: chrome was vanishing once the host face appeared on
+     * Live/Party. Root cause = the prior watchdog called bringToFront() +
+     * setLayerType(HARDWARE) + setBackgroundColor(BLACK) + invalidate() every
+     * 1000ms while video was active. Each pass triggered a full WebView
+     * relayout/recomposite; on Chromium WebView the hardware-composited
+     * overlay layer (header/chat/footer/gifts) flickers blank during those
+     * passes and the user perceives the UI as "disappeared" the moment video
+     * shows.
+     *
+     * New rule: configure the WebView ONCE (transparent bg, elevation 120,
+     * hardware layer). After that, the watchdog only re-orders children if a
+     * renderer somehow slipped above the WebView — it never re-applies layer
+     * type, background or bringToFront, so the chrome paints stay stable.
+     */
+    private var webViewConfigured: Boolean = false
+
+    private fun configureWebViewOnce() {
+        if (webViewConfigured) return
         val wv = bridge?.webView ?: return
         val parent = (wv.parent as? ViewGroup) ?: return
         try {
@@ -1268,11 +1286,22 @@ class LiveKitPlugin : Plugin() {
             wv.background = null
             try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
             try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
+            try { wv.elevation = 120f } catch (_: Throwable) {}
+            try { wv.translationZ = 120f } catch (_: Throwable) {}
+            webViewConfigured = true
+        } catch (t: Throwable) {
+            Log.w(TAG, "configureWebViewOnce failed", t)
+        }
+    }
 
-            // If any renderer has somehow moved above the WebView, send it back
-            // to index 0 without touching correctly-ordered renderers.  This is
-            // the key guard against the delayed fullscreen takeover.
-            val wvIndexBefore = childIndex(parent, wv)
+    private fun enforceOverlayContract(reason: String = "") {
+        val wv = bridge?.webView ?: return
+        val parent = (wv.parent as? ViewGroup) ?: return
+        configureWebViewOnce()
+        try {
+            // Pure z-order guard: only reorder if a video layer slipped above
+            // the WebView. Never re-apply background / layer type / bringToFront
+            // here — those mutations cause WebView chrome flicker.
             val videoLayers = mutableListOf<View>()
             previewRendererContainer?.let { if (it.parent === parent) videoLayers.add(it) }
             previewRenderer?.let { if (it.parent === parent) videoLayers.add(it) }
@@ -1280,6 +1309,7 @@ class LiveKitPlugin : Plugin() {
                 if (slot.container.parent === parent) videoLayers.add(slot.container)
                 if (slot.renderer.parent === parent) videoLayers.add(slot.renderer)
             }
+            var reordered = false
             videoLayers.distinct().forEach { layer ->
                 try { layer.elevation = 0f } catch (_: Throwable) {}
                 try { layer.translationZ = 0f } catch (_: Throwable) {}
@@ -1289,16 +1319,12 @@ class LiveKitPlugin : Plugin() {
                     val lp = layer.layoutParams
                     parent.removeView(layer)
                     parent.addView(layer, 0, lp)
+                    reordered = true
                 }
             }
-
-            try { wv.elevation = 120f } catch (_: Throwable) {}
-            try { wv.translationZ = 120f } catch (_: Throwable) {}
-            try { wv.bringToFront() } catch (_: Throwable) {}
-            raiseOverlaySiblings(parent)
-            (parent as? View)?.invalidate()
-            if (reason.isNotEmpty() && wvIndexBefore >= 0) {
-                Log.d(TAG, "overlay contract enforced: $reason")
+            if (reordered) {
+                raiseOverlaySiblings(parent)
+                if (reason.isNotEmpty()) Log.d(TAG, "overlay reorder: $reason")
             }
         } catch (t: Throwable) {
             Log.w(TAG, "enforceOverlayContract failed ($reason)", t)
@@ -1306,26 +1332,13 @@ class LiveKitPlugin : Plugin() {
     }
 
     private fun scheduleOverlayContractWatchdog(reason: String) {
-        val delays = longArrayOf(
-            0L, 80L, 160L, 250L, 500L, 750L,
-            1000L, 1500L, 2000L, 3000L, 4000L, 5000L,
-            6000L, 7000L, 8000L, 9000L, 10000L,
-            11000L, 12000L, 13000L, 14000L, 15000L,
-            18000L, 22000L, 30000L
-        )
+        // One-shot enforce passes around mount time (covers EGL resize / first
+        // frame reorder windows). Intentionally NO periodic 1s loop — that loop
+        // is what was clearing the WebView chrome every second.
+        val delays = longArrayOf(0L, 80L, 250L, 750L, 1500L, 3000L, 6000L)
         delays.forEach { delay ->
             overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)
         }
-        // Some OEM TextureView/WebView stacks re-order native layers after the
-        // first decoded frames/EGL resize. Keep enforcing while native slots are
-        // active so video never covers React chat/gifts/header overlays.
-        overlayHandler.postDelayed(object : Runnable {
-            override fun run() {
-                if (slots.isEmpty() && previewRenderer == null) return
-                enforceOverlayContract("watchdog:$reason")
-                overlayHandler.postDelayed(this, 1000L)
-            }
-        }, 1000L)
     }
 
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {
