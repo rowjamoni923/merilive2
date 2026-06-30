@@ -3,7 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, invalidateStatusCountsCache, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
-import {ScanFace, Search, CheckCircle2, XCircle, Clock, Eye, User, Camera, Image, RefreshCw, Loader2, Calendar, Trash2, AlertTriangle, CircleCheckBig, FileCheck, Languages, CakeSlice, ImagePlus, Fingerprint, Shield, Mic} from "lucide-react";
+import {ScanFace, Search, CheckCircle2, XCircle, Clock, Eye, User, Camera, Image, RefreshCw, Loader2, Calendar, Trash2, AlertTriangle, CircleCheckBig, FileCheck, Languages, CakeSlice, ImagePlus, Fingerprint, Shield, Mic, Info} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
