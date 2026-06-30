@@ -485,10 +485,10 @@ export default function AdminAgencyDetail() {
 
       if (hostError) throw hostError;
       
-      // Ensure full User→Host conversion (gender/role sync) before agency assignment
-      const { error: convertError } = await supabase.rpc('admin_update_user_gender', {
+      // Ensure full User→Host conversion (role + status + gender sync) before agency assignment
+      const { error: convertError } = await supabase.rpc('admin_convert_user_role', {
         _user_id: foundUser.id,
-        _gender: 'female',
+        _to_host: true,
       });
       if (convertError) throw convertError;
 
