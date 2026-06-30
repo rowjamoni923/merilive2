@@ -3666,6 +3666,8 @@ const LiveStream = () => {
   const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack && !!nativeHostParticipant?.sid;
   const [nativeHostSurfaceAttached, setNativeHostSurfaceAttached] = useState(false);
   const [nativeViewerSurfaceAttached, setNativeViewerSurfaceAttached] = useState(false);
+  const handleNativeHostSurfaceAttached = useCallback(() => setNativeHostSurfaceAttached(true), []);
+  const handleNativeViewerSurfaceAttached = useCallback(() => setNativeViewerSurfaceAttached(true), []);
   useEffect(() => {
     if (!showNativeHostSurface) setNativeHostSurfaceAttached(false);
   }, [showNativeHostSurface]);
@@ -4154,7 +4156,7 @@ const LiveStream = () => {
               kind="local"
               mirror={true}
               className="absolute inset-0 w-full h-full pointer-events-none"
-              onAttached={() => setNativeHostSurfaceAttached(true)}
+              onAttached={handleNativeHostSurfaceAttached}
             />
           </div>
         ) : showNativeViewerSurface && nativeHostParticipant?.sid ? (
@@ -4192,7 +4194,7 @@ const LiveStream = () => {
               kind="remote"
               sid={nativeHostParticipant.sid}
               className="absolute inset-0 w-full h-full pointer-events-none"
-              onAttached={() => setNativeViewerSurfaceAttached(true)}
+              onAttached={handleNativeViewerSurfaceAttached}
             />
           </div>
         ) : isHost ? (
