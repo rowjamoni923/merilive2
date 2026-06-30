@@ -1137,6 +1137,16 @@ export function usePrivateCall(userId: string | null) {
       console.error('Error ending call:', error);
       setCallState(INITIAL_CALL_STATE);
       setIncomingCall(null);
+      // Absolute native cleanup fallback: even if RPC/LiveKit finalization fails,
+      // the Android foreground/call UI, notification chip and activity must close
+      // immediately so users never see a stuck shutter/status counter.
+      if (callIdToEnd && isNativeAndroidApp()) {
+        NativeCall.reportCallEnded({ callId: callIdToEnd, remote: false }).catch(() => {});
+        NativeCall.endIncomingUi({ callId: callIdToEnd, reason: 'ended' }).catch(() => {});
+        NativeCall.closeInCallActivity({ callId: callIdToEnd }).catch(() => {});
+        NativeCamera.stop().catch(() => {});
+        clearPreparedCallMediaStream(callIdToEnd, { stopTracks: true });
+      }
       
       // 🔒 EMERGENCY: Force reset is_in_call even on total failure
       try { await supabase.rpc('reset_my_call_status'); } catch (_) {}
