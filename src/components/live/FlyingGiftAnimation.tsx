@@ -277,24 +277,37 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
   }, [gift.comboKey, completesFromPlayer, handleAnimationComplete]);
 
   // ============================================================
-  // FULLSCREEN HEAVY ANIMATION SLOT ACQUISITION
-  // Only ONE heavy fullscreen can render at a time. If another one is
-  // already playing, this gift waits in FIFO queue. The SVGA player is
-  // NOT mounted until the slot is owned — so the native duration only
-  // starts counting at its actual play time (no silent pre-consumption).
+  // FULLSCREEN HEAVY ANIMATION SLOT ACQUISITION (FIFO queue)
+  // - Lightweight gifts never compete for the slot.
+  // - Heavy gifts (SVGA/VAP/MP4/PAG/Lottie) ask for the slot. If granted
+  //   immediately, the player mounts. Otherwise they wait — and the
+  //   FULLSCREEN_GRANT_EVENT listener below promotes them when ready.
+  // - The SVGA/VAP player is NOT mounted until the slot is owned, so the
+  //   native duration only starts counting at actual play time.
   // ============================================================
   useEffect(() => {
     if (!needsFullscreenSlot || svgaError) {
-      // Lightweight/static gifts don't compete for the singleton slot.
       setHasFullscreenSlot(true);
       return;
     }
-    tryAcquireFullscreen(gift.id);
-    setHasFullscreenSlot(true);
+    const granted = tryAcquireFullscreen(gift.id);
+    setHasFullscreenSlot(granted);
     return () => {
       releaseFullscreen(gift.id);
     };
   }, [needsFullscreenSlot, svgaError, gift.id]);
+
+  // Promote this gift to playing when its FIFO turn arrives.
+  useEffect(() => {
+    if (!needsFullscreenSlot || svgaError || hasFullscreenSlot) return;
+    if (typeof window === 'undefined') return;
+    const onGrant = (event: Event) => {
+      const detail = (event as CustomEvent<{ nextId?: string }>).detail;
+      if (detail?.nextId === gift.id) setHasFullscreenSlot(true);
+    };
+    window.addEventListener(FULLSCREEN_GRANT_EVENT, onGrant as EventListener);
+    return () => window.removeEventListener(FULLSCREEN_GRANT_EVENT, onGrant as EventListener);
+  }, [needsFullscreenSlot, svgaError, hasFullscreenSlot, gift.id]);
 
 
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
