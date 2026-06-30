@@ -43,6 +43,7 @@ export const NativeVideoView = ({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const lastBoundsRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
   const attachedRef = useRef(false);
+  const surfaceCreatedRef = useRef(false);
   const retryCountRef = useRef(0);
 
   // Sync DOM bounds → native renderer bounds.
@@ -89,6 +90,7 @@ export const NativeVideoView = ({
               viewId, x: b.x, y: b.y, width: b.w, height: b.h,
               mirror: mirror ?? true,
             });
+            surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
               scheduleAttachRetry();
               return;
@@ -97,6 +99,7 @@ export const NativeVideoView = ({
             const res = await NativeLiveKit.attachRemoteSurface({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
+            surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
               scheduleAttachRetry();
               return;
@@ -158,13 +161,16 @@ export const NativeVideoView = ({
       window.removeEventListener('resize', onOrientation);
       window.removeEventListener('orientationchange', onOrientation);
       el.removeEventListener('transitionend', onTransitionEnd);
-      if (attachedRef.current) {
+      if (surfaceCreatedRef.current || attachedRef.current) {
         // First shrink the native TextureView to a harmless 1px slot, then
-        // detach it. This prevents a slow bridge cleanup from leaving an
-        // orphan renderer visibly floating over the next call/live/party UI.
+        // detach it. We must also detach when a surface was created but track
+        // binding was still pending (`attached:false/no_track`), otherwise a
+        // blank orphan TextureView can survive navigation and cover the next
+        // live/party/call UI slot.
         NativeLiveKit.updateSurfaceBounds({ viewId, x: 0, y: 0, width: 1, height: 1 }).catch(() => { /* noop */ });
         NativeLiveKit.detachSurface({ viewId }).catch(() => { /* noop */ });
         attachedRef.current = false;
+        surfaceCreatedRef.current = false;
       }
       retryCountRef.current = 0;
       lastBoundsRef.current = null;
