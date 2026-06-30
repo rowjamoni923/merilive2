@@ -79,11 +79,12 @@ const EntryNameBarAnimationInner = memo(({
   const triggerExit = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
-    setPhase('exiting');
-    setTimeout(() => {
-      if (mountedRef.current) setPhase('done');
-      onCompleteRef.current?.();
-    }, 600);
+    // PRO-SYNC (2026-06-30): Exit instantly the moment the SVGA's own
+    // timeline ends — no extra slide-out frames. The visible duration
+    // equals the SVGA's authored duration exactly, "not one second more
+    // and not one second less" as the user explicitly requires.
+    setPhase('done');
+    onCompleteRef.current?.();
   }, []);
 
   const handleSvgaComplete = useCallback(() => { triggerExit(); }, [triggerExit]);
@@ -191,25 +192,25 @@ const EntryNameBarAnimationInner = memo(({
         {shouldShow && (
           <motion.div
             key="entry-namebar-banner"
-            initial={{ x: '110%', opacity: 0 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={phase === 'exiting'
-              ? { x: '-120%', opacity: 0 }
-              : { x: 0, opacity: 1 }
+              ? { opacity: 0, scale: 0.96 }
+              : { opacity: 1, scale: 1 }
             }
-            exit={{ x: '-120%', opacity: 0 }}
-            transition={{
-              type: "spring",
-              damping: phase === 'exiting' ? 18 : 24,
-              stiffness: phase === 'exiting' ? 180 : 300,
-              mass: 0.8,
-            }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            // PRO-SYNC: ultra-short fade so the banner appears engraved
+            // with the SVGA's first frame and disappears with its last.
+            transition={{ duration: 0.18, ease: 'easeOut' }}
             className="relative w-full flex justify-center"
           >
             <div
               className={cn(
                 "relative",
                 hasAnimation
-                  ? "w-[min(560px,94vw)] aspect-[1024/280] overflow-visible"
+                  // Slightly larger (user request 2026-06-30): 680px cap,
+                  // 98vw on small screens, same 1024:280 aspect ratio so
+                  // the engraved slots stay perfectly aligned.
+                  ? "w-[min(680px,98vw)] aspect-[1024/280] overflow-visible"
                   : "mx-2 rounded-full overflow-hidden w-auto h-11"
               )}
             >
@@ -250,6 +251,40 @@ const EntryNameBarAnimationInner = memo(({
                   />
                 </div>
               )}
+
+              {/* Layer 2a: Engraved welcome-message label (SVGA path).
+                  The avatar/name/level are injected INSIDE the SVGA
+                  canvas, but standard templates have no slot for the
+                  "Joined the room" line. We render it as a tight,
+                  letter-pressed label aligned to the engraved name
+                  band so it visually reads as one engraved unit
+                  (Chamet / BIGO parity). */}
+              {hasAnimation && (
+                <div
+                  className="absolute z-[2] pointer-events-none flex items-center justify-start"
+                  style={{
+                    left: '32%',
+                    right: '6%',
+                    top: '63%',
+                    bottom: '14%',
+                  }}
+                >
+                  <span
+                    className="font-extrabold tracking-wide truncate"
+                    style={{
+                      fontSize: 'clamp(9px, 1.45vw, 13px)',
+                      lineHeight: 1,
+                      color: '#FFE8A8',
+                      textShadow:
+                        '0 1px 0 rgba(0,0,0,0.85), 0 0 6px rgba(255,196,90,0.55), 0 0 12px rgba(0,0,0,0.4)',
+                      WebkitTextStroke: '0.4px rgba(0,0,0,0.55)',
+                    }}
+                  >
+                    Joined the room
+                  </span>
+                </div>
+              )}
+
 
               {/* Layer 2: Avatar + Name + Level overlay.
                   SVGA path: identity is engraved INSIDE the canvas via
