@@ -87,7 +87,15 @@ class NativeLiveKitController {
         lastResult = res as { attached?: boolean; reason?: string } | undefined;
         // bounded (party seat) mode reports attached=false with reason=bounded;
         // that's a successful no-op — don't keep retrying.
-        if (!res || res.attached !== false || res.reason === 'bounded') return;
+        if (!res || res.attached !== false || res.reason === 'bounded') {
+          recordCallDiag('native-attach', 'attachLocal', {
+            mode: res?.reason === 'bounded' ? 'bounded' : 'fullscreen',
+            reason: res?.reason ?? 'ok',
+            scope: this.activeFeature ?? this.previewFeature,
+            delayMs: delay,
+          });
+          return;
+        }
         // attached=false with reason=no_track → camera track not ready yet,
         // fall through to retry after the next delay.
       } catch (e) {
@@ -95,6 +103,10 @@ class NativeLiveKitController {
       }
     }
 
+    recordCallDiag('error', 'attachLocal:exhausted', {
+      lastResult, lastError: String((lastError as Error)?.message ?? lastError ?? ''),
+      scope: this.activeFeature ?? this.previewFeature,
+    }, 'error');
     console.warn('[NativeLiveKitController] attachLocal incomplete after retries:', lastResult, lastError);
   }
 
