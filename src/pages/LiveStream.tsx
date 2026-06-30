@@ -5057,7 +5057,7 @@ const LiveStream = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80"
+            className="absolute inset-0 z-[95] flex flex-col items-center justify-center bg-black/80"
           >
             {/* Host Avatar */}
             <div className="relative mb-6">
