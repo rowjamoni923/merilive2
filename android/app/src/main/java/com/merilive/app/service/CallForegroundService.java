@@ -89,6 +89,11 @@ public class CallForegroundService extends Service {
         }
 
 
+        // Mark service alive + bump generation so any in-flight avatar
+        // thread from a previous call cycle is invalidated.
+        sServiceStopped = false;
+        final int myGeneration = ++sGeneration;
+
         String callerName = intent != null ? intent.getStringExtra("caller_name") : null;
         String callType = intent != null ? intent.getStringExtra("call_type") : null;
         String callerAvatar = intent != null ? intent.getStringExtra("caller_avatar") : null;
@@ -106,6 +111,7 @@ public class CallForegroundService extends Service {
         if (callType == null || callType.isEmpty()) callType = "Call";
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
+
 
         try { NotificationHelper.createNotificationChannels(getApplicationContext()); } catch (Throwable ignored) {}
 
