@@ -3,12 +3,13 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, invalidateStatusCountsCache, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
-import {ScanFace, Search, CheckCircle2, XCircle, Clock, Eye, User, Camera, Image, RefreshCw, Loader2, Calendar, Trash2, AlertTriangle, CircleCheckBig, FileCheck, Languages, CakeSlice, ImagePlus, Fingerprint, Shield, Mic} from "lucide-react";
+import {ScanFace, Search, CheckCircle2, XCircle, Clock, Eye, User, Camera, Image, RefreshCw, Loader2, Calendar, Trash2, AlertTriangle, CircleCheckBig, FileCheck, Languages, CakeSlice, ImagePlus, Fingerprint, Shield, Mic, Info} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminMediaDialog, AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { DuplicateFaceExplainerDialog } from "@/components/admin/DuplicateFaceExplainerDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -243,6 +244,7 @@ const AdminFaceVerification = () => {
   const [approveGender, setApproveGender] = useState<'female' | 'male'>('male');
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
+  const [showDuplicateExplainer, setShowDuplicateExplainer] = useState(false);
   const actionInFlightRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
   const optimisticTerminalRowsRef = useRef<Map<string, Submission>>(new Map());
@@ -1146,8 +1148,20 @@ const AdminFaceVerification = () => {
                         {selectedSubmission.duplicate_face_uid && <p className="text-xs text-red-300"><CopyableUid value={selectedSubmission.duplicate_face_uid} /></p>}
                       </div>
                     </div>
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500/40 text-red-200 hover:bg-red-500/10"
+                        onClick={() => setShowDuplicateExplainer(true)}
+                      >
+                        <Info className="w-4 h-4 mr-1" />
+                        Explain decision
+                      </Button>
+                    </div>
                   </div>
                 )}
+
 
                 {/* Verification Steps */}
                 <div className={`p-4 rounded-xl border-2 ${colors.border} ${colors.track}`}>
@@ -1652,6 +1666,14 @@ const AdminFaceVerification = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {selectedSubmission && (
+        <DuplicateFaceExplainerDialog
+          open={showDuplicateExplainer}
+          onOpenChange={setShowDuplicateExplainer}
+          submission={selectedSubmission}
+        />
+      )}
     </div>
     </div>
   );
