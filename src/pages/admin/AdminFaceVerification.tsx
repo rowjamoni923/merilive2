@@ -1148,8 +1148,20 @@ const AdminFaceVerification = () => {
                         {selectedSubmission.duplicate_face_uid && <p className="text-xs text-red-300"><CopyableUid value={selectedSubmission.duplicate_face_uid} /></p>}
                       </div>
                     </div>
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500/40 text-red-200 hover:bg-red-500/10"
+                        onClick={() => setShowDuplicateExplainer(true)}
+                      >
+                        <Info className="w-4 h-4 mr-1" />
+                        Explain decision
+                      </Button>
+                    </div>
                   </div>
                 )}
+
 
                 {/* Verification Steps */}
                 <div className={`p-4 rounded-xl border-2 ${colors.border} ${colors.track}`}>
