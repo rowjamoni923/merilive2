@@ -1096,7 +1096,31 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * Pkg-overlay-guard: ensure premium entry animations (Flying Name Bars,
+     * vehicle entries, welcome banners) and gift VAP/Lottie overlays — which
+     * are sibling native ViewGroups added by NativeEntryAnimationPlugin /
+     * NativeGiftAnimationPlugin — are kept ABOVE the WebView (and therefore
+     * above the LiveKit TextureViewRenderer at index 0) every time a renderer
+     * slot is created or reused. Without this, a subsequent ensureSlot reuse
+     * calls wv.bringToFront() and silently buries the entry/gift overlays
+     * behind the WebView, where they appear "replaced" by the native video.
+     */
+    private fun raiseOverlaySiblings(parent: ViewGroup) {
+        try {
+            for (i in 0 until parent.childCount) {
+                val child = parent.getChildAt(i) ?: continue
+                val tag = child.tag as? String ?: continue
+                if (tag == "merilive.overlay.entry" || tag == "merilive.overlay.gift") {
+                    try { child.bringToFront() } catch (_: Throwable) {}
+                }
+            }
+            (parent as? View)?.invalidate()
+        } catch (_: Throwable) {}
+    }
+
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {
+
         val act = activity ?: return null
         val wv = bridge?.webView ?: return null
         val parent = (wv.parent as? ViewGroup) ?: return null
