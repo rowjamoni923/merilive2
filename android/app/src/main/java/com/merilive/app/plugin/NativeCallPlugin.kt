@@ -94,6 +94,17 @@ class NativeCallPlugin : Plugin() {
             } catch (_: Throwable) {}
         }
 
+        @JvmStatic
+        fun stopCallForegroundService(ctx: Context?) {
+            val c = ctx ?: return
+            try {
+                val i = android.content.Intent(c, com.merilive.app.service.CallForegroundService::class.java).apply {
+                    action = com.merilive.app.service.CallForegroundService.ACTION_STOP
+                }
+                c.startService(i)
+            } catch (_: Throwable) {}
+        }
+
 
 
         // Pending actions queued before JS attaches a listener (cold-start).
@@ -382,6 +393,7 @@ class NativeCallPlugin : Plugin() {
         if (!keepTelecomAlive && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             try { com.merilive.app.telecom.TelecomBridge.reportEnded(callId, remote = false) } catch (_: Throwable) {}
         }
+        if (!keepTelecomAlive) stopCallForegroundService(context)
         val ret = JSObject()
         ret.put("dismissed", true)
         ret.put("callId", callId)
@@ -454,6 +466,7 @@ class NativeCallPlugin : Plugin() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             try { com.merilive.app.telecom.TelecomBridge.reportEnded(callId, remote) } catch (_: Throwable) {}
         }
+        stopCallForegroundService(context)
         val ret = JSObject()
         ret.put("ok", true)
         ret.put("callId", callId)
@@ -495,11 +508,12 @@ class NativeCallPlugin : Plugin() {
     @PluginMethod
     fun hasInCallActivity(call: PluginCall) {
         val ret = JSObject()
-        val present = try {
-            Class.forName("com.merilive.app.activity.PrivateCallActivity")
-            true
-        } catch (_: Throwable) { false }
-        ret.put("available", present)
+        // Owner directive: after Accept the user must stay inside the premium
+        // React ActiveCallScreen.  The old native PrivateCallActivity looked
+        // like an OEM/third-party call screen and hid chat/gifts, so never
+        // advertise it to JS even if the class still ships for backward-safe
+        // cleanup broadcasts.
+        ret.put("available", false)
         call.resolve(ret)
     }
 
@@ -562,20 +576,10 @@ class NativeCallPlugin : Plugin() {
                     "CallForegroundService start failed (BAL exemption may be lost): ${t.message}")
             }
 
-            val intent = com.merilive.app.activity.PrivateCallActivity.newIntent(
-                ctx = context,
-                callId = callId,
-                peerId = peerId,
-                peerName = peerName,
-                peerAvatar = peerAvatar,
-                isCaller = isCaller,
-                livekitUrl = livekitUrl,
-                livekitToken = livekitToken,
-            )
-            context.startActivity(intent)
             val ret = JSObject()
-            ret.put("opened", true)
+            ret.put("opened", false)
             ret.put("callId", callId)
+            ret.put("reason", "react_call_ui_only")
             call.resolve(ret)
         } catch (t: Throwable) {
             call.reject("open_failed: ${t.message}")
@@ -598,6 +602,7 @@ class NativeCallPlugin : Plugin() {
             }
             context.sendBroadcast(i)
         } catch (_: Throwable) {}
+        stopCallForegroundService(context)
         val ret = JSObject()
         ret.put("ok", true)
         call.resolve(ret)
