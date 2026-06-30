@@ -1666,6 +1666,14 @@ const AdminFaceVerification = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {selectedSubmission && (
+        <DuplicateFaceExplainerDialog
+          open={showDuplicateExplainer}
+          onOpenChange={setShowDuplicateExplainer}
+          submission={selectedSubmission}
+        />
+      )}
     </div>
     </div>
   );
