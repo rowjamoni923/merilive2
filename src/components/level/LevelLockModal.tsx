@@ -109,9 +109,12 @@ export const LevelLockModal = ({
                 Not Now
               </Button>
               <Button
-                onClick={() => {
-                  onClose();
-                  navigate("/recharge");
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Navigate FIRST so the parent's onClose (which may call
+                  // navigate(-1) on GoLive) does not race with /recharge.
+                  navigate("/recharge", { replace: true });
                 }}
                 className="group flex-1 h-12 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 text-[#1a0f06] font-bold shadow-[0_8px_24px_-6px_rgba(251,191,36,0.6)] hover:from-amber-300 hover:to-yellow-500"
               >
