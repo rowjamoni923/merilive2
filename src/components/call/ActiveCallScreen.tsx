@@ -1231,7 +1231,7 @@ export function ActiveCallScreen({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-black"
                   style={{ transform: 'scaleX(-1)' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
@@ -1352,7 +1352,7 @@ export function ActiveCallScreen({
                 />
 
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#17051f] via-[#0b0312] to-[#050208]">
                   {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
                   { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
                     <img loading="lazy" decoding="async" 
@@ -1373,7 +1373,7 @@ export function ActiveCallScreen({
                         {(isSwapped ? 'Y' : remoteUserName?.charAt(0) || 'U').toUpperCase()}
                       </div>
                     )}
-                    <div className="mt-4 px-3 py-1 rounded-full bg-foreground/35 border border-primary-foreground/15 text-on-dark/85 text-xs font-semibold backdrop-blur-md">
+                    <div className="mt-4 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-white/85 text-xs font-semibold backdrop-blur-md">
                       Connecting…
                     </div>
                   </div>
@@ -1388,7 +1388,7 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover z-[4]"
+              className="absolute inset-0 w-full h-full object-contain bg-black z-[4]"
               style={{ transform: 'scaleX(-1)' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
@@ -1408,7 +1408,7 @@ export function ActiveCallScreen({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-black"
                 style={{ transform: 'scaleX(-1)' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
