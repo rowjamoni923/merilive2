@@ -2305,7 +2305,8 @@ export default function AdminLayout() {
                     else navigate('/admin/notifications');
                   },
                 },
-                duration: 8000,
+                duration: Infinity,
+                closeButton: true,
               });
             });
         }
