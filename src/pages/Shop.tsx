@@ -399,6 +399,7 @@ const Shop = () => {
     return 0;
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("You");
   const [userFrameId, setUserFrameId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(!(hadItemsCache && hadPurchasesCache));
