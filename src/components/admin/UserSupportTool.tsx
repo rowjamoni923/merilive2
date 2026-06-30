@@ -278,22 +278,12 @@ export default function UserSupportTool() {
     if (!selectedUser || actionLoading) return;
     setActionLoading(true);
     try {
-      const targetGender = selectedUser.is_host ? "male" : "female";
-      const { error } = await supabase.rpc("admin_update_user_gender", {
+      const toHost = !selectedUser.is_host;
+      const { error } = await supabase.rpc("admin_convert_user_role", {
         _user_id: selectedUser.id,
-        _gender: targetGender,
+        _to_host: toHost,
       });
       if (error) throw error;
-
-      if (!selectedUser.is_host) {
-        await supabase.from("notifications").insert({
-          user_id: selectedUser.id,
-          type: "system",
-          title: "🎤 Host Account Activated!",
-          message: "Your account has been converted to Host. You can now go live!",
-          data: { action: "converted_to_host" },
-        });
-      }
 
       emitInstantAdminSync(["profiles", "notifications"]);
       toast.success(selectedUser.is_host ? "👤 Converted to User" : "🎤 Converted to Host");
