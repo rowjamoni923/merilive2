@@ -1253,7 +1253,7 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={localVideoTrack}
                   mirror={true}
-                  fit="contain"
+                  fit="cover"
                   className="w-full h-full"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
@@ -1265,7 +1265,7 @@ export function ActiveCallScreen({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-cover bg-black"
                   style={{ transform: 'scaleX(-1)' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
@@ -1381,7 +1381,7 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={primaryVideoTrack}
                   mirror={primaryMirror}
-                  fit="contain"
+                  fit="cover"
                   className="w-full h-full"
                 />
 
@@ -1425,7 +1425,7 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-contain bg-black z-[4]"
+              className="absolute inset-0 w-full h-full object-cover bg-black z-[4]"
               style={{ transform: 'scaleX(-1)' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
@@ -1445,7 +1445,7 @@ export function ActiveCallScreen({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-contain bg-black"
+                className="w-full h-full object-cover bg-black"
                 style={{ transform: 'scaleX(-1)' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
@@ -1474,7 +1474,7 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
-                  fit="contain"
+                  fit="cover"
                   className="w-full h-full"
                 />
               ) : (
