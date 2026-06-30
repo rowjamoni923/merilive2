@@ -419,15 +419,24 @@ class NativeEntryAnimationPlugin : Plugin() {
             )
             isClickable = false
             isFocusable = false
+            // Tag so LiveKitPlugin's z-order enforcer keeps this overlay
+            // ABOVE both the WebView and the LiveKit TextureViewRenderer.
+            // Prevents premium entry / Flying Name Bars from being occluded
+            // by the native video layer on subsequent renderer reuse.
+            tag = "merilive.overlay.entry"
         }
         parent.addView(fl)
         root = fl
+        try { fl.bringToFront() } catch (_: Throwable) {}
     }
 
     private fun attach(view: View) {
         ensureRoot()
         activeView = view
         root?.addView(view)
+        // Re-assert overlay z-order every time an entry animation mounts so
+        // a freshly attached LiveKit renderer can never visually replace it.
+        try { root?.bringToFront(); (root?.parent as? View)?.invalidate() } catch (_: Throwable) {}
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
