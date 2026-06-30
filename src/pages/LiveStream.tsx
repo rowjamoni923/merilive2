@@ -3664,6 +3664,16 @@ const LiveStream = () => {
   const isRemoteHostCameraOff = !!(remoteVideoTrack && (firstRemoteUser as any)?.videoMuted);
   const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
   const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack && !!nativeHostParticipant?.sid;
+  const [nativeHostSurfaceAttached, setNativeHostSurfaceAttached] = useState(false);
+  const [nativeViewerSurfaceAttached, setNativeViewerSurfaceAttached] = useState(false);
+  const handleNativeHostSurfaceAttached = useCallback(() => setNativeHostSurfaceAttached(true), []);
+  const handleNativeViewerSurfaceAttached = useCallback(() => setNativeViewerSurfaceAttached(true), []);
+  useEffect(() => {
+    if (!showNativeHostSurface) setNativeHostSurfaceAttached(false);
+  }, [showNativeHostSurface]);
+  useEffect(() => {
+    setNativeViewerSurfaceAttached(false);
+  }, [showNativeViewerSurface, nativeHostParticipant?.sid]);
   // Debug: Log remote video state changes
   useEffect(() => {
     if (!isHost) {
@@ -4112,13 +4122,81 @@ const LiveStream = () => {
             )}
           </div>
         ) : showNativeHostSurface ? (
-          <div className="absolute inset-0 pointer-events-none bg-transparent" />
+          <div className="absolute inset-0 pointer-events-none bg-transparent">
+            <div className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
+              nativeHostSurfaceAttached ? "opacity-0" : "opacity-100"
+            )}>
+              {hostInfo?.avatar && (
+                <img
+                  loading="lazy"
+                  decoding="async"
+                  src={hostInfo.avatar}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover opacity-30 blur-2xl scale-110"
+                />
+              )}
+              <div className="relative z-10 flex flex-col items-center gap-3">
+                <AvatarWithFrame
+                  userId={hostInfo?.id || currentUserId || undefined}
+                  src={hostInfo?.avatar}
+                  name={hostInfo?.name || "Host"}
+                  level={hostInfo?.level || 1}
+                  isHost
+                  size="xl"
+                  showAnimation={false}
+                  showGlow
+                />
+                <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-bold backdrop-blur-md">
+                  Camera connecting…
+                </div>
+              </div>
+            </div>
+            <NativeVideoView
+              kind="local"
+              mirror={true}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              onAttached={handleNativeHostSurfaceAttached}
+            />
+          </div>
         ) : showNativeViewerSurface && nativeHostParticipant?.sid ? (
-          <NativeVideoView
-            kind="remote"
-            sid={nativeHostParticipant.sid}
-            className="absolute inset-0 w-full h-full pointer-events-none"
-          />
+          <div className="absolute inset-0 pointer-events-none bg-transparent">
+            <div className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
+              nativeViewerSurfaceAttached ? "opacity-0" : "opacity-100"
+            )}>
+              {hostInfo?.avatar && (
+                <img
+                  loading="lazy"
+                  decoding="async"
+                  src={hostInfo.avatar}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover opacity-30 blur-2xl scale-110"
+                />
+              )}
+              <div className="relative z-10 flex flex-col items-center gap-3">
+                <AvatarWithFrame
+                  userId={hostInfo?.id}
+                  src={hostInfo?.avatar}
+                  name={hostInfo?.name || "Host"}
+                  level={hostInfo?.level || 1}
+                  isHost
+                  size="xl"
+                  showAnimation={false}
+                  showGlow
+                />
+                <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-bold backdrop-blur-md">
+                  Video connecting…
+                </div>
+              </div>
+            </div>
+            <NativeVideoView
+              kind="remote"
+              sid={nativeHostParticipant.sid}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              onAttached={handleNativeViewerSurfaceAttached}
+            />
+          </div>
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center">
             {/* Phase 3 (instant-entry): "Starting camera…" pill removed.

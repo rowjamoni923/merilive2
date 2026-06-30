@@ -53,6 +53,7 @@ class NativeLiveKitController {
   private activeFeature: NativeRoomScope | null = null;
   private previewFeature: NativeRoomScope | null = null;
   private previewStartPromise: Promise<boolean> | null = null;
+  private mediaEpoch = 0;
 
   private inferScopeFromCallType(callType?: string | null): NativeRoomScope | null {
     const s = String(callType || '').toLowerCase();
@@ -71,9 +72,14 @@ class NativeLiveKitController {
     const delays = [0, 120, 300, 700, 1200];
     let lastError: unknown = null;
     let lastResult: { attached?: boolean; reason?: string } | undefined;
+    const epoch = this.mediaEpoch;
 
     for (const delay of delays) {
       if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+      // If the user already hung up / left / navigated while the retry cadence
+      // was sleeping, never attach a stale fullscreen native renderer to the
+      // next screen or next media session.
+      if (epoch !== this.mediaEpoch || (!this.connected && !this.previewFeature)) return;
       try {
         const res = await (NativeLiveKit as any).attachLocal({ mirror: true });
         lastResult = res as { attached?: boolean; reason?: string } | undefined;
@@ -244,6 +250,7 @@ class NativeLiveKitController {
 
 
   async disconnect(): Promise<void> {
+    this.mediaEpoch += 1;
     try {
       await this.waitForIdle('disconnect handoff', 5000);
     } catch (error) {
@@ -269,6 +276,7 @@ class NativeLiveKitController {
    * Safe no-op on older APKs (Proxy swallows the missing method).
    */
   async disconnectSessionOnly(): Promise<void> {
+    this.mediaEpoch += 1;
     try {
       const fn = (NativeLiveKit as unknown as { disconnectSessionOnly?: () => Promise<unknown> })
         .disconnectSessionOnly;
@@ -415,6 +423,7 @@ class NativeLiveKitController {
 
   /** Stop the prejoin preview and release the camera. Always safe. */
   async stopLocalPreview(): Promise<void> {
+    this.mediaEpoch += 1;
     const pending = this.previewStartPromise;
     if (pending) await pending.catch(() => false);
     try { await NativeLiveKit.stopLocalPreview(); } catch { /* no preview / not implemented */ }

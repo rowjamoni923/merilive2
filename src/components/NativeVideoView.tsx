@@ -18,6 +18,8 @@
 import { useEffect, useId, useLayoutEffect, useRef } from 'react';
 import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 
+const MAX_NATIVE_SURFACE_BIND_RETRIES = 80;
+
 export interface NativeVideoViewProps {
   kind: 'local' | 'remote';
   /** Required when kind === 'remote'. */
@@ -43,6 +45,8 @@ export const NativeVideoView = ({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const lastBoundsRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
   const attachedRef = useRef(false);
+  const surfaceCreatedRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   // Sync DOM bounds → native renderer bounds.
   //
@@ -78,27 +82,34 @@ export const NativeVideoView = ({
       }
       inflight = true;
       try {
+        const scheduleAttachRetry = () => {
+          retryCountRef.current += 1;
+          if (!cancelled && retryCountRef.current <= MAX_NATIVE_SURFACE_BIND_RETRIES) schedule(true);
+        };
         if (!attachedRef.current) {
           if (kind === 'local') {
             const res = await NativeLiveKit.attachLocalSurface({
               viewId, x: b.x, y: b.y, width: b.w, height: b.h,
               mirror: mirror ?? true,
             });
+            surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
-              if (!cancelled) schedule(true);
+              scheduleAttachRetry();
               return;
             }
           } else {
             const res = await NativeLiveKit.attachRemoteSurface({
               viewId, sid: sid!, x: b.x, y: b.y, width: b.w, height: b.h,
             });
+            surfaceCreatedRef.current = true;
             if ((res as any)?.attached === false) {
-              if (!cancelled) schedule(true);
+              scheduleAttachRetry();
               return;
             }
           }
           if (cancelled) return;
           attachedRef.current = true;
+          retryCountRef.current = 0;
           lastBoundsRef.current = b;
           onAttached?.();
         } else {
@@ -111,7 +122,10 @@ export const NativeVideoView = ({
         // Plugin/Room/track may not be ready yet. Keep retrying on a bounded
         // short cadence instead of waiting for resize/scroll; otherwise party
         // seats can sit blank until another layout signal happens.
-        if (!cancelled && !attachedRef.current) schedule(true);
+        if (!cancelled && !attachedRef.current) {
+          retryCountRef.current += 1;
+          if (retryCountRef.current <= MAX_NATIVE_SURFACE_BIND_RETRIES) schedule(true);
+        }
       } finally {
         inflight = false;
       }
@@ -149,10 +163,18 @@ export const NativeVideoView = ({
       window.removeEventListener('resize', onOrientation);
       window.removeEventListener('orientationchange', onOrientation);
       el.removeEventListener('transitionend', onTransitionEnd);
-      if (attachedRef.current) {
+      if (surfaceCreatedRef.current || attachedRef.current) {
+        // First shrink the native TextureView to a harmless 1px slot, then
+        // detach it. We must also detach when a surface was created but track
+        // binding was still pending (`attached:false/no_track`), otherwise a
+        // blank orphan TextureView can survive navigation and cover the next
+        // live/party/call UI slot.
+        NativeLiveKit.updateSurfaceBounds({ viewId, x: 0, y: 0, width: 1, height: 1 }).catch(() => { /* noop */ });
         NativeLiveKit.detachSurface({ viewId }).catch(() => { /* noop */ });
         attachedRef.current = false;
+        surfaceCreatedRef.current = false;
       }
+      retryCountRef.current = 0;
       lastBoundsRef.current = null;
     };
   }, [kind, sid, mirror, onAttached]);
