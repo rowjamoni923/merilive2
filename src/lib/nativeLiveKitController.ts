@@ -227,6 +227,19 @@ class NativeLiveKitController {
         this.previewFeature = null;
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
+        recordCallDiag('session', 'connect', {
+          scope: requestedFeature,
+          callType: opts.callType,
+          boundedSurfaces: payload.boundedSurfaces === true,
+          surfaceMode: payload.boundedSurfaces ? 'bounded' : 'fullscreen',
+          captureW: payload.captureWidth,
+          captureH: payload.captureHeight,
+          maxBitrate: payload.maxBitrate,
+        });
+        recordCallDiag('surface-mode', payload.boundedSurfaces ? 'bounded' : 'fullscreen', {
+          scope: requestedFeature, callType: opts.callType,
+        });
+
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
 
         return { sid: res.sid, identity: res.identity };
@@ -275,6 +288,7 @@ class NativeLiveKitController {
 
   async disconnect(): Promise<void> {
     this.mediaEpoch += 1;
+    recordCallDiag('media-epoch', 'bump', { epoch: this.mediaEpoch, reason: 'disconnect' });
     try {
       await this.waitForIdle('disconnect handoff', 5000);
     } catch (error) {
@@ -285,11 +299,14 @@ class NativeLiveKitController {
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
+      const prevScope = this.activeFeature;
       this.connected = false;
       this.activeFeature = null;
       this.previewFeature = null;
       this.autoAttachLocalRenderer = true;
       this.busy = false;
+      recordCallDiag('session', 'disconnect', { scope: prevScope });
+      recordCallDiag('native-detach', 'detachAll', { scope: prevScope });
     }
   }
 
