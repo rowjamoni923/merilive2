@@ -2203,7 +2203,8 @@ export default function AdminLayout() {
           toast.error(payload.title || '🚨 Admin Alert', {
             description: (payload.message || '').slice(0, 120) || 'A new admin notice was posted',
             action: { label: '👉 View', onClick: () => navigate('/admin/notice-broadcast') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
         return;
