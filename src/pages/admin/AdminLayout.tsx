@@ -2020,14 +2020,11 @@ export default function AdminLayout() {
         body,
         icon: '/lovable-uploads/d1c47fc4-f6f4-4ad1-bb1d-1babb0154638.png',
         tag: `admin-${Date.now()}`,
-        requireInteraction: false,
+        requireInteraction: true, // Persist until admin interacts — no auto-vanish
         silent: false, // Let the browser play its default sound
       });
-      
-      // Auto-close after 8 seconds
-      setTimeout(() => notification.close(), 8000);
-      
-      // Focus tab when clicked
+
+      // Focus tab when clicked (notification only closes on user action)
       notification.onclick = () => {
         window.focus();
         notification.close();
