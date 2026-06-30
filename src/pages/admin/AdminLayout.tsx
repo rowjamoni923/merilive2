@@ -2331,7 +2331,8 @@ export default function AdminLayout() {
           toast(config.toast, {
             description: config.desc,
             action: { label: '👉 View', onClick: () => navigate(config.path) },
-            duration: 8000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
       }
