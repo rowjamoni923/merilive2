@@ -179,7 +179,15 @@ dependencies {
     // ES 2.0 alpha compositing. Same SDK shipped by WeChat / QQ / Tencent
     // Video / Honor of Kings. ~8x faster first-play vs WebView <video>
     // fallback, locked 60fps, ~25% less battery. MIT-licensed.
-    implementation 'com.tencent.qgame:vap:1.0.20'
+    //
+    // 16 KB PAGE-SIZE FIX (Android 15+ / Pixel 8+ / Play Console Nov 2025
+    // requirement): old artifact `com.tencent.qgame:vap:1.0.20` was abandoned
+    // in 2022 with 4 KB-aligned .so libs that fail to load on 16 KB devices.
+    // Migrated to Tencent's official maintained artifact `io.github.tencent:vap:2.0.28`.
+    // Java package `com.tencent.qgame.animplayer.*` stays IDENTICAL — no
+    // Kotlin import changes needed in NativeVAPPlugin / NativeGiftAnimationPlugin
+    // / NativeEntryAnimationPlugin.
+    implementation 'io.github.tencent:vap:2.0.28'
 
     // Pkg427 — AndroidX Media3 ExoPlayer for native Reels video playback.
     // Hardware MediaCodec decoder + 256MB disk cache → buttery-smooth
@@ -212,8 +220,11 @@ dependencies {
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 
 
-    // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.7.3')
+    // Firebase — BOM 33.7.0 is the first release where every Firebase native
+    // .so (firebase-installations, crashlytics-ndk, firestore native bits, etc.)
+    // ships 16 KB-aligned for Android 15+ devices. Old 32.7.3 BOM (Feb 2024)
+    // is a hard Play Console blocker as of Nov 2025.
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'
