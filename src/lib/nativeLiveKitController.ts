@@ -195,6 +195,16 @@ class NativeLiveKitController {
         // session is promoted. This keeps native video behind the React shell
         // without an old full-screen local Surface competing with the slots.
         boundedSurfaces: opts.attachLocal === false,
+        // Locked publish quality — pinned 720x1280@30fps base + 3-layer
+        // simulcast. Keeps live / party / private-call video sharp; SFU
+        // never down-tunes the base layer (anti-blur contract). Callers
+        // may override per-feature but should NOT loosen the cap.
+        captureWidth: (opts as { captureWidth?: number }).captureWidth ?? LIVEKIT_PUBLISH_LOCK.captureWidth,
+        captureHeight: (opts as { captureHeight?: number }).captureHeight ?? LIVEKIT_PUBLISH_LOCK.captureHeight,
+        captureFps: (opts as { captureFps?: number }).captureFps ?? LIVEKIT_PUBLISH_LOCK.captureFps,
+        maxBitrate: (opts as { maxBitrate?: number }).maxBitrate ?? LIVEKIT_PUBLISH_LOCK.maxBitrate,
+        maxFps: (opts as { maxFps?: number }).maxFps ?? LIVEKIT_PUBLISH_LOCK.maxFps,
+        simulcast: (opts as { simulcast?: boolean }).simulcast ?? LIVEKIT_PUBLISH_LOCK.simulcast,
       };
 
       try {
