@@ -98,6 +98,11 @@ class NativeCallPlugin : Plugin() {
         fun stopCallForegroundService(ctx: Context?) {
             val c = ctx ?: return
             try {
+                val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+                nm?.cancel(9001)
+                nm?.cancel(com.merilive.app.util.NotificationHelper.NOTIFICATION_CALL)
+            } catch (_: Throwable) {}
+            try {
                 val i = android.content.Intent(c, com.merilive.app.service.CallForegroundService::class.java).apply {
                     action = com.merilive.app.service.CallForegroundService.ACTION_STOP
                 }
@@ -105,6 +110,11 @@ class NativeCallPlugin : Plugin() {
             } catch (_: Throwable) {}
             try {
                 c.stopService(android.content.Intent(c, com.merilive.app.service.CallForegroundService::class.java))
+            } catch (_: Throwable) {}
+            try {
+                val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+                nm?.cancel(9001)
+                nm?.cancel(com.merilive.app.util.NotificationHelper.NOTIFICATION_CALL)
             } catch (_: Throwable) {}
         }
 
