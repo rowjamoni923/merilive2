@@ -77,7 +77,6 @@ import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
 import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
 import { useUnifiedEntryDispatcher } from "@/hooks/useUnifiedEntryDispatcher";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
-import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
@@ -445,14 +444,6 @@ const PartyRoom = () => {
     },
   });
 
-  
-  // Bigo-style flying join notifications for party room
-  const { 
-    activeNotification: activeBigoJoin, 
-    addNotification: addBigoJoinNotification, 
-    completeNotification: completeBigoJoin 
-  } = useBigoJoinNotifications();
-  
   
   // Flying gift animation
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
@@ -1214,12 +1205,6 @@ const PartyRoom = () => {
               },
             }]);
         fetchParticipants();
-        addBigoJoinNotification({
-          userId: data.userId,
-          userName: data.userName,
-          userAvatar: data.userAvatar,
-          userLevel: data.userLevel,
-        });
         setJoinMessages(prev => [...prev.slice(-20), {
           id: `livekit_join_${Date.now()}_${data.userId}`,
           userId: data.userId,
@@ -1633,7 +1618,6 @@ const PartyRoom = () => {
             const userName = prof?.display_name || 'User';
             const userLevel = getRequiredDisplayLevel(prof);
             const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
-            addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
             setJoinMessages(prev => [...prev.slice(-20), {
               id: `pg_join_${Date.now()}_${uid}`,
               userId: uid,
@@ -1694,7 +1678,7 @@ const PartyRoom = () => {
       try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
       try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
-  }, [roomId, fetchParticipants, fetchSeatRequests, addBigoJoinNotification, addEntryAnimation]);
+  }, [roomId, fetchParticipants, fetchSeatRequests, addEntryAnimation]);
 
   // ─────────────────────────────────────────────────────────────
   // PR-2.5: per-seat lock state — read once + subscribe to changes.
@@ -1816,14 +1800,6 @@ const PartyRoom = () => {
         await fetchParticipants();
         return;
       }
-
-      // Show self-join flying banner (viewers only)
-      addBigoJoinNotification({
-        userId: currentUser.id,
-        userName,
-        userAvatar: avatarUrl,
-        userLevel,
-      });
 
       console.log('[PartyRoom] 🚀 Self joined - checking for equipped entry animation:', userName, 'Level:', userLevel);
 
@@ -3158,12 +3134,6 @@ const PartyRoom = () => {
         onClose={() => setShowGiftContributors(false)}
         roomId={roomId || ''}
         totalBeans={totalRoomBeans}
-      />
-
-      {/* ==================== BIGO-STYLE JOIN BANNERS ==================== */}
-      <BigoJoinBannerContainer
-        activeNotification={activeBigoJoin}
-        onComplete={completeBigoJoin}
       />
 
       {/* ==================== PREMIUM ROOM CLOSED MODAL ==================== */}

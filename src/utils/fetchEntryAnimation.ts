@@ -90,7 +90,7 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
     const [entryBannerResult, shopItemResult, levelPrivilegeResult, vipTierResult, entryNameBarResult] = await Promise.all([
       supabase
         .from('entry_banners')
-        .select('animation_url, sound_url')
+        .select('animation_url, image_url, preview_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
       supabase
@@ -110,7 +110,7 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
         .maybeSingle(),
       supabase
         .from('entry_name_bars')
-        .select('animation_url, sound_url')
+        .select('animation_url, image_url, preview_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
     ]);
@@ -140,8 +140,9 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
       return cacheAndReturn(vipTierResult.data.entry_animation_url);
     }
     
-    if (entryNameBarResult.data?.animation_url) {
-      return cacheAndReturn(entryNameBarResult.data.animation_url, entryNameBarResult.data.sound_url);
+    const entryNameBarAsset = entryNameBarResult.data?.animation_url || entryNameBarResult.data?.image_url || entryNameBarResult.data?.preview_url;
+    if (entryNameBarAsset) {
+      return cacheAndReturn(entryNameBarAsset, entryNameBarResult.data?.sound_url);
     }
 
     setCache(`anim:${animationId}`, undefined);
@@ -169,7 +170,7 @@ export async function fetchEntryNameBarUrlById(nameBarId: string): Promise<strin
       // 1. Try entry_name_bars table (primary source for name bars)
       supabase
         .from('entry_name_bars')
-        .select('animation_url')
+        .select('animation_url, image_url, preview_url')
         .eq('id', nameBarId)
         .maybeSingle(),
       
@@ -196,15 +197,16 @@ export async function fetchEntryNameBarUrlById(nameBarId: string): Promise<strin
     ]);
 
     console.log('[fetchEntryNameBarUrlById] Query results:', {
-      entryNameBar: entryNameBarResult.data?.animation_url ? 'found' : 'not found',
+      entryNameBar: entryNameBarResult.data?.animation_url || entryNameBarResult.data?.image_url || entryNameBarResult.data?.preview_url ? 'found' : 'not found',
       levelPrivilege: levelPrivilegeResult.data?.animation_url ? 'found' : 'not found',
       shopItem: shopItemResult.data?.animation_url || shopItemResult.data?.animation_file_url ? 'found' : 'not found',
       entryBanner: entryBannerResult.data?.animation_url ? 'found' : 'not found',
     });
 
-    if (entryNameBarResult.data?.animation_url) {
-      setCache(`namebar:${nameBarId}`, entryNameBarResult.data.animation_url);
-      return entryNameBarResult.data.animation_url;
+    const entryNameBarAsset = entryNameBarResult.data?.animation_url || entryNameBarResult.data?.image_url || entryNameBarResult.data?.preview_url;
+    if (entryNameBarAsset) {
+      setCache(`namebar:${nameBarId}`, entryNameBarAsset);
+      return entryNameBarAsset;
     }
 
     if (entryBannerResult.data?.animation_url) {
@@ -294,7 +296,7 @@ async function fetchLevelBasedEntryNameBar(userLevel: number): Promise<string | 
       // 1. entry_name_bars table
       supabase
         .from('entry_name_bars')
-        .select('animation_url, name, min_level')
+        .select('animation_url, image_url, preview_url, name, min_level')
         .eq('is_active', true)
         .lte('min_level', userLevel)
         .order('min_level', { ascending: false })
@@ -321,9 +323,10 @@ async function fetchLevelBasedEntryNameBar(userLevel: number): Promise<string | 
       return levelPrivilegeResult.data.animation_url;
     }
     
-    if (entryNameBarResult.data?.animation_url) {
-      setCache(`lvl-namebar:${userLevel}`, entryNameBarResult.data.animation_url);
-      return entryNameBarResult.data.animation_url;
+    const entryNameBarAsset = entryNameBarResult.data?.animation_url || entryNameBarResult.data?.image_url || entryNameBarResult.data?.preview_url;
+    if (entryNameBarAsset) {
+      setCache(`lvl-namebar:${userLevel}`, entryNameBarAsset);
+      return entryNameBarAsset;
     }
     
     setCache(`lvl-namebar:${userLevel}`, undefined);

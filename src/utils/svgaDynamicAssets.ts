@@ -17,6 +17,9 @@
 
 const CACHE = new Map<string, string>();
 
+const TRANSPARENT_PIXEL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEklEQVR42mP8z8BQDwAEhQGA60e6kgAAAABJRU5ErkJggg==';
+
 /* -------------------------------------------------------------------------- */
 /*  Avatar circularization                                                    */
 /* -------------------------------------------------------------------------- */
@@ -144,7 +147,135 @@ export function discoverSlots(videoItem: any): DiscoveredSlots {
     const kind = classifySlotKey(key);
     if (kind) out[kind].push(key);
   }
+
+  // Many professional entry-name-bar SVGA files exported from AE/Lottie do not
+  // keep semantic keys like `avatar` / `name`. The current Meri name-bar assets
+  // are exactly like that: the user-data placeholders are numeric keys
+  // (`01`, `03`, `04`) and the decorative layers are generic `img_****` keys.
+  // If we only scan by name, injection silently does nothing and the app falls
+  // back to a static HTML overlay, which is why the avatar/name looked detached
+  // and oversized. Geometry fallback below discovers those placeholder slots
+  // from their authored canvas position and lets SVGAPlayer draw the user's
+  // identity INSIDE the timeline.
+  mergeGeometricEntryNameBarSlots(videoItem, out);
+
   return out;
+}
+
+interface SpriteSlotCandidate {
+  key: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  index: number;
+}
+
+const uniquePush = (arr: string[], key?: string | null) => {
+  if (key && !arr.includes(key)) arr.push(key);
+};
+
+const toNumber = (value: unknown, fallback = 0): number => {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const firstVisibleFrame = (sprite: any) => {
+  const frames = Array.isArray(sprite?.frames) ? sprite.frames : [];
+  return (
+    frames.find((f: any) => f?.layout && toNumber(f?.alpha, 1) > 0.05 && f?.transform) ||
+    frames.find((f: any) => f?.layout && f?.transform) ||
+    frames.find((f: any) => f?.layout)
+  );
+};
+
+const isSimpleNumberKey = (key: string, n?: number) => {
+  const normalized = key.trim();
+  if (!/^\d+$/.test(normalized)) return false;
+  if (typeof n !== 'number') return true;
+  return Number(normalized) === n;
+};
+
+function collectSpriteCandidates(videoItem: any): SpriteSlotCandidate[] {
+  const sprites = Array.isArray(videoItem?.sprites) ? videoItem.sprites : [];
+  const seen = new Map<string, SpriteSlotCandidate>();
+  sprites.forEach((sprite: any, index: number) => {
+    const key = String(sprite?.imageKey || '').replace(/\.matte$/i, '');
+    if (!key || seen.has(key)) return;
+    const frame = firstVisibleFrame(sprite);
+    if (!frame?.layout) return;
+    const layout = frame.layout;
+    const transform = frame.transform || {};
+    const candidate: SpriteSlotCandidate = {
+      key,
+      x: toNumber(transform.tx, toNumber(layout.x)),
+      y: toNumber(transform.ty, toNumber(layout.y)),
+      width: Math.max(0, toNumber(layout.width)),
+      height: Math.max(0, toNumber(layout.height)),
+      index,
+    };
+    if (candidate.width > 0 && candidate.height > 0) seen.set(key, candidate);
+  });
+  return Array.from(seen.values());
+}
+
+function mergeGeometricEntryNameBarSlots(videoItem: any, out: DiscoveredSlots): void {
+  const candidates = collectSpriteCandidates(videoItem);
+  if (!candidates.length) return;
+
+  const videoWidth = toNumber(videoItem?.videoSize?.width, toNumber(videoItem?.movieParams?.viewBoxWidth));
+  const videoHeight = toNumber(videoItem?.videoSize?.height, toNumber(videoItem?.movieParams?.viewBoxHeight));
+  if (!videoWidth || !videoHeight) return;
+
+  // Numeric placeholders are the safest signal for the Meri/professional
+  // templates currently in production: 01=name, 03=avatar, 04=level badge.
+  const numericName = candidates.find(c => isSimpleNumberKey(c.key, 1));
+  const numericAvatar = candidates.find(c => isSimpleNumberKey(c.key, 3));
+  const numericLevel = candidates.find(c => isSimpleNumberKey(c.key, 4));
+  uniquePush(out.name, numericName?.key);
+  uniquePush(out.avatar, numericAvatar?.key);
+  uniquePush(out.level, numericLevel?.key);
+
+  // If a designer exported with different generic names, infer the same slots
+  // from the common entry-bar layout: avatar left-middle, user name to the
+  // right, and a small level badge near the avatar/name seam.
+  const vw = videoWidth;
+  const vh = videoHeight;
+  const squareish = candidates.filter(c => {
+    const ratio = c.width / c.height;
+    return ratio > 0.72 && ratio < 1.35 && c.width >= vw * 0.04 && c.width <= vw * 0.18;
+  });
+  const wideText = candidates.filter(c => {
+    const ratio = c.width / c.height;
+    return ratio >= 3.5 && c.height >= vh * 0.08 && c.height <= vh * 0.24 && c.width >= vw * 0.16;
+  });
+  const badgeLike = candidates.filter(c => {
+    const ratio = c.width / c.height;
+    return ratio >= 1.25 && ratio <= 3.2 && c.height >= vh * 0.06 && c.height <= vh * 0.20;
+  });
+
+  if (!out.avatar.length) {
+    const avatar = squareish
+      .filter(c => c.x >= -vw * 0.02 && c.x <= vw * 0.22 && c.y >= vh * 0.25 && c.y <= vh * 0.70)
+      // Prefer non `img_` placeholders if available; generic `img_` layers are
+      // often decorative avatar frames and should remain intact.
+      .sort((a, b) => Number(a.key.startsWith('img_')) - Number(b.key.startsWith('img_')) || a.x - b.x)[0];
+    uniquePush(out.avatar, avatar?.key);
+  }
+
+  if (!out.name.length) {
+    const name = wideText
+      .filter(c => c.x >= vw * 0.10 && c.x <= vw * 0.45 && c.y >= vh * 0.25 && c.y <= vh * 0.65)
+      .sort((a, b) => a.y - b.y || a.x - b.x)[0];
+    uniquePush(out.name, name?.key);
+  }
+
+  if (!out.level.length) {
+    const level = badgeLike
+      .filter(c => c.x >= vw * 0.08 && c.x <= vw * 0.32 && c.y >= vh * 0.25 && c.y <= vh * 0.65)
+      .sort((a, b) => (a.width * a.height) - (b.width * b.height))[0];
+    uniquePush(out.level, level?.key);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -198,6 +329,10 @@ export function applyDynamicText(
     ? discovered[kind]
     : FALLBACK_KEYS[kind];
   for (const key of keys) {
+    // Designer placeholders often contain demo text/level art. Clear the
+    // placeholder bitmap first, then draw the live text in the exact same
+    // timeline slot so the identity is genuinely embedded in the SVGA frame.
+    try { player.setImage(TRANSPARENT_PIXEL, key); } catch { /* ignore */ }
     try { player.setText(payload, key); } catch { /* ignore */ }
   }
 }
