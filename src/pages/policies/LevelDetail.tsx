@@ -87,7 +87,8 @@ export default function LevelDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dark min-h-screen bg-background text-foreground">
+
       {/* Hero banner */}
       <header className="relative overflow-hidden">
         <img
