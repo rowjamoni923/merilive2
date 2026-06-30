@@ -652,31 +652,20 @@ const AdminSupportTickets = () => {
     }
   };
 
-  const handleApproveFaceFromSupport = async () => {
-    if (!selectedTicket || faceActionLoading) return;
-    if (!window.confirm('Approve face verification for this user? They will be marked as verified and can immediately go live / receive calls.')) return;
-    setFaceActionLoading(true);
-    try {
-      const { error } = await supabase.rpc('support_approve_face_verification', { _user_id: selectedTicket.user_id });
-      if (error) throw error;
-      toast({ title: '✅ Face Verified', description: 'User is now marked as face-verified.' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to approve face verification', variant: 'destructive' });
-    } finally {
-      setFaceActionLoading(false);
-    }
-  };
-
   const handleAllowFaceReapply = async () => {
     if (!selectedTicket || faceActionLoading) return;
-    if (!window.confirm('Reopen face verification so this user can submit a fresh application?')) return;
+    if (!window.confirm("Remove this user's previous face verification and let them submit a fresh application?")) return;
     setFaceActionLoading(true);
     try {
-      const { error } = await supabase.rpc('support_allow_host_reapply', { _user_id: selectedTicket.user_id });
-      if (error) throw error;
-      toast({ title: '♻️ Reopened', description: 'User can now re-apply for face verification.' });
+      // Physically remove the previous face verification record first
+      const { error: removeErr } = await supabase.rpc('admin_remove_face_verification', { _user_id: selectedTicket.user_id });
+      if (removeErr) throw removeErr;
+      // Then reopen the rejection state so they can re-apply immediately
+      const { error: reopenErr } = await supabase.rpc('support_allow_host_reapply', { _user_id: selectedTicket.user_id });
+      if (reopenErr) throw reopenErr;
+      toast({ title: '♻️ Removed', description: 'Previous face verification removed. User can now re-apply.' });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to reopen verification', variant: 'destructive' });
+      toast({ title: 'Error', description: err.message || 'Failed to reset face verification', variant: 'destructive' });
     } finally {
       setFaceActionLoading(false);
     }
