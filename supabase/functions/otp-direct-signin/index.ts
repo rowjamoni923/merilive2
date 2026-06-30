@@ -121,7 +121,11 @@ serve(async (req) => {
       if (password.length < 6) return json({ success: false, error: "Password must be at least 6 characters" }, 400);
       if (!displayName) return json({ success: false, error: "Display name is required" }, 400);
 
-      const metadata: Record<string, unknown> = { full_name: displayName, device_id: deviceId || undefined };
+      const metadata: Record<string, unknown> = {
+        full_name: displayName,
+        display_name: displayName,
+        device_id: deviceId || undefined,
+      };
       if (channel === "phone") {
         metadata.phone_number = tokenIdentifier;
         metadata.phone_verified = true;
@@ -131,7 +135,12 @@ serve(async (req) => {
         metadata.email_confirmed = true;
         profilePatch.email = email;
       }
-      if (gender) metadata.gender = gender;
+      if (gender) {
+        metadata.gender = gender;
+        metadata.selected_gender = gender;
+        metadata.account_type = gender === "female" ? "host" : "user";
+        metadata.profile_type = gender === "female" ? "host" : "user";
+      }
 
       const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
