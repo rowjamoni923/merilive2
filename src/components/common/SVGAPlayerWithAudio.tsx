@@ -176,13 +176,14 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
           `[SVGAPlayerWithAudio] 📥 Loaded "${fileTag}" | frames=${frames} | fps=${fps} | nativeDuration=${exactDuration.toFixed(0)}ms | loop=${loop}`
         );
 
-        player.setVideoItem(videoItemToUse);
-
         // Chamet/BIGO-style dynamic compositing — works with ANY admin-
         // uploaded SVGA. We auto-discover slot keys from the parsed
         // videoItem (case-insensitive substring + CJK aliases), then
         // inject avatar/frame/name/level BEFORE startAnimation so they
-        // move per-frame inside the timeline.
+        // move per-frame inside the timeline. IMPORTANT: inject BEFORE
+        // setVideoItem/prepare so the very first painted frame already contains
+        // the user's avatar/name/level; otherwise the default template frame can
+        // flash and the identity looks like a separate late overlay.
         const slots = discoverSlots(videoItem);
         if (isAnimationDebugEnabled()) {
           console.log('[SVGAPlayerWithAudio] 🎯 Discovered SVGA slots', {
@@ -202,6 +203,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         if (dynamicFrameUrl) applyDynamicImage(player, dynamicFrameUrl, 'frame', slots);
         if (dynamicName) applyDynamicText(player, dynamicName, 'name', slots);
         if (dynamicLevel) applyDynamicText(player, dynamicLevel, 'level', slots);
+
+        player.setVideoItem(videoItemToUse);
 
         setLoading(false);
         onLoadRef.current?.();
