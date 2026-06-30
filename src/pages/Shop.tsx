@@ -130,7 +130,12 @@ const categories = [
 
 // Entry animation categories that need full-width display
 const isEntryAnimationCategory = (category: string) => 
-  ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
+  ['entrance', 'entrance_effect', 'entry_bar', 'entry_banner', 'entry_name_bar', 'vehicle'].includes(category);
+
+// Entry NAME BAR variants — these get the engraved avatar+name+level overlay
+// (matches in-room EntryNameBarAnimation). Cars/vehicles do NOT.
+const isEntryNameBarCategory = (category: string) =>
+  ['entry_bar', 'entry_banner', 'entry_name_bar', 'entry_bar_effect'].includes(category);
 
 const shouldClearEntryAnimationCache = (category: string) =>
   ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
