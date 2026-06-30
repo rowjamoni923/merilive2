@@ -39,11 +39,11 @@ const PROMO_BANNERS: PromoBanner[] = [
 
 const SKIP_DELAY_MS = 3000;
 const AUTO_CLOSE_MS = 10000;
-// Spec: banner must appear AT MINIMUM 1 minute (60s) after the app opens,
-// and only to users who have not yet rated. Randomised up to 2 min to avoid
-// every device firing at the same moment.
-const RATING_SHOW_DELAY_MIN_MS = 60000;
-const RATING_SHOW_DELAY_MAX_MS = 120000;
+// Banner appears 20–40s after the app opens so every new user actually sees it
+// before closing. Original 60–120s window meant most short sessions missed it.
+const RATING_SHOW_DELAY_MIN_MS = 20000;
+const RATING_SHOW_DELAY_MAX_MS = 40000;
+
 const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
 const RATING_PENDING_KEY = "rating_reward_return_pending";
@@ -153,7 +153,32 @@ export function FullScreenPromoBanners() {
 
     const prepareBanner = async () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
-      if (localStorage.getItem(RATING_PENDING_KEY) === "true") return;
+      // If the user tapped the banner before but never submitted proof, the
+      // RATING_PENDING_KEY would block the banner forever. Clear it whenever
+      // the user has no existing claim row — the banner should keep nudging
+      // until they actually rate + submit proof.
+      if (localStorage.getItem(RATING_PENDING_KEY) === "true") {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: existing } = await supabase
+              .from("rating_reward_claims")
+              .select("id")
+              .eq("user_id", user.id)
+              .limit(1);
+            if ((existing?.length ?? 0) === 0) {
+              localStorage.removeItem(RATING_PENDING_KEY);
+            } else {
+              return;
+            }
+          } else {
+            return;
+          }
+        } catch {
+          return;
+        }
+      }
+
 
       // Top-priority Event Popup must show first. Defer until it dismisses.
       const eventActive = (() => {

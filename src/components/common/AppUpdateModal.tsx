@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, Sparkles, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Download, X, Sparkles, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import updateBanner3D from '@/assets/update-banner-3d.jpg';
 
 interface AppUpdateModalProps {
   isOpen: boolean;
@@ -14,6 +13,12 @@ interface AppUpdateModalProps {
   onDismiss: () => void;
 }
 
+/**
+ * Professional, compact update prompt.
+ * — No full-screen takeover. Centered card, max-w-[320px], auto height.
+ * — No giant hero image; small gradient icon badge in the header.
+ * — Reads cleanly on a 360–390px phone without scrolling.
+ */
 const AppUpdateModal = ({
   isOpen,
   currentVersion,
@@ -32,121 +37,93 @@ const AppUpdateModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
+        transition={{ duration: 0.18 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm p-4"
         onClick={forceUpdate ? undefined : onDismiss}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="app-update-title"
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.94, opacity: 0, y: 12 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-sm bg-gradient-to-br from-card via-card to-card/95 rounded-3xl overflow-hidden shadow-2xl border border-primary/20"
+          exit={{ scale: 0.94, opacity: 0, y: 8 }}
+          transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+          className="relative w-full max-w-[320px] rounded-2xl bg-card border border-border shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Decorative Background */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/20 rounded-full blur-3xl" />
-          </div>
-
-          {/* Close Button - Only show if not force update */}
+          {/* Close button (only when optional update) */}
           {!forceUpdate && (
             <button
               onClick={onDismiss}
-              className="absolute top-4 right-4 p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors z-10"
+              aria-label="Dismiss update"
+              className="absolute top-2.5 right-2.5 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
             >
-              <X className="w-4 h-4 text-muted-foreground" />
+              <X className="w-4 h-4" />
             </button>
           )}
 
-          {/* 3D Hero Banner */}
-          <div className="relative w-full aspect-square overflow-hidden">
-            <img
-              src={updateBanner3D}
-              alt="Update Available - New Version Live on Play Store"
-              className="w-full h-full object-cover"
-              width={1024}
-              height={1024}
-            />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], rotate: [0, 15, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute top-3 left-3"
-            >
-              <Sparkles className="w-6 h-6 text-yellow-400 drop-shadow-lg" />
-            </motion.div>
-          </div>
-
-          {/* Content */}
-          <div className="relative p-6 pt-2">
-            {/* Title */}
-            <h2 className="text-xl font-bold text-center text-foreground mb-2">
-              {forceUpdate ? 'Important Update Required' : 'New Update Available!'}
-            </h2>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              {updateMessage || 'A new version is available on Play Store'}
-            </p>
-
-            {/* Version Info */}
-            <div className="bg-muted/50 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Current Version</span>
-                <span className="text-sm font-medium text-foreground">{currentVersion}</span>
+          <div className="px-5 pt-5 pb-4">
+            {/* Header — compact icon badge */}
+            <div className="flex items-start gap-3 mb-3">
+              <div
+                className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
+                  forceUpdate
+                    ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                    : 'bg-gradient-to-br from-primary to-accent'
+                } shadow-md`}
+              >
+                {forceUpdate ? (
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-white" />
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">New Version</span>
-                <span className="text-sm font-bold text-primary">{availableVersion}</span>
-              </div>
-            </div>
-
-            {/* Features List */}
-            <div className="mb-6 space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>New Features & Improvements</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Bug Fixes & Performance Improvements</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>Security Updates</span>
-              </div>
-            </div>
-
-            {/* Force Update Warning */}
-            {forceUpdate && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
-                <p className="text-xs text-red-400 text-center">
-                  ⚠️ This update is required to continue using the app
+              <div className="min-w-0 flex-1 pr-6">
+                <h2
+                  id="app-update-title"
+                  className="text-[15px] font-semibold text-foreground leading-tight"
+                >
+                  {forceUpdate ? 'Update required' : 'Update available'}
+                </h2>
+                <p className="text-[12px] text-muted-foreground mt-0.5 leading-snug line-clamp-2">
+                  {updateMessage || 'A new version is live on Play Store.'}
                 </p>
               </div>
-            )}
+            </div>
 
-            {/* Buttons */}
-            <div className="space-y-3">
+            {/* Version row — single compact line */}
+            <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 mb-4">
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                v{currentVersion}
+              </span>
+              <span className="text-[11px] text-muted-foreground">→</span>
+              <span className="text-[12px] font-semibold text-primary tabular-nums">
+                v{availableVersion}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
               <Button
                 onClick={onOpenStore}
-                className={`w-full h-12 rounded-xl font-semibold ${
-                  forceUpdate 
-                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:opacity-90' 
-                    : 'bg-gradient-to-r from-primary to-accent hover:opacity-90'
-                } transition-opacity`}
+                className={`w-full h-10 rounded-lg text-[13px] font-semibold ${
+                  forceUpdate
+                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:opacity-95 text-white'
+                    : 'bg-gradient-to-r from-primary to-accent hover:opacity-95 text-primary-foreground'
+                }`}
               >
-                <Download className="w-5 h-5 mr-2" />
-                Update Now
+                <Download className="w-4 h-4 mr-1.5" />
+                Update now
               </Button>
-              
+
               {!forceUpdate && (
-                <Button
+                <button
                   onClick={onDismiss}
-                  variant="ghost"
-                  className="w-full h-10 text-muted-foreground hover:text-foreground"
+                  className="w-full h-8 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Later
-                </Button>
+                </button>
               )}
             </div>
           </div>
