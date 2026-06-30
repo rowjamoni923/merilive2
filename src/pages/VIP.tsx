@@ -1515,7 +1515,9 @@ const VIP = () => {
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>
                         </motion.div>
-                      ))}
+                        );
+                      })}
+
                     </div>
                   </motion.div>
                 )
