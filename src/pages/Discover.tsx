@@ -258,7 +258,7 @@ const Discover = () => {
     // Instant-close: subscribe directly to party_rooms UPDATE so a host
     // ending their room removes the card immediately (no 1.5s debounce wait).
     const instantCloseChannel = supabase
-      .channel('discover-instant-close')
+      .channel(`discover-instant-close-${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'party_rooms' },
