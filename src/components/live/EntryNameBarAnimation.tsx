@@ -79,11 +79,12 @@ const EntryNameBarAnimationInner = memo(({
   const triggerExit = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
-    setPhase('exiting');
-    setTimeout(() => {
-      if (mountedRef.current) setPhase('done');
-      onCompleteRef.current?.();
-    }, 600);
+    // PRO-SYNC (2026-06-30): Exit instantly the moment the SVGA's own
+    // timeline ends — no extra slide-out frames. The visible duration
+    // equals the SVGA's authored duration exactly, "not one second more
+    // and not one second less" as the user explicitly requires.
+    setPhase('done');
+    onCompleteRef.current?.();
   }, []);
 
   const handleSvgaComplete = useCallback(() => { triggerExit(); }, [triggerExit]);
