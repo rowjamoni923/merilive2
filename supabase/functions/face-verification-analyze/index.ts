@@ -1609,16 +1609,24 @@ serve(async (req) => {
       const alreadyApprovedForRetry = await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, userId);
 
       // In-app + push notification (English) — tap routes to /face-verification.
+      // Stage = evidence_quality (photo/video/live didn't confidently match).
       try {
         if (!alreadyApprovedForRetry) {
           const itemsList = failedEvidence.map((f) => f.human_name).join(", ");
+          const stage = "evidence_quality";
+          const stageLabel = "Evidence Quality Check";
+          const reasonCode = "identity_mismatch_needs_retry";
           await supabaseAdmin.from("notifications").insert({
             user_id: userId,
             type: "face_verification_retry",
-            title: "Verification Needs Retry",
-            message: `${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
+            title: `Verification Needs Retry — ${stageLabel}`,
+            message: `[${stageLabel} • ${reasonCode}] ${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
             data: {
               action_url: "/face-verification",
+              reason_code: reasonCode,
+              stage,
+              stage_label: stageLabel,
+              failed_evidence: failedEvidence.map((f) => f.label),
               steps: retryRequired.steps,
               submission_id: submissionId,
             },
@@ -1628,6 +1636,7 @@ serve(async (req) => {
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] retry notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
       }
+
 
       return new Response(
         JSON.stringify({
