@@ -1420,11 +1420,20 @@ export function UnifiedPartyRoom({
     return num.toLocaleString();
   };
 
+  // Android native LiveKit video is a TextureView behind the WebView. For
+  // video/game party rooms, the room background must stay transparent so the
+  // camera seats remain visible while controls/chat/gifts float above them.
+  const exposeNativePartyVideo = Boolean(isNativeMediaActive && roomType !== 'audio');
+
   return (
     <div
-      className="room-viewport z-[2147483000] isolate flex flex-col overflow-hidden"
+      className={cn(
+        "room-viewport z-[2147483000] isolate flex flex-col overflow-hidden",
+        exposeNativePartyVideo ? "bg-transparent" : undefined
+      )}
       data-room-shell
       style={{ 
+        background: exposeNativePartyVideo ? 'transparent' : undefined,
         paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))'
       }}
@@ -1470,7 +1479,9 @@ export function UnifiedPartyRoom({
               isGradientClass && effectiveBg
             )}
             style={
-              isImageUrl 
+              exposeNativePartyVideo
+                ? { background: 'transparent' }
+                : isImageUrl 
                 ? { 
                     backgroundImage: `url(${effectiveBg})`, 
                     backgroundSize: 'cover', 
