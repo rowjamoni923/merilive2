@@ -3940,6 +3940,8 @@ const LiveStream = () => {
         id={id ?? null}
         onRejoin={() => { try { window.location.reload(); } catch { /* ignore */ } }}
       />
+      {/* Pkg201: viewer-side autoplay unblock prompt (iOS Safari / Android WebView). */}
+      {!isHost && <AudioUnlockOverlay />}
       {/* UI hide/show disabled: header/chat/footer remain mounted above video. */}
 
       {/* Swipe navigation works via touch gestures - no visible indicators */}
