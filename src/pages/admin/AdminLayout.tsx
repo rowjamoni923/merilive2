@@ -2168,7 +2168,7 @@ export default function AdminLayout() {
         }
         playSoundViaRef();
         showBrowserNotifViaRef(n.title, n.message);
-        toast.info(n.title, { description: n.message, duration: 5000 });
+        toast.info(n.title, { description: n.message, duration: Infinity, closeButton: true });
         return;
       }
 
