@@ -75,7 +75,7 @@ export default function LevelDetail() {
 
   if (!meta) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 text-center">
+      <div className="dark min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
         <div>
           <p className="text-muted-foreground mb-3">Unknown policy level.</p>
           <Button asChild>
@@ -86,8 +86,10 @@ export default function LevelDetail() {
     );
   }
 
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dark min-h-screen bg-background text-foreground">
+
       {/* Hero banner */}
       <header className="relative overflow-hidden">
         <img
