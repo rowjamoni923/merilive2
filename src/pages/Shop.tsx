@@ -760,10 +760,12 @@ const Shop = () => {
                 {/* Preview */}
                 <div
                   className={`${
-                    isEntryAnimationCategory(selectedItem.category)
-                      ? 'aspect-[9/16] min-h-[260px] max-h-[50dvh]'
-                      : 'aspect-square'
-                  } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
+                    isEntryNameBarCategory(selectedItem.category)
+                      ? 'aspect-[1024/280]'
+                      : isEntryAnimationCategory(selectedItem.category)
+                        ? 'aspect-[9/16] min-h-[260px] max-h-[50dvh]'
+                        : 'aspect-square'
+                  } rounded-2xl flex items-center justify-center ${isEntryNameBarCategory(selectedItem.category) ? 'p-0' : 'p-6'} relative overflow-hidden`}
                   style={{
                     background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
                     border: '1px solid rgba(217,182,107,0.3)',
@@ -772,6 +774,22 @@ const Shop = () => {
                   {(() => {
                     const animType = pickAnimType(selectedItem);
                     const animSrc = selectedItem.animation_file_url || selectedItem.animation_url || '';
+
+                    // Entry Name Bar: composited preview (animation + engraved
+                    // avatar + name + level) — matches in-room render 1:1.
+                    if (isEntryNameBarCategory(selectedItem.category)) {
+                      return (
+                        <EntryNameBarPreview
+                          animationUrl={animSrc || null}
+                          previewUrl={selectedItem.preview_url}
+                          userName={userName}
+                          avatarUrl={userAvatar}
+                          level={userLevel}
+                          className="absolute inset-0"
+                        />
+                      );
+                    }
+
                     if (animSrc && isAnimatedType(animType)) {
                       return (
                         <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
