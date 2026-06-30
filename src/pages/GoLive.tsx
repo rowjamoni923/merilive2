@@ -931,10 +931,12 @@ const GoLive = () => {
       return;
     }
 
-    // Approved hosts can go live directly; regular users still need face verification.
+    // Owner rule (2026-06-30): if the user hasn't completed face verification
+    // yet, jump them STRAIGHT to /face-verification. No intermediate dialog —
+    // the verification page itself explains the rules.
     if (!isHost && !resolvedProfile?.is_face_verified
         && String(resolvedProfile?.face_verification_status ?? '').toLowerCase() !== 'approved') {
-      setShowFaceVerificationRequired(true);
+      void navigateAwayFromGoLive("/face-verification");
       return;
     }
 
@@ -950,7 +952,7 @@ const GoLive = () => {
         const reason = String(gate?.reason || 'You cannot go live right now.');
         switch (code) {
           case 'face':
-            setShowFaceVerificationRequired(true);
+            void navigateAwayFromGoLive("/face-verification");
             return;
           case 'host_not_approved':
             toast.error('Your host approval is not active yet. Please wait for admin approval.', { duration: 6000 });
