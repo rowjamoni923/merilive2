@@ -173,7 +173,7 @@ export function ParticipantVideo({
             x5-video-player-fullscreen="false"
             webkit-playsinline="true"
             className={cn(
-              "absolute inset-0 w-full h-full object-cover z-[1]",
+              "absolute inset-0 w-full h-full object-contain z-[1]",
               isSelf && "transform scale-x-[-1]"
             )}
             style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
