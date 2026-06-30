@@ -725,13 +725,13 @@ export function ActiveCallScreen({
     // while CallProvider's prejoin ref is still logically alive. Rely on
     // the hook's cleanup as the single source of truth — the CallEnded
     // modal unmount is the same tick window in practice.
-    // End immediately on both sides, but keep the LiveKit room registered until
-    // CallProvider publishes the hangup packet. Cleaning media first unregisters
-    // the room and makes the peer wait for DB realtime instead of instant close.
+    // Release camera/native renderers immediately so the UI and device never
+    // stay visually "running" after hangup; provider still finalizes DB/billing.
+    try { cleanup(); } catch { /* noop */ }
     try {
       await Promise.resolve(onEndCall());
-    } finally {
-      cleanup();
+    } catch (error) {
+      console.warn('[ActiveCall] endCall finalize failed:', error);
     }
   };
   useEffect(() => {
@@ -1022,7 +1022,7 @@ export function ActiveCallScreen({
         willChange: 'transform',
         width: '100vw',
         height: '100dvh',
-        background: isNativeMediaActive ? 'transparent' : '#050208',
+        background: (isNativeMediaActive && !callEnded) ? 'transparent' : '#050208',
       }}
     >
       <div
@@ -1200,7 +1200,7 @@ export function ActiveCallScreen({
             {showNativeCallingSurface ? (
               <div className="absolute inset-0">
                 <NativeVideoView kind="local" mirror={true} className="absolute inset-0 w-full h-full pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/45" />
               </div>
             ) : localVideoTrack ? (
               <div className="absolute inset-0">
@@ -1210,7 +1210,7 @@ export function ActiveCallScreen({
                   fit="cover"
                   className="w-full h-full"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
             ) : isPreviewWeb && previewStream ? (
               <div className="absolute inset-0">
@@ -1222,7 +1222,7 @@ export function ActiveCallScreen({
                   className="w-full h-full object-cover"
                   style={{ transform: 'scaleX(-1)' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
             ) : (
               <div className="absolute inset-0">
@@ -1294,7 +1294,7 @@ export function ActiveCallScreen({
                 />
 
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+                <div className={cn("w-full h-full flex flex-col items-center justify-center", isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black")}>
                   {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
                   { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
                     <img loading="lazy" decoding="async" 
@@ -1383,7 +1383,7 @@ export function ActiveCallScreen({
                   className="w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+                <div className={cn("w-full h-full flex flex-col items-center justify-center", isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black")}>
                   { (isSwapped ? remoteUserAvatar : myAvatarUrl) && (
                     <img loading="lazy" decoding="async"
                       src={enhanceThumbnail(isSwapped ? remoteUserAvatar : myAvatarUrl, { width: 64, quality: 60 })}

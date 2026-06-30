@@ -185,6 +185,7 @@ export function usePrivateCall(userId: string | null) {
   const resetCallState = useCallback(() => {
     console.log('[Call] Resetting call state completely');
     const callIdToReset = currentCallIdRef.current;
+    const wasAlreadyEnded = !!callIdToReset && endedCallIdsRef.current.has(callIdToReset);
     
     // Mark this call ID as permanently ended - NEVER show it again
     if (callIdToReset) {
@@ -199,10 +200,12 @@ export function usePrivateCall(userId: string | null) {
     // Section#5 pass-4: every non-manual reset path (missed/declined/accept
     // failure/row vanished) must also tear down Android Telecom + any native
     // incoming UI. Otherwise BT audio/system call-log can stay stuck until app kill.
-    if (callIdToReset && isNativeAndroidApp()) {
+    if (callIdToReset && isNativeAndroidApp() && !wasAlreadyEnded) {
       NativeCall.reportCallEnded({ callId: callIdToReset, remote: true }).catch(() => {});
       NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
       NativeCall.closeInCallActivity({ callId: callIdToReset }).catch(() => {});
+    }
+    if (callIdToReset && isNativeAndroidApp()) {
       NativeCamera.stop().catch(() => {});
       clearPreparedCallMediaStream(callIdToReset, { stopTracks: true });
     }

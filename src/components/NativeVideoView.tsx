@@ -43,6 +43,7 @@ export const NativeVideoView = ({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const lastBoundsRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
   const attachedRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   // Sync DOM bounds → native renderer bounds.
   //
@@ -99,6 +100,7 @@ export const NativeVideoView = ({
           }
           if (cancelled) return;
           attachedRef.current = true;
+          retryCountRef.current = 0;
           lastBoundsRef.current = b;
           onAttached?.();
         } else {
@@ -111,7 +113,10 @@ export const NativeVideoView = ({
         // Plugin/Room/track may not be ready yet. Keep retrying on a bounded
         // short cadence instead of waiting for resize/scroll; otherwise party
         // seats can sit blank until another layout signal happens.
-        if (!cancelled && !attachedRef.current) schedule(true);
+        if (!cancelled && !attachedRef.current) {
+          retryCountRef.current += 1;
+          if (retryCountRef.current <= 18) schedule(true);
+        }
       } finally {
         inflight = false;
       }
@@ -150,9 +155,14 @@ export const NativeVideoView = ({
       window.removeEventListener('orientationchange', onOrientation);
       el.removeEventListener('transitionend', onTransitionEnd);
       if (attachedRef.current) {
+        // First shrink the native TextureView to a harmless 1px slot, then
+        // detach it. This prevents a slow bridge cleanup from leaving an
+        // orphan renderer visibly floating over the next call/live/party UI.
+        NativeLiveKit.updateSurfaceBounds({ viewId, x: 0, y: 0, width: 1, height: 1 }).catch(() => { /* noop */ });
         NativeLiveKit.detachSurface({ viewId }).catch(() => { /* noop */ });
         attachedRef.current = false;
       }
+      retryCountRef.current = 0;
       lastBoundsRef.current = null;
     };
   }, [kind, sid, mirror, onAttached]);

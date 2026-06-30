@@ -99,12 +99,20 @@ export function useSeatRendererBinding(opts: {
 }) {
   const { enabled, seatIndex, identity, anchorRef, mirror } = opts;
   const lastIdentityRef = useRef<string | null>(null);
+  const activeSeatRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!enabled || !identity || !anchorRef.current) return;
-    if (!isNativeSeatRendererAvailable()) return;
+    if (!enabled || !identity || !anchorRef.current) {
+      activeSeatRef.current = null;
+      return;
+    }
+    if (!isNativeSeatRendererAvailable()) {
+      activeSeatRef.current = null;
+      return;
+    }
     const el = anchorRef.current;
     lastIdentityRef.current = identity;
+    activeSeatRef.current = seatIndex;
 
     let raf = 0;
     const apply = () => {
@@ -135,7 +143,12 @@ export function useSeatRendererBinding(opts: {
       window.removeEventListener('resize', reapply);
       window.removeEventListener('scroll', reapply, true);
       window.removeEventListener('orientationchange', reapply);
-      void unbindSeatRenderer(seatIndex);
+      window.setTimeout(() => {
+        // If the same seat immediately rebound to a new identity, do not let
+        // the old cleanup unbind the new renderer. If the seat was disabled or
+        // unmounted, activeSeatRef is null/different and we release it.
+        if (activeSeatRef.current !== seatIndex) void unbindSeatRenderer(seatIndex);
+      }, 0);
     };
   }, [enabled, seatIndex, identity, mirror, anchorRef]);
 }

@@ -151,7 +151,12 @@ export function usePartyRoomNativeLiveKit(
       next.set(`user_${stripped}`, p);
     });
     setState((prev) => ({ ...prev, nativeParticipants: next }));
-    nativeLiveKitController.attachAllRemotes().catch(() => {});
+    // Native track events can arrive just before React seats mount. Sweep now
+    // and twice more so late-mounted bounded <NativeVideoView /> seats bind
+    // instead of sitting blank until another participant event happens.
+    await nativeLiveKitController.attachAllRemotes().catch(() => {});
+    setTimeout(() => { if (usingNativeRef.current && !deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 250);
+    setTimeout(() => { if (usingNativeRef.current && !deadRef.current) nativeLiveKitController.attachAllRemotes().catch(() => {}); }, 800);
   }, []);
 
   const ensureNativePartyPreview = useCallback(async () => {
