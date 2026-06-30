@@ -181,9 +181,12 @@ const Index = () => {
       && host.is_face_verified === true
       && host.host_availability !== "offline";
     if (!baseOk) return false;
-    // Pkg368: only show online / live / busy hosts; hide offline from home feed.
+    // Pkg368: only show truly real-time online / live / busy hosts. Heartbeat
+    // cadence is 120s, so a 5-minute window keeps presence accurate
+    // (industry-standard, matches Chamet/Bigo "Online" semantics) while
+    // tolerating one missed beat. Hosts beyond this window are treated as offline.
     const lastSeen = host.last_seen_at ? new Date(host.last_seen_at).getTime() : 0;
-    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 30 * 60 * 1000;
+    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 5 * 60 * 1000;
     return isReallyOnline || host.isLive === true || host.is_in_call === true;
   }, []);
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
@@ -606,7 +609,8 @@ const Index = () => {
           {/* Lightweight readability scrim only — no separate color panel or divider. */}
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/70 via-foreground/18 to-transparent" />
 
-          {/* Premium 3D Status Badge — LIVE (red) / BUSY (amber) / ONLINE (green) */}
+          {/* Flat Status Badge — Chamet/Bigo industry standard.
+              LIVE (red) / BUSY (amber) / ONLINE (green). No 3D, no bevel. */}
           {(() => {
             const status: "live" | "busy" | "online" | null = user.isLive
               ? "live"
@@ -618,46 +622,22 @@ const Index = () => {
             if (!status) return null;
 
             const cfg = {
-              live: {
-                label: "LIVE",
-                gradient: "linear-gradient(180deg,#ff5a6b 0%,#ef3344 55%,#b91222 100%)",
-                ring: "rgba(255,255,255,0.55)",
-                glow: "0 8px 18px -4px rgba(239,51,68,0.65), 0 0 0 1px rgba(185,18,34,0.35), inset 0 1.5px 0 rgba(255,255,255,0.55), inset 0 -1.5px 0 rgba(0,0,0,0.25)",
-                dot: "#ffffff",
-                pulse: true,
-              },
-              busy: {
-                label: "BUSY",
-                gradient: "linear-gradient(180deg,#fde68a 0%,#f59e0b 55%,#b45309 100%)",
-                ring: "rgba(255,255,255,0.6)",
-                glow: "0 8px 18px -4px rgba(245,158,11,0.6), 0 0 0 1px rgba(180,83,9,0.35), inset 0 1.5px 0 rgba(255,255,255,0.6), inset 0 -1.5px 0 rgba(120,53,15,0.3)",
-                dot: "#fffbeb",
-                pulse: false,
-              },
-              online: {
-                label: "ONLINE",
-                gradient: "linear-gradient(180deg,#86efac 0%,#22c55e 55%,#15803d 100%)",
-                ring: "rgba(255,255,255,0.6)",
-                glow: "0 8px 18px -4px rgba(34,197,94,0.6), 0 0 0 1px rgba(21,128,61,0.35), inset 0 1.5px 0 rgba(255,255,255,0.55), inset 0 -1.5px 0 rgba(20,83,45,0.3)",
-                dot: "#ffffff",
-                pulse: true,
-              },
+              live:   { label: "LIVE",   bg: "#ef4444", dot: "#ffffff", pulse: true  },
+              busy:   { label: "BUSY",   bg: "#f59e0b", dot: "#ffffff", pulse: false },
+              online: { label: "ONLINE", bg: "#22c55e", dot: "#ffffff", pulse: true  },
             }[status];
 
             return (
-              <div className="absolute top-2.5 left-2 z-10">
+              <div className="absolute top-2 left-2 z-10">
                 <div
-                  className="flex items-center gap-1.5 px-2.5 py-[5px] rounded-full"
-                  style={{ background: cfg.gradient, boxShadow: cfg.glow }}
+                  className="flex items-center gap-1 px-2 py-[3px] rounded-full"
+                  style={{ background: cfg.bg }}
                 >
                   <span
-                    className={cn("w-[6px] h-[6px] rounded-full", cfg.pulse && "animate-pulse")}
-                    style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}, inset 0 0 1px rgba(0,0,0,0.2)` }}
+                    className={cn("w-[5px] h-[5px] rounded-full", cfg.pulse && "animate-pulse")}
+                    style={{ background: cfg.dot }}
                   />
-                  <span
-                    className="text-[10px] font-black tracking-[0.08em] text-white"
-                    style={{ textShadow: "0 1px 0 rgba(0,0,0,0.35), 0 0 6px rgba(255,255,255,0.25)" }}
-                  >
+                  <span className="text-[10px] font-semibold tracking-wide text-white leading-none">
                     {cfg.label}
                   </span>
                 </div>
@@ -665,15 +645,12 @@ const Index = () => {
             );
           })()}
 
-          {/* Live viewer count */}
+          {/* Live viewer count — flat pill */}
           {user.isLive && (user.viewerCount ?? 0) > 0 && (
-            <div className="absolute top-2.5 right-2">
-              <div
-                className="flex items-center gap-1 bg-foreground/65 backdrop-blur-md rounded-full px-2 py-1"
-                style={{ boxShadow: '0 3px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)' }}
-              >
-                <Eye className="w-3 h-3 text-on-dark" />
-                <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
+            <div className="absolute top-2 right-2">
+              <div className="flex items-center gap-1 bg-black/55 rounded-full px-2 py-[3px]">
+                <Eye className="w-3 h-3 text-white" />
+                <span className="text-[10px] text-white font-semibold leading-none">{user.viewerCount}</span>
               </div>
             </div>
           )}
