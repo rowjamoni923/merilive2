@@ -3259,6 +3259,93 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-5"] {
   color: #FFFFFF !important;
 }
 
+/* Light translucent gradient panels use classes like `from-blue-500/10` or
+   `to-purple-600/5`. Those are pale backgrounds, not solid buttons, so white
+   inherited text becomes unreadable. Keep these panels dark/slate globally. */
+.admin-content [class*="from-blue-500/"],
+.admin-content [class*="from-blue-600/"],
+.admin-content [class*="from-pink-500/"],
+.admin-content [class*="from-pink-600/"],
+.admin-content [class*="from-purple-500/"],
+.admin-content [class*="from-purple-600/"],
+.admin-content [class*="from-violet-500/"],
+.admin-content [class*="from-violet-600/"],
+.admin-content [class*="from-emerald-500/"],
+.admin-content [class*="from-emerald-600/"],
+.admin-content [class*="from-green-500/"],
+.admin-content [class*="from-green-600/"],
+.admin-content [class*="from-red-500/"],
+.admin-content [class*="from-red-600/"],
+.admin-content [class*="from-rose-500/"],
+.admin-content [class*="from-rose-600/"],
+.admin-content [class*="from-amber-500/"],
+.admin-content [class*="from-amber-600/"],
+.admin-content [class*="from-yellow-400/"],
+.admin-content [class*="from-yellow-500/"],
+.admin-content [class*="from-cyan-400/"],
+.admin-content [class*="from-cyan-500/"],
+.admin-content [class*="from-cyan-600/"],
+.admin-content [class*="from-teal-500/"],
+.admin-content [class*="from-teal-600/"],
+.admin-content [class*="from-fuchsia-500/"],
+.admin-content [class*="from-fuchsia-600/"],
+.admin-content [class*="from-indigo-500/"],
+.admin-content [class*="from-indigo-600/"],
+.admin-content [class*="from-orange-500/"],
+.admin-content [class*="from-orange-600/"],
+.admin-content [class*="from-sky-500/"],
+.admin-content [class*="from-sky-600/"],
+.admin-content [class*="from-lime-500/"],
+.admin-content [class*="from-lime-600/"] {
+  color: #0F172A !important;
+}
+.admin-content [class*="from-blue-500/"] *,
+.admin-content [class*="from-blue-600/"] *,
+.admin-content [class*="from-pink-500/"] *,
+.admin-content [class*="from-pink-600/"] *,
+.admin-content [class*="from-purple-500/"] *,
+.admin-content [class*="from-purple-600/"] *,
+.admin-content [class*="from-violet-500/"] *,
+.admin-content [class*="from-violet-600/"] *,
+.admin-content [class*="from-emerald-500/"] *,
+.admin-content [class*="from-emerald-600/"] *,
+.admin-content [class*="from-green-500/"] *,
+.admin-content [class*="from-green-600/"] *,
+.admin-content [class*="from-red-500/"] *,
+.admin-content [class*="from-red-600/"] *,
+.admin-content [class*="from-rose-500/"] *,
+.admin-content [class*="from-rose-600/"] *,
+.admin-content [class*="from-amber-500/"] *,
+.admin-content [class*="from-amber-600/"] *,
+.admin-content [class*="from-yellow-400/"] *,
+.admin-content [class*="from-yellow-500/"] *,
+.admin-content [class*="from-cyan-400/"] *,
+.admin-content [class*="from-cyan-500/"] *,
+.admin-content [class*="from-cyan-600/"] *,
+.admin-content [class*="from-teal-500/"] *,
+.admin-content [class*="from-teal-600/"] *,
+.admin-content [class*="from-fuchsia-500/"] *,
+.admin-content [class*="from-fuchsia-600/"] *,
+.admin-content [class*="from-indigo-500/"] *,
+.admin-content [class*="from-indigo-600/"] *,
+.admin-content [class*="from-orange-500/"] *,
+.admin-content [class*="from-orange-600/"] *,
+.admin-content [class*="from-sky-500/"] *,
+.admin-content [class*="from-sky-600/"] *,
+.admin-content [class*="from-lime-500/"] *,
+.admin-content [class*="from-lime-600/"] * {
+  color: #0F172A !important;
+}
+
+/* Gradient clipped headings can become transparent/invisible after theme
+   overrides. In admin, readability wins over decorative gradient typography. */
+.admin-content .text-transparent[class*="bg-clip-text"],
+.admin-content [class*="text-transparent"][class*="bg-clip-text"] {
+  background-image: none !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
 /* ============================================
    LIGHT TINTED SURFACES — keep light, force dark text
    (replaces old rules that forced everything to dark slate)

@@ -77,9 +77,9 @@ interface AdminNotice {
 
 const AUDIENCE_OPTIONS = [
   { id: 'all', label: 'All Users', icon: Users, gradient: 'from-blue-500 to-indigo-600', description: 'Send to everyone' },
-  { id: 'hosts', label: 'Hosts Only', icon: Crown, gradient: 'from-pink-500 to-rose-600', description: 'Female verified hosts' },
+  { id: 'hosts', label: 'Hosts Only', icon: Crown, gradient: 'from-pink-500 to-rose-600', description: 'Verified host accounts' },
   { id: 'agencies', label: 'Agencies Only', icon: Building2, gradient: 'from-purple-500 to-violet-600', description: 'Agency owners' },
-  { id: 'users', label: 'Regular Users', icon: Users, gradient: 'from-emerald-500 to-teal-600', description: 'All registered users' },
+  { id: 'users', label: 'Regular Users', icon: Users, gradient: 'from-emerald-500 to-teal-600', description: 'Non-host, non-helper, non-agency' },
   { id: 'level5_helpers', label: 'Level 5 Helpers', icon: Diamond, gradient: 'from-cyan-400 to-blue-500', description: 'Verified Level 5 helpers' },
   { id: 'helpers', label: 'All Helpers', icon: Shield, gradient: 'from-amber-500 to-orange-600', description: 'All verified helpers' },
 ];
@@ -154,7 +154,10 @@ const AdminNoticeBroadcast = () => {
       if (audienceId === 'all') {
         return prev.includes('all') ? [] : ['all'];
       }
-      
+
+      // "All Users" is exclusive, but it must never lock the other cards.
+      // Clicking any specific section while All is active switches targeting
+      // immediately to that section so every audience card stays usable.
       const newAudiences = prev.filter(a => a !== 'all');
       if (newAudiences.includes(audienceId)) {
         return newAudiences.filter(a => a !== audienceId);
@@ -381,17 +384,17 @@ const AdminNoticeBroadcast = () => {
   };
 
   return (
-    <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+      <div className="admin-pro-shell admin-content -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 via-rose-500 to-pink-600 shadow-lg shadow-orange-500/20">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate('/admin')}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors text-slate-900"
+            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors text-white"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold text-slate-900 pr-7">
+          <h1 className="flex-1 text-center text-lg font-semibold text-white pr-7">
             Notice Broadcast
           </h1>
         </div>
@@ -518,32 +521,28 @@ const AdminNoticeBroadcast = () => {
                 {AUDIENCE_OPTIONS.map((option) => {
                   const Icon = option.icon;
                   const isSelected = selectedAudiences.includes(option.id);
-                  const isDisabled = option.id !== 'all' && selectedAudiences.includes('all');
                   
                   return (
                     <motion.button
                       key={option.id}
                       onClick={() => toggleAudience(option.id)}
-                      disabled={isDisabled}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
+                      className={`p-3 rounded-xl border-2 transition-all text-left bg-white ${
                         isSelected 
-                          ? 'border-primary bg-primary/10' 
-                          : isDisabled
-                            ? 'border-muted bg-muted/30 opacity-50 cursor-not-allowed'
-                            : 'border-border hover:border-primary/50'
+                          ? 'border-blue-500 bg-blue-50 shadow-sm ring-2 ring-blue-500/10' 
+                          : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
                       }`}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg`}>
-                          <Icon className="w-4 h-4 text-slate-900" />
+                          <Icon className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{option.label}</p>
-                          <p className="text-xs text-muted-foreground truncate">{option.description}</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">{option.label}</p>
+                          <p className="text-xs text-slate-600 truncate">{option.description}</p>
                         </div>
                         {isSelected && (
-                          <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                          <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
                         )}
                       </div>
                     </motion.button>
@@ -600,7 +599,7 @@ const AdminNoticeBroadcast = () => {
               <Button
                 onClick={handleSendNotice}
                 disabled={sending || !title || !message || selectedAudiences.length === 0}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
               >
                 {sending ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
