@@ -1996,9 +1996,18 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       const choice = getVideoQualityChoice();
       preferredVideoQualityRef.current = resolveVideoQuality(choice);
       applyVideoQualityToRoom(roomRef.current, choice);
-      const cap = bucketToCap(getQualityHint().bucket);
-      if (cap !== null) applyVideoQualityCapToRoom(roomRef.current, cap);
+      const hint = getQualityHint();
+      const cap = bucketToCap(hint.bucket);
+      if (cap !== null) {
+        // applyVideoQualityCapToRoom internally skips the cap when the user
+        // has explicitly chosen low/medium/high — prevents silent downgrade.
+        applyVideoQualityCapToRoom(roomRef.current, cap, {
+          userChoice: choice,
+          reason: `quality-hint=${hint.bucket}`,
+        });
+      }
     };
+
     apply();
     const onChange = () => apply();
     window.addEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
