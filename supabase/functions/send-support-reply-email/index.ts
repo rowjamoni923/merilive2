@@ -77,8 +77,34 @@ serve(async (req: Request) => {
 
     if (invokeError) {
       console.error("send-transactional-email failed:", invokeError);
-      return new Response(JSON.stringify({ success: false, error: invokeError.message || String(invokeError) }), {
-        status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+      // Try to extract underlying error body for clearer admin UX
+      let underlying = invokeError.message || String(invokeError);
+      let senderNotReady = false;
+      try {
+        const ctx: any = (invokeError as any).context;
+        if (ctx && typeof ctx.text === "function") {
+          const bodyText = await ctx.text();
+          underlying = bodyText || underlying;
+          if (/no_matching_sender|EMAIL_SENDER_DOMAIN_NOT_READY|sender domain/i.test(bodyText)) {
+            senderNotReady = true;
+          }
+        }
+      } catch (_) { /* ignore */ }
+
+      if (senderNotReady) {
+        // Don't surface as 500 — sender domain not configured yet. Reply is still saved in DB by caller.
+        return new Response(JSON.stringify({
+          success: false,
+          skipped: true,
+          reason: "sender_domain_not_verified",
+          error: "Email sender domain is not yet verified. The reply was saved in the ticket but the email was not delivered. Please verify your email domain in the Lovable / DNS settings.",
+        }), {
+          status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: false, error: underlying }), {
+        status: 502, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
