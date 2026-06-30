@@ -2220,7 +2220,8 @@ export default function AdminLayout() {
         toast(title, {
           description: desc,
           action: { label: '👉 View', onClick: () => navigate(isHost ? '/admin/host-applications' : '/admin/face-verification') },
-          duration: 8000,
+          duration: Infinity,
+          closeButton: true,
         });
         return;
       }
