@@ -1062,6 +1062,7 @@ export function ActiveCallScreen({
       data-room-shell="call"
       className="fixed inset-0 z-[2147483600] isolate flex select-none overflow-hidden"
       style={{ 
+        position: 'relative',
         userSelect: 'none', 
         WebkitUserSelect: 'none',
         contain: 'layout style paint',

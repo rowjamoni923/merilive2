@@ -4300,7 +4300,7 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed left-0 right-0 z-[90] px-2.5 sm:px-3"
+        className="absolute left-0 right-0 z-[90] px-2.5 sm:px-3"
         data-testid="live-host-identity-header"
         style={{
           top: 'max(calc(env(safe-area-inset-top, 0px) + 8px), 12px)',

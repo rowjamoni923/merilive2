@@ -396,7 +396,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   }, []);
 
   return (
-    <div className={cn('w-full h-full overflow-hidden relative camera-locked', className)}>
+    <div
+      className={cn('w-full h-full overflow-hidden relative camera-locked', className)}
+      style={{ position: 'relative', zIndex: 0 }}
+    >
       {/* Phase 3 (instant-entry): no dark shimmer / loading visual. The
           parent surface (blurred host avatar on viewer side, native camera
           preview on host side) shows through cleanly until the video track

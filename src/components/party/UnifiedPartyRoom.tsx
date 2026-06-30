@@ -481,12 +481,15 @@ const VideoGridSeat = ({
     >
       {/* Video or Avatar */}
       {canRenderNativeVideo ? (
-        <NativeVideoView
-          kind={isMyself ? 'local' : 'remote'}
-          sid={isMyself ? undefined : nativeParticipant?.sid}
-          mirror={isMyself}
-          className="absolute inset-0 w-full h-full"
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          <NativeVideoView
+            kind={isMyself ? 'local' : 'remote'}
+            sid={isMyself ? undefined : nativeParticipant?.sid}
+            mirror={isMyself}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ zIndex: 0 }}
+          />
+        </div>
       ) : canRenderVideo ? (
         <LiveKitVideoPlayer 
           videoTrack={videoTrack}
@@ -511,11 +514,11 @@ const VideoGridSeat = ({
       )}
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" style={{ zIndex: 1 }} />
 
       {/* Host Crown */}
       {participant.isHost && (
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2 left-2" style={{ zIndex: 2 }}>
           <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
             <Crown className="w-3.5 h-3.5 text-yellow-900" />
           </div>
@@ -525,6 +528,7 @@ const VideoGridSeat = ({
       {/* Bean Count - Clickable for host to show contributors */}
       <button 
         className="absolute top-2 right-2"
+        style={{ zIndex: 2 }}
         onClick={(e) => {
           e.stopPropagation();
           if (participant.isHost && onBeansClick) {
