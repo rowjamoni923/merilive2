@@ -187,6 +187,9 @@ const VIP = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [countdownTick, setCountdownTick] = useState(0);
   const [currentUserName, setCurrentUserName] = useState<string>("");
+  const [currentUserLevel, setCurrentUserLevel] = useState<number>(1);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | undefined>(undefined);
+
 
   // Check and restore expired VIP items automatically  
   useExpiredItemsRestorer(currentUserId);
