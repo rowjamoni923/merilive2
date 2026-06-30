@@ -1,5 +1,4 @@
-// Shared helper: send OTP via the verified Lovable Email sender domain.
-// Replaces direct Gmail SMTP and avoids blocking Auth UI on provider latency.
+// Shared helper: send OTP via Brevo (primary), Lovable Email (fallback), or Gmail SMTP (last fallback).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
 
@@ -21,7 +20,7 @@ type SendOtpEmailResult = {
   error?: string;
   code?: string;
   status?: number;
-  provider?: "lovable-email" | "gmail-smtp";
+  provider?: "brevo" | "lovable-email" | "gmail-smtp";
 };
 
 let cachedGmailTransporter: any = null;
@@ -106,6 +105,102 @@ function buildOtpHtml(otp: string, purpose: string, expiryMinutes: number): stri
   </body></html>`;
 }
 
+function parseBrevoSender(raw: string): { name: string; email: string } {
+  const match = raw.match(/^(.+?)\s*<([^>]+)>$/);
+  if (match) {
+    return { name: match[1].trim(), email: match[2].trim() };
+  }
+  return { name: "MeriLive", email: raw };
+}
+
+async function sendOtpViaBrevo(args: SendOtpEmailArgs, supabase: any): Promise<SendOtpEmailResult> {
+  const brevoKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
+  const fromRaw = (Deno.env.get("BREVO_FROM_EMAIL") ?? "").trim();
+
+  if (!brevoKey) {
+    return { success: false, error: "Brevo API key is not configured", code: "BREVO_NOT_CONFIGURED", status: 503 };
+  }
+  if (!fromRaw) {
+    return { success: false, error: "Brevo sender email is not configured", code: "BREVO_SENDER_NOT_CONFIGURED", status: 503 };
+  }
+
+  const sender = parseBrevoSender(fromRaw);
+  const messageId = crypto.randomUUID();
+  const expiryMinutes = args.expiryMinutes ?? 5;
+  const subject = `Your MeriLive ${purposeLabel(args.purpose)} code`;
+  const text = `Your MeriLive verification code is: ${args.otp}\n\nThis code expires in ${expiryMinutes} minutes. MeriLive staff will never ask for this code.`;
+  const html = buildOtpHtml(args.otp, args.purpose, expiryMinutes);
+
+  try {
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "otp-code",
+      recipient_email: args.to,
+      status: "pending",
+      metadata: { provider: "brevo", sender_email: sender.email },
+    });
+
+    const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": brevoKey,
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender,
+        to: [{ email: args.to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+        headers: {
+          "X-Entity-Ref-ID": messageId,
+          "Auto-Submitted": "auto-generated",
+          Precedence: "transactional",
+        },
+      }),
+    });
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok) {
+      const error = data?.message || `Brevo HTTP ${resp.status}`;
+      console.error("[sendOtpEmail] Brevo failed:", resp.status, data);
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: "otp-code",
+        recipient_email: args.to,
+        status: "failed",
+        error_message: "BREVO_SEND_FAILED",
+        metadata: { provider: "brevo", error, status: resp.status, sender_email: sender.email },
+      });
+      return { success: false, error, code: "BREVO_SEND_FAILED", status: resp.status };
+    }
+
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "otp-code",
+      recipient_email: args.to,
+      status: "sent",
+      metadata: { provider: "brevo", message_id: data?.messageId, sender_email: sender.email },
+    });
+
+    return { success: true, provider: "brevo" };
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error("[sendOtpEmail] Brevo exception:", error);
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "otp-code",
+      recipient_email: args.to,
+      status: "failed",
+      error_message: "BREVO_SEND_FAILED",
+      metadata: { provider: "brevo", error, sender_email: sender.email },
+    });
+    return { success: false, error, code: "BREVO_SEND_FAILED", status: 503 };
+  }
+}
+
 async function sendOtpViaGmail(args: SendOtpEmailArgs, supabase: any, sourceError?: string): Promise<SendOtpEmailResult> {
   const transporter = getGmailTransporter();
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
@@ -165,30 +260,15 @@ async function sendOtpViaGmail(args: SendOtpEmailArgs, supabase: any, sourceErro
   }
 }
 
-export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmailResult> {
+async function sendOtpViaLovable(args: SendOtpEmailArgs, supabase: any): Promise<SendOtpEmailResult> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
     return { success: false, error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" };
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey);
   const idempotencyKey = args.idempotencyKey ?? `otp-${args.purpose}-${args.to.toLowerCase()}-${args.otp}`;
 
-  // OTP emails should bypass any prior unsubscribe (auth-critical).
-  // Clear suppression for this address before sending.
-  try {
-    await supabase
-      .from("suppressed_emails")
-      .delete()
-      .eq("email", args.to.toLowerCase());
-  } catch (_e) {
-    // non-fatal
-  }
-
-  // Call send-transactional-email directly via fetch with explicit
-  // service-role Authorization. functions.invoke can mangle the JWT
-  // header in cross-function calls (UNAUTHORIZED_INVALID_JWT_FORMAT).
   try {
     const resp = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
       method: "POST",
@@ -226,4 +306,39 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
     console.error("[sendOtpEmail] fetch error:", e);
     return await sendOtpViaGmail(args, supabase, e instanceof Error ? e.message : String(e));
   }
+}
+
+export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmailResult> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) {
+    return { success: false, error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" };
+  }
+
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  // OTP emails should bypass any prior unsubscribe (auth-critical).
+  try {
+    await supabase
+      .from("suppressed_emails")
+      .delete()
+      .eq("email", args.to.toLowerCase());
+  } catch (_e) {
+    // non-fatal
+  }
+
+  // 1. Try Brevo first (fast, 300/day free, no queue).
+  const brevoResult = await sendOtpViaBrevo(args, supabase);
+  if (brevoResult.success) return brevoResult;
+
+  // If Brevo is not configured at all, continue to legacy Lovable + Gmail path.
+  if (brevoResult.code === "BREVO_NOT_CONFIGURED" || brevoResult.code === "BREVO_SENDER_NOT_CONFIGURED") {
+    return await sendOtpViaLovable(args, supabase);
+  }
+
+  // 2. Brevo is configured but send failed. Try Gmail as last fallback.
+  const gmailResult = await sendOtpViaGmail(args, supabase, brevoResult.error);
+  if (gmailResult.success) return gmailResult;
+
+  return brevoResult;
 }
