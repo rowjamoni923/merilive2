@@ -1195,7 +1195,7 @@ class LiveKitPlugin : Plugin() {
                 val child = parent.getChildAt(i) ?: continue
                 val tag = child.tag as? String ?: continue
                 if (tag == "merilive.overlay.entry" || tag == "merilive.overlay.gift") {
-                    try { child.translationZ = 20f } catch (_: Throwable) {}
+                    try { child.translationZ = 140f } catch (_: Throwable) {}
                     try { child.bringToFront() } catch (_: Throwable) {}
                 }
             }
@@ -1290,7 +1290,8 @@ class LiveKitPlugin : Plugin() {
                 }
             }
 
-            try { wv.translationZ = 10f } catch (_: Throwable) {}
+            try { wv.elevation = 120f } catch (_: Throwable) {}
+            try { wv.translationZ = 120f } catch (_: Throwable) {}
             try { wv.bringToFront() } catch (_: Throwable) {}
             raiseOverlaySiblings(parent)
             (parent as? View)?.invalidate()
