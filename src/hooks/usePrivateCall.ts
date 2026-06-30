@@ -142,6 +142,23 @@ export function usePrivateCall(userId: string | null) {
       callerAvatar: callerProfile?.avatar_url || null,
       callerLevel: getRequiredDisplayLevel(callerProfile),
     });
+    // 🚀 Receiver-side LiveKit token pre-warm. Without this, the first
+    // call to getLiveKitToken happens AFTER the host taps Accept, adding
+    // the LiveKit edge-fn round-trip (typically 300–900ms on mid-tier
+    // 4G) directly to the "Connecting…" gap. Warming during the ring
+    // means accept→room.connect runs against an already-cached JWT, so
+    // the ActiveCallScreen flips from RINGING to LIVE almost instantly.
+    // Safe to call even if the user declines — the cached token simply
+    // expires unused.
+    import('@/services/livekitService').then(({ warmLiveKitToken }) => {
+      warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
+    }).catch(() => {});
+    // 🚀 Preload the ActiveCallScreen lazy chunk (172KB livekit-client +
+    // call UI) the moment the ring surfaces, so the Suspense fallback
+    // never has to repaint after accept. The CallProvider does this on
+    // idle as well, but a fresh cold-start that boots directly into an
+    // incoming call may not have idle-prefetched yet.
+    import('@/components/call/ActiveCallScreen').catch(() => {});
     return true;
   }, [userId]);
 

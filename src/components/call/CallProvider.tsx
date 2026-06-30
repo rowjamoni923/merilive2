@@ -438,17 +438,36 @@ export function CallProvider({ children }: CallProviderProps) {
     if (acceptingRef.current) return; // Pkg5-pass1 BUG-B: double-tap guard
     if (incomingCall && !callEndedRef.current) {
       acceptingRef.current = true;
+      const accepted = incomingCall;
       try {
-        // Phase-3 C4: BEFORE accepting, force-disconnect any active LiveKit
-        // room (live stream / party room) so mic/camera are released and the
-        // private call can take over cleanly.  This prevents audio mixing when
-        // a host accepts a call while still connected to a broadcast room.
-        const { disconnectAllRegisteredRooms } = await import('@/lib/livekitStreams');
-        disconnectAllRegisteredRooms();
+        // 🚀 PAINT FIRST: flip ActiveCallScreen state synchronously so React
+        // mounts the call shell on the SAME frame the user taps Accept.
+        // Previously we awaited livekit disconnect + a live_streams SELECT
+        // + end_live_stream RPC (collectively 200–2000ms on mid-tier 4G)
+        // BEFORE setAcceptedCallInfo, which left the receiver staring at
+        // the incoming-call modal long after their tap.
+        setAcceptedCallInfo({
+          callId: accepted.callId,
+          callerId: accepted.callerId,
+          callerName: accepted.callerName,
+          callerAvatar: accepted.callerAvatar,
+        });
+        setIsHost(true);
 
-        // Pkg35: If the host is currently broadcasting a live stream, end it
-        // automatically so the private call can take over cleanly.
-        if (userId) {
+        // Fire the accept RPC IMMEDIATELY (it also optimistically flips
+        // callState.status='connected' inside usePrivateCall.acceptCall).
+        const acceptPromise = acceptCall(accepted.callId);
+
+        // Background teardown of any active broadcast room / live stream.
+        // Non-blocking — does NOT delay the ActiveCallScreen mount or the
+        // accept RPC. If the user was hosting a live, it gets ended on the
+        // next tick while the call screen is already painting.
+        void (async () => {
+          try {
+            const { disconnectAllRegisteredRooms } = await import('@/lib/livekitStreams');
+            disconnectAllRegisteredRooms();
+          } catch (_) { /* ignore */ }
+          if (!userId) return;
           try {
             const { data: liveRows } = await supabase
               .from('live_streams')
@@ -464,21 +483,10 @@ export function CallProvider({ children }: CallProviderProps) {
                 })
               );
             }
-          } catch (_) {
-            /* non-blocking */
-          }
-        }
+          } catch (_) { /* non-blocking */ }
+        })();
 
-        // Store the incoming call info BEFORE accepting (because incomingCall will be cleared)
-        setAcceptedCallInfo({
-          callId: incomingCall.callId,
-          callerId: incomingCall.callerId,
-          callerName: incomingCall.callerName,
-          callerAvatar: incomingCall.callerAvatar,
-        });
-        setIsHost(true);
-
-        await acceptCall(incomingCall.callId);
+        await acceptPromise;
       } finally {
         // Release on next tick — modal has already been dismissed by acceptCall
         setTimeout(() => { acceptingRef.current = false; }, 500);
