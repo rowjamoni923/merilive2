@@ -24051,6 +24051,11 @@ export type Database = {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
       }
+      support_allow_host_reapply: { Args: { _user_id: string }; Returns: Json }
+      support_approve_face_verification: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       sweep_party_host_reconnect: { Args: never; Returns: number }
       sweep_pending_face_verifications: { Args: never; Returns: number }
       sync_host_online_status: {
