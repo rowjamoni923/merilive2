@@ -1494,7 +1494,7 @@ export function UnifiedPartyRoom({
       {/* FLYING JOIN BANNER REMOVED - EntryNameBarAnimation handles join notifications */}
 
       {/* ==================== UNIFIED HEADER ==================== */}
-      <header className="relative z-20 flex items-center justify-between px-3 py-2">
+      <header className="relative z-[90] flex items-center justify-between px-3 py-2">
         {/* Left: Room Info */}
         <div className="flex items-center gap-2">
           {/* Host Avatar */}
@@ -1855,7 +1855,7 @@ export function UnifiedPartyRoom({
       </main>
 
       {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
-      <div ref={bottomControlsRef} className="absolute bottom-kb left-0 right-0 z-20 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] chat-composer-stable">
+      <div ref={bottomControlsRef} className="absolute bottom-kb left-0 right-0 z-[90] pb-[calc(env(safe-area-inset-bottom)+0.75rem)] chat-composer-stable">
         <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-3">
           {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 
