@@ -249,10 +249,29 @@ export default function AdminPushBroadcast() {
     queryClient.invalidateQueries({ queryKey: ['device-token-stats'] });
   });
 
+  // FCM `image` field (Android) renders the bitmap on the lock-screen heads-up.
+  // Android's NotificationCompat.BigPictureStyle decodes whatever Bitmap-loadable
+  // format we hand it. So we allow the full A→Z image set that browsers + Android
+  // can actually display, not just jpg/png. SVG is excluded because FCM cannot
+  // decode vector formats server-side.
+  const ALLOWED_PUSH_IMAGE_EXT = new Set([
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic', 'heif', 'avif',
+  ]);
+  const ALLOWED_PUSH_IMAGE_MIME = new Set([
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+    'image/bmp', 'image/heic', 'image/heif', 'image/avif',
+  ]);
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    const rawExt = file.name.split('.').pop()?.toLowerCase() || '';
+    const mime = (file.type || '').toLowerCase();
+    if (!ALLOWED_PUSH_IMAGE_EXT.has(rawExt) && !ALLOWED_PUSH_IMAGE_MIME.has(mime)) {
+      toast.error("Unsupported image format. Use JPG, PNG, WebP, GIF, BMP, HEIC, HEIF or AVIF.");
+      return;
+    }
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
@@ -269,10 +288,17 @@ export default function AdminPushBroadcast() {
     if (!imageFile) return null;
     setIsUploading(true);
     try {
-      const rawExt = imageFile.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const ext = ['jpg', 'jpeg', 'png', 'webp'].includes(rawExt) ? rawExt : 'jpg';
+      // Preserve the original extension so the storage URL matches the bitmap
+      // bytes (mismatched extension caused GIF / HEIC / WebP pushes to render
+      // as blank thumbnails on Android lockscreens). Fall back to mime-derived
+      // extension, then 'jpg' only as a last resort.
+      const rawExt = imageFile.name.split('.').pop()?.toLowerCase() || '';
+      const mimeExt = (imageFile.type || '').split('/').pop()?.toLowerCase() || '';
+      const ext = ALLOWED_PUSH_IMAGE_EXT.has(rawExt)
+        ? rawExt
+        : (ALLOWED_PUSH_IMAGE_EXT.has(mimeExt) ? mimeExt : 'jpg');
       const filePath = `broadcast/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('assets').upload(filePath, imageFile, { contentType: imageFile.type, cacheControl: '31536000' });
+      const { error } = await supabase.storage.from('assets').upload(filePath, imageFile, { contentType: imageFile.type || `image/${ext}`, cacheControl: '31536000' });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('assets').getPublicUrl(filePath);
       const publicReady = await waitForPublicImage(urlData.publicUrl);
