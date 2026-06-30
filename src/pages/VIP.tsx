@@ -40,6 +40,8 @@ import VipNobleSection from "@/components/vip/VipNobleSection";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { recordClientError } from "@/utils/clientErrorLog";
+import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
+import { getLevelBadgeBg, getLevelTextColor, formatLevel, ensureValidLevel } from "@/features/shared/level";
 
 interface VIPTier {
   id: string;
