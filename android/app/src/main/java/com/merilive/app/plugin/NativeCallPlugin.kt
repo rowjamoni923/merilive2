@@ -103,6 +103,9 @@ class NativeCallPlugin : Plugin() {
                 }
                 c.startService(i)
             } catch (_: Throwable) {}
+            try {
+                c.stopService(android.content.Intent(c, com.merilive.app.service.CallForegroundService::class.java))
+            } catch (_: Throwable) {}
         }
 
 
