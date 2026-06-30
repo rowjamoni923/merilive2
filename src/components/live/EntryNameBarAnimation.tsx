@@ -292,7 +292,7 @@ const EntryNameBarAnimationInner = memo(({
                 <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
                   <span
                     className={cn(
-                      "text-white font-black truncate leading-tight",
+                      "text-primary-foreground font-black truncate leading-tight",
                       hasAnimation ? "text-[12px]" : "text-sm max-w-[140px]"
                     )}
                     style={
@@ -305,12 +305,12 @@ const EntryNameBarAnimationInner = memo(({
                   </span>
 
                   {!hasAnimation ? (
-                    <span className="text-white/90 font-bold drop-shadow-sm leading-none text-[10px]">
+                    <span className="text-primary-foreground/90 font-bold drop-shadow-sm leading-none text-[10px]">
                       Welcome to the room! 🎉
                     </span>
                   ) : (
                     <span
-                      className="text-white/95 font-semibold truncate text-[10px] leading-tight"
+                      className="text-primary-foreground/95 font-semibold truncate text-[10px] leading-tight"
                       style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
                     >
                       Joined the room
