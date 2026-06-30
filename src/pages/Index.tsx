@@ -181,9 +181,12 @@ const Index = () => {
       && host.is_face_verified === true
       && host.host_availability !== "offline";
     if (!baseOk) return false;
-    // Pkg368: only show online / live / busy hosts; hide offline from home feed.
+    // Pkg368: only show truly real-time online / live / busy hosts. Heartbeat
+    // cadence is 120s, so a 5-minute window keeps presence accurate
+    // (industry-standard, matches Chamet/Bigo "Online" semantics) while
+    // tolerating one missed beat. Hosts beyond this window are treated as offline.
     const lastSeen = host.last_seen_at ? new Date(host.last_seen_at).getTime() : 0;
-    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 30 * 60 * 1000;
+    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 5 * 60 * 1000;
     return isReallyOnline || host.isLive === true || host.is_in_call === true;
   }, []);
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
