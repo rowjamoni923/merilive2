@@ -4261,14 +4261,14 @@ const LiveStream = () => {
 
       {/* New Host Bonus Card - Host Only, positioned above chat - HIDE when stream ended */}
       {isHost && currentUserId && !showLiveEndSummary && (
-        <div className="absolute left-3 z-35" style={{ bottom: '280px' }}>
+        <div className="absolute left-3 z-[35]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 260px)' }}>
           <NewHostBonusCard hostId={currentUserId} isStreamActive={!showLiveEndSummary} onBeansClaimed={(amount) => setTotalBeans(prev => prev + amount)} />
         </div>
       )}
 
       {/* Live Tasks Card - Bottom left, above chat - HIDE when stream ended */}
       {isHost && currentUserId && !showLiveEndSummary && (
-        <div className="absolute left-3 z-35" style={{ bottom: '200px', maxWidth: '280px', width: '75%' }}>
+        <div className="absolute left-3 z-[35]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 180px)', maxWidth: '280px', width: '75%' }}>
           <LiveTasksCard hostId={currentUserId} />
         </div>
       )}
