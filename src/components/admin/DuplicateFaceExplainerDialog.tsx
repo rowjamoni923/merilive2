@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { UserAvatarImage } from "@/components/UserAvatarImage";
+import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 import { AlertTriangle, ShieldCheck, Info, Loader2 } from "lucide-react";
 
 interface MatchedAccount {
