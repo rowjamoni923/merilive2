@@ -174,7 +174,7 @@ public class CallForegroundService extends Service {
 
         String safeTitle = (title == null || title.isEmpty()) ? "LIVE" : title;
 
-        return new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
+        return new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALL_SERVICE)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(0xFFE53935) // LIVE red — matches Bigo/Chamet palette
             .setColorized(true)
@@ -187,6 +187,7 @@ public class CallForegroundService extends Service {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
+            .setSilent(true)
             .setContentIntent(returnPI)
             .addAction(R.drawable.ic_call_decline, "End Live", endPI)
             .build();
@@ -231,15 +232,17 @@ public class CallForegroundService extends Service {
             .setContentTitle("Call in progress")
             .setContentText(callType + " with " + callerName)
             .setOngoing(true)
-            .setUsesChronometer(true)
-            .setShowWhen(true)
+            .setUsesChronometer(false)
+            .setShowWhen(false)
             // Our React ActiveCallScreen is the only visible in-call UI.  Keep
             // this as a quiet foreground-service requirement instead of a
             // CallStyle heads-up/chip that looks like an OEM/World-Cup overlay
             // and can visually outlive the app UI on some Android 12+ skins.
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
             .setContentIntent(returnPI);
 
         builder.addAction(R.drawable.ic_call_decline, "End Call", hangupPI);
