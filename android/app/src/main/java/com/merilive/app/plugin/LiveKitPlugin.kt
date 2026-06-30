@@ -1226,12 +1226,14 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // Chamet/Bigo/Olamet all use SCALE_ASPECT_FILL on the viewer + host preview
-        // surface: the camera always fills the entire screen edge-to-edge, cropping
-        // the longer axis instead of showing black letterbox bars. Switching from
-        // ASPECT_FIT → ASPECT_FILL + MATCH_PARENT layout removes the dark top/bottom
-        // strips the user reported (Chamet-class full-screen camera).
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
+        // NO-ZOOM RULE (locked 2026-06-30 by owner):
+        // The host/viewer must see the FULL captured frame — no Android-side
+        // cropping or "zoom-in" on the face. We capture 1080x1440 (3:4
+        // portrait, full selfie-sensor FOV) and render with SCALE_ASPECT_FIT
+        // so the entire frame is visible inside the surface, identical to
+        // PrivateCallActivity. Any black letterbox is hidden by the camera
+        // surface sitting behind the transparent WebView UI.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
