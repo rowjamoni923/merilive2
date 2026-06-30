@@ -98,30 +98,80 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 
 // ============================================================
 // FULLSCREEN HEAVY-ANIMATION ARBITER (module-level singleton)
-// Guarantees only ONE fullscreen SVGA/VAP/MP4/PAG/Lottie plays at any moment,
-// but NEVER queues a later gift behind a 10–15s animation. New gifts preempt
-// the current full-screen owner so delivery remains zero-second and the WebView
-// never renders stacked heavy players.
+//
+// PROFESSIONAL FIFO QUEUE (Bigo / Chamet / TikTok Live behavior):
+//  - Only ONE heavy fullscreen (SVGA/VAP/MP4/PAG/Lottie) renders at a time.
+//  - New gifts WAIT in a FIFO queue — they do NOT preempt the current owner,
+//    so every heavy gift plays its FULL native duration end-to-end.
+//  - When the active owner releases (native onComplete or 12s safety),
+//    the next waiting gift is granted the slot via a "grant" event.
+//  - Queue cap = 6: beyond that, the OLDEST waiter is dropped (its capsule
+//    still flies, just no full-screen) to keep delivery instant under burst.
+//  - 12s hard safety: if a player wedges and never fires onComplete, the
+//    slot is force-released so the queue never deadlocks.
 // ============================================================
 let activeFullscreenOwner: string | null = null;
+let activeFullscreenSince = 0;
+const fullscreenWaiters: string[] = [];
+const FULLSCREEN_MAX_QUEUE = 6;
+const FULLSCREEN_SAFETY_MS = 12000;
+const FULLSCREEN_GRANT_EVENT = 'meri-fullscreen-gift-grant';
 const FULLSCREEN_PREEMPT_EVENT = 'meri-fullscreen-gift-preempt';
 
+const emitGrant = (nextId: string) => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(FULLSCREEN_GRANT_EVENT, { detail: { nextId } }));
+};
+
+const emitPreempt = (previousId: string, nextId: string) => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(FULLSCREEN_PREEMPT_EVENT, { detail: { previousId, nextId } }));
+};
+
+/** Try to acquire the fullscreen slot.
+ *  Returns true if granted immediately, false if queued. */
 const tryAcquireFullscreen = (id: string): boolean => {
+  // Safety: if owner has held the slot >12s (wedged player), force release.
+  if (activeFullscreenOwner && Date.now() - activeFullscreenSince > FULLSCREEN_SAFETY_MS) {
+    const stale = activeFullscreenOwner;
+    activeFullscreenOwner = null;
+    emitPreempt(stale, id);
+  }
+
   if (activeFullscreenOwner === null || activeFullscreenOwner === id) {
     activeFullscreenOwner = id;
+    activeFullscreenSince = Date.now();
     return true;
   }
-  const previousId = activeFullscreenOwner;
-  activeFullscreenOwner = id;
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(FULLSCREEN_PREEMPT_EVENT, { detail: { previousId, nextId: id } }));
+
+  // Already waiting? no-op.
+  if (fullscreenWaiters.includes(id)) return false;
+
+  // Cap queue: drop OLDEST waiter to keep memory bounded under burst sends.
+  if (fullscreenWaiters.length >= FULLSCREEN_MAX_QUEUE) {
+    const dropped = fullscreenWaiters.shift()!;
+    emitPreempt(dropped, id);
   }
-  return true;
+  fullscreenWaiters.push(id);
+  return false;
 };
 
 const releaseFullscreen = (id: string) => {
-  if (activeFullscreenOwner !== id) return;
-  activeFullscreenOwner = null;
+  // Owner releasing → promote next waiter.
+  if (activeFullscreenOwner === id) {
+    activeFullscreenOwner = null;
+    activeFullscreenSince = 0;
+    const next = fullscreenWaiters.shift();
+    if (next) {
+      activeFullscreenOwner = next;
+      activeFullscreenSince = Date.now();
+      emitGrant(next);
+    }
+    return;
+  }
+  // Waiter cancelling before its turn → just remove from queue.
+  const idx = fullscreenWaiters.indexOf(id);
+  if (idx >= 0) fullscreenWaiters.splice(idx, 1);
 };
 
 
