@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -82,28 +83,24 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Portrait 9:16, 720p base, 30 fps, ~2.5 Mbps. Picked to stay sharp
-        // on mid-tier Android uplinks without ever falling to the blurry
-        // 270p/360p layer when no quality hint is supplied. Simulcast layers
-        // (540p + 360p) are still published so weak viewers get a lighter
-        // layer instead of the BASE — but the BASE encoding itself is
-        // LOCKED and never re-tuned at runtime.
-        // Locked publish quality — base layer 1080p portrait, simulcast 720/540/360
-        // so every viewer gets a layer in the 720→1080 range or auto-falls to a
-        // smaller relay. Owner directive 2026-06-30: never let viewers pick manually.
+        // Full-sensor portrait 3:4, no manual selector. Forcing 9:16 capture
+        // (1080x1920) on common 4:3 selfie sensors makes Android crop the
+        // camera before rendering, which is the reported zoomed-face bug.
+        // Capture 1080x1440 and render with ASPECT_FIT so the full face/frame
+        // remains visible in Live, Party/Game Party and Private Call.
         const val LOCK_CAPTURE_W = 1080
-        const val LOCK_CAPTURE_H = 1920
+        const val LOCK_CAPTURE_H = 1440
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 3_200_000   // 3.2 Mbps — 1080p portrait sweet spot
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720p (the floor of the user's required 720→1080 range).
+        // Mid relay = 720p full-sensor portrait.
         const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 1280
+        const val LOCK_SIM_MID_H = 960
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 1_800_000
-        // Low relay = 540p for weak networks; SFU auto-selects, no user toggle.
+        // Low relay = 540x720 for weak networks; SFU auto-selects, no user toggle.
         const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_H = 720
         const val LOCK_SIM_LOW_FPS = 24
         const val LOCK_SIM_LOW_BITRATE = 700_000
 
@@ -148,6 +145,7 @@ class LiveKitPlugin : Plugin() {
     // The ONE camera track. Survives preview → publish → close.
     private var previewTrack: LocalVideoTrack? = null
     private var previewRenderer: TextureViewRenderer? = null
+    private var previewRendererContainer: FrameLayout? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
     private var activeRoomScope: String? = null
@@ -171,6 +169,7 @@ class LiveKitPlugin : Plugin() {
      *  IDs) or `seat:<index>` (legacy bindSeatRenderer path). */
     private data class RendererSlot(
         val key: String,
+        val container: FrameLayout,
         val renderer: TextureViewRenderer,
         var identity: String? = null,
         var isLocal: Boolean = false,
@@ -818,7 +817,7 @@ class LiveKitPlugin : Plugin() {
         runOnMain {
             try {
                 val slot = ensureSlot(viewId, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }
-                applyRect(slot.renderer, x, y, w, h)
+                applyRect(slot.container, x, y, w, h)
                 slot.isLocal = true
                 slot.identity = room?.localParticipant?.identity?.value
                 val track = previewTrack
@@ -847,7 +846,7 @@ class LiveKitPlugin : Plugin() {
         runOnMain {
             try {
                 val slot = ensureSlot(viewId, mirror = false) ?: run { call.reject("renderer attach failed"); return@runOnMain }
-                applyRect(slot.renderer, x, y, w, h)
+                applyRect(slot.container, x, y, w, h)
                 val remote = room?.remoteParticipants?.values?.firstOrNull { it.sid?.value == sid }
                 slot.identity = remote?.identity?.value
                 val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
@@ -874,7 +873,7 @@ class LiveKitPlugin : Plugin() {
         runOnMain {
             try {
                 val slot = slots[viewId] ?: run { call.resolve(); return@runOnMain }
-                applyRect(slot.renderer, x, y, w, h)
+                applyRect(slot.container, x, y, w, h)
                 call.resolve()
             } catch (t: Throwable) {
                 Log.w(TAG, "updateSurfaceBounds", t)
@@ -891,7 +890,7 @@ class LiveKitPlugin : Plugin() {
                 val slot = slots.remove(viewId)
                 if (slot != null) {
                     slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
-                    (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+                    (slot.container.parent as? ViewGroup)?.removeView(slot.container)
                     try { slot.renderer.release() } catch (_: Throwable) {}
                 }
                 call.resolve()
@@ -1212,6 +1211,39 @@ class LiveKitPlugin : Plugin() {
         return -1
     }
 
+    private fun nativeLayerLayoutParams(parent: ViewGroup, width: Int, height: Int): ViewGroup.MarginLayoutParams =
+        when (parent) {
+            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(width, height)
+            else -> FrameLayout.LayoutParams(width, height)
+        }
+
+    private fun fitChildLayoutParams(): FrameLayout.LayoutParams =
+        FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER,
+        )
+
+    private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
+        // LiveKit/WebRTC scalingType affects the renderer's measured size, not
+        // only pixels drawn inside a MATCH_PARENT view. Therefore every native
+        // camera view lives inside a fixed slot/container while the renderer
+        // itself stays WRAP_CONTENT + CENTER. This is the documented fix for
+        // "SCALE_ASPECT_FIT still looks zoomed" on Android TextureViewRenderer.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
+        try {
+            val lp = renderer.layoutParams
+            if (lp is FrameLayout.LayoutParams) {
+                lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.gravity = Gravity.CENTER
+                renderer.layoutParams = lp
+            }
+        } catch (_: Throwable) {}
+        try { renderer.requestLayout() } catch (_: Throwable) {}
+    }
+
     /**
      * Hard overlay contract for Android native LiveKit:
      *   native TextureViewRenderer(s)  -> lowest native layer
@@ -1240,17 +1272,21 @@ class LiveKitPlugin : Plugin() {
             // to index 0 without touching correctly-ordered renderers.  This is
             // the key guard against the delayed fullscreen takeover.
             val wvIndexBefore = childIndex(parent, wv)
-            val renderers = mutableListOf<View>()
-            previewRenderer?.let { if (it.parent === parent) renderers.add(it) }
-            slots.values.forEach { slot -> if (slot.renderer.parent === parent) renderers.add(slot.renderer) }
-            renderers.distinct().forEach { renderer ->
-                try { renderer.translationZ = 0f } catch (_: Throwable) {}
-                val rIndex = childIndex(parent, renderer)
+            val videoLayers = mutableListOf<View>()
+            previewRendererContainer?.let { if (it.parent === parent) videoLayers.add(it) }
+            previewRenderer?.let { if (it.parent === parent) videoLayers.add(it) }
+            slots.values.forEach { slot ->
+                if (slot.container.parent === parent) videoLayers.add(slot.container)
+                if (slot.renderer.parent === parent) videoLayers.add(slot.renderer)
+            }
+            videoLayers.distinct().forEach { layer ->
+                try { layer.translationZ = 0f } catch (_: Throwable) {}
+                val rIndex = childIndex(parent, layer)
                 val wIndex = childIndex(parent, wv)
                 if (rIndex >= 0 && wIndex >= 0 && rIndex > wIndex) {
-                    val lp = renderer.layoutParams
-                    parent.removeView(renderer)
-                    parent.addView(renderer, 0, lp)
+                    val lp = layer.layoutParams
+                    parent.removeView(layer)
+                    parent.addView(layer, 0, lp)
                 }
             }
 
@@ -1302,18 +1338,19 @@ class LiveKitPlugin : Plugin() {
             // remain visible above the native video instead of a white/black
             // WebView masking the TextureView.
             existing.mirror = mirror
-            existing.renderer.setMirror(mirror)
+            configureAspectFitRenderer(existing.renderer, mirror)
             enforceOverlayContract("slot-reuse:$viewId")
             scheduleOverlayContractWatchdog("slot-reuse:$viewId")
             return existing
         }
-        val renderer = TextureViewRenderer(act).apply {
-            // Never crop/zoom the camera in live, party or private-call slots.
-            // React placeholders already define the branded frame; native video
-            // must fit inside that frame so faces/controls never get cut off.
-            setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-            setMirror(mirror)
+        val container = FrameLayout(act).apply {
+            setBackgroundColor(Color.TRANSPARENT)
+            clipToPadding = true
+            clipChildren = true
         }
+        val renderer = TextureViewRenderer(act)
+        configureAspectFitRenderer(renderer, mirror)
+        container.addView(renderer, fitChildLayoutParams())
         if (webViewOriginalBg == null) {
             webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
         }
@@ -1330,18 +1367,15 @@ class LiveKitPlugin : Plugin() {
         // CoordinatorLayout (Material) or a plain FrameLayout/ContentFrameLayout.
         // Using FrameLayout.LayoutParams inside a CoordinatorLayout crashes the
         // next measure pass with a ClassCastException → use parent-correct LP.
-        val lp: ViewGroup.MarginLayoutParams = when (parent) {
-            is CoordinatorLayout -> CoordinatorLayout.LayoutParams(1, 1)
-            else -> FrameLayout.LayoutParams(1, 1)
-        }
+        val lp: ViewGroup.MarginLayoutParams = nativeLayerLayoutParams(parent, 1, 1)
         // Pkg501: addView BEFORE initVideoRenderer so the EglBase context binds
         // to a fully-attached surface. Reversing the order causes scrambled
         // frames on first attach (Defect #3, video 2026-06-18).
-        parent.addView(renderer, 0, lp)
+        parent.addView(container, 0, lp)
         try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         // Defensive: guarantee WebView (React chat/gifts/header) stays above the
         // native TextureView even if another plugin reorders children later.
-        val slot = RendererSlot(viewId, renderer, mirror = mirror)
+        val slot = RendererSlot(viewId, container, renderer, mirror = mirror)
         slots[viewId] = slot
         enforceOverlayContract("slot-create:$viewId")
         scheduleOverlayContractWatchdog("slot-create:$viewId")
@@ -1385,7 +1419,7 @@ class LiveKitPlugin : Plugin() {
     private fun clearAllSlots() {
         slots.values.forEach { slot ->
             slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
-            (slot.renderer.parent as? ViewGroup)?.removeView(slot.renderer)
+            (slot.container.parent as? ViewGroup)?.removeView(slot.container)
             try { slot.renderer.release() } catch (_: Throwable) {}
         }
         slots.clear()
@@ -1597,34 +1631,32 @@ class LiveKitPlugin : Plugin() {
                 try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
 
                 if (previewRenderer == null) {
-                    val renderer = TextureViewRenderer(act).apply {
-                        // Fullscreen legacy renderer is kept only for older
-                        // flows; still use FIT so it cannot visually zoom/crop.
-                        setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-                        setMirror(mirror)
+                    val container = FrameLayout(act).apply {
+                        setBackgroundColor(Color.TRANSPARENT)
+                        clipToPadding = true
+                        clipChildren = true
                     }
-                    val lp: ViewGroup.MarginLayoutParams = when (parent) {
-                        is CoordinatorLayout -> CoordinatorLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                        )
-                        else -> FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                        )
-                    }
+                    val renderer = TextureViewRenderer(act)
+                    configureAspectFitRenderer(renderer, mirror)
+                    container.addView(renderer, fitChildLayoutParams())
+                    val lp: ViewGroup.MarginLayoutParams = nativeLayerLayoutParams(
+                        parent,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
                     // TextureView must be attached before initVideoRenderer on
                     // several OEM EGL stacks; still inserted at index 0 so it
                     // sits BEHIND the transparent WebView and never steals the
                     // overlay layer from React chat/gifts/header controls.
-                    parent.addView(renderer, 0, lp)
+                    parent.addView(container, 0, lp)
                     try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
+                    previewRendererContainer = container
                     previewRenderer = renderer
                     enforceOverlayContract("fullscreen-create")
                     scheduleOverlayContractWatchdog("fullscreen-create")
 
                 } else {
-                    previewRenderer?.setMirror(mirror)
+                    previewRenderer?.let { configureAspectFitRenderer(it, mirror) }
                     enforceOverlayContract("fullscreen-reuse")
                 }
             } catch (t: Throwable) {
@@ -1640,10 +1672,16 @@ class LiveKitPlugin : Plugin() {
                 val r = previewRenderer
                 if (r != null) {
                     try { previewTrack?.removeRenderer(r) } catch (_: Throwable) {}
-                    (r.parent as? ViewGroup)?.removeView(r)
+                    val container = previewRendererContainer ?: (r.parent as? FrameLayout)
+                    if (container != null) {
+                        (container.parent as? ViewGroup)?.removeView(container)
+                    } else {
+                        (r.parent as? ViewGroup)?.removeView(r)
+                    }
                     try { r.release() } catch (_: Throwable) {}
                 }
                 previewRenderer = null
+                previewRendererContainer = null
                 val wv = bridge?.webView
                 if (restoreWebView && wv != null) {
                     wv.setBackgroundColor(webViewOriginalBg ?: Color.WHITE)

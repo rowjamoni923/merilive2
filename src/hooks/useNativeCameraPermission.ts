@@ -162,8 +162,8 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     : false;
   const constraintOptions: MediaStreamConstraints[] = [
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 24 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio },
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },
