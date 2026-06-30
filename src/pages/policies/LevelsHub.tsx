@@ -52,7 +52,8 @@ export default function LevelsHub() {
   const standard = POLICY_LEVELS.filter((l) => l.code !== "L6");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/80">
+    <div className="dark min-h-screen bg-background text-foreground bg-gradient-to-b from-background via-background to-background/80">
+
       {/* Hero */}
       <header className="relative overflow-hidden border-b border-border/30">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-yellow-500/5" />
