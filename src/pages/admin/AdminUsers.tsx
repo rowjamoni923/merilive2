@@ -190,14 +190,15 @@ export default function AdminUsers() {
 
   const handleMakeHost = async (userId: string, isHost: boolean) => {
     try {
-      const targetGender = isHost ? 'male' : 'female';
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      // isHost = current state; we toggle it
+      const toHost = !isHost;
+      const { error } = await supabase.rpc('admin_convert_user_role', {
         _user_id: userId,
-        _gender: targetGender,
+        _to_host: toHost,
       });
 
       if (error) throw error;
-      toast.success(isHost ? "Converted to User (Male)" : "Converted to Host (Female)");
+      toast.success(toHost ? "Converted to Host" : "Converted to User");
       fetchUsers();
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorUpdatingHostStatus", message: formatAdminError(error)});
