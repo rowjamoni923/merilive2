@@ -915,7 +915,6 @@ const LiveStream = () => {
   //   2. Vertical swipe (existing TikTok-style up=next, down=prev)              → useLiveStreamSwipe
   // NOTE: Tap/horizontal hide-show was removed because it let native video look
   // like it had taken over the whole screen and hid chat/gifts/footer.
-  const [isUIHidden, setIsUIHidden] = useState(false);
   const hSwipeStartX = useRef(0);
   const hSwipeStartY = useRef(0);
   const hSwipeStartT = useRef(0);
@@ -3924,7 +3923,7 @@ const LiveStream = () => {
     <div 
       data-room-shell
       className={cn(
-        "room-viewport flex flex-col overflow-hidden",
+        "room-viewport z-[2147483000] isolate flex flex-col overflow-hidden",
         isNativeMediaActive ? "bg-transparent" : "bg-muted"
       )}
       style={{ 
