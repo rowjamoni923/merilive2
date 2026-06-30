@@ -22460,6 +22460,16 @@ export type Database = {
         Args: { p_call_id: string }
         Returns: undefined
       }
+      finalize_signup_profile: {
+        Args: { _device_id?: string; _display_name?: string; _gender?: string }
+        Returns: {
+          display_name: string
+          gender: string
+          host_status: string
+          id: string
+          is_host: boolean
+        }[]
+      }
       find_account_by_face: {
         Args: { face_hash_param: string }
         Returns: {
