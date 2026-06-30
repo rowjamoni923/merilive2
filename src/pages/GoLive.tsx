@@ -935,20 +935,21 @@ const GoLive = () => {
     const resolvedProfile = effectiveProfile || userProfile;
     const isHost = isApprovedLiveHost(resolvedProfile);
 
-    // Check if user has profile photo - show modal instead of toast
-    if (!resolvedProfile?.avatar_url) {
-      setShowProfileError(true);
-      return;
-    }
-
-    // Owner rule (2026-06-30 updated): face verification incomplete → show the
-    // premium popup modal (Verify Now / Later) instead of auto-redirect. Applies
-    // to hosts and non-hosts alike. Verified users skip this block entirely.
+    // Face verification gate FIRST — unverified users don't have an avatar yet
+    // (they get one through the face verification flow), so checking avatar
+    // before face would wrongly trigger the "Add profile photo" modal.
     if (!resolvedProfile?.is_face_verified
         && String(resolvedProfile?.face_verification_status ?? '').toLowerCase() !== 'approved') {
       setShowFaceVerificationRequired(true);
       return;
     }
+
+    // Profile photo required (only for face-verified users)
+    if (!resolvedProfile?.avatar_url) {
+      setShowProfileError(true);
+      return;
+    }
+
 
 
     // 🔒 Authoritative server-side preflight gate. Mirrors RPC `can_user_go_live`
