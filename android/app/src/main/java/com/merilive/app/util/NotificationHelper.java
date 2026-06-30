@@ -24,6 +24,7 @@ import java.net.URL;
 public class NotificationHelper {
 
     public static final String CHANNEL_CALLS = "merilive_calls";
+    public static final String CHANNEL_CALL_SERVICE = "merilive_call_service";
     public static final String CHANNEL_MESSAGES = "merilive_messages";
     public static final String CHANNEL_GIFTS = "merilive_gifts";
     public static final String CHANNEL_LIVE = "merilive_live";
@@ -90,6 +91,21 @@ public class NotificationHelper {
             try { callChannel.setAllowBubbles(false); } catch (Throwable ignored) {}
         }
         manager.createNotificationChannel(callChannel);
+
+        // Active-call foreground-service notification.  Incoming ringing must
+        // remain high priority, but an already accepted call must not keep a
+        // heads-up/CallStyle chip floating over the React call UI after hangup.
+        NotificationChannel activeCallChannel = new NotificationChannel(
+            CHANNEL_CALL_SERVICE, "Active Call Service", NotificationManager.IMPORTANCE_LOW);
+        activeCallChannel.setDescription("Keeps MeriLive calls running in the background");
+        activeCallChannel.setSound(null, null);
+        activeCallChannel.enableVibration(false);
+        activeCallChannel.enableLights(false);
+        activeCallChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try { activeCallChannel.setAllowBubbles(false); } catch (Throwable ignored) {}
+        }
+        manager.createNotificationChannel(activeCallChannel);
 
 
         // 2. MESSAGES - HIGH
