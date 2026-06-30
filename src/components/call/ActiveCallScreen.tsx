@@ -740,17 +740,21 @@ export function ActiveCallScreen({
     // while CallProvider's prejoin ref is still logically alive. Rely on
     // the hook's cleanup as the single source of truth — the CallEnded
     // modal unmount is the same tick window in practice.
-    // Release camera/native renderers immediately so the UI and device never
-    // stay visually "running" after hangup; provider still finalizes DB/billing.
-    try { cleanup(); } catch { /* noop */ }
+    // Finalize app/server/native call state first, then tear down LiveKit.
+    // This prevents double-end races where LiveKit closes early and the
+    // provider loses the chance to settle billing/notifications cleanly.
     try {
       await Promise.resolve(onEndCall());
     } catch (error) {
       console.warn('[ActiveCall] endCall finalize failed:', error);
+    } finally {
+      // Release camera/native renderers after finalize attempt so the screen
+      // never stays visually "running" after hangup, even on network failure.
+      try { cleanup(); } catch { /* noop */ }
     }
   };
   useEffect(() => {
-    if (!isOpen || callEnded) return;
+    if (!isOpen || callEnded || endingRef.current) return;
     if (connectionState === 'failed' || connectionState === 'closed') {
       console.log('[ActiveCall] ☠️ LiveKit (Android native) died - auto-ending call (NO reconnect)');
       handleEndCall();
