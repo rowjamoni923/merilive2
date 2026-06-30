@@ -458,6 +458,22 @@ export function ActiveCallScreen({
     onMediaConnected?.(callId);
   }, [isOpen, callId, callStatus, localMediaReady, localStream, isNativeMediaActive, isConnected, onMediaConnected]);
 
+  // Connecting-stuck watchdog: if callStatus has flipped to 'connected' but the
+  // LiveKit room never actually finishes joining (isConnected stays false), we
+  // were previously stuck on the "Connecting…" badge forever — user had to
+  // hang up manually. Fire onEndCall after 25s so endCall persistence runs
+  // (RPC end_private_call + is_in_call reset + Telecom teardown).
+  useEffect(() => {
+    if (!isOpen || !callId || callStatus !== 'connected' || isConnected) return;
+    const t = window.setTimeout(() => {
+      try {
+        console.warn('[ActiveCall] connecting-stuck watchdog firing endCall', { callId });
+        Promise.resolve(onEndCall()).catch(() => {});
+      } catch { /* ignore */ }
+    }, 25000);
+    return () => window.clearTimeout(t);
+  }, [isOpen, callId, callStatus, isConnected, onEndCall]);
+
   // Fetch user coins, display name AND host photos
   useEffect(() => {
     const fetchUserInfo = async () => {
