@@ -275,6 +275,7 @@ const AdminShop = lazy(lazyRetry(() => import("./pages/admin/AdminShop")));
 const AdminPushBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminPushBroadcast")));
 const AdminNoticeBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminNoticeBroadcast")));
 const AdminEmailBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminEmailBroadcast")));
+const AdminOtpProviders = lazy(lazyRetry(() => import("./pages/admin/AdminOtpProviders")));
 const AdminLeaderboardManagement = lazy(lazyRetry(() => import("./pages/admin/AdminLeaderboardManagement")));
 const AdminBalanceDeduction = lazy(lazyRetry(() => import("./pages/admin/AdminBalanceDeduction")));
 const AdminFeatureLevels = lazy(lazyRetry(() => import("./pages/admin/AdminFeatureLevels")));
