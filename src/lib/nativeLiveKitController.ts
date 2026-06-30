@@ -22,6 +22,7 @@ import {
   type NativeRoomScope,
 } from '@/plugins/NativeLiveKit';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
+import { recordCallDiag } from '@/lib/callDiagnostics';
 import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface NativeJoinOptions {
