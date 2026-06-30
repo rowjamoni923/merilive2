@@ -7,6 +7,7 @@ import { useLiveVoiceMonitor } from "@/hooks/useLiveVoiceMonitor";
 
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { AnimatedViewerCount } from "@/components/live/AnimatedViewerCount";
+import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { PublishLayersDialog } from "@/components/livekit/PublishLayersDialog";
