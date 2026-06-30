@@ -237,7 +237,7 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, display_name, username, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .select("coins, display_name, username, avatar_url, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
         .maybeSingle();
 
