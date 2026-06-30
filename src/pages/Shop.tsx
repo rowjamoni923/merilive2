@@ -724,6 +724,9 @@ const Shop = () => {
                 owned={isOwned(item.id)}
                 onPreview={() => setSelectedItem(item)}
                 isFullWidth={isEntryAnimationCategory(item.category)}
+                viewerName={userName}
+                viewerAvatar={userAvatar}
+                viewerLevel={userLevel}
               />
             ))}
           </div>
