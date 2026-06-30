@@ -34,7 +34,6 @@
 
     <!-- Foreground Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <!-- Step 34 — screen-share via MediaProjection (Android 14+ requires the dedicated FGS type) -->
@@ -220,7 +219,7 @@
         </service>
 
         <service android:name=".service.CallForegroundService" android:exported="false"
-            android:foregroundServiceType="phoneCall|camera|microphone" />
+            android:foregroundServiceType="camera|microphone" />
 
         <!-- Pkg-bgcontinuity — viewer-side audio/subscriber keep-alive FGS. -->
         <service android:name=".service.MediaPlaybackForegroundService" android:exported="false"
