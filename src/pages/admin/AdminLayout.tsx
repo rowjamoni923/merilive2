@@ -2185,7 +2185,8 @@ export default function AdminLayout() {
         toast('💬 New Support Message', {
           description: 'User sent a new message',
           action: { label: '👉 View', onClick: () => navigate('/admin/support-tickets') },
-          duration: 8000,
+          duration: Infinity,
+          closeButton: true,
         });
         return;
       }
