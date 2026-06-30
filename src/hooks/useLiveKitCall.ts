@@ -455,11 +455,6 @@ export function useLiveKitCall(
               }
               nAttempt++;
               try {
-                // 🚀 Zero-delay reveal: WebView body transparent BEFORE awaiting
-                // Camera2 connect, so the native fullscreen renderer behind the
-                // WebView is visible the moment attachLocal mounts the surface
-                // (instead of being hidden by an opaque white body for 1–3s).
-                setNativeMediaSurface(true);
                 await nativeLiveKitController.connectAndPublish({
                   url,
                   token,
@@ -517,6 +512,10 @@ export function useLiveKitCall(
               registerNativeGiftRoom('call', callId);
             }
             setNativeActive(true);
+            // Only after bounded native surfaces are connected do we make the
+            // WebView document transparent. Doing this during accept/connect
+            // exposed the raw full-screen camera behind the React UI.
+            setNativeMediaSurface(true);
             setState(p => ({
               ...p,
               nativeSession: { url, token },

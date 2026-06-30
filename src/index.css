@@ -1090,10 +1090,10 @@ video::-webkit-media-controls-toggle-closed-captions-button {
      through. The chat/gift/UI overlays inside the page still render
      normally because they have their own non-transparent surfaces. */
   body.native-media-active .room-viewport,
-  body.native-media-active [data-room-shell],
+  body.native-media-active [data-room-shell]:not([data-room-shell="call"]),
   body.native-media-active [data-native-video-view],
   body.lk-camera-live .room-viewport,
-  body.lk-camera-live [data-room-shell],
+  body.lk-camera-live [data-room-shell]:not([data-room-shell="call"]),
   body.lk-camera-live [data-native-video-view],
   body.lk-camera-live [data-livekit-camera-surface] {
     background: transparent !important;
