@@ -1417,6 +1417,7 @@ class LiveKitPlugin : Plugin() {
                     parent.addView(renderer, 0, lp)
                     try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
+                    try { wv.bringToFront(); (wv.parent as? View)?.invalidate() } catch (_: Throwable) {}
 
                 } else {
                     previewRenderer?.setMirror(mirror)
