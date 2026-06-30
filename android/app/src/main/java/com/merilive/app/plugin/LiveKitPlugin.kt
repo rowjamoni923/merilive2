@@ -275,6 +275,9 @@ class LiveKitPlugin : Plugin() {
 
                     val opts = LocalVideoTrackOptions(
                         position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
+                        captureParams = VideoCaptureParameter(
+                            LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS,
+                        ),
                     )
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
                     track.startCapture()
