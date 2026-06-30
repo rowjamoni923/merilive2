@@ -4115,7 +4115,8 @@ const LiveStream = () => {
             )}
           </div>
         ) : showNativeHostSurface ? (
-          <div className="absolute inset-0 pointer-events-none bg-transparent">
+          <div className="absolute inset-0 z-0 pointer-events-none bg-transparent">
+
             <div className={cn(
               "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
               nativeHostSurfaceAttached ? "opacity-0" : "opacity-100"
@@ -4153,7 +4154,8 @@ const LiveStream = () => {
             />
           </div>
         ) : showNativeViewerSurface && nativeHostParticipant?.sid ? (
-          <div className="absolute inset-0 pointer-events-none bg-transparent">
+          <div className="absolute inset-0 z-0 pointer-events-none bg-transparent">
+
             <div className={cn(
               "absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#14071f] via-[#050208] to-black transition-opacity duration-300",
               nativeViewerSurfaceAttached ? "opacity-0" : "opacity-100"
