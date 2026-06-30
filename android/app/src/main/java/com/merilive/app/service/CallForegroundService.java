@@ -36,7 +36,7 @@ public class CallForegroundService extends Service {
     private static final String TAG = "CallFGS";
     public static final String ACTION_START = "com.merilive.app.START_CALL_SERVICE";
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
-    private static final int FOREGROUND_NOTIFICATION_ID = 9001;
+    public static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
     private void stopAndRemoveForegroundNotification() {
         try {
@@ -183,8 +183,11 @@ public class CallForegroundService extends Service {
             .setContentTitle("🔴 LIVE · " + safeTitle)
             .setContentText(subtitle)
             .setOngoing(true)
-            .setUsesChronometer(true)
-            .setShowWhen(true)
+            // Owner fix: no Android/OEM status-bar timer for live/party/call.
+            // The app UI owns all counters; OEM chronometers can visually
+            // survive teardown and look like the call/live is still running.
+            .setUsesChronometer(false)
+            .setShowWhen(false)
             .setPriority(NotificationCompat.PRIORITY_LOW) // never heads-up for live (user is the host)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
