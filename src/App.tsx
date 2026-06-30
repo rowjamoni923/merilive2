@@ -34,6 +34,7 @@ import { RouteTransitionHost } from "./components/RouteTransitionHost";
 import { GlobalInstantNavigation } from "./components/common/GlobalInstantNavigation";
 import { ScrollSafetyNet } from "./components/common/ScrollSafetyNet";
 import { startIdleRoutePrefetch } from "./utils/idleRoutePrefetch";
+import { CallProvider } from "./components/call/CallProvider";
 const AdminAuth = lazy(lazyRetry(() => import("./pages/admin/AdminAuth")));
 
 
@@ -58,7 +59,6 @@ import { RealtimeProvider } from "./components/common/RealtimeProvider";
 const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
 const DeferredAppHooks = lazy(lazyRetry(() => import("./components/common/DeferredAppHooks")));
-const CallProvider = lazy(lazyRetry(() => import("./components/call/CallProvider").then(m => ({ default: m.CallProvider }))));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -603,11 +603,7 @@ const CallProviderGate = ({ enabled, children }: { enabled: boolean; children: R
   return (
     <>
       {children}
-      {enabled ? (
-        <Suspense fallback={null}>
-          <CallProvider />
-        </Suspense>
-      ) : null}
+      {enabled ? <CallProvider /> : null}
     </>
   );
 };

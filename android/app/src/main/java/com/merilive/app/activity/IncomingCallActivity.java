@@ -126,7 +126,7 @@ public class IncomingCallActivity extends AppCompatActivity {
             } catch (Throwable ignored) {}
             cancelCallNotification();
             Intent mainIntent = new Intent(this, MainActivity.class);
-            mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             mainIntent.putExtra("action", "accept_call");
             mainIntent.putExtra("open_call", true);
             mainIntent.putExtra("call_id", callId);

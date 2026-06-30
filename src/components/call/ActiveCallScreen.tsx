@@ -1241,7 +1241,27 @@ export function ActiveCallScreen({
               </div>
             ) : (
               <div className="absolute inset-0">
-                <div className={cn("absolute inset-0", shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]")} />
+                <div
+                  className={cn(
+                    "absolute inset-0 overflow-hidden",
+                    shouldExposeNativePreview ? "bg-transparent" : "bg-gradient-to-br from-[#1a0526] via-[#230733] to-[#07020d]"
+                  )}
+                >
+                  {!shouldExposeNativePreview && remoteUserAvatar && (
+                    <>
+                      <img
+                        src={remoteUserAvatar}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover opacity-35 blur-2xl scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/45 to-black/70" />
+                    </>
+                  )}
+                  {!shouldExposeNativePreview && (
+                    <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/20 blur-3xl" />
+                  )}
+                </div>
               </div>
             )}
             
