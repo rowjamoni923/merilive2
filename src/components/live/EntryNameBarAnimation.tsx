@@ -338,7 +338,12 @@ EntryNameBarAnimationInner.displayName = 'EntryNameBarAnimationInner';
 export const EntryNameBarAnimation = ({
   userName, userLevel, avatarUrl, animationUrl, userId, onComplete, className, bottomPosition,
 }: EntryNameBarAnimationProps) => {
-  const stableKey = useRef(`entry-namebar-${Date.now()}-${userName}`);
+  // Per-user stable key so two arrivals never share Inner state (avatar/name/
+  // level/url frozen from a prior user). userId is the strongest identity;
+  // displayName + url fall back when userId is missing.
+  const stableKey = useRef(
+    `entry-namebar-${userId || 'anon'}-${userName || 'user'}-${animationUrl || 'na'}-${Date.now()}`,
+  );
   return (
     <EntryNameBarAnimationInner
       key={stableKey.current}
@@ -347,7 +352,6 @@ export const EntryNameBarAnimation = ({
       className={className} bottomPosition={bottomPosition}
     />
   );
-
 };
 
 export default EntryNameBarAnimation;
