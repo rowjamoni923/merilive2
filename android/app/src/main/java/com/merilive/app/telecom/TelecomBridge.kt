@@ -36,7 +36,7 @@ object TelecomBridge {
     const val EXTRA_CALL_TYPE = "merilive.callType"
 
     @JvmStatic
-    fun isSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    fun isSupported(): Boolean = false
 
     /** Kept for source compat — never used by neutered bridge. */
     @JvmStatic
