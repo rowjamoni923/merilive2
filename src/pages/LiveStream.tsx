@@ -121,7 +121,6 @@ import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 // UNIFIED Chat Overlay - ONE LINK for Live Stream + Party Room
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
-import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import BeansIcon from "@/components/common/BeansIcon";
@@ -472,12 +471,6 @@ const LiveStream = () => {
   // Flying gift animation
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
-  // Bigo-style flying join notifications - shows one at a time, flies in from left
-  const { 
-    activeNotification: activeBigoJoin, 
-    addNotification: addBigoJoinNotification, 
-    completeNotification: completeBigoJoin 
-  } = useBigoJoinNotifications();
   const [liveJoinNotifications, setLiveJoinNotifications] = useState<JoinNotification[]>([]);
   const liveJoinExpiryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -1402,14 +1395,6 @@ const LiveStream = () => {
             // Delay to let the component fully mount
             selfJoinTimer = setTimeout(async () => {
               if (cancelled || !mountedRef.current) return;
-              // Add Bigo-style flying join banner
-              addBigoJoinNotification({
-                userId: currentUserId,
-                userName,
-                userAvatar: avatarUrl,
-                userLevel,
-              });
-              
               // Self welcome chat row also owned by dispatcher.onWelcomeRow
               // (welcomeOnEveryEntry=true). Do not append manually here.
               
@@ -1503,7 +1488,7 @@ const LiveStream = () => {
       }
       mountedRef.current = false;
     };
-  }, [id, addBigoJoinNotification]);
+  }, [id]);
 
   // ✅ REAL-TIME ADMIN SETTINGS - Subscribe to gift_commission changes
   useEffect(() => {
@@ -1674,7 +1659,6 @@ const LiveStream = () => {
                 { id: uid, app_uid: null, avatar_url: userAvatar || null, name: userName, user_level: userLevel },
                 ...prev.filter((v: any) => v.id !== uid),
               ].slice(0, 5));
-              addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
               addLiveJoinNotification({ userId: uid, userName, userAvatar, userLevel });
               // Welcome chat row owned by dispatcher.onWelcomeRow — do not
               // append here (duplicate-row bug 2026-06-30).
@@ -1958,13 +1942,9 @@ const LiveStream = () => {
         ...prev.filter((v: any) => v.id !== p.userId),
       ].slice(0, 5));
 
-      // 2. INSTANT flying join banner
-      addBigoJoinNotification({
-        userId: p.userId,
-        userName: p.userName,
-        userAvatar: p.userAvatar || undefined,
-        userLevel: p.userLevel,
-      });
+      // 2. INSTANT lightweight join chip (top-left). Premium animated name-bar
+      // is handled exclusively by EntryNameBarAnimation below, so avatar/name/
+      // level never split into two separate banners.
       addLiveJoinNotification({
         userId: p.userId,
         userName: p.userName,
@@ -2001,7 +1981,7 @@ const LiveStream = () => {
     return () => {
       window.removeEventListener('livekit-live-event', handleLiveEvent);
     };
-  }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation, addLiveJoinNotification]);
+  }, [id, currentUserId, addEntryAnimation, addLiveJoinNotification]);
 
 
   // Zero-refresh policy: no gift reconciliation REST poll. LiveKit envelopes,
@@ -3949,13 +3929,6 @@ const LiveStream = () => {
           </div>
         </div>
       )}
-
-
-      {/* Bigo-Style Flying Join Banner - Shows when viewers join */}
-      <BigoJoinBannerContainer
-        activeNotification={activeBigoJoin}
-        onComplete={completeBigoJoin}
-      />
 
       <div
         className="absolute inset-0 flex items-center justify-center"
