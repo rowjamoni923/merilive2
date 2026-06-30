@@ -401,8 +401,16 @@ export function ActiveCallScreen({
   // frames later than the native room join; if we wait for it, the remote
   // NativeVideoView is never mounted and users see "Connecting…" instead of
   // each other's faces.
-  const mediaRoomConnected = isConnected && (localMediaReady || !!localStream || isNativeMediaActive || !!nativeRemoteSid || hasRemoteVideo);
-  const isLiveConnected = isConnected && (callStatus === 'connected' || mediaRoomConnected);
+  const hasLocalCallMedia = localMediaReady || !!localStream || isNativeMediaActive || !!localVideoTrack;
+  const hasRemoteCallPresence = !!nativeRemoteSid || hasRemoteVideo || !!remoteStream || !!remoteVideoTrack;
+  // Do NOT promote the accepted private call into the connected video canvas
+  // from callStatus alone. The DB status can flip to `connected` before the
+  // native/Web LiveKit remote participant/track is bindable; that rendered the
+  // weak fallback "Connecting…" canvas instead of our branded accept screen and
+  // delayed the two-face layout. Keep the premium waiting shell until local
+  // media is alive AND the peer is visible/present, then mount bounded slots.
+  const mediaRoomConnected = isConnected && hasLocalCallMedia && hasRemoteCallPresence;
+  const isLiveConnected = mediaRoomConnected;
   const revealNativeConnectedCanvas = isNativeMediaActive && isLiveConnected;
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
@@ -435,8 +443,23 @@ export function ActiveCallScreen({
       } catch { /* old APK/no native room */ }
     };
     void poll();
-    const timer = window.setInterval(poll, 700);
-    return () => { cancelled = true; window.clearInterval(timer); };
+    // Fast first-window polling after Accept removes the visible delay before
+    // <NativeVideoView kind="remote" /> mounts. After ~7s it relaxes itself.
+    let fastPolls = 0;
+    let slowTimer: number | null = null;
+    const timer = window.setInterval(() => {
+      fastPolls += 1;
+      void poll();
+      if (fastPolls >= 44) {
+        window.clearInterval(timer);
+        if (!cancelled) slowTimer = window.setInterval(poll, 700);
+      }
+    }, 160);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      if (slowTimer != null) window.clearInterval(slowTimer);
+    };
   }, [isOpen, isNativeMediaActive, isConnected]);
 
   // Pkg207 — Auto-shrink to native Android PiP when user presses home

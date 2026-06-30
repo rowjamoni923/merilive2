@@ -82,6 +82,7 @@ export function useNativeLiveKitEvents(
 
     const attachLocalSurface = () => {
       if (cancelled) return;
+      if (!nativeLiveKitController.canAttachFullscreenLocal()) return;
       nativeLiveKitController.attachLocal().catch(() => {});
     };
 

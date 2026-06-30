@@ -1308,7 +1308,10 @@ class LiveKitPlugin : Plugin() {
             return existing
         }
         val renderer = TextureViewRenderer(act).apply {
-            setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+            // Never crop/zoom the camera in live, party or private-call slots.
+            // React placeholders already define the branded frame; native video
+            // must fit inside that frame so faces/controls never get cut off.
+            setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
             setMirror(mirror)
         }
         if (webViewOriginalBg == null) {
@@ -1595,7 +1598,9 @@ class LiveKitPlugin : Plugin() {
 
                 if (previewRenderer == null) {
                     val renderer = TextureViewRenderer(act).apply {
-                        setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+                        // Fullscreen legacy renderer is kept only for older
+                        // flows; still use FIT so it cannot visually zoom/crop.
+                        setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
                         setMirror(mirror)
                     }
                     val lp: ViewGroup.MarginLayoutParams = when (parent) {

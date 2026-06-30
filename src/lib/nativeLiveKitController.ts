@@ -52,6 +52,7 @@ class NativeLiveKitController {
   private connected = false;
   private busy = false;
   private autoAttachLocalRenderer = true;
+  private boundedSurfaceMode = false;
   private activeFeature: NativeRoomScope | null = null;
   private previewFeature: NativeRoomScope | null = null;
   private previewStartPromise: Promise<boolean> | null = null;
@@ -81,7 +82,12 @@ class NativeLiveKitController {
       // If the user already hung up / left / navigated while the retry cadence
       // was sleeping, never attach a stale fullscreen native renderer to the
       // next screen or next media session.
-      if (epoch !== this.mediaEpoch || (!this.connected && !this.previewFeature)) return;
+      if (
+        epoch !== this.mediaEpoch ||
+        this.boundedSurfaceMode ||
+        !this.autoAttachLocalRenderer ||
+        (!this.connected && !this.previewFeature)
+      ) return;
       try {
         const res = await (NativeLiveKit as any).attachLocal({ mirror: true });
         lastResult = res as { attached?: boolean; reason?: string } | undefined;
@@ -112,8 +118,15 @@ class NativeLiveKitController {
 
 
   async attachLocal(): Promise<void> {
-    if (!this.connected || !this.autoAttachLocalRenderer) return;
+    if (!this.connected || !this.autoAttachLocalRenderer || this.boundedSurfaceMode) return;
     await this.attachLocalWithRetry();
+  }
+
+  /** True only for legacy/fullscreen local-renderer sessions. Modern live,
+   * party and private-call screens use bounded <NativeVideoView /> slots, so
+   * native event recovery must not re-mount the fullscreen local renderer. */
+  canAttachFullscreenLocal(): boolean {
+    return this.connected && this.autoAttachLocalRenderer && !this.boundedSurfaceMode;
   }
 
   private async waitForIdle(label: string, timeoutMs = 6500): Promise<void> {
@@ -170,7 +183,12 @@ class NativeLiveKitController {
           this.connected = true;
           this.activeFeature = requestedFeature ?? activeScope ?? null;
           this.previewFeature = null;
+          this.boundedSurfaceMode = opts.attachLocal === false;
           this.autoAttachLocalRenderer = opts.attachLocal !== false;
+          if (this.boundedSurfaceMode) {
+            this.mediaEpoch += 1;
+            try { await NativeLiveKit.detachLocal?.(); } catch { /* noop */ }
+          }
           if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
           return { sid: '', identity: '' };
         }
@@ -226,13 +244,18 @@ class NativeLiveKitController {
           // remote fullscreen + local PiP) must never inherit a stale full-screen
           // preview renderer from prejoin/reconnect. Detach the renderer
           // explicitly before connect; keep the CameraX track alive for publish.
+          this.mediaEpoch += 1;
+          this.boundedSurfaceMode = true;
           try { await NativeLiveKit.detachLocal?.(); } catch { /* noop */ }
           this.autoAttachLocalRenderer = false;
+        } else {
+          this.boundedSurfaceMode = false;
         }
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
         this.activeFeature = requestedFeature;
         this.previewFeature = null;
+        this.boundedSurfaceMode = opts.attachLocal === false;
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
         recordCallDiag('session', 'connect', {
@@ -254,6 +277,7 @@ class NativeLiveKitController {
       } catch (error) {
         this.connected = false;
         this.activeFeature = null;
+        this.boundedSurfaceMode = opts.attachLocal === false;
         try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
         try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
         throw error;
@@ -309,15 +333,17 @@ class NativeLiveKitController {
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
       const prevScope = this.activeFeature;
+      const prevBounded = this.boundedSurfaceMode;
       this.connected = false;
       this.activeFeature = null;
       this.previewFeature = null;
+      this.boundedSurfaceMode = false;
       // Do not reset this to true on disconnect. Viewer/party/private-call
       // reconnect ladders intentionally use bounded renderers; flipping the
       // flag here lets delayed camera-state events re-mount a full-screen
       // native renderer around the 10–14s window and hide React UI overlays.
       this.busy = false;
-      recordCallDiag('session', 'disconnect', { scope: prevScope });
+      recordCallDiag('session', 'disconnect', { scope: prevScope, bounded: prevBounded });
       recordCallDiag('native-detach', 'detachAll', { scope: prevScope });
     }
   }
@@ -345,6 +371,7 @@ class NativeLiveKitController {
     } finally {
       this.connected = false;
       this.activeFeature = null;
+      this.boundedSurfaceMode = false;
       // INTENTIONAL: leave previewFeature + autoAttachLocalRenderer untouched
       // so the preview keeps owning the camera between retries.
     }
@@ -400,7 +427,7 @@ class NativeLiveKitController {
     try {
       const r = await NativeLiveKit.setCameraEnabled({ enabled });
       if (enabled && (r as any)?.skipped) throw new Error((r as any)?.reason || 'camera-enable-skipped');
-      if (enabled && this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
+      if (enabled && this.canAttachFullscreenLocal()) await this.attachLocalWithRetry();
     } catch (e) {
       console.warn('[NativeLiveKitController] setCameraEnabled failed:', e);
     }
@@ -449,6 +476,15 @@ class NativeLiveKitController {
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
       try {
+        if (opts?.boundedOnly) {
+          this.mediaEpoch += 1;
+          this.boundedSurfaceMode = true;
+          this.autoAttachLocalRenderer = false;
+          try { await NativeLiveKit.detachLocal?.(); } catch { /* noop */ }
+        } else {
+          this.boundedSurfaceMode = false;
+          this.autoAttachLocalRenderer = true;
+        }
         await NativeLiveKit.startLocalPreview(opts ?? {});
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e ?? '');
@@ -481,6 +517,7 @@ class NativeLiveKitController {
     if (pending) await pending.catch(() => false);
     try { await NativeLiveKit.stopLocalPreview(); } catch { /* no preview / not implemented */ }
     this.previewFeature = null;
+    this.boundedSurfaceMode = false;
   }
 
   async attachRemote(sid: string): Promise<void> {
