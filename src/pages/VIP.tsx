@@ -41,6 +41,7 @@ import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { recordClientError } from "@/utils/clientErrorLog";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
+import EntryNameBarPreview from "@/components/live/EntryNameBarPreview";
 import { getLevelBadgeBg, getLevelTextColor, formatLevel, ensureValidLevel } from "@/features/shared/level";
 
 interface VIPTier {
