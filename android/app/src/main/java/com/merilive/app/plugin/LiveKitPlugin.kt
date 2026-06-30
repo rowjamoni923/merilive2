@@ -1195,6 +1195,7 @@ class LiveKitPlugin : Plugin() {
                 val child = parent.getChildAt(i) ?: continue
                 val tag = child.tag as? String ?: continue
                 if (tag == "merilive.overlay.entry" || tag == "merilive.overlay.gift") {
+                    try { child.elevation = 140f } catch (_: Throwable) {}
                     try { child.translationZ = 140f } catch (_: Throwable) {}
                     try { child.bringToFront() } catch (_: Throwable) {}
                 }
@@ -1280,6 +1281,7 @@ class LiveKitPlugin : Plugin() {
                 if (slot.renderer.parent === parent) videoLayers.add(slot.renderer)
             }
             videoLayers.distinct().forEach { layer ->
+                try { layer.elevation = 0f } catch (_: Throwable) {}
                 try { layer.translationZ = 0f } catch (_: Throwable) {}
                 val rIndex = childIndex(parent, layer)
                 val wIndex = childIndex(parent, wv)
