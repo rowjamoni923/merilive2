@@ -253,7 +253,7 @@ export function CallProvider({ children }: CallProviderProps) {
       try {
         await nativeLiveKitController.startLocalPreview({
           lens: 'front',
-          resolution: '720p',
+          resolution: '1080p',
           mirror: true,
           roomScope: 'call',
           boundedOnly: true,

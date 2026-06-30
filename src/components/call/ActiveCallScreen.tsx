@@ -396,7 +396,13 @@ export function ActiveCallScreen({
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(userId);
-  const isLiveConnected = callStatus === 'connected' && isConnected;
+  // Do not keep the UI trapped on the branded "Calling/Ringing" overlay once
+  // LiveKit media has actually connected. Backend callStatus can arrive a few
+  // frames later than the native room join; if we wait for it, the remote
+  // NativeVideoView is never mounted and users see "Connecting…" instead of
+  // each other's faces.
+  const mediaRoomConnected = isConnected && (localMediaReady || !!localStream || isNativeMediaActive || !!nativeRemoteSid || hasRemoteVideo);
+  const isLiveConnected = isConnected && (callStatus === 'connected' || mediaRoomConnected);
   const revealNativeConnectedCanvas = isNativeMediaActive && isLiveConnected;
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
