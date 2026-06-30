@@ -4458,10 +4458,10 @@ const LiveStream = () => {
       {/* Legacy top-bar copy intentionally disabled: restored header above is fixed and safe-area locked. */}
       {false && (
       <motion.div 
-        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="relative z-20 px-3 pt-2 pb-1"
-        style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
+        style={{ pointerEvents: 'auto' }}
       >
         <div className="flex items-center justify-between">
           {/* Left Section - Live Badge + Host Info */}
