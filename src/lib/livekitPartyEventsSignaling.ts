@@ -216,6 +216,37 @@ export function unregisterPartyEventsRoom(roomId: string | null | undefined) {
 }
 
 /**
+ * Native Android path: receives DataPackets forwarded from the native
+ * LiveKit plugin (the JS-side Room is not the publisher/listener when the
+ * native plugin owns the connection). Without this, native APK users join
+ * a party room but never see `participant_joined` / `seat_action` /
+ * `room_state_changed` envelopes from peers — the room appears blind.
+ */
+export function registerNativePartyEventsRoom(roomId: string | null | undefined) {
+  if (!roomId || typeof window === 'undefined') return;
+  nativeRegistry.add(roomId);
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    const env = decodeEnvelope(payload);
+    if (!env || env.f !== FAMILY) return;
+    if (!PARTY_EVENT_TYPES.has(env.t)) return;
+    if (isDuplicateEnvelope(env.id)) return;
+    const p = (env.p ?? {}) as Partial<PartyEventPayload>;
+    if (!p || !nativeRegistry.has((p as any).roomId) || env.t !== p.type) return;
+    dispatchPartyEvent(p as PartyEventPayload, participantIdentity);
+  });
+}
+
+export function unregisterNativePartyEventsRoom(roomId: string | null | undefined) {
+  if (!roomId) return;
+  nativeRegistry.delete(roomId);
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
+/**
  * Publish a party event packet. Always safe — never throws.
  * Returns `true` only when actually sent over LiveKit.
  *
@@ -228,9 +259,8 @@ export async function publishPartyEvent(
 ): Promise<boolean> {
   if (!roomId) return false;
   const entry = registry.get(roomId);
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(roomId)) return false;
 
   let allowed = false;
   try {
@@ -245,9 +275,12 @@ export async function publishPartyEvent(
       FAMILY,
       payload.type,
       { ...payload, roomId, timestamp: payload.timestamp ?? Date.now() },
-      room.localParticipant?.identity,
+      room?.localParticipant?.identity ?? (('userId' in payload) ? (payload as any).userId : undefined),
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'presence' });
+    }
     await room.localParticipant.publishData(bytes, { reliable: true });
     return true;
   } catch (err) {
