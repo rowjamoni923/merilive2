@@ -3984,17 +3984,13 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="relative w-32 h-40 sm:w-36 sm:h-44 rounded-[1.75rem] bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-100/40 active:scale-95 transition overflow-hidden shadow-lg shadow-amber-200/30 touch-target-lg ring-1 ring-amber-100"
+                className="relative w-36 h-44 sm:w-40 sm:h-48 rounded-[1.75rem] bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-100/40 active:scale-95 transition overflow-hidden shadow-lg shadow-amber-200/30 touch-target-lg ring-1 ring-amber-100"
                 onClick={() => photoInputRef.current?.click()}
                 role="button"
                 aria-label="Upload profile photo"
               >
                 {photoPreview ? (
-                  <>
-                    <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className={photoImageClass} />
-                    <div className={photoOverlayClass} />
-                    <div className="pointer-events-none absolute left-1/2 top-1/2 h-[74%] w-[68%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/80" />
-                  </>
+                  <img loading="lazy" decoding="async" src={photoPreview} alt="Profile" className={photoImageClass} />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-center px-3">
                     <Camera className="w-8 h-8 text-purple-400 opacity-70" />
@@ -4002,6 +3998,7 @@ const FaceVerification = () => {
                   </div>
                 )}
               </div>
+
               <input 
                 ref={photoInputRef}
                 type="file" 
