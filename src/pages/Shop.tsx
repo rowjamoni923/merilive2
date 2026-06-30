@@ -146,13 +146,19 @@ const ShopItemCard = ({
   index, 
   owned, 
   onPreview,
-  isFullWidth = false
+  isFullWidth = false,
+  viewerName,
+  viewerAvatar,
+  viewerLevel,
 }: { 
   item: ShopItem; 
   index: number; 
   owned: boolean; 
   onPreview: () => void;
   isFullWidth?: boolean;
+  viewerName: string;
+  viewerAvatar: string | null;
+  viewerLevel: number;
 }) => {
   const [imageError, setImageError] = useState(false);
   // Viewport gate — only mount heavy animation players for cards that are
