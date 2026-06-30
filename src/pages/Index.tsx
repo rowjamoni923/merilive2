@@ -624,8 +624,8 @@ const Index = () => {
           />
 
 
-          {/* Lightweight gradient overlay - single layer */}
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
+          {/* Lightweight readability scrim only — no separate color panel or divider. */}
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/70 via-foreground/18 to-transparent" />
 
           {/* Premium 3D Status Badge — LIVE (red) / BUSY (amber) / ONLINE (green) */}
           {(() => {
@@ -714,13 +714,13 @@ const Index = () => {
           )}
 
 
-          {/* Bottom Info — premium professional gradient bar */}
+            {/* Bottom Info — floats on the thumbnail; never renders a colored screen or border. */}
           <div
             className="absolute bottom-0 left-0 right-0 px-2.5 pt-4 pb-2.5"
             style={{
-              background: 'linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(30,41,99,0.55) 35%, rgba(49,46,129,0.88) 75%, rgba(67,56,202,0.96) 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(165,180,252,0.25), inset 0 -1px 0 rgba(129,140,248,0.2)',
-              borderTop: '1px solid rgba(165,180,252,0.18)',
+              background: 'transparent',
+              boxShadow: 'none',
+              borderTop: '0',
             }}
           >
 

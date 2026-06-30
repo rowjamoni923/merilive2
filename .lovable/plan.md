@@ -1,16 +1,14 @@
-# App Update Prompt Repeat Guard
+# Home Live Card Visual Leak Fix
 
 ## Goal
-Prevent the app-update modal from appearing incorrectly after a user has already updated, opened Play Store, or dismissed an optional prompt.
+Remove the unprofessional colored bottom screen, black strip, and border line from homepage host/live cards.
 
 ## Research notes
-- Google Play in-app updates rely on update availability, staleness, and priority; apps should re-check state when returning from the store instead of blindly showing stale prompts: https://developer.android.com/guide/playcore/in-app-updates
-- Capawesome exposes native Play Store update state through `getAppUpdateInfo()` and store launch helpers, but app-side version/admin comparison still needs deterministic local suppression: https://capawesome.io/docs/plugins/app-update/
+- Bigo Live public screenshots show feed cards as continuous media tiles with labels/actions floating over the image, not a separate heavy colored slab under the preview: https://www.apk4fun.com/screenshot/142809/
+- Professional live-card pattern: keep the thumbnail as one uninterrupted surface; use subtle text legibility scrims only where text sits, with no hard divider/border between media and metadata.
 
 ## Fix plan
-1. Normalize device, server, and minimum versions through the same comparable scale.
-2. Store prompt memory with target version + installed version at action time, not only a raw versionCode.
-3. Clear prompt memory automatically when installed version is now equal/newer than server target.
-4. Suppress same-target optional prompts after dismiss and same-target store-open prompts during the install-return window.
-5. On native app resume from Play Store, refresh native version info and force a fresh update check.
-6. Test-mode override must respect store-open suppression on reload, but still allow manual retrigger from Admin Test Mode.
+1. Keep the existing home-card layout and data behavior unchanged.
+2. Replace the purple/blue bottom info panel with a transparent bottom readability scrim.
+3. Remove the top border and inset shadow that created the black horizontal line.
+4. Keep name, level, country, avatar, and call button in the same positions.
