@@ -1017,7 +1017,7 @@ export function ActiveCallScreen({
     return createPortal(
       <RequireNativeAndroidGate feature="call">
         {resilienceNotifier}
-        <div aria-hidden className="fixed inset-0 z-[2147483600] pointer-events-none" style={{ background: 'transparent' }} />
+        <div aria-hidden className="fixed inset-0 z-[2147483600] isolate pointer-events-none" style={{ background: 'transparent' }} />
       </RequireNativeAndroidGate>,
       document.body,
     );
@@ -1029,7 +1029,7 @@ export function ActiveCallScreen({
   const callUi = (
     <div
       data-room-shell="call"
-      className="fixed inset-0 z-[2147483600] flex select-none overflow-hidden"
+      className="fixed inset-0 z-[2147483600] isolate flex select-none overflow-hidden"
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none',
@@ -1080,7 +1080,7 @@ export function ActiveCallScreen({
 
       {!isInNativePip && (
         <div 
-          className="absolute top-0 left-0 right-0 z-10 safe-area-top"
+          className="absolute top-0 left-0 right-0 z-[90] safe-area-top"
           style={{ contain: 'layout' }}
         >
           <div className="mx-2 sm:mx-3 mt-2 flex items-center justify-between gap-1.5 sm:gap-2">
@@ -1448,7 +1448,7 @@ export function ActiveCallScreen({
       {chatMessages.length > 0 && !isInNativePip && (
         <div
           ref={callChatScroll.scrollRef}
-          className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-10 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
+        className="absolute left-2 sm:left-3 right-[108px] sm:right-16 z-[90] max-h-[36vh] sm:max-h-[40vh] overflow-y-auto chat-scroll-stable"
           style={{ bottom: 'calc(var(--kb-h, 0px) + 108px)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           <div className="space-y-1.5 pb-1">
@@ -1513,7 +1513,7 @@ export function ActiveCallScreen({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="absolute bottom-24 right-3 z-30 backdrop-blur-xl"
+            className="absolute bottom-24 right-3 z-[100] backdrop-blur-xl"
             style={{
               background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(25,12,50,0.88) 100%)',
               border: '1px solid rgba(255,255,255,0.18)',
@@ -1551,7 +1551,7 @@ export function ActiveCallScreen({
 
       {/* ===== BOTTOM BAR - Live Stream Style ===== */}
       {!isInNativePip && (
-        <div className="absolute bottom-kb left-0 right-0 z-20 safe-area-bottom chat-composer-stable">
+        <div className="absolute bottom-kb left-0 right-0 z-[90] safe-area-bottom chat-composer-stable">
           <div className="px-2 sm:px-3 pb-3 sm:pb-4 pt-2">
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
