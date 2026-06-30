@@ -21483,6 +21483,14 @@ export type Database = {
         Args: { _agency_id: string }
         Returns: number
       }
+      alert_stuck_face_verifications: {
+        Args: { _threshold_minutes?: number }
+        Returns: {
+          stuck_minutes: number
+          submission_id: string
+          user_id: string
+        }[]
+      }
       apply_as_topup_helper: { Args: { _data: Json }; Returns: Json }
       apply_install_referrer: {
         Args: {
