@@ -282,7 +282,10 @@ const VIP = () => {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
         setCurrentUserName((profileData as any)?.display_name || (profileData as any)?.username || "You");
+        setCurrentUserAvatar((profileData as any)?.avatar_url || undefined);
       }
+      setCurrentUserLevel(effectiveLevel);
+
 
       // Fetch current VIP subscription
       const { data: vipData } = await supabase
