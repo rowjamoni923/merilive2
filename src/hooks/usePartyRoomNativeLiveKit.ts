@@ -289,6 +289,7 @@ export function usePartyRoomNativeLiveKit(
     try { unregisterNativeChatRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterNativeGiftRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterNativeReactionRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterNativePartyEventsRoom(roomId); } catch { /* ignore */ }
     try { unregisterViewerCountRoom(roomId); } catch { /* ignore */ }
 
     if (tokenRefreshDetachRef.current) {
