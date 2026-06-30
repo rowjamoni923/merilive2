@@ -299,6 +299,7 @@ const AdminHostSearch = lazy(lazyRetry(() => import("./pages/admin/AdminHostSear
 const AdminHosts = lazy(lazyRetry(() => import("./pages/admin/AdminHosts")));
 const AdminModeration = lazy(lazyRetry(() => import("./pages/admin/AdminModeration")));
 const AdminFaceVerification = lazy(lazyRetry(() => import("./pages/admin/AdminFaceVerification")));
+const AdminFaceVerificationTimeline = lazy(lazyRetry(() => import("./pages/admin/AdminFaceVerificationTimeline")));
 const AdminHostConversion = lazy(lazyRetry(() => import("./pages/admin/AdminHostConversion")));
 const AdminTasksSettings = lazy(lazyRetry(() => import("./pages/admin/AdminTasksSettings")));
 const AdminUsers = lazy(lazyRetry(() => import("./pages/admin/AdminUsers")));
