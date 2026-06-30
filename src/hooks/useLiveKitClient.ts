@@ -11,7 +11,6 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
   RemoteParticipant,
-  VideoPresets,
   AudioPresets,
   VideoQuality,
 } from 'livekit-client';
@@ -39,6 +38,7 @@ import {
 } from '@/lib/livekitVideoQuality';
 import { subscribeQualityHint, getQualityHint, type QualityBucket } from '@/lib/qualityHint';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
+import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
@@ -703,10 +703,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         : null;
       const captureRes = layerCfg
         ? { width: layerCfg.resolution.width, height: layerCfg.resolution.height, frameRate: layerCfg.resolution.frameRate }
-        : VideoPresets.h1080.resolution;
+        : {
+            width: LIVEKIT_PUBLISH_LOCK.captureWidth,
+            height: LIVEKIT_PUBLISH_LOCK.captureHeight,
+            frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
+          };
       const videoEnc = layerCfg
         ? { maxBitrate: layerCfg.videoEncoding.maxBitrate, maxFramerate: layerCfg.videoEncoding.maxFramerate }
-        : { maxBitrate: 6_500_000, maxFramerate: 30 };
+        : { maxBitrate: LIVEKIT_PUBLISH_LOCK.maxBitrate, maxFramerate: LIVEKIT_PUBLISH_LOCK.maxFps };
       const simulcastLayers = layerCfg?.simulcastLayers ?? [];
       const useSimulcast = simulcastLayers.length > 0;
       const room = new Room({

@@ -11,7 +11,7 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
   RemoteParticipant,
-  VideoPresets,
+  VideoPreset,
   AudioPresets,
   VideoQuality,
 } from 'livekit-client';
@@ -23,6 +23,7 @@ import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { adoptCameraSession } from '@/lib/persistentCameraSession';
+import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -512,7 +513,12 @@ export function usePartyRoomNativeLiveKit(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            resolution: VideoPresets.h1080.resolution,
+            // Full-sensor 3:4 portrait prevents Android 9:16 camera crop/zoom.
+            resolution: {
+              width: LIVEKIT_PUBLISH_LOCK.captureWidth,
+              height: LIVEKIT_PUBLISH_LOCK.captureHeight,
+              frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
+            },
             facingMode: 'user',
           },
           // Phase III.f: profile-aware audio. 'music' = 96kbps stereo opus
@@ -527,8 +533,8 @@ export function usePartyRoomNativeLiveKit(
           },
           publishDefaults: {
             videoEncoding: {
-              maxBitrate: 6_500_000,
-              maxFramerate: 30,
+              maxBitrate: LIVEKIT_PUBLISH_LOCK.maxBitrate,
+              maxFramerate: LIVEKIT_PUBLISH_LOCK.maxFps,
             },
             degradationPreference: 'maintain-resolution',
             // Phase-B fix: party rooms have many viewers on heterogeneous
@@ -537,7 +543,10 @@ export function usePartyRoomNativeLiveKit(
             // Two layers (180p + source) keeps publisher CPU/bitrate cost
             // modest while eliminating the all-or-nothing freeze pattern.
             simulcast: true,
-            videoSimulcastLayers: [VideoPresets.h180, VideoPresets.h540],
+            videoSimulcastLayers: [
+              new VideoPreset(720, 960, 1_800_000, 30),
+              new VideoPreset(540, 720, 700_000, 24),
+            ],
             // Pkg205 (M3): device-aware codec selection (Safari → H.264,
             // Chromium → AV1/VP9, H.264 backup preferred over VP8).
             ...pickOptimalCodecs(),
