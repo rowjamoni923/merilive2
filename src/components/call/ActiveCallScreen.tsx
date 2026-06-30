@@ -385,7 +385,11 @@ export function ActiveCallScreen({
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
   const showNativeRemoteSurface = isNativeMediaActive && isConnected && !!nativeRemoteSid && !remoteVideoTrack;
   const showNativeLocalSurface = isNativeMediaActive && isConnected && !localVideoTrack;
-  const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
+  // Private-call accept/connecting must NEVER expose the local camera as the
+  // full-screen background. That was the “third-class full-screen camera” the
+  // receiver saw after accepting. Native video is only allowed in bounded slots:
+  // remote = main connected canvas, local = small PiP.
+  const showNativeCallingSurface = false;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
@@ -404,8 +408,7 @@ export function ActiveCallScreen({
   // Android private-call UI must stay in our React premium shell so chat, gifts,
   // balance warnings and host/user controls remain visible. The old opaque
   // PrivateCallActivity had no chat surface and made the receiver see an OEM-
-  // looking screen, so we now keep rendering React and use native video slots
-  // behind the transparent WebView.
+  // looking screen, so React is now the only visible in-call screen.
   useEffect(() => {
     if (!isOpen || !callId) {
       setNativeInCallOpen(false);
@@ -439,7 +442,10 @@ export function ActiveCallScreen({
   // for audio-only. isInPip flips true while in floating window — use it
   // to collapse the heavy chat / gift / settings overlays below.
   const isInNativePip = isInPip;
-  const shouldExposeNativePreview = isNativeAndroidApp() && !localVideoTrack && !isLiveConnected;
+  // Never make the connecting canvas transparent for a private call. If native
+  // media is warming up underneath, the user should still see the branded React
+  // caller card instead of a raw full-screen camera surface.
+  const shouldExposeNativePreview = false;
 
 
 
@@ -1017,16 +1023,6 @@ export function ActiveCallScreen({
     />
   );
 
-  if (nativeInCallOpen) {
-    return createPortal(
-      <RequireNativeAndroidGate feature="call">
-        {resilienceNotifier}
-        <div aria-hidden className="fixed inset-0 z-[2147483600] isolate pointer-events-none" style={{ background: 'transparent' }} />
-      </RequireNativeAndroidGate>,
-      document.body,
-    );
-  }
-
   // Private calls are Android-native only. The hook also fails closed before
   // any web getUserMedia path can run.
 
@@ -1216,12 +1212,7 @@ export function ActiveCallScreen({
         {!isLiveConnected && (
           <div className="absolute inset-0 z-[2]">
             {/* Show local camera feed as background during calling/ringing */}
-            {showNativeCallingSurface ? (
-              <div className="absolute inset-0">
-                <NativeVideoView kind="local" mirror={true} className="absolute inset-0 w-full h-full pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/45" />
-              </div>
-            ) : localVideoTrack ? (
+            {localVideoTrack ? (
               <div className="absolute inset-0">
                 <LiveKitVideoPlayer
                   videoTrack={localVideoTrack}
@@ -1312,6 +1303,32 @@ export function ActiveCallScreen({
                 </div>
               )}
             </div>
+
+            {/* Native local preview is allowed only as a bounded PiP, never as
+                the full-screen background while accepting/connecting. */}
+            {showNativeLocalSurface && !isInNativePip && (
+              <motion.div
+                whileTap={{ scale: 0.93 }}
+                onClick={handleSwapVideos}
+                className="absolute top-20 sm:top-24 right-3 sm:right-4 w-[92px] h-[130px] sm:w-[110px] sm:h-[155px] rounded-2xl overflow-hidden border-2 border-white/30 z-[8] cursor-pointer bg-black"
+                style={{
+                  boxShadow:
+                    '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+                }}
+              >
+                <NativeVideoView kind="local" mirror={true} className="w-full h-full" />
+                <div
+                  className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,15,55,0.55))',
+                    textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                  }}
+                >
+                  You
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
 
@@ -1333,7 +1350,7 @@ export function ActiveCallScreen({
                 />
 
               ) : (
-                <div className={cn("w-full h-full flex flex-col items-center justify-center", isNativeMediaActive ? "bg-transparent" : "bg-gradient-to-br from-[#0c0818] via-[#050208] to-black")}>
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
                   {/* Pkg381: No large user icon in call — use blurred avatar as background fallback only */}
                   { (isSwapped ? myAvatarUrl : remoteUserAvatar) && (
                     <img loading="lazy" decoding="async" 
