@@ -180,23 +180,15 @@
             android:screenOrientation="portrait" />
 
 
-        <!-- Pkg500 Phase A — Native in-call surface for 1:1 paid video calls.
-             singleTask + own task affinity so it never stacks on MainActivity;
-             excludeFromRecents so a paid call screen can't be reopened from
-             the recents tray after end. configChanges keeps the LiveKit Room
-             alive across orientation/keyboard/density changes (no rebuild). -->
-        <activity
-            android:name=".activity.PrivateCallActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:excludeFromRecents="true"
-            android:showOnLockScreen="true"
-            android:turnScreenOn="true"
-            android:theme="@style/AppTheme.PrivateCall"
-            android:taskAffinity=":privatecall"
-            android:screenOrientation="portrait"
-            android:supportsPictureInPicture="true"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale" />
+        <!-- PrivateCallActivity (native in-call surface) intentionally removed.
+             1:1 paid video calls are rendered exclusively by the React
+             ActiveCallScreen inside MainActivity's WebView (Chamet-style UI
+             with host avatar, name, live diamond counter, message input, gift
+             button, end button). The native scaffold layout used stock Android
+             drawables and produced a "third-class" look that did not match
+             the rest of the app. Do NOT re-register without replacing the
+             native layout with the React design first. -->
+
 
         <!-- Pkg500 Phase E — Post-call professional summary screen. -->
         <activity
