@@ -843,18 +843,57 @@ const Auth = () => {
     // is_verified / is_host / host_status / host_level / coins / beans / diamonds / total_*
     // / registration_ip / last_login_ip / device_id / is_banned / is_blocked / is_deleted /
     // agency_id / call_rate_per_minute / is_face_verified can only be touched via SECDEF RPCs.
-    // gender + display_name first-time writes are still allowed by their respective guards.
+    // gender/host mapping is finalized through finalize_signup_profile; direct client
+    // gender rewrites are blocked once the trigger has stored an initial value.
     const PROTECTED_PROFILE_FIELDS = new Set([
       'is_verified', 'is_host', 'is_face_verified', 'host_status', 'host_level',
       'coins', 'beans', 'diamonds', 'beans_balance', 'total_earnings', 'pending_earnings',
       'weekly_earnings', 'total_recharged', 'registration_ip', 'last_login_ip',
       'device_id', 'is_banned', 'is_blocked', 'is_deleted', 'blocked_reason',
-      'agency_id', 'call_rate_per_minute',
+      'agency_id', 'call_rate_per_minute', 'gender',
     ]);
     const cleanPatch = Object.fromEntries(
       Object.entries(patch).filter(([key, value]) => value !== undefined && !PROTECTED_PROFILE_FIELDS.has(key))
     );
     const maxAttempts = options.maxAttempts ?? 8;
+
+    const finalizeViaServer = async () => {
+      const selectedPatchGender = typeof patch.gender === 'string' ? patch.gender : null;
+      const selectedPatchName = typeof patch.display_name === 'string' ? patch.display_name : null;
+      const selectedPatchDevice = typeof patch.device_id === 'string' ? patch.device_id : null;
+
+      if (!selectedPatchGender && !selectedPatchName && !selectedPatchDevice) return null;
+
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData.user?.id !== userId) return null;
+
+        const { data, error } = await supabase.rpc('finalize_signup_profile' as any, {
+          _display_name: selectedPatchName,
+          _gender: selectedPatchGender,
+          _device_id: selectedPatchDevice,
+        });
+
+        if (error) {
+          console.warn('[Auth] finalize_signup_profile failed:', error);
+          return null;
+        }
+
+        const row = Array.isArray(data) ? data[0] : data;
+        return row || null;
+      } catch (error) {
+        console.warn('[Auth] finalize signup exception:', error);
+        return null;
+      }
+    };
+
+    const finalized = await finalizeViaServer();
+    if (finalized) {
+      const genderReady = !("gender" in patch) || finalized.gender === patch.gender;
+      const nameReady = !("display_name" in patch) || finalized.display_name === patch.display_name;
+      const hostReady = !options.requireHost || finalized.is_host === true;
+      if (genderReady && nameReady && hostReady) return finalized;
+    }
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -882,10 +921,7 @@ const Auth = () => {
 
           const genderReady = !("gender" in cleanPatch) || refreshedProfile?.gender === cleanPatch.gender;
           const nameReady = !("display_name" in cleanPatch) || refreshedProfile?.display_name === cleanPatch.display_name;
-          // Note: requireHost is intentionally ignored — female accounts only become is_host=true
-          // after manual face verification approval (see business/female-host-auto-conversion-v3).
-          // Waiting for is_host to flip during signup will always time out and break name persistence.
-          const hostReady = true;
+          const hostReady = !options.requireHost || refreshedProfile?.is_host === true;
 
           if (refreshedProfile && genderReady && nameReady && hostReady) {
             return refreshedProfile;
@@ -1024,8 +1060,13 @@ const Auth = () => {
         options: {
           data: {
             full_name: displayName,
+            display_name: displayName,
             is_guest: true,
             device_id: deviceId,
+            gender: selectedGender,
+            selected_gender: selectedGender,
+            account_type: selectedGender === 'female' ? 'host' : 'user',
+            profile_type: selectedGender === 'female' ? 'host' : 'user',
           },
         },
       });
@@ -1144,7 +1185,7 @@ const Auth = () => {
       recordClientError({ label: "Auth.pendingReferral", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
-        description: "Registration failed. Please try with Email.",
+        description: error?.message || "Account setup failed. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1669,9 +1710,14 @@ const Auth = () => {
         options: {
           data: {
             full_name: displayName,
+            display_name: displayName,
             phone_number: phoneDigits,
             device_id: deviceId,
             phone_verified: true,
+            gender: selectedGender,
+            selected_gender: selectedGender,
+            account_type: selectedGender === 'female' ? 'host' : 'user',
+            profile_type: selectedGender === 'female' ? 'host' : 'user',
           },
         },
       });
@@ -1925,7 +1971,11 @@ const Auth = () => {
           options: {
             data: {
               full_name: displayName,
+              display_name: displayName,
               gender: selectedGender,
+              selected_gender: selectedGender,
+              account_type: selectedGender === 'female' ? 'host' : 'user',
+              profile_type: selectedGender === 'female' ? 'host' : 'user',
               email_confirmed: true,
             },
           },
