@@ -1172,6 +1172,7 @@ class LiveKitPlugin : Plugin() {
         // Defensive: guarantee WebView (React chat/gifts/header) stays above the
         // native TextureView even if another plugin reorders children later.
         try { wv.bringToFront(); (wv.parent as? View)?.invalidate() } catch (_: Throwable) {}
+        raiseOverlaySiblings(parent)
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
         return slot
