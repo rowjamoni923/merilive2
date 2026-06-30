@@ -2003,10 +2003,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   useEffect(() => {
     if (!isJoined) return;
     const bucketToCap = (b: QualityBucket): VideoQuality | null => {
+      // 2026-06-30 — owner directive: viewers must ALWAYS see standard/premium
+      // clarity. Previously we capped to MEDIUM on 'fair' and LOW on 'poor',
+      // which produced visible blur on otherwise-usable connections. Now we
+      // only drop the relay layer when the network is truly 'critical'
+      // (sustained packet loss / RTT collapse). 'poor'/'fair'/'good' all stay
+      // on HIGH so faces remain crisp. Manual user choice still wins via
+      // applyVideoQualityCapToRoom's isManualQualityChoice guard.
       switch (b) {
-        case 'critical':
-        case 'poor':      return VideoQuality.LOW;
-        case 'fair':      return VideoQuality.MEDIUM;
+        case 'critical': return VideoQuality.LOW;
+        case 'poor':
+        case 'fair':
         case 'good':
         case 'excellent':
         default:          return null;

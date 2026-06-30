@@ -24,10 +24,13 @@ export const LIVEKIT_PUBLISH_LOCK = {
   captureWidth: 1080,
   captureHeight: 1440,
   captureFps: 30,
-  // Base layer encoder — 1080p @ 30fps @ 3.2 Mbps. Pinned, never re-tuned.
-  maxBitrate: 3_200_000,
+  // Base layer encoder — 1080p @ 30fps @ 4.5 Mbps. Pinned, never re-tuned.
+  // 2026-06-30: lifted from 3.2 → 4.5 Mbps to hit Chamet/Bigo "premium clarity"
+  // band. Viewers consistently report a sharper face at this rate on mid-tier
+  // Android renderers; SFU still down-relays via simulcast for weak networks.
+  maxBitrate: 4_500_000,
   maxFps: 30,
-  // Simulcast relays: 720p mid, 540p low — SFU auto-picks per viewer.
+  // Simulcast relays: 720p mid @ 2.2 Mbps, 540p low @ 900 kbps.
   simulcast: true,
 } as const;
 
