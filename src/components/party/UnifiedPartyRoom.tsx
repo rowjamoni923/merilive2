@@ -1476,7 +1476,7 @@ export function UnifiedPartyRoom({
             className={cn(
               "absolute inset-0",
               // Apply Tailwind gradient class directly if it's a gradient class
-              isGradientClass && effectiveBg
+              !exposeNativePartyVideo && isGradientClass && effectiveBg
             )}
             style={
               exposeNativePartyVideo
