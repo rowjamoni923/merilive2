@@ -171,6 +171,7 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('host_application')) return '/admin/host-applications';
   if (type.includes('host_approved') || type.includes('host_rejected') || type === 'new_user') return '/admin/user-management';
   if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
+  if (type === 'contact_violation' || type === 'chat_violation' || type.includes('contact_violation') || type.includes('chat_violation')) return '/admin/contact-violations';
   if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
   if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
