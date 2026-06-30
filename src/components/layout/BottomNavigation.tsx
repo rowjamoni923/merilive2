@@ -217,7 +217,7 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                    <Video className="w-5 h-5 text-white" />
+                    <PhoneCall className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
                     <p className="text-white font-bold text-sm">Random Call</p>
