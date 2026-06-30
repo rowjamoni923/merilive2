@@ -17,6 +17,9 @@
 
 const CACHE = new Map<string, string>();
 
+const TRANSPARENT_PIXEL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEklEQVR42mP8z8BQDwAEhQGA60e6kgAAAABJRU5ErkJggg==';
+
 /* -------------------------------------------------------------------------- */
 /*  Avatar circularization                                                    */
 /* -------------------------------------------------------------------------- */
@@ -326,6 +329,10 @@ export function applyDynamicText(
     ? discovered[kind]
     : FALLBACK_KEYS[kind];
   for (const key of keys) {
+    // Designer placeholders often contain demo text/level art. Clear the
+    // placeholder bitmap first, then draw the live text in the exact same
+    // timeline slot so the identity is genuinely embedded in the SVGA frame.
+    try { player.setImage(TRANSPARENT_PIXEL, key); } catch { /* ignore */ }
     try { player.setText(payload, key); } catch { /* ignore */ }
   }
 }
