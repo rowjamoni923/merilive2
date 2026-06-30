@@ -31,7 +31,6 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { NativeVideoView } from "@/components/NativeVideoView";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
-import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { NetworkQualityIndicator } from "@/components/livekit/NetworkQualityIndicator";
 import LiveKitResilienceNotifier from "@/components/livekit/LiveKitResilienceNotifier";
 
