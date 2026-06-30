@@ -299,6 +299,7 @@ const AdminHostSearch = lazy(lazyRetry(() => import("./pages/admin/AdminHostSear
 const AdminHosts = lazy(lazyRetry(() => import("./pages/admin/AdminHosts")));
 const AdminModeration = lazy(lazyRetry(() => import("./pages/admin/AdminModeration")));
 const AdminFaceVerification = lazy(lazyRetry(() => import("./pages/admin/AdminFaceVerification")));
+const AdminFaceVerificationTimeline = lazy(lazyRetry(() => import("./pages/admin/AdminFaceVerificationTimeline")));
 const AdminHostConversion = lazy(lazyRetry(() => import("./pages/admin/AdminHostConversion")));
 const AdminTasksSettings = lazy(lazyRetry(() => import("./pages/admin/AdminTasksSettings")));
 const AdminUsers = lazy(lazyRetry(() => import("./pages/admin/AdminUsers")));
@@ -1614,6 +1615,7 @@ const App = () => {
                   <Route path="hosts" element={<AdminRouteGuard routeSegment="hosts"><AdminHosts /></AdminRouteGuard>} />
                   <Route path="moderation" element={<AdminRouteGuard routeSegment="moderation"><AdminModeration /></AdminRouteGuard>} />
                   <Route path="face-verification" element={<AdminRouteGuard routeSegment="face-verification"><AdminFaceVerification /></AdminRouteGuard>} />
+                  <Route path="face-verification/timeline/:userId" element={<AdminRouteGuard routeSegment="face-verification"><AdminFaceVerificationTimeline /></AdminRouteGuard>} />
                   <Route path="host-conversion" element={<AdminRouteGuard routeSegment="host-conversion"><AdminHostConversion /></AdminRouteGuard>} />
                   <Route path="tasks-settings" element={<AdminRouteGuard routeSegment="tasks-settings"><AdminTasksSettings /></AdminRouteGuard>} />
                   <Route path="users" element={<AdminRouteGuard routeSegment="users"><AdminUsers /></AdminRouteGuard>} />
