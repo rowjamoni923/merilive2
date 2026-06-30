@@ -241,7 +241,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
+      <div className={`${isFullWidth ? (isEntryNameBarCategory(item.category) ? 'aspect-[1024/280]' : 'aspect-[16/10] min-h-[160px]') : 'aspect-square'} flex items-center justify-center ${isEntryNameBarCategory(item.category) ? 'p-0' : 'p-3'} relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -254,6 +254,21 @@ const ShopItemCard = ({
           const animType = pickAnimType(item);
           const animSrc = item.animation_file_url || item.animation_url || '';
           const previewIsStatic = item.preview_url && !item.preview_url.match(/\.(svga|json|mp4|webm)(\?|$)/i);
+
+          // PRIORITY 0 — Entry Name Bar: composited preview with engraved
+          // avatar + name + level + animation (matches in-room exactly).
+          if (isEntryNameBarCategory(item.category) && inView) {
+            return (
+              <EntryNameBarPreview
+                animationUrl={animSrc || null}
+                previewUrl={item.preview_url}
+                userName={viewerName}
+                avatarUrl={viewerAvatar}
+                level={viewerLevel}
+                className="absolute inset-0"
+              />
+            );
+          }
 
           // PRIORITY 1 — Admin-uploaded static logo wins (centered, uniform size).
           if (previewIsStatic && !imageError) {
@@ -307,6 +322,7 @@ const ShopItemCard = ({
           );
         })()}
       </div>
+
 
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
