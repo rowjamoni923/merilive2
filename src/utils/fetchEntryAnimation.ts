@@ -110,7 +110,7 @@ export async function fetchAnimationWithSoundById(animationId: string): Promise<
         .maybeSingle(),
       supabase
         .from('entry_name_bars')
-        .select('animation_url, sound_url')
+        .select('animation_url, image_url, preview_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
     ]);
