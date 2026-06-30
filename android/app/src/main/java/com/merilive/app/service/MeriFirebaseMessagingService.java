@@ -290,7 +290,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setContentTitle(callerName)
             .setContentText("Incoming " + callLabel)
             .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
             .setOngoing(true)
             .setShowWhen(true)
@@ -304,29 +304,15 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             builder.setFullScreenIntent(fullScreenPI, true);
         }
 
-        boolean styleApplied = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                androidx.core.app.Person.Builder personBuilder = new androidx.core.app.Person.Builder()
-                    .setName(callerName)
-                    .setImportant(true);
-                if (avatar != null) {
-                    personBuilder.setIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(avatar));
-                }
-                androidx.core.app.Person person = personBuilder.build();
-                builder.setStyle(
-                    androidx.core.app.NotificationCompat.CallStyle.forIncomingCall(person, declinePI, acceptPI)
-                );
-                styleApplied = true;
-            } catch (Throwable t) {
-                Log.w(TAG, "CallStyle unavailable: " + t.getMessage());
-            }
-        }
-        if (!styleApplied) {
-            builder.addAction(R.drawable.ic_call_decline, "Decline", declinePI)
-                   .addAction(R.drawable.ic_call_accept, "Accept", acceptPI);
-            if (avatar != null) builder.setLargeIcon(avatar);
-        }
+        // 2026-06-30: Do NOT use NotificationCompat.CallStyle here. On Samsung,
+        // MIUI, Vivo/Oppo and Android 12+ it can promote the notification into an
+        // OEM/system call chip that survives over our React ActiveCallScreen and
+        // looks like a third-party/phone call UI. MeriLive uses only our custom
+        // IncomingCallActivity + React call screen; this notification is just the
+        // wake/ring delivery surface with explicit Accept/Decline actions.
+        builder.addAction(R.drawable.ic_call_decline, "Decline", declinePI)
+               .addAction(R.drawable.ic_call_accept, "Accept", acceptPI);
+        if (avatar != null) builder.setLargeIcon(avatar);
 
         try {
             NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());

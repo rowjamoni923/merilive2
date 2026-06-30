@@ -14,9 +14,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.Person;
 import androidx.core.app.ServiceCompat;
-import androidx.core.graphics.drawable.IconCompat;
 
 import com.merilive.app.MainActivity;
 import com.merilive.app.R;
@@ -28,11 +26,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Pkg220 — M15 CallStyle (ongoing).
- * Active-call foreground notification now uses Android 12+ CallStyle.forOngoingCall
- * so the heads-up matches the system call UI (large avatar, chronometer, CallKit-style
- * hang-up button). Hang-up routes through CallActionReceiver so JS + Telecom learn
- * about the end and the call is properly torn down everywhere.
+ * Active-call foreground service.
+ * The accepted-call screen is React ActiveCallScreen only; this service keeps
+ * camera/mic alive quietly and never posts Android CallStyle/OEM in-call UI.
+ * Hang-up routes through CallActionReceiver so JS learns about the end.
  */
 public class CallForegroundService extends Service {
 
@@ -41,6 +38,19 @@ public class CallForegroundService extends Service {
     public static final String ACTION_STOP = "com.merilive.app.STOP_CALL_SERVICE";
     private static final int FOREGROUND_NOTIFICATION_ID = 9001;
 
+    private void stopAndRemoveForegroundNotification() {
+        try {
+            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+        } catch (Throwable ignored) {}
+        try {
+            NotificationManagerCompat.from(getApplicationContext()).cancel(FOREGROUND_NOTIFICATION_ID);
+        } catch (Throwable ignored) {}
+        try {
+            NotificationManagerCompat.from(getApplicationContext()).cancel(NotificationHelper.NOTIFICATION_CALL);
+        } catch (Throwable ignored) {}
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Honest-private-call fix (S-1): OS-restart with null intent must NOT
@@ -48,14 +58,12 @@ public class CallForegroundService extends Service {
         // and switch the service to non-sticky so the OS won't keep relaunching.
         if (intent == null) {
             Log.w(TAG, "onStartCommand: null intent (OS restart) — stopping service");
-            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+            stopAndRemoveForegroundNotification();
             stopSelf();
             return START_NOT_STICKY;
         }
         if (ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                ? Service.STOP_FOREGROUND_REMOVE : 1 /* legacy true */);
+            stopAndRemoveForegroundNotification();
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -78,6 +86,8 @@ public class CallForegroundService extends Service {
         if (callType == null || callType.isEmpty()) callType = "Call";
         if (callId == null) callId = "";
         if (callerId == null) callerId = "";
+
+        try { NotificationHelper.createNotificationChannels(getApplicationContext()); } catch (Throwable ignored) {}
 
         Notification notification = "live".equals(mode)
             ? buildLiveNotification(callerName, viewerCount, coinCount)
@@ -163,7 +173,7 @@ public class CallForegroundService extends Service {
 
         String safeTitle = (title == null || title.isEmpty()) ? "LIVE" : title;
 
-        return new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
+        return new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALL_SERVICE)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(0xFFE53935) // LIVE red — matches Bigo/Chamet palette
             .setColorized(true)
@@ -176,6 +186,7 @@ public class CallForegroundService extends Service {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
+            .setSilent(true)
             .setContentIntent(returnPI)
             .addAction(R.drawable.ic_call_decline, "End Live", endPI)
             .build();
@@ -213,36 +224,28 @@ public class CallForegroundService extends Service {
             this, ("hangup:" + callId).hashCode(), hangupIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALL_SERVICE)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(NotificationHelper.BRAND_COLOR)
             .setColorized(true)
             .setContentTitle("Call in progress")
             .setContentText(callType + " with " + callerName)
             .setOngoing(true)
-            .setUsesChronometer(true)
-            .setShowWhen(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setUsesChronometer(false)
+            .setShowWhen(false)
+            // Our React ActiveCallScreen is the only visible in-call UI.  Keep
+            // this as a quiet foreground-service requirement instead of a
+            // CallStyle heads-up/chip that looks like an OEM/World-Cup overlay
+            // and can visually outlive the app UI on some Android 12+ skins.
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
             .setContentIntent(returnPI);
 
-        boolean styleApplied = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                Person.Builder pb = new Person.Builder().setName(callerName).setImportant(true);
-                if (avatar != null) pb.setIcon(IconCompat.createWithBitmap(avatar));
-                Person person = pb.build();
-                builder.setStyle(NotificationCompat.CallStyle.forOngoingCall(person, hangupPI));
-                styleApplied = true;
-            } catch (Throwable t) {
-                Log.w(TAG, "CallStyle.forOngoingCall unavailable: " + t.getMessage());
-            }
-        }
-        if (!styleApplied) {
-            builder.addAction(R.drawable.ic_call_decline, "End Call", hangupPI);
-            if (avatar != null) builder.setLargeIcon(avatar);
-        }
+        builder.addAction(R.drawable.ic_call_decline, "End Call", hangupPI);
+        if (avatar != null) builder.setLargeIcon(avatar);
 
         return builder.build();
     }
@@ -300,7 +303,7 @@ public class CallForegroundService extends Service {
 
     @Override
     public void onDestroy() {
+        stopAndRemoveForegroundNotification();
         super.onDestroy();
-        stopForeground(true);
     }
 }

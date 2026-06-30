@@ -2,6 +2,8 @@ package com.merilive.app.plugin
 
 import android.app.Activity
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -135,6 +137,7 @@ class LiveKitPlugin : Plugin() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val mediaOpMutex = Mutex()
+    private val overlayHandler = Handler(Looper.getMainLooper())
 
     // The ONE room. Created lazily either by startLocalPreview() (preview-only,
     // never connected) or by connect() (connected session). On preview→publish
@@ -1193,11 +1196,91 @@ class LiveKitPlugin : Plugin() {
                 val child = parent.getChildAt(i) ?: continue
                 val tag = child.tag as? String ?: continue
                 if (tag == "merilive.overlay.entry" || tag == "merilive.overlay.gift") {
+                    try { child.translationZ = 20f } catch (_: Throwable) {}
                     try { child.bringToFront() } catch (_: Throwable) {}
                 }
             }
             (parent as? View)?.invalidate()
         } catch (_: Throwable) {}
+    }
+
+    private fun childIndex(parent: ViewGroup, child: View?): Int {
+        if (child == null) return -1
+        for (i in 0 until parent.childCount) {
+            if (parent.getChildAt(i) === child) return i
+        }
+        return -1
+    }
+
+    /**
+     * Hard overlay contract for Android native LiveKit:
+     *   native TextureViewRenderer(s)  -> lowest native layer
+     *   transparent Capacitor WebView  -> above video, owns React UI/chat/gifts
+     *   native entry/gift overlays     -> above WebView when present
+     *
+     * Some OEM WebView/TextureView stacks reorder children after the first real
+     * decoded frame or after an EGL resize (~10-14s in the supplied videos).  If
+     * that happens, the video becomes a full-screen native layer and hides the
+     * React design.  This method is intentionally idempotent and is called both
+     * immediately and on delayed watchdog ticks around slot creation/rebind.
+     */
+    private fun enforceOverlayContract(reason: String = "") {
+        val wv = bridge?.webView ?: return
+        val parent = (wv.parent as? ViewGroup) ?: return
+        try {
+            if (webViewOriginalBg == null) {
+                webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+            }
+            wv.setBackgroundColor(Color.TRANSPARENT)
+            wv.background = null
+            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+            try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
+
+            // If any renderer has somehow moved above the WebView, send it back
+            // to index 0 without touching correctly-ordered renderers.  This is
+            // the key guard against the delayed fullscreen takeover.
+            val wvIndexBefore = childIndex(parent, wv)
+            val renderers = mutableListOf<View>()
+            previewRenderer?.let { if (it.parent === parent) renderers.add(it) }
+            slots.values.forEach { slot -> if (slot.renderer.parent === parent) renderers.add(slot.renderer) }
+            renderers.distinct().forEach { renderer ->
+                try { renderer.translationZ = 0f } catch (_: Throwable) {}
+                val rIndex = childIndex(parent, renderer)
+                val wIndex = childIndex(parent, wv)
+                if (rIndex >= 0 && wIndex >= 0 && rIndex > wIndex) {
+                    val lp = renderer.layoutParams
+                    parent.removeView(renderer)
+                    parent.addView(renderer, 0, lp)
+                }
+            }
+
+            try { wv.translationZ = 10f } catch (_: Throwable) {}
+            try { wv.bringToFront() } catch (_: Throwable) {}
+            raiseOverlaySiblings(parent)
+            (parent as? View)?.invalidate()
+            if (reason.isNotEmpty() && wvIndexBefore >= 0) {
+                Log.d(TAG, "overlay contract enforced: $reason")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "enforceOverlayContract failed ($reason)", t)
+        }
+    }
+
+    private fun scheduleOverlayContractWatchdog(reason: String) {
+        val delays = longArrayOf(0L, 250L, 1000L, 3000L, 8000L, 12000L, 15000L)
+        delays.forEach { delay ->
+            overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)
+        }
+        // Some OEM TextureView/WebView stacks re-order native layers after the
+        // first decoded frames/EGL resize. Keep enforcing while native slots are
+        // active so video never covers React chat/gifts/header overlays.
+        overlayHandler.postDelayed(object : Runnable {
+            override fun run() {
+                if (slots.isEmpty() && previewRenderer == null) return
+                enforceOverlayContract("watchdog:$reason")
+                overlayHandler.postDelayed(this, 2000L)
+            }
+        }, 2000L)
     }
 
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {
@@ -1212,13 +1295,10 @@ class LiveKitPlugin : Plugin() {
             // contract on every slot reuse so React controls (chat/gifts/header)
             // remain visible above the native video instead of a white/black
             // WebView masking the TextureView.
-            wv.setBackgroundColor(Color.TRANSPARENT)
-            wv.background = null
-            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
-            try { wv.bringToFront() } catch (_: Throwable) {}
-            raiseOverlaySiblings(parent)
             existing.mirror = mirror
             existing.renderer.setMirror(mirror)
+            enforceOverlayContract("slot-reuse:$viewId")
+            scheduleOverlayContractWatchdog("slot-reuse:$viewId")
             return existing
         }
         val renderer = TextureViewRenderer(act).apply {
@@ -1252,10 +1332,10 @@ class LiveKitPlugin : Plugin() {
         try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         // Defensive: guarantee WebView (React chat/gifts/header) stays above the
         // native TextureView even if another plugin reorders children later.
-        try { wv.bringToFront(); (wv.parent as? View)?.invalidate() } catch (_: Throwable) {}
-        raiseOverlaySiblings(parent)
         val slot = RendererSlot(viewId, renderer, mirror = mirror)
         slots[viewId] = slot
+        enforceOverlayContract("slot-create:$viewId")
+        scheduleOverlayContractWatchdog("slot-create:$viewId")
         return slot
     }
 
@@ -1290,6 +1370,7 @@ class LiveKitPlugin : Plugin() {
         lp.leftMargin = left
         lp.topMargin = top
         view.layoutParams = lp
+        enforceOverlayContract("bounds")
     }
 
     private fun clearAllSlots() {
@@ -1316,6 +1397,8 @@ class LiveKitPlugin : Plugin() {
                     attachTrackToSlot(slot, track)
                 }
         }
+        enforceOverlayContract("rebind-all")
+        scheduleOverlayContractWatchdog("rebind-all")
     }
 
     private fun onIdentityTrackGone(identity: String) {
@@ -1362,6 +1445,8 @@ class LiveKitPlugin : Plugin() {
                 }
         }
         if (id != null) onIdentityTrackAvailable(id, track)
+        enforceOverlayContract("rebind-local")
+        scheduleOverlayContractWatchdog("rebind-local")
     }
 
     // ─────────────────────────────────────────────
@@ -1524,11 +1609,12 @@ class LiveKitPlugin : Plugin() {
                     parent.addView(renderer, 0, lp)
                     try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRenderer = renderer
-                    try { wv.bringToFront(); (wv.parent as? View)?.invalidate() } catch (_: Throwable) {}
-                    raiseOverlaySiblings(parent)
+                    enforceOverlayContract("fullscreen-create")
+                    scheduleOverlayContractWatchdog("fullscreen-create")
 
                 } else {
                     previewRenderer?.setMirror(mirror)
+                    enforceOverlayContract("fullscreen-reuse")
                 }
             } catch (t: Throwable) {
                 Log.w(TAG, "ensureRendererAttached failed", t)

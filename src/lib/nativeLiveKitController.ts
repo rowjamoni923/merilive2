@@ -221,6 +221,14 @@ class NativeLiveKitController {
       };
 
       try {
+        if (opts.attachLocal === false) {
+          // Bounded React/native slots (viewer live, party seats, private-call
+          // remote fullscreen + local PiP) must never inherit a stale full-screen
+          // preview renderer from prejoin/reconnect. Detach the renderer
+          // explicitly before connect; keep the CameraX track alive for publish.
+          try { await NativeLiveKit.detachLocal?.(); } catch { /* noop */ }
+          this.autoAttachLocalRenderer = false;
+        }
         const res = await NativeLiveKit.connect(payload);
         this.connected = true;
         this.activeFeature = requestedFeature;
@@ -296,6 +304,7 @@ class NativeLiveKitController {
     }
     this.busy = true;
     try {
+      try { await this.updateLiveStats({ viewerCount: 0, coinCount: 0, title: '' }); } catch { /* noop */ }
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
@@ -303,7 +312,10 @@ class NativeLiveKitController {
       this.connected = false;
       this.activeFeature = null;
       this.previewFeature = null;
-      this.autoAttachLocalRenderer = true;
+      // Do not reset this to true on disconnect. Viewer/party/private-call
+      // reconnect ladders intentionally use bounded renderers; flipping the
+      // flag here lets delayed camera-state events re-mount a full-screen
+      // native renderer around the 10–14s window and hide React UI overlays.
       this.busy = false;
       recordCallDiag('session', 'disconnect', { scope: prevScope });
       recordCallDiag('native-detach', 'detachAll', { scope: prevScope });

@@ -222,6 +222,10 @@ export function usePrivateCall(userId: string | null) {
       NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
       NativeCall.closeInCallActivity({ callId: callIdToReset }).catch(() => {});
     }
+    if (callIdToReset && isNativeAndroidApp() && wasAlreadyEnded) {
+      NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
+      NativeCall.closeInCallActivity({ callId: callIdToReset }).catch(() => {});
+    }
     if (callIdToReset && isNativeAndroidApp()) {
       NativeCamera.stop().catch(() => {});
       clearPreparedCallMediaStream(callIdToReset, { stopTracks: true });
@@ -272,6 +276,10 @@ export function usePrivateCall(userId: string | null) {
     if (cid) endedCallIdsRef.current.add(cid);
     billingStartedRef.current = false;
     liveSessionStartedRef.current = false;
+    if (durationTimerRef.current) {
+      clearInterval(durationTimerRef.current);
+      durationTimerRef.current = null;
+    }
     currentCallIdRef.current = null;
     clearAllTimers();
     setCallState(prev => ({ ...prev, status: 'ended' }));
@@ -280,6 +288,7 @@ export function usePrivateCall(userId: string | null) {
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: cid, remote: true }).catch(() => {});
+      NativeCall.endIncomingUi({ callId: cid, reason: 'ended' }).catch(() => {});
       NativeCall.closeInCallActivity({ callId: cid }).catch(() => {});
       NativeCamera.stop().catch(() => {});
       clearPreparedCallMediaStream(cid, { stopTracks: true });
@@ -1042,6 +1051,7 @@ export function usePrivateCall(userId: string | null) {
     // `remote: false` mirrors softEndCall's local-end semantic.
     if (callIdToEnd && isNativeAndroidApp()) {
       NativeCall.reportCallEnded({ callId: callIdToEnd, remote: false }).catch(() => {});
+      NativeCall.endIncomingUi({ callId: callIdToEnd, reason: 'ended' }).catch(() => {});
       NativeCall.closeInCallActivity({ callId: callIdToEnd }).catch(() => {});
     }
 
