@@ -2234,7 +2234,8 @@ export default function AdminLayout() {
           toast.error('⚠️ Chat Violation Detected', {
             description: 'A new chat moderation event was logged',
             action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         } else if (payload.violation_type && payload.violation_type !== 'user_report') {
           playSoundViaRef(); fetchPendingCounts();
