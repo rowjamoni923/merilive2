@@ -66,10 +66,10 @@ export function evaluateDuplicateMatches(
   const others = matches.filter(
     (m) => !!m.external_user_id && m.external_user_id !== currentUserId,
   );
-  const filteredOut = matches.length - others.length;
+  const selfMatches = matches.filter((m) => m.external_user_id === currentUserId).length;
   if (others.length === 0) {
-    return filteredOut > 0
-      ? { kind: "self_resubmission", filteredOut }
+    return selfMatches > 0
+      ? { kind: "self_resubmission", filteredOut: selfMatches }
       : { kind: "no_match" };
   }
 
