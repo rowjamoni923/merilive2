@@ -1271,6 +1271,16 @@ class LiveKitPlugin : Plugin() {
         delays.forEach { delay ->
             overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)
         }
+        // Some OEM TextureView/WebView stacks re-order native layers after the
+        // first decoded frames/EGL resize. Keep enforcing while native slots are
+        // active so video never covers React chat/gifts/header overlays.
+        overlayHandler.postDelayed(object : Runnable {
+            override fun run() {
+                if (slots.isEmpty() && previewRenderer == null) return
+                enforceOverlayContract("watchdog:$reason")
+                overlayHandler.postDelayed(this, 2000L)
+            }
+        }, 2000L)
     }
 
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {

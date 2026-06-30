@@ -276,6 +276,10 @@ export function usePrivateCall(userId: string | null) {
     if (cid) endedCallIdsRef.current.add(cid);
     billingStartedRef.current = false;
     liveSessionStartedRef.current = false;
+    if (durationTimerRef.current) {
+      clearInterval(durationTimerRef.current);
+      durationTimerRef.current = null;
+    }
     currentCallIdRef.current = null;
     clearAllTimers();
     setCallState(prev => ({ ...prev, status: 'ended' }));

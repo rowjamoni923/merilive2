@@ -261,6 +261,7 @@ export function CallProvider({ children }: CallProviderProps) {
           resolution: '720p',
           mirror: true,
           roomScope: 'call',
+          boundedOnly: true,
         });
       } catch (e) {
         if (!cancelled) console.warn('[CallProvider] prejoin preview failed (non-fatal):', e);
