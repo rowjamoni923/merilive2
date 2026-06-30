@@ -258,7 +258,7 @@ const EntryNameBarAnimationInner = memo(({
                   oversized avatar/name floating above the ribbon.
                   GIF/image/no-animation path: keep the overlay so the
                   user's identity is still visible. */}
-              {!hasSvga && (
+              {!hasAnimation && (
                 <div
                   className={cn(
                     "absolute z-[2] flex items-center pointer-events-none",
