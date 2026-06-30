@@ -17,15 +17,16 @@
  * values cause sender/receiver drift and visible pumping.
  */
 export const LIVEKIT_PUBLISH_LOCK = {
-  // Capture (CameraX) — portrait 9:16, 30 fps.
-  captureWidth: 720,
-  captureHeight: 1280,
+  // Capture (CameraX) — portrait 9:16, 30 fps, 1080p base (owner directive
+  // 2026-06-30: stream must live in the 720→1080 range, auto-only, no
+  // manual viewer toggle).
+  captureWidth: 1080,
+  captureHeight: 1920,
   captureFps: 30,
-  // Base layer encoder — 720p @ 30fps @ 2.5 Mbps. Pinned, never re-tuned.
-  maxBitrate: 2_500_000,
+  // Base layer encoder — 1080p @ 30fps @ 3.2 Mbps. Pinned, never re-tuned.
+  maxBitrate: 3_200_000,
   maxFps: 30,
-  // Publish 3-layer simulcast so weak viewers get the 540p/360p relay
-  // instead of pulling the host's base layer down.
+  // Simulcast relays: 720p mid, 540p low — SFU auto-picks per viewer.
   simulcast: true,
 } as const;
 
