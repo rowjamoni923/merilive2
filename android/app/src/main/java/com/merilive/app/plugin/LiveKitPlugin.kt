@@ -557,7 +557,7 @@ class LiveKitPlugin : Plugin() {
                     source = Track.Source.CAMERA,
                     videoEncoding = baseEncoding,
                     simulcast = args.simulcast,
-                    videoSimulcastLayers = simLayers,
+                    simulcastLayers = simLayers,
                 )
                 r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
                 Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}bps @${args.baseFps}fps simulcast=${args.simulcast}")
