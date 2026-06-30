@@ -1410,16 +1410,8 @@ const LiveStream = () => {
                 userLevel,
               });
               
-              // Also add a welcome chat message with actual user level
-              setMessages(prev => [...prev, {
-                id: `welcome_${Date.now()}`,
-                user: userName,
-                initial: userName.charAt(0),
-                message: `entered the live room ✨`,
-                color: "text-green-400",
-                userLevel,
-                userAvatar: avatarUrl,
-              }]);
+              // Self welcome chat row also owned by dispatcher.onWelcomeRow
+              // (welcomeOnEveryEntry=true). Do not append manually here.
               
               // 🎬 TRIGGER SELF ENTRY ANIMATION - Viewer sees their own entrance effect!
               console.log('[LiveStream] 🎬 Checking self entry animation for:', userName, 'entranceId:', selfProfile.equipped_entrance_id);
@@ -1684,17 +1676,8 @@ const LiveStream = () => {
               ].slice(0, 5));
               addBigoJoinNotification({ userId: uid, userName, userAvatar, userLevel });
               addLiveJoinNotification({ userId: uid, userName, userAvatar, userLevel });
-              setMessages((prev) => {
-                if (prev.some((m) => m.id.startsWith(`join_${uid}_`) && Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000)) return prev;
-                return [...prev, {
-                  id: `join_${uid}_${Date.now()}`,
-                  user: userName,
-                  initial: userName.charAt(0),
-                  message: 'entered the live room 🎉',
-                  color: 'text-green-400',
-                  userLevel,
-                }];
-              });
+              // Welcome chat row owned by dispatcher.onWelcomeRow — do not
+              // append here (duplicate-row bug 2026-06-30).
               // F6 — fallback entry animation (LiveKit-fast-path lost). The 5s
               // dedup in useEntryAnimations prevents double-play if LiveKit
               // packet arrives just after this fires.
@@ -1989,26 +1972,10 @@ const LiveStream = () => {
         userLevel: p.userLevel,
       });
 
-      // 3. INSTANT chat message (dedup within 5s window)
-      setMessages((prev) => {
-        const hasJoinMessage = prev.some(
-          (m) =>
-            m.id.startsWith(`join_${p.userId}_`) &&
-            Date.now() - Number(m.id.split('_').at(-1) || 0) < 5000,
-        );
-        if (hasJoinMessage) return prev;
-        return [
-          ...prev,
-          {
-            id: `join_${p.userId}_${Date.now()}`,
-            user: p.userName,
-            initial: p.userName.charAt(0),
-            message: 'entered the live room 🎉',
-            color: 'text-green-400',
-            userLevel: p.userLevel,
-          },
-        ];
-      });
+      // 3. Welcome chat row is owned EXCLUSIVELY by the dispatcher's
+      // `onWelcomeRow` callback (Phase 5 coalescer). Appending here would
+      // produce duplicate "entered the live room" rows (owner-reported bug
+      // 2026-06-30). Do NOT re-add a manual setMessages push.
 
       // 4. INSTANT entry animation — URLs are pre-resolved in the envelope,
       // ZERO extra fetch round-trips needed.
