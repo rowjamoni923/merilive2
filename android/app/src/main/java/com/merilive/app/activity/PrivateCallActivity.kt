@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -622,18 +623,41 @@ class PrivateCallActivity : ComponentActivity() {
     // Phase B — TextureViewRenderer lifecycle
     // ------------------------------------------------------------------
 
+    private fun rendererFitParams(): FrameLayout.LayoutParams =
+        FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER,
+        )
+
+    private fun configureNoCropRenderer(
+        renderer: TextureViewRenderer,
+        mirror: Boolean = false,
+    ) {
+        // WebRTC/LiveKit FIT works through measurement. Keep the parent call
+        // slot fixed, but let TextureViewRenderer measure itself as WRAP_CONTENT
+        // and center it; MATCH_PARENT can still look like SCALE_ASPECT_FILL on
+        // OEM TextureView stacks and causes the zoomed selfie reported by users.
+        renderer.setEnableHardwareScaler(true)
+        renderer.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+        renderer.setMirror(mirror)
+        val lp = renderer.layoutParams
+        if (lp is FrameLayout.LayoutParams) {
+            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            lp.gravity = Gravity.CENTER
+            renderer.layoutParams = lp
+        }
+        renderer.requestLayout()
+    }
+
     private fun ensureRemoteRenderer(): TextureViewRenderer {
         remoteRenderer?.let { return it }
-        val r = TextureViewRenderer(this).apply {
-            setEnableHardwareScaler(true)
-            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-        }
+        val r = TextureViewRenderer(this)
+        configureNoCropRenderer(r)
         remoteVideoContainer.addView(
             r,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
+            rendererFitParams(),
         )
         remoteRenderer = r
         return r
@@ -641,18 +665,11 @@ class PrivateCallActivity : ComponentActivity() {
 
     private fun ensureLocalRenderer(): TextureViewRenderer {
         localRenderer?.let { return it }
-        val r = TextureViewRenderer(this).apply {
-            setEnableHardwareScaler(true)
-            // Keep the full local frame visible; never crop/zoom in calls.
-            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-            setMirror(true) // selfie convention
-        }
+        val r = TextureViewRenderer(this)
+        configureNoCropRenderer(r, mirror = true) // selfie convention
         localPreviewContainer.addView(
             r,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
+            rendererFitParams(),
         )
         localRenderer = r
         return r

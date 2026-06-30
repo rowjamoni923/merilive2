@@ -1,12 +1,11 @@
 /**
  * Pkg152 — Dynamic publish-layer (simulcast) config for hosts.
  *
- * Phase 3 #10. Lets the host choose how many spatial layers their camera
- * publishes (low / medium / high / ultra) — saves uplink for low-end devices.
+ * Phase 3 #10. Defines automatic spatial layers for the camera publisher.
  *
- * 📱 PORTRAIT CAMERA ONLY: every preset is 9:16 vertical (height > width),
- * Bigo/TikTok/Chamet style. NEVER landscape. Resolution tier may change;
- * aspect ratio NEVER does.
+ * 📱 NO-ZOOM PORTRAIT CAMERA: every preset is 3:4 vertical (height > width),
+ * matching common front-camera sensors. Forcing 9:16 makes Android crop the
+ * sensor and creates the zoomed selfie bug.
  *
  * Preference is host-local (localStorage) and read at Room construction.
  * Changing the tier only takes effect on the NEXT live start (LiveKit
@@ -20,14 +19,14 @@ export type PublishLayerTier = "low" | "medium" | "high" | "ultra";
 
 export const PUBLISH_LAYERS_STORAGE_KEY = "merilive_publish_layers_v1";
 export const PUBLISH_LAYERS_CHANGED_EVENT = "publish-layers-changed";
-// Pkg153: Native Android only — default to ultra (1080x1920 @ 30fps), per user directive.
+// Pkg153: Native Android only — default to ultra (1080x1440 @ 30fps), no manual selector.
 export const DEFAULT_PUBLISH_LAYER_TIER: PublishLayerTier = "ultra";
 
 export interface PublishLayerConfig {
   tier: PublishLayerTier;
   label: string;
   description: string;
-  /** Capture resolution sent to camera (portrait 9:16). */
+  /** Capture resolution sent to camera (full-sensor portrait 3:4). */
   resolution: { width: number; height: number; frameRate: number };
   /** Encoding for the BASE (highest) layer published. */
   videoEncoding: { maxBitrate: number; maxFramerate: number };
@@ -35,7 +34,7 @@ export interface PublishLayerConfig {
   simulcastLayers: VideoPreset[];
 }
 
-// Portrait preset helper. All layers MUST be 9:16 (height > width).
+// Portrait preset helper. All layers MUST be 3:4 (height > width).
 function p(width: number, height: number, fps: number, bitrate: number): VideoPreset {
   return new VideoPreset(width, height, bitrate, fps);
 }
@@ -44,39 +43,38 @@ export const PUBLISH_LAYER_PRESETS: Record<PublishLayerTier, PublishLayerConfig>
   low: {
     tier: "low",
     label: "Low (data saver)",
-    description: "Single 360p layer — best for weak uplink / 3G.",
-    resolution: { width: 360, height: 640, frameRate: 24 },
+    description: "Single 540x720 full-sensor layer — best for weak uplink / 3G.",
+    resolution: { width: 540, height: 720, frameRate: 24 },
     videoEncoding: { maxBitrate: 500_000, maxFramerate: 24 },
     simulcastLayers: [],
   },
   medium: {
     tier: "medium",
     label: "Medium",
-    description: "540p base + 270p layer — balanced.",
-    resolution: { width: 540, height: 960, frameRate: 30 },
+    description: "720x960 full-sensor base + 540x720 relay — balanced.",
+    resolution: { width: 720, height: 960, frameRate: 30 },
     videoEncoding: { maxBitrate: 1_200_000, maxFramerate: 30 },
-    simulcastLayers: [p(270, 480, 15, 200_000)],
+    simulcastLayers: [p(540, 720, 24, 500_000)],
   },
   high: {
     tier: "high",
     label: "High (recommended)",
-    description: "720p base + 540p + 360p — full simulcast, default.",
-    resolution: { width: 720, height: 1280, frameRate: 30 },
+    description: "720p full-sensor base + 540x720 relay — full simulcast, default.",
+    resolution: { width: 720, height: 960, frameRate: 30 },
     videoEncoding: { maxBitrate: 2_500_000, maxFramerate: 30 },
     simulcastLayers: [
-      p(540, 960, 30, 1_000_000),
-      p(360, 640, 15, 350_000),
+      p(540, 720, 24, 800_000),
     ],
   },
   ultra: {
     tier: "ultra",
     label: "Ultra (premium)",
-    description: "1080p base + 720p + 540p — fastest uplink only.",
-    resolution: { width: 1080, height: 1920, frameRate: 30 },
+    description: "1080p full-sensor base + 720p + 540p — fastest uplink only.",
+    resolution: { width: 1080, height: 1440, frameRate: 30 },
     videoEncoding: { maxBitrate: 5_500_000, maxFramerate: 30 },
     simulcastLayers: [
-      p(720, 1280, 30, 2_000_000),
-      p(540, 960, 30, 800_000),
+      p(720, 960, 30, 2_000_000),
+      p(540, 720, 24, 800_000),
     ],
   },
 };

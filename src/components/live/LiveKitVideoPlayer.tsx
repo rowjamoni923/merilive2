@@ -64,7 +64,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  fit = 'cover',
+  fit = 'contain',
   muted = true,
   onVideoStalled,
   onVideoReady,

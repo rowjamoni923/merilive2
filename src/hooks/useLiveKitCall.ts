@@ -17,7 +17,6 @@ import {
   RemoteTrackPublication,
   RemoteParticipant,
   LocalParticipant,
-  VideoPresets,
   AudioPresets,
   VideoQuality,
 } from 'livekit-client';
@@ -51,6 +50,7 @@ import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
+import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -573,7 +573,12 @@ export function useLiveKitCall(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            resolution: VideoPresets.h1080.resolution,
+            // Full-sensor 3:4 portrait prevents 9:16 HAL crop / zoomed selfie.
+            resolution: {
+              width: LIVEKIT_PUBLISH_LOCK.captureWidth,
+              height: LIVEKIT_PUBLISH_LOCK.captureHeight,
+              frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
+            },
             facingMode: 'user',
           },
           // Pkg163: pro-grade voice (AEC+NS+AGC + 48kHz mono) for 1:1 calls.
@@ -586,8 +591,8 @@ export function useLiveKitCall(
           },
           publishDefaults: {
             videoEncoding: {
-              maxBitrate: 6_500_000,
-              maxFramerate: 30,
+              maxBitrate: LIVEKIT_PUBLISH_LOCK.maxBitrate,
+              maxFramerate: LIVEKIT_PUBLISH_LOCK.maxFps,
             },
             degradationPreference: 'maintain-resolution',
             simulcast: false,

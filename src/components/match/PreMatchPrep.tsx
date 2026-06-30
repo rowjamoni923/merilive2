@@ -84,7 +84,9 @@ export default function PreMatchPrep({
     try {
       stopStream();
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: camOn ? { facingMode: facing, width: { ideal: 720 }, height: { ideal: 1280 } } : false,
+        video: camOn
+          ? { facingMode: { ideal: facing }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }
+          : false,
         audio: micOn,
       });
       streamRef.current = stream;

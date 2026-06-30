@@ -186,7 +186,13 @@ export function ActiveCallScreen({
         // Cold path — no Provider warm-up reached us. Acquire fresh and
         // register so subsequent screens (Live/Party) can reuse it too.
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 720, height: 1280 },
+          video: {
+            facingMode: { ideal: 'user' },
+            width: { ideal: 1080 },
+            height: { ideal: 1440 },
+            aspectRatio: { ideal: 3 / 4 },
+            frameRate: { ideal: 30 },
+          },
           audio: true,
         });
         if (cancelled) {
