@@ -18,6 +18,8 @@
 import { useEffect, useId, useLayoutEffect, useRef } from 'react';
 import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
 
+const MAX_NATIVE_SURFACE_BIND_RETRIES = 80;
+
 export interface NativeVideoViewProps {
   kind: 'local' | 'remote';
   /** Required when kind === 'remote'. */
@@ -82,7 +84,7 @@ export const NativeVideoView = ({
       try {
         const scheduleAttachRetry = () => {
           retryCountRef.current += 1;
-          if (!cancelled && retryCountRef.current <= 18) schedule(true);
+          if (!cancelled && retryCountRef.current <= MAX_NATIVE_SURFACE_BIND_RETRIES) schedule(true);
         };
         if (!attachedRef.current) {
           if (kind === 'local') {
@@ -122,7 +124,7 @@ export const NativeVideoView = ({
         // seats can sit blank until another layout signal happens.
         if (!cancelled && !attachedRef.current) {
           retryCountRef.current += 1;
-          if (retryCountRef.current <= 18) schedule(true);
+          if (retryCountRef.current <= MAX_NATIVE_SURFACE_BIND_RETRIES) schedule(true);
         }
       } finally {
         inflight = false;
