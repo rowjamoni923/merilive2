@@ -89,10 +89,15 @@ export const LevelLockModal = ({
             </div>
 
             {levelsToGo > 0 && (
-              <p className="mb-4 px-6 text-center text-xs text-white/70">
+              <p className="mb-2 px-6 text-center text-xs text-white/70">
                 Reach <span className="font-semibold text-amber-300">{levelsToGo} more level{levelsToGo > 1 ? "s" : ""}</span> to unlock this privilege
               </p>
             )}
+
+            <p className="mb-4 px-6 text-center text-[10px] font-medium tracking-wide text-amber-200/70">
+              Hosts can go live from Level 0 — exclusive privilege
+            </p>
+
 
             {/* CTAs */}
             <div className="relative flex gap-2.5 px-5 pb-6">
