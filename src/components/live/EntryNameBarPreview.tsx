@@ -49,6 +49,8 @@ const EntryNameBarPreview = memo(({
   const isSvga = type === "svga";
   const isVap = type === "vap";
 
+  const avatar = avatarUrl || getDisplayAvatar(userName);
+
   return (
     <div
       className={cn(
@@ -56,91 +58,95 @@ const EntryNameBarPreview = memo(({
         className,
       )}
     >
-      {/* SVGA branch — fully self-contained: avatar/name/level engraved
-          INSIDE the canvas via dynamic placeholders. Loops continuously. */}
-      {isSvga && animationUrl ? (
-        <EntryAnimationFrame
-          src={animationUrl}
-          size="fill"
-          type="svga"
-          loop
-          muted
-          volume={0}
-          center={false}
-          dynamicAvatarUrl={avatarUrl ?? getDisplayAvatar(userName)}
-          dynamicUserName={userName}
-          dynamicUserLevel={lvl}
-        />
-      ) : isVap && animationUrl ? (
-        <EntryAnimationFrame
-          src={animationUrl}
-          size="fill"
-          type="vap"
-          loop
-          muted
-          volume={0}
-          center={false}
-        />
-      ) : animationUrl ? (
-        // GIF / image animated background — looped.
-        <img
-          src={animationUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-contain"
-        />
-      ) : previewUrl ? (
-        <img
-          loading="lazy"
-          decoding="async"
-          src={enhanceThumbnail(previewUrl, { width: 640, quality: 85 })}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain"
-        />
-      ) : null}
-
-      {/* HTML overlay — ALWAYS rendered, sitting engraved INSIDE the ribbon's
-          left content slot. Static position (not a separate slide-in) so it
-          reads as one unit with the SVGA sparkles/flowers animating around
-          it — exactly like the pro reference (17ae). */}
-      <div className="absolute top-[28%] bottom-[28%] left-[7%] right-[48%] flex items-center gap-[3%] pointer-events-none">
-        <Avatar className="flex-shrink-0 h-full aspect-square ring-2 ring-white/70 shadow-md">
-          <AvatarImage
-            src={avatarUrl || getDisplayAvatar(userName)}
-            alt={userName}
-            className="object-cover"
+      <motion.div
+        className="absolute inset-0 origin-left"
+        animate={{ x: ["-1.6%", "0%", "1.2%", "0%", "-1.6%"] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
+      >
+        {/* Animation and user identity are intentionally inside ONE moving
+            composite, so avatar/name/level never look like separate static
+            HTML sitting on top of the effect. */}
+        {isSvga && animationUrl ? (
+          <EntryAnimationFrame
+            src={animationUrl}
+            size="fill"
+            type="svga"
+            loop
+            muted
+            volume={0}
+            center={false}
+            dynamicAvatarUrl={avatar}
+            dynamicUserName={userName}
+            dynamicUserLevel={lvl}
           />
-          <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-[10px] font-bold">
-            {userName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        ) : isVap && animationUrl ? (
+          <EntryAnimationFrame
+            src={animationUrl}
+            size="fill"
+            type="vap"
+            loop
+            muted
+            volume={0}
+            center={false}
+          />
+        ) : animationUrl ? (
+          <img
+            src={animationUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+        ) : previewUrl ? (
+          <img
+            loading="lazy"
+            decoding="async"
+            src={enhanceThumbnail(previewUrl, { width: 640, quality: 85 })}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+        ) : null}
 
-        <div
-          className={cn(
-            "flex-shrink-0 h-[55%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[10px] leading-none",
-            getLevelBadgeBg(lvl),
-            getLevelTextColor(lvl),
-          )}
-        >
-          {String(lvl)}
-        </div>
+        <div className="absolute top-[31%] bottom-[31%] left-[7.25%] right-[47%] flex items-center gap-[4%] pointer-events-none">
+          <div className="relative flex-shrink-0 h-full aspect-square">
+            <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
+              <AvatarImage
+                src={avatar}
+                alt={userName}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
+                {userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
 
-        <div className="flex flex-col justify-center min-w-0 flex-1">
-          <span
-            className="text-white font-black truncate leading-tight text-[13px]"
-            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)" }}
-          >
-            {userName}
-          </span>
-          <span
-            className="text-white/95 font-semibold truncate text-[10px] leading-tight"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
-          >
-            Joined the room
-          </span>
+            <div
+              className={cn(
+                "absolute -right-[10%] bottom-[-5%] h-[43%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[9px] leading-none ring-1 ring-white/80",
+                getLevelBadgeBg(lvl),
+                getLevelTextColor(lvl),
+              )}
+            >
+              {String(lvl)}
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
+            <span
+              className="text-primary-foreground font-black truncate leading-tight text-[12px]"
+              style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.75)" }}
+            >
+              {userName}
+            </span>
+            <span
+              className="text-primary-foreground/95 font-semibold truncate text-[9px] leading-tight"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}
+            >
+              Joined the room
+            </span>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 });
