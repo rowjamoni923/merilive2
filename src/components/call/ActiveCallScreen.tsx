@@ -1062,7 +1062,11 @@ export function ActiveCallScreen({
         willChange: 'transform',
         width: '100vw',
         height: '100dvh',
-        background: (isNativeMediaActive && !callEnded) ? 'transparent' : '#050208',
+        // Keep the accepted/connecting shell opaque and branded. Only the final
+        // two-person media canvas is transparent so bounded Android TextureView
+        // slots can show through; this prevents a raw native preview/fullscreen
+        // surface from becoming the visible "third-class" UI during accept.
+        background: (revealNativeConnectedCanvas && !callEnded) ? 'transparent' : '#050208',
       }}
     >
       <div
