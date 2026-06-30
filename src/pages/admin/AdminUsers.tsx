@@ -207,14 +207,24 @@ export default function AdminUsers() {
 
   const handleVerifyUser = async (userId: string, isVerified: boolean) => {
     try {
+      const newVerified = !isVerified;
+
       const { data, error } = await supabase.rpc("admin_set_user_verification", {
         _user_id: userId,
-        _verified: !isVerified,
+        _verified: newVerified,
       });
-
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || "Verification update failed");
-      toast.success(isVerified ? "Verification removed" : "User verified");
+
+      // Also flip face verification + host_status so converted hosts become live-ready immediately
+      const { data: faceData, error: faceError } = await supabase.rpc("admin_toggle_face_verification", {
+        _user_id: userId,
+        _verified: newVerified,
+      });
+      if (faceError) throw faceError;
+      if ((faceData as any)?.success === false) throw new Error((faceData as any)?.error || "Face verification update failed");
+
+      toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorVerifyingUser", message: formatAdminError(error)});
