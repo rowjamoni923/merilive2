@@ -1742,9 +1742,9 @@ export function UnifiedPartyRoom({
         {/* ==================== MESSAGES AREA - ABOVE INPUT BOX ==================== */}
         {/* Public chat area visible to all participants */}
         {/* Welcome message at bottom, messages stack upward */}
-        {/* z-30 = BEHIND game board (z-50) */}
+        {/* Keep public chat / welcome / gift rows above game board and native video seats. */}
         <div 
-          className="absolute left-0 right-0 z-30 pointer-events-none flex flex-col justify-end chat-composer-stable"
+          className="absolute left-0 right-0 z-[60] pointer-events-none flex flex-col justify-end chat-composer-stable"
           style={{ 
             bottom: chatStackBottom,
             maxHeight: (roomType === 'game' || showGameBoard) ? '20vh' : '34vh',

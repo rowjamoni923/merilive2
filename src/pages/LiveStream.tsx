@@ -3987,7 +3987,17 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: (showNativeHostSurface || showNativeViewerSurface) ? 'transparent' : 'hsl(var(--background))' }}>
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          // Native video may start a few frames before React flags flip; never
+          // paint a solid app background over the Android TextureView during
+          // that handoff, or viewers/hosts see a fake "connecting"/blank layer.
+          background: (isNativeMediaActive || showNativeHostSurface || showNativeViewerSurface)
+            ? 'transparent'
+            : 'linear-gradient(180deg, #050208 0%, #12051f 100%)',
+        }}
+      >
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && (!remoteVideoTrack || isRemoteHostCameraOff) && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
