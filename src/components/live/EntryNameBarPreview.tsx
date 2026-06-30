@@ -107,45 +107,45 @@ const EntryNameBarPreview = memo(({
           />
         ) : null}
 
-        <div className="absolute top-[31%] bottom-[31%] left-[7.25%] right-[47%] flex items-center gap-[4%] pointer-events-none">
-          <div className="relative flex-shrink-0 h-full aspect-square">
-            <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
-              <AvatarImage
-                src={avatar}
-                alt={userName}
-                className="object-cover"
-              />
-              <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
-                {userName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-
-            <div
-              className={cn(
-                "absolute -right-[10%] bottom-[-5%] h-[43%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[9px] leading-none ring-1 ring-white/80",
-                getLevelBadgeBg(lvl),
-                getLevelTextColor(lvl),
-              )}
-            >
-              {String(lvl)}
+        {/* For SVGA, avatar/name/level are engraved INSIDE the canvas via
+            dynamic slot injection (Chamet/BIGO parity) — no HTML overlay.
+            For non-SVGA (GIF/image/VAP) we render the identity overlay so
+            the user still sees their info on top of the static art. */}
+        {!isSvga && (
+          <div className="absolute top-[31%] bottom-[31%] left-[7.25%] right-[47%] flex items-center gap-[4%] pointer-events-none">
+            <div className="relative flex-shrink-0 h-full aspect-square">
+              <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
+                <AvatarImage src={avatar} alt={userName} className="object-cover" />
+                <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
+                  {userName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div
+                className={cn(
+                  "absolute -right-[10%] bottom-[-5%] h-[43%] aspect-square rounded-full font-black flex items-center justify-center shadow-md text-[9px] leading-none ring-1 ring-white/80",
+                  getLevelBadgeBg(lvl),
+                  getLevelTextColor(lvl),
+                )}
+              >
+                {String(lvl)}
+              </div>
+            </div>
+            <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
+              <span
+                className="text-primary-foreground font-black truncate leading-tight text-[12px]"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.75)" }}
+              >
+                {userName}
+              </span>
+              <span
+                className="text-primary-foreground/95 font-semibold truncate text-[9px] leading-tight"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}
+              >
+                Joined the room
+              </span>
             </div>
           </div>
-
-          <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
-            <span
-              className="text-primary-foreground font-black truncate leading-tight text-[12px]"
-              style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.75)" }}
-            >
-              {userName}
-            </span>
-            <span
-              className="text-primary-foreground/95 font-semibold truncate text-[9px] leading-tight"
-              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}
-            >
-              Joined the room
-            </span>
-          </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );
