@@ -50,7 +50,7 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
-import { clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
+import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -512,6 +512,10 @@ export function useLiveKitCall(
               registerNativeGiftRoom('call', callId);
             }
             setNativeActive(true);
+            // Only after bounded native surfaces are connected do we make the
+            // WebView document transparent. Doing this during accept/connect
+            // exposed the raw full-screen camera behind the React UI.
+            setNativeMediaSurface(true);
             setState(p => ({
               ...p,
               nativeSession: { url, token },
