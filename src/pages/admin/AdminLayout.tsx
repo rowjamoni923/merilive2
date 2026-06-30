@@ -2251,7 +2251,8 @@ export default function AdminLayout() {
           toast.error(`${label} Detected!`, {
             description: `Content: ${payload.detected_content || 'Unknown'} | Action: ${payload.action_taken || 'detected'}`,
             action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
-            duration: 10000,
+            duration: Infinity,
+            closeButton: true,
           });
         }
         return;
