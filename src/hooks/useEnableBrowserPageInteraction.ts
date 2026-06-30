@@ -6,6 +6,29 @@ type BrowserPageInteractionOptions = {
   mode?: "document" | "app-shell";
 };
 
+// Module-level ref count + saved originals. Multiple public pages can mount
+// in sequence (navigation A -> B). React runs new effect BEFORE old cleanup,
+// so a naive save/restore would let B's cleanup put A's "hidden" back and
+// lock scrolling. Count active users and only restore when the last unmounts.
+let activeCount = 0;
+let saved: null | {
+  viewport: string | null;
+  htmlOverflow: string;
+  bodyOverflow: string;
+  htmlTouchAction: string;
+  bodyTouchAction: string;
+  htmlOverscroll: string;
+  htmlOverscrollY: string;
+  bodyOverscroll: string;
+  bodyOverscrollY: string;
+  rootOverflow: string;
+  rootHeight: string;
+  rootMinHeight: string;
+  rootTouchAction: string;
+  rootOverscroll: string;
+  rootOverscrollY: string;
+} = null;
+
 /**
  * Public browser pages like /link and admin must keep native browser scroll
  * and pinch-zoom enabled, even if app screens use stricter interaction rules.
@@ -21,29 +44,31 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
     const html = document.documentElement;
     const body = document.body;
 
-    const previousViewport = viewport?.getAttribute("content") ?? null;
-    const previousHtmlOverflow = html.style.overflow;
-    const previousBodyOverflow = body.style.overflow;
-    const previousHtmlTouchAction = html.style.touchAction;
-    const previousBodyTouchAction = body.style.touchAction;
-    const previousHtmlOverscroll = html.style.overscrollBehavior;
-    const previousHtmlOverscrollY = html.style.overscrollBehaviorY;
-    const previousBodyOverscroll = body.style.overscrollBehavior;
-    const previousBodyOverscrollY = body.style.overscrollBehaviorY;
-    const previousRootOverflow = root?.style.overflow ?? "";
-    const previousRootHeight = root?.style.height ?? "";
-    const previousRootMinHeight = root?.style.minHeight ?? "";
-    const previousRootTouchAction = root?.style.touchAction ?? "";
-    const previousRootOverscroll = root?.style.overscrollBehavior ?? "";
-    const previousRootOverscrollY = root?.style.overscrollBehaviorY ?? "";
+    if (activeCount === 0) {
+      saved = {
+        viewport: viewport?.getAttribute("content") ?? null,
+        htmlOverflow: html.style.overflow,
+        bodyOverflow: body.style.overflow,
+        htmlTouchAction: html.style.touchAction,
+        bodyTouchAction: body.style.touchAction,
+        htmlOverscroll: html.style.overscrollBehavior,
+        htmlOverscrollY: html.style.overscrollBehaviorY,
+        bodyOverscroll: body.style.overscrollBehavior,
+        bodyOverscrollY: body.style.overscrollBehaviorY,
+        rootOverflow: root?.style.overflow ?? "",
+        rootHeight: root?.style.height ?? "",
+        rootMinHeight: root?.style.minHeight ?? "",
+        rootTouchAction: root?.style.touchAction ?? "",
+        rootOverscroll: root?.style.overscrollBehavior ?? "",
+        rootOverscrollY: root?.style.overscrollBehaviorY ?? "",
+      };
+    }
+    activeCount += 1;
 
     if (viewport) {
       viewport.setAttribute("content", ZOOMABLE_VIEWPORT_CONTENT);
     }
 
-    // Do not hard-lock html/body/root for admin. The admin CSS layer decides
-    // desktop pane scrolling vs mobile natural document scrolling via media
-    // queries; an inline overflow:hidden here blocks mobile pages entirely.
     html.style.overflow = "auto";
     body.style.overflow = "auto";
     html.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
@@ -63,31 +88,30 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
     }
 
     return () => {
+      activeCount = Math.max(0, activeCount - 1);
+      if (activeCount > 0 || !saved) return;
+
       if (viewport) {
-        if (previousViewport) {
-          viewport.setAttribute("content", previousViewport);
-        } else {
-          viewport.removeAttribute("content");
-        }
+        if (saved.viewport) viewport.setAttribute("content", saved.viewport);
+        else viewport.removeAttribute("content");
       }
-
-      html.style.overflow = previousHtmlOverflow;
-      body.style.overflow = previousBodyOverflow;
-      html.style.touchAction = previousHtmlTouchAction;
-      body.style.touchAction = previousBodyTouchAction;
-      html.style.overscrollBehavior = previousHtmlOverscroll;
-      html.style.overscrollBehaviorY = previousHtmlOverscrollY;
-      body.style.overscrollBehavior = previousBodyOverscroll;
-      body.style.overscrollBehaviorY = previousBodyOverscrollY;
-
+      html.style.overflow = saved.htmlOverflow;
+      body.style.overflow = saved.bodyOverflow;
+      html.style.touchAction = saved.htmlTouchAction;
+      body.style.touchAction = saved.bodyTouchAction;
+      html.style.overscrollBehavior = saved.htmlOverscroll;
+      html.style.overscrollBehaviorY = saved.htmlOverscrollY;
+      body.style.overscrollBehavior = saved.bodyOverscroll;
+      body.style.overscrollBehaviorY = saved.bodyOverscrollY;
       if (root) {
-        root.style.overflow = previousRootOverflow;
-        root.style.height = previousRootHeight;
-        root.style.minHeight = previousRootMinHeight;
-        root.style.touchAction = previousRootTouchAction;
-        root.style.overscrollBehavior = previousRootOverscroll;
-        root.style.overscrollBehaviorY = previousRootOverscrollY;
+        root.style.overflow = saved.rootOverflow;
+        root.style.height = saved.rootHeight;
+        root.style.minHeight = saved.rootMinHeight;
+        root.style.touchAction = saved.rootTouchAction;
+        root.style.overscrollBehavior = saved.rootOverscroll;
+        root.style.overscrollBehaviorY = saved.rootOverscrollY;
       }
+      saved = null;
     };
   }, [options.mode]);
 }
