@@ -171,6 +171,7 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('host_application')) return '/admin/host-applications';
   if (type.includes('host_approved') || type.includes('host_rejected') || type === 'new_user') return '/admin/user-management';
   if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
+  if (type === 'contact_violation' || type === 'chat_violation' || type.includes('contact_violation') || type.includes('chat_violation')) return '/admin/contact-violations';
   if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
   if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
@@ -2079,6 +2080,7 @@ export default function AdminLayout() {
       helper_orders: { toast: '📦 New Helper Order', desc: 'A new helper order has been placed', path: '/admin/helper-orders' },
       live_bans: { toast: '🚫 New Live Ban', desc: 'A user has been banned from live', path: '/admin/live-bans' },
       live_face_violations: { toast: '📸 Face Violation Detected', desc: 'A face violation was detected during live', path: '/admin/face-violations' },
+      host_contact_violations: { toast: '⚠️ Number / Contact Share Detected', desc: 'A host shared phone / social / contact info', path: '/admin/contact-violations' },
     };
 
     const pendingTables = new Set([
@@ -2086,7 +2088,7 @@ export default function AdminLayout() {
       'face_verification_submissions', 'agency_withdrawals', 'helper_message_replies',
       'support_tickets', 'support_messages', 'user_reports', 'payroll_requests',
       'helper_orders', 'live_bans', 'live_face_violations', 'host_conversion_requests',
-      'chat_moderation_logs', 'helper_withdrawal_requests', 'notifications',
+      'chat_moderation_logs', 'host_contact_violations', 'helper_withdrawal_requests', 'notifications',
       'rating_reward_claims', 'leaderboard_reward_history', 'consumption_return_history',
       'agency_earnings_transfers', 'coin_transfers', 'admin_users', 'admin_section_permissions'
     ]);
