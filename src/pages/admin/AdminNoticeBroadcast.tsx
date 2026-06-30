@@ -20,9 +20,7 @@ import {
   XCircle,
   Languages,
   ImagePlus,
-  X,
-  Wand2,
-  Sparkles
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,114 +106,10 @@ const AdminNoticeBroadcast = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  // ── AI Banner Generator (inline, same edge function as Notification Templates) ──
-  const AI_BANNER_SIZES = [
-    { key: 'banner_16_9_1920', label: 'Hero · 1920×1080' },
-    { key: 'banner_16_9_1280', label: 'Standard · 1280×720' },
-    { key: 'square_1080',      label: 'Square · 1080×1080' },
-    { key: 'story_1080',       label: 'Story · 1080×1920' },
-    { key: 'push_thumb',       label: 'Push Thumb · 512×512' },
-  ];
-  // One-click event name templates — grouped, mirrors AI Photo Generator presets.
-  const EVENT_TEMPLATES: { group: string; items: string[] }[] = [
-    { group: "💎 Recharge & Diamonds", items: ["Recharge Mega Offer", "Double Diamond Bonus", "Flash Recharge Sale", "Diamond Rush Weekend", "First Recharge Gift", "Weekend Top-Up Bonus", "VIP Recharge Pack"] },
-    { group: "👑 VIP & Noble", items: ["VIP Launch", "Noble Coronation", "Royal Membership Sale", "Crown Upgrade Event", "VIP Exclusive Gala", "Noble Anniversary"] },
-    { group: "🎤 Live & Host", items: ["Host Of The Week", "Golden Hour 3x Earnings", "Live Battle Royale", "PK Championship", "New Host Welcome Bonus", "5-Hour Live Milestone", "Top Streamer Awards", "Weekly Streaming Bonus"] },
-    { group: "🎁 Gifts & Earnings", items: ["Gift Storm Event", "Double Beans Weekend", "Lucky Gift Lottery", "Mega Gift Carnival", "Gifter Of The Month", "Charm Leaderboard Final"] },
-    { group: "🏆 Tournament & PK", items: ["Weekly Tournament", "Monthly Championship", "Season Grand Finale", "Wealth Ranking Battle", "Game Leaderboard Showdown"] },
-    { group: "🎊 Festivals & Holidays", items: ["Eid Special", "Ramadan Kareem", "Diwali Lights", "Christmas Gala", "New Year Event", "Holi Color Fest", "Chinese New Year", "Thanksgiving Bonus", "Valentine Special", "Summer Carnival"] },
-    { group: "👥 Referral & Growth", items: ["Referral Mania", "Invite & Earn Bonus", "Friend Reward Weekend", "Top Inviter Awards"] },
-    { group: "🎂 User Moments", items: ["Birthday Bash", "Anniversary Celebration", "Welcome Bonus", "Level Up Reward", "Daily Check-in Mega"] },
-    { group: "🏢 Agency & Helper", items: ["Agency Champions", "Top Agency Of The Week", "Helper Recharge Bonanza", "Agency Recruitment Drive"] },
-  ];
+  // AI Banner Generator removed from Notice Broadcast — moved to its own
+  // "AI Photo Generator" section in the admin sidebar to keep this page focused.
 
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
-  // When true, user manually picked a size — auto-suggestion stops overriding.
-  const [aiSizeManual, setAiSizeManual] = useState(false);
-  const [aiSizeAutoReason, setAiSizeAutoReason] = useState<string>("");
 
-  // Suggest best size from event name / title — keyword first, then length fallback.
-  const suggestBestSize = (raw: string): { size: string; reason: string } => {
-    const t = (raw || "").toLowerCase().trim();
-    if (!t) return { size: 'banner_16_9_1920', reason: '' };
-    // Keyword routing
-    if (/(story|reel|short|vertical|portrait|tiktok|insta\s*story)/.test(t))
-      return { size: 'story_1080', reason: 'Story / vertical keyword detected' };
-    if (/(push|thumb|icon|badge|notif(ication)?\b)/.test(t))
-      return { size: 'push_thumb', reason: 'Push / thumbnail keyword detected' };
-    if (/(square|profile|avatar|logo|sticker|gift\s*icon)/.test(t))
-      return { size: 'square_1080', reason: 'Square asset keyword detected' };
-    if (/(hero|launch|grand|gala|mega|premiere|coronation|championship|finale|carnival|festival|gala|royal|tournament|eid|diwali|christmas|new\s*year|ramadan)/.test(t))
-      return { size: 'banner_16_9_1920', reason: 'Hero / flagship event detected' };
-    // Length fallback (wide banner for longer titles, standard otherwise)
-    const len = t.length;
-    if (len >= 36) return { size: 'banner_16_9_1920', reason: `Long title (${len} chars) → Hero` };
-    if (len >= 18) return { size: 'banner_16_9_1280', reason: `Medium title (${len} chars) → Standard` };
-    return { size: 'square_1080', reason: `Short title (${len} chars) → Square` };
-  };
-
-  // Auto-update size whenever prompt / title changes, unless user manually picked.
-  useEffect(() => {
-    if (aiSizeManual) return;
-    const src = (aiPrompt.trim() || title.trim());
-    if (!src) { setAiSizeAutoReason(""); return; }
-    const { size, reason } = suggestBestSize(src);
-    setAiSize(size);
-    setAiSizeAutoReason(reason);
-  }, [aiPrompt, title, aiSizeManual]);
-
-  const [aiGenerating, setAiGenerating] = useState(false);
-  // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
-  const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
-
-  const generateAiBanner = async (overrideName?: string) => {
-    const eventName = (overrideName?.trim() || aiPrompt.trim() || title.trim()).slice(0, 80);
-
-    if (!eventName) {
-      toast({ title: "Add a prompt", description: "Type an event name or title first", variant: "destructive" });
-      return;
-    }
-    if (imageUrls.length >= 10) {
-      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
-      return;
-    }
-    setAiGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-event-banner', {
-        body: { eventName, sizeKey: aiSize },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error('No URL returned');
-      // Hold in preview state — do NOT auto-attach.
-      setAiPreview({
-        url: data.url,
-        width: data.size?.width,
-        height: data.size?.height,
-        prompt: eventName,
-        sizeKey: aiSize,
-      });
-      toast({ title: 'Preview ready ✨', description: 'Review below, then click Attach to add to notice.' });
-    } catch (e: any) {
-      toast({ title: 'Generation failed', description: e?.message || 'AI error', variant: 'destructive' });
-    } finally {
-      setAiGenerating(false);
-    }
-  };
-
-  const attachAiPreview = () => {
-    if (!aiPreview) return;
-    if (imageUrls.length >= 10) {
-      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
-      return;
-    }
-    setImageUrls(prev => [...prev, aiPreview.url].slice(0, 10));
-    toast({ title: 'Attached', description: `Banner added (${imageUrls.length + 1}/10)` });
-    setAiPreview(null);
-    setAiPrompt("");
-  };
-
-  const discardAiPreview = () => setAiPreview(null);
 
   
   const [notices, setNotices] = useState<AdminNotice[]>([]);
@@ -586,153 +480,9 @@ const AdminNoticeBroadcast = () => {
               )}
             </div>
 
-            {/* AI Banner Generator (inline) */}
-            <div className="rounded-xl p-3 border border-amber-400/30 bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-amber-900/10">
-              <div className="flex items-center gap-2 mb-2">
-                <Wand2 className="w-4 h-4 text-amber-300" />
-                <span className="text-sm font-medium">AI Banner Generator</span>
-                <Badge className="ml-1 bg-amber-500/20 text-amber-200 border-amber-400/30 text-[10px]">Nano Banana 3D</Badge>
-              </div>
-              <p className="text-[11px] text-muted-foreground mb-2">
-                Type a prompt (or leave blank to use the title) and generate a premium 3D banner — auto-attached as a notice image.
-              </p>
-              <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                {AI_BANNER_SIZES.map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => { setAiSize(s.key); setAiSizeManual(true); }}
-                    className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
-                      aiSize === s.key
-                        ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
-                        : 'bg-white/[0.04] border-white/15 text-slate-900/70 hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    {s.label}
-                    {!aiSizeManual && aiSize === s.key && aiSizeAutoReason && (
-                      <span className="ml-1 text-[9px] uppercase tracking-wider text-amber-300/80">auto</span>
-                    )}
-                  </button>
-                ))}
-                {aiSizeManual && (
-                  <button
-                    type="button"
-                    onClick={() => setAiSizeManual(false)}
-                    className="px-2 py-1 text-[10px] rounded-md border border-amber-300/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
-                    title="Resume auto-suggest based on event name"
-                  >
-                    ↺ Auto
-                  </button>
-                )}
-              </div>
-              {!aiSizeManual && aiSizeAutoReason && (
-                <p className="text-[10px] text-amber-200/70 mb-2">✨ Auto-picked: {aiSizeAutoReason}</p>
-              )}
-              {aiSizeManual && (
-                <p className="text-[10px] text-muted-foreground mb-2">Manual size locked. Click ↺ Auto to re-enable smart suggest.</p>
-              )}
-
-              <div className="flex gap-2">
-                <Input
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder={title.trim() ? `Will use title: "${title.trim().slice(0,40)}"` : "Event name (e.g. Eid Special, Recharge Mega Offer)..."}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); generateAiBanner(); } }}
-                  disabled={aiGenerating}
-                />
-                <Button
-                  type="button"
-                  onClick={() => generateAiBanner()}
-                  disabled={aiGenerating || imageUrls.length >= 10}
-                  className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
-                >
-                  {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
-                  Generate
-                </Button>
-              </div>
-
-              {/* One-click event name templates (mirrors AI Photo Generator presets) */}
-              <div className="mt-3 space-y-2">
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Event Name Templates · one click to generate</div>
-                <div className="max-h-56 overflow-y-auto pr-1 space-y-2">
-                  {EVENT_TEMPLATES.map((g) => (
-                    <div key={g.group}>
-                      <div className="text-[11px] font-medium text-amber-200/80 mb-1">{g.group}</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {g.items.map((name) => (
-                          <button
-                            key={name}
-                            type="button"
-                            disabled={aiGenerating || imageUrls.length >= 10}
-                            onClick={() => { setAiPrompt(name); generateAiBanner(name); }}
-                            className="px-2 py-1 text-[11px] rounded-md border border-white/15 bg-white/[0.04] hover:bg-amber-400/15 hover:border-amber-300/50 text-slate-900/80 hover:text-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
-                          >
-                            <Sparkles className="w-3 h-3 text-amber-300" />
-                            {name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* AI Banner Generator has its own page now — use sidebar → "AI Photo Generator". */}
 
 
-              {/* Inline preview — review BEFORE attaching */}
-              {aiPreview && (
-                <div className="mt-3 rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-violet-600/10 p-3 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Eye className="w-4 h-4 text-amber-300 shrink-0" />
-                      <span className="text-sm font-medium truncate">Preview</span>
-                      <Badge className="bg-amber-500/20 text-amber-100 border-amber-400/30 text-[10px]">
-                        {aiPreview.width && aiPreview.height ? `${aiPreview.width}×${aiPreview.height}` : 'ready'}
-                      </Badge>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground truncate max-w-[50%]" title={aiPreview.prompt}>
-                      "{aiPreview.prompt}"
-                    </span>
-                  </div>
-                  <div className="rounded-lg overflow-hidden border border-white/10 bg-black/40 mb-3">
-                    <SmartImage
-                      src={aiPreview.url}
-                      alt={aiPreview.prompt}
-                      className="w-full h-auto max-h-[420px] object-contain"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={discardAiPreview}
-                      disabled={aiGenerating}
-                    >
-                      <X className="w-4 h-4 mr-1" /> Discard
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => generateAiBanner()}
-                      disabled={aiGenerating}
-                    >
-                      {aiGenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
-                      Regenerate
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={attachAiPreview}
-                      disabled={aiGenerating || imageUrls.length >= 10}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
-                    >
-                      <Check className="w-4 h-4 mr-1" /> Attach to Notice
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
 
 
 

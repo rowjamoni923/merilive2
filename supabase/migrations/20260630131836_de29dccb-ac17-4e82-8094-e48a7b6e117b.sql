@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_notices DROP CONSTRAINT IF EXISTS admin_notices_created_by_fkey;
