@@ -1268,10 +1268,11 @@ class LiveKitPlugin : Plugin() {
 
     private fun scheduleOverlayContractWatchdog(reason: String) {
         val delays = longArrayOf(
-            0L, 250L, 500L,
-            1000L, 2000L, 3000L, 4000L, 5000L,
+            0L, 80L, 160L, 250L, 500L, 750L,
+            1000L, 1500L, 2000L, 3000L, 4000L, 5000L,
             6000L, 7000L, 8000L, 9000L, 10000L,
-            11000L, 12000L, 13000L, 14000L, 15000L
+            11000L, 12000L, 13000L, 14000L, 15000L,
+            18000L, 22000L, 30000L
         )
         delays.forEach { delay ->
             overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)

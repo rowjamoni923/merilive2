@@ -461,10 +461,10 @@ export function useLiveKitCall(
                   video: true,
                   audio: true,
                   lens: 'front',
-                  // 720p is the Chamet/Bigo-style Android call startup tier:
-                  // faster Camera2 first frame and lower encoder warmup than
-                  // cold 1080p; quality can adapt upward after connection.
-                  resolution: '720p',
+                  // Private call is locked to the same 1080p portrait capture
+                  // contract as live/party so the accepted call does not fall
+                  // back to a blurry 720p native session.
+                  resolution: '1080p',
                   // Private-call video is rendered through React-positioned
                   // <NativeVideoView /> slots (remote fullscreen + local PiP).
                   // Do NOT mount the legacy native fullscreen local renderer:
