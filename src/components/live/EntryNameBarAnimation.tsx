@@ -252,15 +252,16 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 2: Avatar + Name + Level — composited at the LEFT-CENTER
-                  anchor where professional SVGA name-bar templates reserve space
-                  for dynamic content. Slides in first, animation follows. */}
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.28, ease: 'easeOut' }}
+              {/* Layer 2: Avatar + Name + Level — ENGRAVED into the same
+                  composite as the SVGA/GIF layer (Chamet / BIGO / 17ae parity).
+                  NO independent transform/opacity here: the parent banner does
+                  ONE unified slide-in so avatar, level chip, name and the
+                  decorative animation all arrive together as a single carved
+                  unit. Any per-layer animation would desync them and produce
+                  the "name first, effect later" feel we are removing. */}
+              <div
                 className={cn(
-                  "absolute inset-y-0 z-[2] flex items-center",
+                  "absolute inset-y-0 z-[2] flex items-center pointer-events-none",
                   hasAnimation
                     ? "left-[14%] right-[10%] gap-3"
                     : "inset-x-0 gap-2 px-3"
@@ -328,7 +329,8 @@ const EntryNameBarAnimationInner = memo(({
                     </span>
                   )}
                 </div>
-              </motion.div>
+              </div>
+
             </div>
           </motion.div>
         )}
