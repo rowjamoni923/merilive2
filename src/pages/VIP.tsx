@@ -40,6 +40,8 @@ import VipNobleSection from "@/components/vip/VipNobleSection";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { recordClientError } from "@/utils/clientErrorLog";
+import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
+import { getLevelBadgeBg, getLevelTextColor, formatLevel, ensureValidLevel } from "@/features/shared/level";
 
 interface VIPTier {
   id: string;
@@ -187,6 +189,9 @@ const VIP = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [countdownTick, setCountdownTick] = useState(0);
   const [currentUserName, setCurrentUserName] = useState<string>("");
+  const [currentUserLevel, setCurrentUserLevel] = useState<number>(1);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | undefined>(undefined);
+
 
   // Check and restore expired VIP items automatically  
   useExpiredItemsRestorer(currentUserId);
@@ -234,7 +239,7 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, display_name, username, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .select("coins, display_name, username, avatar_url, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -279,7 +284,10 @@ const VIP = () => {
         setUserDiamonds(profileData.coins || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
         setCurrentUserName((profileData as any)?.display_name || (profileData as any)?.username || "You");
+        setCurrentUserAvatar((profileData as any)?.avatar_url || undefined);
       }
+      setCurrentUserLevel(effectiveLevel);
+
 
       // Fetch current VIP subscription
       const { data: vipData } = await supabase
@@ -1354,14 +1362,82 @@ const VIP = () => {
                         <span className="text-body text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3">
-                      {items.map((priv) => (
+                    <div className={title === 'Entry Name Bar' ? 'flex flex-col gap-3' : 'flex flex-wrap gap-3'}>
+                      {items.map((priv) => {
+                        const isEntryNameBar = title === 'Entry Name Bar';
+                        const lvl = ensureValidLevel(currentUserLevel);
+                        return (
                         <motion.div
                           key={priv.id}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleEquip(priv)}
-                          className="flex flex-col items-center"
+                          className={isEntryNameBar ? 'flex flex-col items-stretch w-full' : 'flex flex-col items-center'}
                         >
+                          {isEntryNameBar ? (
+                            // Wide composited preview — matches in-room entry name bar 1:1
+                            <div className={`relative w-full aspect-[1024/280] rounded-xl overflow-hidden cursor-pointer transition-all ${
+                              priv.is_equipped ? 'ring-2 ring-green-500 shadow-green-500/30 shadow-lg' : `ring-1 ring-white/10 ${ringColor} shadow-md`
+                            }`}>
+                              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200" />
+                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
+                                <UniversalFramePlayer
+                                  src={priv.animation_url}
+                                  className="absolute inset-0 w-full h-full"
+                                  loop={true}
+                                  autoPlay={true}
+                                  muted={true}
+                                />
+                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
+                                <img
+                                  loading="lazy" decoding="async"
+                                  src={enhanceThumbnail(priv.preview_url, { width: 640, quality: 85 })}
+                                  alt={priv.name}
+                                  className="absolute inset-0 w-full h-full object-contain"
+                                />
+                              ) : null}
+
+                              {/* Engraved overlay: avatar + name + level inside the
+                                  template's content slot — identical positioning
+                                  to EntryNameBarAnimation in-room rendering. */}
+                              <div className="absolute top-[16%] bottom-[16%] left-[22%] right-[28%] flex items-center gap-[2.5%] pointer-events-none">
+                                {currentUserId ? (
+                                  <FramedAvatarWithPrivileges
+                                    userId={currentUserId}
+                                    src={currentUserAvatar}
+                                    name={currentUserName}
+                                    level={lvl}
+                                    size="md"
+                                    showFrame
+                                    showGlow={false}
+                                    showAnimation={false}
+                                    className="flex-shrink-0 h-full aspect-square"
+                                  />
+                                ) : null}
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <span
+                                    className="text-white font-black truncate text-[15px] leading-tight"
+                                    style={{ textShadow: '0 2px 6px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.6)' }}
+                                  >
+                                    {currentUserName}
+                                  </span>
+                                  <div className={`px-1.5 py-0.5 rounded-md font-black flex-shrink-0 shadow-md text-[10px] ${getLevelBadgeBg(lvl)} ${getLevelTextColor(lvl)}`}>
+                                    {formatLevel(lvl)}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {priv.is_equipped && (
+                                <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow">
+                                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                                </div>
+                              )}
+                              {equipping === priv.id && (
+                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                  <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
                           <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
                             priv.is_equipped 
                                 ? 'ring-2 ring-green-500 shadow-green-500/30' 
@@ -1384,19 +1460,6 @@ const VIP = () => {
                               ) : (
                                 fallbackIcon
                               )}
-                              {/* Entry Name Bar preview: overlay user's display name so the user
-                                  can see what the bar will look like in-room (the bar template
-                                  itself never contains a name — it's composited live). */}
-                              {title === 'Entry Name Bar' && currentUserName && (
-                                <div className="absolute inset-0 flex items-center justify-center px-1 pointer-events-none">
-                                  <span
-                                    className="text-[10px] font-black text-white truncate max-w-full"
-                                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }}
-                                  >
-                                    {currentUserName}
-                                  </span>
-                                </div>
-                              )}
                             </div>
                             
                             {/* Equipped indicator */}
@@ -1413,6 +1476,8 @@ const VIP = () => {
                               </div>
                             )}
                           </div>
+                          )}
+
                           
                           <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-heading">
                             {priv.name}
@@ -1450,7 +1515,9 @@ const VIP = () => {
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>
                         </motion.div>
-                      ))}
+                        );
+                      })}
+
                     </div>
                   </motion.div>
                 )

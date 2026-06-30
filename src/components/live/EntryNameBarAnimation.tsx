@@ -172,10 +172,14 @@ const EntryNameBarAnimationInner = memo(({
 
   if (phase === 'done' || phase === 'preparing') return null;
 
-  // Professional sizing (Chamet/BIGO parity):
-  //  SVGA name bars are wide horizontal ribbons; render at ~5:1 aspect.
-  const bannerHeight = hasAnimation ? 110 : 44;
-  // SVGA/GIF + name overlay mount together from the first frame of slide-in.
+  // Professional sizing (Chamet/BIGO/17 parity):
+  // SVGA entry-name-bar templates are authored at a fixed ~1024×280 canvas
+  // (aspect 3.66:1). We lock the banner to that aspect ratio so the overlay
+  // (avatar + name + level) always sits inside the engraved content slot,
+  // regardless of viewport width. The content slot in every standard template
+  // is roughly the left-center region from ~22% → ~70% horizontally, with a
+  // ~14% top/bottom safe area. All overlay sizes are percentage-based so the
+  // composite scales as one engraved unit — never "too big, never too small".
   const showAnimationLayer = true;
   const shouldShow = true;
 
@@ -205,21 +209,17 @@ const EntryNameBarAnimationInner = memo(({
             <div
               className={cn(
                 "relative",
-                hasAnimation ? "w-[min(560px,94vw)] overflow-visible" : "mx-2 rounded-full overflow-hidden w-auto"
+                hasAnimation
+                  ? "w-[min(560px,94vw)] aspect-[1024/280] overflow-visible"
+                  : "mx-2 rounded-full overflow-hidden w-auto h-11"
               )}
-              style={{ height: `${bannerHeight}px` }}
             >
               {/* Layer 0: Base gradient fallback - ONLY when no animation */}
               {!hasAnimation && (
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-800/85 to-indigo-900/90 backdrop-blur-md rounded-full" />
               )}
 
-              {/* Layer 1: SVGA background — only mounts after name slides in.
-                  Avatar / name / level are injected INTO the SVGA timeline
-                  via dynamic compositing (Chamet/BIGO API) so they move
-                  frame-by-frame with the animation. When the template lacks
-                  the standard ImageKeys, these are silent no-ops and the
-                  HTML overlay (Layer 2 below) carries the user info. */}
+              {/* Layer 1: SVGA background */}
               {hasSvga && cleanAnimUrl && showAnimationLayer && (
                 <div className="absolute inset-0 z-[1] pointer-events-none">
                   <EntryAnimationFrame
@@ -252,19 +252,14 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 2: Avatar + Name + Level — ENGRAVED into the same
-                  composite as the SVGA/GIF layer (Chamet / BIGO / 17ae parity).
-                  NO independent transform/opacity here: the parent banner does
-                  ONE unified slide-in so avatar, level chip, name and the
-                  decorative animation all arrive together as a single carved
-                  unit. Any per-layer animation would desync them and produce
-                  the "name first, effect later" feel we are removing. */}
+              {/* Layer 2: Avatar + Name + Level — engraved into the template's
+                  content slot. Percentage-based so it scales with the banner. */}
               <div
                 className={cn(
-                  "absolute inset-y-0 z-[2] flex items-center pointer-events-none",
+                  "absolute z-[2] flex items-center pointer-events-none",
                   hasAnimation
-                    ? "left-[14%] right-[10%] gap-3"
-                    : "inset-x-0 gap-2 px-3"
+                    ? "top-[16%] bottom-[16%] left-[22%] right-[28%] gap-[2.5%]"
+                    : "inset-0 gap-2 px-3"
                 )}
               >
                 {userId ? (
@@ -277,12 +272,15 @@ const EntryNameBarAnimationInner = memo(({
                     showFrame
                     showGlow={false}
                     showAnimation={false}
-                    className="flex-shrink-0"
+                    className={cn(
+                      "flex-shrink-0",
+                      hasAnimation && "h-full aspect-square"
+                    )}
                   />
                 ) : (
                   <Avatar className={cn(
                     "flex-shrink-0 ring-2 ring-white/60 shadow-lg",
-                    hasAnimation ? "w-14 h-14" : "w-9 h-9"
+                    hasAnimation ? "h-full aspect-square" : "w-9 h-9"
                   )}>
                     <AvatarImage
                       src={avatarUrl || getDisplayAvatar(userName)}
@@ -296,11 +294,11 @@ const EntryNameBarAnimationInner = memo(({
                 )}
 
                 <div className="flex flex-col justify-center min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <span
                       className={cn(
                         "text-white font-black truncate",
-                        hasAnimation ? "text-[16px] max-w-[200px]" : "text-sm max-w-[140px]"
+                        hasAnimation ? "text-[15px] leading-tight" : "text-sm max-w-[140px]"
                       )}
                       style={
                         hasAnimation
@@ -320,9 +318,6 @@ const EntryNameBarAnimationInner = memo(({
                     </div>
                   </div>
 
-                  {/* Welcome line ONLY for the static (no-animation) pill.
-                      With SVGA/GIF the template carries the decorative
-                      messaging — extra text would look unprofessional. */}
                   {!hasAnimation && (
                     <span className="text-white/90 font-bold drop-shadow-sm leading-none text-[10px]">
                       Welcome to the room! 🎉
@@ -338,6 +333,7 @@ const EntryNameBarAnimationInner = memo(({
     </div>
   );
 });
+
 
 EntryNameBarAnimationInner.displayName = 'EntryNameBarAnimationInner';
 
