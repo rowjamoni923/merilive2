@@ -1615,6 +1615,7 @@ const App = () => {
                   <Route path="hosts" element={<AdminRouteGuard routeSegment="hosts"><AdminHosts /></AdminRouteGuard>} />
                   <Route path="moderation" element={<AdminRouteGuard routeSegment="moderation"><AdminModeration /></AdminRouteGuard>} />
                   <Route path="face-verification" element={<AdminRouteGuard routeSegment="face-verification"><AdminFaceVerification /></AdminRouteGuard>} />
+                  <Route path="face-verification/timeline/:userId" element={<AdminRouteGuard routeSegment="face-verification"><AdminFaceVerificationTimeline /></AdminRouteGuard>} />
                   <Route path="host-conversion" element={<AdminRouteGuard routeSegment="host-conversion"><AdminHostConversion /></AdminRouteGuard>} />
                   <Route path="tasks-settings" element={<AdminRouteGuard routeSegment="tasks-settings"><AdminTasksSettings /></AdminRouteGuard>} />
                   <Route path="users" element={<AdminRouteGuard routeSegment="users"><AdminUsers /></AdminRouteGuard>} />
