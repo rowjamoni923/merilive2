@@ -1374,65 +1374,29 @@ const VIP = () => {
                           className={isEntryNameBar ? 'flex flex-col items-stretch w-full' : 'flex flex-col items-center'}
                         >
                           {isEntryNameBar ? (
-                            // Wide composited preview — matches in-room entry name bar 1:1
-                            <div className={`relative w-full aspect-[1024/280] rounded-xl overflow-hidden cursor-pointer transition-all ${
+                            // Wide composited preview — uses shared component
+                            // so VIP tile, Shop card, and in-room render are
+                            // visually identical (animation + engraved
+                            // avatar/name/level always animate together).
+                            <div className={`relative w-full rounded-xl overflow-hidden cursor-pointer transition-all ${
                               priv.is_equipped ? 'ring-2 ring-green-500 shadow-green-500/30 shadow-lg' : `ring-1 ring-white/10 ${ringColor} shadow-md`
                             }`}>
                               <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200" />
-                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
-                                <UniversalFramePlayer
-                                  src={priv.animation_url}
-                                  className="absolute inset-0 w-full h-full"
-                                  loop={true}
-                                  autoPlay={true}
-                                  muted={true}
-                                />
-                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
-                                <img
-                                  loading="lazy" decoding="async"
-                                  src={enhanceThumbnail(priv.preview_url, { width: 640, quality: 85 })}
-                                  alt={priv.name}
-                                  className="absolute inset-0 w-full h-full object-contain"
-                                />
-                              ) : null}
-
-                              {/* Engraved overlay: avatar + name + level inside the
-                                  template's content slot — identical positioning
-                                  to EntryNameBarAnimation in-room rendering. */}
-                              <div className="absolute top-[16%] bottom-[16%] left-[22%] right-[28%] flex items-center gap-[2.5%] pointer-events-none">
-                                {currentUserId ? (
-                                  <FramedAvatarWithPrivileges
-                                    userId={currentUserId}
-                                    src={currentUserAvatar}
-                                    name={currentUserName}
-                                    level={lvl}
-                                    size="md"
-                                    showFrame
-                                    showGlow={false}
-                                    showAnimation={false}
-                                    className="flex-shrink-0 h-full aspect-square"
-                                  />
-                                ) : null}
-                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                  <span
-                                    className="text-white font-black truncate text-[15px] leading-tight"
-                                    style={{ textShadow: '0 2px 6px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.6)' }}
-                                  >
-                                    {currentUserName}
-                                  </span>
-                                  <div className={`px-1.5 py-0.5 rounded-md font-black flex-shrink-0 shadow-md text-[10px] ${getLevelBadgeBg(lvl)} ${getLevelTextColor(lvl)}`}>
-                                    {formatLevel(lvl)}
-                                  </div>
-                                </div>
-                              </div>
+                              <EntryNameBarPreview
+                                animationUrl={priv.animation_url}
+                                previewUrl={priv.preview_url}
+                                userName={currentUserName}
+                                avatarUrl={currentUserAvatar}
+                                level={lvl}
+                              />
 
                               {priv.is_equipped && (
-                                <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow">
+                                <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow z-10">
                                   <Check className="w-3 h-3 text-white" strokeWidth={3} />
                                 </div>
                               )}
                               {equipping === priv.id && (
-                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
                                   <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
                                 </div>
                               )}
