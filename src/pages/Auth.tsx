@@ -1116,18 +1116,18 @@ const Auth = () => {
           localStorage.setItem(`gender_selected_${userId}`, 'true');
         }
 
-        // Instant country detection (non-blocking)
-        detectAndSaveLocation(userId);
+        // Instant country detection (non-blocking, never throws)
+        try { detectAndSaveLocation(userId); } catch (e) { console.warn('[Auth] location detect failed:', e); }
 
-        // Track invitation if user came via referral link
-        await trackUserInvitation(userId);
+        // Track invitation if user came via referral link (non-blocking)
+        try { await trackUserInvitation(userId); } catch (e) { console.warn('[Auth] invitation track failed:', e); }
 
-        await joinPendingAgencyAfterSignup(userId, selectedGender === 'female');
+        try { await joinPendingAgencyAfterSignup(userId, selectedGender === 'female'); } catch (e) { console.warn('[Auth] agency join failed:', e); }
 
         if (selectedGender === 'female') {
           toast({
             title: "🎉 Congratulations!",
-            description: "Your account is ready!",
+            description: "Your host account is ready! Complete face verification to go live.",
           });
         } else {
           toast({
@@ -1138,6 +1138,7 @@ const Auth = () => {
         
         navigateAfterAuth();
       }
+
     } catch (error: any) {
       console.error("Registration error:", error);
       recordClientError({ label: "Auth.pendingReferral", message: error instanceof Error ? error.message : String(error) });
