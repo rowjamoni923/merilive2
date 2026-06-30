@@ -963,8 +963,9 @@ const GoLive = () => {
         const reason = String(gate?.reason || 'You cannot go live right now.');
         switch (code) {
           case 'face':
-            void navigateAwayFromGoLive("/face-verification");
+            setShowFaceVerificationRequired(true);
             return;
+
           case 'host_not_approved':
             toast.error('Your host approval is not active yet. Please wait for admin approval.', { duration: 6000 });
             return;
