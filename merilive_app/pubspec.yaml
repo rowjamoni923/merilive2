@@ -54,3 +54,4 @@ flutter:
   assets:
     - assets/logo/
     - assets/auth/
+    - assets/onboarding/
