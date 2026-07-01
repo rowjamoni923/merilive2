@@ -16,6 +16,7 @@
  */
 import type { LocalVideoTrack, LocalTrackPublication, Room } from 'livekit-client';
 import { Track } from 'livekit-client';
+import { buildPortraitVideoConstraint } from '@/utils/portraitCameraConstraints';
 
 export interface HDResolution {
   width: number;
@@ -28,16 +29,7 @@ export interface HDResolution {
  * `ideal` = what we want, `min` = floor below which we'd rather fail.
  */
 export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstraints {
-  return {
-    width: { ideal: target.width, min: Math.min(360, target.width) },
-    height: { ideal: target.height, min: Math.min(640, target.height) },
-    frameRate: { ideal: target.frameRate, min: 24 },
-    // No internal UA crop. The renderer owns visual fill; capture must keep the
-    // widest hardware FOV so faces do not look digitally zoomed-in.
-    resizeMode: 'none',
-    // 'user' = front camera (default for Live/PartyRoom/PrivateCall).
-    facingMode: { ideal: 'user' },
-  } as unknown as MediaTrackConstraints;
+  return buildPortraitVideoConstraint({ width: target.width, height: target.height, frameRate: target.frameRate, facingMode: 'user' });
 }
 
 /**
