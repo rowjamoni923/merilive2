@@ -743,7 +743,12 @@ class LiveKitPlugin : Plugin() {
                 val lp = room?.localParticipant
                 scope.launch {
                     try { setLocalMicrophoneMutedKeepCapture(false) } catch (_: Throwable) {}
-                    try { setLocalCameraMutedKeepCapture(false) } catch (_: Throwable) {}
+                    // Only unmute an already-owned camera track. Calling the
+                    // SDK camera-enable path during preview→publish promotion
+                    // can open a second CameraX capturer on OEM devices.
+                    if (previewTrack != null) {
+                        try { setLocalCameraMutedKeepCapture(false) } catch (_: Throwable) {}
+                    }
                 }
             }
         } catch (t: Throwable) {
