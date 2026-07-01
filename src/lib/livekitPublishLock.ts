@@ -17,13 +17,15 @@
  * values cause sender/receiver drift and visible pumping.
  */
 export const LIVEKIT_PUBLISH_LOCK = {
-  // Capture (CameraX) — full-sensor portrait 3:4, 30 fps, 1080p short-side.
-  // Do NOT force 9:16 here: most front cameras are 4:3 and Android crops them
-  // to satisfy 9:16, which is the zoomed-face bug reported in Live,
-  // Party/Game Party and Private Call. Renderers then use object-contain/FIT.
+  // Capture (CameraX) — full-bleed 9:16 portrait, 30 fps, 1080p short-side.
+  // Capture aspect == phone display aspect, so renderer FILL is a 1:1 map
+  // (no letterbox, no render-time zoom). The sensor's own 4:3→9:16
+  // center-crop is the standard FOV every pro live app uses (Chamet/Bigo/
+  // Olamet/Holla). Must match LOCK_CAPTURE_* in LiveKitPlugin.kt.
   captureWidth: 1080,
-  captureHeight: 1440,
+  captureHeight: 1920,
   captureFps: 30,
+
   // Base layer encoder — 1080p @ 30fps @ 4.5 Mbps. Pinned, never re-tuned.
   // 2026-06-30: lifted from 3.2 → 4.5 Mbps to hit Chamet/Bigo "premium clarity"
   // band. Viewers consistently report a sharper face at this rate on mid-tier
