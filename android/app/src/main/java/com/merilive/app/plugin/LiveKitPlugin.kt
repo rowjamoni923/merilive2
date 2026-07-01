@@ -65,7 +65,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * Bigo/Chamet-style continuous camera flow:
  *
  *   startLocalPreview()           → opens CameraX ONCE, renders behind WebView
- *   connect({ video:true }/*)       → republishes the SAME LocalVideoTrack
+ *   connect({ video:true })       → republishes the SAME LocalVideoTrack
  *                                    (no second openCamera, no flicker)
  *   disconnect() / teardownRoom() → unpublish + stop track + release CameraX
  *
@@ -118,23 +118,23 @@ class LiveKitPlugin : Plugin() {
                 try {
                     val nextPos = if (track.options.position == CameraPosition.FRONT) CameraPosition.BACK else CameraPosition.FRONT
                     track.switchCamera(nextPos)
-                    plugin.runOnMain { plugin.previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }/*
-                }/* catch (t: Throwable) {
+                    plugin.runOnMain { plugin.previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }
+                } catch (t: Throwable) {
                     Log.w(TAG, "switchCameraFromNative", t)
-                }/*
-            }/*
-        }/*
+                }
+            }
+        }
 
         @JvmStatic
         fun notifyUserLeaveHint(activity: Activity) {
             Log.d(TAG, "notifyUserLeaveHint (no-op)")
-        }/*
+        }
 
         @JvmStatic
         fun notifyPipModeChanged(isInPip: Boolean) {
             Log.d(TAG, "notifyPipModeChanged=$isInPip (no-op)")
-        }/*
-    }/*
+        }
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val mediaOpMutex = Mutex()
@@ -165,7 +165,7 @@ class LiveKitPlugin : Plugin() {
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
      *  TextureViewRenderer or make the WebView transparent. The camera track
      *  is still alive, but rendering is delegated to seat-bound TextureViews
-     *  via {@link bindSeatRenderer}/*. Used by Video/Game Party rooms. */
+     *  via {@link bindSeatRenderer}. Used by Video/Game Party rooms. */
     private var boundedMode: Boolean = false
 
     /** Phase 1: per-viewId TextureViewRenderers placed ABOVE the WebView at
@@ -200,31 +200,31 @@ class LiveKitPlugin : Plugin() {
             if (provider.isSupported(app)) {
                 CameraCapturerUtils.registerCameraProvider(provider)
                 Log.i(TAG, "CameraX provider registered — CameraX is the active capturer")
-            /*
+            } else {
                 // Extremely rare (pre-API 21 / no CameraX HAL). SDK default kicks in.
                 Log.w(TAG, "CameraX not supported on this device — SDK default capturer will be used")
-            }/*
-        }/* catch (t: Throwable) {
+            }
+        } catch (t: Throwable) {
             Log.w(TAG, "CameraX registration failed; SDK default capturer will be used", t)
-        }/*
-        Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}/*")
-    }/*
+        }
+        Log.i(TAG, "LiveKitPlugin loaded — SDK ${LiveKit::class.java.`package`?.implementationVersion ?: "?"}")
+    }
 
     override fun handleOnDestroy() {
-        try { runOnMain { teardownAll() }/* }/* catch (_: Throwable) {}/*
+        try { runOnMain { teardownAll() } } catch (_: Throwable) {}
         // Phase 6: tear down any warmup rooms held by the JS connection pool.
         try {
             synchronized(warmupLock) {
-                warmupTimers.forEach { try { it.cancel() }/* catch (_: Throwable) {}/* }/*
+                warmupTimers.forEach { try { it.cancel() } catch (_: Throwable) {} }
                 warmupTimers.clear()
-                warmupRooms.forEach { r -> try { r.disconnect() }/* catch (_: Throwable) {}/* }/*
+                warmupRooms.forEach { r -> try { r.disconnect() } catch (_: Throwable) {} }
                 warmupRooms.clear()
-            }/*
-        }/* catch (_: Throwable) {}/*
+            }
+        } catch (_: Throwable) {}
         if (INSTANCE === this) INSTANCE = null
         scope.cancel()
         super.handleOnDestroy()
-    }/*
+    }
 
     // ─────────────────────────────────────────────
     // Capability probe
@@ -250,7 +250,7 @@ class LiveKitPlugin : Plugin() {
             put("attachLocalSurface"); put("attachRemoteSurface")
             put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
             put("getRemoteParticipants"); put("attachAllRemotes")
-        }/*
+        }
         call.resolve(
             JSObject()
                 .put("available", true)
@@ -258,7 +258,7 @@ class LiveKitPlugin : Plugin() {
                 .put("supportsPreview", true)
                 .put("methods", methods)
         )
-    }/*
+    }
 
     // ─────────────────────────────────────────────
     // Preview lifecycle
@@ -281,18 +281,18 @@ class LiveKitPlugin : Plugin() {
                                 if (!previewRendererBound) {
                                     previewTrack?.addRenderer(renderer)
                                     previewRendererBound = true
-                                }/*
-                            }/*
-                        }/*
+                                }
+                            }
+                        }
                         call.resolve(JSObject().put("started", true).put("reused", true))
                         return@withLock
-                    }/*
+                    }
                     val r = room ?: withContext(Dispatchers.IO) {
                         LiveKit.create(
                             appContext = context.applicationContext,
                             options = RoomOptions(adaptiveStream = true, dynacast = true),
                         )
-                    }/*
+                    }
                     room = r
 
                     val opts = LocalVideoTrackOptions(
@@ -312,24 +312,24 @@ class LiveKitPlugin : Plugin() {
                             if (!previewRendererBound) {
                                 track.addRenderer(renderer)
                                 previewRendererBound = true
-                            }/*
-                        }/*
+                            }
+                        }
                     /*
                         // Bounded mode — push to any already-registered seat slots
                         // that match the local identity once we know it.
                         Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
-                    }/*
+                    }
                     rebindSeatSlotsForLocalTrack(track)
 
                     call.resolve(JSObject().put("started", true).put("reused", false))
-                }/* catch (t: Throwable) {
+                } catch (t: Throwable) {
                     Log.e(TAG, "startLocalPreview failed", t)
                     safeStopPreviewInternals()
-                    call.reject("startLocalPreview: ${t.message}/*", t)
-                }/*
-            }/*
-        }/*
-    }/*
+                    call.reject("startLocalPreview: ${t.message}", t)
+                }
+            }
+        }
+    }
 
     @PluginMethod
     fun stopLocalPreview(call: PluginCall) {
@@ -339,15 +339,15 @@ class LiveKitPlugin : Plugin() {
                     Log.i(TAG, "stopLocalPreview: ignored while connected")
                     call.resolve(JSObject().put("stopped", false).put("reason", "connected"))
                     return@launch
-                }/*
+                }
                 safeStopPreviewInternals()
                 call.resolve(JSObject().put("stopped", true))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "stopLocalPreview", t)
                 call.resolve(JSObject().put("stopped", true))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     // ─────────────────────────────────────────────
     // Connection lifecycle
@@ -397,7 +397,7 @@ class LiveKitPlugin : Plugin() {
         if (url.isNullOrBlank() || token.isNullOrBlank()) {
             call.reject("url and token are required")
             return
-        }/*
+        }
         scope.launch {
             try {
                 val warmRoom = withContext(Dispatchers.IO) {
@@ -405,15 +405,15 @@ class LiveKitPlugin : Plugin() {
                         appContext = context.applicationContext,
                         options = RoomOptions(adaptiveStream = true, dynacast = false),
                     )
-                }/*
+                }
                 try {
                     warmRoom.prepareConnection(url, token)
-                }/* catch (t: Throwable) {
+                } catch (t: Throwable) {
                     Log.w(TAG, "prepareConnection: SDK call failed", t)
-                    try { warmRoom.disconnect() }/* catch (_: Throwable) {}/*
+                    try { warmRoom.disconnect() } catch (_: Throwable) {}
                     call.resolve(JSObject().put("prepared", false).put("reason", t.message ?: "error"))
                     return@launch
-                }/*
+                }
 
                 // Track it so we can teardown on app destroy / overflow.
                 val toDiscard: List<Room>
@@ -421,31 +421,31 @@ class LiveKitPlugin : Plugin() {
                     warmupRooms.add(warmRoom)
                     toDiscard = if (warmupRooms.size > MAX_WARMUP_ROOMS) {
                         val excess = warmupRooms.subList(0, warmupRooms.size - MAX_WARMUP_ROOMS).toList()
-                        excess.forEach { warmupRooms.remove(it) }/*
+                        excess.forEach { warmupRooms.remove(it) }
                         excess
-                    }/* else emptyList()
-                }/*
+                    } else emptyList()
+                }
                 toDiscard.forEach { r ->
-                    try { r.disconnect() }/* catch (_: Throwable) {}/*
-                }/*
+                    try { r.disconnect() } catch (_: Throwable) {}
+                }
 
                 // Auto-discard after TTL so a forgotten warmup never leaks.
                 val timer = scope.launch {
                     kotlinx.coroutines.delay(WARMUP_TTL_MS)
                     synchronized(warmupLock) {
                         warmupRooms.remove(warmRoom)
-                    }/*
-                    try { warmRoom.disconnect() }/* catch (_: Throwable) {}/*
-                }/*
-                synchronized(warmupLock) { warmupTimers.add(timer) }/*
+                    }
+                    try { warmRoom.disconnect() } catch (_: Throwable) {}
+                }
+                synchronized(warmupLock) { warmupTimers.add(timer) }
 
                 call.resolve(JSObject().put("prepared", true))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "prepareConnection failed", t)
                 call.resolve(JSObject().put("prepared", false).put("reason", t.message ?: "error"))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
 
 
@@ -456,7 +456,7 @@ class LiveKitPlugin : Plugin() {
         if (url.isNullOrBlank() || token.isNullOrBlank()) {
             call.reject("url and token are required")
             return
-        }/*
+        }
         val args = ConnectArgs(
             url = url,
             token = token,
@@ -489,7 +489,7 @@ class LiveKitPlugin : Plugin() {
                         detachRenderer(restoreWebView = false)
                     /*
                         boundedMode = false
-                    }/*
+                    }
                     promotePreviewToSession(args)
                     lastConnectArgs = args
                     activeRoomScope = args.roomScope
@@ -500,23 +500,23 @@ class LiveKitPlugin : Plugin() {
                             .put("connected", true)
                             .put("sid", r.localParticipant.sid?.value ?: "")
                     )
-                }/* catch (t: Throwable) {
+                } catch (t: Throwable) {
                     Log.e(TAG, "connect failed", t)
                     isConnected = false
                     // Do NOT tear down the preview camera on a connect error.
                     // JS performs a quick retry; keeping previewTrack alive lets
                     // promotePreviewToSession publish the same CameraX capturer
                     // instead of closing/reopening it between attempts.
-                    try { room?.disconnect() }/* catch (_: Throwable) {}/*
-                    try { clearAllSlots() }/* catch (_: Throwable) {}/*
+                    try { room?.disconnect() } catch (_: Throwable) {}
+                    try { clearAllSlots() } catch (_: Throwable) {}
                     RtcEngineManager.clearRoom(room)
                     activeRoomScope = null
                     activeIsHost = false
-                    call.reject("connect failed: ${t.message}/*", t)
-                }/*
-            }/*
-        }/*
-    }/*
+                    call.reject("connect failed: ${t.message}", t)
+                }
+            }
+        }
+    }
 
     /**
      * Preview → session handoff. If `previewTrack` is non-null we republish
@@ -534,7 +534,7 @@ class LiveKitPlugin : Plugin() {
                 // adaptiveStream=true: viewer-side simulcast switching only.
                 options = RoomOptions(adaptiveStream = true, dynacast = false),
             )
-        }/*
+        }
         room = r
         observeRoomEvents(r)
 
@@ -565,13 +565,13 @@ class LiveKitPlugin : Plugin() {
                         try {
                             track.addRenderer(renderer)
                             previewRendererBound = true
-                        }/* catch (_: Throwable) {}/*
-                    }/*
-                }/*
-            }/*
+                        } catch (_: Throwable) {}
+                    }
+                }
+            }
             rebindSeatSlotsForLocalTrack(track)
-            Log.i(TAG, "promotePreviewToSession: prewarmed local camera @ ${args.captureWidth}/*x${args.captureHeight}/*@${args.captureFps}/*")
-        }/*
+            Log.i(TAG, "promotePreviewToSession: prewarmed local camera @ ${args.captureWidth}x${args.captureHeight}@${args.captureFps}")
+        }
 
         r.connect(args.url, args.token, ConnectOptions())
         isConnected = true
@@ -580,7 +580,7 @@ class LiveKitPlugin : Plugin() {
         if (args.publishAudio) {
             r.localParticipant.setMicrophoneEnabled(true)
             localAudioSoftMuted = false
-        }/*
+        }
         if (args.publishVideo) {
             val ptrack = previewTrack
             if (ptrack != null) {
@@ -608,23 +608,23 @@ class LiveKitPlugin : Plugin() {
                 )
                 r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
                 localVideoSoftMuted = false
-                Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}/*bps @${args.baseFps}/*fps simulcast=${args.simulcast}/*")
+                Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}bps @${args.baseFps}fps simulcast=${args.simulcast}")
             /*
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
                 localVideoSoftMuted = false
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
 
     @PluginMethod
     fun disconnect(call: PluginCall) {
         scope.launch {
-            try { teardownAll() }/* catch (t: Throwable) { Log.w(TAG, "disconnect", t) }/*
+            try { teardownAll() } catch (t: Throwable) { Log.w(TAG, "disconnect", t) }
             call.resolve()
-        }/*
-    }/*
+        }
+    }
 
     /**
      * Phase 3 — disconnect from the LiveKit Room WITHOUT killing the preview
@@ -639,22 +639,22 @@ class LiveKitPlugin : Plugin() {
             try {
                 eventsJob?.cancel()
                 eventsJob = null
-                try { clearAllSlots() }/* catch (_: Throwable) {}/*
-                try { room?.disconnect() }/* catch (t: Throwable) {
+                try { clearAllSlots() } catch (_: Throwable) {}
+                try { room?.disconnect() } catch (t: Throwable) {
                     Log.w(TAG, "disconnectSessionOnly room.disconnect failed", t)
-                }/*
+                }
                 RtcEngineManager.clearRoom(room)
                 isConnected = false
                 // Intentionally KEEP: room (re-used by promotePreviewToSession),
                 // previewTrack, previewRenderer, boundedMode, renderer slots' DOM.
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "disconnectSessionOnly", t)
-            }/*
+            }
             val ret = JSObject()
             ret.put("ok", true)
             call.resolve(ret)
-        }/*
-    }/*
+        }
+    }
 
     /**
      * Bug-fix 2026-06-17 (Private-call white-screen):
@@ -684,13 +684,13 @@ class LiveKitPlugin : Plugin() {
                     // Party rooms render local through attachLocalSurface per seat.
                     call.resolve(JSObject().put("attached", false).put("reason", "bounded"))
                     return@launch
-                }/*
+                }
                 val track = previewTrack
                     ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
                 if (track == null) {
                     call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
                     return@launch
-                }/*
+                }
                 previewTrack = track
                 scheduleCameraZoomOutLock(track, "attachLocal")
                 ensureRendererAttached(mirror)
@@ -700,18 +700,18 @@ class LiveKitPlugin : Plugin() {
                         try {
                             track.addRenderer(renderer)
                             previewRendererBound = true
-                        }/* catch (t: Throwable) {
+                        } catch (t: Throwable) {
                             Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
-                        }/*
-                    }/*
-                }/*
+                        }
+                    }
+                }
                 call.resolve(JSObject().put("attached", true))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.e(TAG, "attachLocal failed", t)
-                call.reject("attachLocal: ${t.message}/*", t)
-            }/*
-        }/*
-    }/*
+                call.reject("attachLocal: ${t.message}", t)
+            }
+        }
+    }
 
     /**
      * Companion to attachLocal — detaches the fullscreen renderer + restores
@@ -725,16 +725,16 @@ class LiveKitPlugin : Plugin() {
                 val track = previewTrack
                 val renderer = previewRenderer
                 if (track != null && renderer != null) {
-                    try { track.removeRenderer(renderer) }/* catch (_: Throwable) {}/*
-                }/*
+                    try { track.removeRenderer(renderer) } catch (_: Throwable) {}
+                }
                 detachRenderer(restoreWebView = true)
                 call.resolve(JSObject().put("detached", true))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "detachLocal", t)
                 call.resolve(JSObject().put("detached", true))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
 
 
@@ -749,14 +749,14 @@ class LiveKitPlugin : Plugin() {
             if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
-                    try { setLocalMicrophoneMutedKeepCapture(true) }/* catch (_: Throwable) {}/*
-                    try { setLocalCameraMutedKeepCapture(true) }/* catch (_: Throwable) {}/*
-                }/*
-            }/*
-        }/* catch (t: Throwable) {
+                    try { setLocalMicrophoneMutedKeepCapture(true) } catch (_: Throwable) {}
+                    try { setLocalCameraMutedKeepCapture(true) } catch (_: Throwable) {}
+                }
+            }
+        } catch (t: Throwable) {
             Log.w(TAG, "handleOnPause", t)
-        }/*
-    }/*
+        }
+    }
 
     override fun handleOnResume() {
         super.handleOnResume()
@@ -764,19 +764,19 @@ class LiveKitPlugin : Plugin() {
             if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
-                    try { setLocalMicrophoneMutedKeepCapture(false) }/* catch (_: Throwable) {}/*
+                    try { setLocalMicrophoneMutedKeepCapture(false) } catch (_: Throwable) {}
                     // Only unmute an already-owned camera track. Calling the
                     // SDK camera-enable path during preview→publish promotion
                     // can open a second CameraX capturer on OEM devices.
                     if (previewTrack != null) {
-                        try { setLocalCameraMutedKeepCapture(false) }/* catch (_: Throwable) {}/*
-                    }/*
-                }/*
-            }/*
-        }/* catch (t: Throwable) {
+                        try { setLocalCameraMutedKeepCapture(false) } catch (_: Throwable) {}
+                    }
+                }
+            }
+        } catch (t: Throwable) {
             Log.w(TAG, "handleOnResume", t)
-        }/*
-    }/*
+        }
+    }
 
     private fun shouldPauseLocalMediaOnMainActivityPause(): Boolean {
         // WhatsApp/IMO-style private calls are rendered by PrivateCallActivity;
@@ -787,7 +787,7 @@ class LiveKitPlugin : Plugin() {
         if (scope == "call") return false
         if (activeIsHost && (scope == "live" || scope == "party")) return true
         return false
-    }/*
+    }
 
     // ─────────────────────────────────────────────
     // Media controls
@@ -795,7 +795,7 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun setCameraEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
-        val lp = room?.localParticipant ?: run { call.reject("not connected"); return }/*
+        val lp = room?.localParticipant ?: run { call.reject("not connected"); return }
         scope.launch {
             try {
                 if (enabled) {
@@ -803,10 +803,10 @@ class LiveKitPlugin : Plugin() {
                         setLocalCameraMutedKeepCapture(false)
                     /*
                         lp.setCameraEnabled(true)
-                    }/*
+                    }
                 /*
                     setLocalCameraMutedKeepCapture(true)
-                }/*
+                }
                 if (enabled && previewTrack == null) {
                     val resolved = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
                     previewTrack = resolved
@@ -817,43 +817,43 @@ class LiveKitPlugin : Plugin() {
                     // moment the camera comes up — no SFU-echo round-trip.
                     if (resolved != null) {
                         scheduleCameraZoomOutLock(resolved, "setCameraEnabled")
-                        runOnMain { rebindSeatSlotsForLocalTrack(resolved) }/*
-                    }/*
-                }/*
+                        runOnMain { rebindSeatSlotsForLocalTrack(resolved) }
+                    }
+                }
                 call.resolve(JSObject().put("enabled", enabled))
-            }/* catch (t: Throwable) { call.reject("setCameraEnabled: ${t.message}/*", t) }/*
-        }/*
-    }/*
+            } catch (t: Throwable) { call.reject("setCameraEnabled: ${t.message}", t) }
+        }
+    }
 
     @PluginMethod
     fun setMicrophoneEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
-        room?.localParticipant ?: run { call.reject("not connected"); return }/*
+        room?.localParticipant ?: run { call.reject("not connected"); return }
         scope.launch {
             try {
                 setLocalMicrophoneMutedKeepCapture(!enabled)
                 call.resolve(JSObject().put("enabled", enabled))
-            }/* catch (t: Throwable) { call.reject("setMicrophoneEnabled: ${t.message}/*", t) }/*
-        }/*
-    }/*
+            } catch (t: Throwable) { call.reject("setMicrophoneEnabled: ${t.message}", t) }
+        }
+    }
 
     @PluginMethod
     fun switchCamera(call: PluginCall) {
-        val track = previewTrack ?: run { call.reject("camera track not active"); return }/*
+        val track = previewTrack ?: run { call.reject("camera track not active"); return }
         scope.launch {
             try {
                 val nextPos = if (track.options.position == CameraPosition.FRONT) CameraPosition.BACK else CameraPosition.FRONT
                 track.switchCamera(nextPos)
-                runOnMain { previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }/*
+                runOnMain { previewRenderer?.setMirror(nextPos == CameraPosition.FRONT) }
                 call.resolve(JSObject().put("position", nextPos.name.lowercase()))
-            }/* catch (t: Throwable) { call.reject("switchCamera: ${t.message}/*", t) }/*
-        }/*
-    }/*
+            } catch (t: Throwable) { call.reject("switchCamera: ${t.message}", t) }
+        }
+    }
 
     // Legacy shims kept for JS arbiter compatibility.
-    @PluginMethod fun getCameraOwner(call: PluginCall) { call.resolve(JSObject().put("owner", JSObject.NULL)) }/*
-    @PluginMethod fun claimCameraForWebView(call: PluginCall) { call.resolve() }/*
-    @PluginMethod fun releaseCameraForWebView(call: PluginCall) { call.resolve() }/*
+    @PluginMethod fun getCameraOwner(call: PluginCall) { call.resolve(JSObject().put("owner", JSObject.NULL)) }
+    @PluginMethod fun claimCameraForWebView(call: PluginCall) { call.resolve() }
+    @PluginMethod fun releaseCameraForWebView(call: PluginCall) { call.resolve() }
 
     // ─────────────────────────────────────────────
     // Phase 1 — Seat-bound renderer overlays
@@ -868,7 +868,7 @@ class LiveKitPlugin : Plugin() {
 
     @PluginMethod
     fun attachLocalSurface(call: PluginCall) {
-        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }/*
+        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }
         val x = call.getDouble("x") ?: 0.0
         val y = call.getDouble("y") ?: 0.0
         val w = call.getDouble("width") ?: 0.0
@@ -876,7 +876,7 @@ class LiveKitPlugin : Plugin() {
         val mirror = call.getBoolean("mirror", true) ?: true
         runOnMain {
             try {
-                val slot = ensureSlot(viewId, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }/*
+                val slot = ensureSlot(viewId, mirror) ?: run { call.reject("renderer attach failed"); return@runOnMain }
                 applyRect(slot.container, x, y, w, h)
                 slot.isLocal = true
                 slot.identity = room?.localParticipant?.identity?.value
@@ -887,27 +887,27 @@ class LiveKitPlugin : Plugin() {
                     call.resolve(JSObject().put("attached", true))
                 /*
                     call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
-                }/*
-            }/* catch (t: Throwable) {
+                }
+            } catch (t: Throwable) {
                 Log.w(TAG, "attachLocalSurface", t)
-                call.reject("attachLocalSurface: ${t.message}/*", t)
-            }/*
-        }/*
-    }/*
+                call.reject("attachLocalSurface: ${t.message}", t)
+            }
+        }
+    }
 
     @PluginMethod
     fun attachRemoteSurface(call: PluginCall) {
-        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }/*
-        val sid = call.getString("sid") ?: run { call.reject("sid required"); return }/*
+        val viewId = call.getString("viewId") ?: run { call.reject("viewId required"); return }
+        val sid = call.getString("sid") ?: run { call.reject("sid required"); return }
         val x = call.getDouble("x") ?: 0.0
         val y = call.getDouble("y") ?: 0.0
         val w = call.getDouble("width") ?: 0.0
         val h = call.getDouble("height") ?: 0.0
         runOnMain {
             try {
-                val slot = ensureSlot(viewId, mirror = false) ?: run { call.reject("renderer attach failed"); return@runOnMain }/*
+                val slot = ensureSlot(viewId, mirror = false) ?: run { call.reject("renderer attach failed"); return@runOnMain }
                 applyRect(slot.container, x, y, w, h)
-                val remote = room?.remoteParticipants?.values?.firstOrNull { it.sid?.value == sid }/*
+                val remote = room?.remoteParticipants?.values?.firstOrNull { it.sid?.value == sid }
                 slot.identity = remote?.identity?.value
                 val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
                 if (track != null) {
@@ -915,59 +915,59 @@ class LiveKitPlugin : Plugin() {
                     call.resolve(JSObject().put("attached", true))
                 /*
                     call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
-                }/*
-            }/* catch (t: Throwable) {
+                }
+            } catch (t: Throwable) {
                 Log.w(TAG, "attachRemoteSurface", t)
-                call.reject("attachRemoteSurface: ${t.message}/*", t)
-            }/*
-        }/*
-    }/*
+                call.reject("attachRemoteSurface: ${t.message}", t)
+            }
+        }
+    }
 
     @PluginMethod
     fun updateSurfaceBounds(call: PluginCall) {
-        val viewId = call.getString("viewId") ?: run { call.resolve(); return }/*
+        val viewId = call.getString("viewId") ?: run { call.resolve(); return }
         val x = call.getDouble("x") ?: 0.0
         val y = call.getDouble("y") ?: 0.0
         val w = call.getDouble("width") ?: 0.0
         val h = call.getDouble("height") ?: 0.0
         runOnMain {
             try {
-                val slot = slots[viewId] ?: run { call.resolve(); return@runOnMain }/*
+                val slot = slots[viewId] ?: run { call.resolve(); return@runOnMain }
                 applyRect(slot.container, x, y, w, h)
                 call.resolve()
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "updateSurfaceBounds", t)
                 call.resolve()
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     @PluginMethod
     fun detachSurface(call: PluginCall) {
-        val viewId = call.getString("viewId") ?: run { call.resolve(); return }/*
+        val viewId = call.getString("viewId") ?: run { call.resolve(); return }
         runOnMain {
             try {
                 val slot = slots.remove(viewId)
                 if (slot != null) {
-                    slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) }/* catch (_: Throwable) {}/* }/*
+                    slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
                     (slot.container.parent as? ViewGroup)?.removeView(slot.container)
-                    try { slot.renderer.release() }/* catch (_: Throwable) {}/*
-                }/*
+                    try { slot.renderer.release() } catch (_: Throwable) {}
+                }
                 call.resolve()
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "detachSurface", t)
                 call.resolve()
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     @PluginMethod
     fun detachAll(call: PluginCall) {
         runOnMain {
-            try { clearAllSlots() }/* catch (_: Throwable) {}/*
+            try { clearAllSlots() } catch (_: Throwable) {}
             call.resolve()
-        }/*
-    }/*
+        }
+    }
 
     @PluginMethod
     fun attachRemote(call: PluginCall) {
@@ -975,10 +975,10 @@ class LiveKitPlugin : Plugin() {
         // rendering is slot-bound through attachRemoteSurface; re-sweeping here
         // makes late-mounted live/party/call visitor surfaces bind immediately.
         runOnMain {
-            try { rebindAllSlotsFromCurrentTracks() }/* catch (_: Throwable) {}/*
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
             call.resolve(JSObject().put("attached", true))
-        }/*
-    }/*
+        }
+    }
 
     @PluginMethod
     fun reconnectNow(call: PluginCall) {
@@ -988,25 +988,25 @@ class LiveKitPlugin : Plugin() {
                 if (args == null) {
                     call.resolve(JSObject().put("connected", false).put("reason", "no_previous_session"))
                     return@launch
-                }/*
+                }
                 if (isConnected) {
-                    runOnMain { rebindAllSlotsFromCurrentTracks() }/*
+                    runOnMain { rebindAllSlotsFromCurrentTracks() }
                     call.resolve(JSObject().put("connected", true).put("reason", "already_connected"))
                     return@launch
-                }/*
+                }
                 promotePreviewToSession(args)
                 lastConnectArgs = args
                 activeRoomScope = args.roomScope
                 activeIsHost = args.isHost
-                runOnMain { rebindAllSlotsFromCurrentTracks() }/*
+                runOnMain { rebindAllSlotsFromCurrentTracks() }
                 call.resolve(JSObject().put("connected", true))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "reconnectNow failed", t)
                 isConnected = false
                 call.resolve(JSObject().put("connected", false).put("reason", t.message ?: "error"))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     @PluginMethod
     fun getActiveSession(call: PluginCall) {
@@ -1020,17 +1020,17 @@ class LiveKitPlugin : Plugin() {
                     "party" -> "Party Room"
                     "live" -> "Live broadcast"
                     else -> ""
-                }/*)
+                })
                 .put("boundAtMs", 0)
                 .put("ageMs", 0)
                 .put("canHardReconnect", lastConnectArgs != null)
         )
-    }/*
+    }
 
     @PluginMethod
     fun setSurviveActivityDestroy(call: PluginCall) {
         call.resolve(JSObject().put("enabled", call.getBoolean("enabled", false) ?: false))
-    }/*
+    }
 
     @PluginMethod
     fun updateLiveStats(call: PluginCall) {
@@ -1039,7 +1039,7 @@ class LiveKitPlugin : Plugin() {
             .put("coinCount", call.getInt("coinCount", 0) ?: 0)
             .put("title", call.getString("title", "") ?: "")
         call.resolve(JSObject().put("updated", true))
-    }/*
+    }
 
     @PluginMethod
     fun refreshToken(call: PluginCall) {
@@ -1047,16 +1047,16 @@ class LiveKitPlugin : Plugin() {
         if (token.isNullOrBlank()) {
             call.reject("token required")
             return
-        }/*
+        }
         val args = lastConnectArgs
         if (args != null) lastConnectArgs = args.copy(token = token)
         call.resolve(JSObject().put("refreshed", args != null))
-    }/*
+    }
 
     @PluginMethod
     fun sendData(call: PluginCall) {
         val payloadBase64 = call.getString("payloadBase64")
-        if (payloadBase64.isNullOrBlank()) { call.reject("payloadBase64 required"); return }/*
+        if (payloadBase64.isNullOrBlank()) { call.reject("payloadBase64 required"); return }
         val reliable = call.getBoolean("reliable", true) ?: true
         val topic = call.getString("topic")
         scope.launch {
@@ -1070,25 +1070,25 @@ class LiveKitPlugin : Plugin() {
                 if (result == null) {
                     call.resolve(JSObject().put("sent", false).put("reason", "not_connected"))
                     return@launch
-                }/*
+                }
                 call.resolve(JSObject().put("sent", result.isSuccess))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "sendData", t)
                 call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     @PluginMethod
     fun registerRpcMethod(call: PluginCall) {
         val method = call.getString("method")
-        if (method.isNullOrBlank()) { call.reject("method required"); return }/*
+        if (method.isNullOrBlank()) { call.reject("method required"); return }
         try {
             val localParticipant = room?.localParticipant
             if (localParticipant == null) {
                 call.resolve(JSObject().put("registered", false).put("reason", "not_connected"))
                 return
-            }/*
+            }
             localParticipant.registerRpcMethod(method) { data ->
                 val deferred = CompletableDeferred<RpcReply>()
                 pendingRpcReplies[data.requestId] = deferred
@@ -1100,26 +1100,26 @@ class LiveKitPlugin : Plugin() {
                     .put("responseTimeout", data.responseTimeout.inWholeMilliseconds)
                 notifyListeners("rpc-invocation", payload)
                 try {
-                    val reply = withTimeout(data.responseTimeout.inWholeMilliseconds) { deferred.await() }/*
-                    reply.error?.let { throw io.livekit.android.rpc.RpcError(1500, it, "") }/*
+                    val reply = withTimeout(data.responseTimeout.inWholeMilliseconds) { deferred.await() }
+                    reply.error?.let { throw io.livekit.android.rpc.RpcError(1500, it, "") }
                     reply.result ?: ""
-                }/* finally {
+                } finally {
                     pendingRpcReplies.remove(data.requestId)
-                }/*
-            }/*
+                }
+            }
             call.resolve(JSObject().put("registered", true))
-        }/* catch (t: Throwable) {
+        } catch (t: Throwable) {
             Log.w(TAG, "registerRpcMethod", t)
             call.resolve(JSObject().put("registered", false).put("reason", t.message ?: "error"))
-        }/*
-    }/*
+        }
+    }
 
     @PluginMethod
     fun unregisterRpcMethod(call: PluginCall) {
         val method = call.getString("method") ?: ""
-        try { if (method.isNotBlank()) room?.localParticipant?.unregisterRpcMethod(method) }/* catch (_: Throwable) {}/*
+        try { if (method.isNotBlank()) room?.localParticipant?.unregisterRpcMethod(method) } catch (_: Throwable) {}
         call.resolve(JSObject().put("unregistered", true))
-    }/*
+    }
 
     @PluginMethod
     fun performRpc(call: PluginCall) {
@@ -1130,7 +1130,7 @@ class LiveKitPlugin : Plugin() {
         if (destinationIdentity.isNullOrBlank() || method.isNullOrBlank()) {
             call.reject("destinationIdentity and method required")
             return
-        }/*
+        }
         scope.launch {
             try {
                 val response = room?.localParticipant?.performRpc(
@@ -1142,11 +1142,11 @@ class LiveKitPlugin : Plugin() {
                 )
                 if (response == null) call.reject("not connected")
                 else call.resolve(JSObject().put("response", response))
-            }/* catch (t: Throwable) {
-                call.reject("performRpc: ${t.message}/*", t)
-            }/*
-        }/*
-    }/*
+            } catch (t: Throwable) {
+                call.reject("performRpc: ${t.message}", t)
+            }
+        }
+    }
 
     @PluginMethod
     fun respondToRpc(call: PluginCall) {
@@ -1155,38 +1155,38 @@ class LiveKitPlugin : Plugin() {
         if (deferred == null) {
             call.resolve(JSObject().put("sent", false).put("reason", "request_not_pending"))
             return
-        }/*
+        }
         deferred.complete(RpcReply(call.getString("result"), call.getString("errorMessage")))
         call.resolve(JSObject().put("sent", true))
-    }/*
+    }
 
     @PluginMethod
     fun sendText(call: PluginCall) {
         val text = call.getString("text") ?: ""
         val topic = call.getString("topic", "") ?: ""
-        if (text.isBlank()) { call.resolve(JSObject().put("sent", false).put("reason", "empty")); return }/*
+        if (text.isBlank()) { call.resolve(JSObject().put("sent", false).put("reason", "empty")); return }
         // Avoid relying on Capacitor internals: publish directly as reliable
         // data with the requested topic. Receivers consume DataReceived.
         scope.launch {
             try {
                 val result = room?.localParticipant?.publishData(text.toByteArray(Charsets.UTF_8), DataPublishReliability.RELIABLE, topic)
                 call.resolve(JSObject().put("sent", result?.isSuccess == true).put("streamId", "native-text"))
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "sendText", t)
                 call.resolve(JSObject().put("sent", false).put("reason", t.message ?: "error"))
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     @PluginMethod
     fun registerTextStreamHandler(call: PluginCall) {
         call.resolve(JSObject().put("registered", true))
-    }/*
+    }
 
     @PluginMethod
     fun unregisterTextStreamHandler(call: PluginCall) {
         call.resolve(JSObject().put("unregistered", true))
-    }/*
+    }
 
     @PluginMethod
     fun setSubscriberVideoQuality(call: PluginCall) {
@@ -1194,27 +1194,27 @@ class LiveKitPlugin : Plugin() {
         // layer. Keep the bridge present so Android live/party audio-only mode
         // never falls through the Proxy as an unimplemented call.
         call.resolve(JSObject().put("applied", true))
-    }/*
+    }
 
     @PluginMethod
     fun setPreferredCodec(call: PluginCall) {
-        preferredCodec = call.getString("codec")?.lowercase()?.takeIf { it.isNotBlank() }/*
+        preferredCodec = call.getString("codec")?.lowercase()?.takeIf { it.isNotBlank() }
         // LiveKit Android keeps codec negotiation inside the SDK/token policy.
         // Expose the bridge as an acknowledged capability so JS does not fall
         // through to a Proxy no-op; current rooms continue with SDK-safe auto
         // fallback on devices without hardware H.264/VP8 support.
         call.resolve(JSObject().put("applied", true).put("codec", preferredCodec ?: "auto"))
-    }/*
+    }
 
     @PluginMethod
     fun setRemoteVideoSubscribed(call: PluginCall) {
         // Subscribe/unsubscribe is SDK-policy driven on this minimal native
         // room. Rebind current slots so visible participants recover instantly.
         runOnMain {
-            try { rebindAllSlotsFromCurrentTracks() }/* catch (_: Throwable) {}/*
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
             call.resolve(JSObject().put("applied", true))
-        }/*
-    }/*
+        }
+    }
 
     @PluginMethod
     fun getRemoteParticipants(call: PluginCall) {
@@ -1226,18 +1226,18 @@ class LiveKitPlugin : Plugin() {
                         .put("sid", p.sid?.value ?: "")
                         .put("identity", p.identity?.value ?: "")
                 )
-            }/*
-        }/* catch (_: Throwable) {}/*
+            }
+        } catch (_: Throwable) {}
         call.resolve(JSObject().put("participants", arr))
-    }/*
+    }
 
     @PluginMethod
     fun attachAllRemotes(call: PluginCall) {
         runOnMain {
-            try { rebindAllSlotsFromCurrentTracks() }/* catch (_: Throwable) {}/*
+            try { rebindAllSlotsFromCurrentTracks() } catch (_: Throwable) {}
             call.resolve()
-        }/*
-    }/*
+        }
+    }
 
     /**
      * Pkg-overlay-guard: ensure premium entry animations (Flying Name Bars,
@@ -1255,28 +1255,28 @@ class LiveKitPlugin : Plugin() {
                 val child = parent.getChildAt(i) ?: continue
                 val tag = child.tag as? String ?: continue
                 if (tag == "merilive.overlay.entry" || tag == "merilive.overlay.gift") {
-                    try { child.elevation = 140f }/* catch (_: Throwable) {}/*
-                    try { child.translationZ = 140f }/* catch (_: Throwable) {}/*
-                    try { child.bringToFront() }/* catch (_: Throwable) {}/*
-                }/*
-            }/*
+                    try { child.elevation = 140f } catch (_: Throwable) {}
+                    try { child.translationZ = 140f } catch (_: Throwable) {}
+                    try { child.bringToFront() } catch (_: Throwable) {}
+                }
+            }
             (parent as? View)?.invalidate()
-        }/* catch (_: Throwable) {}/*
-    }/*
+        } catch (_: Throwable) {}
+    }
 
     private fun childIndex(parent: ViewGroup, child: View?): Int {
         if (child == null) return -1
         for (i in 0 until parent.childCount) {
             if (parent.getChildAt(i) === child) return i
-        }/*
+        }
         return -1
-    }/*
+    }
 
     private fun nativeLayerLayoutParams(parent: ViewGroup, width: Int, height: Int): ViewGroup.MarginLayoutParams =
         when (parent) {
             is CoordinatorLayout -> CoordinatorLayout.LayoutParams(width, height)
             else -> FrameLayout.LayoutParams(width, height)
-        }/*
+        }
 
     private fun fitChildLayoutParams(): FrameLayout.LayoutParams =
         FrameLayout.LayoutParams(
@@ -1291,8 +1291,8 @@ class LiveKitPlugin : Plugin() {
         // 19:9/20:9 phone screens, which is exactly the close-face "zoomed in"
         // bug. FIT matches the web foreground object-contain path and preserves
         // the full camera FOV across GoLive, Live, Party and Private handoff.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) }/* catch (_: Throwable) {}/*
-        mirror?.let { try { renderer.setMirror(it) }/* catch (_: Throwable) {}/* }/*
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
             if (lp is FrameLayout.LayoutParams) {
@@ -1300,10 +1300,10 @@ class LiveKitPlugin : Plugin() {
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT
                 lp.gravity = Gravity.CENTER
                 renderer.layoutParams = lp
-            }/*
-        }/* catch (_: Throwable) {}/*
-        try { renderer.requestLayout() }/* catch (_: Throwable) {}/*
-    }/*
+            }
+        } catch (_: Throwable) {}
+        try { renderer.requestLayout() } catch (_: Throwable) {}
+    }
 
     private fun invokeNoArg(target: Any?, methodName: String): Any? {
         if (target == null) return null
@@ -1392,18 +1392,18 @@ class LiveKitPlugin : Plugin() {
         try {
             if (webViewOriginalBg == null) {
                 webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
-            }/*
+            }
             wv.setBackgroundColor(Color.TRANSPARENT)
             wv.background = null
-            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) }/* catch (_: Throwable) {}/*
-            try { parent.setBackgroundColor(Color.BLACK) }/* catch (_: Throwable) {}/*
-            try { wv.elevation = 120f }/* catch (_: Throwable) {}/*
-            try { wv.translationZ = 120f }/* catch (_: Throwable) {}/*
+            try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+            try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
+            try { wv.elevation = 120f } catch (_: Throwable) {}
+            try { wv.translationZ = 120f } catch (_: Throwable) {}
             webViewConfigured = true
-        }/* catch (t: Throwable) {
+        } catch (t: Throwable) {
             Log.w(TAG, "configureWebViewOnce failed", t)
-        }/*
-    }/*
+        }
+    }
 
     private fun enforceOverlayContract(reason: String = "") {
         val wv = bridge?.webView ?: return
@@ -1414,16 +1414,16 @@ class LiveKitPlugin : Plugin() {
             // the WebView. Never re-apply background / layer type / bringToFront
             // here — those mutations cause WebView chrome flicker.
             val videoLayers = mutableListOf<View>()
-            previewRendererContainer?.let { if (it.parent === parent) videoLayers.add(it) }/*
-            previewRenderer?.let { if (it.parent === parent) videoLayers.add(it) }/*
+            previewRendererContainer?.let { if (it.parent === parent) videoLayers.add(it) }
+            previewRenderer?.let { if (it.parent === parent) videoLayers.add(it) }
             slots.values.forEach { slot ->
                 if (slot.container.parent === parent) videoLayers.add(slot.container)
                 if (slot.renderer.parent === parent) videoLayers.add(slot.renderer)
-            }/*
+            }
             var reordered = false
             videoLayers.distinct().forEach { layer ->
-                try { layer.elevation = 0f }/* catch (_: Throwable) {}/*
-                try { layer.translationZ = 0f }/* catch (_: Throwable) {}/*
+                try { layer.elevation = 0f } catch (_: Throwable) {}
+                try { layer.translationZ = 0f } catch (_: Throwable) {}
                 val rIndex = childIndex(parent, layer)
                 val wIndex = childIndex(parent, wv)
                 if (rIndex >= 0 && wIndex >= 0 && rIndex > wIndex) {
@@ -1431,16 +1431,16 @@ class LiveKitPlugin : Plugin() {
                     parent.removeView(layer)
                     parent.addView(layer, 0, lp)
                     reordered = true
-                }/*
-            }/*
+                }
+            }
             if (reordered) {
                 raiseOverlaySiblings(parent)
                 if (reason.isNotEmpty()) Log.d(TAG, "overlay reorder: $reason")
-            }/*
-        }/* catch (t: Throwable) {
+            }
+        } catch (t: Throwable) {
             Log.w(TAG, "enforceOverlayContract failed ($reason)", t)
-        }/*
-    }/*
+        }
+    }
 
     private fun scheduleOverlayContractWatchdog(reason: String) {
         // One-shot enforce passes around mount time (covers EGL resize / first
@@ -1448,9 +1448,9 @@ class LiveKitPlugin : Plugin() {
         // is what was clearing the WebView chrome every second.
         val delays = longArrayOf(0L, 80L, 250L, 750L, 1500L, 3000L, 6000L)
         delays.forEach { delay ->
-            overlayHandler.postDelayed({ enforceOverlayContract(reason) }/*, delay)
-        }/*
-    }/*
+            overlayHandler.postDelayed({ enforceOverlayContract(reason) }, delay)
+        }
+    }
 
     private fun ensureSlot(viewId: String, mirror: Boolean): RendererSlot? {
 
@@ -1469,22 +1469,22 @@ class LiveKitPlugin : Plugin() {
             enforceOverlayContract("slot-reuse:$viewId")
             scheduleOverlayContractWatchdog("slot-reuse:$viewId")
             return existing
-        }/*
+        }
         val container = FrameLayout(act).apply {
             setBackgroundColor(Color.TRANSPARENT)
             clipToPadding = true
             clipChildren = true
-        }/*
+        }
         val renderer = TextureViewRenderer(act)
         configureAspectFitRenderer(renderer, mirror)
         container.addView(renderer, fitChildLayoutParams())
         if (webViewOriginalBg == null) {
             webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
-        }/*
+        }
         wv.setBackgroundColor(Color.TRANSPARENT)
         wv.background = null
-        try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) }/* catch (_: Throwable) {}/*
-        try { parent.setBackgroundColor(Color.BLACK) }/* catch (_: Throwable) {}/*
+        try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+        try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
         // Professional overlay contract: native video must sit BEHIND the
         // transparent WebView. If it is added without an index Android places
         // TextureViewRenderer above React, which covers live/party header,
@@ -1499,7 +1499,7 @@ class LiveKitPlugin : Plugin() {
         // to a fully-attached surface. Reversing the order causes scrambled
         // frames on first attach (Defect #3, video 2026-06-18).
         parent.addView(container, 0, lp)
-        try { room?.initVideoRenderer(renderer) }/* catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }/*
+        try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
         // Defensive: guarantee WebView (React chat/gifts/header) stays above the
         // native TextureView even if another plugin reorders children later.
         val slot = RendererSlot(viewId, container, renderer, mirror = mirror)
@@ -1507,20 +1507,20 @@ class LiveKitPlugin : Plugin() {
         enforceOverlayContract("slot-create:$viewId")
         scheduleOverlayContractWatchdog("slot-create:$viewId")
         return slot
-    }/*
+    }
 
     private fun attachTrackToSlot(slot: RendererSlot, track: VideoTrack) {
         if (slot.attachedTrack === track) return
         slot.attachedTrack?.let { prev ->
-            try { prev.removeRenderer(slot.renderer) }/* catch (_: Throwable) {}/*
-        }/*
+            try { prev.removeRenderer(slot.renderer) } catch (_: Throwable) {}
+        }
         try {
             track.addRenderer(slot.renderer)
             slot.attachedTrack = track
-        }/* catch (t: Throwable) {
+        } catch (t: Throwable) {
             Log.w(TAG, "attachTrackToSlot", t)
-        }/*
-    }/*
+        }
+    }
 
     private fun applyRect(view: View, cssX: Double, cssY: Double, cssW: Double, cssH: Double) {
         val density = context.resources.displayMetrics.density
@@ -1534,23 +1534,23 @@ class LiveKitPlugin : Plugin() {
         val lp: ViewGroup.MarginLayoutParams = current ?: when (view.parent) {
             is CoordinatorLayout -> CoordinatorLayout.LayoutParams(w, h)
             else -> FrameLayout.LayoutParams(w, h)
-        }/*
+        }
         lp.width = w
         lp.height = h
         lp.leftMargin = left
         lp.topMargin = top
         view.layoutParams = lp
         enforceOverlayContract("bounds")
-    }/*
+    }
 
     private fun clearAllSlots() {
         slots.values.forEach { slot ->
-            slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) }/* catch (_: Throwable) {}/* }/*
+            slot.attachedTrack?.let { try { it.removeRenderer(slot.renderer) } catch (_: Throwable) {} }
             (slot.container.parent as? ViewGroup)?.removeView(slot.container)
-            try { slot.renderer.release() }/* catch (_: Throwable) {}/*
-        }/*
+            try { slot.renderer.release() } catch (_: Throwable) {}
+        }
         slots.clear()
-    }/*
+    }
 
     /** Fired from RoomEvent handlers — attach any pending slot waiting on this identity. */
     private fun onIdentityTrackAvailable(identity: String, track: VideoTrack) {
@@ -1561,24 +1561,24 @@ class LiveKitPlugin : Plugin() {
                     slot.attachedTrack !== track && (
                         slot.identity == identity || (isLocalIdentity && slot.isLocal)
                     )
-                }/*
+                }
                 .forEach { slot ->
                     if (isLocalIdentity && slot.isLocal && slot.identity == null) slot.identity = identity
                     attachTrackToSlot(slot, track)
-                }/*
-        }/*
+                }
+        }
         enforceOverlayContract("rebind-all")
         scheduleOverlayContractWatchdog("rebind-all")
-    }/*
+    }
 
     private fun onIdentityTrackGone(identity: String) {
         runOnMain {
-            slots.values.filter { it.identity == identity }/*.forEach { s ->
-                s.attachedTrack?.let { try { it.removeRenderer(s.renderer) }/* catch (_: Throwable) {}/* }/*
+            slots.values.filter { it.identity == identity }.forEach { s ->
+                s.attachedTrack?.let { try { it.removeRenderer(s.renderer) } catch (_: Throwable) {} }
                 s.attachedTrack = null
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     /** Sweep all slots and re-attach from current local / remote tracks. */
     private fun rebindAllSlotsFromCurrentTracks() {
@@ -1591,33 +1591,33 @@ class LiveKitPlugin : Plugin() {
                 if (slot.identity == null) slot.identity = localId
                 attachTrackToSlot(slot, localTrack)
                 return@forEach
-            }/*
+            }
             val id = slot.identity ?: return@forEach
             if (id == localId && localTrack != null) {
                 attachTrackToSlot(slot, localTrack)
             /*
-                val remote = r.remoteParticipants.values.firstOrNull { it.identity?.value == id }/*
+                val remote = r.remoteParticipants.values.firstOrNull { it.identity?.value == id }
                 val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
                 if (track != null) attachTrackToSlot(slot, track)
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     /** Push local preview track into any slot already bound to local identity. */
     private fun rebindSeatSlotsForLocalTrack(track: LocalVideoTrack) {
         val id = room?.localParticipant?.identity?.value
         runOnMain {
             slots.values
-                .filter { slot -> slot.isLocal && slot.attachedTrack !== track && (slot.identity == null || slot.identity == id) }/*
+                .filter { slot -> slot.isLocal && slot.attachedTrack !== track && (slot.identity == null || slot.identity == id) }
                 .forEach { slot ->
                     if (slot.identity == null && id != null) slot.identity = id
                     attachTrackToSlot(slot, track)
-                }/*
-        }/*
+                }
+        }
         if (id != null) onIdentityTrackAvailable(id, track)
         enforceOverlayContract("rebind-local")
         scheduleOverlayContractWatchdog("rebind-local")
-    }/*
+    }
 
     // ─────────────────────────────────────────────
     // Internals
@@ -1637,35 +1637,35 @@ class LiveKitPlugin : Plugin() {
         if (track == null) {
             if (!muted) room?.localParticipant?.setCameraEnabled(true)
             return
-        }/*
+        }
         previewTrack = track
         val pub = room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)
         val applied = invokePublicationMute(pub, muted)
         if (!applied) {
             invokeTrackEnabled(track, !muted)
-        }/*
+        }
         localVideoSoftMuted = muted
         if (!muted) {
-            runOnMain { rebindSeatSlotsForLocalTrack(track) }/*
+            runOnMain { rebindSeatSlotsForLocalTrack(track) }
             try {
                 previewRenderer?.let {
                     if (!previewRendererBound) {
                         track.addRenderer(it)
                         previewRendererBound = true
-                    }/*
-                }/*
-            }/* catch (_: Throwable) {}/*
-        }/*
-    }/*
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
+    }
 
     private suspend fun setLocalMicrophoneMutedKeepCapture(muted: Boolean) {
         val pub = room?.localParticipant?.getTrackPublication(Track.Source.MICROPHONE)
         val applied = invokePublicationMute(pub, muted)
         if (!applied) {
             room?.localParticipant?.setMicrophoneEnabled(!muted)
-        }/*
+        }
         localAudioSoftMuted = muted
-    }/*
+    }
 
     private fun invokePublicationMute(publication: Any?, muted: Boolean): Boolean {
         if (publication == null) return false
@@ -1673,32 +1673,32 @@ class LiveKitPlugin : Plugin() {
             arrayOf("mute", "setMuted", "setEnabled")
         /*
             arrayOf("unmute", "setMuted", "setEnabled")
-        }/*
+        }
         for (name in methodNames) {
             try {
-                val methods = publication.javaClass.methods.filter { it.name == name }/*
+                val methods = publication.javaClass.methods.filter { it.name == name }
                 for (method in methods) {
                     try {
                         when (method.parameterTypes.size) {
                             0 -> {
                                 method.invoke(publication)
                                 return true
-                            }/*
+                            }
                             1 -> {
                                 val param = method.parameterTypes[0]
                                 if (param == java.lang.Boolean.TYPE || param == java.lang.Boolean::class.java) {
                                     val arg = if (name == "setEnabled") !muted else muted
                                     method.invoke(publication, arg)
                                     return true
-                                }/*
-                            }/*
-                        }/*
-                    }/* catch (_: Throwable) {}/*
-                }/*
-            }/* catch (_: Throwable) {}/*
-        }/*
+                                }
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+            } catch (_: Throwable) {}
+        }
         return false
-    }/*
+    }
 
     private fun invokeTrackEnabled(track: Any?, enabled: Boolean): Boolean {
         if (track == null) return false
@@ -1708,13 +1708,13 @@ class LiveKitPlugin : Plugin() {
                 val method = track.javaClass.methods.firstOrNull {
                     it.name == name && it.parameterTypes.size == 1 &&
                         (it.parameterTypes[0] == java.lang.Boolean.TYPE || it.parameterTypes[0] == java.lang.Boolean::class.java)
-                }/* ?: continue
+                } ?: continue
                 method.invoke(track, if (name == "setMuted") !enabled else enabled)
                 return true
-            }/* catch (_: Throwable) {}/*
-        }/*
+            } catch (_: Throwable) {}
+        }
         return false
-    }/*
+    }
 
     private fun observeRoomEvents(r: Room) {
         eventsJob?.cancel()
@@ -1724,44 +1724,44 @@ class LiveKitPlugin : Plugin() {
                     when (ev) {
                         is RoomEvent.ParticipantConnected -> emit("participant-connected", participantJs(ev.participant))
                         is RoomEvent.ParticipantDisconnected -> {
-                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }/*
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                             emit("participant-disconnected", participantJs(ev.participant))
-                        }/*
+                        }
                         is RoomEvent.TrackSubscribed -> {
                             (ev.track as? VideoTrack)?.let { vt ->
                                 ev.participant.identity?.value?.let { id ->
                                     onIdentityTrackAvailable(id, vt)
-                                }/*
-                            }/*
+                                }
+                            }
                             emit("track-subscribed", trackJs(ev.track, ev.participant))
-                        }/*
+                        }
                         is RoomEvent.TrackUnsubscribed -> {
-                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }/*
+                            ev.participant.identity?.value?.let { id -> onIdentityTrackGone(id) }
                             emit("track-unsubscribed", trackJs(ev.track, ev.participant))
-                        }/*
+                        }
                         is RoomEvent.LocalTrackPublished -> {
                             (ev.publication.track as? VideoTrack)?.let { vt ->
                                 r.localParticipant.identity?.value?.let { id ->
                                     onIdentityTrackAvailable(id, vt)
-                                }/*
-                            }/*
-                        }/*
+                                }
+                            }
+                        }
                         is RoomEvent.LocalTrackUnpublished -> {
-                            r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }/*
-                        }/*
+                            r.localParticipant.identity?.value?.let { id -> onIdentityTrackGone(id) }
+                        }
                         is RoomEvent.Disconnected -> {
                             isConnected = false
                             emit("disconnected", JSObject().put("reason", ev.reason?.name ?: ""))
-                        }/*
+                        }
                         is RoomEvent.Reconnecting -> {
                             emit("reconnecting", JSObject())
                             emit("connection-state", JSObject().put("state", "reconnecting"))
-                        }/*
+                        }
                         is RoomEvent.Reconnected -> {
                             emit("reconnected", JSObject())
                             emit("connection-state", JSObject().put("state", "reconnected"))
-                            runOnMain { rebindAllSlotsFromCurrentTracks() }/*
-                        }/*
+                            runOnMain { rebindAllSlotsFromCurrentTracks() }
+                        }
                         is RoomEvent.ActiveSpeakersChanged -> {
                             val arr = com.getcapacitor.JSArray()
                             ev.speakers.forEach { speaker ->
@@ -1770,9 +1770,9 @@ class LiveKitPlugin : Plugin() {
                                         .put("identity", speaker.identity?.value ?: "")
                                         .put("audioLevel", speaker.audioLevel)
                                 )
-                            }/*
+                            }
                             notifyListeners("active-speakers-changed", JSObject().put("speakers", arr))
-                        }/*
+                        }
                         is RoomEvent.DataReceived -> {
                             val encoded = Base64.encodeToString(ev.data, Base64.NO_WRAP)
                             val from = ev.participant?.identity?.value ?: ""
@@ -1800,7 +1800,7 @@ class LiveKitPlugin : Plugin() {
                                     .put("fromIdentity", from)
                                     .put("text", String(ev.data, Charsets.UTF_8))
                             )
-                        }/*
+                        }
                         is RoomEvent.ParticipantMetadataChanged -> {
                             notifyListeners(
                                 "participant-metadata-changed",
@@ -1808,23 +1808,23 @@ class LiveKitPlugin : Plugin() {
                                     .put("identity", ev.participant.identity?.value ?: "")
                                     .put("metadata", ev.participant.metadata ?: "")
                             )
-                        }/*
+                        }
                         is RoomEvent.RoomMetadataChanged -> {
                             notifyListeners("room-metadata-changed", JSObject())
-                        }/*
+                        }
                         is RoomEvent.TranscriptionReceived -> {
                             notifyListeners("transcription-received", JSObject())
-                        }/*
-                        else -> {}/*
-                    }/*
-                }/* catch (t: Throwable) { Log.w(TAG, "event emit failed", t) }/*
-            }/*
-        }/*
-    }/*
+                        }
+                        else -> {}
+                    }
+                } catch (t: Throwable) { Log.w(TAG, "event emit failed", t) }
+            }
+        }
+    }
 
     private fun emit(event: String, data: JSObject) {
-        try { notifyListeners(event, data) }/* catch (t: Throwable) { Log.w(TAG, "notifyListeners($event)", t) }/*
-    }/*
+        try { notifyListeners(event, data) } catch (t: Throwable) { Log.w(TAG, "notifyListeners($event)", t) }
+    }
 
     private fun participantJs(p: Participant) = JSObject()
         .put("sid", p.sid?.value ?: "")
@@ -1845,18 +1845,18 @@ class LiveKitPlugin : Plugin() {
             try {
                 if (webViewOriginalBg == null) {
                     webViewOriginalBg = (wv.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
-                }/*
+                }
                 wv.setBackgroundColor(Color.TRANSPARENT)
                 wv.background = null
-                try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) }/* catch (_: Throwable) {}/*
-                try { parent.setBackgroundColor(Color.BLACK) }/* catch (_: Throwable) {}/*
+                try { wv.setLayerType(View.LAYER_TYPE_HARDWARE, null) } catch (_: Throwable) {}
+                try { parent.setBackgroundColor(Color.BLACK) } catch (_: Throwable) {}
 
                 if (previewRenderer == null) {
                     val container = FrameLayout(act).apply {
                         setBackgroundColor(Color.TRANSPARENT)
                         clipToPadding = true
                         clipChildren = true
-                    }/*
+                    }
                     val renderer = TextureViewRenderer(act)
                     configureAspectFitRenderer(renderer, mirror)
                     container.addView(renderer, fitChildLayoutParams())
@@ -1870,21 +1870,21 @@ class LiveKitPlugin : Plugin() {
                     // sits BEHIND the transparent WebView and never steals the
                     // overlay layer from React chat/gifts/header controls.
                     parent.addView(container, 0, lp)
-                    try { room?.initVideoRenderer(renderer) }/* catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }/*
+                    try { room?.initVideoRenderer(renderer) } catch (t: Throwable) { Log.w(TAG, "initVideoRenderer", t) }
                     previewRendererContainer = container
                     previewRenderer = renderer
                     enforceOverlayContract("fullscreen-create")
                     scheduleOverlayContractWatchdog("fullscreen-create")
 
                 /*
-                    previewRenderer?.let { configureAspectFitRenderer(it, mirror) }/*
+                    previewRenderer?.let { configureAspectFitRenderer(it, mirror) }
                     enforceOverlayContract("fullscreen-reuse")
-                }/*
-            }/* catch (t: Throwable) {
+                }
+            } catch (t: Throwable) {
                 Log.w(TAG, "ensureRendererAttached failed", t)
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     private fun detachRenderer(restoreWebView: Boolean = true) {
         val act = activity ?: return
@@ -1892,49 +1892,49 @@ class LiveKitPlugin : Plugin() {
             try {
                 val r = previewRenderer
                 if (r != null) {
-                    try { previewTrack?.removeRenderer(r) }/* catch (_: Throwable) {}/*
+                    try { previewTrack?.removeRenderer(r) } catch (_: Throwable) {}
                     val container = previewRendererContainer ?: (r.parent as? FrameLayout)
                     if (container != null) {
                         (container.parent as? ViewGroup)?.removeView(container)
                     /*
                         (r.parent as? ViewGroup)?.removeView(r)
-                    }/*
-                    try { r.release() }/* catch (_: Throwable) {}/*
-                }/*
+                    }
+                    try { r.release() } catch (_: Throwable) {}
+                }
                 previewRenderer = null
                 previewRendererBound = false
                 previewRendererContainer = null
                 val wv = bridge?.webView
                 if (restoreWebView && wv != null) {
                     wv.setBackgroundColor(webViewOriginalBg ?: Color.WHITE)
-                }/*
+                }
                 if (restoreWebView) webViewOriginalBg = null
-            }/* catch (t: Throwable) {
+            } catch (t: Throwable) {
                 Log.w(TAG, "detachRenderer failed", t)
-            }/*
-        }/*
-    }/*
+            }
+        }
+    }
 
     private fun safeStopPreviewInternals() {
         try {
             val track = previewTrack
             if (track != null) {
-                try { previewRenderer?.let { track.removeRenderer(it) }/* }/* catch (_: Throwable) {}/*
-                try { track.stop() }/* catch (_: Throwable) {}/*
-                try { track.dispose() }/* catch (_: Throwable) {}/*
-            }/*
+                try { previewRenderer?.let { track.removeRenderer(it) } } catch (_: Throwable) {}
+                try { track.stop() } catch (_: Throwable) {}
+                try { track.dispose() } catch (_: Throwable) {}
+            }
             previewTrack = null
             previewRendererBound = false
-        }/* catch (_: Throwable) {}/*
+        } catch (_: Throwable) {}
         detachRenderer(restoreWebView = true)
 
         // If we created a preview-only Room (never connected) just to host the
         // capturer, release it too. A connected room is kept by teardownAll().
         if (!isConnected) {
-            try { room?.disconnect() }/* catch (_: Throwable) {}/*
+            try { room?.disconnect() } catch (_: Throwable) {}
             room = null
-        }/*
-    }/*
+        }
+    }
 
     private fun teardownAll() {
         eventsJob?.cancel()
@@ -1943,39 +1943,39 @@ class LiveKitPlugin : Plugin() {
         activeRoomScope = null
         activeIsHost = false
         pendingRpcReplies.values.forEach { deferred ->
-            try { deferred.complete(RpcReply(null, "room_disconnected")) }/* catch (_: Throwable) {}/*
-        }/*
+            try { deferred.complete(RpcReply(null, "room_disconnected")) } catch (_: Throwable) {}
+        }
         pendingRpcReplies.clear()
-        try { clearAllSlots() }/* catch (_: Throwable) {}/*
+        try { clearAllSlots() } catch (_: Throwable) {}
         // Releases publish + stops CameraX via the SDK.
         try {
             val track = previewTrack
             if (track != null) {
-                try { previewRenderer?.let { track.removeRenderer(it) }/* }/* catch (_: Throwable) {}/*
-                try { track.stop() }/* catch (_: Throwable) {}/*
-                try { track.dispose() }/* catch (_: Throwable) {}/*
-            }/*
-        }/* catch (_: Throwable) {}/*
+                try { previewRenderer?.let { track.removeRenderer(it) } } catch (_: Throwable) {}
+                try { track.stop() } catch (_: Throwable) {}
+                try { track.dispose() } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {}
         previewTrack = null
         previewRendererBound = false
         detachRenderer(restoreWebView = true)
         releaseRoomResources()
-        try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) }/* catch (_: Throwable) {}/*
+        try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
         RtcEngineManager.clearRoom(room)
         room = null
         isConnected = false
         boundedMode = false
-    }/*
+    }
 
     private fun releaseRoomResources() {
-        try { room?.disconnect() }/* catch (_: Throwable) {}/*
+        try { room?.disconnect() } catch (_: Throwable) {}
         // OEM_CAMERA_RELEASE_SETTLE_MS documents the required Camera2 HAL
         // settle window after track.stop()/room.disconnect(). The release path
         // is coroutine/main-thread driven, so we do not block UI here.
-    }/*
+    }
 
     private fun runOnMain(block: () -> Unit) {
         val act = activity
-        if (act != null) act.runOnUiThread { block() }/* else block()
-    }/*
-}/*
+        if (act != null) act.runOnUiThread { block() } else block()
+    }
+}
