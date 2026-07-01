@@ -36,7 +36,7 @@ export const LiveStreamCard = ({
   const normalizedHostAvatar = normalizeProfileMediaUrl(hostAvatar) || hostAvatar;
 
   return (
-    <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4]">
+    <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-neutral-900">
       {/* Thumbnail */}
       <img loading="lazy" decoding="async"
         src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
