@@ -78,6 +78,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const backdropRef = useRef<HTMLVideoElement>(null);
   const readyNotifiedRef = useRef(false);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
