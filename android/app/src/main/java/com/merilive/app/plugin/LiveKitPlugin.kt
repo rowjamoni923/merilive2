@@ -3,9 +3,6 @@ package com.merilive.app.plugin
 import android.app.Activity
 import android.content.Context
 import android.graphics.Color
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
@@ -43,7 +40,6 @@ import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoCaptureParameter
 import io.livekit.android.room.track.CustomVideoPreset
 import io.livekit.android.room.track.VideoPreset
-import io.livekit.android.room.track.video.CameraCapturerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -56,11 +52,8 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import io.livekit.android.renderer.TextureViewRenderer
-import livekit.org.webrtc.CameraXHelper
-import livekit.org.webrtc.getCameraX
 import org.webrtc.RendererCommon
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -89,10 +82,10 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Professional no-zoom capture: request a strong portrait target but
-        // disable LiveKit's internal crop-to-target step (see
-        // VideoCaptureParameter adaptOutputToDimensions=false below). The
-        // camera keeps its widest hardware FOV; renderers still use FILL.
+        // Professional app parity: keep a natural 3:4 camera capture and let
+        // all renderers use SCALE_ASPECT_FILL/object-cover for full portrait UI.
+        // Do NOT force ultra-wide/min-zoom lenses here; that diverges from the
+        // main project and makes faces look thin/distorted on many OEM cameras.
         const val LOCK_CAPTURE_W = 1080
         const val LOCK_CAPTURE_H = 1440
         const val LOCK_CAPTURE_FPS = 30
@@ -298,7 +291,6 @@ class LiveKitPlugin : Plugin() {
 
                     val opts = LocalVideoTrackOptions(
                         position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
-                        deviceId = resolveWidestCameraDeviceId(front = lens != "back"),
                         captureParams = VideoCaptureParameter(
                             LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS, false,
                         ),
@@ -306,7 +298,6 @@ class LiveKitPlugin : Plugin() {
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
                     track.startCapture()
                     previewTrack = track
-                    forceCameraMinZoom(track, "startLocalPreview")
 
                     if (!boundedOnly) {
                         ensureRendererAttached(mirror)
@@ -554,13 +545,11 @@ class LiveKitPlugin : Plugin() {
             )
             val opts = LocalVideoTrackOptions(
                 position = CameraPosition.FRONT,
-                deviceId = resolveWidestCameraDeviceId(front = true),
                 captureParams = captureParams,
             )
             val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
             track.startCapture()
             previewTrack = track
-            forceCameraMinZoom(track, "promotePreviewToSession:prewarm")
             if (!boundedMode) {
                 ensureRendererAttached(true)
                 previewRenderer?.let { renderer ->
@@ -615,7 +604,6 @@ class LiveKitPlugin : Plugin() {
             } else {
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
-                forceCameraMinZoom(previewTrack, "promotePreviewToSession:setCameraEnabled")
                 localVideoSoftMuted = false
             }
         }
@@ -792,61 +780,6 @@ class LiveKitPlugin : Plugin() {
         return false
     }
 
-    private fun resolveWidestCameraDeviceId(front: Boolean): String? {
-        return try {
-            val ctx = activity ?: context ?: return null
-            val manager = ctx.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            val wantedFacing = if (front) CameraCharacteristics.LENS_FACING_FRONT else CameraCharacteristics.LENS_FACING_BACK
-            var bestId: String? = null
-            var bestScore = -1.0
-
-            fun visit(id: String) {
-                try {
-                    val c = manager.getCameraCharacteristics(id)
-                    if (c.get(CameraCharacteristics.LENS_FACING) != wantedFacing) return
-                    val focals = c.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS) ?: return
-                    val minFocal = focals.filter { it > 0f }.minOrNull() ?: return
-                    val size = c.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
-                    val diagonal = if (size != null) sqrt((size.width * size.width + size.height * size.height).toDouble()) else 1.0
-                    val logicalBonus = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && c.physicalCameraIds.isNotEmpty()) 0.01 else 0.0
-                    val score = (diagonal / minFocal.toDouble()) + logicalBonus
-                    if (score > bestScore) {
-                        bestScore = score
-                        bestId = id
-                    }
-                } catch (_: Throwable) {}
-            }
-
-            manager.cameraIdList.forEach { id ->
-                visit(id)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    try { manager.getCameraCharacteristics(id).physicalCameraIds.forEach { visit(it) } } catch (_: Throwable) {}
-                }
-            }
-            bestId.also { Log.i(TAG, "widest ${if (front) "front" else "back"} camera=$it score=$bestScore") }
-        } catch (t: Throwable) {
-            Log.w(TAG, "resolveWidestCameraDeviceId failed", t)
-            null
-        }
-    }
-
-    private fun forceCameraMinZoom(track: LocalVideoTrack?, source: String) {
-        if (track == null) return
-        longArrayOf(0L, 120L, 500L, 1200L).forEach { delay ->
-            overlayHandler.postDelayed({
-                try {
-                    val camera = track.capturer.getCameraX()?.value ?: return@postDelayed
-                    val minRatio = camera.cameraInfo.zoomState.value?.minZoomRatio ?: 1.0f
-                    try { camera.cameraControl.setLinearZoom(0.0f) } catch (_: Throwable) {}
-                    try { camera.cameraControl.setZoomRatio(minRatio) } catch (_: Throwable) {}
-                    Log.i(TAG, "camera min-zoom applied source=$source ratio=$minRatio")
-                } catch (t: Throwable) {
-                    Log.w(TAG, "forceCameraMinZoom failed source=$source", t)
-                }
-            }, delay)
-        }
-    }
-
     // ─────────────────────────────────────────────
     // Media controls
     // ─────────────────────────────────────────────
@@ -874,7 +807,6 @@ class LiveKitPlugin : Plugin() {
                     // waiting seat slots so the host's own tile renders the
                     // moment the camera comes up — no SFU-echo round-trip.
                     if (resolved != null) {
-                        forceCameraMinZoom(resolved, "setCameraEnabled:resolved")
                         runOnMain { rebindSeatSlotsForLocalTrack(resolved) }
                     }
                 }
