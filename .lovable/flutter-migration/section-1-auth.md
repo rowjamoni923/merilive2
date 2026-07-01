@@ -1,9 +1,15 @@
 # Section 1 — Auth (Flutter Migration Spec)
 
-**Status:** Draft awaiting user approval
+**Status:** ✅ Decisions locked — awaiting "Step A শুরু কর" to begin Foundation
 **Owner:** Lovable agent
 **Backend:** Unchanged (Supabase `ayjdlvuurscxucatbbah`, all existing RPCs/edge fns reused)
-**Parity mode:** Hubohu (pixel + logic identical to current React)
+**Parity mode:** Hubohu web-এর সাথে + Android-এ web-এর চেয়েও more professional (native polish)
+
+## Locked decisions (2026-07-01)
+1. **Email OTP:** শুধু নতুন secure flow (`send-email-otp` + `verify-email-otp` + `otp-direct-signin`)। Legacy `send-signup-confirmation` **DROP**।
+2. **Phone:** শুধু WhatsApp OTP (`send-whatsapp-otp`)। Firebase `signInAnonymously` phone path **DROP**।
+3. **State management:** **BLoC** (flutter_bloc + hydrated_bloc for session persistence)।
+4. **Router:** **auto_route** (type-safe, code-gen)।
 
 ---
 
@@ -115,11 +121,13 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ---
 
-## 7. State Management
+## 7. State Management (LOCKED: BLoC)
 
-- **Riverpod** (industry standard for Supabase Flutter apps) — `authProvider` (StreamNotifier watching `supabase.auth.onAuthStateChange`), `sessionProvider`, `profileProvider`.
-- No global mutable singletons. Session flows through providers.
-- Post-signin side effects (ban check, native storage save, avatar prime) run inside `authProvider` listener — parity with `App.tsx:998-1208`.
+- **flutter_bloc** — `AuthBloc` (events: `AppStarted`, `SignedIn`, `SignedOut`, `SessionRefreshed`, `BanDetected`; states: `AuthInitial`, `AuthLoading`, `Authenticated(session, profile)`, `Unauthenticated`, `Banned`).
+- **hydrated_bloc** — persists last known session locally so cold-start is instant (parity with web-এর native storage restore)।
+- Feature-level cubits: `EmailOtpCubit`, `PhoneOtpCubit`, `DeviceRecoverCubit`, `GenderSelectionCubit`, `ResetPasswordCubit`।
+- Supabase `onAuthStateChange` stream পাইপ করা হবে `AuthBloc`-এ single source-of-truth হিসেবে — parity with `App.tsx:998`।
+- **Router:** `auto_route` — type-safe routes, guards (`AuthGuard`, `BanGuard`), deep-link support built-in।
 
 ---
 
@@ -144,11 +152,11 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ### Step A — Foundation (1 delivery)
 - Init `merilive_app/` Flutter project (Android + iOS).
-- Configure `pubspec.yaml` with all packages listed §6.
-- Set up Supabase client (`main.dart`), Riverpod scope.
-- Theme + design tokens file.
-- App router (go_router) with all 14 routes.
-- Splash + native storage bootstrap.
+- Configure `pubspec.yaml`: `supabase_flutter`, `flutter_bloc`, `hydrated_bloc`, `auto_route` (+ builder), `google_sign_in`, `device_info_plus`, `flutter_secure_storage`, `app_links`, `local_auth`, `cached_network_image`, `flutter_svg`.
+- Set up Supabase client (`main.dart`) + `HydratedBloc.storage` bootstrap.
+- Theme + design tokens file (§4 hex values).
+- `auto_route` config with all 14 routes + `AuthGuard` + `BanGuard`.
+- Splash + native storage session restore (no fake loading UI).
 
 ### Step B — Onboarding + Auth landing (1 delivery)
 - `WelcomeOnboarding` carousel (fetches from `onboarding_slides`).
@@ -198,12 +206,14 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ---
 
-## 11. Open Decisions (need user answer before Step A)
+## 11. Decisions — LOCKED ✅
 
-1. **Legacy `send-signup-confirmation` edge function** — drop or keep? Audit says it's parallel to `send-email-otp`. Recommendation: **drop**.
-2. **`useFirebasePhoneAuth`** — audit found it uses `signInAnonymously` which breaks device recovery. **Recommendation: remove, keep only WhatsApp OTP path (which is your current primary phone flow).**
-3. **Riverpod vs BLoC vs Provider** — recommending **Riverpod** (best Supabase support, most modern). Confirm?
-4. **Router — go_router vs auto_route** — recommending **go_router** (official Flutter team package). Confirm?
+1. ✅ Legacy `send-signup-confirmation` → **DROPPED**. Only new secure OTP flow ported.
+2. ✅ Firebase phone `signInAnonymously` → **DROPPED**. Only WhatsApp OTP path.
+3. ✅ State management → **BLoC** (`flutter_bloc` + `hydrated_bloc`).
+4. ✅ Router → **auto_route**.
+
+User directive: "web-এর সিস্টেম same থাকবে, কিন্তু Android-এ web-এর চেয়ে more professional হবে" — logic parity + native polish (haptics, smooth 60fps transitions, native keyboard behavior, biometric quick-login option post-first-signin).
 
 ---
 
