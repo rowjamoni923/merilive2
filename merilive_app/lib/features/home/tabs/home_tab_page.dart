@@ -84,6 +84,7 @@ class _HomeTabPageState extends State<HomeTabPage>
       providers: [
         BlocProvider.value(value: _countryCubit),
         BlocProvider.value(value: _feedCubit),
+        BlocProvider.value(value: _bannerCubit),
       ],
       child: Container(
         color: DT.homeBg,
@@ -129,10 +130,20 @@ class _HomeTabPageState extends State<HomeTabPage>
                       return const _FeedEmptyView();
                     }
                     return RefreshIndicator(
-                      onRefresh: () => _feedCubit.refresh(),
-                      child: _HostGrid(
-                        hosts: state.hosts,
-                        onTapHost: _handleHostTap,
+                      onRefresh: () async {
+                        await Future.wait([
+                          _feedCubit.refresh(),
+                          _bannerCubit.refresh(),
+                        ]);
+                      },
+                      child: BlocBuilder<BannerCubit, BannerState>(
+                        builder: (context, bannerState) => _HomeScrollBody(
+                          hosts: state.hosts,
+                          topBanners: bannerState.top,
+                          middleBanners: bannerState.middle,
+                          onTapHost: _handleHostTap,
+                          onTapBanner: _handleBannerTap,
+                        ),
                       ),
                     );
                   },
@@ -154,6 +165,32 @@ class _HomeTabPageState extends State<HomeTabPage>
       context.router.push(LiveStreamPlaceholderRoute(streamId: host.liveStreamId!));
     } else {
       context.router.push(ProfileDetailPlaceholderRoute(userId: host.id));
+    }
+  }
+
+  /// Banner tap routing — mirrors `handleBannerClick` in DynamicBanner.tsx.
+  /// Relative paths (starting with `/` but not `//`) are treated as internal
+  /// regardless of the stored `link_type`, matching the web auto-detect.
+  Future<void> _handleBannerTap(HomeBanner banner) async {
+    final link = banner.linkUrl;
+    if (link == null || link.isEmpty) return;
+    final isRelative = link.startsWith('/') && !link.startsWith('//');
+    final type = isRelative ? 'internal' : banner.linkType;
+    if (type == 'internal') {
+      try {
+        await context.router.pushNamed(link);
+      } catch (_) {
+        _toast('Coming soon');
+      }
+      return;
+    }
+    final uri = Uri.tryParse(link);
+    if (uri == null) return;
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) _toast('Could not open link');
+    } catch (_) {
+      _toast('Could not open link');
     }
   }
 }
