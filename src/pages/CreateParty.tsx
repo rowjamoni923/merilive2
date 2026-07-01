@@ -403,6 +403,7 @@ const CreateParty = () => {
       return () => clearTimeout(forceReadyTimer);
     } else {
       try { v.srcObject = null; } catch {}
+      try { if (previewUnderlayVideoRef.current) previewUnderlayVideoRef.current.srcObject = null; } catch {}
     }
   }, [stream, isVideoEnabled, mode]);
 
