@@ -83,9 +83,10 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Professional no-zoom capture: 3:4 uses the front sensor's natural FOV
-        // and avoids CameraX's 9:16 center-crop/digital zoom. Renderers still
-        // use SCALE_ASPECT_FILL, so Go Live / Live / Party / Call stay vertical.
+        // Professional no-zoom capture: request a strong portrait target but
+        // disable LiveKit's internal crop-to-target step (see
+        // VideoCaptureParameter adaptOutputToDimensions=false below). The
+        // camera keeps its widest hardware FOV; renderers still use FILL.
         const val LOCK_CAPTURE_W = 1080
         const val LOCK_CAPTURE_H = 1440
         const val LOCK_CAPTURE_FPS = 30
@@ -292,7 +293,7 @@ class LiveKitPlugin : Plugin() {
                     val opts = LocalVideoTrackOptions(
                         position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
                         captureParams = VideoCaptureParameter(
-                            LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS,
+                            LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS, false,
                         ),
                     )
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
@@ -541,6 +542,7 @@ class LiveKitPlugin : Plugin() {
                 args.captureWidth,
                 args.captureHeight,
                 args.captureFps,
+                false,
             )
             val opts = LocalVideoTrackOptions(
                 position = CameraPosition.FRONT,
@@ -583,11 +585,11 @@ class LiveKitPlugin : Plugin() {
                 val baseEncoding = VideoEncoding(args.baseBitrate, args.baseFps)
                 val simLayers: List<VideoPreset> = if (args.simulcast) listOf(
                     CustomVideoPreset(
-                        VideoCaptureParameter(LOCK_SIM_MID_W, LOCK_SIM_MID_H, LOCK_SIM_MID_FPS),
+                        VideoCaptureParameter(LOCK_SIM_MID_W, LOCK_SIM_MID_H, LOCK_SIM_MID_FPS, false),
                         VideoEncoding(LOCK_SIM_MID_BITRATE, LOCK_SIM_MID_FPS),
                     ),
                     CustomVideoPreset(
-                        VideoCaptureParameter(LOCK_SIM_LOW_W, LOCK_SIM_LOW_H, LOCK_SIM_LOW_FPS),
+                        VideoCaptureParameter(LOCK_SIM_LOW_W, LOCK_SIM_LOW_H, LOCK_SIM_LOW_FPS, false),
                         VideoEncoding(LOCK_SIM_LOW_BITRATE, LOCK_SIM_LOW_FPS),
                     ),
                 ) else emptyList()

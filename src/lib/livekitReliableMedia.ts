@@ -2,6 +2,7 @@ import { Room, Track, type LocalTrackPublication } from 'livekit-client';
 import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { peekCameraSession } from '@/lib/persistentCameraSession';
+import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
@@ -15,8 +16,8 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
 };
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints[] = [
-  { facingMode: { ideal: 'user' }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } },
-  { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } },
+  { facingMode: { ideal: 'user' }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none' as ConstrainDOMString, frameRate: { ideal: 30 } },
+  { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' as ConstrainDOMString, frameRate: { ideal: 24 } },
   { facingMode: { ideal: 'user' }, frameRate: { ideal: 24 } },
   { facingMode: 'user' },
   true as unknown as MediaTrackConstraints,
@@ -59,7 +60,10 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
     for (const video of VIDEO_CONSTRAINTS) {
       try {
         const stream = await getUserMediaAttempt({ video, audio: needAudio ? AUDIO_CONSTRAINTS : false }, 'livekit-reliable:combined');
-        if (stream.getVideoTracks().some(isLive)) return stream;
+        if (stream.getVideoTracks().some(isLive)) {
+          await enforcePermanentCameraLock(stream, 'livekit-reliable:combined');
+          return stream;
+        }
         stream.getTracks().forEach((track) => track.stop());
       } catch (error) {
         lastError = error;

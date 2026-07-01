@@ -13,11 +13,11 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v3_20260701_standard_1x',
-  // Lock to standard 1x. Sub-1.0 zoom can make some OEM/WebView cameras jump
-  // to a distorted auxiliary lens or apply the constraint in the wrong visual
-  // direction, which users experience as extra zoom. 1x is the widest safe
-  // no-digital-zoom setting across Live/Party/Call preview surfaces.
+  id: 'camera_lock_v4_20260701_capability_min_widest_fov',
+  // Lock to the camera-reported minimum zoom. This is the only safe way to
+  // zoom OUT: CameraX/WebView stacks may expose either zoom-ratio (min often
+  // 1.0, sometimes 0.5 ultra-wide) or linear zoom (min 0.0). Hardcoding 0.5
+  // was wrong because linearZoom=0.5 means half-way zoomed IN.
   fixedZoomLevel: 1,
   fixedObjectPosition: 'center center',
 } as const);
@@ -30,8 +30,8 @@ function resolveLockedZoom(capability: ZoomCapability): number {
 
   const min = Number.isFinite(capability.min) ? Number(capability.min) : 1;
   const max = Number.isFinite(capability.max) ? Number(capability.max) : 1;
-  // Snap to the closest supported standard 1x value; never force sub-1.0.
-  return Math.min(Math.max(target, min), max);
+  // Widest supported FOV. If the device reports 0/0.5, use it; otherwise 1x.
+  return Math.min(Math.max(min, min), max);
 }
 
 export async function enforcePermanentTrackLock(

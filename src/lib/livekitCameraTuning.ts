@@ -32,9 +32,9 @@ export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstr
     width: { ideal: target.width, min: Math.min(360, target.width) },
     height: { ideal: target.height, min: Math.min(640, target.height) },
     frameRate: { ideal: target.frameRate, min: 24 },
-    // Full-bleed 9:16 portrait keeps preview/live/party/call capture aligned
-    // with the professional phone viewport and prevents letterboxing.
-    aspectRatio: { ideal: target.width / target.height },
+    // No internal UA crop. The renderer owns visual fill; capture must keep the
+    // widest hardware FOV so faces do not look digitally zoomed-in.
+    resizeMode: 'none' as ConstrainDOMString,
     // 'user' = front camera (default for Live/PartyRoom/PrivateCall).
     facingMode: { ideal: 'user' },
   };

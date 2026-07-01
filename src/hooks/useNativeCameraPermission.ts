@@ -5,6 +5,7 @@ import {
   requestCameraPermission as requestNativeCameraPermission,
   requestMicrophonePermission as requestNativeMicrophonePermission,
 } from '@/utils/nativePermissions';
+import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -106,7 +107,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
         facingMode: { ideal: 'user' },
         width: { ideal: 1080 },
         height: { ideal: 1440 },
-        aspectRatio: { ideal: 3 / 4 },
+        resizeMode: 'none' as ConstrainDOMString,
         frameRate: { ideal: 30 },
       },
       audio: includeAudio
@@ -116,6 +117,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
       10000, // 10s timeout for native permission dialog
       'Camera permission request timed out'
     );
+    await enforcePermanentCameraLock(stream, 'permission-request');
     releaseAndroidWebViewCameraWhenStopped(stream, `permission-probe:${includeAudio ? 'av' : 'video'}`);
     
     const hasVideo = stream.getVideoTracks().some(t => t.readyState === 'live');
@@ -170,9 +172,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
   const constraintOptions: MediaStreamConstraints[] = [
     // Natural 3:4 sensor capture avoids CameraX/WebView center-crop zoom;
     // UI renderers keep portrait cover/fill so there are no black bars.
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none' as ConstrainDOMString, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' as ConstrainDOMString, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, resizeMode: 'none' as ConstrainDOMString, frameRate: { ideal: 24 } }, audio },
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },
@@ -197,6 +199,7 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
       videoTracks.forEach((track) => {
         try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
       });
+      await enforcePermanentCameraLock(stream, `camera-stream:${i + 1}`);
       return stream;
     } catch (err: any) {
       lastError = err;
