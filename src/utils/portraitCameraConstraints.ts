@@ -20,9 +20,6 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
   //   frame into a fake portrait stream, which is perceived as zoom-in.
   // - `zoom:0` is only a hint; cameraLock.ts reapplies the real capability min
   //   after frames start because Android exposes PTZ/zoom late.
-  // Use true phone-preview 9:16. The 3:4 + contain workaround showed the full
-  // sensor but produced the unacceptable horizontal/YouTube strip inside the
-  // phone UI. Zoom-out is handled by cameraLock.ts at hardware min zoom.
   const width = options.width ?? 1080;
   const height = options.height ?? 1920;
   return {

@@ -11,8 +11,8 @@
  * bitrate + simulcast, this maximizes effective resolution per device.
  *
  * Also exposes `applyMotionHint` to tag published camera tracks with
- * `contentHint='detail'` — tells the browser encoder to preserve portrait face
- * sharpness instead of softening edges under motion/congestion.
+ * `contentHint='motion'` — tells LiveKit (Android native) to prefer framerate over fidelity
+ * during congestion (right call for live faces + beauty filter motion).
  */
 import type { LocalVideoTrack, LocalTrackPublication, Room } from 'livekit-client';
 import { Track } from 'livekit-client';
@@ -33,8 +33,8 @@ export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstr
 }
 
 /**
- * After publish, tag every camera track with `contentHint='detail'`.
- * Best perceptual setting for HD portrait faces with beauty filters.
+ * After publish, tag every camera track with `contentHint='motion'`.
+ * Best perceptual setting for live faces with beauty filters / motion.
  */
 export function applyMotionHint(room: Room | null | undefined): void {
   if (!room?.localParticipant) return;

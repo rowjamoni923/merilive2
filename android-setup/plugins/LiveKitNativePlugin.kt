@@ -282,7 +282,6 @@ class LiveKitNativePlugin : Plugin() {
             videoRenderer?.let { renderer ->
                 val scalingType = when (type.uppercase()) {
                     "FIT" -> RendererCommon.ScalingType.SCALE_ASPECT_FIT
-                    "FILL" -> RendererCommon.ScalingType.SCALE_ASPECT_FILL
                     "BALANCED" -> RendererCommon.ScalingType.SCALE_ASPECT_BALANCED
                     else -> RendererCommon.ScalingType.SCALE_ASPECT_FILL
                 }

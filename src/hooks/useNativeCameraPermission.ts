@@ -192,14 +192,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
         continue;
       }
       videoTracks.forEach((track) => {
-        try { if ('contentHint' in track) (track as any).contentHint = 'detail'; } catch {}
+        try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
       });
       const widestStream = await maybeUpgradeToWidestCamera(stream, facingMode);
-      if (!widestStream.getVideoTracks().some(isPortraitCameraTrack)) {
-        console.warn('[Camera] Rejected non-portrait upgraded camera mode:', JSON.stringify(widestStream.getVideoTracks()[0]?.getSettings?.() || {}));
-        stopMediaStream(widestStream);
-        continue;
-      }
       await enforcePermanentCameraLock(widestStream, `camera-stream:${i + 1}`);
       return widestStream;
     } catch (err: any) {

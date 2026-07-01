@@ -11,7 +11,6 @@ import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
-import NativeVideoView from "@/components/NativeVideoView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +18,6 @@ import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { useSound } from "@/hooks/useSound";
 import { Capacitor } from "@capacitor/core";
-import { NativeLiveKit } from "@/plugins/NativeLiveKit";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import PreJoinDevicesDialog from "@/components/livekit/PreJoinDevicesDialog";
 import { Sliders } from "lucide-react";
@@ -35,8 +33,8 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import {
   acquireCameraSession,
+  adoptCameraSession,
   peekCameraSession,
-  disposeCameraSessionIfIdle,
   forceDisposeCameraSession,
   type CameraSessionHandle,
 } from "@/lib/persistentCameraSession";
@@ -45,13 +43,16 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
-import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { useProCamera } from "@/camera/useProCamera";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
+import { enforcePermanentCameraLock } from "@/utils/cameraLock";
+import { buildPortraitVideoFallbacks } from "@/utils/portraitCameraConstraints";
+import { maybeUpgradeToWidestCamera } from "@/utils/widestCamera";
 import { useLiveSessionOptional, type LiveHostState } from "@/features/live-session";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
@@ -93,7 +94,6 @@ const GoLive = () => {
   // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
   const videoRef = useRef<HTMLVideoElement>(null);
-  const previewUnderlayVideoRef = useRef<HTMLVideoElement>(null);
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -103,7 +103,6 @@ const GoLive = () => {
   const [useLiveKit, setUseLiveKit] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
-  const screenActiveRef = useRef(true);
   const preservePreviewForLiveRef = useRef(false);
   const cameraSwitchInFlightRef = useRef<Promise<void> | null>(null);
   // Step 1b: persistent web-camera handle. When set, the underlying tracks
@@ -116,7 +115,7 @@ const GoLive = () => {
     streamRef.current = stream;
   }, [stream]);
   // Native camera permission hook
-  const { requestCameraPermission } = useNativeCameraPermission();
+  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
   
   // Feature level check hook
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
@@ -156,9 +155,6 @@ const GoLive = () => {
       // the route swap. LiveStream/useLiveKitClient will take over the same
       // native-media-active surface once the existing preview track is promoted.
       if (preservePreviewForLiveRef.current) return;
-      void NativeLiveKit.forceDetachAllSurfaces?.().catch(() => undefined);
-      void NativeLiveKit.detachAll?.().catch(() => undefined);
-      void nativeLiveKitController.stopLocalPreview().catch(() => undefined);
       clearNativeFaceCameraSurface();
       clearNativeMediaSurface();
     };
@@ -229,7 +225,6 @@ const GoLive = () => {
           lens: 'front',
           resolution: '1080p',
           mirror: true,
-          boundedOnly: true,
           roomScope: 'live',
         });
         if (started) {
@@ -253,8 +248,6 @@ const GoLive = () => {
   }, [applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
-    try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* old APK */ }
-    try { await NativeLiveKit.detachAll?.(); } catch { /* old APK */ }
     try { await nativeLiveKitController.stopLocalPreview(); } catch { /* noop */ }
     applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
@@ -314,7 +307,6 @@ const GoLive = () => {
   const attachWebPreviewStream = useCallback((mediaStream: MediaStream) => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
-    const underlayEl = previewUnderlayVideoRef.current;
 
     // Pkg-audit Bug B: single play path. Previously two `play()` calls (one
     // from onloadedmetadata, one from rAF) raced against each other and on
@@ -326,11 +318,6 @@ const GoLive = () => {
       setPreviewHasFrame(false);
     }
     hardenVideoElementForNative(videoEl, { muted: true });
-    if (underlayEl) {
-      hardenVideoElementForNative(underlayEl, { muted: true });
-      if (underlayEl.srcObject !== mediaStream) underlayEl.srcObject = mediaStream;
-      underlayEl.play().catch(() => {});
-    }
     if (!sameStream) {
       videoEl.srcObject = mediaStream;
     }
@@ -552,11 +539,8 @@ const GoLive = () => {
   // the background so the navigation isn't blocked by a `stopLocalPreview`
   // round-trip to the native bridge.
   const handleBack = () => {
-    screenActiveRef.current = false;
     // 1. Kill the visible surface FIRST so the WebView UI no longer reveals
     //    the camera behind it for even a single frame.
-    try { void NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* ignore */ }
-    try { void NativeLiveKit.detachAll?.(); } catch { /* ignore */ }
     try { clearNativeMediaSurface(); } catch { /* ignore */ }
     try { applyNativePreviewTransparency(false); } catch { /* ignore */ }
     setNativePreviewActive(false);
@@ -565,30 +549,24 @@ const GoLive = () => {
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
-    if (previewUnderlayVideoRef.current) {
-      try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
-      try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
-      try { previewUnderlayVideoRef.current.removeAttribute('src'); previewUnderlayVideoRef.current.load(); } catch { /* ignore */ }
-    }
     // 2. Fire native camera tear-down IMMEDIATELY (no await) so the native
     //    TextureView behind the WebView disappears on the same frame as the
     //    tap. Previously this sat behind a 1.5s "in-flight start" wait, so
     //    users saw the camera stay open and thought the X button was broken.
     try { void nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
     try { clearPreparedHostPreviewStream(); } catch { /* ignore */ }
-    try {
-      cameraHandleRef.current?.release();
-      cameraHandleRef.current = null;
-      forceDisposeCameraSession();
-    } catch { /* ignore */ }
     if (streamRef.current) {
       try {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        releaseAndroidWebViewCamera('golive:back');
+        if (cameraHandleRef.current) {
+          cameraHandleRef.current.release();
+          cameraHandleRef.current = null;
+        } else {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          releaseAndroidWebViewCamera('golive:back');
+        }
       } catch { /* ignore */ }
       streamRef.current = null;
     }
-    setStream(null);
     // 3. Navigate immediately — no awaits between tap and route change.
     navigate(-1);
     // 4. Safety: if a start was still in-flight, re-issue stop after it settles.
@@ -644,7 +622,6 @@ const GoLive = () => {
 
   // Fetch user profile on mount - camera starts ONLY on user action (Allow button)
   useEffect(() => {
-    screenActiveRef.current = true;
     let isMounted = true;
     
     const initializeGoLive = async () => {
@@ -696,7 +673,6 @@ const GoLive = () => {
     initializeGoLive();
 
     return () => {
-      screenActiveRef.current = false;
       isMounted = false;
       if (preservePreviewForLiveRef.current) return;
       clearPreparedHostPreviewStream();
@@ -704,17 +680,15 @@ const GoLive = () => {
         void stopNativePreview();
       }
       if (streamRef.current) {
-        // Leaving Go Live preview is a real exit, not a handoff. Release AND
-        // force-dispose the persistent web camera so the preview cannot keep
-        // running invisibly on the next page.
+        // Step 1b: keep web camera warm across unmount/HMR. Only release the
+        // ref; persistentCameraSession owns the tracks until explicit dispose.
         if (cameraHandleRef.current) {
           cameraHandleRef.current.release();
           cameraHandleRef.current = null;
         } else {
           streamRef.current.getTracks().forEach(track => track.stop());
+          releaseAndroidWebViewCamera('golive:unmount');
         }
-        forceDisposeCameraSession();
-        releaseAndroidWebViewCamera('golive:unmount');
         streamRef.current = null;
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
@@ -723,12 +697,8 @@ const GoLive = () => {
         try { videoRef.current.pause(); } catch { /* ignore */ }
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       }
-      if (previewUnderlayVideoRef.current) {
-        try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
-        try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
-      }
     };
-  }, [navigate, useLiveKit, isNativeAndroid, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
+  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
 
   // Silent camera auto-start (permissions already granted): waits for the
   // ProCamera arbiter slot, then runs the SAME preview pipeline the Allow
@@ -756,7 +726,6 @@ const GoLive = () => {
         const warm = peekCameraSession();
         if (warm) {
           const handle = await acquireCameraSession();
-          if (!screenActiveRef.current) { handle.release(); disposeCameraSessionIfIdle(); return; }
           cameraHandleRef.current?.release();
           cameraHandleRef.current = handle;
           setStream(handle.stream);
@@ -764,16 +733,10 @@ const GoLive = () => {
           attachWebPreviewStream(handle.stream);
           return;
         }
-        const handle = await acquireCameraSession({ video: true, audio: true, facingMode: 'user' });
-        const mediaStream = handle.stream;
-        if (!screenActiveRef.current) {
-          handle.release();
-          disposeCameraSessionIfIdle();
-          releaseAndroidWebViewCamera('golive:auto-start-aborted');
-          return;
-        }
+        const mediaStream = await getCameraStream(true);
+        if (!mediaStream) throw new Error('Failed to get camera stream');
         cameraHandleRef.current?.release();
-        cameraHandleRef.current = handle;
+        cameraHandleRef.current = adoptCameraSession(mediaStream);
         setStream(mediaStream);
         setFacingMode('user');
         attachWebPreviewStream(mediaStream);
@@ -783,7 +746,7 @@ const GoLive = () => {
         setShowPermissionPrompt(true);
       }
     })();
-  }, [autoStartCamera, proCamera.ready, proCamera.error, isNativeAndroid, startNativePreview, attachWebPreviewStream]);
+  }, [autoStartCamera, proCamera.ready, proCamera.error, isNativeAndroid, startNativePreview, getCameraStream, attachWebPreviewStream]);
 
 
 
@@ -846,7 +809,6 @@ const GoLive = () => {
       const warm = peekCameraSession();
       if (warm) {
         const handle = await acquireCameraSession();
-        if (!screenActiveRef.current) { handle.release(); disposeCameraSessionIfIdle(); return; }
         cameraHandleRef.current?.release();
         cameraHandleRef.current = handle;
         setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
@@ -856,16 +818,10 @@ const GoLive = () => {
         playSound('notification');
         return;
       }
-      const handle = await acquireCameraSession({ video: true, audio: true, facingMode: 'user' });
-      const mediaStream = handle.stream;
-      if (!screenActiveRef.current) {
-        handle.release();
-        disposeCameraSessionIfIdle();
-        releaseAndroidWebViewCamera('golive:permission-aborted');
-        return;
-      }
+      const mediaStream = await getCameraStream(true);
+      if (!mediaStream) throw new Error('Failed to get camera stream');
       cameraHandleRef.current?.release();
-      cameraHandleRef.current = handle;
+      cameraHandleRef.current = adoptCameraSession(mediaStream);
       setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
       setStream(mediaStream);
       setFacingMode('user');
@@ -891,26 +847,72 @@ const GoLive = () => {
           return;
         }
 
+        const previousStream = streamRef.current;
+        const previousAudioTracks = previousStream?.getAudioTracks().filter((track) => track.readyState === 'live') ?? [];
         const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
 
         console.log('[GoLive] Switching camera to:', newFacingMode);
 
-        cameraHandleRef.current?.release();
-        cameraHandleRef.current = null;
-        forceDisposeCameraSession();
-        releaseAndroidWebViewCamera('golive:switch-camera');
+        // GAP-1 fix: atomic preview swap. Keep the old preview attached until
+        // the next camera has a live video track; if the browser rejects dual
+        // camera opens, release only old VIDEO tracks then retry while keeping mic.
+        const audioConstraint = previousAudioTracks.length === 0
+          ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+          : false;
+        const constraints: MediaStreamConstraints[] = [
+          ...buildPortraitVideoFallbacks({ facingMode: newFacingMode }).map((video) => ({ video, audio: audioConstraint } as MediaStreamConstraints)),
+        ];
 
-        const handle = await acquireCameraSession({ video: true, audio: true, facingMode: newFacingMode });
-        if (!screenActiveRef.current) {
-          handle.release();
-          disposeCameraSessionIfIdle();
-          return;
+        const openNextCamera = async () => {
+          for (const constraint of constraints) {
+            try {
+              return await claimAndroidWebViewCameraForStream(
+                () => navigator.mediaDevices.getUserMedia(constraint),
+                'golive:switch-camera-new-stream',
+              );
+            } catch {
+              continue;
+            }
+          }
+          return null;
+        };
+
+        let mediaStream = await openNextCamera();
+        if (mediaStream) mediaStream = await maybeUpgradeToWidestCamera(mediaStream, newFacingMode, 'golive:switch-camera');
+        if (mediaStream) await enforcePermanentCameraLock(mediaStream, 'golive:switch-camera');
+        if (!mediaStream && previousStream) {
+          previousStream.getVideoTracks().forEach((track) => track.stop());
+          releaseAndroidWebViewCamera('golive:switch-camera');
+          mediaStream = await openNextCamera();
         }
 
-        cameraHandleRef.current = handle;
-        setStream(handle.stream);
+        const nextVideoTracks = mediaStream?.getVideoTracks().filter((track) => track.readyState === 'live') ?? [];
+        if (!mediaStream || nextVideoTracks.length === 0) return;
+
+        const nextAudioTracks = mediaStream.getAudioTracks().filter((track) => track.readyState === 'live');
+        const combinedStream = new MediaStream([
+          ...nextVideoTracks,
+          ...(nextAudioTracks.length ? nextAudioTracks : previousAudioTracks),
+        ]);
+
+        setStream(combinedStream);
         setFacingMode(newFacingMode);
-        attachWebPreviewStream(handle.stream);
+        attachWebPreviewStream(combinedStream);
+        try {
+          cameraHandleRef.current?.release();
+          cameraHandleRef.current = adoptCameraSession(combinedStream, { video: true, audio: true, facingMode: newFacingMode });
+        } catch { /* ignore; preview stream remains directly attached */ }
+
+        if (previousStream && previousStream !== combinedStream) {
+          previousStream.getVideoTracks().forEach((track) => {
+            if (!nextVideoTracks.includes(track)) track.stop();
+          });
+        }
+        if (mediaStream !== combinedStream) {
+          mediaStream.getAudioTracks().forEach((track) => {
+            if (!combinedStream.getAudioTracks().includes(track)) track.stop();
+          });
+        }
       } catch (error) {
         console.error("Camera switch error:", error);
         recordClientError({ label: "GoLive.constraints", message: error instanceof Error ? error.message : String(error) });
@@ -1421,46 +1423,11 @@ const GoLive = () => {
           />
         ) : (
           <div className="relative w-full h-full camera-locked">
-            {isNativeAndroid && nativePreviewActive && (
-              <NativeVideoView
-                kind="local"
-                mirror={facingMode === 'user'}
-                className="absolute inset-0 h-full w-full pointer-events-none"
-                onAttached={markPreviewReady}
-              />
-            )}
             {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
                 On native Android, hidden visually when native renderer is confirmed
                 active (nativePreviewActive). If the native renderer ever fails to
                 mount (old APK, OEM EGL issue, race), this web <video> stays visible
                 as a safety fallback so the host NEVER sees a blank/white screen. */}
-            <video
-              ref={previewUnderlayVideoRef}
-              aria-hidden="true"
-              autoPlay
-              playsInline
-              muted
-              controls={false}
-              disablePictureInPicture
-              disableRemotePlayback
-              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-              poster=""
-              // @ts-ignore - vendor-specific attributes for Android
-              x5-video-player-type="h5"
-              x5-video-player-fullscreen="false"
-              x5-video-orientation="portrait"
-              x5-playsinline="true"
-              webkit-playsinline="true"
-              x-webkit-airplay="deny"
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75"
-              style={{
-                transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
-                filter: beautyCSS ? `${beautyCSS} blur(18px) saturate(1.1) brightness(0.75)` : 'blur(18px) saturate(1.1) brightness(0.75)',
-                WebkitAppearance: 'none',
-                opacity: (isNativeAndroid && nativePreviewActive) ? 0 : 1,
-                transition: 'opacity 180ms ease',
-              }}
-            />
             <video
               ref={videoRef}
               autoPlay

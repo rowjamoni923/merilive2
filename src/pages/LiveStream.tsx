@@ -142,7 +142,6 @@ import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import {
   adoptCameraSession,
-  disposeCameraSessionIfIdle,
   forceDisposeCameraSession,
   type CameraSessionHandle,
 } from "@/lib/persistentCameraSession";
@@ -242,7 +241,6 @@ const LiveStream = () => {
     return null;
   });
   const hostTransitionVideoRef = useRef<HTMLVideoElement>(null);
-  const hostTransitionUnderlayVideoRef = useRef<HTMLVideoElement>(null);
   const [hostLiveKitVideoReady, setHostLiveKitVideoReady] = useState(false);
   const [hostInfo, setHostInfo] = useState<{
     name: string;
@@ -2429,33 +2427,20 @@ const LiveStream = () => {
     if (!isHost || !hostTransitionPreviewStream || !hostTransitionVideoRef.current) return;
 
     const previewEl = hostTransitionVideoRef.current;
-    const underlayEl = hostTransitionUnderlayVideoRef.current;
     hardenVideoElementForNative(previewEl, { muted: true });
     previewEl.srcObject = hostTransitionPreviewStream;
-    if (underlayEl) {
-      hardenVideoElementForNative(underlayEl, { muted: true });
-      underlayEl.srcObject = hostTransitionPreviewStream;
-    }
 
     const playPreview = () => {
       previewEl.play().catch(() => {});
-      underlayEl?.play().catch(() => {});
     };
 
     playPreview();
     previewEl.onloadedmetadata = playPreview;
-    if (underlayEl) underlayEl.onloadedmetadata = playPreview;
 
     return () => {
       previewEl.onloadedmetadata = null;
-      if (underlayEl) underlayEl.onloadedmetadata = null;
       if (previewEl.srcObject === hostTransitionPreviewStream) {
-        previewEl.pause();
         previewEl.srcObject = null;
-      }
-      if (underlayEl?.srcObject === hostTransitionPreviewStream) {
-        underlayEl.pause();
-        underlayEl.srcObject = null;
       }
     };
   }, [isHost, hostTransitionPreviewStream]);
@@ -2580,7 +2565,6 @@ const LiveStream = () => {
         // instantly. The explicit "End Live" path below force-disposes.
         try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
         previewCameraHandleRef.current = null;
-        try { disposeCameraSessionIfIdle(); } catch { /* ignore */ }
         if (streamEndedRef.current) {
           try { forceDisposeCameraSession(); } catch { /* ignore */ }
           void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
@@ -2834,10 +2818,6 @@ const LiveStream = () => {
         finally {
           try { delete (window as any).__meriliveEndingLiveStream; } catch { (window as any).__meriliveEndingLiveStream = false; }
         }
-        try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
-        previewCameraHandleRef.current = null;
-        try { forceDisposeCameraSession(); } catch { /* ignore */ }
-        void releaseAndroidWebViewCameraNow('live-stream:explicit-end-force');
 
         // 3) Background: gather session stats + DB end flow.
         try {
@@ -2904,9 +2884,6 @@ const LiveStream = () => {
 
   // Handle viewer leaving the stream
   const handleLeaveStream = async () => {
-    if (isHost) {
-      streamEndedRef.current = true;
-    }
     // Server-side leave flow keeps stream_viewers + live_streams.viewer_count in sync.
     if (!isHost && currentUserId && id) {
       const { data, error } = await supabase.rpc('leave_live_stream_viewer', { p_stream_id: id });
@@ -2919,12 +2896,6 @@ const LiveStream = () => {
     }
 
     await leaveChannel();
-    if (isHost) {
-      try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
-      previewCameraHandleRef.current = null;
-      try { forceDisposeCameraSession(); } catch { /* ignore */ }
-      void releaseAndroidWebViewCameraNow('live-stream:host-leave-force');
-    }
     if (liveSession && isHost) {
       // Host swipe-down end: stay inside the session container, show ended UI.
       liveSession.goToEnded();
@@ -4051,59 +4022,30 @@ const LiveStream = () => {
             style={{ filter: combinedFilterCSS || undefined }}
           >
             {hostTransitionPreviewStream && (
-              <>
-                <video
-                  ref={hostTransitionUnderlayVideoRef}
-                  aria-hidden="true"
-                  autoPlay
-                  playsInline
-                  muted
-                  controls={false}
-                  disablePictureInPicture
-                  disableRemotePlayback
-                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                  poster=""
-                  // @ts-ignore
-                  x5-video-player-type="h5"
-                  x5-video-player-fullscreen="false"
-                  x5-video-orientation="portrait"
-                  x5-playsinline="true"
-                  webkit-playsinline="true"
-                  x-webkit-airplay="deny"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
-                  style={{
-                    transform: 'scaleX(-1) scale(1.1)',
-                    filter: combinedFilterCSS ? `${combinedFilterCSS} blur(18px) saturate(1.1) brightness(0.75)` : 'blur(18px) saturate(1.1) brightness(0.75)',
-                    WebkitAppearance: 'none',
-                    zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 2,
-                  }}
-                />
-                <video
-                  ref={hostTransitionVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  controls={false}
-                  disablePictureInPicture
-                  disableRemotePlayback
-                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                  poster=""
-                  // @ts-ignore
-                  x5-video-player-type="h5"
-                  x5-video-player-fullscreen="false"
-                  x5-video-orientation="portrait"
-                  x5-playsinline="true"
-                  webkit-playsinline="true"
-                  x-webkit-airplay="deny"
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none camera-locked bg-transparent"
-                  style={{
-                    transform: 'scaleX(-1)',
-                    filter: combinedFilterCSS || undefined,
-                    WebkitAppearance: 'none',
-                    zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
-                  }}
-                />
-              </>
+              <video
+                ref={hostTransitionVideoRef}
+                autoPlay
+                playsInline
+                muted
+                controls={false}
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                poster=""
+                // @ts-ignore
+                x5-video-player-type="h5"
+                x5-video-player-fullscreen="false"
+                x5-video-orientation="portrait"
+                x5-playsinline="true"
+                webkit-playsinline="true"
+                x-webkit-airplay="deny"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked bg-transparent"
+                style={{
+                  transform: 'scaleX(-1)',
+                  filter: combinedFilterCSS || undefined,
+                  WebkitAppearance: 'none',
+                  zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
+                }}/>
             )}
             {localVideoTrack && (
               <LiveKitVideoPlayer

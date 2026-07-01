@@ -22,7 +22,7 @@ import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
-import { adoptCameraSession, disposeCameraSessionIfIdle, type CameraSessionHandle } from '@/lib/persistentCameraSession';
+import { adoptCameraSession } from '@/lib/persistentCameraSession';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 import { enforcePermanentTrackLock } from '@/utils/cameraLock';
 
@@ -138,7 +138,6 @@ export function usePartyRoomNativeLiveKit(
   const deadRef = useRef(false);
   const usingNativeRef = useRef(false);
   const nativePartyPreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
-  const preparedCameraHandleRef = useRef<CameraSessionHandle | null>(null);
 
   const refreshNativeParticipants = useCallback(async () => {
     if (!usingNativeRef.current) return;
@@ -320,12 +319,6 @@ export function usePartyRoomNativeLiveKit(
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
-
-    try {
-      preparedCameraHandleRef.current?.release();
-      preparedCameraHandleRef.current = null;
-      disposeCameraSessionIfIdle();
-    } catch { /* ignore */ }
 
     void releaseAndroidWebViewCameraNow('party-room:cleanup-force');
     detachAllAudio();
@@ -610,7 +603,7 @@ export function usePartyRoomNativeLiveKit(
           collectIdentityKeys(meta).forEach((k) => keys.add(k));
           stream.getTracks().forEach((track) => {
             if (track.readyState !== 'live') return;
-            try { if ('contentHint' in track) (track as any).contentHint = 'detail'; } catch {}
+            try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
           });
           keys.forEach((key) => peerStreamsRef.current.set(key, stream));
         };
@@ -639,8 +632,7 @@ export function usePartyRoomNativeLiveKit(
           // fresh getUserMedia even though the tracks are still live.
           if (preparedStream) {
             try {
-              preparedCameraHandleRef.current?.release();
-              preparedCameraHandleRef.current = adoptCameraSession(preparedStream, { video: true, audio: true });
+              adoptCameraSession(preparedStream, { video: true, audio: true });
             } catch { /* non-fatal */ }
           }
           // Pkg418 hard gate: if arbiter not clear, publish audio-only.
@@ -671,7 +663,7 @@ export function usePartyRoomNativeLiveKit(
               // Pkg103: apply Krisp noise filter to published mic
               import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
-              // Pkg204: contentHint='detail' on camera track — sharper host video.
+              // Pkg204: contentHint='motion' on camera track — smoother under congestion.
               import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
 
               const hasVideo = Array.from(room.localParticipant.trackPublications.values())

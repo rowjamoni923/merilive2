@@ -1,44 +1,5 @@
 # Portrait Camera Surface Fix
 
-## Web/native camera lifecycle correction — 2026-07-01
-
-### Research notes
-- Capacitor documents `Capacitor.isNativePlatform()` / platform checks as the expected way to keep native plugin calls off web builds: https://capacitorjs.com/docs/basics/utilities
-- Capacitor Web/PWA plugin docs explain native plugins need a web implementation or compatibility no-op for browser/PWA execution: https://capacitorjs.com/docs/plugins/web
-- Professional live apps keep one visible local preview owner and detach camera immediately on exit; web preview should use WebRTC/getUserMedia only, while Android native CameraX/LiveKit surfaces should be called only inside the APK.
-
-### Root cause found
-- `NativeLiveKit` was registered in the web preview and Capacitor exposed method stubs. Those stubs existed as functions, so the JS Proxy returned them directly; when called on web they rejected with `"NativeLiveKit" plugin is not implemented on web`, creating unhandled promise errors and racing camera cleanup.
-
-### Fix plan
-1. Make `NativeLiveKit` resolve safe no-ops on every non-native platform before touching the real Capacitor plugin proxy.
-2. Add controller-level `isNativeLiveKitAvailable()` guards so Go Live / Party / Private Call preview cleanup cannot call Android-only methods in Lovable web preview.
-3. Keep Android APK behavior unchanged: native LiveKit still runs only when `Capacitor.isNativePlatform()` and platform is Android.
-
-## Zoom-out correction — 2026-07-01
-
-### Preview leak correction — 2026-07-01
-- LiveKit Android `TextureViewRenderer.setScalingType` controls how video fills the layout; `SCALE_ASPECT_FILL` crops, while `SCALE_ASPECT_FIT` preserves full FOV: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.renderer/-texture-view-renderer/set-scaling-type.html
-- Agora Android `VideoCanvas` documents `RENDER_MODE_HIDDEN` as crop/fill and `RENDER_MODE_FIT` as full-frame fit; Chamet/Bigo-style prejoin preview should stop/detach on exit and preserve only for immediate broadcast handoff: https://api-ref.agora.io/en/video-sdk/android/3.x/classio_1_1agora_1_1rtc_1_1video_1_1_video_canvas.html
-- Root cause found: Go Live exit released the persistent web camera handle but did not force-dispose the singleton stream, and native `stopLocalPreview()` waited behind in-flight preview start before detaching the fullscreen TextureView. Result: camera stayed running behind/above other pages.
-- Fix plan applied: detach native fullscreen local renderer before waiting on any pending preview start; force-dispose persistent web camera on Go Live preview exit/unmount; remove extra CSS scale from preview blur underlays so the phone preview no longer gets additional synthetic zoom.
-
-### Research notes
-- LiveKit Android docs for `VideoCaptureParameter.adaptOutputToDimensions` state that enabling adaptation can scale/crop captured frames to the requested aspect ratio; keep it `false` to avoid SDK-level center-crop zoom: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.room.track/-video-capture-parameter/adapt-output-to-dimensions.html
-- LiveKit Android issue #651 documents the exact symptom: local tracks looked zoomed/cropped even when CameraX zoom ratio was `1.0`; the professional fix path is preventing internal crop and using correct capture format: https://github.com/livekit/client-sdk-android/issues/651
-- MDN `resizeMode` says `crop-and-scale` lets the browser crop raw camera output, while `none` uses the hardware/driver resolution. For web preview, avoid 9:16 crop requests and keep `resizeMode:'none'`: https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
-- MDN/Web.dev PTZ docs confirm browser zoom-out is only the track capability minimum via `getCapabilities().zoom` + `applyConstraints()`, not negative zoom; if min is `1.0`, only a wider physical lens can move farther back: https://web.dev/articles/camera-pan-tilt-zoom
-
-### Root cause found
-- The native Android path was already 3:4 (`1440x1920`) with `adaptOutputToDimensions=false`, but the web/Lovable preview path had silently drifted back to 9:16 (`1080x1920`). On mobile Chrome/WebView that asks the browser to center-crop the selfie sensor before rendering, producing the close-face zoom in the uploaded screenshot.
-
-### Fix plan
-1. Restore web preview capture defaults and fallbacks to 3:4 portrait (`1440x1920`, `1080x1440`, `720x960`) while keeping the current full-screen UI/render area unchanged.
-2. Keep `resizeMode:'none'` and hardware-minimum zoom lock so the browser/native driver cannot add digital crop zoom.
-3. Mark web camera tracks as `contentHint:'detail'` for sharper host preview/live thumbnails instead of motion-biased blur.
-4. Bump persistent camera session version so stale 9:16 crop-scaled streams are discarded on next preview open.
-5. If hardware minimum zoom / ultra-wide lens is still not enough in Lovable web preview, render a professional synthetic zoom-out layer: foreground camera uses full sensor `contain`, while a blurred cover duplicate fills the same UI area behind it. This keeps the current full-screen area visually filled without center-cropping the face.
-
 # Home Host Card Full-Photo Fix
 
 ## Goal

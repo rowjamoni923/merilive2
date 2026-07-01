@@ -36,7 +36,6 @@ const hasLiveVideo = (s: MediaStream | null) =>
 
 export default function PersistentCameraSurface() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const underlayVideoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(() => peekCameraSession());
 
   const isNative = isNativeAndroidApp();
@@ -63,21 +62,13 @@ export default function PersistentCameraSurface() {
   // Bind / unbind the stream to the <video> element.
   useEffect(() => {
     const el = videoRef.current;
-    const underlay = underlayVideoRef.current;
     if (!el) return;
-    if (stream && (el.srcObject !== stream || underlay?.srcObject !== stream)) {
+    if (stream && el.srcObject !== stream) {
       try {
         el.srcObject = stream;
-        if (underlay) underlay.srcObject = stream;
         const p = el.play();
-        const u = underlay?.play();
         if (p && typeof (p as Promise<void>).catch === 'function') {
           (p as Promise<void>).catch(() => {
-            /* autoplay rejection — harmless, frames still paint */
-          });
-        }
-        if (u && typeof (u as Promise<void>).catch === 'function') {
-          (u as Promise<void>).catch(() => {
             /* autoplay rejection — harmless, frames still paint */
           });
         }
@@ -87,8 +78,6 @@ export default function PersistentCameraSurface() {
     } else if (!stream && el.srcObject) {
       try { el.pause(); } catch { /* ignore */ }
       try { el.srcObject = null; } catch { /* ignore */ }
-      try { underlay?.pause(); } catch { /* ignore */ }
-      try { if (underlay) underlay.srcObject = null; } catch { /* ignore */ }
     }
   }, [stream]);
 
@@ -96,39 +85,21 @@ export default function PersistentCameraSurface() {
   if (isNative || !hasLiveVideo(stream)) return null;
 
   return (
-    <>
-      <video
-        ref={underlayVideoRef}
-        autoPlay
-        muted
-        playsInline
-        aria-hidden
-        tabIndex={-1}
-        data-persistent-camera-surface-underlay=""
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
-        style={{
-          zIndex: 0,
-          // Selfie-mirror to match GoLive / CreateParty / ActiveCall preview.
-          transform: 'scaleX(-1) scale(1.1)',
-          backgroundColor: 'transparent',
-        }}
-      />
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        aria-hidden
-        tabIndex={-1}
-        data-persistent-camera-surface=""
-        className="pointer-events-none fixed inset-0 h-full w-full object-contain bg-transparent"
-        style={{
-          zIndex: 1,
-          // Selfie-mirror to match GoLive / CreateParty / ActiveCall preview.
-          transform: 'scaleX(-1)',
-          backgroundColor: 'transparent',
-        }}
-      />
-    </>
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      aria-hidden
+      tabIndex={-1}
+      data-persistent-camera-surface=""
+      className="pointer-events-none fixed inset-0 h-full w-full object-cover bg-transparent"
+      style={{
+        zIndex: 0,
+        // Selfie-mirror to match GoLive / CreateParty / ActiveCall preview.
+        transform: 'scaleX(-1)',
+        backgroundColor: 'transparent',
+      }}
+    />
   );
 }

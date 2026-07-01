@@ -50,7 +50,7 @@ export interface ConnectOptions {
   roomScope?: NativeRoomScope;
   pauseCameraOnBackground?: boolean;
   /** Locked publish quality — passed straight to LiveKitPlugin.kt. Defaults
-   * to the LOCK_* constants in Kotlin (true 9:16 portrait capture, 30fps base, 3-layer
+   * to the LOCK_* constants in Kotlin (natural 3:4 capture, 30fps base, 3-layer
    * simulcast). Anti-blur contract: SDK / SFU MUST NOT down-tune the base
    * encoding at runtime — adaptation happens viewer-side (simulcast layer
    * switch) only. */
@@ -124,12 +124,6 @@ interface NativeLiveKitPlugin {
    */
   attachLocal?(opts?: { mirror?: boolean }): Promise<{ attached: boolean; reason?: string }>;
   detachLocal?(): Promise<{ detached: boolean }>;
-  attachLocalSurface(opts: { viewId: string; mirror?: boolean; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
-  attachRemoteSurface(opts: { viewId: string; sid?: string; identity?: string; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
-  updateSurfaceBounds(opts: { viewId: string; x: number; y: number; width: number; height: number }): Promise<void>;
-  detachSurface(opts: { viewId: string }): Promise<void>;
-  detachAll(): Promise<void>;
-  forceDetachAllSurfaces?(): Promise<{ detached: boolean }>;
   /**
    * Phase 6 (instant-entry) — native equivalent of `Room.prepareConnection`
    * on the Kotlin SDK. Warms DNS + TLS on the OkHttp/WebRTC socket pool used
@@ -214,25 +208,6 @@ const isDev = typeof import.meta !== 'undefined' && (import.meta as any)?.env?.D
 export const NativeLiveKit: NativeLiveKitPlugin & Record<string, any> =
   new Proxy(RealPlugin as any, {
     get(target, prop: string) {
-      // Capacitor exposes plugin method stubs on web, but invoking them rejects
-      // with `UNIMPLEMENTED`. This bridge is Android-only, so web/iOS must
-      // resolve harmlessly before touching the real Capacitor proxy.
-      if (!isNativeLiveKitAvailable()) {
-        if (prop === 'isAvailable') {
-          return async () => ({ available: false, backend: 'web', supportsPreview: false, methods: [] });
-        }
-        if (prop === 'getActiveSession') {
-          return async () => ({ active: false, boundAtMs: 0, ageMs: 0, canHardReconnect: false });
-        }
-        if (prop === 'addListener') {
-          return async () => ({ remove: async () => undefined });
-        }
-        if (prop === 'removeAllListeners') {
-          return async () => undefined;
-        }
-        if (prop === 'then') return undefined;
-        return async () => undefined;
-      }
       const value = (target as any)[prop];
       if (typeof value === 'function') return value.bind(target);
       if (typeof value !== 'undefined') return value;

@@ -47,54 +47,40 @@ export const maybeUpgradeToWidestCamera = async (
     const devices = await navigator.mediaDevices.enumerateDevices();
     const candidates = devices
       .filter((device) => device.kind === 'videoinput' && device.deviceId && device.deviceId !== currentDeviceId)
-      .map((device, index) => {
-        const label = device.label || '';
-        const explicitScore = scoreWideCameraLabel(label, facingMode);
-        // Some Android WebViews expose labels as "Camera 0/1/2" or even blank
-        // after permission. Try those only after explicit same-facing/wide
-        // matches; reject wrong-facing tracks after opening below.
-        const score = label.trim() ? explicitScore : 1;
-        return { device, score, index };
-      })
+      .map((device) => ({ device, score: scoreWideCameraLabel(device.label || '', facingMode) }))
       // Prefer explicit ultra-wide labels, but also try other same-facing
       // physical cameras (e.g. "front camera 2") because many Android WebViews
       // hide the "wide" wording even when a wider lens exists.
-      .filter(({ score }) => score >= 1)
-      .sort((a, b) => (b.score - a.score) || (a.index - b.index));
+      .filter(({ score }) => score >= 20)
+      .sort((a, b) => b.score - a.score);
 
-    if (!candidates.length) return initialStream;
+    const best = candidates[0]?.device;
+    if (!best) return initialStream;
 
     const audioTracks = initialStream.getAudioTracks().filter((track) => track.readyState === 'live');
+    const wideConstraints = buildPortraitVideoFallbacks({ deviceId: best.deviceId, frameRate: 30 });
+
     const openWideCandidate = async () => {
-      for (const { device } of candidates) {
-        const wideConstraints = buildPortraitVideoFallbacks({ deviceId: device.deviceId, frameRate: 30 });
-        for (const video of wideConstraints) {
-          try {
-            const wideStream = await withTimeout(
-              navigator.mediaDevices.getUserMedia({ video, audio: false }),
-              9000,
-              'Wide camera request timed out',
-            );
-            const videoTracks = wideStream.getVideoTracks();
-            const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
-            const actualFacing = String(videoTracks[0]?.getSettings?.().facingMode || '').toLowerCase();
-            if (actualFacing && actualFacing !== facingMode) {
-              stopMediaStream(wideStream);
-              continue;
-            }
-            if (!hasLiveVideo || !videoTracks.some(isPortraitCameraTrack)) {
-              stopMediaStream(wideStream);
-              continue;
-            }
-            audioTracks.forEach((track) => {
-              if (track.readyState === 'live') wideStream.addTrack(track);
-            });
-            releaseAndroidWebViewCameraWhenStopped(wideStream, `${source}:wide-camera:${facingMode}`);
-            console.log('[Camera] Upgraded to widest available camera:', device.label || device.deviceId, source);
-            return wideStream;
-          } catch (error: any) {
-            console.warn('[Camera] Wide camera candidate failed:', error?.name, error?.message, source);
+      for (const video of wideConstraints) {
+        try {
+          const wideStream = await withTimeout(
+            navigator.mediaDevices.getUserMedia({ video, audio: false }),
+            9000,
+            'Wide camera request timed out',
+          );
+          const hasLiveVideo = wideStream.getVideoTracks().some((track) => track.readyState === 'live');
+          if (!hasLiveVideo || !wideStream.getVideoTracks().some(isPortraitCameraTrack)) {
+            stopMediaStream(wideStream);
+            continue;
           }
+          audioTracks.forEach((track) => {
+            if (track.readyState === 'live') wideStream.addTrack(track);
+          });
+          releaseAndroidWebViewCameraWhenStopped(wideStream, `${source}:wide-camera:${facingMode}`);
+          console.log('[Camera] Upgraded to widest available camera:', best.label || best.deviceId, source);
+          return wideStream;
+        } catch (error: any) {
+          console.warn('[Camera] Wide camera candidate failed:', error?.name, error?.message, source);
         }
       }
       return null;
@@ -131,12 +117,6 @@ export const maybeUpgradeToWidestCamera = async (
           9000,
           'Restore camera request timed out',
         );
-        const restoredVideoTracks = restored.getVideoTracks();
-        if (!restoredVideoTracks.some((track) => track.readyState === 'live') || !restoredVideoTracks.some(isPortraitCameraTrack)) {
-          console.warn('[Camera] Rejected non-portrait restored camera mode:', JSON.stringify(restoredVideoTracks[0]?.getSettings?.() || {}));
-          stopMediaStream(restored);
-          continue;
-        }
         audioTracks.forEach((track) => {
           if (track.readyState === 'live') restored.addTrack(track);
         });
