@@ -97,6 +97,7 @@ const CreateParty = () => {
   // native LiveKit prejoin preview is never torn down.
   const partySession = usePartySessionOptional();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewUnderlayVideoRef = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<PartyMode>("video");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -379,6 +380,11 @@ const CreateParty = () => {
       if (v.srcObject !== stream) {
         v.srcObject = stream;
       }
+      const underlay = previewUnderlayVideoRef.current;
+      if (underlay && underlay.srcObject !== stream) {
+        underlay.srcObject = stream;
+        underlay.play().catch(() => {});
+      }
       const playPromise = v.play();
       if (playPromise !== undefined) {
         playPromise
@@ -624,27 +630,51 @@ const CreateParty = () => {
           />
         )}
         {!isNativeAndroid && (
-          <video
-            key={stream?.id || 'no-stream'}
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-            poster=""
-            // @ts-ignore
-            x5-video-player-type="h5"
-            webkit-playsinline="true"
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-200 z-20",
-              showVideo ? "opacity-100" : "opacity-0",
-              facingMode === "user" && "scale-x-[-1]"
-            )}
-            style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-          />
+          <>
+            <video
+              key={`${stream?.id || 'no-stream'}-underlay`}
+              ref={previewUnderlayVideoRef}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              // @ts-ignore
+              x5-video-player-type="h5"
+              webkit-playsinline="true"
+              className={cn(
+                "absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-200 z-10 blur-[18px] saturate-110 brightness-75 scale-110",
+                showVideo ? "opacity-100" : "opacity-0",
+                facingMode === "user" && "scale-x-[-1]"
+              )}
+              style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+            />
+            <video
+              key={stream?.id || 'no-stream'}
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              // @ts-ignore
+              x5-video-player-type="h5"
+              webkit-playsinline="true"
+              className={cn(
+                "absolute inset-0 w-full h-full object-contain bg-transparent transition-opacity duration-200 z-20",
+                showVideo ? "opacity-100" : "opacity-0",
+                facingMode === "user" && "scale-x-[-1]"
+              )}
+              style={{ pointerEvents: 'none', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+            />
+          </>
         )}
       </div>
     );

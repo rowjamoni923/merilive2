@@ -72,6 +72,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const underlayVideoRef = useRef<HTMLVideoElement>(null);
   const readyNotifiedRef = useRef(false);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
@@ -110,6 +111,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   const revealVideo = () => {
     const el = videoRef.current;
     if (el && el.style.opacity !== '1') el.style.opacity = '1';
+    const underlay = underlayVideoRef.current;
+    if (underlay && underlay.style.opacity !== '1') underlay.style.opacity = '1';
   };
 
 
@@ -164,6 +167,25 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     enforceInlineSurface();
     hardenVideoElementForNative(el, { muted: mutedRef.current });
+    const underlayEl = underlayVideoRef.current;
+    if (underlayEl && mediaTrack && mediaTrack.readyState !== 'ended') {
+      underlayEl.controls = false;
+      underlayEl.removeAttribute('controls');
+      underlayEl.removeAttribute('poster');
+      underlayEl.setAttribute('autoplay', '');
+      underlayEl.setAttribute('playsinline', '');
+      underlayEl.setAttribute('webkit-playsinline', 'true');
+      underlayEl.muted = true;
+      underlayEl.defaultMuted = true;
+      underlayEl.setAttribute('muted', '');
+      hardenVideoElementForNative(underlayEl, { muted: true });
+      const underlayStream = underlayEl.srcObject as MediaStream | null;
+      const underlayTrack = underlayStream?.getVideoTracks?.()[0];
+      if (underlayTrack?.id !== mediaTrack.id) {
+        try { underlayEl.srcObject = new MediaStream([mediaTrack]); } catch { /* noop */ }
+      }
+      underlayEl.play().catch(() => {});
+    }
 
     // === ATTACH TRACK ===
     // Pkg-audit Bug E: Use videoTrack.attach() EXCLUSIVELY when available.
@@ -348,6 +370,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.onplaying = null;
       el.onwaiting = null;
       el.onstalled = null;
+      if (underlayEl) {
+        cleanupVideoHardening(underlayEl);
+        underlayEl.srcObject = null;
+      }
     };
   }, [trackKey]);
 
@@ -405,6 +431,40 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           preview on host side) shows through cleanly until the video track
           fades in. Any loading-style overlay here would read as "still
           loading" to users even when the connection is already warm. */}
+      {fit === 'cover' && (
+        <video
+          ref={underlayVideoRef}
+          data-livekit-media="true"
+          data-no-auto-pause="true"
+          aria-hidden="true"
+          autoPlay
+          playsInline
+          muted
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+          poster=""
+          {...nativeInlineVideoProps}
+          className="absolute inset-0 h-full w-full pointer-events-none select-none"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            transform: mirror ? 'scaleX(-1) scale(1.08) translateZ(0)' : 'scale(1.08) translateZ(0)',
+            width: '100%',
+            height: '100%',
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitAppearance: 'none',
+            filter: 'blur(18px) saturate(1.08) brightness(0.82)',
+            opacity: 0,
+            transition: 'opacity 160ms linear',
+            zIndex: 0,
+          } as CSSProperties}
+        />
+      )}
       <video 
         ref={videoRef}
         data-livekit-media="true"
@@ -421,7 +481,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none relative"
         style={{
-          objectFit: fit,
+          objectFit: fit === 'cover' ? 'contain' : fit,
           objectPosition: 'center center',
           transform: mirror ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)',
           width: '100%',
