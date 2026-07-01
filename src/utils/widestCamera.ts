@@ -48,7 +48,10 @@ export const maybeUpgradeToWidestCamera = async (
     const candidates = devices
       .filter((device) => device.kind === 'videoinput' && device.deviceId && device.deviceId !== currentDeviceId)
       .map((device) => ({ device, score: scoreWideCameraLabel(device.label || '', facingMode) }))
-      .filter(({ score }) => score >= 70)
+      // Prefer explicit ultra-wide labels, but also try other same-facing
+      // physical cameras (e.g. "front camera 2") because many Android WebViews
+      // hide the "wide" wording even when a wider lens exists.
+      .filter(({ score }) => score >= 20)
       .sort((a, b) => b.score - a.score);
 
     const best = candidates[0]?.device;

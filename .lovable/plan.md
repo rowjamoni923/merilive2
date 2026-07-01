@@ -40,7 +40,7 @@ Stop Go Live / Party / Private Call camera preview from rendering as a horizonta
 4. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
 5. Disable LiveKit Android capture adaptation (`adaptOutputToDimensions=false`) and browser crop-scaling (`resizeMode:'none'`) so zoom-out comes from wider captured FOV, not fake CSS bars.
 6. Apply true minimum optical zoom-out on both browser tracks and native LiveKit CameraX tracks, with delayed retries so Live/Party/Private Call all move backward as far as the hardware allows without changing UI surface area.
-7. For Lovable/web preview, after the first permission-granted stream, scan `enumerateDevices()` for a wide/ultra-wide camera and reopen that exact `deviceId` before attaching/publishing, so preview/Live/Party/Private Call use the farthest available lens instead of the default cropped lens.
+7. For Lovable/web preview, after the first permission-granted stream, scan `enumerateDevices()` for a wide/ultra-wide or other same-facing physical camera and reopen that exact `deviceId` before attaching/publishing, so preview/Live/Party/Private Call use the farthest available lens instead of the default cropped lens.
 
 # Signup Host/User Role Mapping Fix
 
