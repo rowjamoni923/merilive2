@@ -14,25 +14,27 @@ const withSource = (options: PortraitConstraintOptions) => {
 };
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
-  const width = options.width ?? 1440;
+  // Pro live-streaming apps (Chamet/Bigo/Poppo) capture at TRUE 9:16 portrait.
+  // On typical 4:3 phone sensors this crops top/bottom (extra head-room) but
+  // preserves the FULL sensor WIDTH — giving the widest possible field of view
+  // on the horizontal axis, which is what the user perceives as "zoomed out".
+  // Capturing 3:4 and then letting object-cover crop the sides inside a 9:16
+  // preview shell is what causes the "face too close / zoomed in" complaint.
+  const width = options.width ?? 1080;
   const height = options.height ?? 1920;
   return {
     ...withSource(options),
     width: { ideal: width },
     height: { ideal: height },
-    // IMPORTANT: keep capture on the phone camera's natural portrait frame
-    // (3:4 first). Forcing 9:16 + crop-and-scale makes browsers digitally
-    // center-crop the sensor, which is exactly the "face too close" zoom-in.
     aspectRatio: { ideal: width / height },
-    resizeMode: 'none',
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
   } as unknown as MediaTrackConstraints;
 };
 
 export const buildPortraitVideoFallbacks = (options: PortraitConstraintOptions = {}): MediaTrackConstraints[] => [
-  buildPortraitVideoConstraint({ ...options, width: 1440, height: 1920, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1440, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 720, height: 960, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1920, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 720, height: 1280, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 540, height: 960, frameRate: 30 }),
 ];
 
 export const isPortraitCameraTrack = (track: MediaStreamTrack | null | undefined): boolean => {
