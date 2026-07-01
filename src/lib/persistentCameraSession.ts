@@ -19,6 +19,7 @@
  *   forceDisposeCameraSession();       // explicit "End Live" / "Leave Call"
  */
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
+import { buildPortraitVideoConstraint } from '@/utils/portraitCameraConstraints';
 
 export type CameraSessionConstraints = {
   video?: boolean | MediaTrackConstraints;
@@ -72,21 +73,14 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
       ? false
       : typeof req.video === 'object'
         ? { ...req.video, facingMode: req.facingMode ?? (req.video as any).facingMode ?? 'user' }
-        : {
-            facingMode: req.facingMode ?? 'user',
-            width: { ideal: 1080 },
-            height: { ideal: 1440 },
-            resizeMode: 'none',
-            frameRate: { ideal: 30 },
-          } as unknown as MediaTrackConstraints;
+        : buildPortraitVideoConstraint({ facingMode: req.facingMode ?? 'user' });
   const audio = req.audio === undefined ? true : req.audio;
   return { video, audio } as MediaStreamConstraints;
 };
 
 const keyOf = (req: CameraSessionConstraints) =>
-  // Include capture-layout version so old over-cropped 9:16 sessions are not
-  // reused after switching back to natural 3:4 no-zoom capture.
-  JSON.stringify({ layout: 'sensor-3x4-nozoom-v1', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
+  // Include capture-layout version so stale square/no-resize streams are not reused.
+  JSON.stringify({ layout: 'portrait-9x16-v2', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
 
 const isStreamUsable = (stream: MediaStream | null | undefined) =>
   !!stream && stream.getTracks().some((t) => t.readyState === 'live');
