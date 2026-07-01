@@ -542,14 +542,11 @@ const Index = () => {
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         data-prefetch={user.isLive ? "live" : "profile"}
         data-stream-id={user.liveStreamId}
-        className={cn(
-          "relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90",
-          "bg-card"
-        )}
+        className="relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90"
         style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
 
-        <div className="relative aspect-[3/4] bg-card overflow-hidden">
+        <div className="relative aspect-[3/4] overflow-hidden">
           {/* Show the thumbnail as one uninterrupted professional media tile — no letterbox fill, color block, or border. */}
           <img 
             key={cardImageUrl}

@@ -65,7 +65,7 @@ export const UserCard = ({
   return (
     <div
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden bg-card cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300"
     >
       {/* Photo with Frame Overlay */}
       <div className="relative aspect-[3/4] overflow-hidden">
@@ -122,8 +122,8 @@ export const UserCard = ({
           </div>
         )}
 
-        {/* Bottom Badges */}
-        <div className="absolute bottom-3 left-2 right-16 flex items-center gap-1 flex-wrap">
+        {/* Bottom Info — floats directly on the photo; no gray panel/border. */}
+        <div className="absolute bottom-3 left-2 right-16 flex items-end gap-2 pointer-events-none">
           {/* Small Framed Avatar */}
           <div className="flex-shrink-0">
             <AvatarWithFrame
@@ -139,38 +139,23 @@ export const UserCard = ({
             />
           </div>
 
-          {/* Country Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 gap-1 px-2 py-0.5 text-xs">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
-            {countryCode}
-          </Badge>
-
-          {/* Language Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 px-2 py-0.5 text-xs">
-            {language}
-          </Badge>
-
-          {/* Level Badge */}
-          <Badge className={cn("border-0 gap-0.5 px-2 py-0.5 text-xs", getLevelColor())}>
-            {getLevelIcon()}
-            Lv{level}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Info Section */}
-      <div className="p-3">
-        <div className="flex items-center gap-1">
-          <h3 className="font-semibold text-sm truncate text-card-foreground">{name}</h3>
-          {(isVerified || isFaceVerified) && (
-            <CheckCircle className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-            <Phone className="w-3 h-3 text-green-500" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <h3 className="font-bold text-sm truncate text-on-dark" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.75)' }}>{name}</h3>
+              {(isVerified || isFaceVerified) && (
+                <CheckCircle className="w-3.5 h-3.5 text-info flex-shrink-0 drop-shadow" />
+              )}
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <Badge className={cn("border-0 gap-0.5 px-2 py-0.5 text-xs", getLevelColor())}>
+                {getLevelIcon()}
+                Lv{level}
+              </Badge>
+              <Badge className="bg-foreground/55 backdrop-blur-sm text-on-dark border-0 gap-1 px-2 py-0.5 text-xs">
+                <span>{countryFlag || countryCode}</span>
+              </Badge>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground truncate flex-1">{bio}</p>
         </div>
       </div>
     </div>
