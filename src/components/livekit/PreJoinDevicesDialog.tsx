@@ -105,8 +105,8 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
             video: prefs.videoinput
-              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } }
-              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } },
+              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 } }
+              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 } },
           }),
           'prejoin:preview',
         );
