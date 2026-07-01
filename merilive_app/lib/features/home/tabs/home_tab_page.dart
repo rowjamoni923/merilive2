@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/router/app_router.gr.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../bloc/banner_cubit.dart';
 import '../bloc/country_filter_cubit.dart';
 import '../bloc/home_feed_cubit.dart';
+import '../data/banner.dart';
+import '../data/banner_repository.dart';
 import '../data/country_repository.dart';
 import '../data/home_feed_repository.dart';
 import '../data/home_host.dart';
+import '../widgets/banner_carousel.dart';
 import '../widgets/host_card.dart';
 
 /// Home tab — H1 header + H2 dynamic countries + H3 feed data layer.
@@ -34,6 +39,7 @@ class _HomeTabPageState extends State<HomeTabPage>
     with AutomaticKeepAliveClientMixin {
   late final CountryFilterCubit _countryCubit;
   late final HomeFeedCubit _feedCubit;
+  late final BannerCubit _bannerCubit;
 
   @override
   void initState() {
@@ -44,12 +50,14 @@ class _HomeTabPageState extends State<HomeTabPage>
       HomeFeedRepository(client),
       currentUserId: client.auth.currentUser?.id,
     )..start();
+    _bannerCubit = BannerCubit(BannerRepository(client))..start();
   }
 
   @override
   void dispose() {
     _countryCubit.close();
     _feedCubit.close();
+    _bannerCubit.close();
     super.dispose();
   }
 
