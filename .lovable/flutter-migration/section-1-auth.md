@@ -121,11 +121,13 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ---
 
-## 7. State Management
+## 7. State Management (LOCKED: BLoC)
 
-- **Riverpod** (industry standard for Supabase Flutter apps) — `authProvider` (StreamNotifier watching `supabase.auth.onAuthStateChange`), `sessionProvider`, `profileProvider`.
-- No global mutable singletons. Session flows through providers.
-- Post-signin side effects (ban check, native storage save, avatar prime) run inside `authProvider` listener — parity with `App.tsx:998-1208`.
+- **flutter_bloc** — `AuthBloc` (events: `AppStarted`, `SignedIn`, `SignedOut`, `SessionRefreshed`, `BanDetected`; states: `AuthInitial`, `AuthLoading`, `Authenticated(session, profile)`, `Unauthenticated`, `Banned`).
+- **hydrated_bloc** — persists last known session locally so cold-start is instant (parity with web-এর native storage restore)।
+- Feature-level cubits: `EmailOtpCubit`, `PhoneOtpCubit`, `DeviceRecoverCubit`, `GenderSelectionCubit`, `ResetPasswordCubit`।
+- Supabase `onAuthStateChange` stream পাইপ করা হবে `AuthBloc`-এ single source-of-truth হিসেবে — parity with `App.tsx:998`।
+- **Router:** `auto_route` — type-safe routes, guards (`AuthGuard`, `BanGuard`), deep-link support built-in।
 
 ---
 
