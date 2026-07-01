@@ -486,7 +486,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none relative"
         style={{
-          objectFit: fit === 'cover' ? 'contain' : fit,
+          objectFit: fit,
           objectPosition: 'center center',
           transform: mirror ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)',
           width: '100%',
