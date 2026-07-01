@@ -47,6 +47,7 @@ import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSessi
 import { claimAndroidWebViewCamera, getAndroidCameraOwner, releaseAndroidWebViewCamera, releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 import { clearNativeMediaSurface, setNativeMediaSurface } from '@/utils/nativeMediaSurface';
 import { forceDisposeCameraSession, peekCameraSession } from '@/lib/persistentCameraSession';
+import { enforcePermanentTrackLock } from '@/utils/cameraLock';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -1136,6 +1137,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             try {
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
+              void enforcePermanentTrackLock(mt, 'livekit-client:local-published');
             } catch { /* ignore */ }
           } else if (publication.track.kind === Track.Kind.Audio) {
             setLocalAudioTrack(publication.track);
@@ -1458,6 +1460,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   if (mt && 'contentHint' in mt) {
                     (mt as any).contentHint = 'detail';
                   }
+                  void enforcePermanentTrackLock(mt, 'livekit-client:initial-local');
                 } catch { /* ignore */ }
               } else if (pub.track.kind === Track.Kind.Audio) {
                 setLocalAudioTrack(pub.track);
@@ -1502,7 +1505,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   setLocalVideoTrack(refreshedPub.track);
                   // Re-attach onended listener to the fresh track
                   const freshMt = (refreshedPub.track as any).mediaStreamTrack as MediaStreamTrack | undefined;
-                  if (freshMt) attachOnEnded(freshMt);
+                  if (freshMt) {
+                    attachOnEnded(freshMt);
+                    void enforcePermanentTrackLock(freshMt, 'livekit-client:recovered');
+                  }
                   // Phase-C: success → reset failure counter so a future
                   // (unrelated) glitch isn't penalized by prior history.
                   recoveryFailures = 0;
@@ -1541,7 +1547,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           const initialPub = Array.from(room.localParticipant.trackPublications.values())
             .find((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
           const initialMt = (initialPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
-          if (initialMt) attachOnEnded(initialMt);
+          if (initialMt) {
+            attachOnEnded(initialMt);
+            void enforcePermanentTrackLock(initialMt, 'livekit-client:recovery-initial');
+          }
 
           hostVideoRecoveryTimerRef.current = setInterval(() => {
             if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
@@ -1552,6 +1561,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             if (!track || !mediaTrack) return;
             // Belt-and-suspenders: re-attach onended in case the track was swapped
             attachOnEnded(mediaTrack);
+            void enforcePermanentTrackLock(mediaTrack, 'livekit-client:recovery-watchdog');
             if (!mediaTrack.enabled) mediaTrack.enabled = true;
             if (mediaTrack.readyState === 'ended') recoverHostCamera();
           }, 3000); // Polling kept as safety-net; onended is the primary path.

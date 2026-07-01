@@ -24,6 +24,7 @@ import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { adoptCameraSession } from '@/lib/persistentCameraSession';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
+import { enforcePermanentTrackLock } from '@/utils/cameraLock';
 
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -886,6 +887,7 @@ export function usePartyRoomNativeLiveKit(
             try {
               const mt = publication.track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
+              void enforcePermanentTrackLock(mt, 'party-livekit:local-published');
             } catch { /* ignore */ }
           }
           rebuildLocalStream();
@@ -1052,6 +1054,12 @@ export function usePartyRoomNativeLiveKit(
             .then(() => new Promise((resolve) => setTimeout(resolve, 180)))
             .then(() => claimWebViewCameraIfAndroid(true))
             .then(() => activeRoom.localParticipant.setCameraEnabled(true))
+            .then(() => {
+              const fresh = Array.from(activeRoom.localParticipant.trackPublications.values())
+                .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+              const freshMt = (fresh?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+              if (freshMt) void enforcePermanentTrackLock(freshMt, 'party-livekit:recovered');
+            })
             .catch((e) => console.warn('[PartyLiveKit] camera recovery failed:', e));
         }, 4000);
         delayedTimers.push(partyVideoRecovery as unknown as ReturnType<typeof setTimeout>);

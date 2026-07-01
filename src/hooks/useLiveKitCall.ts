@@ -51,6 +51,7 @@ import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 import { setNativeMediaSurface, clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
+import { enforcePermanentTrackLock } from '@/utils/cameraLock';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -780,6 +781,7 @@ export function useLiveKitCall(
             try {
               const mt = track.mediaStreamTrack;
               if (mt && 'contentHint' in mt) (mt as any).contentHint = 'detail';
+              void enforcePermanentTrackLock(mt, 'livekit-call:local-published');
             } catch { /* ignore */ }
           }
         });
@@ -928,7 +930,10 @@ export function useLiveKitCall(
               const fresh = Array.from(activeRoom.localParticipant.trackPublications.values())
                 .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
               const freshMt = (fresh?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
-              if (freshMt) attachCallOnEnded(freshMt);
+              if (freshMt) {
+                attachCallOnEnded(freshMt);
+                void enforcePermanentTrackLock(freshMt, 'livekit-call:recovered');
+              }
             })
             .catch((e) => console.warn('[LiveKitCall] camera recovery failed:', e))
             .finally(() => { callRecovering = false; });
@@ -953,7 +958,10 @@ export function useLiveKitCall(
         const initialCallPub = Array.from(room.localParticipant.trackPublications.values())
           .find((p: any) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
         const initialCallMt = (initialCallPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
-        if (initialCallMt) attachCallOnEnded(initialCallMt);
+        if (initialCallMt) {
+          attachCallOnEnded(initialCallMt);
+          void enforcePermanentTrackLock(initialCallMt, 'livekit-call:recovery-initial');
+        }
 
         callVideoRecoveryTimerRef.current = setInterval(() => {
           if (deadRef.current || usingNativeRef.current) return;
@@ -964,6 +972,7 @@ export function useLiveKitCall(
           const mediaTrack = (vPub?.track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
           if (!mediaTrack) return;
           attachCallOnEnded(mediaTrack);
+          void enforcePermanentTrackLock(mediaTrack, 'livekit-call:recovery-watchdog');
           if (mediaTrack.readyState === 'ended') recoverCallCamera();
         }, 4000);
 
