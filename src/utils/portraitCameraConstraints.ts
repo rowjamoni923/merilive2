@@ -14,8 +14,8 @@ const withSource = (options: PortraitConstraintOptions) => {
 };
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
-  const width = options.width ?? 1080;
-  const height = options.height ?? 1440;
+  const width = options.width ?? 1440;
+  const height = options.height ?? 1920;
   return {
     ...withSource(options),
     width: { ideal: width },
@@ -30,9 +30,9 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
 };
 
 export const buildPortraitVideoFallbacks = (options: PortraitConstraintOptions = {}): MediaTrackConstraints[] => [
+  buildPortraitVideoConstraint({ ...options, width: 1440, height: 1920, frameRate: 30 }),
   buildPortraitVideoConstraint({ ...options, width: 1080, height: 1440, frameRate: 30 }),
   buildPortraitVideoConstraint({ ...options, width: 720, height: 960, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 540, height: 720, frameRate: 30 }),
 ];
 
 export const isPortraitCameraTrack = (track: MediaStreamTrack | null | undefined): boolean => {
