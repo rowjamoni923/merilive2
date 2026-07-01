@@ -413,10 +413,15 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   // Cleanup on unmount
   useEffect(() => {
     const currentVideo = videoRef.current;
+    const currentUnderlay = underlayVideoRef.current;
     return () => {
       if (currentVideo) {
         cleanupVideoHardening(currentVideo);
         currentVideo.srcObject = null;
+      }
+      if (currentUnderlay) {
+        cleanupVideoHardening(currentUnderlay);
+        currentUnderlay.srcObject = null;
       }
     };
   }, []);
