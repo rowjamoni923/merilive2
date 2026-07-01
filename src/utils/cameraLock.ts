@@ -13,20 +13,25 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v1_20260304',
+  id: 'camera_lock_v2_zoomout_20260701',
+  // Widest possible FOV. We snap to the hardware minimum zoom (e.g. 0.5x on
+  // ultra-wide capable devices, else 1x). Never zoom IN past 1x.
   fixedZoomLevel: 1,
+  minZoomFloor: 0.05,
   fixedObjectPosition: 'center center',
 } as const);
 
-type ZoomCapability = { min?: number; max?: number } | undefined;
+type ZoomCapability = { min?: number; max?: number; step?: number } | undefined;
 
 function resolveLockedZoom(capability: ZoomCapability): number {
-  const target = CAMERA_LOCK_POLICY.fixedZoomLevel;
-  if (!capability || typeof capability !== 'object') return target;
+  const ceiling = CAMERA_LOCK_POLICY.fixedZoomLevel; // never above 1x
+  if (!capability || typeof capability !== 'object') return ceiling;
 
-  const min = Number.isFinite(capability.min) ? Number(capability.min) : target;
-  const max = Number.isFinite(capability.max) ? Number(capability.max) : target;
-  return Math.min(Math.max(target, min), max);
+  const min = Number.isFinite(capability.min)
+    ? Math.max(Number(capability.min), CAMERA_LOCK_POLICY.minZoomFloor)
+    : ceiling;
+  // Always target the widest FOV the hardware allows, capped at 1x.
+  return Math.min(min, ceiling);
 }
 
 export async function enforcePermanentTrackLock(
