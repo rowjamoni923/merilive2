@@ -13,15 +13,17 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v4_optical_backward_0_8_20260701',
-  // Match the user's Android camera reference: a small backward/zoom-out
-  // step from the normal selfie baseline. Prefer 0.8x when the browser/OEM
-  // exposes it; clamp to the hardware minimum and NEVER go above 1x.
-  fixedZoomLevel: 0.8,
+  id: 'camera_lock_v5_optical_min_20260701',
+  // User request: push to hardware minimum (target 0.0x / -0.05x).
+  // Real cameras cannot go below their optical minimum, so we request 0
+  // and let resolveLockedZoom() clamp to whatever minimum the device exposes
+  // (typically 0.5x ultra-wide or 1.0x).
+  fixedZoomLevel: 0,
   maxNonMagnifyingZoom: 1,
-  minZoomFloor: 0.05,
+  minZoomFloor: 0,
   fixedObjectPosition: 'center center',
 } as const);
+
 
 type ZoomCapability = { min?: number; max?: number; step?: number } | undefined;
 
