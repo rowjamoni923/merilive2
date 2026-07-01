@@ -145,6 +145,7 @@ class LiveKitPlugin : Plugin() {
     // The ONE camera track. Survives preview → publish → close.
     private var previewTrack: LocalVideoTrack? = null
     private var previewRenderer: TextureViewRenderer? = null
+    private var previewRendererBound: Boolean = false
     private var previewRendererContainer: FrameLayout? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
@@ -269,7 +270,15 @@ class LiveKitPlugin : Plugin() {
                     boundedMode = boundedOnly
                     if (previewTrack != null) {
                         Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
-                        if (!boundedOnly) ensureRendererAttached(mirror)
+                        if (!boundedOnly) {
+                            ensureRendererAttached(mirror)
+                            previewRenderer?.let { renderer ->
+                                if (!previewRendererBound) {
+                                    previewTrack?.addRenderer(renderer)
+                                    previewRendererBound = true
+                                }
+                            }
+                        }
                         call.resolve(JSObject().put("started", true).put("reused", true))
                         return@withLock
                     }
@@ -293,7 +302,12 @@ class LiveKitPlugin : Plugin() {
 
                     if (!boundedOnly) {
                         ensureRendererAttached(mirror)
-                        track.addRenderer(previewRenderer!!)
+                        previewRenderer?.let { renderer ->
+                            if (!previewRendererBound) {
+                                track.addRenderer(renderer)
+                                previewRendererBound = true
+                            }
+                        }
                     } else {
                         // Bounded mode — push to any already-registered seat slots
                         // that match the local identity once we know it.
