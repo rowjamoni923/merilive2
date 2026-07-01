@@ -314,7 +314,7 @@ class LiveKitPlugin : Plugin() {
                                 previewRendererBound = true
                             }
                         }
-                    /*
+                    } else {
                         // Bounded mode — push to any already-registered seat slots
                         // that match the local identity once we know it.
                         Log.i(TAG, "startLocalPreview: bounded mode — no fullscreen renderer")
@@ -487,7 +487,7 @@ class LiveKitPlugin : Plugin() {
                     if (boundedSurfaces) {
                         boundedMode = true
                         detachRenderer(restoreWebView = false)
-                    /*
+                    } else {
                         boundedMode = false
                     }
                     promotePreviewToSession(args)
@@ -609,7 +609,7 @@ class LiveKitPlugin : Plugin() {
                 r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
                 localVideoSoftMuted = false
                 Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}bps @${args.baseFps}fps simulcast=${args.simulcast}")
-            /*
+            } else {
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
                 localVideoSoftMuted = false
@@ -801,10 +801,10 @@ class LiveKitPlugin : Plugin() {
                 if (enabled) {
                     if (previewTrack != null) {
                         setLocalCameraMutedKeepCapture(false)
-                    /*
+                    } else {
                         lp.setCameraEnabled(true)
                     }
-                /*
+                } else {
                     setLocalCameraMutedKeepCapture(true)
                 }
                 if (enabled && previewTrack == null) {
@@ -885,7 +885,7 @@ class LiveKitPlugin : Plugin() {
                 if (track != null) {
                     attachTrackToSlot(slot, track)
                     call.resolve(JSObject().put("attached", true))
-                /*
+                } else {
                     call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
                 }
             } catch (t: Throwable) {
@@ -913,7 +913,7 @@ class LiveKitPlugin : Plugin() {
                 if (track != null) {
                     attachTrackToSlot(slot, track)
                     call.resolve(JSObject().put("attached", true))
-                /*
+                } else {
                     call.resolve(JSObject().put("attached", false).put("reason", "no_track"))
                 }
             } catch (t: Throwable) {
@@ -1595,7 +1595,7 @@ class LiveKitPlugin : Plugin() {
             val id = slot.identity ?: return@forEach
             if (id == localId && localTrack != null) {
                 attachTrackToSlot(slot, localTrack)
-            /*
+            } else {
                 val remote = r.remoteParticipants.values.firstOrNull { it.identity?.value == id }
                 val track = remote?.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
                 if (track != null) attachTrackToSlot(slot, track)
@@ -1671,7 +1671,7 @@ class LiveKitPlugin : Plugin() {
         if (publication == null) return false
         val methodNames = if (muted) {
             arrayOf("mute", "setMuted", "setEnabled")
-        /*
+        } else {
             arrayOf("unmute", "setMuted", "setEnabled")
         }
         for (name in methodNames) {
@@ -1876,7 +1876,7 @@ class LiveKitPlugin : Plugin() {
                     enforceOverlayContract("fullscreen-create")
                     scheduleOverlayContractWatchdog("fullscreen-create")
 
-                /*
+                } else {
                     previewRenderer?.let { configureAspectFitRenderer(it, mirror) }
                     enforceOverlayContract("fullscreen-reuse")
                 }
@@ -1896,7 +1896,7 @@ class LiveKitPlugin : Plugin() {
                     val container = previewRendererContainer ?: (r.parent as? FrameLayout)
                     if (container != null) {
                         (container.parent as? ViewGroup)?.removeView(container)
-                    /*
+                    } else {
                         (r.parent as? ViewGroup)?.removeView(r)
                     }
                     try { r.release() } catch (_: Throwable) {}
