@@ -96,5 +96,33 @@ class DT {
   static const List<Color> tabParty = [Color(0xFFA855F7), Color(0xFF6366F1)];
   static const List<Color> tabReels = [Color(0xFFF97316), Color(0xFFF59E0B)];
   static const List<Color> tabProfile = [Color(0xFF06B6D4), Color(0xFF3B82F6)];
+
+  // ── Home tab tokens (parity with src/pages/Index.tsx header) ────────────
+  static const Color homeBg = Color(0xFFFAF7F0);          // page bg
+  static const Color homeHeaderCard = Color(0xFFFFFFFF);  // glass card
+  static const Color homeHeaderBorder = Color(0xFFEEE7D6);
+  static const Color homeHeading = Color(0xFF0F172A);     // slate-900
+  static const Color homeMutedInk = Color(0xFF64748B);    // slate-500
+  static const Color homeChipBg = Color(0xFFFFFDF8);
+  static const Color homeChipBorder = Color(0xFFECE4CE);
+  static const Color subTabTrack = Color(0xFFF3EEE0);     // muted pill track
+  static const Color subTabTrackBorder = Color(0xFFE5DCC0);
+
+  // Status pill colors (LIVE / BUSY / ONLINE) — flat industry standard
+  static const Color statusLive = Color(0xFFEF4444);   // red-500
+  static const Color statusBusy = Color(0xFFF59E0B);   // amber-500
+  static const Color statusOnline = Color(0xFF22C55E); // green-500
+
+  // Primary sub-tab gradient (Popular/Live/New/Follow when active)
+  static const List<Color> subTabActive = [
+    Color(0xFFEC4899), // pink-500
+    Color(0xFFA855F7), // purple-500
+  ];
+
+  // Country chip active gradient
+  static const List<Color> countryChipActive = [
+    Color(0xFFEC4899),
+    Color(0xFFF43F5E),
+  ];
 }
 

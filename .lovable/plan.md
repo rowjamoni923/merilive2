@@ -1,139 +1,129 @@
-# Merilive Hybrid Rebuild — Master Plan (v2, User-Approved 2026-07-01)
 
-> **Approach:** Flutter (UI shell) + Native Kotlin/Swift (performance layer) + React (admin + public web).
-> **Timeline:** 6 months, unhurried, quality-first.
-> **Platforms:** Android + iOS together (Flutter same codebase).
-> **Migration order:** Section-by-section, one at a time, A-to-Z parity per section before moving on.
-> **Local build:** User has Flutter installed. Lovable delivers code only; user runs `flutter build apk` / `flutter build ipa`.
+# Sector 2 — Home Tab (Flutter Rebuild Plan)
 
----
+Full parity with web `src/pages/Index.tsx` (970 lines) + all home widgets.
+Design-sacred: pixel-perfect port of every color, gradient, shadow, spacing, animation.
+Data source: Admin Panel = single source of truth (no hardcoded numbers).
 
-## 🔒 Hard Guarantees (locked with user, non-negotiable)
+## A → Z Scan Result (What Web Home Contains)
 
-1. **Zero browser-chrome artifact** — no stray video icon, play button, fullscreen icon, or any browser-injected UI on any video surface (viewer side, host side, preview, call, party, reels). Native SurfaceView/TextureView only, no `<video>` element anywhere in production video flow.
-
-2. **Camera zoom parity** — hardware `minZoomRatio` + ultra-wide (0.5x) lens enumeration mandatory. Preview and broadcast share the same native SurfaceTexture — pixel-to-pixel match. Chamet/Bigo-level FOV, no digital crop-in.
-
-3. **Performance SLA:**
-   - 60 fps scroll on home / reels / chat / gift panel
-   - Tap response < 100ms
-   - Cold start < 1.5s
-   - RAM baseline < 120MB (currently 250-400MB in WebView)
-   - App size < 35MB (currently 80MB+)
-   - Battery drain 40% lower than current build
-
-4. **Design parity — hubohu same** — every section migrated MUST match current React design pixel-for-pixel: banner, colors, spacing, animations, gradients, icons, cards, modals, toasts, transitions. NO redesign during migration. Redesign is a separate phase after parity is achieved.
-
-5. **Logic parity — A-to-Z** — every RPC call, every realtime channel, every edge function, every business rule (billing, VIP, level, gift, agency %, diamond deduction) must behave identically. Backend (Supabase) unchanged.
-
-6. **Honest testing loop** — every phase ships code + build instructions. User builds APK locally, tests on device, gives feedback. No "trust me it works" — device verification required before next phase.
-
-7. **Research-first per section** — before starting each section, spawn research subagent on how Chamet/Bigo/Olamet/Poppo implement it, cite sources in the section spec, THEN code.
-
----
-
-## 🏛️ Architecture Split (final)
-
-| Layer | Technology | Scope |
-|---|---|---|
-| **UI Shell** | Flutter 3.x (Dart) | All ~342 mobile screens — auth, home, profile, feed, chat, gift panel, wallet, VIP, agency, settings |
-| **Performance Layer** | Native Kotlin (Android) + Swift (iOS) | Camera2/X, LiveKit SDK, VAP/SVGA/Lottie gift render, background call service, push, biometric, notification |
-| **Admin Panel** | React + Vite (kept as-is) | Web-only, opens in browser |
-| **Public Landing** | React + Vite (kept as-is) | / /about /agency /privacy /terms |
-| **Backend** | Supabase (unchanged) | Auth, DB, Storage, Realtime, Edge Functions |
-| **Media SFU** | Self-hosted LiveKit @ wss://livekit.merilive.xyz | Unchanged |
-
----
-
-## 📋 Section Migration Order (locked)
-
-User-approved: **one section at a time, full A-to-Z of that section, then next.**
-
-### Section 1: Auth (start here)
-Scope: splash → onboarding → login → signup → OTP → gender/role select → face verification handoff → session persistence → password reset → deep-link auth callback → account-persist-across-uninstall (Android ID) → all toasts/errors/loading states → hubohu current design.
-
-### Section 2: Home
-Scope: home shell → top banner carousel → tab bar (Popular/Nearby/New/Following) → live grid cards → offline hosts row → nav drawer → search entry → notification bell → level/VIP badges → pull-to-refresh → infinite scroll → realtime online-status updates → hubohu current design.
-
-### Section 3-N: TBD after Section 1 & 2 shipped and tested
-Likely order: Profile → Live Streaming (viewer) → Live Streaming (host/GoLive) → Party Room → Private Call → Wallet/Recharge → Gift Shop → VIP → Agency → Chat/DM → Notifications → Settings → Reels → Games → PK Battle.
-
----
-
-## 🚦 Per-Section Workflow (repeat for every section)
-
-1. **Research** — spawn subagent: how Chamet/Bigo/Olamet do this section (competitor screens, patterns, edge cases). Cite sources.
-2. **Audit current React implementation** — list every screen, component, RPC, realtime channel, edge function, animation, edge case involved in this section.
-3. **Write section spec** — `.lovable/flutter-migration/section-N-<name>.md` with: screens list, design tokens, native plugin needs, API contracts, acceptance criteria (all 7 guarantees).
-4. **Build Flutter screens** — pixel-match current design.
-5. **Wire native plugins** if needed (camera/livekit/gift/push).
-6. **Wire Supabase client** — Dart supabase_flutter package, same schema, same RPCs.
-7. **Deliver code + build instructions** — user runs `flutter pub get && flutter build apk --release`.
-8. **User tests on device** — feedback loop.
-9. **Iterate until user says "next section"**.
-10. **Move to next section**.
-
----
-
-## 🗂️ Project Structure (final)
-
-```
-/dev-server/
-├── merilive_app/              ← NEW Flutter project (mobile app)
-│   ├── lib/
-│   │   ├── core/              (theme, router, supabase client, utils)
-│   │   ├── features/
-│   │   │   ├── auth/          ← Section 1
-│   │   │   ├── home/          ← Section 2
-│   │   │   ├── profile/       ...
-│   │   │   └── ...
-│   │   └── main.dart
-│   ├── android/
-│   │   └── app/src/main/kotlin/  ← native plugins (Camera, LiveKit, VAP, SVGA)
-│   ├── ios/
-│   │   └── Runner/               ← native plugins (Swift)
-│   └── pubspec.yaml
-├── src/                       ← existing React (admin + public landing) — KEPT
-├── supabase/                  ← unchanged
-└── .lovable/
-    ├── plan.md                ← this file
-    └── flutter-migration/     ← per-section specs
+```text
+┌─ HEADER (sticky, safe-area, glass card, shadow) ─────────────┐
+│ [🔍 Search 36pt]  [Popular│Live│New│Follow pill tabs]  [🏆]  │
+│ ─────────────── Country chip row (horizontal scroll) ─────── │
+│ [🌍 All] [🇧🇩 BD] [🇮🇳 IN] [🇵🇰 PK] [🇳🇵 NP] … + dynamic  │
+└──────────────────────────────────────────────────────────────┘
+┌─ SCROLL BODY (pull-to-refresh) ──────────────────────────────┐
+│ 1. DynamicBanner position="top"   ← banners table            │
+│ 2. Grid 2-col: first 6 host cards (aspect 3/4)               │
+│ 3. DynamicBanner position="middle"                           │
+│ 4. Grid 2-col: remaining host cards                          │
+│ 5. Empty state (glow halo + gradient icon + CTA) when 0      │
+└──────────────────────────────────────────────────────────────┘
+┌─ OVERLAYS ───────────────────────────────────────────────────┐
+│ • FullScreenPromoBanners (rating_banners, event popups)      │
+│ • DailyLoginPopup (rewards)                                  │
+│ • FloatingRandomMatchPill (bottom-right)                     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
----
+### Host Card Anatomy (LiveStreamCard / UserCard)
+- Aspect 3/4, rounded-2xl, dynamic shadow by level & live state.
+- Live thumbnail (Ken-Burns) OR avatar (with placeholder fallback).
+- Top-left status pill: **LIVE (red pulse) / BUSY (amber) / ONLINE (green pulse)**.
+- Top-right: viewer count pill (Eye icon) when live; verified checkmark badge.
+- Bottom overlay: mini avatar + frame, display name, LevelBadge, CountryFlag.
+- Bottom-right: **CallButton** — only for online female hosts, not busy.
+- Tap routing (locked by user):
+  - `isLive === true` → **LiveStream viewer** (`/live/:id`)
+  - `is_online === true` (not live) → **ProfileDetail** (`/profile-detail/:id`)
+  - `actuallyBusy === true` → **ProfileDetail** (still opens profile, not call)
+  - offline → **ProfileDetail**
 
-## 📊 What User Will Get vs Current
+### Data (Supabase RPCs & tables — already exist)
+- `get_public_home_hosts_v2(country, sub_tab, current_user_id)` — feed.
+- `get_public_host_countries_v1()` — dynamic country chips.
+- `banners` — Dynamic banners by `position` (`top` / `middle`).
+- `popup_event_banners` — event popups.
+- `rating_banners` + `rating_reward_claims` — rating rewards.
+- `daily_login_rewards` — daily reward calendar (admin-managed).
+- `leaderboard_reward_config` — trophy button destination data.
+- Realtime: `live_streams`, `private_calls`, `random_call_sessions`, `party_rooms`, `profiles` — reorder feed instantly.
 
-| Metric | Current (React+Capacitor WebView) | Target (Flutter+Native) |
-|---|---|---|
-| UI framerate | 30-45 fps, jank | Solid 60 fps |
-| Cold start | 3-5s | < 1.5s |
-| RAM baseline | 250-400MB | < 120MB |
-| APK size | 80MB+ | < 35MB |
-| Camera latency | 400-800ms | < 150ms |
-| Gift animation | CPU decode, drop frames | GPU decode, no drop |
-| Background call | Unreliable | Native foreground service, reliable |
-| Video icon glitch | Present | Impossible (no browser layer) |
-| Camera zoom | Zoomed-in, cannot fix cleanly | Hardware min-zoom + ultra-wide, Chamet-level |
+### Sort Order (locked, must match web exactly)
+1. LIVE (longest streaming first) → 2. ONLINE (longest online first) → 3. OFFLINE.
 
-**Honest expectation:** 85-90% Chamet parity. Not 100% (they have 5 years + 100+ engineers), but indistinguishable to end users in Bangladesh/India market.
+## Build Order (8 steps)
 
----
+**H1 — Home Scaffold & Header**
+- `home_tab_page.dart`: sticky glass header, safe-area, shadow.
+- Search icon → `/search` route (placeholder next sector).
+- Sub-tab pill row: Popular / Live / New / Follow — gradient active state, red dot on Live.
+- Trophy button (right) → `/leaderboard`.
+- Uses admin-configured tab labels/order if present.
 
-## ⚠️ Honest Limitations
+**H2 — Country Filter Row**
+- Horizontal scroll chip row (design tokens: pearl card, gradient active).
+- Static seed (BD/IN/PK/NP/PH/ID) + merged dynamic list from `get_public_host_countries_v1`.
+- "All 🌍" always first. Selection triggers feed refetch (single source of truth).
 
-- Lovable sandbox cannot compile Flutter APK — user builds locally.
-- Lovable sandbox cannot run Flutter app for automated Playwright testing — user tests on device.
-- First 2-3 months: hybrid state (some sections Flutter, some still WebView). Users may notice slight inconsistency during transition.
-- Native plugin changes always require APK rebuild — no hot-reload possible for those.
+**H3 — Feed Repository & State**
+- `HomeFeedRepository` calling `get_public_home_hosts_v2` RPC.
+- `HomeFeedCubit` (flutter_bloc) — country + subTab + userId as dependencies.
+- LocalStorage snapshot cache (parity with `index-hosts-instant-cache-v3`) so cold-start paints instantly.
+- Client-side sort (LIVE→ONLINE→OFFLINE, then longest-first inside each bucket).
+- Realtime subscriptions on 5 tables → debounced invalidate (150ms rooms, 600ms profiles) — identical to web timings.
 
----
+**H4 — Host Card Widget**
+- `HostCard` widget: aspect 3/4, RoundedRectangleBorder, dynamic BoxShadow.
+- Image loader: live thumbnail (Ken-Burns via `AnimatedScale`) → avatar → gender-aware placeholder → default. Same fallback chain as web.
+- Status pill (LIVE/BUSY/ONLINE) with pulsing dot animation.
+- Viewer-count pill, verified badge, LevelBadge, CountryFlag, mini avatar with frame.
+- CallButton child (online female non-busy only) — real navigation into private-call flow (deferred to Sector 7; here it just triggers a placeholder toast until Sector 7 lands, per honesty rule).
+- Tap routing matrix locked as above.
+- Grid: `SliverGrid` 2-col, 8px gap, edge padding 8px.
 
-## ▶️ Next Action
+**H5 — Dynamic Banners (top + middle)**
+- `DynamicBannerWidget(position)` reading `banners` table, filtered by admin `position` field + `active` + schedule window.
+- Swipeable carousel (PageView + indicators) when >1 banner per slot.
+- Tap → deep-link URL from admin row (external URL / internal route).
+- Insertion: top banner above grid, middle banner between first 6 cards and remainder (exact parity).
 
-Awaiting user's "**যাও, Section 1 (Auth) শুরু কর**" to begin:
-- Spawn research subagent on Chamet/Bigo auth flow
-- Audit current React auth implementation (all files, RPCs, edge cases)
-- Write `section-1-auth.md` spec
-- Initialize `merilive_app/` Flutter project
-- Build Auth screens with hubohu current design parity
+**H6 — Overlays: Daily Reward + Event Popup + Rating**
+- `DailyLoginPopup`: shows on first Home mount per day, reads `daily_login_rewards` config from admin, gradient calendar UI, claim RPC.
+- `FullScreenPromoBanners`: sequential popups from `popup_event_banners` (event) + `rating_banners` (rating), dismiss persistence per-user.
+- Show ONLY over Home tab, respecting min-app-open threshold from admin.
+
+**H7 — Floating Random Match Pill + Pull-to-Refresh**
+- Bottom-right floating pill (gradient), tap → random match flow (placeholder until Sector 7).
+- Native pull-to-refresh (CupertinoSliverRefreshControl on iOS, MaterialClassicHeader Android) → invalidates feed cache.
+
+**H8 — Empty State + Polish**
+- Contextual empty view (Popular/Live/New/Following) with animated glow halo, gradient circle icon (Compass/Radio/Sparkles/Heart), CTA.
+- Skeleton shimmer for first-load only (not stale-refresh).
+- Performance: `AutomaticKeepAliveClientMixin` on tab, `RepaintBoundary` around each card, precacheImage for first 8 cards, image cache limit tuned.
+- Analytics event on card tap, banner tap, tab switch.
+
+## Technical Details
+
+- **State**: `flutter_bloc` — `HomeFeedCubit`, `CountryFilterCubit`, `SubTabCubit`, `BannerCubit`, `DailyRewardCubit`.
+- **Routing**: `auto_route` — `/home` (inside shell), `/live/:id`, `/profile-detail/:id`, `/leaderboard`, `/search`.
+- **Realtime**: existing `supabase_flutter` Realtime channels; single shared channel manager reused across sectors.
+- **Design tokens**: Extend `DT` with `homeCardShadow`, `statusPillLive/Busy/Online`, `countryChipGradient`, banner radius/shadow — all mirroring web hex.
+- **Honesty rule**: Any button whose destination lives in a later sector shows a real toast "Coming in Sector X" — never fake screen.
+- **Admin parity**: Country list, banner order, popup thresholds, daily-reward amounts, rating trigger thresholds — every value read from admin tables. No hardcoded fallback numbers.
+
+## Deferred to Later Sectors (Honesty)
+- LiveStream viewer screen → **Sector 6**.
+- Private-call initiation from CallButton → **Sector 7**.
+- Profile Detail page → **Sector 5**.
+- Leaderboard page → later Sector.
+- Search page → later Sector.
+
+Home cards will *navigate* to these routes; the destination screens themselves are built in their own sector. Placeholder scaffolds land immediately so nothing breaks.
+
+## Verification Checklist (per step)
+- Static analyzer clean (`flutter analyze`).
+- Widget layout visually matches web screenshot (I will note "APK rebuild required to verify on device" honestly — Lovable sandbox can't run Flutter).
+- All admin values resolve from DB, no hardcoded numbers.
+- Realtime reorder confirmed via SQL insert simulation.
