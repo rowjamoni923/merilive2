@@ -5,29 +5,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/design_tokens.dart';
 import '../bloc/country_filter_cubit.dart';
+import '../bloc/home_feed_cubit.dart';
 import '../data/country_repository.dart';
+import '../data/home_feed_repository.dart';
+import '../data/home_host.dart';
 
-/// Home tab — Step H1 scaffold.
+/// Home tab — H1 header + H2 dynamic countries + H3 feed data layer.
 ///
-/// Locked pieces:
-///   • Sticky glass header (safe-area, shadow, border).
-///   • Left: circular Search button → /search (Sector deferred → toast).
-///   • Center: Popular / Live / New / Follow pill tab-bar (gradient active,
-///     red pulsing dot on Live, matches web `Index.tsx` header exactly).
-///   • Right: 3D trophy Leaderboard button → /leaderboard (deferred → toast).
-///   • Country chip strip (horizontal scroll) — static seed only in H1.
-///
-/// Deferred to next H-steps:
-///   H2 → dynamic country merge from `get_public_host_countries_v1`
-///   H3 → real feed via `get_public_home_hosts_v2` + realtime
-///   H4 → HostCard widget + tap routing matrix
-///   H5 → DynamicBanner top/middle
-///   H6 → Daily reward + event popup overlays
-///   H7 → Floating random-match pill + pull-to-refresh
-///   H8 → Empty state + polish + analytics
-///
-/// Honesty rule: any tap whose destination lands in a later sector shows a
-/// real toast. No fake screens.
+/// H3 wires the live feed (`get_public_home_hosts_v2` + realtime invalidations
+/// on live_streams/party_rooms/private_calls). Rendering here is intentionally
+/// minimal — H4 replaces the temporary tile list with the real HostCard grid,
+/// tap-routing matrix and thumbnail pipeline.
 class HomeTabPage extends StatefulWidget {
   const HomeTabPage({super.key});
 
@@ -35,24 +23,30 @@ class HomeTabPage extends StatefulWidget {
   State<HomeTabPage> createState() => _HomeTabPageState();
 }
 
-enum _SubTab { popular, live, newHosts, follow }
+// Re-exported enum lives in bloc/home_feed_cubit.dart to keep RPC parity
+// (popular/live/new/following) in a single place.
+typedef _SubTab = HomeSubTab;
 
 class _HomeTabPageState extends State<HomeTabPage>
     with AutomaticKeepAliveClientMixin {
-  _SubTab _subTab = _SubTab.popular;
   late final CountryFilterCubit _countryCubit;
+  late final HomeFeedCubit _feedCubit;
 
   @override
   void initState() {
     super.initState();
-    _countryCubit = CountryFilterCubit(
-      CountryRepository(Supabase.instance.client),
-    )..refresh();
+    final client = Supabase.instance.client;
+    _countryCubit = CountryFilterCubit(CountryRepository(client))..refresh();
+    _feedCubit = HomeFeedCubit(
+      HomeFeedRepository(client),
+      currentUserId: client.auth.currentUser?.id,
+    )..start();
   }
 
   @override
   void dispose() {
     _countryCubit.close();
+    _feedCubit.close();
     super.dispose();
   }
 
@@ -75,8 +69,11 @@ class _HomeTabPageState extends State<HomeTabPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocProvider.value(
-      value: _countryCubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _countryCubit),
+        BlocProvider.value(value: _feedCubit),
+      ],
       child: Container(
         color: DT.homeBg,
         child: SafeArea(
@@ -84,50 +81,246 @@ class _HomeTabPageState extends State<HomeTabPage>
           child: Column(
             children: [
               BlocBuilder<CountryFilterCubit, CountryFilterState>(
-                builder: (context, state) => _HomeHeader(
-                  subTab: _subTab,
-                  onSubTab: (t) => setState(() => _subTab = t),
-                  onSearchTap: () =>
-                      _toast('Search — lands in a later sector'),
-                  onTrophyTap: () =>
-                      _toast('Leaderboard — lands in a later sector'),
-                  countries: state.countries,
-                  selectedCountry: state.selectedCode,
-                  onCountry: (c) => _countryCubit.select(c),
+                builder: (context, countryState) =>
+                    BlocBuilder<HomeFeedCubit, HomeFeedState>(
+                  buildWhen: (p, n) => p.subTab != n.subTab,
+                  builder: (context, feedState) => _HomeHeader(
+                    subTab: feedState.subTab,
+                    onSubTab: (t) => _feedCubit.selectSubTab(t),
+                    onSearchTap: () =>
+                        _toast('Search — lands in a later sector'),
+                    onTrophyTap: () =>
+                        _toast('Leaderboard — lands in a later sector'),
+                    countries: countryState.countries,
+                    selectedCountry: countryState.selectedCode,
+                    onCountry: (c) {
+                      _countryCubit.select(c);
+                      _feedCubit.selectCountry(c);
+                    },
+                  ),
                 ),
               ),
               Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.dynamic_feed_rounded,
-                            size: 48, color: DT.homeMutedInk),
-                        SizedBox(height: 10),
-                        Text(
-                          'Feed lands in Step H3',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: DT.homeHeading,
+                child: BlocBuilder<HomeFeedCubit, HomeFeedState>(
+                  builder: (context, state) {
+                    if (state.isLoading && state.hosts.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    }
+                    if (state.errorMessage != null && state.hosts.isEmpty) {
+                      return _FeedErrorView(
+                        message: state.errorMessage!,
+                        onRetry: () => _feedCubit.refresh(),
+                      );
+                    }
+                    if (state.hosts.isEmpty) {
+                      return const _FeedEmptyView();
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () => _feedCubit.refresh(),
+                      child: _H3FeedList(hosts: state.hosts),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// H3 temporary list — replaced by HostCard grid in H4.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _H3FeedList extends StatelessWidget {
+  const _H3FeedList({required this.hosts});
+  final List<HomeHost> hosts;
+
+  Color _pillColor(HostStatus s) => switch (s) {
+        HostStatus.live => DT.statusLive,
+        HostStatus.busy => DT.statusBusy,
+        HostStatus.online => DT.statusOnline,
+        HostStatus.offline => DT.homeMutedInk,
+      };
+
+  String _pillLabel(HostStatus s) => switch (s) {
+        HostStatus.live => 'LIVE',
+        HostStatus.busy => 'BUSY',
+        HostStatus.online => 'ONLINE',
+        HostStatus.offline => 'OFFLINE',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+      itemCount: hosts.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) {
+        final h = hosts[i];
+        return Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: DT.homeHeaderCard,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: DT.homeHeaderBorder),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: DT.homeChipBg,
+                backgroundImage: (h.avatarUrl != null && h.avatarUrl!.isNotEmpty)
+                    ? NetworkImage(h.avatarUrl!)
+                    : null,
+                child: (h.avatarUrl == null || h.avatarUrl!.isEmpty)
+                    ? const Icon(Icons.person, color: DT.homeMutedInk)
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if ((h.countryFlag ?? '').isNotEmpty) ...[
+                          Text(h.countryFlag!,
+                              style: const TextStyle(fontSize: 12)),
+                          const SizedBox(width: 4),
+                        ],
+                        Flexible(
+                          child: Text(
+                            h.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: DT.homeHeading,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Header, sub-tabs and country strip are wired.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 12, color: DT.homeMutedInk),
                         ),
                       ],
                     ),
+                    if (h.status == HostStatus.live)
+                      Text(
+                        '${h.liveViewerCount} viewers',
+                        style: const TextStyle(
+                            fontSize: 11, color: DT.homeMutedInk),
+                      )
+                    else if (h.callRatePerMinute != null)
+                      Text(
+                        '${h.callRatePerMinute}💎 / min',
+                        style: const TextStyle(
+                            fontSize: 11, color: DT.homeMutedInk),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _pillColor(h.status).withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                      color: _pillColor(h.status).withOpacity(0.35)),
+                ),
+                child: Text(
+                  _pillLabel(h.status),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    color: _pillColor(h.status),
                   ),
                 ),
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+class _FeedEmptyView extends StatelessWidget {
+  const _FeedEmptyView();
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.people_alt_outlined,
+                size: 48, color: DT.homeMutedInk),
+            SizedBox(height: 10),
+            Text(
+              'No hosts here yet',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: DT.homeHeading,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Pull to refresh or switch country / tab.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: DT.homeMutedInk),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeedErrorView extends StatelessWidget {
+  const _FeedErrorView({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 48, color: DT.statusLive),
+            const SizedBox(height: 10),
+            const Text(
+              'Failed to load feed',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: DT.homeHeading,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: DT.homeMutedInk),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              onPressed: onRetry,
+              child: const Text('Retry'),
+            ),
+          ],
         ),
       ),
     );
