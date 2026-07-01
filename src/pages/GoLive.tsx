@@ -1130,12 +1130,12 @@ const GoLive = () => {
       //   do NOT stopLocalPreview() here or streaming must reopen Camera2.
       if (isNativeAndroid && nativePreviewActiveForHandoff) {
         preservePreviewForLiveRef.current = true;
-        clearPreparedHostPreviewStream({ stopTracks: true });
-        // Native Camera2 path takes over /dev/video0 — kill any warm web session.
+        // Native Camera2 is already open in LiveKit preview. Keep that exact
+        // track alive and let LiveStream publish it; only drop stale JS cache
+        // pointers so no cleanup races can stop the camera mid-handoff.
+        clearPreparedHostPreviewStream();
         if (cameraHandleRef.current) { cameraHandleRef.current.release(); cameraHandleRef.current = null; }
-        forceDisposeCameraSession();
         if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
           setStream(null);
         }
