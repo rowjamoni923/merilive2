@@ -1276,11 +1276,11 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // NO-ZOOM RULE: never use SCALE_ASPECT_FILL here. FILL crops the camera
-        // frame again at render-time, so a 3:4 sensor feed becomes visibly
-        // zoomed in inside live/party/private-call 9:16 slots. FIT preserves the
-        // full face/body FOV exactly like professional prejoin camera previews.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        // Portrait live-room rule: render the camera as a vertical phone surface,
+        // not as a horizontal 3:4 strip. Capture stays 3:4 to avoid CameraX
+        // digital sensor crop; the renderer fills the portrait slot so Go Live,
+        // Party and Private Call match Chamet/Bigo-style full-screen previews.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams

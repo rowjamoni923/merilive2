@@ -644,7 +644,7 @@ const CreateParty = () => {
             x5-video-player-type="h5"
             webkit-playsinline="true"
             className={cn(
-              "absolute inset-0 w-full h-full object-contain bg-black transition-opacity duration-200 z-20",
+              "absolute inset-0 w-full h-full object-cover bg-black transition-opacity duration-200 z-20",
               showVideo ? "opacity-100" : "opacity-0",
               facingMode === "user" && "scale-x-[-1]"
             )}
@@ -865,15 +865,15 @@ const CreateParty = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
+              className="grid grid-cols-2 gap-2.5 aspect-[3/4] p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
             >
               {/* Host Video */}
-              <HostVideoCell className="aspect-square rounded-xl shadow-lg" />
+              <HostVideoCell className="aspect-[3/4] rounded-xl shadow-lg" />
               
               {/* Empty Seats with staggered animation */}
               {[...Array(3)].map((_, i) => (
                 <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.08 }}>
-                  <EmptySeat className="aspect-square" />
+                  <EmptySeat className="aspect-[3/4]" />
                 </motion.div>
               ))}
             </motion.div>
@@ -901,15 +901,15 @@ const CreateParty = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
+              className="grid grid-cols-2 gap-2.5 aspect-[3/4] p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
             >
               {/* Host Video */}
-              <HostVideoCell className="aspect-square rounded-xl shadow-lg" />
+              <HostVideoCell className="aspect-[3/4] rounded-xl shadow-lg" />
               
               {/* Empty Seats */}
               {[...Array(3)].map((_, i) => (
                 <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.08 }}>
-                  <EmptySeat className="aspect-square" />
+                  <EmptySeat className="aspect-[3/4]" />
                 </motion.div>
               ))}
             </motion.div>
