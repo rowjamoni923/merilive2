@@ -792,6 +792,61 @@ class LiveKitPlugin : Plugin() {
         return false
     }
 
+    private fun resolveWidestCameraDeviceId(front: Boolean): String? {
+        return try {
+            val ctx = activity ?: context ?: return null
+            val manager = ctx.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val wantedFacing = if (front) CameraCharacteristics.LENS_FACING_FRONT else CameraCharacteristics.LENS_FACING_BACK
+            var bestId: String? = null
+            var bestScore = -1.0
+
+            fun visit(id: String) {
+                try {
+                    val c = manager.getCameraCharacteristics(id)
+                    if (c.get(CameraCharacteristics.LENS_FACING) != wantedFacing) return
+                    val focals = c.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS) ?: return
+                    val minFocal = focals.filter { it > 0f }.minOrNull() ?: return
+                    val size = c.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+                    val diagonal = if (size != null) sqrt((size.width * size.width + size.height * size.height).toDouble()) else 1.0
+                    val logicalBonus = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && c.physicalCameraIds.isNotEmpty()) 0.01 else 0.0
+                    val score = (diagonal / minFocal.toDouble()) + logicalBonus
+                    if (score > bestScore) {
+                        bestScore = score
+                        bestId = id
+                    }
+                } catch (_: Throwable) {}
+            }
+
+            manager.cameraIdList.forEach { id ->
+                visit(id)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    try { manager.getCameraCharacteristics(id).physicalCameraIds.forEach { visit(it) } } catch (_: Throwable) {}
+                }
+            }
+            bestId.also { Log.i(TAG, "widest ${if (front) "front" else "back"} camera=$it score=$bestScore") }
+        } catch (t: Throwable) {
+            Log.w(TAG, "resolveWidestCameraDeviceId failed", t)
+            null
+        }
+    }
+
+    private fun forceCameraMinZoom(track: LocalVideoTrack?, source: String) {
+        if (track == null) return
+        longArrayOf(0L, 120L, 500L, 1200L).forEach { delay ->
+            overlayHandler.postDelayed({
+                try {
+                    val camera = track.capturer.getCameraX()?.value ?: return@postDelayed
+                    val minRatio = camera.cameraInfo.zoomState.value?.minZoomRatio ?: 1.0f
+                    try { camera.cameraControl.setLinearZoom(0.0f) } catch (_: Throwable) {}
+                    try { camera.cameraControl.setZoomRatio(minRatio) } catch (_: Throwable) {}
+                    Log.i(TAG, "camera min-zoom applied source=$source ratio=$minRatio")
+                } catch (t: Throwable) {
+                    Log.w(TAG, "forceCameraMinZoom failed source=$source", t)
+                }
+            }, delay)
+        }
+    }
+
     // ─────────────────────────────────────────────
     // Media controls
     // ─────────────────────────────────────────────
