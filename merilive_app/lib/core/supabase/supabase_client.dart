@@ -19,6 +19,9 @@ class SupabaseBootstrap {
       ),
     );
   }
+
+  /// Shorthand accessor used across feature repositories.
+  static SupabaseClient get client => Supabase.instance.client;
 }
 
 /// Shorthand for `Supabase.instance.client`.

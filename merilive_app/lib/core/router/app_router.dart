@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 
+import '../../features/auth/screens/auth_callback_page.dart';
 import '../../features/auth/screens/auth_landing_page.dart';
-import '../../features/auth/screens/auth_stubs.dart';
 import '../../features/auth/screens/email_input_page.dart';
 import '../../features/auth/screens/email_otp_page.dart';
 import '../../features/auth/screens/email_password_page.dart';
@@ -11,6 +11,7 @@ import '../../features/auth/screens/onboarding_page.dart';
 import '../../features/auth/screens/phone_input_page.dart';
 import '../../features/auth/screens/phone_otp_page.dart';
 import '../../features/auth/screens/phone_password_page.dart';
+import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/splash/splash_page.dart';
 
 part 'app_router.gr.dart';

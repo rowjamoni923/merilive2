@@ -17,4 +17,12 @@ class Env {
   /// Deep-link scheme used for OAuth callback + password reset.
   static const String deepLinkScheme = 'merilive';
   static const String deepLinkHost = 'auth';
+
+  /// OAuth 2.0 Web Client ID from Google Cloud Console.
+  /// Required by `google_sign_in` on Android to mint an ID token that
+  /// Supabase's `signInWithIdToken(provider: google)` will accept.
+  /// Same ID that Supabase Dashboard → Auth → Google provider uses.
+  /// (Same as web app's Firebase project — safe to hardcode, it's public.)
+  static const String googleServerClientId =
+      String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID', defaultValue: '');
 }
