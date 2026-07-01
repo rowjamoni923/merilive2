@@ -5326,6 +5326,10 @@ img[data-host-card-photo="true"] {
   object-position: center;
 }
 
+.host-card-media-shell {
+  background: hsl(var(--foreground) / 0.92);
+}
+
 /* =========================================================
  * Phase 4 — Mobile-tune: Party / Settings / Leaderboard /
  * Search / Profile Details / Games (≤640px only)

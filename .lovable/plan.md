@@ -6,7 +6,7 @@
 Every home/host/live card must show one uninterrupted full-bleed photo. No white bottom area, no empty info panel, no card-colored gap under verified host/user photos.
 
 ## Research notes
-- Chamet/Bigo/Poppo-style discovery grids use fixed-ratio portrait media cards with text/badges floating over the image, not separate blank info panels.
+- Chamet/Bigo/Poppo-style discovery grids use fixed-ratio portrait media cards with text/badges floating over the image, not separate blank info panels. References: https://www.bigo.tv/ and Chamet Play Store listing https://play.google.com/store/apps/details?id=com.hkfuliao.chamet
 - Professional implementation standard: card image is `object-cover` over the full tile; name, level, country, live/viewer status sit as overlays with shadow/gradient legibility.
 - The project already generates stable placeholder photos for missing avatars and verified hosts have real profile photos, so the UI should never reveal a white/empty fallback area.
 - Root cause found in current app: mobile global CSS `img:not([width]):not(.shrink-0) { height:auto; }` overrides Tailwind `h-full` on host card images, so the image renders at natural height and exposes the white page/card surface below.

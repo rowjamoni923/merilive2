@@ -81,7 +81,7 @@ export const PremiumLiveStreamCard = ({
 
   return (
     <motion.div 
-      className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] shadow-xl bg-neutral-900"
+      className="host-card-media-shell relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] shadow-xl"
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}

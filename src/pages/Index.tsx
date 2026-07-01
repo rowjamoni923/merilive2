@@ -546,7 +546,7 @@ const Index = () => {
         style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
 
-        <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900">
+        <div className="host-card-media-shell relative aspect-[3/4] overflow-hidden">
           {/* Show the thumbnail as one uninterrupted professional media tile — no letterbox fill, color block, or border. */}
           <img 
             key={cardImageUrl}
