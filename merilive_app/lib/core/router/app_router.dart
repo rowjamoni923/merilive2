@@ -12,6 +12,7 @@ import '../../features/auth/screens/phone_input_page.dart';
 import '../../features/auth/screens/phone_otp_page.dart';
 import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
+import '../../features/home/home_shell_page.dart';
 import '../../features/splash/splash_page.dart';
 
 part 'app_router.gr.dart';
@@ -26,6 +27,7 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: SplashRoute.page, path: '/', initial: true),
         AutoRoute(page: OnboardingRoute.page, path: '/onboarding'),
         AutoRoute(page: AuthLandingRoute.page, path: '/auth'),
+        AutoRoute(page: HomeShellRoute.page, path: '/home'),
 
         // Start flow
         AutoRoute(page: GenderStepRoute.page, path: '/auth/gender'),

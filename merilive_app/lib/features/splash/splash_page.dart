@@ -30,8 +30,7 @@ class _SplashPageState extends State<SplashPage> {
         if (!mounted) return;
         switch (state.status) {
           case AuthStatus.authenticated:
-            // Section 2 will introduce /home. For Section 1, land on /auth.
-            context.router.replaceAll([const AuthLandingRoute()]);
+            context.router.replaceAll([const HomeShellRoute()]);
             break;
           case AuthStatus.banned:
           case AuthStatus.unauthenticated:
