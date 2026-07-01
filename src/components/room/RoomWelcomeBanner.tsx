@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +11,13 @@ interface RoomWelcomeMessage {
 interface RoomWelcomeBannerProps {
   roomType: 'live' | 'party_audio' | 'party_video' | 'party_game';
   className?: string;
+  /**
+   * How long the welcome message stays visible before it auto-vanishes.
+   * User explicit (2026-07-01): welcome message must appear briefly and
+   * then disappear so the chat stream stays clean. Default 7s matches
+   * Chamet/BIGO room system notices.
+   */
+  autoHideMs?: number;
 }
 
 const roomWelcomeCache = {
@@ -19,16 +26,25 @@ const roomWelcomeCache = {
 };
 const ROOM_WELCOME_CACHE_MS = 5 * 60_000;
 
-export const RoomWelcomeBanner = memo(({ 
+export const RoomWelcomeBanner = memo(({
   roomType,
-  className
+  className,
+  autoHideMs = 7000,
 }: RoomWelcomeBannerProps) => {
   const [welcomeMessage, setWelcomeMessage] = useState<RoomWelcomeMessage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     fetchWelcomeMessage();
   }, [roomType]);
+
+  // Auto-vanish once the message is on screen.
+  useEffect(() => {
+    if (loading || !welcomeMessage) return;
+    const t = setTimeout(() => setVisible(false), autoHideMs);
+    return () => clearTimeout(t);
+  }, [loading, welcomeMessage, autoHideMs]);
 
   const fetchWelcomeMessage = async () => {
     try {
@@ -67,26 +83,34 @@ export const RoomWelcomeBanner = memo(({
   if (loading || !welcomeMessage) return null;
 
   // Professional system-notice style (Chamet/Bigo standard):
-  // compact fit-content bubble, muted translucent dark bg, no animation,
-  // rendered like a system chat message that blends into the chat column.
+  // compact fit-content bubble, muted translucent dark bg, small text,
+  // rendered like a system chat message that blends into the chat column,
+  // then fades out after `autoHideMs`.
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "flex items-start gap-1.5 py-1 px-2.5 rounded-xl w-fit max-w-[92%]",
-        "bg-black/35 backdrop-blur-sm border border-white/10",
-        className
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6, height: 0, marginTop: 0, marginBottom: 0 }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+          className={cn(
+            "flex items-start gap-1.5 py-1 px-2.5 rounded-xl w-fit max-w-[92%]",
+            "bg-black/35 backdrop-blur-sm border border-white/10",
+            className
+          )}
+        >
+          <span className="text-[10px] shrink-0 mt-px opacity-70">⚠️</span>
+          <span className="text-[10px] text-white/60 font-normal leading-snug">
+            {welcomeMessage.message_text}
+          </span>
+        </motion.div>
       )}
-    >
-      <span className="text-[10px] shrink-0 mt-px opacity-70">⚠️</span>
-      <span className="text-[10px] text-white/60 font-normal leading-snug">
-        {welcomeMessage.message_text}
-      </span>
-    </motion.div>
+    </AnimatePresence>
   );
 });
 
 RoomWelcomeBanner.displayName = 'RoomWelcomeBanner';
 
 export default RoomWelcomeBanner;
+

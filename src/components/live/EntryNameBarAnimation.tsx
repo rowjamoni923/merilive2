@@ -172,15 +172,18 @@ const EntryNameBarAnimationInner = memo(({
 
   if (phase === 'done' || phase === 'preparing') return null;
 
+  // USER-EXPLICIT (2026-07-01): if the joining user has NO equipped entry
+  // name-bar animation, render NOTHING here — the small vanishing welcome
+  // message (RoomWelcomeBanner) is their entry indicator. No gradient pill
+  // fallback, no oversized identity chip.
+  if (!hasAnimation) return null;
+
   // Professional sizing (Chamet/BIGO/17 parity):
   // SVGA entry-name-bar templates are authored at a fixed ~1024×280 canvas
-  // (aspect 3.66:1). We lock the banner to that aspect ratio so the overlay
-  // (avatar + name + level) always sits inside the engraved content slot,
-  // regardless of viewport width. The content slot in every standard template
-  // is roughly the left-center region from ~22% → ~70% horizontally, with a
-  // ~14% top/bottom safe area. All overlay sizes are percentage-based so the
-  // composite scales as one engraved unit — never "too big, never too small".
-  const showAnimationLayer = true;
+  // (aspect 3.66:1). We render the animation exactly like the VIP/Shop
+  // preview (`EntryNameBarPreview`) — engraved-only, no HTML overlays on
+  // top, dynamic slots inject avatar/name/level INSIDE the SVGA canvas so
+  // the composite is one engraved unit.
   const shouldShow = true;
 
   return (
@@ -205,22 +208,12 @@ const EntryNameBarAnimationInner = memo(({
           >
             <div
               className={cn(
-                "relative",
-                hasAnimation
-                  // Slightly larger (user request 2026-06-30): 680px cap,
-                  // 98vw on small screens, same 1024:280 aspect ratio so
-                  // the engraved slots stay perfectly aligned.
-                  ? "w-[min(680px,98vw)] aspect-[1024/280] overflow-visible"
-                  : "mx-2 rounded-full overflow-hidden w-auto h-11"
+                "relative w-[min(680px,98vw)] aspect-[1024/280] overflow-visible"
               )}
             >
-              {/* Layer 0: Base gradient fallback - ONLY when no animation */}
-              {!hasAnimation && (
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-800/85 to-indigo-900/90 backdrop-blur-md rounded-full" />
-              )}
-
-              {/* Layer 1: SVGA background */}
-              {hasSvga && cleanAnimUrl && showAnimationLayer && (
+              {/* SVGA background — identity engraved INSIDE via dynamic slots
+                  (1:1 parity with EntryNameBarPreview shown in VIP/Shop). */}
+              {hasSvga && cleanAnimUrl && (
                 <div className="absolute inset-0 z-[1] pointer-events-none">
                   <EntryAnimationFrame
                     src={cleanAnimUrl}
@@ -239,8 +232,9 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
-              {/* Layer 1: GIF/Image background */}
-              {hasGifOrImage && cleanAnimUrl && gifLoaded && showAnimationLayer && (
+              {/* GIF/Image background — identity is baked into the art;
+                  no HTML overlay per user's engraved-only rule. */}
+              {hasGifOrImage && cleanAnimUrl && gifLoaded && (
                 <div className="absolute inset-0 z-[1] pointer-events-none">
                   <img
                     loading="lazy"
@@ -251,114 +245,6 @@ const EntryNameBarAnimationInner = memo(({
                   />
                 </div>
               )}
-
-              {/* Layer 2a: Engraved welcome-message label (SVGA path).
-                  The avatar/name/level are injected INSIDE the SVGA
-                  canvas, but standard templates have no slot for the
-                  "Joined the room" line. We render it as a tight,
-                  letter-pressed label aligned to the engraved name
-                  band so it visually reads as one engraved unit
-                  (Chamet / BIGO parity). */}
-              {hasAnimation && (
-                <div
-                  className="absolute z-[2] pointer-events-none flex items-center justify-start"
-                  style={{
-                    left: '32%',
-                    right: '6%',
-                    top: '63%',
-                    bottom: '14%',
-                  }}
-                >
-                  <span
-                    className="font-extrabold tracking-wide truncate"
-                    style={{
-                      fontSize: 'clamp(9px, 1.45vw, 13px)',
-                      lineHeight: 1,
-                      color: '#FFE8A8',
-                      textShadow:
-                        '0 1px 0 rgba(0,0,0,0.85), 0 0 6px rgba(255,196,90,0.55), 0 0 12px rgba(0,0,0,0.4)',
-                      WebkitTextStroke: '0.4px rgba(0,0,0,0.55)',
-                    }}
-                  >
-                    Joined the room
-                  </span>
-                </div>
-              )}
-
-
-              {/* Layer 2: Avatar + Name + Level overlay.
-                  SVGA path: identity is engraved INSIDE the canvas via
-                  dynamic slot injection (Chamet/BIGO parity), so we render
-                  NO HTML overlay — otherwise the user sees a duplicate,
-                  oversized avatar/name floating above the ribbon.
-                  GIF/image/no-animation path: keep the overlay so the
-                  user's identity is still visible. */}
-              {!hasAnimation && (
-                <div
-                  className={cn(
-                    "absolute z-[2] flex items-center pointer-events-none",
-                    hasAnimation
-                      ? "top-[31%] bottom-[31%] left-[7.25%] right-[47%] gap-[4%]"
-                      : "inset-0 gap-2 px-3"
-                  )}
-                >
-                  <div className={cn("relative flex-shrink-0", hasAnimation ? "h-full aspect-square" : "w-9 h-9")}>
-                    <Avatar className="h-full w-full ring-2 ring-white/75 shadow-md">
-                      <AvatarImage
-                        src={avatarUrl || getDisplayAvatar(userName)}
-                        alt={userName}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
-                        {userName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div
-                      className={cn(
-                        "absolute rounded-full font-black flex items-center justify-center shadow-md ring-1 ring-white/80",
-                        hasAnimation
-                          ? "-right-[10%] bottom-[-5%] h-[43%] aspect-square text-[9px] leading-none"
-                          : "-right-1 -bottom-0.5 px-1.5 py-0.5 text-[9px]",
-                        getLevelBadgeBg(level),
-                        getLevelTextColor(level)
-                      )}
-                    >
-                      {String(level ?? 1)}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col justify-center min-w-0 flex-1 pl-[2%]">
-                    <span
-                      className={cn(
-                        "text-primary-foreground font-black truncate leading-tight",
-                        hasAnimation ? "text-[12px]" : "text-sm max-w-[140px]"
-                      )}
-                      style={
-                        hasAnimation
-                          ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.7)' }
-                          : undefined
-                      }
-                    >
-                      {userName}
-                    </span>
-
-                    {!hasAnimation ? (
-                      <span className="text-primary-foreground/90 font-bold drop-shadow-sm leading-none text-[10px]">
-                        Welcome to the room! 🎉
-                      </span>
-                    ) : (
-                      <span
-                        className="text-primary-foreground/95 font-semibold truncate text-[10px] leading-tight"
-                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
-                      >
-                        Joined the room
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
             </div>
           </motion.div>
         )}
