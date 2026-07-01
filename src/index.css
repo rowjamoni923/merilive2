@@ -291,6 +291,11 @@ html {
   -webkit-touch-callout: none;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
+  /* Global zoom-out: shrink the rem base so every rem-based spacing/size
+     (Tailwind utilities, shadcn components) scales down proportionally
+     without touching individual components. 87.5% = 14px base (was 16px).
+     Professional apps like Instagram/Chamet use 14px root for compact layout. */
+  font-size: 87.5%;
 }
 button,
 a,
