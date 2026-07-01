@@ -574,8 +574,9 @@ const GoLive = () => {
           cameraHandleRef.current = null;
         } else {
           streamRef.current.getTracks().forEach(track => track.stop());
-          releaseAndroidWebViewCamera('golive:back');
         }
+        forceDisposeCameraSession();
+        releaseAndroidWebViewCamera('golive:back');
       } catch { /* ignore */ }
       streamRef.current = null;
     }
@@ -692,15 +693,17 @@ const GoLive = () => {
         void stopNativePreview();
       }
       if (streamRef.current) {
-        // Step 1b: keep web camera warm across unmount/HMR. Only release the
-        // ref; persistentCameraSession owns the tracks until explicit dispose.
+        // Leaving Go Live preview is a real exit, not a handoff. Release AND
+        // force-dispose the persistent web camera so the preview cannot keep
+        // running invisibly on the next page.
         if (cameraHandleRef.current) {
           cameraHandleRef.current.release();
           cameraHandleRef.current = null;
         } else {
           streamRef.current.getTracks().forEach(track => track.stop());
-          releaseAndroidWebViewCamera('golive:unmount');
         }
+        forceDisposeCameraSession();
+        releaseAndroidWebViewCamera('golive:unmount');
         streamRef.current = null;
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
@@ -1462,9 +1465,9 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
+              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75"
               style={{
-                transform: facingMode === 'user' ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
+                transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS ? `${beautyCSS} blur(18px) saturate(1.1) brightness(0.75)` : 'blur(18px) saturate(1.1) brightness(0.75)',
                 WebkitAppearance: 'none',
                 opacity: (isNativeAndroid && nativePreviewActive) ? 0 : 1,

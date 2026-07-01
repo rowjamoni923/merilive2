@@ -2,6 +2,12 @@
 
 ## Zoom-out correction — 2026-07-01
 
+### Preview leak correction — 2026-07-01
+- LiveKit Android `TextureViewRenderer.setScalingType` controls how video fills the layout; `SCALE_ASPECT_FILL` crops, while `SCALE_ASPECT_FIT` preserves full FOV: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.renderer/-texture-view-renderer/set-scaling-type.html
+- Agora Android `VideoCanvas` documents `RENDER_MODE_HIDDEN` as crop/fill and `RENDER_MODE_FIT` as full-frame fit; Chamet/Bigo-style prejoin preview should stop/detach on exit and preserve only for immediate broadcast handoff: https://api-ref.agora.io/en/video-sdk/android/3.x/classio_1_1agora_1_1rtc_1_1video_1_1_video_canvas.html
+- Root cause found: Go Live exit released the persistent web camera handle but did not force-dispose the singleton stream, and native `stopLocalPreview()` waited behind in-flight preview start before detaching the fullscreen TextureView. Result: camera stayed running behind/above other pages.
+- Fix plan applied: detach native fullscreen local renderer before waiting on any pending preview start; force-dispose persistent web camera on Go Live preview exit/unmount; remove extra CSS scale from preview blur underlays so the phone preview no longer gets additional synthetic zoom.
+
 ### Research notes
 - LiveKit Android docs for `VideoCaptureParameter.adaptOutputToDimensions` state that enabling adaptation can scale/crop captured frames to the requested aspect ratio; keep it `false` to avoid SDK-level center-crop zoom: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.room.track/-video-capture-parameter/adapt-output-to-dimensions.html
 - LiveKit Android issue #651 documents the exact symptom: local tracks looked zoomed/cropped even when CameraX zoom ratio was `1.0`; the professional fix path is preventing internal crop and using correct capture format: https://github.com/livekit/client-sdk-android/issues/651
