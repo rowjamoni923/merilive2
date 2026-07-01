@@ -1265,7 +1265,7 @@ export function ActiveCallScreen({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover bg-black"
+                  className="w-full h-full object-contain bg-black"
                   style={{ transform: 'scaleX(-1)' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
