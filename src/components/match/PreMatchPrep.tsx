@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getBalanceWithFetch, useUserBalance } from "@/hooks/useUserBalance";
 import AnimatedGlobeBackdrop from "./AnimatedGlobeBackdrop";
+import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 
 
 export type MatchFilters = {
@@ -85,10 +86,11 @@ export default function PreMatchPrep({
       stopStream();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: camOn
-          ? { facingMode: { ideal: facing }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }
+          ? { facingMode: { ideal: facing }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints
           : false,
         audio: micOn,
       });
+      await enforcePermanentCameraLock(stream, 'pre-match-prep');
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       setPermError(null);
