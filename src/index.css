@@ -747,11 +747,11 @@ video::-moz-media-controls {
 
 video {
   -webkit-media-controls: none !important;
-  /* Camera Policy (unified 2026-07-01):
-     Do NOT force object-fit here. LiveKitVideoPlayer sets contain/cover per
-     instance and paints its own blurred backdrop when contain leaves side
-     bars. Forcing cover globally was the root cause of the "YouTube-style"
-     zoomed face on Live / Call / Party. */
+  /* Default for decorative videos (Reels, VAP, ads, upload previews).
+     LiveKitVideoPlayer sets objectFit inline per-instance (contain by
+     default under the unified Camera Policy 2026-07-01), and inline styles
+     override this selector — so live camera surfaces are unaffected. */
+  object-fit: cover;
 }
 
 /* Extra: hide Android Chrome's large center play button */
