@@ -29,9 +29,8 @@ function resolveLockedZoom(capability: ZoomCapability): number {
   if (!capability || typeof capability !== 'object') return target;
 
   const min = Number.isFinite(capability.min) ? Number(capability.min) : 1;
-  const max = Number.isFinite(capability.max) ? Number(capability.max) : 1;
   // Widest supported FOV. If the device reports 0/0.5, use it; otherwise 1x.
-  return Math.min(Math.max(min, min), max);
+  return min;
 }
 
 export async function enforcePermanentTrackLock(

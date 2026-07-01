@@ -78,7 +78,7 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
             height: { ideal: 1440 },
             resizeMode: 'none',
             frameRate: { ideal: 30 },
-          } as MediaTrackConstraints;
+          } as unknown as MediaTrackConstraints;
   const audio = req.audio === undefined ? true : req.audio;
   return { video, audio } as MediaStreamConstraints;
 };

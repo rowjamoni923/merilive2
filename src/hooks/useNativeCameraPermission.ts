@@ -109,7 +109,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
         height: { ideal: 1440 },
         resizeMode: 'none',
         frameRate: { ideal: 30 },
-      } as MediaTrackConstraints,
+      } as unknown as MediaTrackConstraints,
       audio: includeAudio
     };
     const stream = await withTimeout(
@@ -172,9 +172,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
   const constraintOptions: MediaStreamConstraints[] = [
     // Natural 3:4 sensor capture avoids CameraX/WebView center-crop zoom;
     // UI renderers keep portrait cover/fill so there are no black bars.
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as MediaTrackConstraints, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as MediaTrackConstraints, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, resizeMode: 'none', frameRate: { ideal: 24 } } as MediaTrackConstraints, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, resizeMode: 'none', frameRate: { ideal: 24 } } as unknown as MediaTrackConstraints, audio },
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },

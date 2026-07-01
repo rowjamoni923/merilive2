@@ -37,7 +37,7 @@ export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstr
     resizeMode: 'none',
     // 'user' = front camera (default for Live/PartyRoom/PrivateCall).
     facingMode: { ideal: 'user' },
-  } as MediaTrackConstraints;
+  } as unknown as MediaTrackConstraints;
 }
 
 /**

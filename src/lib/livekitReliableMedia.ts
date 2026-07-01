@@ -16,8 +16,8 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
 };
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints[] = [
-  { facingMode: { ideal: 'user' }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as MediaTrackConstraints,
-  { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 24 } } as MediaTrackConstraints,
+  { facingMode: { ideal: 'user' }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints,
+  { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 24 } } as unknown as MediaTrackConstraints,
   { facingMode: { ideal: 'user' }, frameRate: { ideal: 24 } },
   { facingMode: 'user' },
   true as unknown as MediaTrackConstraints,
