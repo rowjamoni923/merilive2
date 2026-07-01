@@ -131,19 +131,22 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     );
   }
 
-  /// Guess initial dial-code country from device locale.
-  /// Supported here: BD, IN, PK, ID, MY, PH, VN, SA, AE, NG, US, GB.
-  /// Falls back to BD for our primary audience.
+  /// Auto-detect the user's country from the device SIM / network locale.
+  /// No hardcoded default — whatever the OS reports for this device is used,
+  /// so a BD SIM shows +880, an IN SIM shows +91, etc. Only falls back to a
+  /// neutral 'US' when the OS provides no country at all (rare — emulators
+  /// without a locale) so intl_phone_field always has a valid initial value.
   static String _detectInitialCountry() {
     try {
-      final locale = PlatformDispatcher.instance.locale;
-      final country = (locale.countryCode ?? '').toUpperCase();
-      const supported = {
-        'BD', 'IN', 'PK', 'ID', 'MY', 'PH', 'VN', 'SA', 'AE',
-        'NG', 'US', 'GB', 'LK', 'NP', 'MM', 'TH', 'EG', 'TR',
-      };
-      if (supported.contains(country)) return country;
+      final primary = PlatformDispatcher.instance.locale.countryCode;
+      if (primary != null && primary.length == 2) {
+        return primary.toUpperCase();
+      }
+      for (final l in PlatformDispatcher.instance.locales) {
+        final c = l.countryCode;
+        if (c != null && c.length == 2) return c.toUpperCase();
+      }
     } catch (_) {}
-    return 'BD';
+    return 'US';
   }
 }
