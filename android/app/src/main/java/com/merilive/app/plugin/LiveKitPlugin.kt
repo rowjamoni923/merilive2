@@ -85,24 +85,24 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Professional app parity: keep a natural 3:4 camera capture and render
-        // the sharp camera layer with FIT/contain so the full sensor FOV stays
-        // visible. FILL/cover center-crops tall phones and looks like zoom-in.
-        // Real zoom-out is not a negative ratio. CameraX exposes the widest
-        // available FOV as ZoomState.0.0fRatio or LinearZoom 0.0.
-        const val LOCK_CAPTURE_W = 1440
+        // Professional app parity: capture TRUE portrait 9:16 and render it as
+        // a vertical phone preview. The previous 3:4 + FIT path created a
+        // horizontal/YouTube-like strip; 3:4 + FILL created the close-face crop.
+        // Real zoom-out is handled separately by locking CameraX to min zoom.
+        const val LOCK_CAPTURE_W = 1080
         const val LOCK_CAPTURE_H = 1920
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 6_500_000   // 6.5 Mbps — 1440p premium HD (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
         const val LOCK_MAX_NON_MAGNIFYING_ZOOM = 1.0f
-        // Mid relay = 1080x1440 @ 3.5 Mbps (same 3:4 FOV, no crop drift).
-        const val LOCK_SIM_MID_W = 1080
-        const val LOCK_SIM_MID_H = 1440
+        // Mid relay keeps the same 9:16 shape so SFU quality switches never
+        // change crop/zoom perception for viewers.
+        const val LOCK_SIM_MID_W = 720
+        const val LOCK_SIM_MID_H = 1280
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 3_500_000
-        // Low relay = 720x960 @ 1.5 Mbps for weak networks; SFU auto-selects.
-        const val LOCK_SIM_LOW_W = 720
+        // Low relay remains 9:16 for weak networks; SFU auto-selects.
+        const val LOCK_SIM_LOW_W = 540
         const val LOCK_SIM_LOW_H = 960
         const val LOCK_SIM_LOW_FPS = 30
         const val LOCK_SIM_LOW_BITRATE = 1_500_000
@@ -1298,12 +1298,10 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // Portrait zoom-out rule: the sharp native preview must never use
-        // SCALE_ASPECT_FILL. FILL center-crops the 3:4 front-camera sensor into
-        // 19:9/20:9 phone screens, which is exactly the close-face "zoomed in"
-        // bug. FIT matches the web foreground object-contain path and preserves
-        // the full camera FOV across GoLive, Live, Party and Private handoff.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        // Native phone preview must be full-height portrait, not a horizontal
+        // letterboxed strip. Because capture is now locked to 9:16, FILL does
+        // not introduce the old 3:4 side-crop zoom; it simply fills the slot.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
