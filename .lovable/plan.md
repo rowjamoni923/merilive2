@@ -13,3 +13,19 @@ Make signup account type deterministic: Female/Host selection must create a host
 2. Add a server-side signup finalizer RPC so the client never tries to directly rewrite locked gender/host columns.
 3. Keep female host profiles as `pending_face` until face verification; male/user profiles remain non-host.
 4. Remove the misleading “try with Email” failure toast caused by profile race/lock errors.
+
+# Support Reply Email Provider Fix
+
+## Goal
+Stop Admin Support Tickets from calling the inactive Lovable transactional email path for reply notifications, and route those replies through the existing Gmail OAuth support email system that the project already uses.
+
+## Research notes
+- Professional support desks keep one authoritative outbound mailbox for ticket replies so users receive responses from the same trusted sender and thread context.
+- This project already has a Gmail OAuth support function for support inbox/replies; the broken path is a separate wrapper calling `send-transactional-email`, which is returning EMAIL_SERVICE_AUTH_FAILED.
+
+## Fix plan
+1. Replace the `send-support-reply-email` internals so it no longer invokes Lovable transactional email.
+2. Use the existing Gmail OAuth credentials and Gmail send API directly for support ticket reply notifications.
+3. Keep the admin UI unchanged: reply saving remains primary, email notification remains non-blocking.
+4. Return clear success/skipped/errors without the inactive email-service refresh message.
+
