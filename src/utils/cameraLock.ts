@@ -13,7 +13,7 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v2_zoomout_20260701',
+  id: 'camera_lock_v3_backward_min_zoom_20260701',
   // Widest possible FOV. We snap to the hardware minimum zoom (e.g. 0.5x on
   // ultra-wide capable devices, else 1x). Never zoom IN past 1x.
   fixedZoomLevel: 1,
@@ -54,13 +54,20 @@ export async function enforcePermanentTrackLock(
   const apply = async () => {
     try {
       await anyTrack.applyConstraints({
+        zoom: lockedZoom,
         advanced: [{ zoom: lockedZoom } as unknown as MediaTrackConstraintSet],
-      });
+      } as unknown as MediaTrackConstraints);
     } catch {
       try {
-        await anyTrack.applyConstraints({ zoom: lockedZoom } as unknown as MediaTrackConstraints);
-      } catch (error) {
-        console.warn('[CameraLock] zoom lock apply failed:', source, error);
+        await anyTrack.applyConstraints({
+          advanced: [{ zoom: lockedZoom } as unknown as MediaTrackConstraintSet],
+        });
+      } catch {
+        try {
+          await anyTrack.applyConstraints({ zoom: lockedZoom } as unknown as MediaTrackConstraints);
+        } catch (error) {
+          console.warn('[CameraLock] zoom lock apply failed:', source, error);
+        }
       }
     }
   };

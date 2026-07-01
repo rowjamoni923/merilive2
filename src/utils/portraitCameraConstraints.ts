@@ -15,22 +15,25 @@ const withSource = (options: PortraitConstraintOptions) => {
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
   const width = options.width ?? 1080;
-  const height = options.height ?? 1920;
+  const height = options.height ?? 1440;
   return {
     ...withSource(options),
     width: { ideal: width },
     height: { ideal: height },
-    aspectRatio: { exact: width / height },
-    resizeMode: 'crop-and-scale',
+    // IMPORTANT: keep capture on the phone camera's natural portrait frame
+    // (3:4 first). Forcing 9:16 + crop-and-scale makes browsers digitally
+    // center-crop the sensor, which is exactly the "face too close" zoom-in.
+    aspectRatio: { ideal: width / height },
+    resizeMode: 'none',
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
   } as unknown as MediaTrackConstraints;
 };
 
 export const buildPortraitVideoFallbacks = (options: PortraitConstraintOptions = {}): MediaTrackConstraints[] => [
-  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1920, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 720, height: 1280, frameRate: 30 }),
   buildPortraitVideoConstraint({ ...options, width: 1080, height: 1440, frameRate: 30 }),
   buildPortraitVideoConstraint({ ...options, width: 720, height: 960, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1920, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 720, height: 1280, frameRate: 30 }),
 ];
 
 export const isPortraitCameraTrack = (track: MediaStreamTrack | null | undefined): boolean => {

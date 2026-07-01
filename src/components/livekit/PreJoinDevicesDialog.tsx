@@ -107,8 +107,8 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
             video: prefs.videoinput
-              ? buildPortraitVideoConstraint({ deviceId: prefs.videoinput, width: 720, height: 1280 })
-              : buildPortraitVideoConstraint({ facingMode: 'user', width: 720, height: 1280 }),
+              ? buildPortraitVideoConstraint({ deviceId: prefs.videoinput, width: 720, height: 960 })
+              : buildPortraitVideoConstraint({ facingMode: 'user', width: 720, height: 960 }),
           }),
           'prejoin:preview',
         );
