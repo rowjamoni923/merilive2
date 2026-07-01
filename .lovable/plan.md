@@ -10,6 +10,8 @@ Stop Go Live / Party / Private Call camera preview from rendering as a horizonta
 - Android CameraX docs: `setLinearZoom(0.0)` is minimum zoom and `0.5` is midpoint zoom-in; `setZoomRatio()` must stay within `ZoomState.minZoomRatio..maxZoomRatio`, and min is often `1.0` unless zoom-out/ultra-wide is supported.
 - LiveKit Android docs: `VideoCaptureParameter(width,height,fps, adaptOutputToDimensions=true)` crops captured frames to the requested aspect ratio when the capturer cannot output that exact shape; setting `adaptOutputToDimensions=false` avoids that internal crop/zoom.
 - MDN Media Capture docs: browser `resizeMode: 'none'` asks the UA to use the hardware/driver resolution instead of crop-and-scale; forcing 9:16 `crop-and-scale` can digitally center-crop the phone sensor and make the face look zoomed in.
+- Chrome camera controls docs: live preview zoom is changed through `MediaStreamTrack.getCapabilities()` + `applyConstraints({advanced:[{zoom}]})`; on Android this can become available only after first frames, so zoom must be retried after startup.
+- LiveKit Android CameraX pattern: the active CameraX camera can expose `zoomState.minZoomRatio..maxZoomRatio`; `setZoomRatio()` must clamp inside that range. A professional app should request a small backward step (0.8x where supported) and never digitally zoom above 1x.
 
 ## Fix plan
 1. Use 3:4 capture constants to avoid CameraX/WebView digital center-crop zoom.
@@ -17,6 +19,7 @@ Stop Go Live / Party / Private Call camera preview from rendering as a horizonta
 3. Lock browser zoom constraints to the hardware minimum zoom ratio capped at 1x (never above 1x), so supported devices move backward/zoom-out instead of zooming in.
 4. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
 5. Disable LiveKit Android capture adaptation (`adaptOutputToDimensions=false`) and browser crop-scaling (`resizeMode:'none'`) so zoom-out comes from wider captured FOV, not fake CSS bars.
+6. Apply a single 0.8x optical zoom-out lock on both browser tracks and native LiveKit CameraX tracks, with delayed retries so Live/Party/Private Call all move slightly backward without changing UI surface area.
 
 # Signup Host/User Role Mapping Fix
 

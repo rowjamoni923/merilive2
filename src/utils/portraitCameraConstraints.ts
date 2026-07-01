@@ -26,6 +26,10 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
     aspectRatio: { ideal: width / height },
     resizeMode: 'none',
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
+    // Ask Android Chrome/WebView for the same slight backward step shown in
+    // the stock camera app (0.8x). Unsupported browsers ignore advanced keys;
+    // cameraLock.ts re-applies/clamps after capabilities become available.
+    advanced: [{ zoom: 0.8 } as unknown as MediaTrackConstraintSet],
   } as unknown as MediaTrackConstraints;
 };
 

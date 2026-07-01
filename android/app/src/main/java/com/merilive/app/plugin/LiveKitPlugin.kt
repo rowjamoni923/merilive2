@@ -91,6 +91,7 @@ class LiveKitPlugin : Plugin() {
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 6_500_000   // 6.5 Mbps — 1440p premium HD (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
+        const val LOCK_ZOOM_OUT_TARGET = 0.80f    // Small backward step like the Android camera app 0.8x option
         // Mid relay = 1080x1440 @ 3.5 Mbps (same 3:4 FOV, no crop drift).
         const val LOCK_SIM_MID_W = 1080
         const val LOCK_SIM_MID_H = 1440
@@ -269,6 +270,7 @@ class LiveKitPlugin : Plugin() {
                     boundedMode = boundedOnly
                     if (previewTrack != null) {
                         Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
+                        scheduleCameraZoomOutLock(previewTrack, "preview-reuse")
                         if (!boundedOnly) {
                             ensureRendererAttached(mirror)
                             previewRenderer?.let { renderer ->
@@ -298,6 +300,7 @@ class LiveKitPlugin : Plugin() {
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
                     track.startCapture()
                     previewTrack = track
+                    scheduleCameraZoomOutLock(track, "startLocalPreview")
 
                     if (!boundedOnly) {
                         ensureRendererAttached(mirror)
@@ -550,6 +553,7 @@ class LiveKitPlugin : Plugin() {
             val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
             track.startCapture()
             previewTrack = track
+            scheduleCameraZoomOutLock(track, "promotePreviewToSession")
             if (!boundedMode) {
                 ensureRendererAttached(true)
                 previewRenderer?.let { renderer ->
@@ -684,6 +688,7 @@ class LiveKitPlugin : Plugin() {
                     return@launch
                 }
                 previewTrack = track
+                scheduleCameraZoomOutLock(track, "attachLocal")
                 ensureRendererAttached(mirror)
                 val renderer = previewRenderer
                 if (renderer != null) {
@@ -807,6 +812,7 @@ class LiveKitPlugin : Plugin() {
                     // waiting seat slots so the host's own tile renders the
                     // moment the camera comes up — no SFU-echo round-trip.
                     if (resolved != null) {
+                        scheduleCameraZoomOutLock(resolved, "setCameraEnabled")
                         runOnMain { rebindSeatSlotsForLocalTrack(resolved) }
                     }
                 }
@@ -1290,6 +1296,52 @@ class LiveKitPlugin : Plugin() {
             }
         } catch (_: Throwable) {}
         try { renderer.requestLayout() } catch (_: Throwable) {}
+    }
+
+    private fun invokeNoArg(target: Any?, methodName: String): Any? {
+        if (target == null) return null
+        return try {
+            target.javaClass.methods.firstOrNull { it.name == methodName && it.parameterTypes.isEmpty() }?.invoke(target)
+        } catch (_: Throwable) { null }
+    }
+
+    private fun numberFrom(target: Any?, methodName: String): Float? {
+        val value = invokeNoArg(target, methodName) as? Number ?: return null
+        return value.toFloat()
+    }
+
+    private fun scheduleCameraZoomOutLock(track: LocalVideoTrack?, reason: String) {
+        if (track == null) return
+        longArrayOf(0L, 250L, 900L, 1800L).forEach { delay ->
+            overlayHandler.postDelayed({ applyCameraZoomOutLock(track, reason) }, delay)
+        }
+    }
+
+    private fun applyCameraZoomOutLock(track: LocalVideoTrack?, reason: String) {
+        try {
+            val capturer = invokeNoArg(track, "getCapturer") ?: return
+            val cameraXHolder = invokeNoArg(capturer, "getCameraX") ?: return
+            val camera = invokeNoArg(cameraXHolder, "getValue") ?: cameraXHolder
+            val cameraInfo = invokeNoArg(camera, "getCameraInfo") ?: return
+            val cameraControl = invokeNoArg(camera, "getCameraControl") ?: return
+            val zoomStateHolder = invokeNoArg(cameraInfo, "getZoomState") ?: return
+            val zoomState = invokeNoArg(zoomStateHolder, "getValue") ?: zoomStateHolder
+            val minZoom = numberFrom(zoomState, "getMinZoomRatio") ?: 1.0f
+            val maxZoom = numberFrom(zoomState, "getMaxZoomRatio") ?: 1.0f
+            val upper = kotlin.math.min(maxZoom, 1.0f)
+            val targetZoom = if (minZoom <= upper) {
+                LOCK_ZOOM_OUT_TARGET.coerceIn(minZoom, upper)
+            } else {
+                minZoom
+            }
+            val setter = cameraControl.javaClass.methods.firstOrNull {
+                it.name == "setZoomRatio" && it.parameterTypes.size == 1
+            } ?: return
+            setter.invoke(cameraControl, targetZoom)
+            Log.i(TAG, "camera zoom-out lock $reason target=${targetZoom}x range=${minZoom}..${maxZoom}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "camera zoom-out lock skipped ($reason): ${t.message}")
+        }
     }
 
     /**
