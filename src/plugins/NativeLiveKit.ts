@@ -124,11 +124,11 @@ interface NativeLiveKitPlugin {
    */
   attachLocal?(opts?: { mirror?: boolean }): Promise<{ attached: boolean; reason?: string }>;
   detachLocal?(): Promise<{ detached: boolean }>;
-  attachLocalSurface?(opts: { viewId: string; mirror?: boolean; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
-  attachRemoteSurface?(opts: { viewId: string; sid?: string; identity?: string; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
-  updateSurfaceBounds?(opts: { viewId: string; x: number; y: number; width: number; height: number }): Promise<void>;
-  detachSurface?(opts: { viewId: string }): Promise<void>;
-  detachAll?(): Promise<void>;
+  attachLocalSurface(opts: { viewId: string; mirror?: boolean; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
+  attachRemoteSurface(opts: { viewId: string; sid?: string; identity?: string; x?: number; y?: number; width?: number; height?: number }): Promise<void>;
+  updateSurfaceBounds(opts: { viewId: string; x: number; y: number; width: number; height: number }): Promise<void>;
+  detachSurface(opts: { viewId: string }): Promise<void>;
+  detachAll(): Promise<void>;
   forceDetachAllSurfaces?(): Promise<{ detached: boolean }>;
   /**
    * Phase 6 (instant-entry) — native equivalent of `Room.prepareConnection`
