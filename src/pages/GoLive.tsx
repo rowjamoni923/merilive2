@@ -160,6 +160,7 @@ const GoLive = () => {
       if (preservePreviewForLiveRef.current) return;
       void NativeLiveKit.forceDetachAllSurfaces?.().catch(() => undefined);
       void NativeLiveKit.detachAll?.().catch(() => undefined);
+      void nativeLiveKitController.stopLocalPreview().catch(() => undefined);
       clearNativeFaceCameraSurface();
       clearNativeMediaSurface();
     };
