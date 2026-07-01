@@ -14,12 +14,12 @@ const withSource = (options: PortraitConstraintOptions) => {
 };
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
-  // Pro live-streaming apps (Chamet/Bigo/Poppo) capture at TRUE 9:16 portrait.
-  // On typical 4:3 phone sensors this crops top/bottom (extra head-room) but
-  // preserves the FULL sensor WIDTH — giving the widest possible field of view
-  // on the horizontal axis, which is what the user perceives as "zoomed out".
-  // Capturing 3:4 and then letting object-cover crop the sides inside a 9:16
-  // preview shell is what causes the "face too close / zoomed in" complaint.
+  // Pro live-streaming preview rule: keep the UI full-screen, but ask the
+  // browser for the widest non-magnified camera feed it can provide.
+  // - `resizeMode:none` prevents Chrome/WebView from crop-and-scaling a sensor
+  //   frame into a fake portrait stream, which is perceived as zoom-in.
+  // - `zoom:0` is only a hint; cameraLock.ts reapplies the real capability min
+  //   after frames start because Android exposes PTZ/zoom late.
   const width = options.width ?? 1080;
   const height = options.height ?? 1920;
   return {
@@ -28,6 +28,9 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
     height: { ideal: height },
     aspectRatio: { ideal: width / height },
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
+    resizeMode: 'none',
+    zoom: { ideal: 0 },
+    advanced: [{ zoom: 0 } as unknown as MediaTrackConstraintSet],
   } as unknown as MediaTrackConstraints;
 };
 
