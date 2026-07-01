@@ -50,6 +50,7 @@ import { NativeVideoView } from "@/components/NativeVideoView";
 import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { enforcePermanentCameraLock } from "@/utils/cameraLock";
+import { buildPortraitVideoConstraint } from "@/utils/portraitCameraConstraints";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -1158,7 +1159,7 @@ const CreateParty = () => {
             try {
               const newStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
-                  video: { facingMode: { ideal: newFacingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints,
+                  video: buildPortraitVideoConstraint({ facingMode: newFacingMode, width: 720, height: 960, frameRate: 30 }),
                   audio: true
                 }),
                 'create-party:switch-camera-new-stream',
