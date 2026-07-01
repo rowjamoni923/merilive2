@@ -50,6 +50,7 @@ import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { checkPermissionStatus as checkDevicePermissionStatus } from "@/utils/nativePermissions";
 import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
+import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 import { useLiveSessionOptional, type LiveHostState } from "@/features/live-session";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
@@ -858,12 +859,12 @@ const GoLive = () => {
               width: { min: 720, ideal: 1080, max: 1080 },
               height: { min: 960, ideal: 1440, max: 1440 },
               frameRate: { min: 24, ideal: 30, max: 30 },
-              aspectRatio: { ideal: 3 / 4 },
-            },
+              resizeMode: 'none',
+            } as unknown as MediaTrackConstraints,
             audio: audioConstraint,
           },
-          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio: audioConstraint },
-          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 720 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 720 }, resizeMode: 'none', frameRate: { ideal: 24 } } as unknown as MediaTrackConstraints, audio: audioConstraint },
           { video: { facingMode: newFacingMode }, audio: audioConstraint },
           { video: true, audio: audioConstraint },
         ];
@@ -883,6 +884,7 @@ const GoLive = () => {
         };
 
         let mediaStream = await openNextCamera();
+        if (mediaStream) await enforcePermanentCameraLock(mediaStream, 'golive:switch-camera');
         if (!mediaStream && previousStream) {
           previousStream.getVideoTracks().forEach((track) => track.stop());
           releaseAndroidWebViewCamera('golive:switch-camera');

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Eye, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { hardenVideoElementForNative } from '@/utils/videoNativeHardening';
+import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from '@/lib/androidCameraHandoff';
 import {
   runConnectionCheck,
@@ -105,11 +106,12 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
             video: prefs.videoinput
-              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } }
-              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } },
+              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' } as unknown as MediaTrackConstraints
+              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' } as unknown as MediaTrackConstraints,
           }),
           'prejoin:preview',
         );
+        await enforcePermanentCameraLock(stream, 'prejoin:preview');
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;

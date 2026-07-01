@@ -49,6 +49,7 @@ import * as ProCameraEngine from "@/camera/ProCameraEngine";
 import { NativeVideoView } from "@/components/NativeVideoView";
 import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
+import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -1165,11 +1166,12 @@ const CreateParty = () => {
             try {
               const newStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
-                  video: { facingMode: { ideal: newFacingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } },
+                  video: { facingMode: { ideal: newFacingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints,
                   audio: true
                 }),
                 'create-party:switch-camera-new-stream',
               );
+              await enforcePermanentCameraLock(newStream, 'create-party:switch-camera');
               setStream(newStream);
               if (videoRef.current) {
               }

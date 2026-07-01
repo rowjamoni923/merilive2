@@ -18,6 +18,7 @@
  *   disposeCameraSessionIfIdle();      // optional GC after a real exit
  *   forceDisposeCameraSession();       // explicit "End Live" / "Leave Call"
  */
+import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 
 export type CameraSessionConstraints = {
   video?: boolean | MediaTrackConstraints;
@@ -75,9 +76,9 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
             facingMode: req.facingMode ?? 'user',
             width: { ideal: 1080 },
             height: { ideal: 1440 },
-            aspectRatio: { ideal: 3 / 4 },
+            resizeMode: 'none',
             frameRate: { ideal: 30 },
-          };
+          } as unknown as MediaTrackConstraints;
   const audio = req.audio === undefined ? true : req.audio;
   return { video, audio } as MediaStreamConstraints;
 };
@@ -130,6 +131,7 @@ export async function acquireCameraSession(
 
   pending = (async (): Promise<Session> => {
     const stream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
+    await enforcePermanentCameraLock(stream, 'persistent-camera-session');
     const session: Session = {
       stream,
       refCount: 0,

@@ -50,6 +50,7 @@ import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { LowBalanceBanner } from "@/components/call/LowBalanceBanner";
 import { ReconnectingOverlay } from "@/components/call/ReconnectingOverlay";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
+import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 
 
 
@@ -190,11 +191,12 @@ export function ActiveCallScreen({
             facingMode: { ideal: 'user' },
             width: { ideal: 1080 },
             height: { ideal: 1440 },
-            aspectRatio: { ideal: 3 / 4 },
+            resizeMode: 'none',
             frameRate: { ideal: 30 },
-          },
+          } as unknown as MediaTrackConstraints,
           audio: true,
         });
+        await enforcePermanentCameraLock(stream, 'active-call:cold-preview');
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
