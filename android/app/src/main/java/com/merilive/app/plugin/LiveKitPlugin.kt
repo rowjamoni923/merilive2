@@ -1581,7 +1581,14 @@ class LiveKitPlugin : Plugin() {
         localVideoSoftMuted = muted
         if (!muted) {
             runOnMain { rebindSeatSlotsForLocalTrack(track) }
-            try { previewRenderer?.let { track.addRenderer(it) } } catch (_: Throwable) {}
+            try {
+                previewRenderer?.let {
+                    if (!previewRendererBound) {
+                        track.addRenderer(it)
+                        previewRendererBound = true
+                    }
+                }
+            } catch (_: Throwable) {}
         }
     }
 
@@ -1829,6 +1836,7 @@ class LiveKitPlugin : Plugin() {
                     try { r.release() } catch (_: Throwable) {}
                 }
                 previewRenderer = null
+                previewRendererBound = false
                 previewRendererContainer = null
                 val wv = bridge?.webView
                 if (restoreWebView && wv != null) {
@@ -1850,6 +1858,7 @@ class LiveKitPlugin : Plugin() {
                 try { track.dispose() } catch (_: Throwable) {}
             }
             previewTrack = null
+            previewRendererBound = false
         } catch (_: Throwable) {}
         detachRenderer(restoreWebView = true)
 
@@ -1882,6 +1891,7 @@ class LiveKitPlugin : Plugin() {
             }
         } catch (_: Throwable) {}
         previewTrack = null
+        previewRendererBound = false
         detachRenderer(restoreWebView = true)
         releaseRoomResources()
         try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}
