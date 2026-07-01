@@ -2,25 +2,24 @@
  * ============================================================================
  * PERMANENT CAMERA LOCK POLICY (DO NOT MODIFY)
  * ============================================================================
- * This module enforces a hard zoom lock for all camera streams.
+ * This module enforces TRUE hardware zoom-out for all camera streams.
  * Target behavior:
- * - Camera zoom remains fixed (no zoom in/out)
- * - Camera framing/position remains stable
- * - Re-applies lock with retries for aggressive device drivers
+ * - Use the camera's reported minimum zoom ratio (widest field of view)
+ * - Never digitally zoom above 1x
+ * - Re-apply after first frames because Android WebView exposes PTZ late
  *
  * Policy ID: camera_lock_v1_20260304
  * ============================================================================
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v7_minus_half_maps_to_half_x_20260701',
-  // User request: "-0.5" means one half-step backward from 1x.
-  // Camera APIs do not accept negative zoom ratios, so we translate it to
-  // the real hardware ratio 0.5x, then clamp to the device's true minimum.
-  requestedZoomDelta: -0.5,
-  fixedZoomLevel: 0.5,
+  id: 'camera_lock_v8_true_hardware_min_zoom_20260701',
+  // Google/MDN camera APIs do not support negative zoom values. Real zoom-out
+  // is the smallest ratio exposed by the device (often 0.5x/0.6x on ultra-wide,
+  // or 1.0x when no wider lens is exposed to WebView).
+  requestedZoomBehavior: 'hardware-minimum',
   maxNonMagnifyingZoom: 1,
-  minZoomFloor: 0.5,
+  fallbackZoomWhenUnsupported: 1,
   fixedObjectPosition: 'center center',
 } as const);
 
@@ -29,16 +28,13 @@ export const CAMERA_LOCK_POLICY = Object.freeze({
 type ZoomCapability = { min?: number; max?: number; step?: number } | undefined;
 
 function resolveLockedZoom(capability: ZoomCapability): number {
-  const preferred = CAMERA_LOCK_POLICY.fixedZoomLevel;
   const ceiling = CAMERA_LOCK_POLICY.maxNonMagnifyingZoom; // never zoom in above 1x
-  if (!capability || typeof capability !== 'object') return preferred;
+  if (!capability || typeof capability !== 'object') return CAMERA_LOCK_POLICY.fallbackZoomWhenUnsupported;
 
-  const min = Number.isFinite(capability.min)
-    ? Math.max(Number(capability.min), CAMERA_LOCK_POLICY.minZoomFloor)
-    : CAMERA_LOCK_POLICY.minZoomFloor;
+  const min = Number.isFinite(capability.min) ? Number(capability.min) : CAMERA_LOCK_POLICY.fallbackZoomWhenUnsupported;
   const max = Number.isFinite(capability.max) ? Number(capability.max) : ceiling;
   const upper = Math.min(max, ceiling);
-  const raw = Math.min(Math.max(preferred, min), upper);
+  const raw = min <= upper ? min : upper;
   const step = Number.isFinite(capability.step) && Number(capability.step) > 0
     ? Number(capability.step)
     : 0;
@@ -60,6 +56,7 @@ export async function enforcePermanentTrackLock(
 
   const apply = async () => {
     const capabilities = anyTrack.getCapabilities?.() as { zoom?: ZoomCapability } | undefined;
+    if (!capabilities?.zoom) return;
     const lockedZoom = resolveLockedZoom(capabilities?.zoom);
     try {
       await anyTrack.applyConstraints({
