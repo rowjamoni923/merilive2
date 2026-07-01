@@ -1,4 +1,4 @@
-import { Phone, Star, Gem, Eye, CheckCircle } from "lucide-react";
+import { Star, Gem, Eye, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
@@ -28,11 +28,9 @@ interface UserCardProps {
 export const UserCard = ({
   id,
   name,
-  bio,
   photoUrl,
   countryCode,
   countryFlag,
-  language,
   level,
   isOnline = false,
   isLive = false,
