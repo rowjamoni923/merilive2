@@ -91,7 +91,7 @@ class LiveKitPlugin : Plugin() {
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 6_500_000   // 6.5 Mbps — 1440p premium HD (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        const val LOCK_ZOOM_OUT_TARGET = 0.80f    // Small backward step like the Android camera app 0.8x option
+        const val LOCK_ZOOM_OUT_TARGET = 0.50f    // User requested -0.5 from 1x; CameraX ratio equivalent is 0.5x
         // Mid relay = 1080x1440 @ 3.5 Mbps (same 3:4 FOV, no crop drift).
         const val LOCK_SIM_MID_W = 1080
         const val LOCK_SIM_MID_H = 1440
