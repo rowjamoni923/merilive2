@@ -111,6 +111,17 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
     }
   };
 
+  // Auto-popup when a new hour just completed (only once per hour_number per session)
+  useEffect(() => {
+    if (!state?.hours) return;
+    const readyToClaim = state.hours.find((h) => h.completed && !h.claimed);
+    if (readyToClaim && !shownPopupForHourRef.current.has(readyToClaim.hour_number)) {
+      shownPopupForHourRef.current.add(readyToClaim.hour_number);
+      setAutoPopupHour(readyToClaim);
+      setCollapsed(false);
+    }
+  }, [state?.hours]);
+
   if (!state || !state.eligible) return null;
   const hours = state.hours ?? [];
   if (hours.length === 0) return null;
