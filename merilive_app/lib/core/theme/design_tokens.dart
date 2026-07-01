@@ -59,4 +59,42 @@ class DT {
 
   // ── Typography (Inter, fallback Poppins) ────────────────────────────────
   static const String fontFamily = 'Inter';
+
+  // ── Home shell — pearl-cream bottom nav (parity with BottomNavigation.tsx)
+  static const Color navCreamTop = Color(0xFFFFFDF8);   // rgba(255,253,248,0.96)
+  static const Color navCreamBottom = Color(0xFFFCF7ED); // rgba(252,247,237,0.98)
+  static const Color champagne = Color(0xFFC9A84C);      // brand accent line
+  static const Color champagneDeep = Color(0xFF8B6914);
+  static const Color champagneLight = Color(0xFFB8860B);
+  static const Color navInkMuted = Color(0xFF64748B);    // slate-500
+  static const List<Color> navPillActive = [
+    Color(0xFFFFF0FA),
+    Color(0xFFFDE4F3),
+  ];
+
+  // Center Create FAB gradient (radial in web, linear approximation here)
+  static const List<Color> createFabRadial = [
+    Color(0xFFFFD1EA),
+    Color(0xFFEC4899),
+    Color(0xFFA855F7),
+    Color(0xFF6366F1),
+  ];
+
+  // Action-sheet gradients (Go Live / Create Party / Random Call)
+  static const List<Color> actionGoLive = [
+    Color(0xFFEF4444), Color(0xFFEC4899), Color(0xFFF43F5E),
+  ];
+  static const List<Color> actionParty = [
+    Color(0xFF9333EA), Color(0xFF8B5CF6), Color(0xFF6366F1),
+  ];
+  static const List<Color> actionMatchCall = [
+    Color(0xFF06B6D4), Color(0xFF14B8A6), Color(0xFF10B981),
+  ];
+
+  // Per-tab active accent (matches web nav gradients)
+  static const List<Color> tabHome = [Color(0xFFEC4899), Color(0xFFF43F5E)];
+  static const List<Color> tabParty = [Color(0xFFA855F7), Color(0xFF6366F1)];
+  static const List<Color> tabReels = [Color(0xFFF97316), Color(0xFFF59E0B)];
+  static const List<Color> tabProfile = [Color(0xFF06B6D4), Color(0xFF3B82F6)];
 }
+
