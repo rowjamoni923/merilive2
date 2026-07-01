@@ -1280,7 +1280,11 @@ class LiveKitPlugin : Plugin() {
         // not as a horizontal 3:4 strip. Capture stays 3:4 to avoid CameraX
         // digital sensor crop; the renderer fills the portrait slot so Go Live,
         // Party and Private Call match Chamet/Bigo-style full-screen previews.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
+        // BALANCED = show most of the 3:4 sensor frame with minimal crop.
+        // FILL was cropping ~25% top/bottom on 9:16 phones and users perceived
+        // it as a heavily zoomed-in face. BALANCED gives a natural zoom-out
+        // similar to Chamet/Bigo preview while avoiding hard black letterbox.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_BALANCED) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
