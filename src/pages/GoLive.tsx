@@ -856,14 +856,14 @@ const GoLive = () => {
             video: {
               facingMode: newFacingMode,
               width: { min: 720, ideal: 1080, max: 1080 },
-              height: { min: 1280, ideal: 1920, max: 1920 },
+              height: { min: 960, ideal: 1440, max: 1440 },
               frameRate: { min: 24, ideal: 30, max: 30 },
-              aspectRatio: { ideal: 9 / 16 },
+              aspectRatio: { ideal: 3 / 4 },
             },
             audio: audioConstraint,
           },
-          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio: audioConstraint },
-          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 960 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 24 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 720 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio: audioConstraint },
           { video: { facingMode: newFacingMode }, audio: audioConstraint },
           { video: true, audio: audioConstraint },
         ];
