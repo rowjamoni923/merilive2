@@ -81,7 +81,7 @@ export const PremiumLiveStreamCard = ({
 
   return (
     <motion.div 
-      className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] shadow-xl bg-neutral-900"
+      className="host-card-media-shell relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] shadow-xl"
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
@@ -102,6 +102,7 @@ export const PremiumLiveStreamCard = ({
           <img loading="lazy" decoding="async"
             src={primarySrc}
             alt={hostName}
+            data-host-card-photo="true"
             // @ts-expect-error – fetchpriority is a standard HTML hint
             fetchpriority="high"
             onError={(e) => {
@@ -122,7 +123,7 @@ export const PremiumLiveStreamCard = ({
               const finalFallback = getDisplayAvatar(hostId || hostName || 'live-host', null, { gender: hostGender ?? "female", isOwner: false });
               if (img.src !== finalFallback) img.src = finalFallback;
             }}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="host-card-photo absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             style={{
               filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
               WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',

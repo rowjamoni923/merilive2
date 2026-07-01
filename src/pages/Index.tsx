@@ -546,14 +546,15 @@ const Index = () => {
         style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
 
-        <div className="relative aspect-[3/4] overflow-hidden">
+        <div className="host-card-media-shell relative aspect-[3/4] overflow-hidden">
           {/* Show the thumbnail as one uninterrupted professional media tile — no letterbox fill, color block, or border. */}
           <img 
             key={cardImageUrl}
             src={cardImageUrl}
             alt={user.display_name || 'User'}
+            data-host-card-photo="true"
             className={cn(
-              "relative w-full h-full transition-opacity duration-75",
+              "host-card-photo relative w-full h-full transition-opacity duration-75",
               user.isLive && user.liveThumbnailUrl
                 ? "object-cover live-card-kenburns opacity-0"
                 : "object-cover"

@@ -63,17 +63,18 @@ export const UserCard = ({
   return (
     <div
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300 bg-neutral-900"
+      className="host-card-media-shell relative rounded-2xl overflow-hidden cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300"
     >
       {/* Photo with Frame Overlay */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900">
+      <div className="host-card-media-shell relative aspect-[3/4] overflow-hidden">
 
         <img loading="lazy" decoding="async"
           src={normalizedPhotoUrl}
           alt={name}
+          data-host-card-photo="true"
           // @ts-expect-error – fetchpriority is a standard HTML hint
           fetchpriority="high"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="host-card-photo w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
  />
 
         {/* Live Badge - Only show if actually live streaming */}
