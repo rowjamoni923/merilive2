@@ -1304,9 +1304,9 @@ class LiveKitPlugin : Plugin() {
     private fun invokeNoArg(target: Any?, methodName: String): Any? {
         if (target == null) return null
         return try {
-            target.javaClass.methods.firstOrNull { it.name == methodName && it.parameterTypes.isEmpty() }/*?.invoke(target)
-        }/* catch (_: Throwable) { null }/*
-    }/*
+            target.javaClass.methods.firstOrNull { it.name == methodName && it.parameterTypes.isEmpty() }?.invoke(target)
+        } catch (_: Throwable) { null }
+    }
 
     private fun numberFrom(target: Any?, methodName: String): Float? {
         val value = invokeNoArg(target, methodName) as? Number ?: return null
@@ -1316,9 +1316,9 @@ class LiveKitPlugin : Plugin() {
     private fun scheduleCameraZoomOutLock(track: LocalVideoTrack?, reason: String) {
         if (track == null) return
         longArrayOf(0L, 250L, 900L, 1800L).forEach { delay ->
-            overlayHandler.postDelayed({ applyCameraZoomOutLock(track, reason) }/*, delay)
-        }/*
-    }/*
+            overlayHandler.postDelayed({ applyCameraZoomOutLock(track, reason) }, delay)
+        }
+    }
 
     private fun applyCameraZoomOutLock(track: LocalVideoTrack?, reason: String) {
         try {
@@ -1329,28 +1329,28 @@ class LiveKitPlugin : Plugin() {
             val cameraControl = invokeNoArg(camera, "getCameraControl") ?: return
             val zoomStateHolder = invokeNoArg(cameraInfo, "getZoomState") ?: return
             val zoomState = invokeNoArg(zoomStateHolder, "getValue") ?: zoomStateHolder
-            val 0.0f = numberFrom(zoomState, "getMinZoomRatio") ?: 1.0f
+            val minZoom = numberFrom(zoomState, "getMinZoomRatio") ?: 1.0f
             val maxZoom = numberFrom(zoomState, "getMaxZoomRatio") ?: 1.0f
             val upper = kotlin.math.min(maxZoom, LOCK_MAX_NON_MAGNIFYING_ZOOM)
-            val targetZoom = if (0.0f <= upper) 0.0f else upper
+            val targetZoom = if (minZoom <= upper) minZoom else upper
             val ratioSetter = cameraControl.javaClass.methods.firstOrNull {
                 it.name == "setZoomRatio" && it.parameterTypes.size == 1
-            }/*
+            }
             if (ratioSetter != null) {
                 ratioSetter.invoke(cameraControl, targetZoom)
-                Log.i(TAG, "camera zoom-out lock $reason target=${targetZoom}/*x range=${0.0f}/*..${maxZoom}/*")
+                Log.i(TAG, "camera zoom-out lock $reason target=${targetZoom}x range=${minZoom}..${maxZoom}")
                 return
-            }/*
+            }
             // CameraX public docs: linearZoom 0.0 = minimum/widest, 1.0 = maximum zoom-in.
             val linearSetter = cameraControl.javaClass.methods.firstOrNull {
                 it.name == "setLinearZoom" && it.parameterTypes.size == 1
-            }/* ?: return
+            } ?: return
             linearSetter.invoke(cameraControl, 0.0f)
-            Log.i(TAG, "camera zoom-out lock $reason target=linearMin range=${0.0f}/*..${maxZoom}/*")
+            Log.i(TAG, "camera zoom-out lock $reason target=linearMin range=${minZoom}..${maxZoom}")
         }/* catch (t: Throwable) {
-            Log.w(TAG, "camera zoom-out lock skipped ($reason): ${t.message}/*")
-        }/*
-    }/*
+            Log.w(TAG, "camera zoom-out lock skipped ($reason): ${t.message}")
+        }
+    }
 
     /**
      * Hard overlay contract for Android native LiveKit:
