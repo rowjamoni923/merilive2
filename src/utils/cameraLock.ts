@@ -13,10 +13,12 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v3_backward_min_zoom_20260701',
-  // Widest possible FOV. We snap to the hardware minimum zoom (e.g. 0.5x on
-  // ultra-wide capable devices, else 1x). Never zoom IN past 1x.
-  fixedZoomLevel: 1,
+  id: 'camera_lock_v4_optical_backward_0_8_20260701',
+  // Match the user's Android camera reference: a small backward/zoom-out
+  // step from the normal selfie baseline. Prefer 0.8x when the browser/OEM
+  // exposes it; clamp to the hardware minimum and NEVER go above 1x.
+  fixedZoomLevel: 0.8,
+  maxNonMagnifyingZoom: 1,
   minZoomFloor: 0.05,
   fixedObjectPosition: 'center center',
 } as const);
@@ -24,14 +26,22 @@ export const CAMERA_LOCK_POLICY = Object.freeze({
 type ZoomCapability = { min?: number; max?: number; step?: number } | undefined;
 
 function resolveLockedZoom(capability: ZoomCapability): number {
-  const ceiling = CAMERA_LOCK_POLICY.fixedZoomLevel; // never above 1x
-  if (!capability || typeof capability !== 'object') return ceiling;
+  const preferred = CAMERA_LOCK_POLICY.fixedZoomLevel;
+  const ceiling = CAMERA_LOCK_POLICY.maxNonMagnifyingZoom; // never zoom in above 1x
+  if (!capability || typeof capability !== 'object') return preferred;
 
   const min = Number.isFinite(capability.min)
     ? Math.max(Number(capability.min), CAMERA_LOCK_POLICY.minZoomFloor)
-    : ceiling;
-  // Always target the widest FOV the hardware allows, capped at 1x.
-  return Math.min(min, ceiling);
+    : CAMERA_LOCK_POLICY.minZoomFloor;
+  const max = Number.isFinite(capability.max) ? Number(capability.max) : ceiling;
+  const upper = Math.min(max, ceiling);
+  const raw = Math.min(Math.max(preferred, min), upper);
+  const step = Number.isFinite(capability.step) && Number(capability.step) > 0
+    ? Number(capability.step)
+    : 0;
+  if (!step) return raw;
+  const stepped = min + Math.round((raw - min) / step) * step;
+  return Math.min(Math.max(stepped, min), upper);
 }
 
 export async function enforcePermanentTrackLock(
@@ -45,13 +55,9 @@ export async function enforcePermanentTrackLock(
     applyConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
   };
 
-  const capabilities = anyTrack.getCapabilities?.() as { zoom?: ZoomCapability } | undefined;
-  const hasZoomControl = typeof capabilities?.zoom !== 'undefined';
-  if (!hasZoomControl) return;
-
-  const lockedZoom = resolveLockedZoom(capabilities?.zoom);
-
   const apply = async () => {
+    const capabilities = anyTrack.getCapabilities?.() as { zoom?: ZoomCapability } | undefined;
+    const lockedZoom = resolveLockedZoom(capabilities?.zoom);
     try {
       await anyTrack.applyConstraints({
         zoom: lockedZoom,
@@ -74,8 +80,10 @@ export async function enforcePermanentTrackLock(
 
   await apply();
 
-  // Re-apply quickly in case OEM camera pipeline overwrites zoom after startup
-  [120, 500, 1200].forEach((delay) => {
+  // Re-apply after first frames: Chrome/Android WebView may expose camera
+  // zoom capabilities only after streaming starts, and OEM drivers can reset
+  // zoom once the preview surface becomes active.
+  [120, 500, 1200, 2200].forEach((delay) => {
     setTimeout(() => {
       if (track.readyState === 'live') {
         void apply();
