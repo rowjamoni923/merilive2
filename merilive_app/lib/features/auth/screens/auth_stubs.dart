@@ -15,12 +15,7 @@ Widget _stub(String label) => Scaffold(
       ),
     );
 
-@RoutePage()
-class GenderStepPage extends StatelessWidget {
-  const GenderStepPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Gender + Name');
-}
+// GenderStepPage moved to gender_step_page.dart (Step C).
 
 @RoutePage()
 class EmailInputPage extends StatelessWidget {
