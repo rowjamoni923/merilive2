@@ -86,21 +86,21 @@ class LiveKitPlugin : Plugin() {
         // all renderers use SCALE_ASPECT_FILL/object-cover for full portrait UI.
         // Do NOT force ultra-wide/min-zoom lenses here; that diverges from the
         // main project and makes faces look thin/distorted on many OEM cameras.
-        const val LOCK_CAPTURE_W = 1080
-        const val LOCK_CAPTURE_H = 1440
+        const val LOCK_CAPTURE_W = 1440
+        const val LOCK_CAPTURE_H = 1920
         const val LOCK_CAPTURE_FPS = 30
-        const val LOCK_BASE_BITRATE = 4_500_000   // 4.5 Mbps — 1080p premium clarity (Chamet/Bigo parity)
+        const val LOCK_BASE_BITRATE = 6_500_000   // 6.5 Mbps — 1440p premium HD (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720x960 @ 2.2 Mbps (same 3:4 FOV, no crop drift).
-        const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 960
+        // Mid relay = 1080x1440 @ 3.5 Mbps (same 3:4 FOV, no crop drift).
+        const val LOCK_SIM_MID_W = 1080
+        const val LOCK_SIM_MID_H = 1440
         const val LOCK_SIM_MID_FPS = 30
-        const val LOCK_SIM_MID_BITRATE = 2_200_000
-        // Low relay = 540x720 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
-        const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 720
-        const val LOCK_SIM_LOW_FPS = 24
-        const val LOCK_SIM_LOW_BITRATE = 900_000
+        const val LOCK_SIM_MID_BITRATE = 3_500_000
+        // Low relay = 720x960 @ 1.5 Mbps for weak networks; SFU auto-selects.
+        const val LOCK_SIM_LOW_W = 720
+        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_FPS = 30
+        const val LOCK_SIM_LOW_BITRATE = 1_500_000
 
 
         @Volatile private var INSTANCE: LiveKitPlugin? = null
