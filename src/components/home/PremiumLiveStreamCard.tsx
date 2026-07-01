@@ -254,48 +254,21 @@ export const PremiumLiveStreamCard = ({
         </motion.div>
       )}
 
-      {/* Bottom Info with Premium 3D Frame */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-        <div className="flex items-center gap-2">
-          {/* Avatar with SVGA Frame */}
-          <div className="relative">
-            <AvatarWithFrame
-              userId={hostId}
-              src={hostAvatar}
-              name={hostName}
-              level={userLevel}
-              size="xxs"
-              showFrame={true}
-              showAnimation={true}
-              showGlow={userLevel >= 10}
-              isOnline={isOnline}
-            />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            {/* Host Name with Verified Badge */}
-            <div className="flex items-center gap-1">
-              <h3 className="text-on-dark font-bold text-sm truncate drop-shadow-lg">{hostName}</h3>
-              {isVerified && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500 }}
-                >
-                  <Verified className="w-4 h-4 text-blue-600 fill-blue-400" />
-                </motion.div>
-              )}
-            </div>
-            
-            {/* Level Badge and Location */}
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <LevelBadge level={userLevel} size="xs" animated />
-              <div className="flex items-center gap-1 text-on-dark-muted text-[10px]">
-                <CountryFlag code={countryCode} emoji={countryFlag} className="w-[16px] h-[11px]" />
-                {country && <span className="truncate max-w-[60px]">{country}</span>}
-              </div>
-            </div>
-          </div>
+      {/* Bottom Info — full-bleed photo policy:
+          no gray backdrop, no level chip, no country row.
+          Just the host name overlaid on the photo with a soft drop-shadow
+          (matches the "Kajol" card the user pinned as the reference). */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 z-10 pointer-events-none">
+        <div className="flex items-center gap-1">
+          <h3
+            className="text-white font-bold text-base truncate"
+            style={{ textShadow: '0 2px 6px rgba(0,0,0,0.75), 0 1px 2px rgba(0,0,0,0.9)' }}
+          >
+            {hostName}
+          </h3>
+          {isVerified && (
+            <Verified className="w-4 h-4 text-blue-400 fill-blue-500 flex-shrink-0" />
+          )}
         </div>
       </div>
 
