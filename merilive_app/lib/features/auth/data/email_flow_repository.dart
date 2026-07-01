@@ -152,9 +152,10 @@ class EmailFlowRepository {
 enum EmailSignInResult { signedIn, needsSignup }
 
 class EmailFlowException implements Exception {
-  const EmailFlowException(this.message, {this.code});
+  const EmailFlowException(this.message, {this.code, this.retryAfter});
   final String message;
   final String? code;
+  final int? retryAfter;
 
   @override
   String toString() => message;
