@@ -152,11 +152,11 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ### Step A — Foundation (1 delivery)
 - Init `merilive_app/` Flutter project (Android + iOS).
-- Configure `pubspec.yaml` with all packages listed §6.
-- Set up Supabase client (`main.dart`), Riverpod scope.
-- Theme + design tokens file.
-- App router (go_router) with all 14 routes.
-- Splash + native storage bootstrap.
+- Configure `pubspec.yaml`: `supabase_flutter`, `flutter_bloc`, `hydrated_bloc`, `auto_route` (+ builder), `google_sign_in`, `device_info_plus`, `flutter_secure_storage`, `app_links`, `local_auth`, `cached_network_image`, `flutter_svg`.
+- Set up Supabase client (`main.dart`) + `HydratedBloc.storage` bootstrap.
+- Theme + design tokens file (§4 hex values).
+- `auto_route` config with all 14 routes + `AuthGuard` + `BanGuard`.
+- Splash + native storage session restore (no fake loading UI).
 
 ### Step B — Onboarding + Auth landing (1 delivery)
 - `WelcomeOnboarding` carousel (fetches from `onboarding_slides`).
