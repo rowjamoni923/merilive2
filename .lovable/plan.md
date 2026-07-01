@@ -9,9 +9,10 @@ Stop Go Live / Party / Private Call camera preview from rendering as a horizonta
 - The project had switched capture to 3:4 for no-zoom FOV, but the React/native renderers were also set to `contain`/`SCALE_ASPECT_FIT`, causing portrait phones to show a landscape-looking band.
 
 ## Fix plan
-1. Keep 3:4 capture constants to avoid CameraX digital sensor zoom.
-2. Change full-screen/primary camera renderers to portrait fill (`cover` / `SCALE_ASPECT_FILL`) so the surface is vertical.
-3. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
+1. Use 3:4 capture constants to avoid CameraX/WebView digital center-crop zoom.
+2. Keep full-screen/primary camera renderers on portrait fill (`cover` / `SCALE_ASPECT_FILL`) so the surface stays vertical without black bars.
+3. Lock browser zoom constraints to standard 1x, never sub-1.0, because some OEM/WebView stacks interpret 0.5 as an auxiliary-lens/crop jump.
+4. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
 
 # Signup Host/User Role Mapping Fix
 

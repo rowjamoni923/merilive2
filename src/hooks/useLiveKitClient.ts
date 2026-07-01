@@ -694,7 +694,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
 
       const isViewer = config.role === 'audience';
-      // Pkg152: host-selected publish tier (portrait 9:16 enforced inside preset).
+      // Pkg152: host-selected publish tier (natural 3:4 no-zoom capture inside preset).
       // Viewers ignore this — they only subscribe.
       const layerCfg = !isViewer
         ? (() => {

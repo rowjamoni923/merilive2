@@ -83,22 +83,22 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Professional portrait capture: 9:16 Full HD so every camera surface
-        // (Go Live preview, Live, Party, Private Call) is vertical full-screen.
-        // The old 3:4 path caused horizontal/letterboxed previews and black bars.
+        // Professional no-zoom capture: 3:4 uses the front sensor's natural FOV
+        // and avoids CameraX's 9:16 center-crop/digital zoom. Renderers still
+        // use SCALE_ASPECT_FILL, so Go Live / Live / Party / Call stay vertical.
         const val LOCK_CAPTURE_W = 1080
-        const val LOCK_CAPTURE_H = 1920
+        const val LOCK_CAPTURE_H = 1440
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 4_500_000   // 4.5 Mbps — 1080p premium clarity (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720x1280 @ 2.2 Mbps.
+        // Mid relay = 720x960 @ 2.2 Mbps (same 3:4 FOV, no crop drift).
         const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 1280
+        const val LOCK_SIM_MID_H = 960
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 2_200_000
-        // Low relay = 540x960 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
+        // Low relay = 540x720 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
         const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_H = 720
         const val LOCK_SIM_LOW_FPS = 24
         const val LOCK_SIM_LOW_BITRATE = 900_000
 
@@ -1275,9 +1275,8 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // Portrait live-room rule: render the camera as a vertical phone surface.
-        // Capture is locked to 9:16, so FILL gives a full-height professional
-        // preview without the horizontal black bars caused by BALANCED/contain.
+        // Portrait live-room rule: capture stays natural 3:4 to avoid digital
+        // zoom, while FILL keeps the app surface vertical with no black bars.
         try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
