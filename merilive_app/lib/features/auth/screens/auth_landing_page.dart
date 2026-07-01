@@ -127,7 +127,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         icon: const Icon(Icons.phone_rounded),
         loading: _pending == 'phone',
         onPressed: () => _guarded('phone', () {
-          // context.router.push(const PhoneInputRoute());  // Step E
+          context.router.push(const PhoneInputRoute());
         }),
       );
 

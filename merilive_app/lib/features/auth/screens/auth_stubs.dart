@@ -1,44 +1,21 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-/// Route stubs — each is filled in during Steps C-F.
-/// They only exist so the router graph compiles today (Step A Foundation).
+/// Remaining route stubs — filled in during later steps.
+/// Kept only so the router graph compiles.
 
 Widget _stub(String label) => Scaffold(
       backgroundColor: const Color(0xFF0F0C29),
       body: Center(
         child: Text(
-          '$label\n(Step B/C/D/E/F)',
+          '$label\n(coming in a later step)',
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ),
     );
 
-// GenderStepPage → gender_step_page.dart (Step C).
-// EmailInputPage / EmailOtpPage / EmailPasswordPage / LoginPage
-//   → screens/email_*_page.dart + screens/login_page.dart (Step D).
-
-@RoutePage()
-class PhoneInputPage extends StatelessWidget {
-  const PhoneInputPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Phone');
-}
-
-@RoutePage()
-class PhoneOtpPage extends StatelessWidget {
-  const PhoneOtpPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Phone OTP');
-}
-
-@RoutePage()
-class PhonePasswordPage extends StatelessWidget {
-  const PhonePasswordPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Phone Password');
-}
+// Phone flow → phone_*_page.dart (Step E — done).
 
 @RoutePage()
 class AuthCallbackPage extends StatelessWidget {
