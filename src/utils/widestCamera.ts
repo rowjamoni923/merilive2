@@ -40,6 +40,8 @@ export const maybeUpgradeToWidestCamera = async (
 ): Promise<MediaStream> => {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) return initialStream;
 
+  let stoppedInitialVideo = false;
+
   try {
     const currentDeviceId = initialStream.getVideoTracks()[0]?.getSettings?.().deviceId;
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -98,6 +100,7 @@ export const maybeUpgradeToWidestCamera = async (
     initialVideoTracks.forEach((track) => {
       try { track.stop(); } catch { /* ignore */ }
     });
+    stoppedInitialVideo = true;
 
     const exclusiveWide = await openWideCandidate();
     if (exclusiveWide) return exclusiveWide;
@@ -119,8 +122,11 @@ export const maybeUpgradeToWidestCamera = async (
         // keep trying lower fallbacks
       }
     }
+
+    throw new Error('Unable to reopen camera after wide-lens selection failed');
   } catch (error) {
     console.warn('[Camera] Wide camera selection skipped:', error, source);
+    if (stoppedInitialVideo) throw error;
   }
 
   return initialStream;
