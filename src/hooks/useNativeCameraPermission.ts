@@ -102,7 +102,13 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
     }
     console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
     const constraints: MediaStreamConstraints = {
-      video: { facingMode: 'user' },
+      video: {
+        facingMode: { ideal: 'user' },
+        width: { ideal: 1080 },
+        height: { ideal: 1920 },
+        aspectRatio: { ideal: 9 / 16 },
+        frameRate: { ideal: 30 },
+      },
       audio: includeAudio
     };
     const stream = await withTimeout(
@@ -162,8 +168,14 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     : false;
   const constraintOptions: MediaStreamConstraints[] = [
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio },
+    // Professional live-app portrait pipeline: request the same 9:16 frame
+    // that the preview/live/party/call containers display. The old 3:4 request
+    // forced object-cover to crop the sides in a 9:16 screen, which looked like
+    // the camera was zoomed and still left OEM/browser letterboxing on some
+    // WebViews. 1080x1920 → 720x1280 keeps preview and publish aspect identical.
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 960 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 24 } }, audio },
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },
