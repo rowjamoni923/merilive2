@@ -50,7 +50,7 @@ export interface ConnectOptions {
   roomScope?: NativeRoomScope;
   pauseCameraOnBackground?: boolean;
   /** Locked publish quality — passed straight to LiveKitPlugin.kt. Defaults
-   * to the LOCK_* constants in Kotlin (natural 3:4 capture, 30fps base, 3-layer
+   * to the LOCK_* constants in Kotlin (true 9:16 portrait capture, 30fps base, 3-layer
    * simulcast). Anti-blur contract: SDK / SFU MUST NOT down-tune the base
    * encoding at runtime — adaptation happens viewer-side (simulcast layer
    * switch) only. */
