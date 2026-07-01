@@ -13,11 +13,12 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v2_20260701_zoomout',
-  // Prefer the widest field of view the sensor supports (ultra-wide on
-  // multi-lens phones, or minimum digital zoom otherwise). This gives the
-  // Chamet/Bigo-style zoomed-out look users expect on Live/Party/Call.
-  fixedZoomLevel: 0.5,
+  id: 'camera_lock_v3_20260701_standard_1x',
+  // Lock to standard 1x. Sub-1.0 zoom can make some OEM/WebView cameras jump
+  // to a distorted auxiliary lens or apply the constraint in the wrong visual
+  // direction, which users experience as extra zoom. 1x is the widest safe
+  // no-digital-zoom setting across Live/Party/Call preview surfaces.
+  fixedZoomLevel: 1,
   fixedObjectPosition: 'center center',
 } as const);
 
@@ -29,7 +30,7 @@ function resolveLockedZoom(capability: ZoomCapability): number {
 
   const min = Number.isFinite(capability.min) ? Number(capability.min) : 1;
   const max = Number.isFinite(capability.max) ? Number(capability.max) : 1;
-  // Snap to sensor minimum — the widest FOV available on this device.
+  // Snap to the closest supported standard 1x value; never force sub-1.0.
   return Math.min(Math.max(target, min), max);
 }
 

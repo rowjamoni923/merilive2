@@ -17,10 +17,10 @@
  * values cause sender/receiver drift and visible pumping.
  */
 export const LIVEKIT_PUBLISH_LOCK = {
-  // Capture (CameraX/Web) — professional portrait 9:16 Full HD.
-  // This fills phone screens vertically in Go Live, Live, Party and Calls.
+  // Capture (CameraX/Web) — natural 3:4 sensor frame for safe zoom-out.
+  // Renderers keep portrait cover/fill so users never see horizontal bars.
   captureWidth: 1080,
-  captureHeight: 1920,
+  captureHeight: 1440,
   captureFps: 30,
 
   // Base layer encoder — 1080p @ 30fps @ 4.5 Mbps. Pinned, never re-tuned.
