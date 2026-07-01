@@ -131,6 +131,12 @@ export const maybeUpgradeToWidestCamera = async (
           9000,
           'Restore camera request timed out',
         );
+        const restoredVideoTracks = restored.getVideoTracks();
+        if (!restoredVideoTracks.some((track) => track.readyState === 'live') || !restoredVideoTracks.some(isPortraitCameraTrack)) {
+          console.warn('[Camera] Rejected non-portrait restored camera mode:', JSON.stringify(restoredVideoTracks[0]?.getSettings?.() || {}));
+          stopMediaStream(restored);
+          continue;
+        }
         audioTracks.forEach((track) => {
           if (track.readyState === 'live') restored.addTrack(track);
         });

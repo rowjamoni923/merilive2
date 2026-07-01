@@ -214,6 +214,25 @@ const isDev = typeof import.meta !== 'undefined' && (import.meta as any)?.env?.D
 export const NativeLiveKit: NativeLiveKitPlugin & Record<string, any> =
   new Proxy(RealPlugin as any, {
     get(target, prop: string) {
+      // Capacitor exposes plugin method stubs on web, but invoking them rejects
+      // with `UNIMPLEMENTED`. This bridge is Android-only, so web/iOS must
+      // resolve harmlessly before touching the real Capacitor proxy.
+      if (!isNativeLiveKitAvailable()) {
+        if (prop === 'isAvailable') {
+          return async () => ({ available: false, backend: 'web', supportsPreview: false, methods: [] });
+        }
+        if (prop === 'getActiveSession') {
+          return async () => ({ active: false, boundAtMs: 0, ageMs: 0, canHardReconnect: false });
+        }
+        if (prop === 'addListener') {
+          return async () => ({ remove: async () => undefined });
+        }
+        if (prop === 'removeAllListeners') {
+          return async () => undefined;
+        }
+        if (prop === 'then') return undefined;
+        return async () => undefined;
+      }
       const value = (target as any)[prop];
       if (typeof value === 'function') return value.bind(target);
       if (typeof value !== 'undefined') return value;

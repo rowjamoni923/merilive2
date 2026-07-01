@@ -12,6 +12,7 @@
  */
 import {
   NativeLiveKit,
+  isNativeLiveKitAvailable,
   type ConnectOptions,
   type Lens,
   type Resolution,
@@ -67,6 +68,7 @@ class NativeLiveKitController {
   }
 
   private async attachLocalWithRetry(): Promise<void> {
+    if (!isNativeLiveKitAvailable()) return;
     // 2026-06-17 — pass `mirror: true` to the native attach so front-camera
     // local feed reads correctly (selfie-mirrored). The Kotlin side now
     // mounts a fullscreen SurfaceViewRenderer behind the WebView and binds
@@ -118,6 +120,7 @@ class NativeLiveKitController {
 
 
   async attachLocal(): Promise<void> {
+    if (!isNativeLiveKitAvailable()) return;
     if (!this.connected || !this.autoAttachLocalRenderer || this.boundedSurfaceMode) return;
     await this.attachLocalWithRetry();
   }
@@ -154,6 +157,7 @@ class NativeLiveKitController {
   }
 
   async connectAndPublish(opts: NativeJoinOptions): Promise<{ sid: string; identity: string }> {
+    if (!isNativeLiveKitAvailable()) return { sid: '', identity: '' };
     await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
@@ -302,6 +306,7 @@ class NativeLiveKitController {
    * Safe on web/iOS — returns { active:false } when the plugin is absent.
    */
   async getActiveSession() {
+    if (!isNativeLiveKitAvailable()) return { active: false, boundAtMs: 0, ageMs: 0, canHardReconnect: false } as const;
     try { return await NativeLiveKit.getActiveSession(); }
     catch { return { active: false, boundAtMs: 0, ageMs: 0, canHardReconnect: false } as const; }
   }
@@ -313,6 +318,7 @@ class NativeLiveKitController {
    * (back button = real disconnect).
    */
   async setSurviveActivityDestroy(enabled: boolean): Promise<void> {
+    if (!isNativeLiveKitAvailable()) return;
     try { await NativeLiveKit.setSurviveActivityDestroy({ enabled }); }
     catch { /* not implemented on web/iOS */ }
   }
@@ -322,6 +328,7 @@ class NativeLiveKitController {
    * web/iOS or when broadcastMode !== 'live'. Cheap; safe per realtime tick.
    */
   async updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void> {
+    if (!isNativeLiveKitAvailable()) return;
     try { await NativeLiveKit.updateLiveStats(opts); }
     catch { /* not implemented on web/iOS */ }
   }
@@ -329,6 +336,14 @@ class NativeLiveKitController {
 
   async disconnect(): Promise<void> {
     this.mediaEpoch += 1;
+    if (!isNativeLiveKitAvailable()) {
+      this.connected = false;
+      this.activeFeature = null;
+      this.previewFeature = null;
+      this.boundedSurfaceMode = false;
+      this.busy = false;
+      return;
+    }
     recordCallDiag('media-epoch', 'bump', { epoch: this.mediaEpoch, reason: 'disconnect' });
     try {
       await this.waitForIdle('disconnect handoff', 5000);
@@ -365,6 +380,12 @@ class NativeLiveKitController {
    */
   async disconnectSessionOnly(): Promise<void> {
     this.mediaEpoch += 1;
+    if (!isNativeLiveKitAvailable()) {
+      this.connected = false;
+      this.activeFeature = null;
+      this.boundedSurfaceMode = false;
+      return;
+    }
     try {
       const fn = (NativeLiveKit as unknown as { disconnectSessionOnly?: () => Promise<unknown> })
         .disconnectSessionOnly;
@@ -404,6 +425,7 @@ class NativeLiveKitController {
   }
 
   onDataReceived(cb: (payload: Uint8Array, participantIdentity?: string) => void): () => void {
+    if (!isNativeLiveKitAvailable()) return () => undefined;
     let handle: PluginListenerHandle | null = null;
     let cancelled = false;
     NativeLiveKit.addListener('data-received', (e) => {
@@ -456,7 +478,9 @@ class NativeLiveKitController {
    * the camera is busy — callers should surface a friendly message.
    */
   async startLocalPreview(opts?: { lens?: Lens; resolution?: Resolution; mirror?: boolean; boundedOnly?: boolean; roomScope?: NativeRoomScope }): Promise<boolean> {
+    if (!isNativeLiveKitAvailable()) return false;
     const requestedFeature = opts?.roomScope ?? null;
+    const startEpoch = this.mediaEpoch;
 
     // T-shirt rule: if preview for this exact media family is already alive
     // (or currently opening), reuse it. Never stop/reopen Camera2 just because
@@ -474,8 +498,10 @@ class NativeLiveKitController {
 
     const startPromise = (async () => {
       await this.waitForIdle('startLocalPreview');
+      if (startEpoch !== this.mediaEpoch) return false;
       this.busy = true;
       try {
+      if (startEpoch !== this.mediaEpoch) return false;
       if (this.connected && this.activeFeature && requestedFeature && this.activeFeature !== requestedFeature) {
         throw new Error(`NativeLiveKit session already active for ${this.activeFeature}; refusing ${requestedFeature} preview`);
       }
@@ -503,8 +529,15 @@ class NativeLiveKitController {
         // was the real camera reset/black-flash bug during preview→publish.
         console.warn('[NativeLiveKitController] startLocalPreview reused busy native preview:', message);
       }
+      if (startEpoch !== this.mediaEpoch) {
+        try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* noop */ }
+        try { await NativeLiveKit.detachAll?.(); } catch { /* noop */ }
+        try { await NativeLiveKit.detachLocal?.(); } catch { /* noop */ }
+        try { await NativeLiveKit.stopLocalPreview(); } catch { /* noop */ }
+        return false;
+      }
       this.previewFeature = requestedFeature;
-      if (!opts?.boundedOnly) await this.attachLocalWithRetry().catch(() => undefined);
+      if (!opts?.boundedOnly && startEpoch === this.mediaEpoch) await this.attachLocalWithRetry().catch(() => undefined);
       return true;
     } catch (e) {
       console.warn('[NativeLiveKitController] startLocalPreview failed:', e);
@@ -522,6 +555,13 @@ class NativeLiveKitController {
   /** Stop the prejoin preview and release the camera. Always safe. */
   async stopLocalPreview(): Promise<void> {
     this.mediaEpoch += 1;
+    if (!isNativeLiveKitAvailable()) {
+      this.previewStartPromise = null;
+      this.previewFeature = null;
+      this.boundedSurfaceMode = false;
+      this.busy = false;
+      return;
+    }
     // The visible fullscreen TextureView must disappear immediately when the
     // host leaves Go Live preview. Do not wait for an in-flight Camera2 start;
     // otherwise the native surface can remain above the next React page while

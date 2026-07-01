@@ -1,9 +1,10 @@
 /**
  * persistentCameraSession
  * -----------------------
- * A global, reference-counted MediaStream singleton so the camera+mic stay
- * alive across React route changes. Page A opens camera, navigates to Page B,
- * navigates back to Page A — no re-permission, no re-init, no black gap.
+ * A global, reference-counted MediaStream singleton for SHORT, explicit
+ * handoffs only (GoLive→Live, CreateParty→Party, ring→call). When the last
+ * consumer releases, an automatic idle timer stops the camera so it cannot
+ * keep running as a ghost overlay behind unrelated pages.
  *
  * This is the foundation for Step 1+ of the "zero loading / zero camera
  * restart" rebuild. It deliberately does NOT touch LiveKit — it only owns the
@@ -14,12 +15,12 @@
  * Lifecycle:
  *   const handle = await acquireCameraSession({ video: true, audio: true });
  *   // ... use handle.stream ...
- *   handle.release();                  // decrements refcount, stream stays
+ *   handle.release();                  // decrements refcount, auto-GC starts
  *   disposeCameraSessionIfIdle();      // optional GC after a real exit
  *   forceDisposeCameraSession();       // explicit "End Live" / "Leave Call"
  */
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
-import { buildPortraitVideoConstraint } from '@/utils/portraitCameraConstraints';
+import { buildPortraitVideoConstraint, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
 import { maybeUpgradeToWidestCamera } from '@/utils/widestCamera';
 
 export type CameraSessionConstraints = {
@@ -43,7 +44,23 @@ type Session = {
 let active: Session | null = null;
 let pending: Promise<Session> | null = null;
 let pendingKey: string | null = null;
+let idleDisposeTimer: ReturnType<typeof setTimeout> | null = null;
+let lifecycleEpoch = 0;
 const listeners = new Set<(stream: MediaStream | null) => void>();
+
+const clearIdleDisposeTimer = () => {
+  if (!idleDisposeTimer) return;
+  clearTimeout(idleDisposeTimer);
+  idleDisposeTimer = null;
+};
+
+const scheduleIdleDispose = () => {
+  clearIdleDisposeTimer();
+  idleDisposeTimer = setTimeout(() => {
+    idleDisposeTimer = null;
+    disposeCameraSessionIfIdle();
+  }, 1500);
+};
 
 function emitCameraSessionChange() {
   const stream = peekCameraSession();
@@ -81,7 +98,7 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
 
 const keyOf = (req: CameraSessionConstraints) =>
   // Include capture-layout version so stale zoomed/crop-scaled streams are not reused.
-  JSON.stringify({ layout: 'portrait-zoomout-v10-3x4-native-sensor', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
+  JSON.stringify({ layout: 'portrait-validated-v11-no-landscape-fallback', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
 
 const isStreamUsable = (stream: MediaStream | null | undefined) =>
   !!stream && stream.getTracks().some((t) => t.readyState === 'live');
@@ -89,6 +106,7 @@ const isStreamUsable = (stream: MediaStream | null | undefined) =>
 export async function acquireCameraSession(
   req: CameraSessionConstraints = { video: true, audio: true },
 ): Promise<CameraSessionHandle> {
+  clearIdleDisposeTimer();
   const wantKey = keyOf(req);
 
   // Reuse the live session when constraints match.
@@ -124,12 +142,22 @@ export async function acquireCameraSession(
     }
   }
 
+  const startEpoch = lifecycleEpoch;
   pending = (async (): Promise<Session> => {
     const facingMode = req.facingMode ?? 'user';
     const initialStream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
     const stream = req.video === false
       ? initialStream
       : await maybeUpgradeToWidestCamera(initialStream, facingMode, 'persistent-camera-session');
+    if (startEpoch !== lifecycleEpoch) {
+      stopMediaStream(stream);
+      throw new Error('Camera start was cancelled by navigation.');
+    }
+    if (req.video !== false && !stream.getVideoTracks().some(isPortraitCameraTrack)) {
+      console.warn('[CameraSession] Rejected non-portrait persistent stream:', JSON.stringify(stream.getVideoTracks()[0]?.getSettings?.() || {}));
+      stopMediaStream(stream);
+      throw new Error('Camera opened in landscape mode. Please reopen the preview.');
+    }
     await enforcePermanentCameraLock(stream, 'persistent-camera-session');
     const session: Session = {
       stream,
@@ -163,6 +191,7 @@ export function adoptCameraSession(
   stream: MediaStream,
   req: CameraSessionConstraints = { video: true, audio: true },
 ): CameraSessionHandle {
+  clearIdleDisposeTimer();
   if (!isStreamUsable(stream)) {
     throw new Error('Cannot adopt a stopped camera session.');
   }
@@ -190,9 +219,10 @@ function toHandle(session: Session): CameraSessionHandle {
       if (released) return;
       released = true;
       session.refCount = Math.max(0, session.refCount - 1);
-      // Note: we do NOT stop tracks when refCount hits 0. The whole point is
-      // to survive route changes. Call disposeCameraSessionIfIdle() or
-      // forceDisposeCameraSession() to actually free the camera.
+      // Short handoff grace only: the next Live/Party/Call screen can adopt
+      // immediately, but a forgotten release path cannot leave a ghost camera
+      // running behind unrelated pages.
+      if (session.refCount <= 0 && active === session) scheduleIdleDispose();
     },
   };
 }
@@ -220,6 +250,8 @@ export function peekCameraSession(): MediaStream | null {
 export function disposeCameraSessionIfIdle(): boolean {
   if (!active) return true;
   if (active.refCount > 0) return false;
+  lifecycleEpoch += 1;
+  clearIdleDisposeTimer();
   hardStop(active);
   active = null;
   emitCameraSessionChange();
@@ -228,6 +260,8 @@ export function disposeCameraSessionIfIdle(): boolean {
 
 /** Force-stops the camera regardless of refcount. Use on "End Live" / sign-out. */
 export function forceDisposeCameraSession(): void {
+  lifecycleEpoch += 1;
+  clearIdleDisposeTimer();
   if (!active) return;
   hardStop(active);
   active = null;
