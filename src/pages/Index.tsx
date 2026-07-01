@@ -542,14 +542,11 @@ const Index = () => {
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         data-prefetch={user.isLive ? "live" : "profile"}
         data-stream-id={user.liveStreamId}
-        className={cn(
-          "relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90",
-          "bg-card"
-        )}
+        className="relative overflow-hidden rounded-2xl cursor-pointer group transition-opacity duration-75 active:opacity-90"
         style={{ contain: 'layout style paint', boxShadow: getCardShadow() }}
       >
 
-        <div className="relative aspect-[3/4] bg-card overflow-hidden">
+        <div className="relative aspect-[3/4] overflow-hidden">
           {/* Show the thumbnail as one uninterrupted professional media tile — no letterbox fill, color block, or border. */}
           <img 
             key={cardImageUrl}
@@ -599,8 +596,7 @@ const Index = () => {
           />
 
 
-          {/* Lightweight readability scrim only — no separate color panel or divider. */}
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/70 via-foreground/18 to-transparent" />
+          {/* Full-photo card: no bottom panel, border band, or screen overlay. */}
 
           {/* Flat Status Badge — Chamet/Bigo industry standard.
               LIVE (red) / BUSY (amber) / ONLINE (green). No 3D, no bevel. */}
@@ -663,9 +659,9 @@ const Index = () => {
           )}
 
 
-            {/* Bottom Info — floats on the thumbnail; never renders a colored screen or border. */}
+            {/* Bottom Info — floats directly on the photo; no colored panel/border. */}
           <div
-            className="absolute bottom-0 left-0 right-0 px-2.5 pt-4 pb-2.5"
+            className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5"
             style={{
               background: 'transparent',
               boxShadow: 'none',
@@ -690,7 +686,7 @@ const Index = () => {
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-on-dark font-bold text-[13px] truncate" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
+                <p className="text-on-dark font-bold text-[13px] truncate" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.75)' }}>
                   {user.display_name || user.username || "User"}
                 </p>
                 

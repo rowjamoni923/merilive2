@@ -36,7 +36,7 @@ export const LiveStreamCard = ({
   const normalizedHostAvatar = normalizeProfileMediaUrl(hostAvatar) || hostAvatar;
 
   return (
-    <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-muted">
+    <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4]">
       {/* Thumbnail */}
       <img loading="lazy" decoding="async"
         src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
@@ -54,9 +54,7 @@ export const LiveStreamCard = ({
         }}
       />
 
-
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      {/* Full-photo card: no dark panel, border band, or screen overlay. */}
 
       {/* Live Badge */}
       {isOnline && (
@@ -92,7 +90,7 @@ export const LiveStreamCard = ({
       )}
 
       {/* Bottom Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
+      <div className="absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
         <div className="flex items-center gap-2">
           <div className="relative">
             <AvatarWithFrame
@@ -107,8 +105,8 @@ export const LiveStreamCard = ({
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-on-dark font-semibold text-sm truncate">{hostName}</h3>
-            <div className="flex items-center gap-1 text-on-dark-muted text-xs">
+            <h3 className="text-on-dark font-semibold text-sm truncate" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.75)' }}>{hostName}</h3>
+            <div className="flex items-center gap-1 text-on-dark-muted text-xs" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.75)' }}>
               <span>{countryFlag}</span>
               <span className="truncate">{country}</span>
             </div>
