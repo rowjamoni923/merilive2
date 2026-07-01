@@ -7,6 +7,7 @@ import {
 } from '@/utils/nativePermissions';
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 import { buildPortraitVideoConstraint, buildPortraitVideoFallbacks, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
+import { maybeUpgradeToWidestCamera } from '@/utils/widestCamera';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -193,8 +194,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
       videoTracks.forEach((track) => {
         try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
       });
-      await enforcePermanentCameraLock(stream, `camera-stream:${i + 1}`);
-      return stream;
+      const widestStream = await maybeUpgradeToWidestCamera(stream, facingMode);
+      await enforcePermanentCameraLock(widestStream, `camera-stream:${i + 1}`);
+      return widestStream;
     } catch (err: any) {
       lastError = err;
       console.warn(`[Camera] Attempt ${i + 1} failed:`, err?.name, err?.message);

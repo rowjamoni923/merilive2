@@ -52,6 +52,7 @@ import { clearNativeFaceCameraSurface, clearNativeMediaSurface, setNativeMediaSu
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 import { buildPortraitVideoFallbacks } from "@/utils/portraitCameraConstraints";
+import { maybeUpgradeToWidestCamera } from "@/utils/widestCamera";
 import { useLiveSessionOptional, type LiveHostState } from "@/features/live-session";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
@@ -877,6 +878,7 @@ const GoLive = () => {
         };
 
         let mediaStream = await openNextCamera();
+        if (mediaStream) mediaStream = await maybeUpgradeToWidestCamera(mediaStream, newFacingMode, 'golive:switch-camera');
         if (mediaStream) await enforcePermanentCameraLock(mediaStream, 'golive:switch-camera');
         if (!mediaStream && previousStream) {
           previousStream.getVideoTracks().forEach((track) => track.stop());
