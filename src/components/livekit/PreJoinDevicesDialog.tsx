@@ -222,7 +222,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
 
         <div className="space-y-4">
           {/* Preview */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
+          <div className="relative mx-auto aspect-[9/16] max-h-[60vh] w-full max-w-[260px] overflow-hidden rounded-xl bg-black">
             <video 
               ref={videoRef}
               playsInline
@@ -238,7 +238,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               x5-video-player-fullscreen="false"
               x5-playsinline="true"
               webkit-playsinline="true"
-              className="h-full w-full object-contain bg-transparent [transform:scaleX(-1)]"
+              className="h-full w-full object-cover bg-transparent [transform:scaleX(-1)]"
               style={{ pointerEvents: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
 
           </div>
