@@ -36,7 +36,7 @@ import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import {
-  adoptCameraSession,
+  acquireCameraSession,
   disposeCameraSessionIfIdle,
   forceDisposeCameraSession,
   type CameraSessionHandle,
@@ -44,16 +44,13 @@ import {
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
-import { claimAndroidWebViewCameraForStream, releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
+import { releaseAndroidWebViewCamera } from "@/lib/androidCameraHandoff";
 import { nativeLiveKitController } from "@/lib/nativeLiveKitController";
 import { useProCamera } from "@/camera/useProCamera";
 import * as ProCameraEngine from "@/camera/ProCameraEngine";
 import { NativeVideoView } from "@/components/NativeVideoView";
 import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
-import { enforcePermanentCameraLock } from "@/utils/cameraLock";
-import { buildPortraitVideoConstraint } from "@/utils/portraitCameraConstraints";
-import { maybeUpgradeToWidestCamera } from "@/utils/widestCamera";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -118,6 +115,7 @@ const CreateParty = () => {
   const [isMirrorMode, setIsMirrorMode] = useState(true);
   const [nativePreviewActive, setNativePreviewActive] = useState(false);
   const nativePartyPreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
+  const screenActiveRef = useRef(true);
   // Party rooms are always public (industry standard — Chamet/Bigo/Poppo).
   // Entry fee remains as an optional gate; password gating fully removed.
   const [showRoomLockSheet, setShowRoomLockSheet] = useState(false);
@@ -143,7 +141,7 @@ const CreateParty = () => {
   const [requiredLevel, setRequiredLevel] = useState(0);
 
   // Native camera permission hook for proper Android handling
-  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  const { requestCameraPermission } = useNativeCameraPermission();
 
   // Pkg-PartyGAP-1 — Acquire the streaming-family slot in ProCameraEngine
   // for the selected party mode (video/game). Audio party never opens the
@@ -186,6 +184,7 @@ const CreateParty = () => {
   // Start camera with native permission handling
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
     try {
+      if (!screenActiveRef.current) return;
       if (isNativeAndroid) {
         let nativeReady = false;
         if (videoMode) {
@@ -216,6 +215,10 @@ const CreateParty = () => {
                   .finally(() => {
                     nativePartyPreviewStartPromiseRef.current = null;
                   }));
+            if (!screenActiveRef.current) {
+              await nativeLiveKitController.stopLocalPreview().catch(() => {});
+              return;
+            }
             setNativePreviewActive(started);
             nativeReady = started;
           } catch (e) {
@@ -229,6 +232,7 @@ const CreateParty = () => {
           setNativePreviewActive(false);
           nativeReady = true;
         }
+        if (!screenActiveRef.current) return;
         setCameraReady(nativeReady);
         return;
       }
@@ -244,24 +248,20 @@ const CreateParty = () => {
           toast.error('Camera is busy. Close other camera screens and try again.');
           return;
         }
-        const mediaStream = await getCameraStream(true); // Include audio
-        if (mediaStream) {
-          // Pkg-shirt Phase-A: register into global persistent camera session
-          // BEFORE setState so the swap to PartyRoom is back-stopped.
-          try {
-            cameraHandleRef.current?.release();
-            cameraHandleRef.current = adoptCameraSession(mediaStream, {
-              video: true,
-              audio: true,
-            });
-          } catch (e) {
-            console.warn('[CreateParty] adoptCameraSession failed (non-fatal):', e);
-          }
-          setStream(mediaStream);
-          // Pkg-fix: do NOT set srcObject here — the sync useEffect below
-          // attaches stream → video element whenever either changes. Setting
-          // it twice causes a mute-flip on Android WebView → blank preview.
+        const handle = await acquireCameraSession({ video: true, audio: true, facingMode: 'user' });
+        const mediaStream = handle.stream;
+        if (!screenActiveRef.current) {
+          handle.release();
+          disposeCameraSessionIfIdle();
+          releaseAndroidWebViewCamera('create-party:start-aborted');
+          return;
         }
+        cameraHandleRef.current?.release();
+        cameraHandleRef.current = handle;
+        setStream(mediaStream);
+        // Pkg-fix: do NOT set srcObject here — the sync useEffect below
+        // attaches stream → video element whenever either changes. Setting
+        // it twice causes a mute-flip on Android WebView → blank preview.
       } else {
         // Audio only mode — no camera; ProCameraEngine slot already released
         // by useProCamera(..., enabled=false) when mode flipped to 'audio'.
@@ -270,6 +270,10 @@ const CreateParty = () => {
           audio: { echoCancellation: true, noiseSuppression: true } 
         };
         const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (!screenActiveRef.current) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         setStream(mediaStream);
       }
     } catch (error: any) {
@@ -277,7 +281,7 @@ const CreateParty = () => {
       recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
-  }, [getCameraStream, isNativeAndroid, proCamera.ready, partyCameraOwner, requestCameraPermission]);
+  }, [isNativeAndroid, proCamera.ready, requestCameraPermission]);
 
   useLayoutEffect(() => {
     if (!isNativeAndroid) return;
@@ -297,6 +301,7 @@ const CreateParty = () => {
 
   // Initialize everything in parallel on mount
   useEffect(() => {
+    screenActiveRef.current = true;
     let isMounted = true;
     
     // Only show base games on Create Party page (not new casino games like Roulette, Ferris Wheel, Teen Patti)
@@ -345,6 +350,7 @@ const CreateParty = () => {
     initParty();
 
     return () => {
+      screenActiveRef.current = false;
       isMounted = false;
       // Only stop tracks if we're NOT preserving for party room handoff
       if (!preserveStreamRef.current && streamRef.current) {
@@ -1192,20 +1198,22 @@ const CreateParty = () => {
               toast.error('Camera is busy. Close other camera screens and try again.');
               return;
             }
-            stream.getTracks().forEach(track => track.stop());
-            releaseAndroidWebViewCamera('create-party:switch-camera');
             const newFacingMode = facingMode === "user" ? "environment" : "user";
             setFacingMode(newFacingMode);
             try {
-              const claimedStream = await claimAndroidWebViewCameraForStream(
-                () => navigator.mediaDevices.getUserMedia({
-                  video: buildPortraitVideoConstraint({ facingMode: newFacingMode, width: 720, height: 960, frameRate: 30 }),
-                  audio: true
-                }),
-                'create-party:switch-camera-new-stream',
-              );
-              const newStream = await maybeUpgradeToWidestCamera(claimedStream, newFacingMode, 'create-party:switch-camera');
-              await enforcePermanentCameraLock(newStream, 'create-party:switch-camera');
+              cameraHandleRef.current?.release();
+              cameraHandleRef.current = null;
+              forceDisposeCameraSession();
+              releaseAndroidWebViewCamera('create-party:switch-camera');
+              const handle = await acquireCameraSession({ video: true, audio: true, facingMode: newFacingMode });
+              const newStream = handle.stream;
+              if (!screenActiveRef.current) {
+                handle.release();
+                disposeCameraSessionIfIdle();
+                releaseAndroidWebViewCamera('create-party:switch-camera-aborted');
+                return;
+              }
+              cameraHandleRef.current = handle;
               setStream(newStream);
               if (videoRef.current) {
               }

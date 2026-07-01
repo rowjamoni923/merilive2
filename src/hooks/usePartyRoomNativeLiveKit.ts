@@ -22,7 +22,7 @@ import { connectLiveKitRoom } from '@/lib/livekitConnectPolicy';
 import { publishReliableLocalMedia } from '@/lib/livekitReliableMedia';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
-import { adoptCameraSession } from '@/lib/persistentCameraSession';
+import { adoptCameraSession, disposeCameraSessionIfIdle, type CameraSessionHandle } from '@/lib/persistentCameraSession';
 import { LIVEKIT_PUBLISH_LOCK } from '@/lib/livekitPublishLock';
 import { enforcePermanentTrackLock } from '@/utils/cameraLock';
 
@@ -138,6 +138,7 @@ export function usePartyRoomNativeLiveKit(
   const deadRef = useRef(false);
   const usingNativeRef = useRef(false);
   const nativePartyPreviewStartPromiseRef = useRef<Promise<boolean> | null>(null);
+  const preparedCameraHandleRef = useRef<CameraSessionHandle | null>(null);
 
   const refreshNativeParticipants = useCallback(async () => {
     if (!usingNativeRef.current) return;
@@ -319,6 +320,12 @@ export function usePartyRoomNativeLiveKit(
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
+
+    try {
+      preparedCameraHandleRef.current?.release();
+      preparedCameraHandleRef.current = null;
+      disposeCameraSessionIfIdle();
+    } catch { /* ignore */ }
 
     void releaseAndroidWebViewCameraNow('party-room:cleanup-force');
     detachAllAudio();
@@ -632,7 +639,8 @@ export function usePartyRoomNativeLiveKit(
           // fresh getUserMedia even though the tracks are still live.
           if (preparedStream) {
             try {
-              adoptCameraSession(preparedStream, { video: true, audio: true });
+              preparedCameraHandleRef.current?.release();
+              preparedCameraHandleRef.current = adoptCameraSession(preparedStream, { video: true, audio: true });
             } catch { /* non-fatal */ }
           }
           // Pkg418 hard gate: if arbiter not clear, publish audio-only.

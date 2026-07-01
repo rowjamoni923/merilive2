@@ -142,6 +142,7 @@ import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
 import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import {
   adoptCameraSession,
+  disposeCameraSessionIfIdle,
   forceDisposeCameraSession,
   type CameraSessionHandle,
 } from "@/lib/persistentCameraSession";
@@ -2579,6 +2580,7 @@ const LiveStream = () => {
         // instantly. The explicit "End Live" path below force-disposes.
         try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
         previewCameraHandleRef.current = null;
+        try { disposeCameraSessionIfIdle(); } catch { /* ignore */ }
         if (streamEndedRef.current) {
           try { forceDisposeCameraSession(); } catch { /* ignore */ }
           void releaseAndroidWebViewCameraNow('live-stream:unmount-preview-force');
@@ -2832,6 +2834,10 @@ const LiveStream = () => {
         finally {
           try { delete (window as any).__meriliveEndingLiveStream; } catch { (window as any).__meriliveEndingLiveStream = false; }
         }
+        try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
+        previewCameraHandleRef.current = null;
+        try { forceDisposeCameraSession(); } catch { /* ignore */ }
+        void releaseAndroidWebViewCameraNow('live-stream:explicit-end-force');
 
         // 3) Background: gather session stats + DB end flow.
         try {
@@ -2898,6 +2904,9 @@ const LiveStream = () => {
 
   // Handle viewer leaving the stream
   const handleLeaveStream = async () => {
+    if (isHost) {
+      streamEndedRef.current = true;
+    }
     // Server-side leave flow keeps stream_viewers + live_streams.viewer_count in sync.
     if (!isHost && currentUserId && id) {
       const { data, error } = await supabase.rpc('leave_live_stream_viewer', { p_stream_id: id });
@@ -2910,6 +2919,12 @@ const LiveStream = () => {
     }
 
     await leaveChannel();
+    if (isHost) {
+      try { previewCameraHandleRef.current?.release(); } catch { /* ignore */ }
+      previewCameraHandleRef.current = null;
+      try { forceDisposeCameraSession(); } catch { /* ignore */ }
+      void releaseAndroidWebViewCameraNow('live-stream:host-leave-force');
+    }
     if (liveSession && isHost) {
       // Host swipe-down end: stay inside the session container, show ended UI.
       liveSession.goToEnded();

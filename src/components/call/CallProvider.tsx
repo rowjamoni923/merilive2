@@ -17,7 +17,6 @@ import { toast as sonnerToast } from 'sonner';
 import { CallingFallback } from './CallingFallback';
 import { clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 import {
-  acquireCameraSession,
   disposeCameraSessionIfIdle,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
@@ -276,40 +275,18 @@ export function CallProvider({ children }: CallProviderProps) {
     }
   }, [callState.status, incomingCall, acceptedCallInfo]);
 
-  // Pkg-shirt Phase-B (web): mirror of the native Camera2 prejoin above.
-  // The moment a call is ringing/dialing on web, warm the global
-  // persistentCameraSession so ActiveCallScreen's preview tile reuses the
-  // SAME MediaStream when it mounts on accept — no fresh getUserMedia,
-  // no permission re-prompt, no black flash. Native Android path is
-  // unaffected (Camera2 + LiveKit native takes over there).
+  // Web: do NOT warm camera while merely ringing/dialing. Opening the WebView
+  // camera before the call screen mounts is exactly what creates the reported
+  // "two cameras" / lingering preview. ActiveCallScreen acquires the shared,
+  // portrait-validated session only when it is actually visible.
   const callPrejoinHandleRef = useRef<CameraSessionHandle | null>(null);
   useEffect(() => {
     if (isNativeAndroidApp()) return;
-    const ringing = !!incomingCall || callState.status === 'calling' || callState.status === 'ringing';
-    if (!ringing) {
-      const h = callPrejoinHandleRef.current;
-      callPrejoinHandleRef.current = null;
-      if (h) {
-        try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
-      }
-      return;
+    const h = callPrejoinHandleRef.current;
+    callPrejoinHandleRef.current = null;
+    if (h) {
+      try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
     }
-    if (callPrejoinHandleRef.current) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const handle = await acquireCameraSession({ video: true, audio: true });
-        if (cancelled) {
-          handle.release();
-          return;
-        }
-        callPrejoinHandleRef.current = handle;
-      } catch (err) {
-        // Non-fatal: ActiveCallScreen will fall back to its own getUserMedia.
-        console.warn('[CallProvider] web prejoin acquire failed (non-fatal):', err);
-      }
-    })();
-    return () => { cancelled = true; };
   }, [incomingCall, callState.status]);
 
   // Final release on provider unmount.

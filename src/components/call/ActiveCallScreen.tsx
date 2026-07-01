@@ -19,7 +19,7 @@ import { setPreparedCallMediaStream, clearPreparedCallMediaStream } from "@/feat
 import {
   acquireCameraSession,
   peekCameraSession,
-  adoptCameraSession,
+  disposeCameraSessionIfIdle,
   type CameraSessionHandle,
 } from "@/lib/persistentCameraSession";
 
@@ -50,9 +50,6 @@ import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { LowBalanceBanner } from "@/components/call/LowBalanceBanner";
 import { ReconnectingOverlay } from "@/components/call/ReconnectingOverlay";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
-import { enforcePermanentCameraLock } from "@/utils/cameraLock";
-import { buildPortraitVideoConstraint } from "@/utils/portraitCameraConstraints";
-import { maybeUpgradeToWidestCamera } from "@/utils/widestCamera";
 
 
 
@@ -182,34 +179,28 @@ export function ActiveCallScreen({
         const warm = peekCameraSession();
         if (warm) {
           const handle = await acquireCameraSession({ video: true, audio: true });
-          if (cancelled) { handle.release(); return; }
+          if (cancelled) { handle.release(); disposeCameraSessionIfIdle(); return; }
           callCameraHandleRef.current?.release();
+          disposeCameraSessionIfIdle();
           callCameraHandleRef.current = handle;
           setPreviewStream(handle.stream);
           setPreparedCallMediaStream(callId, handle.stream);
           return;
         }
-        // Cold path — no Provider warm-up reached us. Acquire fresh and
-        // register so subsequent screens (Live/Party) can reuse it too.
-        const initialStream = await navigator.mediaDevices.getUserMedia({
-          video: buildPortraitVideoConstraint({ facingMode: 'user' }),
-          audio: true,
-        });
-        const stream = await maybeUpgradeToWidestCamera(initialStream, 'user', 'active-call:cold-preview');
-        await enforcePermanentCameraLock(stream, 'active-call:cold-preview');
+        // Cold path — no Provider warm-up reached us. Use the same shared
+        // portrait-validated session pipeline as Live/Party so private-call
+        // preview cannot open a second camera or accept a landscape fallback.
+        const handle = await acquireCameraSession({ video: true, audio: true, facingMode: 'user' });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          handle.release();
+          disposeCameraSessionIfIdle();
           return;
         }
-        try {
-          callCameraHandleRef.current?.release();
-          callCameraHandleRef.current = adoptCameraSession(stream, {
-            video: true,
-            audio: true,
-          });
-        } catch { /* non-fatal */ }
-        setPreviewStream(stream);
-        setPreparedCallMediaStream(callId, stream);
+        callCameraHandleRef.current?.release();
+        disposeCameraSessionIfIdle();
+        callCameraHandleRef.current = handle;
+        setPreviewStream(handle.stream);
+        setPreparedCallMediaStream(callId, handle.stream);
       } catch (err) {
         console.warn('[ActiveCall][preview] camera acquire failed:', err);
       }
@@ -223,6 +214,7 @@ export function ActiveCallScreen({
       // (or disposeCameraSessionIfIdle) frees the camera.
       callCameraHandleRef.current?.release();
       callCameraHandleRef.current = null;
+      disposeCameraSessionIfIdle();
       setPreviewStream(null);
     };
   }, [isOpen, isPreviewWeb, callId]);

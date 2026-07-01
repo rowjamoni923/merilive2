@@ -1,5 +1,20 @@
 # Portrait Camera Surface Fix
 
+## Web/native camera lifecycle correction — 2026-07-01
+
+### Research notes
+- Capacitor documents `Capacitor.isNativePlatform()` / platform checks as the expected way to keep native plugin calls off web builds: https://capacitorjs.com/docs/basics/utilities
+- Capacitor Web/PWA plugin docs explain native plugins need a web implementation or compatibility no-op for browser/PWA execution: https://capacitorjs.com/docs/plugins/web
+- Professional live apps keep one visible local preview owner and detach camera immediately on exit; web preview should use WebRTC/getUserMedia only, while Android native CameraX/LiveKit surfaces should be called only inside the APK.
+
+### Root cause found
+- `NativeLiveKit` was registered in the web preview and Capacitor exposed method stubs. Those stubs existed as functions, so the JS Proxy returned them directly; when called on web they rejected with `"NativeLiveKit" plugin is not implemented on web`, creating unhandled promise errors and racing camera cleanup.
+
+### Fix plan
+1. Make `NativeLiveKit` resolve safe no-ops on every non-native platform before touching the real Capacitor plugin proxy.
+2. Add controller-level `isNativeLiveKitAvailable()` guards so Go Live / Party / Private Call preview cleanup cannot call Android-only methods in Lovable web preview.
+3. Keep Android APK behavior unchanged: native LiveKit still runs only when `Capacitor.isNativePlatform()` and platform is Android.
+
 ## Zoom-out correction — 2026-07-01
 
 ### Preview leak correction — 2026-07-01
