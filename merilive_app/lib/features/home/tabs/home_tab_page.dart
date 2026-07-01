@@ -122,10 +122,62 @@ class _HomeTabPageState extends State<HomeTabPage>
                     }
                     return RefreshIndicator(
                       onRefresh: () => _feedCubit.refresh(),
-                      child: _H3FeedList(hosts: state.hosts),
+                      child: _HostGrid(
+                        hosts: state.hosts,
+                        onTapHost: _handleHostTap,
+                      ),
                     );
                   },
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Tap-routing matrix — parity with `src/pages/Index.tsx#handleUserClick`:
+  ///   • LIVE   → /live/:liveStreamId  (viewer)
+  ///   • BUSY / ONLINE / OFFLINE → /profile-detail/:userId
+  void _handleHostTap(HomeHost host) {
+    HapticFeedback.selectionClick();
+    if (host.isLive && (host.liveStreamId?.isNotEmpty ?? false)) {
+      context.router.push(LiveStreamPlaceholderRoute(streamId: host.liveStreamId!));
+    } else {
+      context.router.push(ProfileDetailPlaceholderRoute(userId: host.id));
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// H4 — HostCard grid (2-column, aspect 3:4, edge-to-edge photo)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HostGrid extends StatelessWidget {
+  const _HostGrid({required this.hosts, required this.onTapHost});
+  final List<HomeHost> hosts;
+  final ValueChanged<HomeHost> onTapHost;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 3 / 4,
+      ),
+      itemCount: hosts.length,
+      itemBuilder: (_, i) {
+        final h = hosts[i];
+        return HostCard(host: h, onTap: () => onTapHost(h));
+      },
+    );
+  }
+}
               ),
             ],
           ),
