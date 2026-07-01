@@ -197,6 +197,24 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       }
     }
 
+    // Mirror the SAME MediaStream into the blurred backdrop element so we
+    // fill the container without cropping the main video. Sharing srcObject
+    // between two <video> elements is well supported and does NOT open the
+    // camera twice.
+    const backdropEl = backdropRef.current;
+    if (backdropEl && mediaTrack && mediaTrack.readyState !== 'ended') {
+      try {
+        const cur = backdropEl.srcObject as MediaStream | null;
+        const curTrack = cur?.getVideoTracks?.()[0];
+        if (!curTrack || curTrack.id !== mediaTrack.id) {
+          backdropEl.srcObject = new MediaStream([mediaTrack]);
+        }
+        backdropEl.muted = true;
+        backdropEl.defaultMuted = true;
+        backdropEl.play?.().catch(() => {});
+      } catch { /* ignore */ }
+    }
+
     // === EVENT HANDLING ===
     const onTrackEnded = () => onVideoStalledRef.current?.();
     mediaTrack?.addEventListener('ended', onTrackEnded);
