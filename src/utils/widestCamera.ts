@@ -129,7 +129,10 @@ export const maybeUpgradeToWidestCamera = async (
     throw new Error('Unable to reopen camera after wide-lens selection failed');
   } catch (error) {
     console.warn('[Camera] Wide camera selection skipped:', error, source);
-    if (stoppedInitialVideo) throw error;
+    if (stoppedInitialVideo) {
+      stopMediaStream(initialStream);
+      throw error;
+    }
   }
 
   return initialStream;
