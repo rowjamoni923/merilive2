@@ -2,14 +2,16 @@
  * LiveSessionProvider — Delivery 1, real session container.
  *
  * Mounts ONCE for the whole Go Live flow. Holds:
- *   1. A persistentCameraSession refcount so the camera/mic stream never
- *      releases between phases (preview → broadcast → ended).
- *   2. `phase` state. Children swap UI by reading this and MUST NOT
+ *   1. `phase` state. Children swap UI by reading this and MUST NOT
  *      `navigate()` between phases — phase changes are local state, so the
  *      WebView never reloads and native plugins never see a "page gone".
- *   3. The stream id + host state once broadcast begins; LiveStream reads
+ *   2. The stream id + host state once broadcast begins; LiveStream reads
  *      these instead of useParams/useLocation when running inside the
  *      session.
+ *
+ * Important: this Provider MUST NOT open or hold a hidden camera. The camera
+ * belongs only to the visible preview/broadcast screen, otherwise users can
+ * leave preview and still see a background camera running above Home.
  *
  * Pages opt in via `useLiveSessionOptional()`. When the hook returns null
  * the page falls back to the legacy navigate()-based flow, so this
@@ -21,17 +23,10 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from 'react';
-import {
-  acquireCameraSession,
-  type CameraSessionHandle,
-} from '@/lib/persistentCameraSession';
-import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 export type LiveSessionPhase = 'preview' | 'broadcast' | 'ended';
 
@@ -59,7 +54,7 @@ export type LiveSessionContextValue = {
   goToBroadcast: (streamId: string, state: LiveHostState) => void;
   /** Called by LiveStream when the host ends the stream. */
   goToEnded: () => void;
-  /** True while the Provider holds a camera refcount. */
+  /** Kept for old callers; always false because Provider no longer opens camera. */
   cameraHeld: boolean;
 };
 
@@ -77,45 +72,6 @@ export function LiveSessionProvider({
   const [phase, setPhaseState] = useState<LiveSessionPhase>(initialPhase);
   const [streamId, setStreamId] = useState<string | null>(initialStreamId);
   const [hostState, setHostState] = useState<LiveHostState | null>(null);
-  const [cameraHeld, setCameraHeld] = useState(false);
-
-  // Hold one persistent camera refcount for the entire session.
-  const handleRef = useRef<CameraSessionHandle | null>(null);
-
-  useEffect(() => {
-    // Native Android uses the LiveKitPlugin Camera2 preview surface. Opening a
-    // hidden WebView getUserMedia stream here steals/reopens the camera during
-    // preview → publish, so the persistent web-session safety net is web-only.
-    if (isNativeAndroidApp()) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const handle = await acquireCameraSession({ video: true, audio: true });
-        if (cancelled) {
-          handle.release();
-          return;
-        }
-        handleRef.current = handle;
-        setCameraHeld(true);
-      } catch (err) {
-        console.warn('[LiveSession] camera acquire failed', err);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      const h = handleRef.current;
-      handleRef.current = null;
-      setCameraHeld(false);
-      if (h) {
-        try {
-          h.release();
-        } catch {
-          /* noop */
-        }
-      }
-    };
-  }, []);
 
   const setPhase = useCallback((next: LiveSessionPhase) => {
     setPhaseState((prev) => (prev === next ? prev : next));
@@ -143,16 +99,13 @@ export function LiveSessionProvider({
       hostState,
       goToBroadcast,
       goToEnded,
-      cameraHeld,
+      cameraHeld: false,
     }),
-    [phase, setPhase, streamId, hostState, goToBroadcast, goToEnded, cameraHeld],
+    [phase, setPhase, streamId, hostState, goToBroadcast, goToEnded],
   );
 
   return (
     <LiveSessionContext.Provider value={value}>
-      {/* Global PersistentCameraSurface lives in CallProvider — see
-          src/components/media/PersistentCameraSurface.tsx. It bridges
-          every route swap (preview → broadcast → ended) without unmounting. */}
       {children}
     </LiveSessionContext.Provider>
   );

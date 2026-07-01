@@ -18,9 +18,9 @@ import { CallingFallback } from './CallingFallback';
 import { clearNativeMediaSurface } from '@/utils/nativeMediaSurface';
 import {
   acquireCameraSession,
+  disposeCameraSessionIfIdle,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
-import PersistentCameraSurface from '@/components/media/PersistentCameraSurface';
 import { CallContext, setGlobalCallController, type CallContextType } from './CallContext';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle.
@@ -290,7 +290,7 @@ export function CallProvider({ children }: CallProviderProps) {
       const h = callPrejoinHandleRef.current;
       callPrejoinHandleRef.current = null;
       if (h) {
-        try { h.release(); } catch { /* noop */ }
+        try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
       }
       return;
     }
@@ -318,7 +318,7 @@ export function CallProvider({ children }: CallProviderProps) {
       const h = callPrejoinHandleRef.current;
       callPrejoinHandleRef.current = null;
       if (h) {
-        try { h.release(); } catch { /* noop */ }
+        try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
       }
     };
   }, []);
@@ -733,12 +733,6 @@ export function CallProvider({ children }: CallProviderProps) {
 
   return (
     <CallContext.Provider value={contextValue}>
-      {/* Global persistent camera bridge — paints the warm MediaStream
-          during route swaps (GoLive → LiveStream, CreateParty → PartyRoom,
-          idle → ActiveCall) so users never see a camera off→on flicker.
-          Self-renders null when no camera is open. Native Android no-op. */}
-      <PersistentCameraSurface />
-
       {children}
 
 
