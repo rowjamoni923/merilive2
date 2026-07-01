@@ -644,7 +644,7 @@ const CreateParty = () => {
             x5-video-player-type="h5"
             webkit-playsinline="true"
             className={cn(
-              "absolute inset-0 w-full h-full object-contain bg-black transition-opacity duration-200 z-20",
+              "absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-200 z-20",
               showVideo ? "opacity-100" : "opacity-0",
               facingMode === "user" && "scale-x-[-1]"
             )}
@@ -1165,7 +1165,7 @@ const CreateParty = () => {
             try {
               const newStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
-                  video: { facingMode: { ideal: newFacingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } },
+                  video: { facingMode: { ideal: newFacingMode }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } },
                   audio: true
                 }),
                 'create-party:switch-camera-new-stream',

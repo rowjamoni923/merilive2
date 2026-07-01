@@ -105,8 +105,8 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
             video: prefs.videoinput
-              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } }
-              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 } },
+              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 } }
+              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 } },
           }),
           'prejoin:preview',
         );
@@ -236,7 +236,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               x5-video-player-fullscreen="false"
               x5-playsinline="true"
               webkit-playsinline="true"
-              className="h-full w-full object-contain bg-black [transform:scaleX(-1)]"
+              className="h-full w-full object-cover bg-transparent [transform:scaleX(-1)]"
               style={{ pointerEvents: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
 
           </div>
