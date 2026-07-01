@@ -65,7 +65,7 @@ export default function PersistentCameraSurface() {
     const el = videoRef.current;
     const underlay = underlayVideoRef.current;
     if (!el) return;
-    if (stream && el.srcObject !== stream) {
+    if (stream && (el.srcObject !== stream || underlay?.srcObject !== stream)) {
       try {
         el.srcObject = stream;
         if (underlay) underlay.srcObject = stream;
