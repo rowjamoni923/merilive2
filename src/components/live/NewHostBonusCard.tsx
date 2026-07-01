@@ -34,6 +34,8 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
   const [claimingHour, setClaimingHour] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState<number | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [autoPopupHour, setAutoPopupHour] = useState<HourSlot | null>(null);
+  const shownPopupForHourRef = useRef<Set<number>>(new Set());
   const heartbeatRef = useRef<number | undefined>(undefined);
 
   const fetchState = useCallback(async () => {
