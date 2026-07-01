@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/router/app_router.gr.dart';
 import '../../../core/theme/design_tokens.dart';
+import '../bloc/banner_cubit.dart';
 import '../bloc/country_filter_cubit.dart';
 import '../bloc/home_feed_cubit.dart';
+import '../data/banner.dart';
+import '../data/banner_repository.dart';
 import '../data/country_repository.dart';
 import '../data/home_feed_repository.dart';
 import '../data/home_host.dart';
+import '../widgets/banner_carousel.dart';
 import '../widgets/host_card.dart';
 
 /// Home tab — H1 header + H2 dynamic countries + H3 feed data layer.
@@ -34,6 +39,7 @@ class _HomeTabPageState extends State<HomeTabPage>
     with AutomaticKeepAliveClientMixin {
   late final CountryFilterCubit _countryCubit;
   late final HomeFeedCubit _feedCubit;
+  late final BannerCubit _bannerCubit;
 
   @override
   void initState() {
@@ -44,12 +50,14 @@ class _HomeTabPageState extends State<HomeTabPage>
       HomeFeedRepository(client),
       currentUserId: client.auth.currentUser?.id,
     )..start();
+    _bannerCubit = BannerCubit(BannerRepository(client))..start();
   }
 
   @override
   void dispose() {
     _countryCubit.close();
     _feedCubit.close();
+    _bannerCubit.close();
     super.dispose();
   }
 
@@ -76,6 +84,7 @@ class _HomeTabPageState extends State<HomeTabPage>
       providers: [
         BlocProvider.value(value: _countryCubit),
         BlocProvider.value(value: _feedCubit),
+        BlocProvider.value(value: _bannerCubit),
       ],
       child: Container(
         color: DT.homeBg,
@@ -121,10 +130,20 @@ class _HomeTabPageState extends State<HomeTabPage>
                       return const _FeedEmptyView();
                     }
                     return RefreshIndicator(
-                      onRefresh: () => _feedCubit.refresh(),
-                      child: _HostGrid(
-                        hosts: state.hosts,
-                        onTapHost: _handleHostTap,
+                      onRefresh: () async {
+                        await Future.wait([
+                          _feedCubit.refresh(),
+                          _bannerCubit.refresh(),
+                        ]);
+                      },
+                      child: BlocBuilder<BannerCubit, BannerState>(
+                        builder: (context, bannerState) => _HomeScrollBody(
+                          hosts: state.hosts,
+                          topBanners: bannerState.top,
+                          middleBanners: bannerState.middle,
+                          onTapHost: _handleHostTap,
+                          onTapBanner: _handleBannerTap,
+                        ),
                       ),
                     );
                   },
@@ -148,33 +167,102 @@ class _HomeTabPageState extends State<HomeTabPage>
       context.router.push(ProfileDetailPlaceholderRoute(userId: host.id));
     }
   }
+
+  /// Banner tap routing — mirrors `handleBannerClick` in DynamicBanner.tsx.
+  /// Relative paths (starting with `/` but not `//`) are treated as internal
+  /// regardless of the stored `link_type`, matching the web auto-detect.
+  Future<void> _handleBannerTap(HomeBanner banner) async {
+    final link = banner.linkUrl;
+    if (link == null || link.isEmpty) return;
+    final isRelative = link.startsWith('/') && !link.startsWith('//');
+    final type = isRelative ? 'internal' : banner.linkType;
+    if (type == 'internal') {
+      try {
+        await context.router.pushNamed(link);
+      } catch (_) {
+        _toast('Coming soon');
+      }
+      return;
+    }
+    final uri = Uri.tryParse(link);
+    if (uri == null) return;
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) _toast('Could not open link');
+    } catch (_) {
+      _toast('Could not open link');
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// H4 — HostCard grid (2-column, aspect 3:4, edge-to-edge photo)
+// H4 + H5 — Scroll body: top banner → first-6 host grid → middle banner →
+// remaining host grid. Uses CustomScrollView so RefreshIndicator drives one
+// scroll surface for the whole page (banners scroll away with the feed,
+// matching the web layout in `src/pages/Index.tsx`).
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HostGrid extends StatelessWidget {
-  const _HostGrid({required this.hosts, required this.onTapHost});
+class _HomeScrollBody extends StatelessWidget {
+  const _HomeScrollBody({
+    required this.hosts,
+    required this.topBanners,
+    required this.middleBanners,
+    required this.onTapHost,
+    required this.onTapBanner,
+  });
+
   final List<HomeHost> hosts;
+  final List<HomeBanner> topBanners;
+  final List<HomeBanner> middleBanners;
   final ValueChanged<HomeHost> onTapHost;
+  final ValueChanged<HomeBanner> onTapBanner;
+
+  static const _splitAt = 6; // First 6 tiles above the middle banner.
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
+    final firstBatch =
+        hosts.length <= _splitAt ? hosts : hosts.sublist(0, _splitAt);
+    final restBatch =
+        hosts.length <= _splitAt ? const <HomeHost>[] : hosts.sublist(_splitAt);
+
+    return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 3 / 4,
+      slivers: [
+        if (topBanners.isNotEmpty)
+          SliverToBoxAdapter(
+            child: BannerCarousel(banners: topBanners, onTap: onTapBanner),
+          ),
+        _hostSliver(firstBatch),
+        if (middleBanners.isNotEmpty && restBatch.isNotEmpty)
+          SliverToBoxAdapter(
+            child: BannerCarousel(banners: middleBanners, onTap: onTapBanner),
+          ),
+        _hostSliver(restBatch),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
+    );
+  }
+
+  Widget _hostSliver(List<HomeHost> list) {
+    if (list.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+      sliver: SliverGrid.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 3 / 4,
+        ),
+        itemCount: list.length,
+        itemBuilder: (_, i) {
+          final h = list[i];
+          return HostCard(host: h, onTap: () => onTapHost(h));
+        },
       ),
-      itemCount: hosts.length,
-      itemBuilder: (_, i) {
-        final h = hosts[i];
-        return HostCard(host: h, onTap: () => onTapHost(h));
-      },
     );
   }
 }
