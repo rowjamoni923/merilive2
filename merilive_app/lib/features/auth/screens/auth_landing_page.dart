@@ -9,10 +9,8 @@ import '../../../core/supabase/supabase_client.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../branding/branding.dart';
 import '../../branding/branding_cubit.dart';
-import '../data/google_flow_repository.dart';
 import '../data/start_flow_repository.dart';
 import '../widgets/auth_background.dart';
-import '../widgets/google_sign_in_button.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/terms_toggle.dart';
 
@@ -75,13 +73,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
                     _phoneButton(),
                     const SizedBox(height: 12),
                     _emailButton(),
-                    const SizedBox(height: 14),
-                    _dividerRow(),
-                    const SizedBox(height: 12),
-                    GoogleSignInButton(
-                      loading: _pending == 'google',
-                      onPressed: () => _guarded('google', _runGoogleFlow),
-                    ),
                     const SizedBox(height: 16),
                     TermsToggle(
                       agreed: _agreed,
@@ -98,52 +89,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
     );
   }
 
-  Widget _dividerRow() => Row(
-        children: [
-          Expanded(
-              child: Container(
-                  height: 1, color: Colors.white.withOpacity(0.15))),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              'or continue with',
-              style: TextStyle(
-                fontSize: 11,
-                letterSpacing: 1,
-                color: Colors.white.withOpacity(0.65),
-              ),
-            ),
-          ),
-          Expanded(
-              child: Container(
-                  height: 1, color: Colors.white.withOpacity(0.15))),
-        ],
-      );
-
-  Future<void> _runGoogleFlow() async {
-    try {
-      final repo = GoogleFlowRepository(SupabaseBootstrap.client);
-      final result = await repo.signIn();
-      if (!mounted) return;
-      if (result.needsProfileCompletion) {
-        await context.router.replace(GenderStepRoute(userId: result.userId));
-      } else {
-        await context.router.replaceAll([const SplashRoute()]);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _pending = null);
-      final msg = e is GoogleFlowException ? e.message : e.toString();
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFFDC2626),
-          content:
-              Text(msg, style: const TextStyle(color: Colors.white)),
-        ));
-    }
-  }
 
   Widget _startButton() => GradientButton(
         gradient: DT.btnStart,
