@@ -34,7 +34,7 @@ export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstr
     frameRate: { ideal: target.frameRate, min: 24 },
     // No internal UA crop. The renderer owns visual fill; capture must keep the
     // widest hardware FOV so faces do not look digitally zoomed-in.
-    resizeMode: 'none' as ConstrainDOMString,
+    resizeMode: 'none',
     // 'user' = front camera (default for Live/PartyRoom/PrivateCall).
     facingMode: { ideal: 'user' },
   };

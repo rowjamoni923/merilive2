@@ -76,9 +76,9 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
             facingMode: req.facingMode ?? 'user',
             width: { ideal: 1080 },
             height: { ideal: 1440 },
-            resizeMode: 'none' as ConstrainDOMString,
+            resizeMode: 'none',
             frameRate: { ideal: 30 },
-          };
+          } as MediaTrackConstraints;
   const audio = req.audio === undefined ? true : req.audio;
   return { video, audio } as MediaStreamConstraints;
 };
