@@ -1311,7 +1311,7 @@ class LiveKitPlugin : Plugin() {
     private fun numberFrom(target: Any?, methodName: String): Float? {
         val value = invokeNoArg(target, methodName) as? Number ?: return null
         return value.toFloat()
-    }/*
+    }
 
     private fun scheduleCameraZoomOutLock(track: LocalVideoTrack?, reason: String) {
         if (track == null) return
@@ -1347,7 +1347,7 @@ class LiveKitPlugin : Plugin() {
             } ?: return
             linearSetter.invoke(cameraControl, 0.0f)
             Log.i(TAG, "camera zoom-out lock $reason target=linearMin range=${minZoom}..${maxZoom}")
-        }/* catch (t: Throwable) {
+        } catch (t: Throwable) {
             Log.w(TAG, "camera zoom-out lock skipped ($reason): ${t.message}")
         }
     }
