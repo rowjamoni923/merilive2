@@ -515,7 +515,7 @@ export function usePartyRoomNativeLiveKit(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            // Full-sensor 3:4 portrait prevents Android 9:16 camera crop/zoom.
+            // Full-bleed 9:16 portrait keeps preview and broadcast identical.
             resolution: {
               width: LIVEKIT_PUBLISH_LOCK.captureWidth,
               height: LIVEKIT_PUBLISH_LOCK.captureHeight,

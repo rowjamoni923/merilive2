@@ -18,7 +18,7 @@ export type PublishLayerTier = "low" | "medium" | "high" | "ultra";
 
 export const PUBLISH_LAYERS_STORAGE_KEY = "merilive_publish_layers_v1";
 export const PUBLISH_LAYERS_CHANGED_EVENT = "publish-layers-changed";
-// Pkg153: Native Android only — default to ultra (1080x1440 @ 30fps), no manual selector.
+// Pkg153: Native Android only — default to ultra (1080x1920 @ 30fps), no manual selector.
 export const DEFAULT_PUBLISH_LAYER_TIER: PublishLayerTier = "ultra";
 
 export interface PublishLayerConfig {

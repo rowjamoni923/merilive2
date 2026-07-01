@@ -1281,7 +1281,7 @@ class LiveKitPlugin : Plugin() {
         // FULL-BLEED RULE (locked 2026-07-01 by owner):
         // Owner reported host/viewer camera appearing small with white/black
         // letterbox bars — the previous SCALE_ASPECT_FIT policy showed the
-        // full 3:4 frame inside a 9:19.5 phone which left large gaps on top
+        // non-fullscreen frame inside a 9:19.5 phone which left large gaps on top
         // and bottom (visible in Live/Party/PrivateCall screenshots).
         // Bigo / Chamet / Olamet all use SCALE_ASPECT_FILL: the video fills
         // the entire surface edge-to-edge; the small top/bottom over-scan is

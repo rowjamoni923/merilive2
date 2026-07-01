@@ -576,7 +576,7 @@ export function useLiveKitCall(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            // Full-sensor 3:4 portrait prevents 9:16 HAL crop / zoomed selfie.
+            // Full-bleed 9:16 portrait keeps preview and call video identical.
             resolution: {
               width: LIVEKIT_PUBLISH_LOCK.captureWidth,
               height: LIVEKIT_PUBLISH_LOCK.captureHeight,
