@@ -1272,8 +1272,8 @@ class LiveKitPlugin : Plugin() {
 
     private fun fitChildLayoutParams(): FrameLayout.LayoutParams =
         FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
             Gravity.CENTER,
         )
 
