@@ -238,7 +238,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               x5-video-player-fullscreen="false"
               x5-playsinline="true"
               webkit-playsinline="true"
-              className="h-full w-full object-cover bg-transparent [transform:scaleX(-1)]"
+              className="h-full w-full object-contain bg-transparent [transform:scaleX(-1)]"
               style={{ pointerEvents: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
 
           </div>

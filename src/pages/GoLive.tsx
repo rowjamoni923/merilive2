@@ -1455,7 +1455,7 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none bg-transparent"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none bg-transparent"
               style={{
                 transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS || undefined,
