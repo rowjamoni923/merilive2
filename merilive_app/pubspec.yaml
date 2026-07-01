@@ -1,0 +1,56 @@
+name: merilive_app
+description: MeriLive - Chamet-class live streaming (Flutter shell + native performance)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (LOCKED — Section 1 decision)
+  flutter_bloc: ^8.1.6
+  hydrated_bloc: ^9.1.5
+  equatable: ^2.0.5
+
+  # Routing (LOCKED — Section 1 decision)
+  auto_route: ^9.2.2
+
+  # Backend
+  supabase_flutter: ^2.8.0
+
+  # Storage / device
+  path_provider: ^2.1.4
+  flutter_secure_storage: ^9.2.2
+  device_info_plus: ^10.1.2
+  package_info_plus: ^8.0.2
+
+  # Auth extras
+  google_sign_in: ^6.2.1
+  local_auth: ^2.3.0
+  app_links: ^6.3.2
+
+  # UI
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+
+  # Utilities
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.13
+  auto_route_generator: ^9.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo/
+    - assets/auth/
