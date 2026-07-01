@@ -45,7 +45,10 @@ export function applyMotionHint(room: Room | null | undefined): void {
       const t = pub.track as LocalVideoTrack | undefined;
       const mst = t?.mediaStreamTrack;
       if (mst && 'contentHint' in mst) {
-        try { (mst as any).contentHint = 'motion'; } catch { /* ignore */ }
+        // 'detail' = prioritize spatial resolution over frame rate.
+        // Right call for HD portrait faces + beauty filters (Chamet/Bigo parity).
+        // 'motion' softens edges on faces which reads as "blurry" to users.
+        try { (mst as any).contentHint = 'detail'; } catch { /* ignore */ }
       }
     });
   } catch {
