@@ -46,7 +46,7 @@ class ProfileTabPage extends StatelessWidget {
               // Temporary sign-out for owner testing during scaffold phase.
               OutlinedButton.icon(
                 onPressed: () async {
-                  context.read<AuthBloc>().add(const AuthSignOutRequested());
+                  context.read<AuthBloc>().add(const SignedOut());
                   await context.router.replaceAll([const AuthLandingRoute()]);
                 },
                 style: OutlinedButton.styleFrom(
