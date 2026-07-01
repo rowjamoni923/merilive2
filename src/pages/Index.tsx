@@ -175,19 +175,12 @@ const Index = () => {
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
   const isEligibleCachedHost = useCallback((host: (Partial<Profile> & { isLive?: boolean; is_in_call?: boolean }) | null | undefined) => {
     if (!host) return false;
-    const baseOk = host.is_host === true
+    // Show ALL approved + face-verified female hosts on home — online at top,
+    // offline at bottom (client-side sort handles ordering). Chamet/Bigo parity.
+    return host.is_host === true
       && (host.gender === "female" || host.gender === "Female")
       && host.host_status === "approved"
-      && host.is_face_verified === true
-      && host.host_availability !== "offline";
-    if (!baseOk) return false;
-    // Pkg368: only show truly real-time online / live / busy hosts. Heartbeat
-    // cadence is 120s, so a 5-minute window keeps presence accurate
-    // (industry-standard, matches Chamet/Bigo "Online" semantics) while
-    // tolerating one missed beat. Hosts beyond this window are treated as offline.
-    const lastSeen = host.last_seen_at ? new Date(host.last_seen_at).getTime() : 0;
-    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 5 * 60 * 1000;
-    return isReallyOnline || host.isLive === true || host.is_in_call === true;
+      && host.is_face_verified === true;
   }, []);
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
