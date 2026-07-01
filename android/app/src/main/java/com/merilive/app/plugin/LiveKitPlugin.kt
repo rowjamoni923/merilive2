@@ -1,6 +1,7 @@
 package com.merilive.app.plugin
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Color
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -818,6 +819,7 @@ class LiveKitPlugin : Plugin() {
                     // waiting seat slots so the host's own tile renders the
                     // moment the camera comes up — no SFU-echo round-trip.
                     if (resolved != null) {
+                        forceCameraMinZoom(resolved, "setCameraEnabled:resolved")
                         runOnMain { rebindSeatSlotsForLocalTrack(resolved) }
                     }
                 }
