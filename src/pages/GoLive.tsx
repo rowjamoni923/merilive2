@@ -1298,7 +1298,7 @@ const GoLive = () => {
                   {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
                   src={enhanceThumbnail(userProfile.avatar_url, { width: 96, quality: 85 })}
                   alt={userProfile.display_name || "User"}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
