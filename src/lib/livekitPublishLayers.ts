@@ -3,9 +3,8 @@
  *
  * Phase 3 #10. Defines automatic spatial layers for the camera publisher.
  *
- * 📱 NO-ZOOM PORTRAIT CAMERA: every preset is 3:4 vertical (height > width),
- * matching common front-camera sensors. Forcing 9:16 makes Android crop the
- * sensor and creates the zoomed selfie bug.
+ * 📱 FULL-BLEED PORTRAIT CAMERA: every preset is 9:16 vertical (height > width),
+ * matching phone live-stream UI so preview/live/party/call never letterboxes.
  *
  * Preference is host-local (localStorage) and read at Room construction.
  * Changing the tier only takes effect on the NEXT live start (LiveKit
@@ -19,14 +18,14 @@ export type PublishLayerTier = "low" | "medium" | "high" | "ultra";
 
 export const PUBLISH_LAYERS_STORAGE_KEY = "merilive_publish_layers_v1";
 export const PUBLISH_LAYERS_CHANGED_EVENT = "publish-layers-changed";
-// Pkg153: Native Android only — default to ultra (1080x1440 @ 30fps), no manual selector.
+// Pkg153: Native Android only — default to ultra (1080x1920 @ 30fps), no manual selector.
 export const DEFAULT_PUBLISH_LAYER_TIER: PublishLayerTier = "ultra";
 
 export interface PublishLayerConfig {
   tier: PublishLayerTier;
   label: string;
   description: string;
-  /** Capture resolution sent to camera (full-sensor portrait 3:4). */
+  /** Capture resolution sent to camera (full-bleed portrait 9:16). */
   resolution: { width: number; height: number; frameRate: number };
   /** Encoding for the BASE (highest) layer published. */
   videoEncoding: { maxBitrate: number; maxFramerate: number };
@@ -34,7 +33,7 @@ export interface PublishLayerConfig {
   simulcastLayers: VideoPreset[];
 }
 
-// Portrait preset helper. All layers MUST be 3:4 (height > width).
+// Portrait preset helper. All layers MUST be 9:16 (height > width).
 function p(width: number, height: number, fps: number, bitrate: number): VideoPreset {
   return new VideoPreset(width, height, bitrate, fps);
 }
@@ -43,38 +42,38 @@ export const PUBLISH_LAYER_PRESETS: Record<PublishLayerTier, PublishLayerConfig>
   low: {
     tier: "low",
     label: "Low (data saver)",
-    description: "Single 540x720 full-sensor layer — best for weak uplink / 3G.",
-    resolution: { width: 540, height: 720, frameRate: 24 },
+    description: "Single 540x960 full-bleed layer — best for weak uplink / 3G.",
+    resolution: { width: 540, height: 960, frameRate: 24 },
     videoEncoding: { maxBitrate: 500_000, maxFramerate: 24 },
     simulcastLayers: [],
   },
   medium: {
     tier: "medium",
     label: "Medium",
-    description: "720x960 full-sensor base + 540x720 relay — balanced.",
-    resolution: { width: 720, height: 960, frameRate: 30 },
+    description: "720x1280 full-bleed base + 540x960 relay — balanced.",
+    resolution: { width: 720, height: 1280, frameRate: 30 },
     videoEncoding: { maxBitrate: 1_200_000, maxFramerate: 30 },
-    simulcastLayers: [p(540, 720, 24, 500_000)],
+    simulcastLayers: [p(540, 960, 24, 500_000)],
   },
   high: {
     tier: "high",
     label: "High (recommended)",
-    description: "720p full-sensor base + 540x720 relay — full simulcast, default.",
-    resolution: { width: 720, height: 960, frameRate: 30 },
+    description: "720p full-bleed base + 540x960 relay — full simulcast, default.",
+    resolution: { width: 720, height: 1280, frameRate: 30 },
     videoEncoding: { maxBitrate: 2_500_000, maxFramerate: 30 },
     simulcastLayers: [
-      p(540, 720, 24, 800_000),
+      p(540, 960, 24, 800_000),
     ],
   },
   ultra: {
     tier: "ultra",
     label: "Ultra (premium)",
-    description: "1080p full-sensor base + 720p + 540p — fastest uplink only.",
-    resolution: { width: 1080, height: 1440, frameRate: 30 },
+    description: "1080p full-bleed base + 720p + 540p — fastest uplink only.",
+    resolution: { width: 1080, height: 1920, frameRate: 30 },
     videoEncoding: { maxBitrate: 5_500_000, maxFramerate: 30 },
     simulcastLayers: [
-      p(720, 960, 30, 2_000_000),
-      p(540, 720, 24, 800_000),
+      p(720, 1280, 30, 2_000_000),
+      p(540, 960, 24, 800_000),
     ],
   },
 };

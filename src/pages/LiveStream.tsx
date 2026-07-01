@@ -3978,7 +3978,7 @@ const LiveStream = () => {
                   <LiveKitVideoPlayer
                     videoTrack={localVideoTrack}
                     mirror={true}
-                    fit="contain"
+                    fit="cover"
                     className="absolute inset-0 w-full h-full"
                   />
                 </div>
@@ -3987,7 +3987,7 @@ const LiveStream = () => {
                   <LiveKitVideoPlayer
                     videoTrack={remoteVideoTrack}
                     mirror={false}
-                    fit="contain"
+                    fit="cover"
                     onVideoStalled={() => retrySubscription()}
                     className="absolute inset-0 w-full h-full"
                   />
@@ -4005,7 +4005,7 @@ const LiveStream = () => {
               <LiveKitVideoPlayer
                 videoTrack={opponentRoom.videoTrack}
                 mirror={false}
-                fit="contain"
+                fit="cover"
                 className="absolute inset-0 w-full h-full"
               />
               {/* Opponent label */}

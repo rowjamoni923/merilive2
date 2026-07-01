@@ -32,8 +32,8 @@ export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstr
     width: { ideal: target.width, min: Math.min(360, target.width) },
     height: { ideal: target.height, min: Math.min(640, target.height) },
     frameRate: { ideal: target.frameRate, min: 24 },
-    // Full-sensor 3:4 portrait prevents Android/browser camera stacks from
-    // cropping a 4:3 selfie sensor into 9:16 before rendering.
+    // Full-bleed 9:16 portrait keeps preview/live/party/call capture aligned
+    // with the professional phone viewport and prevents letterboxing.
     aspectRatio: { ideal: target.width / target.height },
     // 'user' = front camera (default for Live/PartyRoom/PrivateCall).
     facingMode: { ideal: 'user' },
