@@ -1114,7 +1114,7 @@ const CreateParty = () => {
             if (next && mode !== "audio") {
               void startCameraInstant(true);
             } else {
-              void nativeLiveKitController.stopLocalPreview().then(() => {
+              void nativeLiveKitController.setCameraEnabled(false).then(() => {
                 setNativePreviewActive(false);
                 clearNativeMediaSurface();
               });

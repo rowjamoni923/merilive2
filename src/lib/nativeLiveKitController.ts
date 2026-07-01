@@ -278,8 +278,17 @@ class NativeLiveKitController {
         this.connected = false;
         this.activeFeature = null;
         this.boundedSurfaceMode = opts.attachLocal === false;
-        try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
-        try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
+        // Connect retry must keep the already-open preview camera alive. A full
+        // NativeLiveKit.disconnect() here stops CameraX, so the next attempt
+        // visibly restarts the camera. Session-only disconnect drops the failed
+        // room state but preserves previewTrack for promotePreviewToSession().
+        try {
+          if (typeof NativeLiveKit.disconnectSessionOnly === 'function') {
+            await NativeLiveKit.disconnectSessionOnly();
+          } else {
+            await NativeLiveKit.disconnect();
+          }
+        } catch { /* noop */ }
         throw error;
       }
     } finally {

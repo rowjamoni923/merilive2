@@ -145,6 +145,7 @@ class LiveKitPlugin : Plugin() {
     // The ONE camera track. Survives preview → publish → close.
     private var previewTrack: LocalVideoTrack? = null
     private var previewRenderer: TextureViewRenderer? = null
+    private var previewRendererBound: Boolean = false
     private var previewRendererContainer: FrameLayout? = null
     private var webViewOriginalBg: Int? = null
     private var isConnected: Boolean = false
@@ -153,6 +154,8 @@ class LiveKitPlugin : Plugin() {
     private var preferredCodec: String? = null
     private var lastConnectArgs: ConnectArgs? = null
     private var liveViewerStats: JSObject = JSObject()
+    private var localVideoSoftMuted: Boolean = false
+    private var localAudioSoftMuted: Boolean = false
     private data class RpcReply(val result: String?, val error: String?)
     private val pendingRpcReplies = ConcurrentHashMap<String, CompletableDeferred<RpcReply>>()
     /** Phase 1: when true, startLocalPreview does NOT mount a fullscreen
@@ -267,7 +270,15 @@ class LiveKitPlugin : Plugin() {
                     boundedMode = boundedOnly
                     if (previewTrack != null) {
                         Log.i(TAG, "startLocalPreview: already running, reusing track (boundedOnly=$boundedOnly)")
-                        if (!boundedOnly) ensureRendererAttached(mirror)
+                        if (!boundedOnly) {
+                            ensureRendererAttached(mirror)
+                            previewRenderer?.let { renderer ->
+                                if (!previewRendererBound) {
+                                    previewTrack?.addRenderer(renderer)
+                                    previewRendererBound = true
+                                }
+                            }
+                        }
                         call.resolve(JSObject().put("started", true).put("reused", true))
                         return@withLock
                     }
@@ -291,7 +302,12 @@ class LiveKitPlugin : Plugin() {
 
                     if (!boundedOnly) {
                         ensureRendererAttached(mirror)
-                        track.addRenderer(previewRenderer!!)
+                        previewRenderer?.let { renderer ->
+                            if (!previewRendererBound) {
+                                track.addRenderer(renderer)
+                                previewRendererBound = true
+                            }
+                        }
                     } else {
                         // Bounded mode — push to any already-registered seat slots
                         // that match the local identity once we know it.
@@ -481,7 +497,15 @@ class LiveKitPlugin : Plugin() {
                 } catch (t: Throwable) {
                     Log.e(TAG, "connect failed", t)
                     isConnected = false
-                    teardownAll()
+                    // Do NOT tear down the preview camera on a connect error.
+                    // JS performs a quick retry; keeping previewTrack alive lets
+                    // promotePreviewToSession publish the same CameraX capturer
+                    // instead of closing/reopening it between attempts.
+                    try { room?.disconnect() } catch (_: Throwable) {}
+                    try { clearAllSlots() } catch (_: Throwable) {}
+                    RtcEngineManager.clearRoom(room)
+                    activeRoomScope = null
+                    activeIsHost = false
                     call.reject("connect failed: ${t.message}", t)
                 }
             }
@@ -529,7 +553,12 @@ class LiveKitPlugin : Plugin() {
             if (!boundedMode) {
                 ensureRendererAttached(true)
                 previewRenderer?.let { renderer ->
-                    try { track.addRenderer(renderer) } catch (_: Throwable) {}
+                    if (!previewRendererBound) {
+                        try {
+                            track.addRenderer(renderer)
+                            previewRendererBound = true
+                        } catch (_: Throwable) {}
+                    }
                 }
             }
             rebindSeatSlotsForLocalTrack(track)
@@ -542,6 +571,7 @@ class LiveKitPlugin : Plugin() {
 
         if (args.publishAudio) {
             r.localParticipant.setMicrophoneEnabled(true)
+            localAudioSoftMuted = false
         }
         if (args.publishVideo) {
             val ptrack = previewTrack
@@ -569,10 +599,12 @@ class LiveKitPlugin : Plugin() {
                     simulcastLayers = simLayers,
                 )
                 r.localParticipant.publishVideoTrack(ptrack, videoPublishOptions)
+                localVideoSoftMuted = false
                 Log.i(TAG, "promotePreviewToSession: published LOCKED ${args.baseBitrate}bps @${args.baseFps}fps simulcast=${args.simulcast}")
             } else {
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                localVideoSoftMuted = false
             }
         }
     }
@@ -655,8 +687,13 @@ class LiveKitPlugin : Plugin() {
                 ensureRendererAttached(mirror)
                 val renderer = previewRenderer
                 if (renderer != null) {
-                    try { track.addRenderer(renderer) } catch (t: Throwable) {
-                        Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
+                    if (!previewRendererBound) {
+                        try {
+                            track.addRenderer(renderer)
+                            previewRendererBound = true
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
+                        }
                     }
                 }
                 call.resolve(JSObject().put("attached", true))
@@ -703,8 +740,8 @@ class LiveKitPlugin : Plugin() {
             if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
-                    try { lp?.setMicrophoneEnabled(false) } catch (_: Throwable) {}
-                    try { lp?.setCameraEnabled(false) } catch (_: Throwable) {}
+                    try { setLocalMicrophoneMutedKeepCapture(true) } catch (_: Throwable) {}
+                    try { setLocalCameraMutedKeepCapture(true) } catch (_: Throwable) {}
                 }
             }
         } catch (t: Throwable) {
@@ -718,8 +755,13 @@ class LiveKitPlugin : Plugin() {
             if (isConnected && shouldPauseLocalMediaOnMainActivityPause()) {
                 val lp = room?.localParticipant
                 scope.launch {
-                    try { lp?.setMicrophoneEnabled(true) } catch (_: Throwable) {}
-                    try { lp?.setCameraEnabled(true) } catch (_: Throwable) {}
+                    try { setLocalMicrophoneMutedKeepCapture(false) } catch (_: Throwable) {}
+                    // Only unmute an already-owned camera track. Calling the
+                    // SDK camera-enable path during preview→publish promotion
+                    // can open a second CameraX capturer on OEM devices.
+                    if (previewTrack != null) {
+                        try { setLocalCameraMutedKeepCapture(false) } catch (_: Throwable) {}
+                    }
                 }
             }
         } catch (t: Throwable) {
@@ -747,7 +789,15 @@ class LiveKitPlugin : Plugin() {
         val lp = room?.localParticipant ?: run { call.reject("not connected"); return }
         scope.launch {
             try {
-                lp.setCameraEnabled(enabled)
+                if (enabled) {
+                    if (previewTrack != null) {
+                        setLocalCameraMutedKeepCapture(false)
+                    } else {
+                        lp.setCameraEnabled(true)
+                    }
+                } else {
+                    setLocalCameraMutedKeepCapture(true)
+                }
                 if (enabled && previewTrack == null) {
                     val resolved = lp.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
                     previewTrack = resolved
@@ -768,10 +818,10 @@ class LiveKitPlugin : Plugin() {
     @PluginMethod
     fun setMicrophoneEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", false) ?: false
-        val lp = room?.localParticipant ?: run { call.reject("not connected"); return }
+        room?.localParticipant ?: run { call.reject("not connected"); return }
         scope.launch {
             try {
-                lp.setMicrophoneEnabled(enabled)
+                setLocalMicrophoneMutedKeepCapture(!enabled)
                 call.resolve(JSObject().put("enabled", enabled))
             } catch (t: Throwable) { call.reject("setMicrophoneEnabled: ${t.message}", t) }
         }
@@ -1514,6 +1564,100 @@ class LiveKitPlugin : Plugin() {
     // ─────────────────────────────────────────────
     // Internals
     // ─────────────────────────────────────────────
+    /**
+     * Soft camera mute for the owner's "one person, changing shirt" rule.
+     *
+     * LiveKit Android `setCameraEnabled(false)` stops the capturer on many OEMs;
+     * the next `true` then reopens CameraX and creates the visible restart. Pro
+     * live apps keep the same capture track alive and only mute/unmute the SFU
+     * publication. Reflection keeps this compatible across LiveKit Android minor
+     * versions where the public publication mute API name can differ.
+     */
+    private suspend fun setLocalCameraMutedKeepCapture(muted: Boolean) {
+        val track = previewTrack
+            ?: (room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack)
+        if (track == null) {
+            if (!muted) room?.localParticipant?.setCameraEnabled(true)
+            return
+        }
+        previewTrack = track
+        val pub = room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)
+        val applied = invokePublicationMute(pub, muted)
+        if (!applied) {
+            invokeTrackEnabled(track, !muted)
+        }
+        localVideoSoftMuted = muted
+        if (!muted) {
+            runOnMain { rebindSeatSlotsForLocalTrack(track) }
+            try {
+                previewRenderer?.let {
+                    if (!previewRendererBound) {
+                        track.addRenderer(it)
+                        previewRendererBound = true
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
+    }
+
+    private suspend fun setLocalMicrophoneMutedKeepCapture(muted: Boolean) {
+        val pub = room?.localParticipant?.getTrackPublication(Track.Source.MICROPHONE)
+        val applied = invokePublicationMute(pub, muted)
+        if (!applied) {
+            room?.localParticipant?.setMicrophoneEnabled(!muted)
+        }
+        localAudioSoftMuted = muted
+    }
+
+    private fun invokePublicationMute(publication: Any?, muted: Boolean): Boolean {
+        if (publication == null) return false
+        val methodNames = if (muted) {
+            arrayOf("mute", "setMuted", "setEnabled")
+        } else {
+            arrayOf("unmute", "setMuted", "setEnabled")
+        }
+        for (name in methodNames) {
+            try {
+                val methods = publication.javaClass.methods.filter { it.name == name }
+                for (method in methods) {
+                    try {
+                        when (method.parameterTypes.size) {
+                            0 -> {
+                                method.invoke(publication)
+                                return true
+                            }
+                            1 -> {
+                                val param = method.parameterTypes[0]
+                                if (param == java.lang.Boolean.TYPE || param == java.lang.Boolean::class.java) {
+                                    val arg = if (name == "setEnabled") !muted else muted
+                                    method.invoke(publication, arg)
+                                    return true
+                                }
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+            } catch (_: Throwable) {}
+        }
+        return false
+    }
+
+    private fun invokeTrackEnabled(track: Any?, enabled: Boolean): Boolean {
+        if (track == null) return false
+        val candidates = arrayOf("setEnabled", "setMuted")
+        for (name in candidates) {
+            try {
+                val method = track.javaClass.methods.firstOrNull {
+                    it.name == name && it.parameterTypes.size == 1 &&
+                        (it.parameterTypes[0] == java.lang.Boolean.TYPE || it.parameterTypes[0] == java.lang.Boolean::class.java)
+                } ?: continue
+                method.invoke(track, if (name == "setMuted") !enabled else enabled)
+                return true
+            } catch (_: Throwable) {}
+        }
+        return false
+    }
+
     private fun observeRoomEvents(r: Room) {
         eventsJob?.cancel()
         eventsJob = scope.launch {
@@ -1700,6 +1844,7 @@ class LiveKitPlugin : Plugin() {
                     try { r.release() } catch (_: Throwable) {}
                 }
                 previewRenderer = null
+                previewRendererBound = false
                 previewRendererContainer = null
                 val wv = bridge?.webView
                 if (restoreWebView && wv != null) {
@@ -1721,6 +1866,7 @@ class LiveKitPlugin : Plugin() {
                 try { track.dispose() } catch (_: Throwable) {}
             }
             previewTrack = null
+            previewRendererBound = false
         } catch (_: Throwable) {}
         detachRenderer(restoreWebView = true)
 
@@ -1753,6 +1899,7 @@ class LiveKitPlugin : Plugin() {
             }
         } catch (_: Throwable) {}
         previewTrack = null
+        previewRendererBound = false
         detachRenderer(restoreWebView = true)
         releaseRoomResources()
         try { CameraOwnership.release(CameraOwnership.OWNER_LIVEKIT) } catch (_: Throwable) {}

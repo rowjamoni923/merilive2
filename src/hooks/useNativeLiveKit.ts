@@ -11,7 +11,7 @@
  *   await lk.connect({ url, token, lens: 'front', resolution: '1080p' });
  *   await lk.attachLocal();           // mount native preview behind WebView
  *   await lk.attachRemote(remoteSid); // mount remote video behind WebView
- *   await lk.disconnect();            // auto-runs on unmount too
+ *   await lk.disconnect();            // explicit only; unmount never kills media
  *
  * All event handlers are subscribed on mount and unsubscribed on unmount.
  * `state` re-renders whenever connection/participants change.
@@ -151,8 +151,9 @@ export function useNativeLiveKit(): NativeLiveKitApi {
       for (const h of handles) {
         try { h.remove(); } catch { /* ignore */ }
       }
-      // Best-effort native cleanup on unmount.
-      NativeLiveKit.disconnect().catch(() => undefined);
+      // Shirt-swap camera contract: listener owner unmounts must never kill a
+      // native session that is being handed from preview → live/party/call.
+      // Media teardown is explicit through disconnect()/leave/end actions only.
     };
   }, [available]);
 

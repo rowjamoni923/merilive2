@@ -558,15 +558,19 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
 
-        // Section#5 pass-6 (Bug K — DUAL CAMERA CONFLICT): if we are about to use
-        // the native Android publisher from a WEB preview, kill WebView's
-        // getUserMedia stream. If GoLive already has native LiveKit preview
-        // ownership, keep it alive so connectInternal can promote that exact
-        // Camera2 LocalVideoTrack into the live room with no restart.
-        clearPreparedHostPreviewStream({ stopTracks: true });
-        try { config.preloadedVideoTrack?.stop(); } catch { /* noop */ }
-        try { config.preloadedAudioTrack?.stop(); } catch { /* noop */ }
         const cameraOwner = await getAndroidCameraOwner();
+        // Shirt-swap camera contract: when Native LiveKit already owns the
+        // preview, NEVER stop any prepared/preloaded track before connect — the
+        // Kotlin plugin promotes that exact Camera2 LocalVideoTrack. Only the
+        // legacy WebView-camera fallback is released when LiveKit does not yet
+        // own /dev/video0.
+        if (cameraOwner === 'livekit') {
+          clearPreparedHostPreviewStream();
+        } else {
+          clearPreparedHostPreviewStream({ stopTracks: true });
+          try { config.preloadedVideoTrack?.stop(); } catch { /* noop */ }
+          try { config.preloadedAudioTrack?.stop(); } catch { /* noop */ }
+        }
         if (cameraOwner !== 'livekit') {
           await releaseAndroidWebViewCameraNow('live:native-before-connect');
         }

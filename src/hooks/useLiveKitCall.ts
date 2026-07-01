@@ -498,7 +498,10 @@ export function useLiveKitCall(
               return;
             }
             if (lastNErr) throw lastNErr;
-            clearPreparedCallMediaStream(callId, { stopTracks: true });
+            // Native call accept uses the already-warmed prejoin camera. Drop
+            // only the JS cache pointer here; stopping tracks at this point can
+            // close the preview while Kotlin is promoting it into the call.
+            clearPreparedCallMediaStream(callId);
 
             // Section#5 pass-2 (Bug I — NATIVE CAMERA LEAK): if cleanup ran
             // while connectAndPublish was awaiting, native side is already

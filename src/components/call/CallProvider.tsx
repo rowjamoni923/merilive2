@@ -269,11 +269,12 @@ export function CallProvider({ children }: CallProviderProps) {
   // timeout, missed), release the prejoin Camera2 slot.
   useEffect(() => {
     if (!isNativeAndroidApp()) return;
+    if (acceptedCallInfo || acceptingRef.current || callState.status === 'connected') return;
     if (callState.status === 'ended' || (!incomingCall && callState.status === 'idle')) {
       nativeLiveKitController.stopLocalPreview().catch(() => {});
       clearNativeMediaSurface();
     }
-  }, [callState.status, incomingCall]);
+  }, [callState.status, incomingCall, acceptedCallInfo]);
 
   // Pkg-shirt Phase-B (web): mirror of the native Camera2 prejoin above.
   // The moment a call is ringing/dialing on web, warm the global
