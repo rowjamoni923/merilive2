@@ -17,19 +17,20 @@
  * values cause sender/receiver drift and visible pumping.
  */
 export const LIVEKIT_PUBLISH_LOCK = {
-  // Capture (CameraX/Web) — natural 3:4 sensor frame for safe zoom-out.
-  // Renderers keep portrait cover/fill so users never see horizontal bars.
-  captureWidth: 1080,
-  captureHeight: 1440,
+  // Capture (CameraX/Web) — natural 3:4 sensor frame at 1440×1920 for
+  // Chamet/Bigo "premium HD" clarity. Higher sensor mode → sharper
+  // downscaled encode, no digital zoom (renderers keep portrait cover/fill).
+  captureWidth: 1440,
+  captureHeight: 1920,
   captureFps: 30,
 
-  // Base layer encoder — 1080p @ 30fps @ 4.5 Mbps. Pinned, never re-tuned.
-  // 2026-06-30: lifted from 3.2 → 4.5 Mbps to hit Chamet/Bigo "premium clarity"
-  // band. Viewers consistently report a sharper face at this rate on mid-tier
-  // Android renderers; SFU still down-relays via simulcast for weak networks.
-  maxBitrate: 4_500_000,
+  // Base layer encoder — 1440×1920 @ 30fps @ 6.5 Mbps. Pinned, never re-tuned.
+  // 2026-07-01: lifted 4.5 → 6.5 Mbps + 1440 sensor mode for premium clarity
+  // (removes the "ঘোলাটে/ঝাপসা" soft look users reported). Weak viewers still
+  // get 720p/540p via simulcast relays below.
+  maxBitrate: 6_500_000,
   maxFps: 30,
-  // Simulcast relays: 720p mid @ 2.2 Mbps, 540p low @ 900 kbps.
+  // Simulcast relays: 720p mid @ 2.8 Mbps, 540p low @ 900 kbps.
   simulcast: true,
 } as const;
 
