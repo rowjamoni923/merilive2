@@ -1,9 +1,15 @@
 # Section 1 — Auth (Flutter Migration Spec)
 
-**Status:** Draft awaiting user approval
+**Status:** ✅ Decisions locked — awaiting "Step A শুরু কর" to begin Foundation
 **Owner:** Lovable agent
 **Backend:** Unchanged (Supabase `ayjdlvuurscxucatbbah`, all existing RPCs/edge fns reused)
-**Parity mode:** Hubohu (pixel + logic identical to current React)
+**Parity mode:** Hubohu web-এর সাথে + Android-এ web-এর চেয়েও more professional (native polish)
+
+## Locked decisions (2026-07-01)
+1. **Email OTP:** শুধু নতুন secure flow (`send-email-otp` + `verify-email-otp` + `otp-direct-signin`)। Legacy `send-signup-confirmation` **DROP**।
+2. **Phone:** শুধু WhatsApp OTP (`send-whatsapp-otp`)। Firebase `signInAnonymously` phone path **DROP**।
+3. **State management:** **BLoC** (flutter_bloc + hydrated_bloc for session persistence)।
+4. **Router:** **auto_route** (type-safe, code-gen)।
 
 ---
 
