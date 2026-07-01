@@ -222,7 +222,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
 
         <div className="space-y-4">
           {/* Preview */}
-          <div className="relative mx-auto aspect-[9/16] max-h-[60vh] w-full max-w-[260px] overflow-hidden rounded-xl bg-black">
+          <div className="relative mx-auto aspect-[9/16] max-h-[68vh] w-full max-w-[320px] overflow-hidden rounded-xl bg-black">
             <video 
               ref={videoRef}
               playsInline
