@@ -83,26 +83,28 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Full-sensor portrait 3:4, no manual selector. Forcing 9:16 capture
-        // (1080x1920) on common 4:3 selfie sensors makes Android crop the
-        // camera before rendering, which is the reported zoomed-face bug.
-        // Capture 1080x1440 and render with ASPECT_FIT so the full face/frame
-        // remains visible in Live, Party/Game Party and Private Call.
+        // Full-bleed 9:16 portrait capture so preview / live / party / private
+        // call all fill the phone screen edge-to-edge with NO letterbox AND
+        // NO extra render-crop "zoom". Capture aspect == display aspect, so
+        // SCALE_ASPECT_FILL is a 1:1 mapping (no cropping at render time).
+        // The sensor's own 4:3→9:16 center-crop is the same crop every pro
+        // live app (Chamet/Bigo/Olamet/Holla) uses — this is the natural FOV.
         const val LOCK_CAPTURE_W = 1080
-        const val LOCK_CAPTURE_H = 1440
+        const val LOCK_CAPTURE_H = 1920
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 4_500_000   // 4.5 Mbps — 1080p premium clarity (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720p full-sensor portrait @ 2.2 Mbps.
+        // Mid relay = 720p 9:16 @ 2.2 Mbps.
         const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 960
+        const val LOCK_SIM_MID_H = 1280
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 2_200_000
-        // Low relay = 540x720 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
+        // Low relay = 540x960 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
         const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 720
+        const val LOCK_SIM_LOW_H = 960
         const val LOCK_SIM_LOW_FPS = 24
         const val LOCK_SIM_LOW_BITRATE = 900_000
+
 
         @Volatile private var INSTANCE: LiveKitPlugin? = null
 
