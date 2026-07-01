@@ -51,6 +51,7 @@ import { clearNativeMediaSurface } from "@/utils/nativeMediaSurface";
 import { getRequiredDisplayLevel } from "@/utils/stableLevel";
 import { enforcePermanentCameraLock } from "@/utils/cameraLock";
 import { buildPortraitVideoConstraint } from "@/utils/portraitCameraConstraints";
+import { maybeUpgradeToWidestCamera } from "@/utils/widestCamera";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -1157,13 +1158,14 @@ const CreateParty = () => {
             const newFacingMode = facingMode === "user" ? "environment" : "user";
             setFacingMode(newFacingMode);
             try {
-              const newStream = await claimAndroidWebViewCameraForStream(
+              const claimedStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
                   video: buildPortraitVideoConstraint({ facingMode: newFacingMode, width: 720, height: 960, frameRate: 30 }),
                   audio: true
                 }),
                 'create-party:switch-camera-new-stream',
               );
+              const newStream = await maybeUpgradeToWidestCamera(claimedStream, newFacingMode, 'create-party:switch-camera');
               await enforcePermanentCameraLock(newStream, 'create-party:switch-camera');
               setStream(newStream);
               if (videoRef.current) {
