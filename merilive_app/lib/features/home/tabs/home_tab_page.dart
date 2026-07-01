@@ -1,14 +1,17 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/router/app_router.gr.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../bloc/country_filter_cubit.dart';
 import '../bloc/home_feed_cubit.dart';
 import '../data/country_repository.dart';
 import '../data/home_feed_repository.dart';
 import '../data/home_host.dart';
+import '../widgets/host_card.dart';
 
 /// Home tab — H1 header + H2 dynamic countries + H3 feed data layer.
 ///
