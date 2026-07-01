@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/design_tokens.dart';
+import '../promos/promo_host.dart';
 import 'tabs/home_tab_page.dart';
 import 'tabs/party_tab_page.dart';
 import 'tabs/profile_tab_page.dart';
@@ -48,7 +49,15 @@ class _HomeShellPageState extends State<HomeShellPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF8),
       extendBody: true,
-      body: IndexedStack(index: _index, children: _tabs),
+      body: Stack(
+        children: [
+          IndexedStack(index: _index, children: _tabs),
+          // App-wide full-screen promo host (Event popup + Rating reward).
+          // Renders SizedBox.shrink() until data resolves, then covers
+          // the shell with a Positioned.fill overlay. See PromoHost docs.
+          const PromoHost(),
+        ],
+      ),
       bottomNavigationBar: HomeBottomNavigation(
         currentIndex: _index,
         onTabSelected: (i) => setState(() => _index = i),
