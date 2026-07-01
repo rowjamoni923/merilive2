@@ -37,10 +37,31 @@ class _GenderStepPageState extends State<GenderStepPage> {
     super.dispose();
   }
 
+  static final _nameRe = RegExp(r"^[\p{L}\p{N} .'\-_]+$", unicode: true);
+  static const _blocked = <String>{
+    'admin', 'administrator', 'root', 'system', 'support', 'moderator',
+    'staff', 'null', 'undefined', 'test', 'fuck', 'shit', 'bitch', 'nigger',
+    'chudir', 'chuda', 'randi', 'madarchod', 'bhenchod',
+  };
+
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
-    if (name.isEmpty) {
-      _snack('Please enter your name', const Color(0xFFDC2626));
+    if (name.length < 2) {
+      _snack('Name must be at least 2 characters', const Color(0xFFDC2626));
+      return;
+    }
+    if (name.length > 30) {
+      _snack('Name must be under 30 characters', const Color(0xFFDC2626));
+      return;
+    }
+    if (!_nameRe.hasMatch(name)) {
+      _snack('Name can only contain letters, numbers, spaces, . \' - _',
+          const Color(0xFFDC2626));
+      return;
+    }
+    final lower = name.toLowerCase();
+    if (_blocked.any((w) => lower.contains(w))) {
+      _snack('Please choose a different name', const Color(0xFFDC2626));
       return;
     }
     if (_gender == null) {
