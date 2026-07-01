@@ -13,8 +13,18 @@ class PhoneFlowRepository {
   final SupabaseClient _sb;
 
   /// Digits-only (no +, spaces, dashes). Backend expects 7–15 digits.
-  static String normalize(String raw) =>
-      raw.replaceAll(RegExp(r'[\s\-\(\)]'), '').replaceAll(RegExp(r'^\+'), '');
+  /// For Bangladesh (+880) we also strip a leading `0` that users habitually
+  /// include after the country code (parity with web `normalizePhoneNumber`).
+  static String normalize(String raw) {
+    var digits = raw
+        .replaceAll(RegExp(r'[\s\-\(\)]'), '')
+        .replaceAll(RegExp(r'^\+'), '');
+    // Strip leading 0 for BD numbers: 8800XXXXXXXXX -> 880XXXXXXXXX
+    if (digits.startsWith('8800')) {
+      digits = '880${digits.substring(4)}';
+    }
+    return digits;
+  }
 
   /// Synthetic email the backend maps phone-verified users onto.
   static String syntheticEmail(String digits) => 'phone_$digits@meri.local';
