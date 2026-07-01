@@ -83,25 +83,23 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Full-bleed 9:16 portrait capture so preview / live / party / private
-        // call all fill the phone screen edge-to-edge with NO letterbox AND
-        // NO extra render-crop "zoom". Capture aspect == display aspect, so
-        // SCALE_ASPECT_FILL is a 1:1 mapping (no cropping at render time).
-        // The sensor's own 4:3→9:16 center-crop is the same crop every pro
-        // live app (Chamet/Bigo/Olamet/Holla) uses — this is the natural FOV.
+        // NO-ZOOM portrait capture: use the phone camera sensor's natural
+        // portrait 3:4 field-of-view. Previous 9:16 capture forced CameraX to
+        // center-crop the sensor before publishing, which users experienced as
+        // a zoomed-in face in preview/live/party/private call.
         const val LOCK_CAPTURE_W = 1080
-        const val LOCK_CAPTURE_H = 1920
+        const val LOCK_CAPTURE_H = 1440
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 4_500_000   // 4.5 Mbps — 1080p premium clarity (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720p 9:16 @ 2.2 Mbps.
+        // Mid relay = 720p 3:4 @ 2.2 Mbps.
         const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 1280
+        const val LOCK_SIM_MID_H = 960
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 2_200_000
-        // Low relay = 540x960 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
+        // Low relay = 540x720 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
         const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_H = 720
         const val LOCK_SIM_LOW_FPS = 24
         const val LOCK_SIM_LOW_BITRATE = 900_000
 
@@ -1278,15 +1276,11 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // FULL-BLEED RULE (locked 2026-07-01 by owner):
-        // Owner reported host/viewer camera appearing small with white/black
-        // letterbox bars — the previous SCALE_ASPECT_FIT policy showed the
-        // non-fullscreen frame inside a 9:19.5 phone which left large gaps on top
-        // and bottom (visible in Live/Party/PrivateCall screenshots).
-        // Bigo / Chamet / Olamet all use SCALE_ASPECT_FILL: the video fills
-        // the entire surface edge-to-edge; the small top/bottom over-scan is
-        // industry standard and preferred over letterbox bars.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
+        // NO-ZOOM RULE: never use SCALE_ASPECT_FILL here. FILL crops the camera
+        // frame again at render-time, so a 3:4 sensor feed becomes visibly
+        // zoomed in inside live/party/private-call 9:16 slots. FIT preserves the
+        // full face/body FOV exactly like professional prejoin camera previews.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams

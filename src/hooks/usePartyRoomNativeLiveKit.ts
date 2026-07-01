@@ -546,8 +546,8 @@ export function usePartyRoomNativeLiveKit(
             // modest while eliminating the all-or-nothing freeze pattern.
             simulcast: true,
             videoSimulcastLayers: [
-              new VideoPreset(720, 1280, 1_800_000, 30),
-              new VideoPreset(540, 960, 700_000, 24),
+              new VideoPreset(720, 960, 1_800_000, 30),
+              new VideoPreset(540, 720, 700_000, 24),
             ],
             // Pkg205 (M3): device-aware codec selection (Safari → H.264,
             // Chromium → AV1/VP9, H.264 backup preferred over VP8).

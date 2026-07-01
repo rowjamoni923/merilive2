@@ -105,8 +105,8 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
       video: {
         facingMode: { ideal: 'user' },
         width: { ideal: 1080 },
-        height: { ideal: 1920 },
-        aspectRatio: { ideal: 9 / 16 },
+        height: { ideal: 1440 },
+        aspectRatio: { ideal: 3 / 4 },
         frameRate: { ideal: 30 },
       },
       audio: includeAudio
@@ -168,14 +168,12 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
     ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     : false;
   const constraintOptions: MediaStreamConstraints[] = [
-    // Professional live-app portrait pipeline: request the same 9:16 frame
-    // that the preview/live/party/call containers display. The old 3:4 request
-    // forced object-cover to crop the sides in a 9:16 screen, which looked like
-    // the camera was zoomed and still left OEM/browser letterboxing on some
-    // WebViews. 1080x1920 → 720x1280 keeps preview and publish aspect identical.
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 960 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 24 } }, audio },
+    // No-zoom portrait pipeline: request the sensor's natural 3:4 FOV. A 9:16
+    // request makes Android/WebView center-crop before preview, so the same
+    // camera looks zoomed in Go Live, Party and Private Call.
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio },
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },

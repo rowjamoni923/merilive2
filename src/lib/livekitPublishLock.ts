@@ -17,13 +17,11 @@
  * values cause sender/receiver drift and visible pumping.
  */
 export const LIVEKIT_PUBLISH_LOCK = {
-  // Capture (CameraX) — full-bleed 9:16 portrait, 30 fps, 1080p short-side.
-  // Capture aspect == phone display aspect, so renderer FILL is a 1:1 map
-  // (no letterbox, no render-time zoom). The sensor's own 4:3→9:16
-  // center-crop is the standard FOV every pro live app uses (Chamet/Bigo/
-  // Olamet/Holla). Must match LOCK_CAPTURE_* in LiveKitPlugin.kt.
+  // Capture (CameraX/Web) — no-zoom portrait 3:4, 30 fps, 1080p short-side.
+  // This preserves the phone sensor's natural FOV instead of forcing a 9:16
+  // center-crop that makes the face/body look digitally zoomed.
   captureWidth: 1080,
-  captureHeight: 1920,
+  captureHeight: 1440,
   captureFps: 30,
 
   // Base layer encoder — 1080p @ 30fps @ 4.5 Mbps. Pinned, never re-tuned.
