@@ -63,10 +63,11 @@ export const UserCard = ({
   return (
     <div
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300"
+      className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300 bg-neutral-900"
     >
       {/* Photo with Frame Overlay */}
-      <div className="relative aspect-[3/4] overflow-hidden">
+      <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900">
+
         <img loading="lazy" decoding="async"
           src={normalizedPhotoUrl}
           alt={name}
