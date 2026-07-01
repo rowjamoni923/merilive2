@@ -455,7 +455,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           style={{
             objectFit: 'cover',
             objectPosition: 'center center',
-            transform: mirror ? 'scaleX(-1) scale(1.08) translateZ(0)' : 'scale(1.08) translateZ(0)',
+            transform: mirror ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)',
             width: '100%',
             height: '100%',
             touchAction: 'none',
@@ -486,7 +486,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none relative"
         style={{
-          objectFit: fit === 'cover' ? 'contain' : fit,
+          objectFit: fit,
           objectPosition: 'center center',
           transform: mirror ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)',
           width: '100%',

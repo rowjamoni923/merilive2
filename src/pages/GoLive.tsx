@@ -11,6 +11,7 @@ import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import NativeVideoView from "@/components/NativeVideoView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { useSound } from "@/hooks/useSound";
 import { Capacitor } from "@capacitor/core";
+import { NativeLiveKit } from "@/plugins/NativeLiveKit";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import PreJoinDevicesDialog from "@/components/livekit/PreJoinDevicesDialog";
 import { Sliders } from "lucide-react";
@@ -156,6 +158,9 @@ const GoLive = () => {
       // the route swap. LiveStream/useLiveKitClient will take over the same
       // native-media-active surface once the existing preview track is promoted.
       if (preservePreviewForLiveRef.current) return;
+      void NativeLiveKit.forceDetachAllSurfaces?.().catch(() => undefined);
+      void NativeLiveKit.detachAll?.().catch(() => undefined);
+      void nativeLiveKitController.stopLocalPreview().catch(() => undefined);
       clearNativeFaceCameraSurface();
       clearNativeMediaSurface();
     };
@@ -226,6 +231,7 @@ const GoLive = () => {
           lens: 'front',
           resolution: '1080p',
           mirror: true,
+          boundedOnly: true,
           roomScope: 'live',
         });
         if (started) {
@@ -249,6 +255,8 @@ const GoLive = () => {
   }, [applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
+    try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* old APK */ }
+    try { await NativeLiveKit.detachAll?.(); } catch { /* old APK */ }
     try { await nativeLiveKitController.stopLocalPreview(); } catch { /* noop */ }
     applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
@@ -548,6 +556,8 @@ const GoLive = () => {
   const handleBack = () => {
     // 1. Kill the visible surface FIRST so the WebView UI no longer reveals
     //    the camera behind it for even a single frame.
+    try { void NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* ignore */ }
+    try { void NativeLiveKit.detachAll?.(); } catch { /* ignore */ }
     try { clearNativeMediaSurface(); } catch { /* ignore */ }
     try { applyNativePreviewTransparency(false); } catch { /* ignore */ }
     setNativePreviewActive(false);
@@ -574,8 +584,9 @@ const GoLive = () => {
           cameraHandleRef.current = null;
         } else {
           streamRef.current.getTracks().forEach(track => track.stop());
-          releaseAndroidWebViewCamera('golive:back');
         }
+        forceDisposeCameraSession();
+        releaseAndroidWebViewCamera('golive:back');
       } catch { /* ignore */ }
       streamRef.current = null;
     }
@@ -692,15 +703,17 @@ const GoLive = () => {
         void stopNativePreview();
       }
       if (streamRef.current) {
-        // Step 1b: keep web camera warm across unmount/HMR. Only release the
-        // ref; persistentCameraSession owns the tracks until explicit dispose.
+        // Leaving Go Live preview is a real exit, not a handoff. Release AND
+        // force-dispose the persistent web camera so the preview cannot keep
+        // running invisibly on the next page.
         if (cameraHandleRef.current) {
           cameraHandleRef.current.release();
           cameraHandleRef.current = null;
         } else {
           streamRef.current.getTracks().forEach(track => track.stop());
-          releaseAndroidWebViewCamera('golive:unmount');
         }
+        forceDisposeCameraSession();
+        releaseAndroidWebViewCamera('golive:unmount');
         streamRef.current = null;
       }
       // Pkg-fix: clear video element srcObject on unmount so a stale stopped
@@ -1439,6 +1452,14 @@ const GoLive = () => {
           />
         ) : (
           <div className="relative w-full h-full camera-locked">
+            {isNativeAndroid && nativePreviewActive && (
+              <NativeVideoView
+                kind="local"
+                mirror={facingMode === 'user'}
+                className="absolute inset-0 h-full w-full pointer-events-none"
+                onAttached={markPreviewReady}
+              />
+            )}
             {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
                 On native Android, hidden visually when native renderer is confirmed
                 active (nativePreviewActive). If the native renderer ever fails to
@@ -1462,9 +1483,9 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
+              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75"
               style={{
-                transform: facingMode === 'user' ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
+                transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS ? `${beautyCSS} blur(18px) saturate(1.1) brightness(0.75)` : 'blur(18px) saturate(1.1) brightness(0.75)',
                 WebkitAppearance: 'none',
                 opacity: (isNativeAndroid && nativePreviewActive) ? 0 : 1,
@@ -1493,7 +1514,7 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 w-full h-full object-contain pointer-events-none bg-transparent"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none bg-transparent"
               style={{
                 transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS || undefined,
