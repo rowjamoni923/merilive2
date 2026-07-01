@@ -76,6 +76,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
       try {
         const stream = await getUserMediaAttempt({ video, audio: false }, 'livekit-reliable:video');
         if (stream.getVideoTracks().some(isLive)) {
+          await enforcePermanentCameraLock(stream, 'livekit-reliable:video');
           streams.push(stream);
           break;
         }
