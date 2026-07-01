@@ -11,6 +11,7 @@ import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useNativeAudioFocus } from "@/hooks/useNativeAudioFocus";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import NativeVideoView from "@/components/NativeVideoView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -226,6 +227,7 @@ const GoLive = () => {
           lens: 'front',
           resolution: '1080p',
           mirror: true,
+          boundedOnly: true,
           roomScope: 'live',
         });
         if (started) {
@@ -1442,6 +1444,14 @@ const GoLive = () => {
           />
         ) : (
           <div className="relative w-full h-full camera-locked">
+            {isNativeAndroid && nativePreviewActive && (
+              <NativeVideoView
+                kind="local"
+                mirror={facingMode === 'user'}
+                className="absolute inset-0 h-full w-full pointer-events-none"
+                onAttached={markPreviewReady}
+              />
+            )}
             {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
                 On native Android, hidden visually when native renderer is confirmed
                 active (nativePreviewActive). If the native renderer ever fails to
