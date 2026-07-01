@@ -80,7 +80,7 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
 
 const keyOf = (req: CameraSessionConstraints) =>
   // Include capture-layout version so stale square/no-resize streams are not reused.
-  JSON.stringify({ layout: 'portrait-9x16-v2', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
+  JSON.stringify({ layout: 'portrait-natural-3x4-zoomout-v3', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
 
 const isStreamUsable = (stream: MediaStream | null | undefined) =>
   !!stream && stream.getTracks().some((t) => t.readyState === 'live');

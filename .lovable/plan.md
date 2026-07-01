@@ -9,12 +9,12 @@ Stop Go Live / Party / Private Call camera preview from rendering as a horizonta
 - The project had switched capture to 3:4 for no-zoom FOV, but the React/native renderers were also set to `contain`/`SCALE_ASPECT_FIT`, causing portrait phones to show a landscape-looking band.
 - Android CameraX docs: `setLinearZoom(0.0)` is minimum zoom and `0.5` is midpoint zoom-in; `setZoomRatio()` must stay within `ZoomState.minZoomRatio..maxZoomRatio`, and min is often `1.0` unless zoom-out/ultra-wide is supported.
 - LiveKit Android docs: `VideoCaptureParameter(width,height,fps, adaptOutputToDimensions=true)` crops captured frames to the requested aspect ratio when the capturer cannot output that exact shape; setting `adaptOutputToDimensions=false` avoids that internal crop/zoom.
-- MDN Media Capture docs: browser `resizeMode: 'none'` asks the UA to use the hardware/driver resolution instead of crop-and-scale, reducing WebView crop zoom for preview/call fallback streams.
+- MDN Media Capture docs: browser `resizeMode: 'none'` asks the UA to use the hardware/driver resolution instead of crop-and-scale; forcing 9:16 `crop-and-scale` can digitally center-crop the phone sensor and make the face look zoomed in.
 
 ## Fix plan
 1. Use 3:4 capture constants to avoid CameraX/WebView digital center-crop zoom.
 2. Keep full-screen/primary camera renderers on portrait fill (`cover` / `SCALE_ASPECT_FILL`) so the surface stays vertical without black bars.
-3. Lock browser zoom constraints to standard 1x, never sub-1.0, because some OEM/WebView stacks interpret 0.5 as an auxiliary-lens/crop jump.
+3. Lock browser zoom constraints to the hardware minimum zoom ratio capped at 1x (never above 1x), so supported devices move backward/zoom-out instead of zooming in.
 4. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
 5. Disable LiveKit Android capture adaptation (`adaptOutputToDimensions=false`) and browser crop-scaling (`resizeMode:'none'`) so zoom-out comes from wider captured FOV, not fake CSS bars.
 
