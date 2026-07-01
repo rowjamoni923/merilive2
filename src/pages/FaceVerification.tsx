@@ -139,7 +139,7 @@ const getLocalizedMessages = (_countryName?: string) => ({
 });
 
 const photoFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-amber-200/60 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-xl shadow-amber-200/30 ring-1 ring-amber-100";
-const photoPreviewFrameClass = "relative mx-auto w-full max-w-[320px] rounded-[1.75rem] overflow-hidden border border-amber-200/60 bg-white shadow-xl shadow-amber-200/30 ring-1 ring-amber-100";
+const photoPreviewFrameClass = "relative mx-auto w-full max-w-[320px] aspect-[4/5] rounded-[1.75rem] overflow-hidden border border-amber-200/60 bg-white shadow-xl shadow-amber-200/30 ring-1 ring-amber-100";
 const photoImageClass = "absolute inset-0 h-full w-full object-cover object-center bg-white";
 const photoPreviewImageClass = "block w-full h-full max-h-[70vh] object-cover object-center bg-white";
 const photoOverlayClass = "hidden";
