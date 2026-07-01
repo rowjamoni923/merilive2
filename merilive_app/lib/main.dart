@@ -8,6 +8,7 @@ import 'core/supabase/supabase_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
+import 'features/branding/branding_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +40,13 @@ class _MeriLiveAppState extends State<MeriLiveApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>(
-      create: (_) => AuthBloc()..add(const AppStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (_) => AuthBloc()..add(const AppStarted()),
+        ),
+        BlocProvider<BrandingCubit>(create: (_) => BrandingCubit()),
+      ],
       child: MaterialApp.router(
         title: 'MeriLive',
         debugShowCheckedModeBanner: false,
