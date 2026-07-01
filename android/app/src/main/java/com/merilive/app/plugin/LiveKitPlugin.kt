@@ -1226,14 +1226,15 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // NO-ZOOM RULE (locked 2026-06-30 by owner):
-        // The host/viewer must see the FULL captured frame — no Android-side
-        // cropping or "zoom-in" on the face. We capture 1080x1440 (3:4
-        // portrait, full selfie-sensor FOV) and render with SCALE_ASPECT_FIT
-        // so the entire frame is visible inside the surface, identical to
-        // PrivateCallActivity. Any black letterbox is hidden by the camera
-        // surface sitting behind the transparent WebView UI.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+        // FULL-BLEED RULE (locked 2026-07-01 by owner):
+        // Owner reported host/viewer camera appearing small with white/black
+        // letterbox bars — the previous SCALE_ASPECT_FIT policy showed the
+        // full 3:4 frame inside a 9:19.5 phone which left large gaps on top
+        // and bottom (visible in Live/Party/PrivateCall screenshots).
+        // Bigo / Chamet / Olamet all use SCALE_ASPECT_FILL: the video fills
+        // the entire surface edge-to-edge; the small top/bottom over-scan is
+        // industry standard and preferred over letterbox bars.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
