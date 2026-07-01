@@ -133,8 +133,8 @@ export const PremiumLiveStreamCard = ({
 
 
 
-      {/* Premium Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+      {/* Subtle name-legibility shade — only the very bottom, no dark band */}
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
       
       {/* Top shimmer effect on hover */}
       <motion.div
