@@ -40,18 +40,21 @@ enum _SubTab { popular, live, newHosts, follow }
 class _HomeTabPageState extends State<HomeTabPage>
     with AutomaticKeepAliveClientMixin {
   _SubTab _subTab = _SubTab.popular;
-  String _selectedCountry = 'all';
+  late final CountryFilterCubit _countryCubit;
 
-  // H1 static seed — H2 will merge dynamic countries from RPC.
-  static const List<_Country> _seedCountries = [
-    _Country(code: 'all', name: 'All', flag: '🌍'),
-    _Country(code: 'BD', name: 'Bangladesh', flag: '🇧🇩'),
-    _Country(code: 'IN', name: 'India', flag: '🇮🇳'),
-    _Country(code: 'PK', name: 'Pakistan', flag: '🇵🇰'),
-    _Country(code: 'NP', name: 'Nepal', flag: '🇳🇵'),
-    _Country(code: 'PH', name: 'Philippines', flag: '🇵🇭'),
-    _Country(code: 'ID', name: 'Indonesia', flag: '🇮🇩'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _countryCubit = CountryFilterCubit(
+      CountryRepository(Supabase.instance.client),
+    )..refresh();
+  }
+
+  @override
+  void dispose() {
+    _countryCubit.close();
+    super.dispose();
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -72,52 +75,59 @@ class _HomeTabPageState extends State<HomeTabPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Container(
-      color: DT.homeBg,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _HomeHeader(
-              subTab: _subTab,
-              onSubTab: (t) => setState(() => _subTab = t),
-              onSearchTap: () => _toast('Search — lands in a later sector'),
-              onTrophyTap: () => _toast('Leaderboard — lands in a later sector'),
-              countries: _seedCountries,
-              selectedCountry: _selectedCountry,
-              onCountry: (c) => setState(() => _selectedCountry = c),
-            ),
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.dynamic_feed_rounded,
-                          size: 48, color: DT.homeMutedInk),
-                      SizedBox(height: 10),
-                      Text(
-                        'Feed lands in Step H3',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: DT.homeHeading,
+    return BlocProvider.value(
+      value: _countryCubit,
+      child: Container(
+        color: DT.homeBg,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              BlocBuilder<CountryFilterCubit, CountryFilterState>(
+                builder: (context, state) => _HomeHeader(
+                  subTab: _subTab,
+                  onSubTab: (t) => setState(() => _subTab = t),
+                  onSearchTap: () =>
+                      _toast('Search — lands in a later sector'),
+                  onTrophyTap: () =>
+                      _toast('Leaderboard — lands in a later sector'),
+                  countries: state.countries,
+                  selectedCountry: state.selectedCode,
+                  onCountry: (c) => _countryCubit.select(c),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.dynamic_feed_rounded,
+                            size: 48, color: DT.homeMutedInk),
+                        SizedBox(height: 10),
+                        Text(
+                          'Feed lands in Step H3',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: DT.homeHeading,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Header, sub-tabs and country strip are wired.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 12, color: DT.homeMutedInk),
-                      ),
-                    ],
+                        SizedBox(height: 4),
+                        Text(
+                          'Header, sub-tabs and country strip are wired.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 12, color: DT.homeMutedInk),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
