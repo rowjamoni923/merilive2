@@ -1425,7 +1425,7 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover bg-black z-[4]"
+              className="absolute inset-0 w-full h-full object-contain bg-black z-[4]"
               style={{ transform: 'scaleX(-1)' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
