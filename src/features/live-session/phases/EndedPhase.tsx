@@ -8,6 +8,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Home, Repeat } from 'lucide-react';
 import { useLiveSession } from '../LiveSessionProvider';
+import { clearPreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
+import { forceDisposeCameraSession } from '@/lib/persistentCameraSession';
+import { releaseAndroidWebViewCameraNow } from '@/lib/androidCameraHandoff';
 
 export default function EndedPhase() {
   const navigate = useNavigate();
@@ -18,6 +21,13 @@ export default function EndedPhase() {
     // (and its camera refcount) stays alive — camera continuous.
     setStreamId(null);
     setPhase('preview');
+  };
+
+  const handleBackHome = () => {
+    clearPreparedHostPreviewStream({ stopTracks: true });
+    forceDisposeCameraSession();
+    void releaseAndroidWebViewCameraNow('live-session-ended:back-home');
+    navigate('/', { replace: true });
   };
 
   return (
@@ -64,7 +74,7 @@ export default function EndedPhase() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/', { replace: true })}
+            onClick={handleBackHome}
             className="flex-1 inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-500/30 transition active:scale-[0.98]"
             style={{
               background: 'linear-gradient(135deg, #9B2BFF 0%, #FF3DAF 100%)',
