@@ -130,4 +130,20 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
       ),
     );
   }
+
+  /// Guess initial dial-code country from device locale.
+  /// Supported here: BD, IN, PK, ID, MY, PH, VN, SA, AE, NG, US, GB.
+  /// Falls back to BD for our primary audience.
+  static String _detectInitialCountry() {
+    try {
+      final locale = PlatformDispatcher.instance.locale;
+      final country = (locale.countryCode ?? '').toUpperCase();
+      const supported = {
+        'BD', 'IN', 'PK', 'ID', 'MY', 'PH', 'VN', 'SA', 'AE',
+        'NG', 'US', 'GB', 'LK', 'NP', 'MM', 'TH', 'EG', 'TR',
+      };
+      if (supported.contains(country)) return country;
+    } catch (_) {}
+    return 'BD';
+  }
 }
