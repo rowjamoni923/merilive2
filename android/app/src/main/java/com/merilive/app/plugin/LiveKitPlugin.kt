@@ -7,6 +7,9 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraMetadata
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
