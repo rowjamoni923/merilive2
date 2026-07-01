@@ -20,6 +20,7 @@
  */
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
 import { buildPortraitVideoConstraint } from '@/utils/portraitCameraConstraints';
+import { maybeUpgradeToWidestCamera } from '@/utils/widestCamera';
 
 export type CameraSessionConstraints = {
   video?: boolean | MediaTrackConstraints;
@@ -124,7 +125,11 @@ export async function acquireCameraSession(
   }
 
   pending = (async (): Promise<Session> => {
-    const stream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
+    const facingMode = req.facingMode ?? 'user';
+    const initialStream = await navigator.mediaDevices.getUserMedia(buildConstraints(req));
+    const stream = req.video === false
+      ? initialStream
+      : await maybeUpgradeToWidestCamera(initialStream, facingMode, 'persistent-camera-session');
     await enforcePermanentCameraLock(stream, 'persistent-camera-session');
     const session: Session = {
       stream,
