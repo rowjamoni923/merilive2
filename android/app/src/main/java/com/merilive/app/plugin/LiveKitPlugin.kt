@@ -1918,7 +1918,10 @@ class LiveKitPlugin : Plugin() {
                 if (restoreWebView && wv != null) {
                     wv.setBackgroundColor(webViewOriginalBg ?: Color.WHITE)
                 }
-                if (restoreWebView) webViewOriginalBg = null
+                if (restoreWebView) {
+                    webViewOriginalBg = null
+                    webViewConfigured = false
+                }
             } catch (t: Throwable) {
                 Log.w(TAG, "detachRenderer failed", t)
             }
