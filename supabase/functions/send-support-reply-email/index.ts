@@ -243,12 +243,25 @@ serve(async (req: Request) => {
       });
     }
 
-    const result = await sendGmailSupportReplyEmail({
-      to: userEmail,
-      ticketNumber: ticket.ticket_number,
-      ticketSubject: ticket.subject,
-      replyContent,
-    });
+    let result: { id?: string; threadId?: string } | null = null;
+    try {
+      result = await sendGmailSupportReplyEmail({
+        to: userEmail,
+        ticketNumber: ticket.ticket_number,
+        ticketSubject: ticket.subject,
+        replyContent,
+      });
+    } catch (emailError: any) {
+      console.error("Gmail support reply notification skipped:", emailError);
+      return new Response(JSON.stringify({
+        success: false,
+        skipped: true,
+        reason: "gmail_send_failed",
+        error: emailError?.message || "Gmail support email could not be sent",
+      }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     console.log(`✅ Gmail support reply sent to ${userEmail} ticket ${ticket.ticket_number}`);
     return new Response(JSON.stringify({ success: true, sentTo: userEmail, result }), {
