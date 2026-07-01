@@ -16,6 +16,7 @@
 2. Keep `resizeMode:'none'` and hardware-minimum zoom lock so the browser/native driver cannot add digital crop zoom.
 3. Mark web camera tracks as `contentHint:'detail'` for sharper host preview/live thumbnails instead of motion-biased blur.
 4. Bump persistent camera session version so stale 9:16 crop-scaled streams are discarded on next preview open.
+5. If hardware minimum zoom / ultra-wide lens is still not enough in Lovable web preview, render a professional synthetic zoom-out layer: foreground camera uses full sensor `contain`, while a blurred cover duplicate fills the same UI area behind it. This keeps the current full-screen area visually filled without center-cropping the face.
 
 # Home Host Card Full-Photo Fix
 

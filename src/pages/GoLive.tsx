@@ -94,6 +94,7 @@ const GoLive = () => {
   // Pkg444 Phase-5: politely pause Spotify/YouTube while host previews/streams.
   useNativeAudioFocus({ enabled: true, intent: 'media' });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewUnderlayVideoRef = useRef<HTMLVideoElement>(null);
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -307,6 +308,7 @@ const GoLive = () => {
   const attachWebPreviewStream = useCallback((mediaStream: MediaStream) => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
+    const underlayEl = previewUnderlayVideoRef.current;
 
     // Pkg-audit Bug B: single play path. Previously two `play()` calls (one
     // from onloadedmetadata, one from rAF) raced against each other and on
@@ -318,6 +320,11 @@ const GoLive = () => {
       setPreviewHasFrame(false);
     }
     hardenVideoElementForNative(videoEl, { muted: true });
+    if (underlayEl) {
+      hardenVideoElementForNative(underlayEl, { muted: true });
+      if (underlayEl.srcObject !== mediaStream) underlayEl.srcObject = mediaStream;
+      underlayEl.play().catch(() => {});
+    }
     if (!sameStream) {
       videoEl.srcObject = mediaStream;
     }
@@ -549,6 +556,11 @@ const GoLive = () => {
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
+    if (previewUnderlayVideoRef.current) {
+      try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
+      try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
+      try { previewUnderlayVideoRef.current.removeAttribute('src'); previewUnderlayVideoRef.current.load(); } catch { /* ignore */ }
+    }
     // 2. Fire native camera tear-down IMMEDIATELY (no await) so the native
     //    TextureView behind the WebView disappears on the same frame as the
     //    tap. Previously this sat behind a 1.5s "in-flight start" wait, so
@@ -696,6 +708,10 @@ const GoLive = () => {
       if (videoRef.current) {
         try { videoRef.current.pause(); } catch { /* ignore */ }
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
+      }
+      if (previewUnderlayVideoRef.current) {
+        try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
+        try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
@@ -1429,6 +1445,33 @@ const GoLive = () => {
                 mount (old APK, OEM EGL issue, race), this web <video> stays visible
                 as a safety fallback so the host NEVER sees a blank/white screen. */}
             <video
+              ref={previewUnderlayVideoRef}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              // @ts-ignore - vendor-specific attributes for Android
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="false"
+              x5-video-orientation="portrait"
+              x5-playsinline="true"
+              webkit-playsinline="true"
+              x-webkit-airplay="deny"
+              className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
+              style={{
+                transform: facingMode === 'user' ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
+                filter: beautyCSS ? `${beautyCSS} blur(18px) saturate(1.1) brightness(0.75)` : 'blur(18px) saturate(1.1) brightness(0.75)',
+                WebkitAppearance: 'none',
+                opacity: (isNativeAndroid && nativePreviewActive) ? 0 : 1,
+                transition: 'opacity 180ms ease',
+              }}
+            />
+            <video
               ref={videoRef}
               autoPlay
               playsInline
@@ -1450,7 +1493,7 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none bg-transparent"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none bg-transparent"
               style={{
                 transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS || undefined,

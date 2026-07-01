@@ -163,6 +163,9 @@ export function ActiveCallScreen({
   const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
+  const previewUnderlayRefPrimary = useRef<HTMLVideoElement | null>(null);
+  const previewUnderlayRefPip = useRef<HTMLVideoElement | null>(null);
+  const previewUnderlayRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   // Pkg-shirt Phase-B: reuse the global persistentCameraSession that
   // CallProvider warmed during ringing/dialing. This makes accept feel
@@ -232,12 +235,31 @@ export function ActiveCallScreen({
     refMap[slot].current = el;
     if (el && previewStream && el.srcObject !== previewStream) {
       el.srcObject = previewStream;
+      el.play().catch(() => {});
+    }
+  }, [previewStream]);
+  const attachPreviewUnderlay = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing') => {
+    const refMap = { primary: previewUnderlayRefPrimary, pip: previewUnderlayRefPip, ringing: previewUnderlayRefRinging };
+    refMap[slot].current = el;
+    if (el && previewStream && el.srcObject !== previewStream) {
+      el.srcObject = previewStream;
+      el.play().catch(() => {});
     }
   }, [previewStream]);
   useEffect(() => {
     if (!previewStream) return;
-    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging].forEach((r) => {
-      if (r.current && r.current.srcObject !== previewStream) r.current.srcObject = previewStream;
+    [
+      previewVideoRefPrimary,
+      previewVideoRefPip,
+      previewVideoRefRinging,
+      previewUnderlayRefPrimary,
+      previewUnderlayRefPip,
+      previewUnderlayRefRinging,
+    ].forEach((r) => {
+      if (r.current && r.current.srcObject !== previewStream) {
+        r.current.srcObject = previewStream;
+        r.current.play().catch(() => {});
+      }
     });
   }, [previewStream]);
   
@@ -1260,11 +1282,20 @@ export function ActiveCallScreen({
             ) : isPreviewWeb && previewStream ? (
               <div className="absolute inset-0">
                 <video
+                  ref={(el) => attachPreviewUnderlay(el, 'ringing')}
+                  aria-hidden="true"
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 h-full w-full object-cover bg-transparent blur-[18px] saturate-110 brightness-75 scale-110"
+                  style={{ transform: 'scaleX(-1) scale(1.1)' }}
+                />
+                <video
                   ref={(el) => attachPreview(el, 'ringing')}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover bg-transparent"
+                  className="absolute inset-0 h-full w-full object-contain bg-transparent"
                   style={{ transform: 'scaleX(-1)' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
@@ -1420,11 +1451,20 @@ export function ActiveCallScreen({
         {isPreviewWeb && previewStream && (
           <>
             <video
+              ref={(el) => attachPreviewUnderlay(el, 'primary')}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover bg-transparent z-[3] blur-[18px] saturate-110 brightness-75 scale-110"
+              style={{ transform: 'scaleX(-1) scale(1.1)' }}
+            />
+            <video
               ref={(el) => attachPreview(el, 'primary')}
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover bg-transparent z-[4]"
+              className="absolute inset-0 w-full h-full object-contain bg-transparent z-[4]"
               style={{ transform: 'scaleX(-1)' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
@@ -1440,11 +1480,20 @@ export function ActiveCallScreen({
               }}
             >
               <video
+                ref={(el) => attachPreviewUnderlay(el, 'pip')}
+                aria-hidden="true"
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover bg-black blur-lg saturate-110 brightness-75 scale-110"
+                style={{ transform: 'scaleX(-1) scale(1.1)' }}
+              />
+              <video
                 ref={(el) => attachPreview(el, 'pip')}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover bg-black"
+                className="relative z-[1] w-full h-full object-contain bg-transparent"
                 style={{ transform: 'scaleX(-1)' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
