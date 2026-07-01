@@ -2,6 +2,9 @@ package com.merilive.app.plugin
 
 import android.app.Activity
 import android.graphics.Color
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
@@ -53,8 +56,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import io.livekit.android.renderer.TextureViewRenderer
 import livekit.org.webrtc.CameraXHelper
+import livekit.org.webrtc.getCameraX
 import org.webrtc.RendererCommon
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -292,6 +297,7 @@ class LiveKitPlugin : Plugin() {
 
                     val opts = LocalVideoTrackOptions(
                         position = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT,
+                        deviceId = resolveWidestCameraDeviceId(front = lens != "back"),
                         captureParams = VideoCaptureParameter(
                             LOCK_CAPTURE_W, LOCK_CAPTURE_H, LOCK_CAPTURE_FPS, false,
                         ),
@@ -299,6 +305,7 @@ class LiveKitPlugin : Plugin() {
                     val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
                     track.startCapture()
                     previewTrack = track
+                    forceCameraMinZoom(track, "startLocalPreview")
 
                     if (!boundedOnly) {
                         ensureRendererAttached(mirror)
@@ -546,11 +553,13 @@ class LiveKitPlugin : Plugin() {
             )
             val opts = LocalVideoTrackOptions(
                 position = CameraPosition.FRONT,
+                deviceId = resolveWidestCameraDeviceId(front = true),
                 captureParams = captureParams,
             )
             val track = r.localParticipant.createVideoTrack(name = "camera", options = opts)
             track.startCapture()
             previewTrack = track
+            forceCameraMinZoom(track, "promotePreviewToSession:prewarm")
             if (!boundedMode) {
                 ensureRendererAttached(true)
                 previewRenderer?.let { renderer ->
@@ -605,6 +614,7 @@ class LiveKitPlugin : Plugin() {
             } else {
                 r.localParticipant.setCameraEnabled(true)
                 previewTrack = r.localParticipant.getTrackPublication(Track.Source.CAMERA)?.track as? LocalVideoTrack
+                forceCameraMinZoom(previewTrack, "promotePreviewToSession:setCameraEnabled")
                 localVideoSoftMuted = false
             }
         }
