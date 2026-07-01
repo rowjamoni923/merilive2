@@ -14,13 +14,17 @@ const withSource = (options: PortraitConstraintOptions) => {
 };
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
-  // Pro live-streaming preview rule: keep the UI full-screen, but ask the
-  // browser for the widest non-magnified camera feed it can provide.
-  // - `resizeMode:none` prevents Chrome/WebView from crop-and-scaling a sensor
-  //   frame into a fake portrait stream, which is perceived as zoom-in.
-  // - `zoom:0` is only a hint; cameraLock.ts reapplies the real capability min
-  //   after frames start because Android exposes PTZ/zoom late.
-  const width = options.width ?? 1080;
+  // Pro live-streaming rule (Bigo / Chamet / TikTok Live pattern):
+  // Ask for the sensor's NATIVE portrait aspect (3:4 = 1440x1920). Nearly every
+  // Android front-camera sensor is 4:3 physically; asking for 9:16 forces
+  // Chromium/WebView to center-crop ~25% of the horizontal FOV, which is
+  // exactly what makes the face look "zoomed in". Capturing at native 3:4 and
+  // then letting `object-fit: cover` fit it to the 9:16 UI keeps the widest
+  // physical field of view — the face sits back where it should.
+  //   - resizeMode:none  → refuse UA crop-and-scale
+  //   - zoom:0 hint      → widest zoom on APIs that support ImageCapture zoom
+  //   - Native minZoom   → applied by LiveKitPlugin.kt (Android) on attachLocal
+  const width = options.width ?? 1440;
   const height = options.height ?? 1920;
   return {
     ...withSource(options),
@@ -35,9 +39,10 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
 };
 
 export const buildPortraitVideoFallbacks = (options: PortraitConstraintOptions = {}): MediaTrackConstraints[] => [
-  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1920, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 720, height: 1280, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 540, height: 960, frameRate: 30 }),
+  // Native sensor aspect (3:4 portrait) — widest FOV, no WebRTC center-crop.
+  buildPortraitVideoConstraint({ ...options, width: 1440, height: 1920, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1440, frameRate: 30 }),
+  buildPortraitVideoConstraint({ ...options, width: 720, height: 960, frameRate: 30 }),
 ];
 
 export const isPortraitCameraTrack = (track: MediaStreamTrack | null | undefined): boolean => {

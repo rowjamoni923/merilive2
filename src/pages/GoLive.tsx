@@ -1418,7 +1418,7 @@ const GoLive = () => {
           <LiveKitVideoPlayer
             videoTrack={localVideoTrack}
             mirror={facingMode === 'user'}
-            fit="contain"
+            fit="cover"
             className="w-full h-full"
           />
         ) : (
