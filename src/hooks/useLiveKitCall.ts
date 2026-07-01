@@ -576,7 +576,7 @@ export function useLiveKitCall(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            // Full-bleed 9:16 portrait keeps preview and call video identical.
+            // Natural 3:4 capture avoids center-crop zoom; renderer fills portrait call UI.
             resolution: {
               width: LIVEKIT_PUBLISH_LOCK.captureWidth,
               height: LIVEKIT_PUBLISH_LOCK.captureHeight,

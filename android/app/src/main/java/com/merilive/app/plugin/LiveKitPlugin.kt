@@ -91,14 +91,14 @@ class LiveKitPlugin : Plugin() {
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 4_500_000   // 4.5 Mbps — 1080p premium clarity (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        // Mid relay = 720x1280 @ 2.2 Mbps.
+        // Mid relay = 720x960 @ 2.2 Mbps (same 3:4 FOV, no crop drift).
         const val LOCK_SIM_MID_W = 720
-        const val LOCK_SIM_MID_H = 1280
+        const val LOCK_SIM_MID_H = 960
         const val LOCK_SIM_MID_FPS = 30
         const val LOCK_SIM_MID_BITRATE = 2_200_000
-        // Low relay = 540x960 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
+        // Low relay = 540x720 @ 900 kbps for weak networks; SFU auto-selects, no user toggle.
         const val LOCK_SIM_LOW_W = 540
-        const val LOCK_SIM_LOW_H = 960
+        const val LOCK_SIM_LOW_H = 720
         const val LOCK_SIM_LOW_FPS = 24
         const val LOCK_SIM_LOW_BITRATE = 900_000
 
