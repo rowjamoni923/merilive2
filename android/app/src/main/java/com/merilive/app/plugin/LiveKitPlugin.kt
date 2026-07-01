@@ -545,7 +545,12 @@ class LiveKitPlugin : Plugin() {
             if (!boundedMode) {
                 ensureRendererAttached(true)
                 previewRenderer?.let { renderer ->
-                    try { track.addRenderer(renderer) } catch (_: Throwable) {}
+                    if (!previewRendererBound) {
+                        try {
+                            track.addRenderer(renderer)
+                            previewRendererBound = true
+                        } catch (_: Throwable) {}
+                    }
                 }
             }
             rebindSeatSlotsForLocalTrack(track)
