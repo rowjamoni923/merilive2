@@ -144,3 +144,43 @@ class RandomCallPlaceholderPage extends StatelessWidget {
         sector: 'Sector 7 (Private Call)',
       );
 }
+
+/// Live viewer placeholder — reached by tapping a LIVE host card.
+/// Real player (LiveKit viewer + chat + gifts + PK) lands in the Live sector.
+@RoutePage()
+class LiveStreamPlaceholderPage extends StatelessWidget {
+  const LiveStreamPlaceholderPage({
+    super.key,
+    @PathParam('streamId') required this.streamId,
+  });
+  final String streamId;
+  @override
+  Widget build(BuildContext context) => _ComingSoon(
+        title: 'Live Stream',
+        subtitle:
+            'Stream ID: $streamId\n\nFull viewer player (LiveKit video/voice, chat, gifts, PK) lands with the Live Streaming sector.',
+        icon: Icons.live_tv_rounded,
+        gradient: const [Color(0xFFEF4444), Color(0xFFEC4899)],
+        sector: 'Sector 6 (Live Streaming)',
+      );
+}
+
+/// Profile detail placeholder — reached by tapping a BUSY / ONLINE / OFFLINE
+/// host card. Real profile screen with follow/call CTAs lands with Profile.
+@RoutePage()
+class ProfileDetailPlaceholderPage extends StatelessWidget {
+  const ProfileDetailPlaceholderPage({
+    super.key,
+    @PathParam('userId') required this.userId,
+  });
+  final String userId;
+  @override
+  Widget build(BuildContext context) => _ComingSoon(
+        title: 'Profile',
+        subtitle:
+            'User ID: $userId\n\nFull profile (avatar frame, bio, gifts received, follow / call CTAs) lands with the Profile sector.',
+        icon: Icons.account_circle_rounded,
+        gradient: const [Color(0xFF06B6D4), Color(0xFF3B82F6)],
+        sector: 'Sector 8 (Profile)',
+      );
+}

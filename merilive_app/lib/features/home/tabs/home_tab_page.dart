@@ -1,14 +1,17 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/router/app_router.gr.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../bloc/country_filter_cubit.dart';
 import '../bloc/home_feed_cubit.dart';
 import '../data/country_repository.dart';
 import '../data/home_feed_repository.dart';
 import '../data/home_host.dart';
+import '../widgets/host_card.dart';
 
 /// Home tab — H1 header + H2 dynamic countries + H3 feed data layer.
 ///
@@ -119,7 +122,10 @@ class _HomeTabPageState extends State<HomeTabPage>
                     }
                     return RefreshIndicator(
                       onRefresh: () => _feedCubit.refresh(),
-                      child: _H3FeedList(hosts: state.hosts),
+                      child: _HostGrid(
+                        hosts: state.hosts,
+                        onTapHost: _handleHostTap,
+                      ),
                     );
                   },
                 ),
@@ -130,121 +136,44 @@ class _HomeTabPageState extends State<HomeTabPage>
       ),
     );
   }
+
+  /// Tap-routing matrix — parity with `src/pages/Index.tsx#handleUserClick`:
+  ///   • LIVE   → /live/:liveStreamId  (viewer)
+  ///   • BUSY / ONLINE / OFFLINE → /profile-detail/:userId
+  void _handleHostTap(HomeHost host) {
+    HapticFeedback.selectionClick();
+    if (host.isLive && (host.liveStreamId?.isNotEmpty ?? false)) {
+      context.router.push(LiveStreamPlaceholderRoute(streamId: host.liveStreamId!));
+    } else {
+      context.router.push(ProfileDetailPlaceholderRoute(userId: host.id));
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// H3 temporary list — replaced by HostCard grid in H4.
+// H4 — HostCard grid (2-column, aspect 3:4, edge-to-edge photo)
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _H3FeedList extends StatelessWidget {
-  const _H3FeedList({required this.hosts});
+class _HostGrid extends StatelessWidget {
+  const _HostGrid({required this.hosts, required this.onTapHost});
   final List<HomeHost> hosts;
-
-  Color _pillColor(HostStatus s) => switch (s) {
-        HostStatus.live => DT.statusLive,
-        HostStatus.busy => DT.statusBusy,
-        HostStatus.online => DT.statusOnline,
-        HostStatus.offline => DT.homeMutedInk,
-      };
-
-  String _pillLabel(HostStatus s) => switch (s) {
-        HostStatus.live => 'LIVE',
-        HostStatus.busy => 'BUSY',
-        HostStatus.online => 'ONLINE',
-        HostStatus.offline => 'OFFLINE',
-      };
+  final ValueChanged<HomeHost> onTapHost;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 3 / 4,
+      ),
       itemCount: hosts.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final h = hosts[i];
-        return Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: DT.homeHeaderCard,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: DT.homeHeaderBorder),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: DT.homeChipBg,
-                backgroundImage: (h.avatarUrl != null && h.avatarUrl!.isNotEmpty)
-                    ? NetworkImage(h.avatarUrl!)
-                    : null,
-                child: (h.avatarUrl == null || h.avatarUrl!.isEmpty)
-                    ? const Icon(Icons.person, color: DT.homeMutedInk)
-                    : null,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if ((h.countryFlag ?? '').isNotEmpty) ...[
-                          Text(h.countryFlag!,
-                              style: const TextStyle(fontSize: 12)),
-                          const SizedBox(width: 4),
-                        ],
-                        Flexible(
-                          child: Text(
-                            h.displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: DT.homeHeading,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (h.status == HostStatus.live)
-                      Text(
-                        '${h.liveViewerCount} viewers',
-                        style: const TextStyle(
-                            fontSize: 11, color: DT.homeMutedInk),
-                      )
-                    else if (h.callRatePerMinute != null)
-                      Text(
-                        '${h.callRatePerMinute}💎 / min',
-                        style: const TextStyle(
-                            fontSize: 11, color: DT.homeMutedInk),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _pillColor(h.status).withOpacity(0.14),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                      color: _pillColor(h.status).withOpacity(0.35)),
-                ),
-                child: Text(
-                  _pillLabel(h.status),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                    color: _pillColor(h.status),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        return HostCard(host: h, onTap: () => onTapHost(h));
       },
     );
   }
