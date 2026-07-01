@@ -862,8 +862,8 @@ const GoLive = () => {
             },
             audio: audioConstraint,
           },
-          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 960 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio: audioConstraint },
-          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 720 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 24 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 30 } }, audio: audioConstraint },
+          { video: { facingMode: newFacingMode, width: { ideal: 540 }, height: { ideal: 960 }, aspectRatio: { ideal: 9 / 16 }, frameRate: { ideal: 24 } }, audio: audioConstraint },
           { video: { facingMode: newFacingMode }, audio: audioConstraint },
           { video: true, audio: audioConstraint },
         ];
@@ -1453,7 +1453,7 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 w-full h-full object-contain pointer-events-none bg-black"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none bg-transparent"
               style={{
                 transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS || undefined,
