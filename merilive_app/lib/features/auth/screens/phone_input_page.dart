@@ -80,7 +80,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                     const SizedBox(height: 20),
                     const FieldLabel('Phone number'),
                     IntlPhoneField(
-                      initialCountryCode: 'BD',
+                      initialCountryCode: _detectInitialCountry(),
                       autofocus: true,
                       style: const TextStyle(
                           fontSize: 14, color: Color(0xFF0F172A)),
