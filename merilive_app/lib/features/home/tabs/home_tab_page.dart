@@ -196,30 +196,73 @@ class _HomeTabPageState extends State<HomeTabPage>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// H4 — HostCard grid (2-column, aspect 3:4, edge-to-edge photo)
+// H4 + H5 — Scroll body: top banner → first-6 host grid → middle banner →
+// remaining host grid. Uses CustomScrollView so RefreshIndicator drives one
+// scroll surface for the whole page (banners scroll away with the feed,
+// matching the web layout in `src/pages/Index.tsx`).
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HostGrid extends StatelessWidget {
-  const _HostGrid({required this.hosts, required this.onTapHost});
+class _HomeScrollBody extends StatelessWidget {
+  const _HomeScrollBody({
+    required this.hosts,
+    required this.topBanners,
+    required this.middleBanners,
+    required this.onTapHost,
+    required this.onTapBanner,
+  });
+
   final List<HomeHost> hosts;
+  final List<HomeBanner> topBanners;
+  final List<HomeBanner> middleBanners;
   final ValueChanged<HomeHost> onTapHost;
+  final ValueChanged<HomeBanner> onTapBanner;
+
+  static const _splitAt = 6; // First 6 tiles above the middle banner.
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
+    final firstBatch =
+        hosts.length <= _splitAt ? hosts : hosts.sublist(0, _splitAt);
+    final restBatch =
+        hosts.length <= _splitAt ? const <HomeHost>[] : hosts.sublist(_splitAt);
+
+    return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 3 / 4,
+      slivers: [
+        if (topBanners.isNotEmpty)
+          SliverToBoxAdapter(
+            child: BannerCarousel(banners: topBanners, onTap: onTapBanner),
+          ),
+        _hostSliver(firstBatch),
+        if (middleBanners.isNotEmpty && restBatch.isNotEmpty)
+          SliverToBoxAdapter(
+            child: BannerCarousel(banners: middleBanners, onTap: onTapBanner),
+          ),
+        _hostSliver(restBatch),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
+    );
+  }
+
+  Widget _hostSliver(List<HomeHost> list) {
+    if (list.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+      sliver: SliverGrid.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 3 / 4,
+        ),
+        itemCount: list.length,
+        itemBuilder: (_, i) {
+          final h = list[i];
+          return HostCard(host: h, onTap: () => onTapHost(h));
+        },
       ),
-      itemCount: hosts.length,
-      itemBuilder: (_, i) {
-        final h = hosts[i];
-        return HostCard(host: h, onTap: () => onTapHost(h));
-      },
     );
   }
 }
