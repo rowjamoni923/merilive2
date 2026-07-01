@@ -855,8 +855,6 @@ const GoLive = () => {
           : false;
         const constraints: MediaStreamConstraints[] = [
           ...buildPortraitVideoFallbacks({ facingMode: newFacingMode }).map((video) => ({ video, audio: audioConstraint } as MediaStreamConstraints)),
-          { video: { facingMode: newFacingMode }, audio: audioConstraint },
-          { video: true, audio: audioConstraint },
         ];
 
         const openNextCamera = async () => {

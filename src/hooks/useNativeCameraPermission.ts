@@ -167,9 +167,6 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
   const portraitOptions = buildPortraitVideoFallbacks({ facingMode });
   const constraintOptions: MediaStreamConstraints[] = [
     ...portraitOptions.map((video) => ({ video, audio } as MediaStreamConstraints)),
-    { video: { facingMode: { ideal: facingMode } }, audio },
-    { video: true, audio },
-    { video: true, audio: false },
   ];
 
   let lastError: any = null;
@@ -188,8 +185,7 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
         stopMediaStream(stream);
         continue;
       }
-      const isPortraitAttempt = i < portraitOptions.length;
-      if (isPortraitAttempt && !videoTracks.some(isPortraitCameraTrack)) {
+      if (!videoTracks.some(isPortraitCameraTrack)) {
         console.warn('[Camera] Rejected non-portrait camera mode:', JSON.stringify(videoTracks[0]?.getSettings?.() || {}));
         stopMediaStream(stream);
         continue;

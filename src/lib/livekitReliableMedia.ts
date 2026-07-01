@@ -19,9 +19,6 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
 const PORTRAIT_VIDEO_CONSTRAINTS: MediaTrackConstraints[] = buildPortraitVideoFallbacks({ facingMode: 'user' });
 const VIDEO_CONSTRAINTS: MediaTrackConstraints[] = [
   ...PORTRAIT_VIDEO_CONSTRAINTS,
-  { facingMode: { ideal: 'user' }, frameRate: { ideal: 24 } },
-  { facingMode: 'user' },
-  true as unknown as MediaTrackConstraints,
 ];
 
 const isLive = (track?: MediaStreamTrack | null) => !!track && track.readyState === 'live';
@@ -62,7 +59,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
       try {
         const stream = await getUserMediaAttempt({ video, audio: needAudio ? AUDIO_CONSTRAINTS : false }, 'livekit-reliable:combined');
         if (stream.getVideoTracks().some(isLive)) {
-          if (VIDEO_CONSTRAINTS.indexOf(video) < PORTRAIT_VIDEO_CONSTRAINTS.length && !stream.getVideoTracks().some(isPortraitCameraTrack)) {
+          if (!stream.getVideoTracks().some(isPortraitCameraTrack)) {
             stopMediaStream(stream);
             continue;
           }
@@ -81,7 +78,7 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
       try {
         const stream = await getUserMediaAttempt({ video, audio: false }, 'livekit-reliable:video');
         if (stream.getVideoTracks().some(isLive)) {
-          if (VIDEO_CONSTRAINTS.indexOf(video) < PORTRAIT_VIDEO_CONSTRAINTS.length && !stream.getVideoTracks().some(isPortraitCameraTrack)) {
+          if (!stream.getVideoTracks().some(isPortraitCameraTrack)) {
             stopMediaStream(stream);
             continue;
           }
