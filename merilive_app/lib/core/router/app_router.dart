@@ -52,5 +52,15 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: GoLivePlaceholderRoute.page, path: '/go-live'),
         AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
         AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/random-call'),
+
+        // Home HostCard tap destinations (H4)
+        AutoRoute(
+          page: LiveStreamPlaceholderRoute.page,
+          path: '/live/:streamId',
+        ),
+        AutoRoute(
+          page: ProfileDetailPlaceholderRoute.page,
+          path: '/profile-detail/:userId',
+        ),
       ];
 }
