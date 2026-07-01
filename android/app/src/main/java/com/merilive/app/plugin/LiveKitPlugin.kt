@@ -248,7 +248,7 @@ class LiveKitPlugin : Plugin() {
             put("sendText"); put("registerTextStreamHandler"); put("unregisterTextStreamHandler")
             put("setSubscriberVideoQuality"); put("setRemoteVideoSubscribed")
             put("attachLocalSurface"); put("attachRemoteSurface")
-            put("updateSurfaceBounds"); put("detachSurface"); put("detachAll")
+            put("updateSurfaceBounds"); put("detachSurface"); put("detachAll"); put("forceDetachAllSurfaces")
             put("getRemoteParticipants"); put("attachAllRemotes")
         }
         call.resolve(
@@ -965,7 +965,19 @@ class LiveKitPlugin : Plugin() {
     fun detachAll(call: PluginCall) {
         runOnMain {
             try { clearAllSlots() } catch (_: Throwable) {}
+            try { detachRenderer(restoreWebView = true) } catch (_: Throwable) {}
             call.resolve()
+        }
+    }
+
+    @PluginMethod
+    fun forceDetachAllSurfaces(call: PluginCall) {
+        runOnMain {
+            try { clearAllSlots() } catch (_: Throwable) {}
+            try { detachRenderer(restoreWebView = true) } catch (_: Throwable) {}
+            try { bridge?.webView?.setBackgroundColor(webViewOriginalBg ?: Color.WHITE) } catch (_: Throwable) {}
+            webViewOriginalBg = null
+            call.resolve(JSObject().put("detached", true))
         }
     }
 
@@ -1926,6 +1938,7 @@ class LiveKitPlugin : Plugin() {
             previewTrack = null
             previewRendererBound = false
         } catch (_: Throwable) {}
+        try { clearAllSlots() } catch (_: Throwable) {}
         detachRenderer(restoreWebView = true)
 
         // If we created a preview-only Room (never connected) just to host the

@@ -526,10 +526,14 @@ class NativeLiveKitController {
     // host leaves Go Live preview. Do not wait for an in-flight Camera2 start;
     // otherwise the native surface can remain above the next React page while
     // the user is already navigating around the app.
+    try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* old APK */ }
+    try { await NativeLiveKit.detachAll?.(); } catch { /* old APK */ }
     try { await NativeLiveKit.detachLocal?.(); } catch { /* no preview / old APK */ }
     const pending = this.previewStartPromise;
     if (pending) await pending.catch(() => false);
     try { await NativeLiveKit.stopLocalPreview(); } catch { /* no preview / not implemented */ }
+    try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* detach any late bounded/fullscreen renderer */ }
+    try { await NativeLiveKit.detachAll?.(); } catch { /* detach any late bounded renderer */ }
     try { await NativeLiveKit.detachLocal?.(); } catch { /* detach any late renderer */ }
     this.previewFeature = null;
     this.boundedSurfaceMode = false;

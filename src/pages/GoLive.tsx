@@ -19,6 +19,7 @@ import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { useSound } from "@/hooks/useSound";
 import { Capacitor } from "@capacitor/core";
+import { NativeLiveKit } from "@/plugins/NativeLiveKit";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import PreJoinDevicesDialog from "@/components/livekit/PreJoinDevicesDialog";
 import { Sliders } from "lucide-react";
@@ -251,6 +252,8 @@ const GoLive = () => {
   }, [applyNativePreviewTransparency]);
 
   const stopNativePreview = useCallback(async () => {
+    try { await NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* old APK */ }
+    try { await NativeLiveKit.detachAll?.(); } catch { /* old APK */ }
     try { await nativeLiveKitController.stopLocalPreview(); } catch { /* noop */ }
     applyNativePreviewTransparency(false);
     setNativePreviewActive(false);
