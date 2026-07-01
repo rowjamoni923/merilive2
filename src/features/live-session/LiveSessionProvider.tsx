@@ -29,6 +29,7 @@ import {
 } from 'react';
 import {
   acquireCameraSession,
+  disposeCameraSessionIfIdle,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
@@ -110,6 +111,7 @@ export function LiveSessionProvider({
       if (h) {
         try {
           h.release();
+          disposeCameraSessionIfIdle();
         } catch {
           /* noop */
         }

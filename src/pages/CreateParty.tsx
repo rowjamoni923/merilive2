@@ -37,6 +37,8 @@ import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import {
   adoptCameraSession,
+  disposeCameraSessionIfIdle,
+  forceDisposeCameraSession,
   type CameraSessionHandle,
 } from "@/lib/persistentCameraSession";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -358,6 +360,7 @@ const CreateParty = () => {
       // dispose via disposeCameraSessionIfIdle().
       cameraHandleRef.current?.release();
       cameraHandleRef.current = null;
+      if (!preserveStreamRef.current) disposeCameraSessionIfIdle();
       // Native prejoin preview: keep alive if PartyRoom will reuse it
       // (preserveStreamRef === true means user tapped Create). Otherwise
       // user backed out → release Camera2 immediately.
@@ -545,6 +548,11 @@ const CreateParty = () => {
       streamRef.current = null;
       setStream(null);
     }
+    try {
+      cameraHandleRef.current?.release();
+      cameraHandleRef.current = null;
+      forceDisposeCameraSession();
+    } catch { /* ignore */ }
     navigate("/party-rooms");
   };
 

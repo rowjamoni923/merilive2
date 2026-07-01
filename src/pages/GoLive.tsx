@@ -577,19 +577,19 @@ const GoLive = () => {
     //    users saw the camera stay open and thought the X button was broken.
     try { void nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
     try { clearPreparedHostPreviewStream(); } catch { /* ignore */ }
+    try {
+      cameraHandleRef.current?.release();
+      cameraHandleRef.current = null;
+      forceDisposeCameraSession();
+    } catch { /* ignore */ }
     if (streamRef.current) {
       try {
-        if (cameraHandleRef.current) {
-          cameraHandleRef.current.release();
-          cameraHandleRef.current = null;
-        } else {
-          streamRef.current.getTracks().forEach(track => track.stop());
-        }
-        forceDisposeCameraSession();
+        streamRef.current.getTracks().forEach(track => track.stop());
         releaseAndroidWebViewCamera('golive:back');
       } catch { /* ignore */ }
       streamRef.current = null;
     }
+    setStream(null);
     // 3. Navigate immediately — no awaits between tap and route change.
     navigate(-1);
     // 4. Safety: if a start was still in-flight, re-issue stop after it settles.

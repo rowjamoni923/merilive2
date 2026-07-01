@@ -32,6 +32,7 @@ import {
 } from 'react';
 import {
   acquireCameraSession,
+  disposeCameraSessionIfIdle,
   type CameraSessionHandle,
 } from '@/lib/persistentCameraSession';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
@@ -80,7 +81,7 @@ export function PartySessionProvider({
       const h = cameraHandleRef.current;
       cameraHandleRef.current = null;
       if (h) {
-        try { h.release(); } catch { /* noop */ }
+        try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
       }
       return;
     }
@@ -111,7 +112,7 @@ export function PartySessionProvider({
       const h = cameraHandleRef.current;
       cameraHandleRef.current = null;
       if (h) {
-        try { h.release(); } catch { /* noop */ }
+        try { h.release(); disposeCameraSessionIfIdle(); } catch { /* noop */ }
       }
     };
   }, []);
