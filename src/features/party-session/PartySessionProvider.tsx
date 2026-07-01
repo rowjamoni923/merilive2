@@ -8,13 +8,9 @@
  * preview and PartyRoom's LiveKit session swap in the same tree without
  * a route navigation. No WebView reload, no native plugin "page gone".
  *
- * Pkg-shirt Phase-A (web): the Provider now ALSO holds a global
- * persistentCameraSession refcount during the `inRoom` phase for video /
- * game modes. CreateParty adopts the getUserMedia stream into the same
- * session on mount, so during the React unmount→mount window between
- * CreatePhase and InRoomPhase, the stream is back-stopped by this
- * Provider-held refcount and never re-`getUserMedia`'d. Audio-only
- * party rooms still skip the refcount (no camera needed).
+ * Important: this Provider MUST NOT open or hold a hidden camera. The camera
+ * belongs only to the visible CreateParty / PartyRoom screen, otherwise users
+ * can close preview and still see a background camera running above Home.
  *
  * Native Android path is unaffected — LiveKitPlugin.startLocalPreview /
  * promotePreviewToSession already handles the Camera2 handoff there.
