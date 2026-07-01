@@ -14,6 +14,7 @@ import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
 import '../../features/home/screens/action_placeholders.dart';
+import '../../features/search/search_page.dart';
 import '../../features/splash/splash_page.dart';
 
 part 'app_router.gr.dart';
@@ -62,5 +63,8 @@ class AppRouter extends _$AppRouter {
           page: ProfileDetailPlaceholderRoute.page,
           path: '/profile-detail/:userId',
         ),
+
+        // H7 — user search (App-ID + tag filters).
+        AutoRoute(page: SearchRoute.page, path: '/search'),
       ];
 }

@@ -100,7 +100,7 @@ class _HomeTabPageState extends State<HomeTabPage>
                     subTab: feedState.subTab,
                     onSubTab: (t) => _feedCubit.selectSubTab(t),
                     onSearchTap: () =>
-                        _toast('Search — lands in a later sector'),
+                        context.router.push(const SearchRoute()),
                     onTrophyTap: () =>
                         _toast('Leaderboard — lands in a later sector'),
                     countries: countryState.countries,
