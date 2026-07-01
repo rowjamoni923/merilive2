@@ -41,13 +41,14 @@ export const LiveStreamCard = ({
       <img loading="lazy" decoding="async"
         src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
+        data-host-card-photo="true"
         // @ts-expect-error – fetchpriority is a standard HTML hint
         fetchpriority="high"
         onError={(e) => {
           const img = e.currentTarget;
           if (img.src !== normalizedThumbnailUrl && normalizedThumbnailUrl) img.src = normalizedThumbnailUrl;
         }}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        className="host-card-photo absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
           filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
           WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',

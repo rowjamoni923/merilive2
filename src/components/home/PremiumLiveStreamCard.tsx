@@ -102,6 +102,7 @@ export const PremiumLiveStreamCard = ({
           <img loading="lazy" decoding="async"
             src={primarySrc}
             alt={hostName}
+            data-host-card-photo="true"
             // @ts-expect-error – fetchpriority is a standard HTML hint
             fetchpriority="high"
             onError={(e) => {
@@ -122,7 +123,7 @@ export const PremiumLiveStreamCard = ({
               const finalFallback = getDisplayAvatar(hostId || hostName || 'live-host', null, { gender: hostGender ?? "female", isOwner: false });
               if (img.src !== finalFallback) img.src = finalFallback;
             }}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="host-card-photo absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             style={{
               filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
               WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',

@@ -5310,8 +5310,20 @@ a:focus-visible,
     scroll-padding-right: 1rem;
   }
 
-  /* Prevent images from blowing out narrow phones */
-  img:not([width]):not(.shrink-0) { max-width: 100%; height: auto; }
+  /* Prevent images from blowing out narrow phones.
+     Host/live feed cards are fixed-aspect media tiles, so they must keep
+     h-full; otherwise mobile CSS exposes the page background under the photo. */
+  img:not([width]):not(.shrink-0):not(.host-card-photo):not([data-host-card-photo="true"]) { max-width: 100%; height: auto; }
+}
+
+.host-card-photo,
+img[data-host-card-photo="true"] {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* =========================================================

@@ -1,5 +1,22 @@
 # Portrait Camera Surface Fix
 
+# Home Host Card Full-Photo Fix
+
+## Goal
+Every home/host/live card must show one uninterrupted full-bleed photo. No white bottom area, no empty info panel, no card-colored gap under verified host/user photos.
+
+## Research notes
+- Chamet/Bigo/Poppo-style discovery grids use fixed-ratio portrait media cards with text/badges floating over the image, not separate blank info panels.
+- Professional implementation standard: card image is `object-cover` over the full tile; name, level, country, live/viewer status sit as overlays with shadow/gradient legibility.
+- The project already generates stable placeholder photos for missing avatars and verified hosts have real profile photos, so the UI should never reveal a white/empty fallback area.
+- Root cause found in current app: mobile global CSS `img:not([width]):not(.shrink-0) { height:auto; }` overrides Tailwind `h-full` on host card images, so the image renders at natural height and exposes the white page/card surface below.
+
+## Fix plan
+1. Add a dedicated host-card photo lock class/data attribute that forces `width:100%`, `height:100%`, and `object-fit:cover` for card media.
+2. Exclude host-card media from the mobile global `height:auto` image rule.
+3. Apply the media lock to Index home cards plus reusable `UserCard`, `LiveStreamCard`, and `PremiumLiveStreamCard`.
+4. Keep all existing overlay text/badges/click behavior unchanged.
+
 ## Goal
 Stop Go Live / Party / Private Call camera preview from rendering as a horizontal strip on portrait phones; it must render as a vertical phone camera surface.
 
