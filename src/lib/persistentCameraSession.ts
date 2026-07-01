@@ -83,7 +83,9 @@ const buildConstraints = (req: CameraSessionConstraints): MediaStreamConstraints
 };
 
 const keyOf = (req: CameraSessionConstraints) =>
-  JSON.stringify({ v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
+  // Include capture-layout version so old warm 3:4 camera sessions are not
+  // reused after the app is upgraded to the full-bleed 9:16 pipeline.
+  JSON.stringify({ layout: 'portrait-9x16-v2', v: req.video ?? true, a: req.audio ?? true, f: req.facingMode ?? 'user' });
 
 const isStreamUsable = (stream: MediaStream | null | undefined) =>
   !!stream && stream.getTracks().some((t) => t.readyState === 'live');
