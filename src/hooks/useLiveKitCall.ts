@@ -1045,7 +1045,7 @@ export function useLiveKitCall(
         // Pkg103: apply Krisp noise filter to published mic
         import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
-        // Pkg204: contentHint='motion' on camera track — smoother under congestion.
+        // Pkg204: contentHint='detail' on camera track — sharper private-call video.
         import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
 
 

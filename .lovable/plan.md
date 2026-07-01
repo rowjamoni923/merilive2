@@ -1,5 +1,22 @@
 # Portrait Camera Surface Fix
 
+## Zoom-out correction — 2026-07-01
+
+### Research notes
+- LiveKit Android docs for `VideoCaptureParameter.adaptOutputToDimensions` state that enabling adaptation can scale/crop captured frames to the requested aspect ratio; keep it `false` to avoid SDK-level center-crop zoom: https://docs.livekit.io/reference/client-sdk-android/livekit-android-sdk/io.livekit.android.room.track/-video-capture-parameter/adapt-output-to-dimensions.html
+- LiveKit Android issue #651 documents the exact symptom: local tracks looked zoomed/cropped even when CameraX zoom ratio was `1.0`; the professional fix path is preventing internal crop and using correct capture format: https://github.com/livekit/client-sdk-android/issues/651
+- MDN `resizeMode` says `crop-and-scale` lets the browser crop raw camera output, while `none` uses the hardware/driver resolution. For web preview, avoid 9:16 crop requests and keep `resizeMode:'none'`: https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
+- MDN/Web.dev PTZ docs confirm browser zoom-out is only the track capability minimum via `getCapabilities().zoom` + `applyConstraints()`, not negative zoom; if min is `1.0`, only a wider physical lens can move farther back: https://web.dev/articles/camera-pan-tilt-zoom
+
+### Root cause found
+- The native Android path was already 3:4 (`1440x1920`) with `adaptOutputToDimensions=false`, but the web/Lovable preview path had silently drifted back to 9:16 (`1080x1920`). On mobile Chrome/WebView that asks the browser to center-crop the selfie sensor before rendering, producing the close-face zoom in the uploaded screenshot.
+
+### Fix plan
+1. Restore web preview capture defaults and fallbacks to 3:4 portrait (`1440x1920`, `1080x1440`, `720x960`) while keeping the current full-screen UI/render area unchanged.
+2. Keep `resizeMode:'none'` and hardware-minimum zoom lock so the browser/native driver cannot add digital crop zoom.
+3. Mark web camera tracks as `contentHint:'detail'` for sharper host preview/live thumbnails instead of motion-biased blur.
+4. Bump persistent camera session version so stale 9:16 crop-scaled streams are discarded on next preview open.
+
 # Home Host Card Full-Photo Fix
 
 ## Goal

@@ -40,7 +40,7 @@ const hasLocalTrack = (room: Room, kind: Track.Kind, source: Track.Source) =>
   );
 
 const markVideoTrack = (track: MediaStreamTrack) => {
-  try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch { /* ignore */ }
+  try { if ('contentHint' in track) (track as any).contentHint = 'detail'; } catch { /* ignore */ }
 };
 
 const getUserMediaAttempt = (constraints: MediaStreamConstraints, reason: string) =>

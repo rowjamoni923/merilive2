@@ -13,7 +13,7 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v8_true_hardware_min_zoom_20260701',
+  id: 'camera_lock_v10_true_hardware_min_zoom_3x4_hd_20260701',
   // Google/MDN camera APIs do not support negative zoom values. Real zoom-out
   // is the smallest ratio exposed by the device (often 0.5x/0.6x on ultra-wide,
   // or 1.0x when no wider lens is exposed to WebView).
@@ -53,6 +53,8 @@ export async function enforcePermanentTrackLock(
     getCapabilities?: () => { zoom?: ZoomCapability };
     applyConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
   };
+
+  try { if ('contentHint' in track) (track as any).contentHint = 'detail'; } catch { /* optional */ }
 
   const apply = async () => {
     const capabilities = anyTrack.getCapabilities?.() as { zoom?: ZoomCapability } | undefined;

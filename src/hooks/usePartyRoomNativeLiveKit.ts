@@ -603,7 +603,7 @@ export function usePartyRoomNativeLiveKit(
           collectIdentityKeys(meta).forEach((k) => keys.add(k));
           stream.getTracks().forEach((track) => {
             if (track.readyState !== 'live') return;
-            try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
+            try { if ('contentHint' in track) (track as any).contentHint = 'detail'; } catch {}
           });
           keys.forEach((key) => peerStreamsRef.current.set(key, stream));
         };
@@ -663,7 +663,7 @@ export function usePartyRoomNativeLiveKit(
               // Pkg103: apply Krisp noise filter to published mic
               import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
-              // Pkg204: contentHint='motion' on camera track — smoother under congestion.
+              // Pkg204: contentHint='detail' on camera track — sharper host video.
               import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
 
               const hasVideo = Array.from(room.localParticipant.trackPublications.values())
