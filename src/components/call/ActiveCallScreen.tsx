@@ -51,6 +51,7 @@ import { LowBalanceBanner } from "@/components/call/LowBalanceBanner";
 import { ReconnectingOverlay } from "@/components/call/ReconnectingOverlay";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
 import { enforcePermanentCameraLock } from "@/utils/cameraLock";
+import { buildPortraitVideoConstraint } from "@/utils/portraitCameraConstraints";
 
 
 
@@ -187,13 +188,7 @@ export function ActiveCallScreen({
         // Cold path — no Provider warm-up reached us. Acquire fresh and
         // register so subsequent screens (Live/Party) can reuse it too.
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'user' },
-            width: { ideal: 1080 },
-            height: { ideal: 1440 },
-            resizeMode: 'none',
-            frameRate: { ideal: 30 },
-          } as unknown as MediaTrackConstraints,
+          video: buildPortraitVideoConstraint({ facingMode: 'user' }),
           audio: true,
         });
         await enforcePermanentCameraLock(stream, 'active-call:cold-preview');

@@ -30,6 +30,7 @@ import {
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { useProCamera } from '@/camera/useProCamera';
 import * as ProCameraEngine from '@/camera/ProCameraEngine';
+import { buildPortraitVideoConstraint, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
 
 interface Props {
   open: boolean;
@@ -106,11 +107,15 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           () => navigator.mediaDevices.getUserMedia({
             audio: prefs.audioinput ? { deviceId: { exact: prefs.audioinput } } : true,
             video: prefs.videoinput
-              ? { deviceId: { exact: prefs.videoinput }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' } as unknown as MediaTrackConstraints
-              : { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none' } as unknown as MediaTrackConstraints,
+              ? buildPortraitVideoConstraint({ deviceId: prefs.videoinput, width: 720, height: 1280 })
+              : buildPortraitVideoConstraint({ facingMode: 'user', width: 720, height: 1280 }),
           }),
           'prejoin:preview',
         );
+        if (!stream.getVideoTracks().some(isPortraitCameraTrack)) {
+          stopMediaStream(stream);
+          return;
+        }
         await enforcePermanentCameraLock(stream, 'prejoin:preview');
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());

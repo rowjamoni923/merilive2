@@ -3,6 +3,7 @@ import { claimAndroidWebViewCameraForStream } from '@/lib/androidCameraHandoff';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { peekCameraSession } from '@/lib/persistentCameraSession';
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
+import { buildPortraitVideoFallbacks, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
 
 
 type VideoProcessor = (track: MediaStreamTrack) => Promise<MediaStreamTrack>;
@@ -15,9 +16,9 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   sampleRate: { ideal: 48000 },
 };
 
+const PORTRAIT_VIDEO_CONSTRAINTS: MediaTrackConstraints[] = buildPortraitVideoFallbacks({ facingMode: 'user' });
 const VIDEO_CONSTRAINTS: MediaTrackConstraints[] = [
-  { facingMode: { ideal: 'user' }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints,
-  { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 24 } } as unknown as MediaTrackConstraints,
+  ...PORTRAIT_VIDEO_CONSTRAINTS,
   { facingMode: { ideal: 'user' }, frameRate: { ideal: 24 } },
   { facingMode: 'user' },
   true as unknown as MediaTrackConstraints,
@@ -61,10 +62,14 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
       try {
         const stream = await getUserMediaAttempt({ video, audio: needAudio ? AUDIO_CONSTRAINTS : false }, 'livekit-reliable:combined');
         if (stream.getVideoTracks().some(isLive)) {
+          if (VIDEO_CONSTRAINTS.indexOf(video) < PORTRAIT_VIDEO_CONSTRAINTS.length && !stream.getVideoTracks().some(isPortraitCameraTrack)) {
+            stopMediaStream(stream);
+            continue;
+          }
           await enforcePermanentCameraLock(stream, 'livekit-reliable:combined');
           return stream;
         }
-        stream.getTracks().forEach((track) => track.stop());
+        stopMediaStream(stream);
       } catch (error) {
         lastError = error;
       }
@@ -76,11 +81,15 @@ async function createFallbackStream(needVideo: boolean, needAudio: boolean): Pro
       try {
         const stream = await getUserMediaAttempt({ video, audio: false }, 'livekit-reliable:video');
         if (stream.getVideoTracks().some(isLive)) {
+          if (VIDEO_CONSTRAINTS.indexOf(video) < PORTRAIT_VIDEO_CONSTRAINTS.length && !stream.getVideoTracks().some(isPortraitCameraTrack)) {
+            stopMediaStream(stream);
+            continue;
+          }
           await enforcePermanentCameraLock(stream, 'livekit-reliable:video');
           streams.push(stream);
           break;
         }
-        stream.getTracks().forEach((track) => track.stop());
+        stopMediaStream(stream);
       } catch (error) {
         lastError = error;
       }

@@ -6,6 +6,7 @@ import {
   requestMicrophonePermission as requestNativeMicrophonePermission,
 } from '@/utils/nativePermissions';
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
+import { buildPortraitVideoConstraint, buildPortraitVideoFallbacks, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
 
 interface CameraPermissionResult {
   granted: boolean;
@@ -103,13 +104,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
     }
     console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
     const constraints: MediaStreamConstraints = {
-      video: {
-        facingMode: { ideal: 'user' },
-        width: { ideal: 1080 },
-        height: { ideal: 1440 },
-        resizeMode: 'none',
-        frameRate: { ideal: 30 },
-      } as unknown as MediaTrackConstraints,
+      video: buildPortraitVideoConstraint({ facingMode: 'user' }),
       audio: includeAudio
     };
     const stream = await withTimeout(
@@ -169,12 +164,9 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
   const audio: boolean | MediaTrackConstraints = includeAudio
     ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     : false;
+  const portraitOptions = buildPortraitVideoFallbacks({ facingMode });
   const constraintOptions: MediaStreamConstraints[] = [
-    // Natural 3:4 sensor capture avoids CameraX/WebView center-crop zoom;
-    // UI renderers keep portrait cover/fill so there are no black bars.
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 720 }, height: { ideal: 960 }, resizeMode: 'none', frameRate: { ideal: 30 } } as unknown as MediaTrackConstraints, audio },
-    { video: { facingMode: { ideal: facingMode }, width: { ideal: 540 }, height: { ideal: 720 }, resizeMode: 'none', frameRate: { ideal: 24 } } as unknown as MediaTrackConstraints, audio },
+    ...portraitOptions.map((video) => ({ video, audio } as MediaStreamConstraints)),
     { video: { facingMode: { ideal: facingMode } }, audio },
     { video: true, audio },
     { video: true, audio: false },
@@ -193,7 +185,13 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
       const videoTracks = stream.getVideoTracks();
       const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
       if (!hasLiveVideo) {
-        stream.getTracks().forEach((track) => track.stop());
+        stopMediaStream(stream);
+        continue;
+      }
+      const isPortraitAttempt = i < portraitOptions.length;
+      if (isPortraitAttempt && !videoTracks.some(isPortraitCameraTrack)) {
+        console.warn('[Camera] Rejected non-portrait camera mode:', JSON.stringify(videoTracks[0]?.getSettings?.() || {}));
+        stopMediaStream(stream);
         continue;
       }
       videoTracks.forEach((track) => {
