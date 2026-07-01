@@ -26,9 +26,6 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
     aspectRatio: { ideal: width / height },
     resizeMode: 'none',
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
-    // User requested a -0.5 backward step from 1x. Web camera APIs use ratios,
-    // so request 0.5x (ultra-wide/minimum) and let unsupported browsers ignore it.
-    advanced: [{ zoom: 0.5 } as unknown as MediaTrackConstraintSet],
   } as unknown as MediaTrackConstraints;
 };
 
