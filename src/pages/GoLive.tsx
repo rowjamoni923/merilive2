@@ -548,21 +548,14 @@ const GoLive = () => {
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
-    // 2. Navigate immediately — no awaits between tap and route change.
-    navigate(-1);
-    // 3. Release the camera in the background. Skipped tracks/handles get
-    //    cleaned up after navigation; persistentCameraSession keeps the web
-    //    stream warm for the next entry per existing policy.
-    void (async () => {
-      if (nativePreviewStartInFlightRef.current) {
-        const deadline = Date.now() + 1500;
-        while (nativePreviewStartInFlightRef.current && Date.now() < deadline) {
-          await new Promise(r => setTimeout(r, 50));
-        }
-      }
-      try { clearPreparedHostPreviewStream(); } catch { /* ignore */ }
-      try { await nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
-      if (streamRef.current) {
+    // 2. Fire native camera tear-down IMMEDIATELY (no await) so the native
+    //    TextureView behind the WebView disappears on the same frame as the
+    //    tap. Previously this sat behind a 1.5s "in-flight start" wait, so
+    //    users saw the camera stay open and thought the X button was broken.
+    try { void nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
+    try { clearPreparedHostPreviewStream(); } catch { /* ignore */ }
+    if (streamRef.current) {
+      try {
         if (cameraHandleRef.current) {
           cameraHandleRef.current.release();
           cameraHandleRef.current = null;
@@ -570,7 +563,19 @@ const GoLive = () => {
           streamRef.current.getTracks().forEach(track => track.stop());
           releaseAndroidWebViewCamera('golive:back');
         }
-        streamRef.current = null;
+      } catch { /* ignore */ }
+      streamRef.current = null;
+    }
+    // 3. Navigate immediately — no awaits between tap and route change.
+    navigate(-1);
+    // 4. Safety: if a start was still in-flight, re-issue stop after it settles.
+    void (async () => {
+      if (nativePreviewStartInFlightRef.current) {
+        const deadline = Date.now() + 1500;
+        while (nativePreviewStartInFlightRef.current && Date.now() < deadline) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+        try { await nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
       }
     })().catch((error) => {
       recordClientError({ label: "GoLive.handleBack", message: error instanceof Error ? error.message : String(error) });

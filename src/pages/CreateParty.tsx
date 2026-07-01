@@ -518,33 +518,25 @@ const CreateParty = () => {
   };
 
   const handleClose = () => {
-    // Tear down the visible native camera surface FIRST so the WebView no
-    // longer reveals a full-screen camera frame after the tap. Then navigate
-    // immediately and run the rest of the cleanup in the background so the
-    // route change is never blocked by a native bridge round-trip.
+    // Tear down the visible native camera surface + native TextureView
+    // FIRST (fire-and-forget, no await) so the camera disappears on the
+    // same frame as the tap. Previously stopLocalPreview ran only inside
+    // the background IIFE — the native surface stayed visible for a beat
+    // and users felt the X button needed a second click.
     if (isNativeAndroid) {
       try { clearNativeMediaSurface(); } catch { /* ignore */ }
       setNativePreviewActive(false);
+      try { void nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
+    }
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        releaseAndroidWebViewCamera('create-party:close');
+      } catch { /* ignore */ }
+      streamRef.current = null;
+      setStream(null);
     }
     navigate("/party-rooms");
-    void (async () => {
-      try {
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
-          setStream(null);
-          releaseAndroidWebViewCamera('create-party:close');
-        }
-        if (isNativeAndroid) {
-          try { await nativeLiveKitController.stopLocalPreview(); } catch { /* ignore */ }
-        }
-      } catch (e) {
-        console.error("Error stopping tracks:", e);
-        recordClientError({ label: "CreateParty.handleClose", message: e instanceof Error ? e.message : String(e) });
-      }
-    })();
-    // No partySession.goToEnded() here — closing the create form should
-    // unmount the Provider entirely and return the user to the lobby.
   };
 
 
