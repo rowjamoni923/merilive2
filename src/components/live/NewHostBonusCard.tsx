@@ -166,6 +166,89 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
 
   return (
     <>
+      {/* Auto-popup when hour completes — hosts cannot miss */}
+      <AnimatePresence>
+        {autoPopupHour && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-6"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+            onClick={() => setAutoPopupHour(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.7, y: 40, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.7, y: 40, opacity: 0 }}
+              transition={{ type: "spring", damping: 18, stiffness: 220 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm rounded-3xl overflow-hidden p-6 text-center"
+              style={{
+                background:
+                  "linear-gradient(160deg, #2d1b69 0%, #7c3aed 45%, #ec4899 100%)",
+                boxShadow:
+                  "0 20px 60px rgba(0,0,0,0.7), 0 0 80px rgba(217,70,239,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+              }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.08, 1] }}
+                transition={{ duration: 2.2, repeat: Infinity }}
+                className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-300 via-orange-500 to-fuchsia-600 flex items-center justify-center"
+                style={{ boxShadow: "0 0 40px rgba(251,191,36,0.6)" }}
+              >
+                <Gift className="w-10 h-10 text-white drop-shadow-lg" />
+              </motion.div>
+              <p className="text-white/85 text-xs font-semibold tracking-widest uppercase mb-1">
+                Hour {autoPopupHour.hour_number} Complete
+              </p>
+              <h3 className="text-white font-black text-2xl mb-1 leading-tight">
+                Your Hourly Bonus is Ready!
+              </h3>
+              <div className="flex items-center justify-center gap-2 my-4">
+                <BeansIcon size={28} />
+                <span className="text-amber-300 font-black text-3xl drop-shadow-md">
+                  +{autoPopupHour.bonus_beans.toLocaleString()}
+                </span>
+              </div>
+              <p className="text-white/70 text-xs mb-5">
+                Keep streaming to unlock the next hour bonus
+              </p>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                disabled={claimingHour !== null}
+                onClick={async () => {
+                  await handleClaim(autoPopupHour);
+                  setAutoPopupHour(null);
+                }}
+                className="w-full py-3.5 rounded-2xl text-white font-black text-base relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b, #ec4899, #a855f7)",
+                  boxShadow:
+                    "0 8px 24px rgba(236,72,153,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
+                }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 1.6, repeat: Infinity }}
+                />
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  {claimingHour !== null ? "Claiming..." : "Claim Now"}
+                </span>
+              </motion.button>
+              <button
+                onClick={() => setAutoPopupHour(null)}
+                className="mt-3 text-white/60 text-xs font-medium hover:text-white/85"
+              >
+                Later
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showCelebration !== null && (
           <motion.div
