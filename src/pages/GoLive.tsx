@@ -158,6 +158,8 @@ const GoLive = () => {
       // the route swap. LiveStream/useLiveKitClient will take over the same
       // native-media-active surface once the existing preview track is promoted.
       if (preservePreviewForLiveRef.current) return;
+      void NativeLiveKit.forceDetachAllSurfaces?.().catch(() => undefined);
+      void NativeLiveKit.detachAll?.().catch(() => undefined);
       clearNativeFaceCameraSurface();
       clearNativeMediaSurface();
     };
@@ -553,6 +555,8 @@ const GoLive = () => {
   const handleBack = () => {
     // 1. Kill the visible surface FIRST so the WebView UI no longer reveals
     //    the camera behind it for even a single frame.
+    try { void NativeLiveKit.forceDetachAllSurfaces?.(); } catch { /* ignore */ }
+    try { void NativeLiveKit.detachAll?.(); } catch { /* ignore */ }
     try { clearNativeMediaSurface(); } catch { /* ignore */ }
     try { applyNativePreviewTransparency(false); } catch { /* ignore */ }
     setNativePreviewActive(false);
