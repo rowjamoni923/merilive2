@@ -13,16 +13,16 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v5_optical_min_20260701',
-  // User request: push to hardware minimum (target 0.0x / -0.05x).
-  // Real cameras cannot go below their optical minimum, so we request 0
-  // and let resolveLockedZoom() clamp to whatever minimum the device exposes
-  // (typically 0.5x ultra-wide or 1.0x).
-  fixedZoomLevel: 0,
+  id: 'camera_lock_v6_negative_half_20260701',
+  // User request: -0.5x target for maximum backward zoom-out.
+  // Hardware cannot go negative; resolveLockedZoom() will clamp to the
+  // device's true minimum (typically 0.5x ultra-wide lens).
+  fixedZoomLevel: -0.5,
   maxNonMagnifyingZoom: 1,
-  minZoomFloor: 0,
+  minZoomFloor: -0.5,
   fixedObjectPosition: 'center center',
 } as const);
+
 
 
 type ZoomCapability = { min?: number; max?: number; step?: number } | undefined;
