@@ -85,8 +85,9 @@ class LiveKitPlugin : Plugin() {
         private const val OEM_CAMERA_RELEASE_SETTLE_MS = 650L
 
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
-        // Professional app parity: keep a natural 3:4 camera capture and let
-        // all renderers use SCALE_ASPECT_FILL/object-cover for full portrait UI.
+        // Professional app parity: keep a natural 3:4 camera capture and render
+        // the sharp camera layer with FIT/contain so the full sensor FOV stays
+        // visible. FILL/cover center-crops tall phones and looks like zoom-in.
         // Real zoom-out is not a negative ratio. CameraX exposes the widest
         // available FOV as ZoomState.0.0fRatio or LinearZoom 0.0.
         const val LOCK_CAPTURE_W = 1440
@@ -1285,9 +1286,12 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // Portrait live-room rule: capture stays natural 3:4 to avoid digital
-        // zoom, while FILL keeps the app surface vertical with no black bars.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) }/* catch (_: Throwable) {}/*
+        // Portrait zoom-out rule: the sharp native preview must never use
+        // SCALE_ASPECT_FILL. FILL center-crops the 3:4 front-camera sensor into
+        // 19:9/20:9 phone screens, which is exactly the close-face "zoomed in"
+        // bug. FIT matches the web foreground object-contain path and preserves
+        // the full camera FOV across GoLive, Live, Party and Private handoff.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) }/* catch (_: Throwable) {}/*
         mirror?.let { try { renderer.setMirror(it) }/* catch (_: Throwable) {}/* }/*
         try {
             val lp = renderer.layoutParams
