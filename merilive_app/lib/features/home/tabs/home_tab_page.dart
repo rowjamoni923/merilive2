@@ -153,7 +153,7 @@ class _HomeHeader extends StatelessWidget {
   final ValueChanged<_SubTab> onSubTab;
   final VoidCallback onSearchTap;
   final VoidCallback onTrophyTap;
-  final List<_Country> countries;
+  final List<HomeCountry> countries;
   final String selectedCountry;
   final ValueChanged<String> onCountry;
 
@@ -414,20 +414,13 @@ class _TrophyButton extends StatelessWidget {
 // Country strip
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _Country {
-  final String code;
-  final String name;
-  final String flag;
-  const _Country({required this.code, required this.name, required this.flag});
-}
-
 class _CountryStrip extends StatelessWidget {
   const _CountryStrip({
     required this.countries,
     required this.selected,
     required this.onSelect,
   });
-  final List<_Country> countries;
+  final List<HomeCountry> countries;
   final String selected;
   final ValueChanged<String> onSelect;
 
