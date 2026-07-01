@@ -1409,7 +1409,7 @@ const GoLive = () => {
         
       </motion.div>
 
-      {/* Camera View - Full Screen Horizontal */}
+      {/* Camera View - vertical phone preview */}
       <div className={cn(
         "absolute inset-0 overflow-hidden flex items-center justify-center",
         // Android native preview is a TextureView behind the WebView; never
@@ -1421,7 +1421,7 @@ const GoLive = () => {
           <LiveKitVideoPlayer
             videoTrack={localVideoTrack}
             mirror={facingMode === 'user'}
-            fit="contain"
+            fit="cover"
             className="w-full h-full"
           />
         ) : (
@@ -1453,7 +1453,7 @@ const GoLive = () => {
               x5-playsinline="true"
               webkit-playsinline="true"
               x-webkit-airplay="deny"
-              className="absolute inset-0 w-full h-full object-contain pointer-events-none bg-black"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none bg-black"
               style={{
                 transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                 filter: beautyCSS || undefined,

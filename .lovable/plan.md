@@ -1,3 +1,18 @@
+# Portrait Camera Surface Fix
+
+## Goal
+Stop Go Live / Party / Private Call camera preview from rendering as a horizontal strip on portrait phones; it must render as a vertical phone camera surface.
+
+## Research notes
+- Chamet/Bigo/Poppo-style broadcaster screens use a portrait full-screen preview; hosts do not manually select resolution during live setup.
+- LiveKit/Agora mobile renderer practice: keep capture stable, then use the renderer scaling mode to fill the target video viewport; black letterbox bands are not acceptable on creator preview/live surfaces.
+- The project had switched capture to 3:4 for no-zoom FOV, but the React/native renderers were also set to `contain`/`SCALE_ASPECT_FIT`, causing portrait phones to show a landscape-looking band.
+
+## Fix plan
+1. Keep 3:4 capture constants to avoid CameraX digital sensor zoom.
+2. Change full-screen/primary camera renderers to portrait fill (`cover` / `SCALE_ASPECT_FILL`) so the surface is vertical.
+3. Apply consistently to Go Live, Create Party, Party room seats, Private Call, and persistent handoff surface.
+
 # Signup Host/User Role Mapping Fix
 
 ## Goal
