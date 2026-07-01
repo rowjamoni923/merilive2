@@ -206,12 +206,14 @@ All 40+ toast strings from audit §11 must appear **verbatim** in Flutter (Engli
 
 ---
 
-## 11. Open Decisions (need user answer before Step A)
+## 11. Decisions — LOCKED ✅
 
-1. **Legacy `send-signup-confirmation` edge function** — drop or keep? Audit says it's parallel to `send-email-otp`. Recommendation: **drop**.
-2. **`useFirebasePhoneAuth`** — audit found it uses `signInAnonymously` which breaks device recovery. **Recommendation: remove, keep only WhatsApp OTP path (which is your current primary phone flow).**
-3. **Riverpod vs BLoC vs Provider** — recommending **Riverpod** (best Supabase support, most modern). Confirm?
-4. **Router — go_router vs auto_route** — recommending **go_router** (official Flutter team package). Confirm?
+1. ✅ Legacy `send-signup-confirmation` → **DROPPED**. Only new secure OTP flow ported.
+2. ✅ Firebase phone `signInAnonymously` → **DROPPED**. Only WhatsApp OTP path.
+3. ✅ State management → **BLoC** (`flutter_bloc` + `hydrated_bloc`).
+4. ✅ Router → **auto_route**.
+
+User directive: "web-এর সিস্টেম same থাকবে, কিন্তু Android-এ web-এর চেয়ে more professional হবে" — logic parity + native polish (haptics, smooth 60fps transitions, native keyboard behavior, biometric quick-login option post-first-signin).
 
 ---
 
