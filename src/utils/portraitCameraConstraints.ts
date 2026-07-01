@@ -21,6 +21,7 @@ export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions 
     width: { ideal: width },
     height: { ideal: height },
     aspectRatio: { exact: width / height },
+    resizeMode: 'crop-and-scale',
     frameRate: { ideal: options.frameRate ?? 30, min: 24 },
   } as unknown as MediaTrackConstraints;
 };
