@@ -2,7 +2,11 @@ import 'package:auto_route/auto_route.dart';
 
 import '../../features/auth/screens/auth_landing_page.dart';
 import '../../features/auth/screens/auth_stubs.dart';
+import '../../features/auth/screens/email_input_page.dart';
+import '../../features/auth/screens/email_otp_page.dart';
+import '../../features/auth/screens/email_password_page.dart';
 import '../../features/auth/screens/gender_step_page.dart';
+import '../../features/auth/screens/login_page.dart';
 import '../../features/auth/screens/onboarding_page.dart';
 import '../../features/splash/splash_page.dart';
 
