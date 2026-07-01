@@ -15,35 +15,9 @@ Widget _stub(String label) => Scaffold(
       ),
     );
 
-// GenderStepPage moved to gender_step_page.dart (Step C).
-
-@RoutePage()
-class EmailInputPage extends StatelessWidget {
-  const EmailInputPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Email');
-}
-
-@RoutePage()
-class EmailOtpPage extends StatelessWidget {
-  const EmailOtpPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Email OTP');
-}
-
-@RoutePage()
-class EmailPasswordPage extends StatelessWidget {
-  const EmailPasswordPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Email Password');
-}
-
-@RoutePage()
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
-  @override
-  Widget build(BuildContext context) => _stub('Login');
-}
+// GenderStepPage → gender_step_page.dart (Step C).
+// EmailInputPage / EmailOtpPage / EmailPasswordPage / LoginPage
+//   → screens/email_*_page.dart + screens/login_page.dart (Step D).
 
 @RoutePage()
 class PhoneInputPage extends StatelessWidget {
