@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/router/app_router.dart';
+import '../../../core/supabase/supabase_client.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../branding/branding.dart';
 import '../../branding/branding_cubit.dart';
+import '../data/start_flow_repository.dart';
 import '../widgets/auth_background.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/terms_toggle.dart';
@@ -91,10 +94,32 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         label: 'Get Started',
         icon: const Icon(Icons.rocket_launch_rounded),
         loading: _pending == 'start',
-        onPressed: () => _guarded('start', () {
-          // Wired in Step C (device-recover flow).
-        }),
+        onPressed: () => _guarded('start', _runStartFlow),
       );
+
+  Future<void> _runStartFlow() async {
+    try {
+      final repo = StartFlowRepository(SupabaseBootstrap.client);
+      final result = await repo.start();
+      if (!mounted) return;
+      if (result.outcome == StartOutcome.recovered) {
+        await context.router.replaceAll([const SplashRoute()]);
+      } else {
+        await context.router.replace(GenderStepRoute(userId: result.userId));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _pending = null);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFFDC2626),
+          content: Text('Start failed: $e',
+              style: const TextStyle(color: Colors.white)),
+        ));
+    }
+  }
 
   Widget _phoneButton() => GradientButton(
         gradient: DT.btnPhone,

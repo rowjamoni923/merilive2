@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 
 import '../../features/auth/screens/auth_landing_page.dart';
 import '../../features/auth/screens/auth_stubs.dart';
+import '../../features/auth/screens/gender_step_page.dart';
 import '../../features/auth/screens/onboarding_page.dart';
 import '../../features/splash/splash_page.dart';
 
