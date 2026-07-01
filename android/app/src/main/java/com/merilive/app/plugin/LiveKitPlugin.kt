@@ -679,8 +679,13 @@ class LiveKitPlugin : Plugin() {
                 ensureRendererAttached(mirror)
                 val renderer = previewRenderer
                 if (renderer != null) {
-                    try { track.addRenderer(renderer) } catch (t: Throwable) {
-                        Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
+                    if (!previewRendererBound) {
+                        try {
+                            track.addRenderer(renderer)
+                            previewRendererBound = true
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "attachLocal addRenderer failed (likely already attached)", t)
+                        }
                     }
                 }
                 call.resolve(JSObject().put("attached", true))
