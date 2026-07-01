@@ -137,7 +137,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         icon: const Icon(Icons.mail_rounded),
         loading: _pending == 'email',
         onPressed: () => _guarded('email', () {
-          // context.router.push(const EmailInputRoute());  // Step D
+          context.router.push(const EmailInputRoute());
         }),
       );
 }
