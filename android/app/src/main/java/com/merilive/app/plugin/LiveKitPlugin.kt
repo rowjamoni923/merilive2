@@ -84,14 +84,14 @@ class LiveKitPlugin : Plugin() {
         // ─── LOCKED publish quality (Chamet / Bigo / Olamet parity) ────────
         // Professional app parity: keep a natural 3:4 camera capture and let
         // all renderers use SCALE_ASPECT_FILL/object-cover for full portrait UI.
-        // Do NOT force ultra-wide/min-zoom lenses here; that diverges from the
-        // main project and makes faces look thin/distorted on many OEM cameras.
+        // Real zoom-out is not a negative ratio. CameraX exposes the widest
+        // available FOV as ZoomState.minZoomRatio or LinearZoom 0.0.
         const val LOCK_CAPTURE_W = 1440
         const val LOCK_CAPTURE_H = 1920
         const val LOCK_CAPTURE_FPS = 30
         const val LOCK_BASE_BITRATE = 6_500_000   // 6.5 Mbps — 1440p premium HD (Chamet/Bigo parity)
         const val LOCK_BASE_FPS = 30
-        const val LOCK_ZOOM_OUT_TARGET = 0.50f    // User requested -0.5 from 1x; CameraX ratio equivalent is 0.5x
+        const val LOCK_MAX_NON_MAGNIFYING_ZOOM = 1.0f
         // Mid relay = 1080x1440 @ 3.5 Mbps (same 3:4 FOV, no crop drift).
         const val LOCK_SIM_MID_W = 1080
         const val LOCK_SIM_MID_H = 1440
@@ -1328,17 +1328,22 @@ class LiveKitPlugin : Plugin() {
             val zoomState = invokeNoArg(zoomStateHolder, "getValue") ?: zoomStateHolder
             val minZoom = numberFrom(zoomState, "getMinZoomRatio") ?: 1.0f
             val maxZoom = numberFrom(zoomState, "getMaxZoomRatio") ?: 1.0f
-            val upper = kotlin.math.min(maxZoom, 1.0f)
-            val targetZoom = if (minZoom <= upper) {
-                LOCK_ZOOM_OUT_TARGET.coerceIn(minZoom, upper)
-            } else {
-                minZoom
-            }
-            val setter = cameraControl.javaClass.methods.firstOrNull {
+            val upper = kotlin.math.min(maxZoom, LOCK_MAX_NON_MAGNIFYING_ZOOM)
+            val targetZoom = if (minZoom <= upper) minZoom else upper
+            val ratioSetter = cameraControl.javaClass.methods.firstOrNull {
                 it.name == "setZoomRatio" && it.parameterTypes.size == 1
+            }
+            if (ratioSetter != null) {
+                ratioSetter.invoke(cameraControl, targetZoom)
+                Log.i(TAG, "camera zoom-out lock $reason target=${targetZoom}x range=${minZoom}..${maxZoom}")
+                return
+            }
+            // CameraX public docs: linearZoom 0.0 = minimum/widest, 1.0 = maximum zoom-in.
+            val linearSetter = cameraControl.javaClass.methods.firstOrNull {
+                it.name == "setLinearZoom" && it.parameterTypes.size == 1
             } ?: return
-            setter.invoke(cameraControl, targetZoom)
-            Log.i(TAG, "camera zoom-out lock $reason target=${targetZoom}x range=${minZoom}..${maxZoom}")
+            linearSetter.invoke(cameraControl, 0.0f)
+            Log.i(TAG, "camera zoom-out lock $reason target=linearMin range=${minZoom}..${maxZoom}")
         } catch (t: Throwable) {
             Log.w(TAG, "camera zoom-out lock skipped ($reason): ${t.message}")
         }
