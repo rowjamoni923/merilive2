@@ -556,6 +556,11 @@ const GoLive = () => {
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
+    if (previewUnderlayVideoRef.current) {
+      try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
+      try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
+      try { previewUnderlayVideoRef.current.removeAttribute('src'); previewUnderlayVideoRef.current.load(); } catch { /* ignore */ }
+    }
     // 2. Fire native camera tear-down IMMEDIATELY (no await) so the native
     //    TextureView behind the WebView disappears on the same frame as the
     //    tap. Previously this sat behind a 1.5s "in-flight start" wait, so
@@ -703,6 +708,10 @@ const GoLive = () => {
       if (videoRef.current) {
         try { videoRef.current.pause(); } catch { /* ignore */ }
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
+      }
+      if (previewUnderlayVideoRef.current) {
+        try { previewUnderlayVideoRef.current.pause(); } catch { /* ignore */ }
+        try { previewUnderlayVideoRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
