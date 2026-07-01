@@ -13,8 +13,11 @@
  */
 
 export const CAMERA_LOCK_POLICY = Object.freeze({
-  id: 'camera_lock_v1_20260304',
-  fixedZoomLevel: 1,
+  id: 'camera_lock_v2_20260701_zoomout',
+  // Prefer the widest field of view the sensor supports (ultra-wide on
+  // multi-lens phones, or minimum digital zoom otherwise). This gives the
+  // Chamet/Bigo-style zoomed-out look users expect on Live/Party/Call.
+  fixedZoomLevel: 0.5,
   fixedObjectPosition: 'center center',
 } as const);
 
@@ -24,8 +27,9 @@ function resolveLockedZoom(capability: ZoomCapability): number {
   const target = CAMERA_LOCK_POLICY.fixedZoomLevel;
   if (!capability || typeof capability !== 'object') return target;
 
-  const min = Number.isFinite(capability.min) ? Number(capability.min) : target;
-  const max = Number.isFinite(capability.max) ? Number(capability.max) : target;
+  const min = Number.isFinite(capability.min) ? Number(capability.min) : 1;
+  const max = Number.isFinite(capability.max) ? Number(capability.max) : 1;
+  // Snap to sensor minimum — the widest FOV available on this device.
   return Math.min(Math.max(target, min), max);
 }
 
