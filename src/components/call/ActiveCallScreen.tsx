@@ -1474,7 +1474,7 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
-                  fit="contain"
+                  fit="cover"
                   className="w-full h-full"
                 />
               ) : (
