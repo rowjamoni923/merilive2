@@ -497,7 +497,15 @@ class LiveKitPlugin : Plugin() {
                 } catch (t: Throwable) {
                     Log.e(TAG, "connect failed", t)
                     isConnected = false
-                    teardownAll()
+                    // Do NOT tear down the preview camera on a connect error.
+                    // JS performs a quick retry; keeping previewTrack alive lets
+                    // promotePreviewToSession publish the same CameraX capturer
+                    // instead of closing/reopening it between attempts.
+                    try { room?.disconnect() } catch (_: Throwable) {}
+                    try { clearAllSlots() } catch (_: Throwable) {}
+                    RtcEngineManager.clearRoom(room)
+                    activeRoomScope = null
+                    activeIsHost = false
                     call.reject("connect failed: ${t.message}", t)
                 }
             }
