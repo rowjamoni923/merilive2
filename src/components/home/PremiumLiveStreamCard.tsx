@@ -133,8 +133,7 @@ export const PremiumLiveStreamCard = ({
 
 
 
-      {/* Subtle name-legibility shade — only the very bottom, no dark band */}
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
+      {/* Full-photo card: no bottom panel, border band, or screen overlay. */}
       
       {/* Top shimmer effect on hover */}
       <motion.div
@@ -271,22 +270,6 @@ export const PremiumLiveStreamCard = ({
           )}
         </div>
       </div>
-
-      {/* Premium Border Glow Effect */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
-        style={{
-          boxShadow: "inset 0 0 30px rgba(236, 72, 153, 0.3)",
-        }}
-        animate={{
-          boxShadow: [
-            "inset 0 0 30px rgba(236, 72, 153, 0.3)",
-            "inset 0 0 40px rgba(168, 85, 247, 0.4)",
-            "inset 0 0 30px rgba(236, 72, 153, 0.3)",
-          ],
-        }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
 
       {/* Corner Decorations for Premium Effect */}
       {userLevel >= 20 && (
