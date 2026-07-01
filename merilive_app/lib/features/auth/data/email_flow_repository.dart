@@ -17,6 +17,8 @@ class EmailFlowRepository {
   static bool isValidEmail(String email) => _emailRe.hasMatch(email.trim());
 
   /// Fire OTP delivery. Throws with a human-readable message on failure.
+  /// Rate-limit responses (HTTP 429 / `code: "rate_limited"`) surface a
+  /// friendly "Please wait Ns before trying again" message with `retryAfter`.
   Future<void> sendOtp(String email, {String purpose = 'login'}) async {
     final res = await _sb.functions.invoke(
       'send-email-otp',
@@ -24,10 +26,17 @@ class EmailFlowRepository {
     );
     final data = res.data;
     if (data is Map && data['success'] == false) {
-      throw EmailFlowException(
-        (data['error'] as String?) ?? 'Failed to send verification code',
-        code: data['code'] as String?,
-      );
+      final code = data['code'] as String?;
+      final retry = data['retry_after'];
+      final retryInt = retry is int
+          ? retry
+          : (retry is String ? int.tryParse(retry) : null);
+      final baseMsg = (data['error'] as String?) ??
+          'Failed to send verification code';
+      final msg = (code == 'rate_limited' && retryInt != null)
+          ? 'Too many attempts. Please wait ${retryInt}s before trying again.'
+          : baseMsg;
+      throw EmailFlowException(msg, code: code, retryAfter: retryInt);
     }
   }
 
@@ -143,9 +152,10 @@ class EmailFlowRepository {
 enum EmailSignInResult { signedIn, needsSignup }
 
 class EmailFlowException implements Exception {
-  const EmailFlowException(this.message, {this.code});
+  const EmailFlowException(this.message, {this.code, this.retryAfter});
   final String message;
   final String? code;
+  final int? retryAfter;
 
   @override
   String toString() => message;

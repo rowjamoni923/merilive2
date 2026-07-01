@@ -13,6 +13,7 @@ import '../../features/auth/screens/phone_otp_page.dart';
 import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
+import '../../features/home/screens/action_placeholders.dart';
 import '../../features/splash/splash_page.dart';
 
 part 'app_router.gr.dart';
@@ -46,5 +47,10 @@ class AppRouter extends _$AppRouter {
         // Deep-link entry points
         AutoRoute(page: AuthCallbackRoute.page, path: '/auth/callback'),
         AutoRoute(page: ResetPasswordRoute.page, path: '/reset-password'),
+
+        // "+" FAB honest placeholders (full features land in later sectors)
+        AutoRoute(page: GoLivePlaceholderRoute.page, path: '/go-live'),
+        AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
+        AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/random-call'),
       ];
 }

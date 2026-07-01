@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,7 +80,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                     const SizedBox(height: 20),
                     const FieldLabel('Phone number'),
                     IntlPhoneField(
-                      initialCountryCode: 'BD',
+                      initialCountryCode: _detectInitialCountry(),
                       autofocus: true,
                       style: const TextStyle(
                           fontSize: 14, color: Color(0xFF0F172A)),
@@ -127,5 +129,21 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
         ),
       ),
     );
+  }
+
+  /// Guess initial dial-code country from device locale.
+  /// Supported here: BD, IN, PK, ID, MY, PH, VN, SA, AE, NG, US, GB.
+  /// Falls back to BD for our primary audience.
+  static String _detectInitialCountry() {
+    try {
+      final locale = PlatformDispatcher.instance.locale;
+      final country = (locale.countryCode ?? '').toUpperCase();
+      const supported = {
+        'BD', 'IN', 'PK', 'ID', 'MY', 'PH', 'VN', 'SA', 'AE',
+        'NG', 'US', 'GB', 'LK', 'NP', 'MM', 'TH', 'EG', 'TR',
+      };
+      if (supported.contains(country)) return country;
+    } catch (_) {}
+    return 'BD';
   }
 }

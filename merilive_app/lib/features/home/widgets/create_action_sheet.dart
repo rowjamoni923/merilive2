@@ -1,14 +1,16 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/design_tokens.dart';
 
 /// Bottom action sheet triggered by center "+" — Go Live / Create Party /
 /// Random Call. Parity with the AnimatePresence menu in `BottomNavigation.tsx`.
 ///
-/// Real navigation targets land in Steps H-J when the corresponding surfaces
-/// exist; for now the buttons close the sheet and surface an honest toast so
-/// no fake destinations are shown.
+/// Each button routes to the honest placeholder page for its sector so
+/// navigation is verifiable end-to-end today. Full features land when the
+/// corresponding sector is built out.
 class CreateActionSheet extends StatelessWidget {
   const CreateActionSheet({super.key});
 
@@ -30,7 +32,7 @@ class CreateActionSheet extends StatelessWidget {
             title: 'Go Live',
             subtitle: 'Start a live stream',
             trailingDotPulse: true,
-            onTap: () => _todo(context, 'Go Live'),
+            onTap: () => _go(context, const GoLivePlaceholderRoute()),
           ),
           const SizedBox(height: 12),
           _ActionButton(
@@ -39,7 +41,7 @@ class CreateActionSheet extends StatelessWidget {
             title: 'Create Party',
             subtitle: 'Audio / video / game room',
             trailingIcon: Icons.groups_2_rounded,
-            onTap: () => _todo(context, 'Create Party'),
+            onTap: () => _go(context, const CreatePartyPlaceholderRoute()),
           ),
           const SizedBox(height: 12),
           _ActionButton(
@@ -48,26 +50,17 @@ class CreateActionSheet extends StatelessWidget {
             title: 'Random Call',
             subtitle: 'Random 1-on-1 video',
             trailingDotPulse: true,
-            onTap: () => _todo(context, 'Random Call'),
+            onTap: () => _go(context, const RandomCallPlaceholderRoute()),
           ),
         ],
       ),
     );
   }
 
-  void _todo(BuildContext context, String label) {
+  void _go(BuildContext context, PageRouteInfo route) {
     HapticFeedback.selectionClick();
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1F2937),
-        content: Text(
-          '$label is landing in the next step',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ));
+    context.router.push(route);
   }
 }
 
