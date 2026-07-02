@@ -361,6 +361,190 @@ class _FeedPageViewState extends State<_FeedPageView> {
   }
 }
 
+// ── R4 action handlers ──────────────────────────────────────────────────────
+//
+// Comment / Gift / Share / Profile sheets land in R6 & R7; these are the
+// safe intermediary hooks so the right rail is fully wired now and R6/R7
+// only need to swap the body of each helper.
+
+void _openProfile(BuildContext context, String userId) {
+  // TODO(R7): push profile route once profile page lands.
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Profile: $userId'),
+      duration: const Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+void _openCommentsPlaceholder(BuildContext context, Reel reel) {
+  // TODO(R6): replace with draggable comments bottom sheet.
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Comments coming next'),
+      duration: Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+void _openGiftPlaceholder(BuildContext context, Reel reel) {
+  // TODO(R7): bridge to existing gift sender.
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Gifting coming next'),
+      duration: Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+void _openSharePlaceholder(BuildContext context, Reel reel) {
+  // TODO(R7): system share sheet + recordShare().
+  final cubit = context.read<ReelsFeedCubit>();
+  unawaited(cubit.recordShare(
+    reelId: reel.id,
+    platform: 'app',
+    shareType: 'copy_link',
+  ));
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Link copied'),
+      duration: Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+void _openMoreMenu(BuildContext context, Reel reel) {
+  final cubit = context.read<ReelsFeedCubit>();
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: const Color(0xFF111827),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (ctx) {
+      return SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 6),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 6),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined, color: Colors.white),
+              title: const Text('Report',
+                  style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openReportSheet(context, cubit, reel);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block, color: Colors.white),
+              title: const Text('Not interested',
+                  style: TextStyle(color: Colors.white)),
+              onTap: () => Navigator.pop(ctx),
+            ),
+            ListTile(
+              leading: const Icon(Icons.close, color: Colors.white70),
+              title: const Text('Cancel',
+                  style: TextStyle(color: Colors.white70)),
+              onTap: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _openReportSheet(
+  BuildContext context,
+  ReelsFeedCubit cubit,
+  Reel reel,
+) {
+  const reasons = <String>[
+    'Sexual content',
+    'Violence or dangerous acts',
+    'Hate speech',
+    'Harassment or bullying',
+    'Spam or misleading',
+    'Other',
+  ];
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: const Color(0xFF111827),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (ctx) {
+      return SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Report this reel',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            for (final r in reasons)
+              ListTile(
+                title: Text(r,
+                    style: const TextStyle(color: Colors.white)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    await cubit.reportReel(reelId: reel.id, reason: r);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Report submitted'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not submit report'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+
 
 
 class _SnappyPageScrollPhysics extends PageScrollPhysics {
