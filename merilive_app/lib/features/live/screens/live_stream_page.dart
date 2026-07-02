@@ -431,6 +431,28 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
   /// takes over so Flutter surfaces never render nothing.
   Future<void> _onGiftEvent(LiveGiftEvent e) async {
+    // Phase I12 — every gift feeds the overlay combo tracker + premium
+    // flying banner. Runs regardless of full-screen threshold.
+    _overlay.giftCombos.increment(
+      senderId: e.senderId ?? 'anon',
+      giftId: e.giftId ?? e.giftName,
+      senderName: e.senderName,
+      senderAvatarUrl: e.senderAvatar,
+      giftName: e.giftName,
+      giftImageUrl: e.giftIcon,
+      by: e.quantity,
+    );
+    if (e.perUnitCoins >= 100) {
+      _overlay.premiumFlyingGifts.push(PremiumFlyingGift(
+        senderName: e.senderName,
+        senderAvatarUrl: e.senderAvatar,
+        giftName: e.giftName,
+        giftImageUrl: e.giftIcon,
+        giftValue: e.perUnitCoins,
+        count: e.quantity,
+      ));
+    }
+
     if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
       return;
     }
