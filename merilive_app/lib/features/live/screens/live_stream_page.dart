@@ -142,6 +142,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           }
         }
       }
+      // A4 — resolve initial follow state for viewers (skip for host).
+      if (!_isHost && stream['host_id'] != null) {
+        try {
+          final following = await LiveFollowBridge.instance
+              .isFollowing(stream['host_id'].toString());
+          if (mounted) setState(() => _isFollowingHost = following);
+        } catch (_) {}
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
