@@ -159,4 +159,42 @@ class LiveKitBridge {
   /// Snapshot the current local-preview frame as a base64 JPEG.
   Future<Map<String, dynamic>> snapshotLocalPreview() =>
       _invoke('snapshotLocalPreview');
+
+  // ── Phase E — content safety ───────────────────────────────────────
+  //
+  // Both methods are safe no-ops on APKs where native side isn't wired
+  // yet (returns `{success:false, reason:'unimplemented'}`). Callers
+  // (LiveVoiceMonitor, AudioFocusAutoMute) treat that as "dormant".
+
+  /// Capture a short audio chunk from the currently-published local mic
+  /// track. Native side returns `{ok:true, base64:'…', mime:'audio/…'}`
+  /// after `ms` ms; missing plugin returns unimplemented.
+  Future<Map<String, dynamic>> snapshotVoiceChunk({int ms = 20000}) =>
+      _invoke('snapshotVoiceChunk', {'ms': ms});
+}
+
+/// Android AudioFocus event bridge — emits transient-loss / gain events
+/// from the native AudioManager listener. No-op on other platforms; a
+/// missing plugin registration simply yields an empty stream.
+class AudioFocusEvents {
+  AudioFocusEvents._();
+  static final AudioFocusEvents instance = AudioFocusEvents._();
+
+  static const EventChannel _channel =
+      EventChannel('app.merilive/audio_focus');
+
+  Stream<String>? _stream;
+
+  /// Emits one of: 'gain', 'loss', 'loss_transient', 'loss_transient_can_duck'.
+  Stream<String> events() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const Stream<String>.empty();
+    }
+    _stream ??= _channel
+        .receiveBroadcastStream()
+        .map((e) => (e is Map ? e['change'] : e).toString())
+        .handleError((_) {})
+        .asBroadcastStream();
+    return _stream!;
+  }
 }
