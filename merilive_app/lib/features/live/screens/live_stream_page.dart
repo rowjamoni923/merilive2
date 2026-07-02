@@ -426,6 +426,43 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     return snap.opponentStreamId;
   }
 
+  /// Phase I12 — map server PK snapshot → presentation state consumed by
+  /// the unified overlay stack. From this tile's POV, "host" is the local
+  /// stream's side (challenger if streamId matches, else opponent).
+  PKBattleActiveState? _pkActiveStateFrom(PkBattleSnapshot? snap) {
+    if (snap == null) return null;
+    if (snap.status != 'active' && snap.status != 'punishment') return null;
+    final localIsChallenger = snap.challengerStreamId == widget.streamId;
+    final hostName =
+        localIsChallenger ? snap.challengerName : snap.opponentName;
+    final hostAvatar =
+        localIsChallenger ? snap.challengerAvatar : snap.opponentAvatar;
+    final hostScore =
+        localIsChallenger ? snap.challengerScore : snap.opponentScore;
+    final oppName =
+        localIsChallenger ? snap.opponentName : snap.challengerName;
+    final oppAvatar =
+        localIsChallenger ? snap.opponentAvatar : snap.challengerAvatar;
+    final oppScore =
+        localIsChallenger ? snap.opponentScore : snap.challengerScore;
+    int remaining = snap.durationSeconds;
+    final started = snap.startedAt;
+    if (started != null) {
+      final elapsed = DateTime.now().difference(started).inSeconds;
+      remaining = (snap.durationSeconds - elapsed).clamp(0, 1 << 30);
+    }
+    return PKBattleActiveState(
+      hostName: hostName,
+      hostAvatarUrl: hostAvatar.isNotEmpty ? hostAvatar : null,
+      hostScore: hostScore,
+      opponentName: oppName,
+      opponentAvatarUrl: oppAvatar.isNotEmpty ? oppAvatar : null,
+      opponentScore: oppScore,
+      remainingSeconds: remaining,
+      punishmentPhase: snap.status == 'punishment' || snap.inPunishment,
+    );
+  }
+
   /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
   /// renderer is tried first (Pkg438 plugin on Android); when the
   /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
