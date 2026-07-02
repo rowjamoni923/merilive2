@@ -74,7 +74,7 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const SizedBox(height: 6),
-                    _SeatGrid(seats: state.seats),
+                    _SeatGrid(seats: state.seats, currentUserId: state.selfUserId),
                     const SizedBox(height: 4),
                     Expanded(child: _ChatList(messages: state.messages)),
                     _BottomBar(state: state),
