@@ -226,10 +226,13 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         );
       });
 
-      // Phase I12 — mirror room join events into the overlay controller:
-      //   • all joins → stacking join notifications (tier-colored)
-      //   • Lv40+     → Bigo cinematic banner
-      //   • Lv10-39   → premium mid-tier chat strip
+      // Phase I12/I16 — mirror room join events into the NEW overlay
+      // controllers. Deduped against the legacy `RoomEntryDispatcher` fan-out
+      // so nothing renders twice:
+      //   • all joins → stacking join notifications (no legacy equivalent)
+      //   • Lv10-39   → premium mid-tier chat strip (no legacy equivalent)
+      //   • Lv40+     → SKIPPED here — `BigoJoinBannerOverlay` at line ~982
+      //                 already consumes the same event via `BigoJoinQueue`.
       _joinSub = RoomJoinEventsBridge.instance.events$.listen((ev) {
         _overlay.joinNotifications.add(
           userId: ev.userId,
@@ -237,14 +240,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           userLevel: ev.userLevel,
           userAvatar: ev.userAvatar,
         );
-        if (ev.userLevel >= 40) {
-          _overlay.bigoBanner.add(
-            userId: ev.userId,
-            userName: ev.userName,
-            userLevel: ev.userLevel,
-            userAvatar: ev.userAvatar,
-          );
-        } else if (ev.userLevel >= 10) {
+        if (ev.userLevel >= 10 && ev.userLevel < 40) {
           _overlay.premiumJoinChat.push(PremiumJoinChatEntry(
             id: '${ev.userId}_${DateTime.now().microsecondsSinceEpoch}',
             userName: ev.userName,
