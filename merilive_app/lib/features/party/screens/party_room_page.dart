@@ -253,6 +253,7 @@ class _RoomHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<PartyRoomCubit>();
     final subtitle = [
       if (room.isPrivate) '🔒',
       room.name,
@@ -265,7 +266,28 @@ class _RoomHeader extends StatelessWidget {
       showFollow: false,
       viewerCount: live,
       onOpenViewers: () {},
-      trailing: const _RequestsBadge(),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _RequestsBadge(),
+          if (cubit.isHost) ...[
+            const SizedBox(width: 6),
+            InkResponse(
+              onTap: () => PartyRoomSettingsSheet.show(context, room),
+              radius: 22,
+              child: Container(
+                width: 34, height: 34,
+                decoration: const BoxDecoration(
+                  color: Color(0x33FFFFFF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.settings_rounded,
+                    color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ],
+      ),
       onClose: () async {
         await context.read<PartyRoomCubit>().leaveRoom();
         if (context.mounted) context.router.maybePop();
