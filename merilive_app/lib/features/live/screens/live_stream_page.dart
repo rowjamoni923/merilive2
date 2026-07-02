@@ -8,6 +8,8 @@ import '../../../core/native/livekit_bridge.dart';
 import '../services/audio_focus_auto_mute.dart';
 import '../services/live_face_detection.dart';
 import '../services/live_voice_monitor.dart';
+import '../data/pk_opponent_room_bridge.dart';
+import '../widgets/pk_punishment_overlay.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
@@ -176,6 +178,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // A6 — subscribe to server-authoritative PK battle state for this stream.
       _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
         if (mounted) setState(() => _pkBattle = snap);
+        // Phase F-24 — cross-room opponent audio bridge. During an active
+        // PK, subscribe (audio auto-plays); on end/idle, tear down.
+        final isLive = snap != null &&
+            (snap.status == 'active' || snap.status == 'punishment');
+        PkOpponentRoomBridge.instance.connect(
+          opponentStreamId: isLive ? _opponentStreamIdFor(snap!) : null,
+          participantName: _client.auth.currentUser?.userMetadata?['name']
+                  ?.toString() ??
+              'viewer',
+        );
       });
 
       // A11 — Level-up entry animations: bind join events to native
@@ -327,6 +339,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     NativeGiftBridge.instance.stopAll();
     RoomEntryDispatcher.instance.detach();
     _faceDetection?.dispose();
+    PkOpponentRoomBridge.instance.disconnect();
     _voiceMonitor?.dispose();
     _audioFocusMute?.dispose();
     // Best-effort viewer cleanup on route pop without pressing Leave
@@ -340,6 +353,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   }
 
   Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
+
+  /// Which stream id represents "the opponent" from this tile's POV?
+  /// If we're viewing/hosting the challenger side, opponent is the opponent's stream;
+  /// otherwise it's the challenger's stream.
+  String? _opponentStreamIdFor(PkBattleSnapshot snap) {
+    final my = widget.streamId;
+    if (snap.challengerStreamId == my) return snap.opponentStreamId;
+    if (snap.opponentStreamId == my) return snap.challengerStreamId;
+    return snap.opponentStreamId;
+  }
 
   /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
   /// renderer is tried first (Pkg438 plugin on Android); when the
@@ -738,6 +761,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 onEnded: () {
                   if (mounted) setState(() => _pkBattle = null);
                 },
+              ),
+
+            // F-23 — Server-anchored PK Punishment overlay for the loser tile.
+            if (_pkBattle != null && _pkBattle!.punishmentEndTs != null)
+              Positioned.fill(
+                child: PkPunishmentOverlay(
+                  battleId: _pkBattle!.battleId,
+                  currentUserId: _client.auth.currentUser?.id ?? '',
+                  winnerUserId: _pkBattle!.winnerUserId,
+                  finalStatus: _pkBattle!.finalStatus,
+                  punishmentEndTs: _pkBattle!.punishmentEndTs,
+                  onComplete: () {
+                    if (mounted) setState(() => _pkBattle = null);
+                  },
+                ),
               ),
             // A3 — full action bar with host quick-actions.
             Positioned(
