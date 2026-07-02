@@ -32,6 +32,7 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   late final LeaderboardCubit _cubit;
   Timer? _countdownTimer;
+  Timer? _autoRefreshTimer;
   Duration _remaining = Duration.zero;
   String? _currentUserId;
 
@@ -45,8 +46,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       if (!mounted) return;
       setState(() => _remaining = _computeRemaining());
     });
+    // Silent auto-refresh every 60s so podium + earnings stay live without
+    // requiring a pull-to-refresh (parity with web react-query staleTime).
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (!mounted) return;
+      _cubit.load();
+    });
     _remaining = _computeRemaining();
   }
+
 
   Duration _computeRemaining() {
     final s = _cubit.state;
@@ -74,6 +82,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _autoRefreshTimer?.cancel();
     _cubit.close();
     super.dispose();
   }
