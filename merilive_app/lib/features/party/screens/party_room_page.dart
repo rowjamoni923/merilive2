@@ -554,15 +554,16 @@ class _BottomBarState extends State<_BottomBar> {
               onTap: cubit.leaveSeat,
             ),
           _circleBtn(
+            icon: Icons.music_note_rounded,
+            color: const Color(0xFF10B981),
+            onTap: () => showPartyMusicSheet(context),
+          ),
+          _circleBtn(
             icon: Icons.card_giftcard_rounded,
             color: Colors.pinkAccent,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Gift panel — arrives with gifting bridge'),
-                duration: Duration(seconds: 2),
-              ));
-            },
+            onTap: () => showPartyGiftSheet(context),
           ),
+
         ],
       ),
     );
