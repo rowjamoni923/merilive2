@@ -262,4 +262,123 @@ class PartyRoomRepository {
         .update({'left_at': DateTime.now().toIso8601String()})
         .eq('id', participantId);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // PD6 — Seat request flow (viewer → host approval)
+  // ─────────────────────────────────────────────────────────────
+
+  /// Viewer asks the host for a specific seat. Idempotent: reuses any
+  /// existing `pending` row instead of stacking duplicates.
+  Future<void> requestSeat({
+    required String roomId,
+    required String userId,
+    required int seatNumber,
+  }) async {
+    final existing = await _supabase
+        .from('seat_requests')
+        .select('id')
+        .eq('room_id', roomId)
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .maybeSingle();
+    if (existing != null) return;
+    await _supabase.from('seat_requests').insert({
+      'room_id': roomId,
+      'user_id': userId,
+      'requester_id': userId,
+      'seat_number': seatNumber,
+      'seat_position': seatNumber,
+      'status': 'pending',
+    });
+  }
+
+  Future<void> cancelSeatRequest({
+    required String roomId,
+    required String userId,
+  }) async {
+    await _supabase
+        .from('seat_requests')
+        .update({
+          'status': 'cancelled',
+          'responded_at': DateTime.now().toIso8601String(),
+        })
+        .eq('room_id', roomId)
+        .eq('user_id', userId)
+        .eq('status', 'pending');
+  }
+
+  Future<List<PartySeatRequest>> loadPendingRequests(String roomId) async {
+    final rows = await _supabase
+        .from('seat_requests')
+        .select('id, user_id, requester_id, seat_number, seat_position, created_at')
+        .eq('room_id', roomId)
+        .eq('status', 'pending')
+        .order('created_at', ascending: true);
+    final list = (rows as List).cast<Map>();
+    if (list.isEmpty) return const [];
+    final userIds = <String>{
+      for (final r in list)
+        if ((r['user_id'] ?? r['requester_id']) != null)
+          (r['user_id'] ?? r['requester_id']).toString(),
+    };
+    final profileMap = <String, Map<String, dynamic>>{};
+    if (userIds.isNotEmpty) {
+      final profs = await _supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, user_level')
+          .inFilter('id', userIds.toList());
+      for (final p in (profs as List).cast<Map>()) {
+        profileMap[p['id'].toString()] = p.cast<String, dynamic>();
+      }
+    }
+    return [
+      for (final r in list)
+        PartySeatRequest.fromRow(
+          r.cast<String, dynamic>(),
+          displayName: profileMap[
+                  (r['user_id'] ?? r['requester_id']).toString()]
+              ?['display_name'] as String?,
+          avatarUrl: profileMap[
+                  (r['user_id'] ?? r['requester_id']).toString()]
+              ?['avatar_url'] as String?,
+          userLevel: (profileMap[
+                      (r['user_id'] ?? r['requester_id']).toString()]
+                  ?['user_level'] as num?)
+                  ?.toInt() ??
+              0,
+        ),
+    ];
+  }
+
+  /// Host approves — assigns the requester to the seat and closes the request.
+  Future<void> approveSeatRequest({
+    required String requestId,
+    required String roomId,
+    required String requesterUserId,
+    required int seatNumber,
+  }) async {
+    await takeSeat(
+      roomId: roomId,
+      userId: requesterUserId,
+      seatNumber: seatNumber,
+    );
+    await _supabase
+        .from('seat_requests')
+        .update({
+          'status': 'approved',
+          'responded_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', requestId);
+  }
+
+  Future<void> denySeatRequest({required String requestId}) async {
+    await _supabase
+        .from('seat_requests')
+        .update({
+          'status': 'denied',
+          'responded_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', requestId);
+  }
 }
+
