@@ -197,30 +197,7 @@ class PartyRoomCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      // Lock (bottom-right).
-                      if (room.isPrivate)
-                        Positioned(
-                          bottom: 6,
-                          right: 6,
-                          child: Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.95),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.35),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.lock_rounded,
-                                size: 12, color: Color(0xFFD97706)),
-                          ),
-                        ),
+                      // Party rooms are always public — no lock badge.
                     ],
                   ),
                 ),

@@ -145,7 +145,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       final stream = await _client
           .from('live_streams')
           .select(
-              'id, host_id, title, status, viewer_count, total_coins, coin_count, live_privacy, live_password_hash')
+              'id, host_id, title, status, viewer_count, total_coins, coin_count')
           .eq('id', widget.streamId)
           .maybeSingle();
 
@@ -153,19 +153,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         setState(() {
           _loading = false;
           _error = 'This stream is no longer available.';
-        });
-        return;
-      }
-
-      // H4 — privacy gate. Private streams are host+invitee only; if the
-      // caller isn't the host, refuse before we touch LiveKit or RPCs.
-      final privacy = (stream['live_privacy'] as String?) ?? 'public';
-      final myId = _client.auth.currentUser?.id;
-      final isHostRow = stream['host_id'] == myId;
-      if (privacy == 'private' && !isHostRow) {
-        setState(() {
-          _loading = false;
-          _error = 'This live stream is private.';
         });
         return;
       }
@@ -234,33 +221,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         final name =
             _client.auth.currentUser?.userMetadata?['name']?.toString() ??
                 'viewer';
-
-        // H4 — password-locked streams: prompt viewer before join RPC.
-        String? password;
-        if (privacy == 'password') {
-          password = await _promptLivePassword();
-          if (!mounted) return;
-          if (password == null || password.isEmpty) {
-            setState(() {
-              _loading = false;
-              _error = 'Password required to enter this live stream.';
-            });
-            return;
-          }
-        }
-
         try {
           await LiveViewerBridge.instance.joinAsViewer(
             streamId: widget.streamId,
             participantName: name,
-            password: password,
           );
         } catch (e) {
           if (mounted) {
-            final needsPwd = e.toString().contains('live_password_required');
-            setState(() => _error = needsPwd
-                ? 'Incorrect password. Please rejoin and try again.'
-                : 'Unable to join stream: $e');
+            setState(() => _error = 'Unable to join stream: $e');
           }
         }
       }
@@ -632,36 +600,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         : await b.raise(streamId: widget.streamId);
     if (!mounted) return;
     if (ok) _snack(raised ? 'Hand lowered' : '✋ Hand raised');
-
-  Future<String?> _promptLivePassword() async {
-    final ctrl = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1F2937),
-        title: const Text('Password required',
-            style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: ctrl,
-          obscureText: true,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Enter stream password',
-            hintStyle: TextStyle(color: Colors.white38),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, null),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-              child: const Text('Enter')),
-        ],
-      ),
-    );
   }
 
   Future<void> _shareStream() async {

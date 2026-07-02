@@ -100,12 +100,8 @@ class _LiveFeedPageState extends State<LiveFeedPage> {
     try {
       final rows = await _client
           .from('live_streams')
-          .select(
-              'id, title, host_id, viewer_count, thumbnail_url, created_at, live_privacy')
+          .select('id, title, host_id, viewer_count, thumbnail_url, created_at')
           .eq('is_active', true)
-          // H4 — hide fully-private streams from public feed. Password-
-          // protected streams stay visible with a padlock at the card level.
-          .neq('live_privacy', 'private')
           .order('viewer_count', ascending: false)
           .limit(50);
 
