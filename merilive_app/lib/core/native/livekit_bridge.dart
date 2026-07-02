@@ -96,4 +96,17 @@ class LiveKitBridge {
 
   Future<Map<String, dynamic>> setVideoVisible(bool visible) =>
       _invoke('setVideoVisible', {'visible': visible});
+
+  // ── C9 — call HUD controls (safe no-ops when native lacks the method) ─
+
+  /// Mute/unmute the local audio publication.
+  Future<Map<String, dynamic>> setMicEnabled(bool enabled) =>
+      _invoke('setMicEnabled', {'enabled': enabled});
+
+  /// Flip between front/back camera (also toggles mirror to match).
+  Future<Map<String, dynamic>> switchCamera() => _invoke('switchCamera');
+
+  /// Toggle GPUPixel beauty pipeline (smooth + white + slim).
+  Future<Map<String, dynamic>> setBeautyEnabled(bool enabled) =>
+      _invoke('setBeautyEnabled', {'enabled': enabled});
 }

@@ -77,19 +77,25 @@ class PrivateCallBridge {
     return payload;
   }
 
+  /// C9 — mic mute wired to native LiveKit local audio publication.
   Future<void> setMuted(bool muted) async {
-    // Native side listens on publishAudio; we toggle via connect args on
-    // rebind. Minimal parity: use setVideoVisible-like helper if present.
-    // The Kotlin plugin already exposes local audio mute via the LiveKit
-    // publication toggle — surface as no-op if unimplemented on host.
     try {
-      await LiveKitBridge.instance
-          .setVideoVisible(true); // keeps renderer live
+      await LiveKitBridge.instance.setMicEnabled(!muted);
     } catch (_) {}
-    // Actual mic mute is applied server-side by `mark_call_reconnecting`
-    // family; UI mute toggling is deferred to C9.
-    // ignore: unused_local_variable
-    final _ = muted;
+  }
+
+  /// C9 — flip camera (front ↔ back) via native bridge.
+  Future<void> flipCamera() async {
+    try {
+      await LiveKitBridge.instance.switchCamera();
+    } catch (_) {}
+  }
+
+  /// C9 — toggle beauty pipeline (GPUPixel) via native bridge.
+  Future<void> setBeauty(bool enabled) async {
+    try {
+      await LiveKitBridge.instance.setBeautyEnabled(enabled);
+    } catch (_) {}
   }
 
   Future<void> hangUp({
@@ -113,10 +119,5 @@ class PrivateCallBridge {
     }
     _connected = false;
     _callId = null;
-    if (durationSeconds != null) {
-      // Random-Match settlement — no-op for direct dial.
-      // Caller passes duration only when the call was initiated from a
-      // random_call_session so the server can reconcile the fan-out row.
-    }
   }
 }
