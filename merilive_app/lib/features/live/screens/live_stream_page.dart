@@ -63,6 +63,12 @@ import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
 import '../widgets/pk_battle_result.dart';
 import '../widgets/pk_random_match_notification.dart';
+import '../widgets/premium_viewer_profile_card.dart';
+import '../widgets/live_tasks_card.dart';
+import '../widgets/new_host_bonus_card.dart';
+import '../data/viewer_profile_bridge.dart';
+import '../data/live_tasks_bridge.dart';
+import '../data/new_host_bonus_bridge.dart';
 import '../widgets/reactions_picker_sheet.dart';
 import '../data/live_reactions_bus.dart';
 import '../../party/widgets/party_game_selection_sheet.dart';
@@ -325,6 +331,12 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
       // Phase E — host-only content-safety + call-focus.
       if (_isHost) {
+        // H5 P0 #5 — new-host live bonus: fetch state + start minute ticker.
+        unawaited(_refreshHostBonusState());
+        NewHostBonusBridge.instance.startMinuteTicker(
+          _client.auth.currentUser?.id ?? '',
+          onEachTick: _refreshHostBonusState,
+        );
         final uid = _client.auth.currentUser?.id ?? '';
         _faceDetection = LiveFaceDetection(
           streamId: widget.streamId,
@@ -436,6 +448,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _joinSub?.cancel();
     _randomPkTimeout?.cancel();
     _overlayTicker?.cancel();
+    NewHostBonusBridge.instance.stopMinuteTicker();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     LiveReactionsBus.instance.detach();
@@ -778,7 +791,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         );
         break;
       case 'tasks':
-        _openExternal('https://merilive.top/tasks');
+        _openTasksSheet();
         break;
       case 'topup':
         _openExternal('https://merilive.top/topup');
@@ -994,6 +1007,61 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     await PKBattleResult.show(context, data);
   }
 
+  // ── H5 P0 #4 — Viewer profile card (tap chat name → premium popup). ──
+  Future<void> _openViewerProfile(String userId) async {
+    if (!mounted) return;
+    final profile =
+        await ViewerProfileBridge.instance.fetchByUserId(userId);
+    if (!mounted || profile == null) return;
+    await PremiumViewerProfileCard.show(
+      context,
+      profile: profile,
+      viewerIsHost: _isHost,
+      onFollow: () async {
+        try {
+          await LiveFollowBridge.instance.toggle(userId);
+        } catch (_) {}
+      },
+      onSendGift: _openGiftPanel,
+      onReport: () => _snack('Report submitted'),
+    );
+  }
+
+  // ── H5 P0 #5 — Host tasks bottom sheet (in-live daily missions). ─────
+  Future<void> _openTasksSheet() async {
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final tasks = await LiveTasksBridge.instance.loadForHost(me.id);
+    if (!mounted) return;
+    if (tasks.isEmpty) {
+      _snack('No live tasks available');
+      return;
+    }
+    await LiveTasksCard.show(
+      context,
+      tasks: tasks,
+      onClaim: (t) async {
+        final err = await LiveTasksBridge.instance.claim(t.id);
+        if (!mounted) return;
+        _snack(err ?? 'Reward claimed +${t.rewardCoins}');
+      },
+    );
+  }
+
+  // ── H5 P0 #5 — New-host bonus state (auto-mounted for host). ─────────
+  NewHostBonusState _bonusState = NewHostBonusState.empty;
+  bool _bonusDismissed = false;
+
+  Future<void> _refreshHostBonusState() async {
+    final me = _client.auth.currentUser;
+    if (me == null || !_isHost) return;
+    final s = await NewHostBonusBridge.instance.fetchState(me.id);
+    if (!mounted) return;
+    setState(() => _bonusState = s);
+  }
+
+
+
 
 
   // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
@@ -1175,7 +1243,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  LiveChatOverlay(messages: _chatMessages),
+                  LiveChatOverlay(
+                    messages: _chatMessages,
+                    onUserTap: (userId, _) => _openViewerProfile(userId),
+                  ),
                   const SizedBox(height: 8),
                   LiveChatComposer(onSend: _sendChat),
                 ],
@@ -1196,6 +1267,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ),
               ),
 
+            // H5 P0 #5 — Host-only new-host bonus card (auto-mounts within
+            // eligibility window; dismiss ✕ hides for the session).
+            if (_isHost && _bonusState.eligible && !_bonusDismissed)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 140,
+                left: 0,
+                right: 0,
+                child: NewHostBonusCard(
+                  daysLeft: _bonusState.daysLeft,
+                  minutesStreamed: _bonusState.minutesStreamed,
+                  coinsEarned: _bonusState.coinsEarned,
+                  milestones: _bonusState.milestones,
+                  onDismiss: () => setState(() => _bonusDismissed = true),
+                ),
+              ),
 
 
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).

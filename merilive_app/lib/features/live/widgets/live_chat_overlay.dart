@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../data/live_chat_bridge.dart';
@@ -9,10 +10,14 @@ class LiveChatOverlay extends StatefulWidget {
     super.key,
     required this.messages,
     this.maxHeight = 260,
+    this.onUserTap,
   });
 
   final List<LiveChatMessage> messages;
   final double maxHeight;
+  /// H5 P0 #4 — fires when a viewer name is tapped so the parent can open
+  /// `PremiumViewerProfileCard`.
+  final void Function(String userId, String displayName)? onUserTap;
 
   @override
   State<LiveChatOverlay> createState() => _LiveChatOverlayState();
@@ -74,19 +79,37 @@ class _LiveChatOverlayState extends State<LiveChatOverlay> {
           controller: _controller,
           padding: const EdgeInsets.only(bottom: 4),
           itemCount: widget.messages.length,
-          itemBuilder: (context, i) => _ChatBubble(msg: widget.messages[i]),
+          itemBuilder: (context, i) => _ChatBubble(
+            msg: widget.messages[i],
+            onUserTap: widget.onUserTap,
+          ),
         ),
       ),
     );
   }
 }
 
-class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.msg});
+class _ChatBubble extends StatefulWidget {
+  const _ChatBubble({required this.msg, this.onUserTap});
   final LiveChatMessage msg;
+  final void Function(String userId, String displayName)? onUserTap;
+
+  @override
+  State<_ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<_ChatBubble> {
+  TapGestureRecognizer? _nameTap;
+
+  @override
+  void dispose() {
+    _nameTap?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final msg = widget.msg;
     final isSystem = msg.type == 'system';
     final isGift = msg.type == 'gift';
 
@@ -113,6 +136,14 @@ class _ChatBubble extends StatelessWidget {
 
     final nameColor =
         isGift ? const Color(0xFFFCD34D) : const Color(0xFF93C5FD);
+
+    // H5 P0 #4 — attach tap recognizer to the name span when we know the
+    // sender's userId and a parent handler is wired.
+    final tappable = widget.onUserTap != null && msg.userId != null;
+    if (tappable) {
+      _nameTap ??= TapGestureRecognizer()
+        ..onTap = () => widget.onUserTap!(msg.userId!, msg.displayName);
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -160,6 +191,7 @@ class _ChatBubble extends StatelessWidget {
                   color: nameColor,
                   fontWeight: FontWeight.w700,
                 ),
+                recognizer: tappable ? _nameTap : null,
               ),
               TextSpan(text: msg.message),
             ],
@@ -169,3 +201,4 @@ class _ChatBubble extends StatelessWidget {
     );
   }
 }
+
