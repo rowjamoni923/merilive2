@@ -168,7 +168,8 @@ class _PartyRoomView extends StatelessWidget {
                 child: Column(
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
-                    const SizedBox(height: 6),
+                    const PartyBannersStrip(),
+                    const SizedBox(height: 4),
                     if (room.roomType == PartyRoomType.game) ...[
                       Expanded(
                         child: _ModeLayout(
