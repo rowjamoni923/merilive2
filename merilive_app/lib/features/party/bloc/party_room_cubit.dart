@@ -326,6 +326,45 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     await _repo.hostKick(participantId: participantId);
   }
 
+  // ─── M4 — Party Room settings + moderation ────────────────────────
+  Future<void> hostBan({
+    required String participantId,
+    required String userId,
+  }) async {
+    final me = _uid;
+    if (!isHost || me == null) return;
+    await _repo.banUser(
+      hostId: me,
+      participantId: participantId,
+      userId: userId,
+    );
+  }
+
+  Future<void> hostMuteAll() async {
+    final me = _uid;
+    if (!isHost || me == null) return;
+    await _repo.muteAllSeats(roomId: roomId, hostId: me);
+    await _refreshSeats();
+  }
+
+  Future<void> updateRoomSettings({
+    String? name,
+    String? welcomeMessage,
+    String? announcement,
+    String? backgroundUrl,
+    bool? isLocked,
+  }) async {
+    if (!isHost) return;
+    await _repo.updateRoomSettings(
+      roomId: roomId,
+      name: name,
+      welcomeMessage: welcomeMessage,
+      announcement: announcement,
+      backgroundUrl: backgroundUrl,
+      isLocked: isLocked,
+    );
+  }
+
   // ─── PD6 — Seat request flow ──────────────────────────────────────
   Future<void> _refreshRequests() async {
     try {
