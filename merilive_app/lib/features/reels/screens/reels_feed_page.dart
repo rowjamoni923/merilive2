@@ -347,7 +347,7 @@ class _FeedPageViewState extends State<_FeedPageView> {
                           .read<ReelsFeedCubit>()
                           .toggleFollow(r.userId),
                       onAvatarTap: (r) => _openProfile(context, r.userId),
-                      onComment: (r) => _openCommentsSheet(context, r),
+                      onComment: (r) => _openCommentsSheet(r),
                       onGift: (r) => _openGiftPlaceholder(context, r),
                       onShare: (r) => _openSharePlaceholder(context, r),
                       onMore: (r) => _openMoreMenu(context, r),
