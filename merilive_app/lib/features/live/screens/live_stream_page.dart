@@ -1000,6 +1000,61 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     await PKBattleResult.show(context, data);
   }
 
+  // ── H5 P0 #4 — Viewer profile card (tap chat name → premium popup). ──
+  Future<void> _openViewerProfile(String userId) async {
+    if (!mounted) return;
+    final profile =
+        await ViewerProfileBridge.instance.fetchByUserId(userId);
+    if (!mounted || profile == null) return;
+    await PremiumViewerProfileCard.show(
+      context,
+      profile: profile,
+      viewerIsHost: _isHost,
+      onFollow: () async {
+        try {
+          await LiveFollowBridge.instance.toggle(userId);
+        } catch (_) {}
+      },
+      onSendGift: _openGiftPanel,
+      onReport: () => _snack('Report submitted'),
+    );
+  }
+
+  // ── H5 P0 #5 — Host tasks bottom sheet (in-live daily missions). ─────
+  Future<void> _openTasksSheet() async {
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final tasks = await LiveTasksBridge.instance.loadForHost(me.id);
+    if (!mounted) return;
+    if (tasks.isEmpty) {
+      _snack('No live tasks available');
+      return;
+    }
+    await LiveTasksCard.show(
+      context,
+      tasks: tasks,
+      onClaim: (t) async {
+        final err = await LiveTasksBridge.instance.claim(t.id);
+        if (!mounted) return;
+        _snack(err ?? 'Reward claimed +${t.rewardCoins}');
+      },
+    );
+  }
+
+  // ── H5 P0 #5 — New-host bonus state (auto-mounted for host). ─────────
+  NewHostBonusState _bonusState = NewHostBonusState.empty;
+  bool _bonusDismissed = false;
+
+  Future<void> _refreshHostBonusState() async {
+    final me = _client.auth.currentUser;
+    if (me == null || !_isHost) return;
+    final s = await NewHostBonusBridge.instance.fetchState(me.id);
+    if (!mounted) return;
+    setState(() => _bonusState = s);
+  }
+
+
+
 
 
   // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
