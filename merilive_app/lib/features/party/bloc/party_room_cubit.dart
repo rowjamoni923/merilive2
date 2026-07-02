@@ -128,6 +128,8 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       if (uid != null) {
         await _repo.joinAsViewer(roomId, uid);
         emit(state.copyWith(isJoined: true));
+        // PD5b — connect to LiveKit as subscribe-only viewer for room audio.
+        unawaited(_connectViewer());
       }
 
       _rt.subscribe(
@@ -141,6 +143,18 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
+
+  Future<void> _connectViewer() async {
+    try {
+      await _lk.connectAsViewer(
+        roomId: roomId,
+        participantName: _uid ?? 'viewer',
+      );
+    } catch (_) {
+      // Non-fatal: chat/seats still work; user just won't hear audio.
+    }
+  }
+
 
   Future<void> _refreshRoom() async {
     try {
