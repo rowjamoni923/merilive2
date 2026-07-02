@@ -235,7 +235,12 @@ class _ViewerTile extends StatelessWidget {
         ? ['🥇', '🥈', '🥉'][rank]
         : '${rank + 1}';
 
-    return Padding(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: onModerate == null
+          ? null
+          : () => onModerate!(viewer.userId, viewer.displayName),
+      child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
       child: Row(
         children: [
