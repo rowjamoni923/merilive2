@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/router/app_router.dart';
 import 'core/storage/hydrated_storage.dart';
 import 'core/supabase/supabase_client.dart';
+import 'features/gifting/data/gift_animation_config.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
@@ -24,6 +27,9 @@ Future<void> main() async {
 
   await HydratedStorageBootstrap.init();
   await SupabaseBootstrap.init();
+
+  // Preload live-tunable gift animation config (non-blocking failures OK).
+  unawaited(GiftAnimationConfig.instance.initialize());
 
   runApp(const MeriLiveApp());
 }

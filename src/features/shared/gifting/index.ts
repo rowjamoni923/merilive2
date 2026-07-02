@@ -44,7 +44,6 @@ export { useFlyingGiftBanners } from '@/hooks/useFlyingGiftBanners';
 // ========== ROOM GIFTS (From Room System) ==========
 export { useRoomGifts } from '@/features/shared/room/useRoomGifts';
 
-// ========== LEGACY EXPORTS (For backward compatibility) ==========
-// These are deprecated - use GiftPanel from above instead
-export { ChatGiftPanel } from '@/components/chat/ChatGiftPanel';
-export { default as PartyGiftPanel } from '@/components/party/PartyGiftPanel';
+// Legacy panels (ChatGiftPanel / PartyGiftPanel) removed 2026-07-02 —
+// all surfaces route through the canonical `GiftPanel` above.
+
