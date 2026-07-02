@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../services/audio_focus_auto_mute.dart';
+import '../services/live_face_detection.dart';
+import '../services/live_voice_monitor.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
