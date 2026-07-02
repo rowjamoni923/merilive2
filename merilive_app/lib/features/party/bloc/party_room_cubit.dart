@@ -108,6 +108,11 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   final SupabaseClient _supabase;
   final PartyLiveKitService _lk;
 
+  /// Public repo handle for PD7 gift/music sheets.
+  PartyRoomRepository get repository => _repo;
+
+
+
 
   String? get _uid => _supabase.auth.currentUser?.id;
   bool get isHost =>
