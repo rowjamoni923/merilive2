@@ -16,18 +16,53 @@ class PrivateCallBridge {
 
   bool _connected = false;
   String? _callId;
+  String? _holdId;
 
   String? get callId => _callId;
+  String? get holdId => _holdId;
   bool get isConnected => _connected;
+
+  /// M5 — Reserve dual-currency (max(coins,diamonds)) balance BEFORE the
+  /// server-authoritative `start_private_call` RPC so a low-balance caller
+  /// is rejected up-front instead of being cut mid-first-minute. Mirrors
+  /// `reserve_call_balance` used by the web `usePrivateCall` hook.
+  Future<Map<String, dynamic>?> reserveBalance({
+    required String hostId,
+    required int estimatedCoins,
+  }) async {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) throw StateError('not_authenticated');
+    final rpc = await _supabase.rpc('reserve_call_balance', params: {
+      'p_caller_id': uid,
+      'p_host_id': hostId,
+      'p_estimated_coins': estimatedCoins,
+    });
+    final payload = (rpc is Map) ? Map<String, dynamic>.from(rpc) : null;
+    if (payload != null && payload['success'] == true) {
+      _holdId = payload['hold_id'] as String?;
+    }
+    return payload;
+  }
 
   /// Result of `start_private_call` RPC or null when the server rejects the
   /// call (host busy, insufficient balance, disabled, etc.).
   Future<Map<String, dynamic>?> startAsCaller({
     required String hostId,
     required String participantName,
+    int? estimatedCoins,
   }) async {
     final uid = _supabase.auth.currentUser?.id;
     if (uid == null) throw StateError('not_authenticated');
+
+    // M5 — up-front reservation (skipped when caller didn't provide an
+    // estimate, e.g. random-match where the queue already gated balance).
+    if (estimatedCoins != null && estimatedCoins > 0) {
+      final res = await reserveBalance(
+        hostId: hostId,
+        estimatedCoins: estimatedCoins,
+      );
+      if (res != null && res['success'] == false) return res;
+    }
 
     final rpc = await _supabase.rpc(
       'start_private_call',
