@@ -50,7 +50,9 @@ class IncomingCallActivity : AppCompatActivity() {
         initializeViews()
         startRinging()
         acquireWakeLock()
+        registerDismissReceiver()
     }
+
 
     private fun setupWindowFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
