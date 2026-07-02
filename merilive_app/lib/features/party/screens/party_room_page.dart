@@ -213,7 +213,10 @@ class _PartyRoomView extends StatelessWidget {
               ),
               // A11 — Flying entry name-bar overlay on room joins.
               const EntryNameBarOverlay(),
+              // M9 — Self level-up celebration overlay.
+              const LevelUpCelebrationOverlay(),
             ],
+
           ),
         );
       },
