@@ -137,6 +137,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   final LiveOverlayController _overlay = LiveOverlayController();
   // Phase I14 — session-scope running totals per gifter (host-side leaderboard).
   final Map<String, _GifterTotal> _gifterTotals = {};
+  // Phase I15 — 1s ticker that polls native getStats() for connection
+  // quality and re-emits PK remaining-seconds between realtime snapshots.
+  Timer? _overlayTicker;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
