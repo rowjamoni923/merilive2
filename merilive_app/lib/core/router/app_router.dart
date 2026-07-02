@@ -79,6 +79,9 @@ class AppRouter extends _$AppRouter {
           page: LiveStreamRoute.page,
           path: '/live/:streamId',
         ),
+        // Live viewer feed swipe (TikTok/Chamet/Bigo/Hollah/WeJoy style).
+        AutoRoute(page: LiveFeedRoute.page, path: '/live-feed'),
+        AutoRoute(page: LiveFeedRoute.page, path: '/live-feed/:streamId'),
         AutoRoute(
           page: ProfileDetailPlaceholderRoute.page,
           path: '/profile-detail/:userId',
