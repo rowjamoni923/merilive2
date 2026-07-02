@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/private_call_bridge.dart';
 import '../widgets/call_quality_hud.dart';
+import '../../gifting/data/gift_catalog_repository.dart';
+import '../../gifting/widgets/unified_gift_sheet.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 import '../../../shared/widgets/room_bottom_bar.dart';
 
@@ -227,11 +229,20 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
 
   Future<void> _openGiftSheet() async {
     HapticFeedback.mediumImpact();
-    // Placeholder — the shared native gift sheet ships in the Gifts sector.
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFF0B1220),
-      builder: (_) => const _GiftSheetPlaceholder(),
+    // M8 — single UnifiedGiftSheet used across Live / Party / Call / Chat /
+    // Reels. Recipient locked to the peer host; `contextId` is the call id
+    // so `gift_transactions` rows are attributed to this session.
+    await showUnifiedGiftSheet(
+      context,
+      surface: GiftSurface.privateCall,
+      contextId: widget.bridge.callId,
+      recipients: [
+        GiftRecipient(
+          id: widget.hostId,
+          label: widget.hostName,
+          avatarUrl: widget.hostAvatarUrl,
+        ),
+      ],
     );
   }
 
@@ -814,42 +825,6 @@ class _Orb extends StatelessWidget {
   }
 }
 
-class _GiftSheetPlaceholder extends StatelessWidget {
-  const _GiftSheetPlaceholder();
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.card_giftcard_rounded,
-                color: Color(0xFFEC4899), size: 40),
-            const SizedBox(height: 10),
-            const Text(
-              'Gift Panel',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Shared native gift sheet lands in the Gifts sector.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// M7 — Compact billing chip. Rendered only after the first
 /// `bill_call_minute` tick populates `viewer_rate_per_min`, so we never

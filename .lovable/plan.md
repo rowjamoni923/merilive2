@@ -83,15 +83,17 @@ Billing HUD: `ActiveCallPage._statusChannel` now reads `last_billed_minute` + `v
 
 
 
-## M8 — Unified Gift Panel + animations
+## M8 — Unified Gift Panel + animations ✅
 
-Web has one `GiftPanel` used everywhere (Live / Party / Call / Chat / Reels). Flutter currently has separate sheets — consolidate into one `UnifiedGiftPanel`:
+`showUnifiedGiftSheet` (surface + recipients + contextId) is the single panel across:
+- **Live** — `LiveStreamPage._openGiftPanel` (`GiftSurface.live`)
+- **Party** — `showPartyGiftSheet` adapter builds host+seats recipients, picks `partyAudio/Video/Game` surface
+- **Call** — M8 wire-up: `ActiveCallPage._openGiftSheet` now delegates to unified sheet with peer host as sole recipient (`GiftSurface.privateCall`, `contextId = callId`). Removed the `_GiftSheetPlaceholder` stub.
+- **Reels** — retained custom `_ReelGiftSheet` (has its own edge-function send path via `ReelsGiftRepository.sendGift`); consolidation deferred so send atomicity isn't touched.
 
-- Same tabs (All / Popular / Lucky / Combo / Exclusive / Backpack)
-- Same combo window (`gift_combo_window` table)
-- Same recipient picker (seat occupants for party, peer for call, host for live)
-- Native VAP/SVGA renderer for full-screen (already A5)
-- Flying gift path (small gifts) — verify Flutter has FlyingGiftAnimation equivalent
+Full-screen VAP/SVGA playback owned by native Pkg438 dispatcher reacting to `gift_transactions` broadcast — sheet never plays animations itself. Flying gift path (small-gift ballistic overlay) still Android-native follow-up (Pkg438 Phase B).
+
+
 
 ## M9 — Entry / vehicle / name-bar animations
 
