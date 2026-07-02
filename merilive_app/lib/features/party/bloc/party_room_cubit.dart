@@ -407,6 +407,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   Future<void> close() async {
     await _rt.unsubscribe();
     await _lk.disconnect();
+    await _hostVideo.stop();
     await leaveRoom();
     return super.close();
   }
