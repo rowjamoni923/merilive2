@@ -35,9 +35,14 @@ happens.
      implementation platform("com.google.firebase:firebase-bom:33.5.0")
      implementation "com.google.firebase:firebase-messaging-ktx"
      implementation "androidx.core:core-ktx:1.13.1"
+     // NativeGiftAnimationPlugin / NativeEntryAnimationPlugin
+     implementation "com.tencent.qgame:vap:1.0.15"
+     implementation "com.github.yyued:SVGAPlayer-Android:2.5.14"
+     implementation "com.airbnb.android:lottie:6.4.0"
    }
    packagingOptions { pickFirst '**/libc++_shared.so' }
    ```
+
 3. Root `android/build.gradle` — add the Google Services classpath:
    ```gradle
    buildscript {
