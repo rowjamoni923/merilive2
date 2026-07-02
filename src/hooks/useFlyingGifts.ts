@@ -70,7 +70,7 @@ export function useFlyingGifts() {
     // Auto-route high-value gifts to the global full-screen animation layer.
     // Every gift-capable surface benefits without page-level wiring.
     const perUnitCoins = gift.coins || 0;
-    if (perUnitCoins >= FULL_SCREEN_GIFT_COIN_THRESHOLD) {
+    if (isFullScreenGiftEnabled() && perUnitCoins >= getFullScreenGiftThreshold()) {
       try {
         enqueueFullScreenGift({
           gift: {
