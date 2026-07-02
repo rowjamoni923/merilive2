@@ -644,10 +644,22 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             // A11 — Flying entry name-bar overlay (Flutter fallback when
             // NativeEntryAnimationPlugin is unavailable).
             const EntryNameBarOverlay(),
+            // B7 — Cinematic full-width join banner for premium joins
+            // when the native VAP path isn't available.
+            const CinematicJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
 
+            // B4 — Right-anchored combo bar (real-time xN stacker).
+            Positioned(
+              right: 10,
+              bottom: MediaQuery.of(context).padding.bottom + 210,
+              child: LiveGiftComboBar(stream: LiveChatBridge.instance.gifts$),
+            ),
+
             // A2 — chat overlay + composer, docked above the bottom bar.
+            // B1 — Chat composer is available to the host too now; the
+            // web version lets hosts chat with viewers in-room.
             Positioned(
               left: 12,
               right: 12,
@@ -658,10 +670,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 children: [
                   LiveChatOverlay(messages: _chatMessages),
                   const SizedBox(height: 8),
-                  if (!_isHost) LiveChatComposer(onSend: _sendChat),
+                  LiveChatComposer(onSend: _sendChat),
                 ],
               ),
             ),
+
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
             if (_pkBattle != null)
               PkBattleOverlay(
