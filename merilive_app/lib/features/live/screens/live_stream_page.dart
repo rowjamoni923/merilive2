@@ -103,6 +103,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
       _subscribeRealtime();
 
+      // A2 — attach chat/gift feed for both host and viewer.
+      await LiveChatBridge.instance.attach(widget.streamId);
+      _chatSub = LiveChatBridge.instance.messages$.listen((m) {
+        if (mounted) setState(() => _chatMessages = m);
+      });
+      _chatMessages = LiveChatBridge.instance.snapshot;
+      final welcome = (host?['name']?.toString() ?? 'the host');
+      LiveChatBridge.instance
+          .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
+
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
       if (!_isHost) {
