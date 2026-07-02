@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/private_call_bridge.dart';
+import '../widgets/call_quality_hud.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 import '../../../shared/widgets/room_bottom_bar.dart';
 
