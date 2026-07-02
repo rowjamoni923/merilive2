@@ -95,13 +95,15 @@ Full-screen VAP/SVGA playback owned by native Pkg438 dispatcher reacting to `gif
 
 
 
-## M9 — Entry / vehicle / name-bar animations
+## M9 — Entry / vehicle / name-bar animations ✅
 
-Already A11 done. Remaining polish:
+A11 foundation + M9 polish complete:
 
-- Noble subscription priority ladder verified
-- Vehicle Entrances (`vehicle_entrances` table) rendered via native VAP
-- Level-up in-room celebration (web shows confetti on level threshold)
+- **Noble priority ladder fixed** — `EntryEffectsResult.nobleRankCode` is now populated only when the noble entrance URL is the one actually rendered (equipped/level entrance no longer gets promoted to priority 400 just because the user happens to own an active noble sub). `RoomEntryDispatcher` ladder: noble=400, level≥40=350, otherwise level+100, vehicle=300, name-bar=user_level.
+- **Vehicle Entrances** — resolved via `shop_items.animation_file_url` / `level_privileges.privilege_type='vehicle_entrance'` and enqueued into NativeEntryBridge (VAP/Lottie/image) at priority 300.
+- **Level-up in-room celebration** — new `LevelUpBridge` (Supabase Realtime UPDATE on `profiles` filtered to `id=self`, seeded baseline so no fire on initial snapshot, only emits on strict increase) + `LevelUpCelebrationOverlay` (60-piece confetti CustomPainter + orange gradient "Level Up! Lv N" chip, ~3.2s). Mounted in Live, Party, and Active Call surfaces.
+
+
 
 ## M10 — Games everywhere
 
