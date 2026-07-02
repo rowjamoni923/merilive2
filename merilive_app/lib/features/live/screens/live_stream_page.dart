@@ -91,6 +91,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   PkBattleSnapshot? _pkBattle;
   StreamSubscription<PkBattleSnapshot?>? _pkSub;
 
+  // R6a — challenger-side random-match search state (lifted from panel so
+  // the search survives closing the sheet). Mirrors LiveStream.tsx.
+  String? _randomPkSessionId;
+  Timer? _randomPkTimeout;
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
