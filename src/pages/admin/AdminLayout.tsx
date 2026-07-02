@@ -485,6 +485,13 @@ const navGroups: NavGroup[] = [
         description: "SVGA/Lottie animations played in live rooms when a high-level or VIP user enters.",
       },
       {
+        label: "Gift Animation Config",
+        icon: Sparkles,
+        path: "/admin/gift-animation-config",
+        hubKey: "visual-hub",
+        description: "Global full-screen gift animation toggle + coin threshold (web + Flutter).",
+      },
+      {
         label: "Entry Banners",
         icon: Image,
         path: "/admin/entry-banners",

@@ -8,6 +8,7 @@ import 'core/router/app_router.dart';
 import 'core/storage/hydrated_storage.dart';
 import 'core/supabase/supabase_client.dart';
 import 'features/gifting/data/gift_animation_config.dart';
+import 'features/gifting/widgets/full_screen_gift_overlay.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
@@ -58,6 +59,8 @@ class _MeriLiveAppState extends State<MeriLiveApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         routerConfig: _router.config(),
+        builder: (context, child) =>
+            GlobalGiftOverlay(child: child ?? const SizedBox.shrink()),
       ),
     );
   }
