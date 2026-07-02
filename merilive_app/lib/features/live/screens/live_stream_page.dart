@@ -13,6 +13,8 @@ import '../services/live_face_detection.dart';
 import '../services/live_voice_monitor.dart';
 import '../data/pk_opponent_room_bridge.dart';
 import '../widgets/pk_punishment_overlay.dart';
+import '../widgets/live_overlay_stack.dart';
+import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality;
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
@@ -125,6 +127,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   LiveVoiceMonitor? _voiceMonitor;
   AudioFocusAutoMute? _audioFocusMute;
 
+  // Phase I11 — unified overlay controller (viewer count, HUD, gift combos,
+  // premium banners, captions, audio unlock, top gifters, PK HUD).
+  final LiveOverlayController _overlay = LiveOverlayController();
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
@@ -172,6 +178,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _viewerCount = (stream['viewer_count'] as int?) ?? 0;
         _loading = false;
       });
+      _overlay.setViewerCount(_viewerCount);
 
       _subscribeRealtime();
 
@@ -296,6 +303,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               _viewerCount = (row['viewer_count'] as int?) ?? _viewerCount;
               _stream = {...?_stream, ...row};
             });
+            _overlay.setViewerCount(_viewerCount);
             if (status == 'ended' && !_isHost) {
               _autoLeaveOnEnded();
             }
@@ -367,6 +375,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // Fire-and-forget; page is being disposed anyway.
       LiveViewerBridge.instance.leave();
     }
+    _overlay.dispose();
     super.dispose();
   }
 
@@ -845,6 +854,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   },
                 ),
               ),
+            // Phase I11 — unified overlay layer. Additive; contributes viewer
+            // count HUD, gift combos, premium flying gift banners, premium
+            // join-chat mid-tier, top gifters column, captions, audio unlock,
+            // and PK HUD. Sits above chat + below action bar / modals.
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_overlay.audioUnlockNeeded,
+                child: LiveOverlayStack(controller: _overlay),
+              ),
+            ),
             // A3 — full action bar with host quick-actions.
             Positioned(
               left: 0,
