@@ -339,6 +339,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     NativeGiftBridge.instance.stopAll();
     RoomEntryDispatcher.instance.detach();
     _faceDetection?.dispose();
+    PkOpponentRoomBridge.instance.disconnect();
     _voiceMonitor?.dispose();
     _audioFocusMute?.dispose();
     // Best-effort viewer cleanup on route pop without pressing Leave
