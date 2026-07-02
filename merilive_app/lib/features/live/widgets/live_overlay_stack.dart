@@ -80,9 +80,11 @@ class LiveOverlayController extends ChangeNotifier {
   @override
   void dispose() {
     joinNotifications.dispose();
+    bigoBanner.dispose();
     premiumFlyingGifts.dispose();
     giftCombos.dispose();
     premiumJoinChat.dispose();
+    captionEvents.close();
     super.dispose();
   }
 }
