@@ -351,6 +351,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _randomPkTimeout?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
+    LiveReactionsBus.instance.detach();
     NativeGiftBridge.instance.stopAll();
     RoomEntryDispatcher.instance.detach();
     _faceDetection?.dispose();
