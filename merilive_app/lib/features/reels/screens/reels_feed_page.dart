@@ -230,6 +230,14 @@ class _FeedPageViewState extends State<_FeedPageView> {
   String? _lastActiveReelId;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncActive(context.read<ReelsFeedCubit>().state);
+    });
+  }
+
+  @override
   void didUpdateWidget(covariant _FeedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Lifecycle/mute changes may need to re-sync playback.
