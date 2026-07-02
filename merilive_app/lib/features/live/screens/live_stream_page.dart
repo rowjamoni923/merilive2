@@ -375,7 +375,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
-  // A4 — open viewers bottom sheet.
+  // A4 — open viewers bottom sheet. Host gets long-press → moderation.
   void _openViewersSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -384,7 +384,17 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       builder: (_) => LiveViewersSheet(
         streamId: widget.streamId,
         viewerCount: _viewerCount,
+        onModerate: _isHost ? _openModerationForViewer : null,
       ),
+    );
+  }
+
+  void _openModerationForViewer(String viewerId, String viewerName) {
+    LiveHostModerationSheet.show(
+      context,
+      roomName: 'live_${widget.streamId}',
+      identity: viewerId,
+      displayName: viewerName,
     );
   }
 
