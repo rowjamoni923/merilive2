@@ -184,3 +184,23 @@ class ProfileDetailPlaceholderPage extends StatelessWidget {
         sector: 'Sector 8 (Profile)',
       );
 }
+
+/// Party room placeholder — reached by entering a party from Discovery.
+/// Real party room (LiveKit seats + chat + gifts + games) lands next.
+@RoutePage()
+class PartyRoomPlaceholderPage extends StatelessWidget {
+  const PartyRoomPlaceholderPage({
+    super.key,
+    @PathParam('roomId') required this.roomId,
+  });
+  final String roomId;
+  @override
+  Widget build(BuildContext context) => _ComingSoon(
+        title: 'Party Room',
+        subtitle:
+            'Room ID: $roomId\n\nFull party room (seats, mic queue, chat, gifts, mini-games) lands with the Party broadcast step.',
+        icon: Icons.celebration_rounded,
+        gradient: const [Color(0xFF9333EA), Color(0xFF6366F1)],
+        sector: 'Sector 4 (Party broadcast)',
+      );
+}

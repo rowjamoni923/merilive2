@@ -1,75 +1,59 @@
-# Sector 3 — Reels / Discover Tab
+## Sector 4 — Party button (Discover page only)
 
-Flutter target: `merilive_app/lib/features/reels/` (new). Pixel + behavior parity with `src/pages/Reels.tsx` (1425 lines) plus Chamet/Bigo/TikTok-standard patterns from the background research brief (applied per step).
+**Correction accepted:** Party Discovery-এ কোনো live streaming card নেই। শুধু `party_rooms` (video / audio / game) দেখায়। Web source = `src/pages/Discover.tsx` (1000 LOC) — এইটাই ধরব, `PartyRooms.tsx` deprecated (`/` তে redirect)।
 
-Web `src/pages/Reels.tsx` stays untouched — Flutter is a parallel implementation.
+Create button আলাদা সেক্টরে (পরে)। এই sector-এ শুধু **Party discovery page** clear করব।
 
-## Build Order (R1 → R8)
+---
 
-### R1 — Data Layer
-- `reels_models.dart` — Reel, Comment, Sound, ReelCategory
-- `reels_repository.dart` — feed pagination (cursor by `created_at`), category list, per-reel comments, likes, share increment, view record
-- Ports web supabase queries: `reels` join `profiles`, `reel_likes`, `reel_comments`, `reel_categories`, `reel_shares`, `reel_views`, `saved_reels`, `followers`
-- Realtime channels for like_count / comment_count patches (parity with web `subscribeToTables`)
+### Web behavior (line-by-line audit summary of `Discover.tsx`)
 
-### R2 — Vertical Feed Skeleton
-- `reels_feed_page.dart` — `PageView.builder(scrollDirection: vertical)` with cached_network_image thumbnails
-- Category chips top strip (horizontal) — All / Following / per-category (data from `reel_categories`)
-- Empty + error + end-of-feed states (no fake skeletons — real spinner only per project rule)
-- Pull-to-refresh via `RefreshIndicator` on the page view wrapper
+- **Data**: `party_rooms` where `is_active = true` + live participant count from `party_room_participants` (`left_at IS NULL`) + host stitched from `profiles_public` (id, display_name, avatar, user_level, host_level, country_flag, country_code, gender, is_online, is_host, total_earnings, weekly_earnings, max_user_level).
+- **Level resolve**: `resolveLevelFromTiers()` per unique host → `getRequiredDisplayLevel(host)` for card border tier (≥40 red, ≥20 amber, else neutral).
+- **Realtime**: `subscribeToTables(['party_rooms','party_room_participants'])` with 1.5s debounce + direct `postgres_changes` UPDATE on `party_rooms` for instant-close on host end.
+- **Filters**:
+  - Tabs: `all / video / audio / game` (segmented).
+  - Country chips: All 🌍, BD, IN, PK, NP, PH, ID — filter by host `country_code`.
+  - Search: room name, host display_name, or room_code (Hash-prefixed).
+- **Sort**: by `current_participants` desc (game tab keeps same sort).
+- **Room-code quick-join**: dialog with 6-char code → `party_rooms.select().eq('room_code', code)` → join.
+- **Preview-before-enter dialog** (Chamet/Bigo pattern): tap card → dialog with host avatar/name/level, room name, type, participant count, entry fee, min-level, private lock, description, welcome message → "Enter Room" button.
+- **Feature gate**: `checkFeatureAccess('join_party', userLevel, isFemaleHost)` before navigate.
+- **Nav**: `/party/:id` on confirm.
+- **Perf**: `usePersistedCache('discover:rooms')` for instant paint, `useNativeImagePrefetch` on first-24 host avatars via `cdnAvatar(url,180,80)`, `NativePullToRefresh`, `PrewarmDiv` per card (LiveKit connection warmup for the target room).
+- **Card visual**: 2-col grid, host avatar as background (CDN-resized 180×80), dark gradient overlay, top-left type badge (Video/Audio/Game color-coded), top-right participants pill, bottom-left game-mode emoji chip (if running), bottom-right private-lock pill, tier-based outer shadow (red/amber/neutral).
 
-### R3 — Video Player Core
-- `reel_player_widget.dart` using `video_player` + `chewie`-less custom controls
-- Preload window: prev-1, current, next-2 (TikTok pattern from research)
-- Autoplay muted-off (Chamet default = sound on, unlike TikTok's muted); persist mute across swipes via `ReelsPreferences`
-- Single tap = pause/play toggle with center icon flash
-- Double tap = like + heart burst (native `tryHeartBurst` bridge already exists on Android)
-- Loop, first-frame latency target <300ms, aspect-fit with blurred background fill for non-9:16
+---
 
-### R4 — Right Rail Actions
-- Vertical stack: `FramedAvatar` + Follow (+) → Like → Comment → Gift → Share → More
-- Counts formatted (1.2K / 3.4M)
-- Follow button hides when already following or self-owned
-- All buttons debounced 400ms; optimistic like/unlike with rollback on error
+### Flutter build (`merilive_app/lib/features/party/`)
 
-### R5 — Bottom Info + Music Ticker
-- Username row with level badge, verified check, live-now badge (tap → LiveViewer)
-- Caption with expand-on-tap ("more"/"less")
-- Music row: spinning cover disc + scrolling title/artist marquee
-- Tap music row → SoundDetail sheet (list of reels using that sound) — deferred to R8 stretch
+**PD1 — Data**
+- `party_models.dart` — `PartyRoom`, `PartyHost`, `RoomType` enum (`video/audio/game`), `GameMode` enum.
+- `party_discovery_repository.dart` — mirrors `fetchRooms`: parallel fetch of `party_rooms` + `party_room_participants`, stitch `profiles_public` hosts, resolve level via existing `levelResolver` port, return `List<PartyRoom>` with `currentParticipants` and `hostDisplayLevel`.
+- `party_discovery_realtime.dart` — Supabase channels for `party_rooms` + `party_room_participants` with 1.5s debounce → refresh; direct `UPDATE party_rooms` for instant-close.
 
-### R6 — Comments Sheet
-- `DraggableScrollableSheet` bottom sheet (0.55 → 0.9)
-- List with reply threading (1 level), pinned by creator badge
-- Realtime append via supabase channel on `reel_comments`
-- Send composer with @mention autocomplete disabled for MVP (parity with current web)
-- Optimistic insert with pending state
+**PD2 — Cubit + Page shell**
+- `party_discovery_cubit.dart` — state: `rooms, activeTab, selectedCountry, searchQuery, refreshing`. Actions: `refresh`, `setTab`, `setCountry`, `setSearch`, `joinByCode(String)`, `applyRealtime()`. Persistent cache via `shared_preferences` (`discover:rooms`) — instant paint on cold start.
+- `party_discovery_page.dart` — deep-purple gradient scaffold (matches web backdrop), safe-area header (back + "Party Rooms" title + refresh), search field + room-code KeyRound button, tab strip (All/Video/Audio/Game) with per-tab active color (indigo/green/blue/purple), country chip strip (BD default from H2 filter).
 
-### R7 — Gift + Share + Report/Block
-- Gift button opens existing native gift sheet bridge (reuse Home tab wiring if exists; else stub Flutter sheet feeding `gift_transactions` via RPC)
-- Share sheet: WhatsApp / Copy Link / Save Video (native share plugin already in pubspec check)
-- More menu: Report (categories from web) / Block user / Not interested / Save reel
+**PD3 — Card grid**
+- `party_room_card.dart` — 2-col grid, 3:4-ish aspect, host avatar (CDN-resized) as background, gradient overlay, type badge (top-left, color-coded), participant pill (top-right), game-mode emoji chip (bottom-left, only if `game_mode != null`), private-lock pill (bottom-right), tier shadow (≥40 red / ≥20 amber / else neutral), room name + host display name below. Tap → preview dialog.
+- Empty state: purple gradient orb + "No Active Rooms" + hint line + pulsing accent bar (exact web wording).
 
-### R8 — Analytics, Prefetch, Polish
-- Fire `reel_views` insert at 3s watched (Chamet threshold from research)
-- Watch-time buckets logged to `reel_moderation_log` style event table
-- Prefetch next 2 video URLs via `http` head-only + first 512KB range request (mirrors `useReelsPrefetcher`)
-- Lifecycle: pause current video when app backgrounds or route changes (integrate with `AppLifecycleState`)
-- Wire the tab into `home_shell_page.dart` replacing the placeholder
+**PD4 — Preview-before-enter dialog**
+- `party_preview_sheet.dart` — modal bottom-sheet with host avatar-with-frame, display name + level badge, room name, type icon, participants, entry fee (Diamond icon), min-level chip, private-lock indicator, description, welcome message, "Enter Room" CTA + Cancel. Uses `checkFeatureAccess` port before nav.
 
-## Technical Notes
+**PD5 — Room-code quick-join**
+- `room_code_dialog.dart` — 6-char uppercase input, "Join" button → `joinByCode`. On success → same preview sheet then nav. On not-found → toast.
 
-- **New Flutter deps to add** (single `bun-equivalent` install at R3): `video_player`, `visibility_detector`, `share_plus`
-- **Native bridges reused** on Android APK build only (no-op on web/iOS): `NativeHeartBurst`, `NativeReelsPlayer` (evaluate whether we invoke it or stay with `video_player` — decision at R3 after research brief lands)
-- **Realtime**: `reel_likes` + `reel_comments` per-reel channel opened only for the currently visible reel (± 1) to keep concurrent subscriptions ≤3 — cost-safe
-- **Rules honored**: research-first (brief pending before R3 player choices), admin-panel single source of truth (no hardcoded thresholds — read from `app_settings` where a knob exists), English-only UI strings, design-sacred does NOT apply (redesign allowed per 2026-06-18 lift), no fake loading UI
-- **Files created**: ~12 new files under `merilive_app/lib/features/reels/{data,bloc,widgets,pages}/`
+**PD6 — Nav glue**
+- `auto_route` entry `/party` → `PartyDiscoveryPage`. Enter action pushes `/party/:id` (stub route for now — actual PartyRoom page is a later sector). Bottom-nav "Party" button routes here.
 
-## Web Side
-Zero changes to `src/pages/Reels.tsx` or any web reels files.
+**PD7 — Audit**
+- Verify: no live-stream data anywhere; realtime channels disposed on page pop; cache write on every refresh; prefetch top-24 avatars; tab + country + search filters compose correctly; instant-close via UPDATE removes rooms without full refetch; tier shadow matches web thresholds; deep-purple backdrop matches during nav transitions.
 
-## Verification per step
-After each R-step: run `flutter analyze` via harness build, log tail for errors, then confirm to user before moving to next.
+---
 
-## Which step first?
-Recommend starting R1 (data layer) — foundation for everything else. Ask user to confirm or pick a different starting step.
+**Out of scope for this sector:** Create page, GoLive preview, LiveStream, CreateParty, PartyRoom broadcast. Those come next after Party button clears.
+
+**Ready to build PD1→PD7?** "yes" বললে সিরিয়ালে চালাব, বা step-by-step (`PD1` first) — যেভাবে চাও।

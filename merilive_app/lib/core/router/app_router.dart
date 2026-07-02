@@ -65,6 +65,12 @@ class AppRouter extends _$AppRouter {
           path: '/profile-detail/:userId',
         ),
 
+        // Party Discovery → Party Room (broadcast placeholder for now).
+        AutoRoute(
+          page: PartyRoomPlaceholderRoute.page,
+          path: '/party/:roomId',
+        ),
+
         // H7 — user search (App-ID + tag filters).
         AutoRoute(page: SearchRoute.page, path: '/search'),
 
