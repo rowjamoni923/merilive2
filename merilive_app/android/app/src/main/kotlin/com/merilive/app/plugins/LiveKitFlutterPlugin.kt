@@ -753,3 +753,77 @@ private object StickerLoader {
         }.start()
     }
 }
+
+/**
+ * H2 — AudioFocusEventEmitter
+ *
+ * Bridges Android `AudioManager.OnAudioFocusChangeListener` into the
+ * Flutter EventChannel `app.merilive/audio_focus` consumed by Dart's
+ * `AudioFocusEvents` singleton (see AudioFocusAutoMute).
+ *
+ * Emits: 'gain' | 'loss' | 'loss_transient' | 'loss_transient_can_duck'.
+ */
+object AudioFocusEventEmitter {
+    private var sink: EventChannel.EventSink? = null
+    private var request: AudioFocusRequest? = null
+    private var manager: AudioManager? = null
+
+    private val listener = AudioManager.OnAudioFocusChangeListener { change ->
+        val label = when (change) {
+            AudioManager.AUDIOFOCUS_GAIN -> "gain"
+            AudioManager.AUDIOFOCUS_LOSS -> "loss"
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> "loss_transient"
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> "loss_transient_can_duck"
+            else -> return@OnAudioFocusChangeListener
+        }
+        Handler(Looper.getMainLooper()).post {
+            sink?.success(mapOf("change" to label))
+        }
+    }
+
+    fun streamHandler(activity: Activity): EventChannel.StreamHandler =
+        object : EventChannel.StreamHandler {
+            override fun onListen(args: Any?, events: EventChannel.EventSink?) {
+                sink = events
+                val am = activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                manager = am
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                        .setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .build()
+                        )
+                        .setOnAudioFocusChangeListener(listener)
+                        .setWillPauseWhenDucked(false)
+                        .build()
+                    request = req
+                    am.requestAudioFocus(req)
+                } else {
+                    @Suppress("DEPRECATION")
+                    am.requestAudioFocus(
+                        listener,
+                        AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.AUDIOFOCUS_GAIN,
+                    )
+                }
+            }
+            override fun onCancel(args: Any?) {
+                try {
+                    val am = manager
+                    if (am != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            request?.let { am.abandonAudioFocusRequest(it) }
+                        } else {
+                            @Suppress("DEPRECATION")
+                            am.abandonAudioFocus(listener)
+                        }
+                    }
+                } catch (_: Throwable) {}
+                sink = null
+                request = null
+                manager = null
+            }
+        }
+}
