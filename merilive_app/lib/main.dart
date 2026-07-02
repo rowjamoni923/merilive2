@@ -26,6 +26,9 @@ Future<void> main() async {
   await HydratedStorageBootstrap.init();
   await SupabaseBootstrap.init();
 
+  // Preload live-tunable gift animation config (non-blocking failures OK).
+  unawaited(GiftAnimationConfig.instance.initialize());
+
   runApp(const MeriLiveApp());
 }
 
