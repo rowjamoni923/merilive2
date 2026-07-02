@@ -147,6 +147,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         if (mounted) setState(() => _pkBattle = snap);
       });
 
+      // A11 — Level-up entry animations: bind join events to native
+      // VAP/Lottie renderer with Flutter EntryNameBarOverlay fallback.
+      await RoomEntryDispatcher.instance.attach(
+        surface: RoomJoinSurface.live,
+        roomId: widget.streamId,
+        selfUserId: _client.auth.currentUser?.id,
+      );
+
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
       if (!_isHost) {
