@@ -115,23 +115,33 @@ Same `game_settings` admin table = single source of truth across every surface. 
 
 
 
-## M11 — Missing pages/screens (non-room)
+## M11 — Missing pages/screens (non-room) ✅ (stop-gap parity via EmbeddedWebPage)
 
-Web pages that don't exist yet in Flutter shell:
+Delivered a unified parity path for every non-room surface — no more dead menu tiles, and instant admin-panel single-source-of-truth alignment.
 
-- Wallet / Recharge / Diamond exchange
-- Profile view + edit (avatar, frame, bio, level tiers)
-- Followers / Following / Blocked list
-- Notifications inbox + preferences
-- Help center + support ticket
-- Agency portal (host view — join agency, earnings, withdrawal)
-- Noble / VIP subscription screens
-- Shop (avatar frames, chat bubbles, entry effects)
-- Leaderboards (daily/weekly/monthly)
-- Events / Banners / Popup campaigns
-- Daily login rewards + tasks
-- Face verification wizard (already partial)
-- Settings (language, privacy, blocked, sessions, delete account)
+**Foundation**
+- `EmbeddedWebPage` (`lib/features/embedded/embedded_web_page.dart`) — reusable WebView shell that loads `<Env.webAppOrigin><path>?embed=1` with the current Supabase session hydrated into localStorage (same pattern as `LiveGameOverlay` / `PartyGameOverlay`). Slim linear progress bar (no fake skeletons). English-only chrome. Refresh action in AppBar.
+- `M11Routes` (same file) — central registry of `open…` helpers for every surface. When a native Flutter screen replaces one, only the helper body flips — call sites don't change.
+
+**Screens now reachable (via the redesigned Profile tab)**
+- Wallet · Recharge · Diamond Exchange
+- My Profile · Edit Profile · Followers · Following · Blocked
+- Messages (DM chat list) · Notifications · Notification Preferences
+- Noble · VIP · Shop · Agency Portal
+- Leaderboards · Events · Daily Rewards · Daily Tasks
+- Face Verification · Help Center · Contact Support · Settings
+
+**Profile tab** — Replaced the "Step K coming soon" placeholder with a grouped card menu (Wallet / Identity / Inbox / Programs / Discover / Account) rendered on the existing cloud-white surface (design system tokens preserved). Sign-out button retained.
+
+**M10 chat games** — Unblocked. `M11Routes.openChatConversation()` now exists; when a native `ChatConversationPage` lands, wire `PartyGameSelectionSheet.show()` in its composer per the M10 note.
+
+**Native rewrite backlog** (incremental, no blocker):
+1. Wallet + Recharge (highest-value, revenue path — replace first).
+2. Profile view/edit (identity, sacred design).
+3. Agency portal (host earnings, complex forms).
+4. Everything else stays embedded until a specific screen needs native polish.
+
+
 
 ## M12 — QA sweep + owner-account verification
 
