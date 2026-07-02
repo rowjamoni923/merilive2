@@ -63,6 +63,14 @@ class SearchCubit extends Cubit<SearchState> {
   int _requestSeq = 0;
 
   Future<void> bootstrap() async {
+    // Hydrate persisted recents before anything else so the empty-state
+    // shows the real list instead of an empty flash.
+    try {
+      await RecentSearchesStore.instance.hydrate();
+      if (!isClosed) {
+        emit(state.copyWith(recents: RecentSearchesStore.instance.items));
+      }
+    } catch (_) {}
     if (currentUserId == null) return;
     try {
       final ids = await _repo.loadFollowingIds(currentUserId!);
@@ -118,19 +126,23 @@ class SearchCubit extends Cubit<SearchState> {
     }
   }
 
-  void rememberTap(SearchUser user) {
-    RecentSearchesStore.instance.add(user);
-    emit(state.copyWith(recents: RecentSearchesStore.instance.items));
+  Future<void> rememberTap(SearchUser user) async {
+    await RecentSearchesStore.instance.add(user);
+    if (!isClosed) {
+      emit(state.copyWith(recents: RecentSearchesStore.instance.items));
+    }
   }
 
-  void removeRecent(String id) {
-    RecentSearchesStore.instance.remove(id);
-    emit(state.copyWith(recents: RecentSearchesStore.instance.items));
+  Future<void> removeRecent(String id) async {
+    await RecentSearchesStore.instance.remove(id);
+    if (!isClosed) {
+      emit(state.copyWith(recents: RecentSearchesStore.instance.items));
+    }
   }
 
-  void clearRecents() {
-    RecentSearchesStore.instance.clear();
-    emit(state.copyWith(recents: const []));
+  Future<void> clearRecents() async {
+    await RecentSearchesStore.instance.clear();
+    if (!isClosed) emit(state.copyWith(recents: const []));
   }
 
   Future<String?> toggleFollow(String targetId) async {
