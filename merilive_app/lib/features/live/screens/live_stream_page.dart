@@ -253,6 +253,40 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
+  // A4 — open viewers bottom sheet.
+  void _openViewersSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => LiveViewersSheet(
+        streamId: widget.streamId,
+        viewerCount: _viewerCount,
+      ),
+    );
+  }
+
+  // A4 — follow/unfollow host from the header CTA.
+  Future<void> _handleFollowHost() async {
+    final hostId = _stream?['host_id']?.toString();
+    if (hostId == null || _followBusy) return;
+    if (_client.auth.currentUser == null) {
+      _snack('Please sign in to follow');
+      return;
+    }
+    setState(() => _followBusy = true);
+    try {
+      final now = await LiveFollowBridge.instance.toggle(hostId);
+      if (!mounted) return;
+      setState(() => _isFollowingHost = now);
+      _snack(now ? 'Following ❤️' : 'Unfollowed');
+    } catch (_) {
+      _snack('Could not update follow');
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
+  }
+
   void _openMoreSheet() {
     showModalBottomSheet<void>(
       context: context,
