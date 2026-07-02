@@ -1237,11 +1237,13 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
               ),
               _RailButton(
                 icon: Icons.emoji_emotions_rounded,
-                label: 'Sticker',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Sticker overlay pending APK rebuild')));
-                },
+                label: _sticker?.name ?? 'Sticker',
+                active: _sticker != null,
+                onTap: () => LiveStickerSheet.show(
+                  context,
+                  activeStickerId: _sticker?.id,
+                  onChanged: (s) => setState(() => _sticker = s),
+                ),
               ),
               _RailButton(
                 icon: _coverUrl != null
