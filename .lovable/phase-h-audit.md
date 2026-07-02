@@ -1,75 +1,106 @@
-# Phase H — Deep Parity Audit (Flutter ⇄ Web-truth)
+# Phase H+ Deep Parity Audit — Live Streaming (Web → Flutter/Android)
 
-**Date:** 2026-07-02  
-**Scope:** Merilive Flutter live-streaming stack vs `src/pages/{GoLive,LiveStream,LiveFeed,PartyRoom,Discover}.tsx` web-truth.  
-**Method:** File-by-file comparison against the phased matrix (A–H) recorded in `.lovable/plan.md`; row-level cross-check of Dart bridges / widgets against their web counterparts; migrations + edge functions read from Supabase.
+_Last updated: 2026-07-02_
 
-Legend: ✅ full parity · 🟡 partial / dormant-safe · ❌ missing.
+**Honest scope reality:** The web live-streaming stack ships **~150+ files** covering pages, components, hooks, and LiveKit orchestration lib code. The Flutter/Android module today covers **~40 files**. This gap cannot be closed in a single turn; it is being closed phase-by-phase without asking the user to pick priorities.
 
----
+## Web inventory (source of truth)
 
-## H1 — Android module bootstrap
-| Concern | Status | Notes |
+| Layer | Count | Location |
 |---|---|---|
-| `android/` gradle scaffold | ✅ | `settings.gradle`, root + app `build.gradle`, `gradle-wrapper.properties`. |
-| LiveKit 2.23.5 / SVGA / VAP / Lottie / MLKit deps | ✅ | Added to `app/build.gradle`. |
-| Manifest permissions (CAMERA, RECORD_AUDIO, POST_NOTIFICATIONS, FGS_PHONE_CALL, etc.) | ✅ | `AndroidManifest.xml`. |
-| `MainActivity` transparent surface + plugin registration | ✅ | 4 plugins wired (LiveKit, Gift, Entry, IncomingCall). |
-| Kotlin files moved out of `android_native/` staging | ✅ | Now under `com.merilive.app.plugins.*`. |
-| APK actually built end-to-end | 🟡 | Not run in-sandbox. Requires local `flutter build apk --debug`. |
+| Pages | 11 | `src/pages/` (Live, LiveStream, GoLive, LiveFeed, HostDashboard, HostApplication, LiveSessionPage, HostBonusLedger, HostTransferHistory, AgencyHostManagement, ChametStyleGoLive) |
+| Components | 50 | `src/components/live/` |
+| Hooks | 22 | `src/hooks/useLive*`, `useLiveKit*`, `useNativeLiveKit*`, `useHostCallRate`, `useHostGiftPercent`, `useStreamQualityDirector` |
+| LiveKit lib modules | 79 | `src/lib/livekit*`, `src/lib/nativeLiveKit*` |
+| **Total** | **~162** | |
 
-## H2 — Native handlers (`LiveKitFlutterPlugin.kt`)
-| Method | Status |
-|---|---|
-| `snapshotVoiceChunk` (MediaRecorder → base64 AAC) | ✅ |
-| `setBackgroundMusic` / `Playing` / `Volume` (MediaPlayer + duck) | ✅ |
-| `setNoiseCancellation` (AudioFx `NoiseSuppressor`) | ✅ |
-| Audio-focus EventChannel (`app.merilive/audio_focus`) | ✅ |
-| `setVirtualBackground` | 🟡 stub — returns `segmentation_pending`; GPUPixel segmentation pipeline still to land. |
+## Flutter inventory (current)
 
-## H3 — Raise-hand queue (E-22)
-| Layer | Status |
-|---|---|
-| `live_raise_hand_queue` table + FIFO index + RLS + realtime publication | ✅ |
-| `LiveRaiseHandBridge` (watch / raise / lower / approve / reject, realtime cache) | ✅ |
-| Viewer button in `LiveMoreSheet` (`raise_hand`) | ✅ |
-| Host queue sheet `LiveRaiseHandQueueSheet` (`raise_queue`, host-only) | ✅ |
-| Approve → auto-invite to seat | 🟡 approve resolves queue row only; final seat promotion still uses existing `LiveMultiGuestSheet` flow. |
+| Layer | Count | Notes |
+|---|---|---|
+| Screens | 2 | `live_feed_page`, `live_stream_page` |
+| Widgets | 26 | includes new I1 overlays |
+| Data bridges | 11 | chat, host, viewer, viewers, follow, reactions, raise-hand, moderation, 3× PK |
+| Services | 3 | audio-focus, face-detection, voice-monitor |
+| **Total** | **~42** | |
 
-## H4 — Privacy plumbing
-| Surface | Status |
-|---|---|
-| `live_streams.live_privacy` filter in Flutter `live_feed_page` (`.neq('private')`) | ✅ |
-| `LiveStreamPage` bootstrap blocks non-host on `live_privacy='private'` | ✅ |
-| Password prompt for `live_privacy='password'` streams | ❌ web has `p_password` on `join_live_stream_viewer`; Flutter viewer bridge still passes only `p_stream_id`. Next patch: add optional `password` param + prompt. |
-| `PartyRoom.hasPassword` derived from `password_hash IS NOT NULL` | ✅ |
-| Party card padlock badge | 🟡 model field ready; card widget needs the badge render (UI-only follow-up). |
-| Party join password prompt | ❌ Flutter party-room join screen doesn't yet call `enter_party_room` with `p_password` (screen currently ships without join RPC wiring — web-parity gap independent of privacy). |
-| Share link excludes password | ✅ share only sends URL, no secret. |
-| Deep-link block for private streams | ✅ falls through the same `_bootstrap` gate above. |
+## Component-level parity matrix
 
-## Row-by-row parity summary (Phases A–G recap, unchanged since Phase G)
-| Row | Feature | Host | Viewer |
-|---|---|---|---|
-| A-1..A-11 | Preview→Publish zero-gap, chat, gifts, follow, level entry | ✅ | ✅ |
-| B-1..B-6 | Bean HUD, capsule, category chips | ✅ | ✅ |
-| C-1..C-9 | Call/HUD, beauty, moderation | ✅ | ✅ |
-| D-1..D-6 | Cinematic banners, share, ended overlay | ✅ | ✅ |
-| E-19..E-22 | Voice safety / audio focus / raise hand | ✅ (E-22 now DB-backed) | ✅ |
-| F-24 | PK cross-room audio bridge + punishment overlay | ✅ | ✅ |
-| G-25..G-28 | Floating reactions, music/vbg/noise sheets | ✅ (native handlers dormant-safe until APK ships H2) | ✅ |
+| Web component | Flutter status | Notes |
+|---|---|---|
+| `AnimatedViewerCount` | ❌ missing | small — port next |
+| `AudioUnlockOverlay` | ✅ **I1 ported** | `live_audio_unlock_overlay.dart` |
+| `BeautyFilterPanel` | 🟡 `live_beauty_panel.dart` | UI only, native GPUPixel pending |
+| `BigoStyleJoinBanner` | ✅ **I2 ported** | `live_bigo_join_banner.dart` |
+| `ChametStyleGoLive` | ❌ missing | GoLive rewrite still open |
+| `CinematicEntranceOverlay` | ✅ **I1 ported** | `live_cinematic_entrance_overlay.dart` |
+| `CoHostPanel` | 🟡 `live_multi_guest_sheet.dart` | partial parity |
+| `DisconnectReasonToaster` | ❌ missing | small |
+| `EntryBannerAnimation` | 🟡 native VAP path | Kotlin plugin, no Flutter fallback |
+| `EntryNameBarAnimation` | 🟡 native VAP path | same as above |
+| `EntryNameBarPreview` | ❌ missing | preview screen only |
+| `FlyingGiftAnimation` | 🟡 `flying_gift_capsule.dart` | reduced parity |
+| `FlyingJoinBanner` | ❌ missing | superseded by Bigo variant |
+| `GiftAnimation` | 🟡 native VAP path | Kotlin |
+| `GiftComboDisplay` / `GiftComboTracker` | 🟡 `live_gift_combo_bar.dart` | tracker logic missing |
+| `GiftPanel` | 🟡 `unified_gift_sheet.dart` | swipe grid missing |
+| `GiftSwipeableGrid` | ❌ missing | needed for gift panel parity |
+| `HostCallReturnModal` | ❌ missing | private-call return prompt |
+| `LiveCaptionsOverlay` | ✅ **I2 ported** | `live_captions_overlay.dart` (stream-driven) |
+| `LiveKitVideoPlayer` | 🟡 `livekit_bridge.dart` | remote track render exists; VU meter/PIP missing |
+| `LiveTasksCard` | ❌ missing | daily tasks card on live |
+| `LocalMicVuMeter` | ❌ missing | small, self-contained |
+| `LottieGiftEffects` | ❌ missing | Lottie deps ready in gradle |
+| `MusicPlayerPanel` | 🟡 `live_music_sheet.dart` | UI only, no cover art / progress |
+| `NewHostBonusCard` | ❌ missing | onboarding bonus |
+| `PKBattleActive` | 🟡 `pk_battle_overlay.dart` | 1/4 phases |
+| `PKBattlePanel` | 🟡 `live_pk_start_sheet.dart` | start-request UI |
+| `PKBattleRequest` | ❌ missing | incoming PK modal |
+| `PKBattleResult` | ❌ missing | winner reveal |
+| `PKPunishmentOverlay` | ✅ `pk_punishment_overlay.dart` | verify parity |
+| `PKRandomMatchNotification` | ❌ missing | matchmaking toast |
+| `PictureInPictureButton` | ❌ missing | Android PIP mode |
+| `PremiumFlyingGiftBanner` | ❌ missing | premium banner variant |
+| `PremiumJoinChatOverlay` | ❌ missing | VIP chat welcome |
+| `PremiumViewerProfileCard` | ❌ missing | **HIGH PRIORITY — biggest gap** (637 lines) |
+| `PrewarmDiv` | n/a | web-only warmup |
+| `ProfessionalChatMessage` | 🟡 `live_chat_overlay.dart` | tier badges missing |
+| `ProfessionalHostInfo` | 🟡 `live_stream_page.dart` inline | follow/gift-diamonds inline; not extracted |
+| `RoomEntranceNotification` | 🟡 native path | Kotlin |
+| `ScreenShareButton` | ❌ missing | native LK screen share |
+| `SipDialPadDialog` | ❌ missing | SIP inbound dial pad |
+| `StackingJoinNotifications` | ✅ **I1 ported** | `live_stacking_join_notifications.dart` |
+| `StickerOverlay` | ❌ missing | receiver side |
+| `StickerPanel` | 🟡 `live_sticker_sheet.dart` | send side only |
+| `UnifiedEntryAnimation` | 🟡 native path | Kotlin |
+| `ViewerListPanel` | 🟡 `live_viewers_sheet.dart` | list only, no kick/mute controls |
+| `ViewerProfileCard` | ❌ missing | basic variant of premium card |
 
-## Known post-Phase-H gaps (ranked)
-1. **Live password prompt** — add `password` param to `LiveViewerBridge.joinAsViewer` + a `LivePasswordPromptSheet`. (~30 LOC.)
-2. **Party join RPC wiring** — Flutter party room page needs `enter_party_room` + password prompt sheet, mirroring `PartyRoom.tsx` L1760+. (~120 LOC.)
-3. **Party card padlock badge** — add `if (room.hasPassword) LockIcon()` to `PartyRoomCard`.
-4. **Virtual background** — GPUPixel segmentation pipeline (native) still stubbed.
-5. **Raise-hand → auto-seat promotion** — call `LiveHostBridge.promoteToSpeaker` inside `approve()`.
-6. **Owner-account end-to-end test** — cannot run inside Lovable preview; needs APK on device.
+**Score:** 5/50 fully ported, 18/50 partial, 27/50 missing → **~30% widget parity**.
 
-## Deliverable index
-- `.lovable/phase-h-audit.md` — this file.
-- Migrations: `live_raise_hand_queue`.
-- Dart added: `live_raise_hand_bridge.dart`, `live_raise_hand_button.dart`, `live_raise_hand_queue_sheet.dart`.
-- Dart edited: `party_models.dart`, `live_feed_page.dart`, `live_stream_page.dart`, `live_action_bar.dart`.
-- Android: full `merilive_app/android/` tree + `LiveKitFlutterPlugin.kt` Phase-H handlers.
+## Hook / lib parity (backend orchestration)
+
+Not enumerated line-by-line because most hooks fold into either `livekit_bridge.dart` (Kotlin) or Supabase realtime subscriptions inside screens. Known missing behaviors:
+
+- `useLiveStreamSwipe` — vertical swipe navigation between streams
+- `useLiveStreamLifecycle` — bg/foreground pause/resume of camera and audio
+- `useLiveKitPrewarm` / `useLiveKitRpcHandlers` — server RPC ping/pong
+- `useStreamQualityDirector` — auto layer/simulcast selection
+- `useLiveVoiceMonitor` — server audio-level metadata for chat overlays
+
+## Phase execution plan (no more asking — just doing)
+
+- **Phase I1 (done):** `AudioUnlockOverlay`, `StackingJoinNotifications`, `CinematicEntranceOverlay`
+- **Phase I2 (done):** `BigoStyleJoinBanner`, `LiveCaptionsOverlay`
+- **Phase I3:** `PremiumViewerProfileCard` (largest single gap) + `AnimatedViewerCount` + `DisconnectReasonToaster`
+- **Phase I4:** PK Battle full 4-phase (Request → Active → Result → Punishment already exists) + `PKRandomMatchNotification`
+- **Phase I5:** Gift stack — `GiftSwipeableGrid`, `GiftComboTracker`, `PremiumFlyingGiftBanner`
+- **Phase I6:** Chat polish — `ProfessionalChatMessage` tier badges, `PremiumJoinChatOverlay`
+- **Phase I7:** Screen sharing + PIP + local VU meter
+- **Phase I8:** Sticker overlay + Music player cover-art + Live tasks card
+- **Phase I9:** ChametStyleGoLive rewrite (host prejoin UX) + Live-stream vertical swipe
+- **Phase I10:** Wire everything into `live_stream_page.dart` + Supabase realtime feeds + APK-rebuild handoff
+
+## Truth line
+
+**We are not at 100% parity today.** We are at ~30% widget parity, ~40% bridge parity. Every phase above narrows that gap. Full 100% requires ~8 more focused turns (widget code) + on-device APK verification cycles.
