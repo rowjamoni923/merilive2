@@ -111,11 +111,13 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required SupabaseClient supabase,
     PartyLiveKitService? livekit,
     PartyHostVideoBridge? hostVideo,
+    PartySeatInvitationBridge? invitations,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
         _lk = livekit ?? PartyLiveKitService(supabase),
         _hostVideo = hostVideo ?? PartyHostVideoBridge(supabase),
+        _invites = invitations ?? PartySeatInvitationBridge(supabase),
         super(const PartyRoomState());
 
   final String roomId;
@@ -124,16 +126,23 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   final SupabaseClient _supabase;
   final PartyLiveKitService _lk;
   final PartyHostVideoBridge _hostVideo;
+  final PartySeatInvitationBridge _invites;
+  RealtimeChannel? _inviteChannel;
 
   /// Public repo handle for PD7 gift/music sheets.
   PartyRoomRepository get repository => _repo;
 
+  /// Phase A P0 #3 — LiveKit Room handle (viewer subscribe path) so the
+  /// video party layout can render per-seat remote camera tracks.
+  lk.Room? get liveKitRoom => _lk.room;
 
-
+  /// Phase A P0 #2 — Invitation bridge handle for host-side sheets.
+  PartySeatInvitationBridge get invitations => _invites;
 
   String? get _uid => _supabase.auth.currentUser?.id;
   bool get isHost =>
       _uid != null && state.host != null && state.host!.id == _uid;
+
 
   Future<void> start() async {
     try {
