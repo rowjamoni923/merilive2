@@ -586,11 +586,29 @@ function CtrlBtn({ children, active, onClick, label }: {
   children: React.ReactNode; active: boolean; onClick: () => void; label: string;
 }) {
   return (
-    <button onClick={onClick} aria-label={label}
-      className={`h-10 w-10 rounded-full grid place-items-center transition border
-        ${active ? "bg-white text-slate-900 border-white"
-          : "bg-black/40 text-white border-white/15 backdrop-blur-md hover:bg-white/15"}`}>
-      {children}
-    </button>
+    <motion.button
+      whileTap={{ scale: 0.88 }}
+      whileHover={{ y: -1 }}
+      onClick={onClick}
+      aria-label={label}
+      className="h-11 w-11 rounded-full grid place-items-center relative overflow-hidden backdrop-blur-xl"
+      style={{
+        background: active
+          ? 'radial-gradient(120% 120% at 30% 20%, #ffffff 0%, #f5f3ff 55%, #e9d5ff 100%)'
+          : 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+        border: `1px solid ${active ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.18)'}`,
+        boxShadow: active
+          ? '0 8px 20px -6px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.7)'
+          : '0 6px 16px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)',
+        color: active ? '#312e81' : '#ffffff',
+      }}
+    >
+      <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 h-px"
+        style={{ background: active
+          ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)'
+          : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }} />
+      <span className="relative">{children}</span>
+    </motion.button>
   );
 }
+
