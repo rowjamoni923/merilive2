@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../../live/data/live_host_bridge.dart';
 
 /// Honest scaffold surfaces for the "+" FAB destinations.
 ///
