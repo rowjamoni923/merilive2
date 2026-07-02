@@ -311,6 +311,7 @@ class _MatchCallPageState extends State<MatchCallPage>
         fullscreenDialog: true,
         builder: (_) => ActiveCallPage(
           bridge: bridge,
+          hostId: hostId,
           hostName: (hostProfile?['username'] as String?) ?? 'Host',
           hostAvatarUrl: hostProfile?['avatar_url'] as String?,
           matchSessionId: sessionId,
