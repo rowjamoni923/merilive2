@@ -25,6 +25,8 @@ import '../widgets/party_game_overlay.dart';
 import '../widgets/party_game_selection_sheet.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
+import '../../../shared/widgets/room_top_bar.dart';
+
 
 
 /// Party Room broadcast + viewer page — PD5.
@@ -223,136 +225,31 @@ class _RoomHeader extends StatelessWidget {
   final PartyRoom room;
   final PartyHost? host;
   final int live;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: Row(
-        children: [
-          _hostAvatar(),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (room.isPrivate)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 4),
-                        child: Icon(Icons.lock_rounded,
-                            size: 14, color: Colors.amber),
-                      ),
-                    Flexible(
-                      child: Text(
-                        room.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      host?.displayName ?? 'Host',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    if (room.roomCode != null && room.roomCode!.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'ID ${room.roomCode}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          _liveCountPill(live),
-          const SizedBox(width: 6),
-          _RequestsBadge(),
-          const SizedBox(width: 6),
-          _iconBtn(Icons.close_rounded, () async {
-            await context.read<PartyRoomCubit>().leaveRoom();
-            if (context.mounted) context.router.maybePop();
-          }),
-        ],
-      ),
+    final subtitle = [
+      if (room.isPrivate) '🔒',
+      room.name,
+      if (room.roomCode != null && room.roomCode!.isNotEmpty) 'ID ${room.roomCode}',
+    ].join(' • ');
+    return RoomTopBar(
+      hostAvatarUrl: host?.avatarUrl,
+      hostName: host?.displayName ?? 'Host',
+      subtitle: subtitle,
+      showFollow: false,
+      viewerCount: live,
+      onOpenViewers: () {},
+      trailing: const _RequestsBadge(),
+      onClose: () async {
+        await context.read<PartyRoomCubit>().leaveRoom();
+        if (context.mounted) context.router.maybePop();
+      },
     );
   }
-
-
-  Widget _hostAvatar() {
-    final url = host?.avatarUrl;
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.amber, width: 2),
-        image: url != null && url.isNotEmpty
-            ? DecorationImage(image: NetworkImage(url), fit: BoxFit.cover)
-            : null,
-        color: const Color(0xFF6D28D9),
-      ),
-      child: url == null || url.isEmpty
-          ? const Icon(Icons.person, color: Colors.white70, size: 20)
-          : null,
-    );
-  }
-
-  Widget _liveCountPill(int n) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.people_alt_rounded, size: 13, color: Colors.white70),
-          const SizedBox(width: 4),
-          Text('$n',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600)),
-        ]),
-      );
-
-  Widget _iconBtn(IconData i, VoidCallback onTap) => InkResponse(
-        onTap: onTap,
-        radius: 22,
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(i, color: Colors.white, size: 18),
-        ),
-      );
 }
+
+
 
 class _SeatGrid extends StatelessWidget {
   const _SeatGrid({required this.seats, required this.currentUserId});
