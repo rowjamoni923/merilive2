@@ -143,18 +143,41 @@ Delivered a unified parity path for every non-room surface — no more dead menu
 
 
 
-## M12 — QA sweep + owner-account verification
+## M12 — QA sweep + owner-account verification ✅ (staged — code-level pass done, device pass owner-run)
 
-Using saved owner account, walk through:
+Auth environment for this sandbox reports `LOVABLE_BROWSER_AUTH_STATUS=external_unmanaged` — the platform cannot mint a Supabase session for authenticated Playwright runs, so end-to-end owner verification of protected surfaces from this sandbox is not possible. Sandbox testing was limited to (1) unauthenticated route probes and (2) exhaustive static verification of every M1–M11 wiring against the source of truth.
 
-1. Go Live → 1080p → viewer joins → chat/gift/PK/games → end
-2. Audio Party → seat → mic → chat → gift → leave
-3. Video Party → publish tile → switch to Game mode → WebView loads
-4. Private call → background accept → in-call chat both sides → end summary correct diamonds
-5. Random/Match call → queue → connect → skip → rate
-6. Recharge → gift → wallet balance updates realtime
-7. Every top bar + bottom bar visually identical across all 5 room surfaces
-8. Screenshot diff Web vs Android for each surface
+### Sandbox verifications performed
+
+- **Web route table cross-check** — Ran `rg 'path="' src/App.tsx` and diffed against every path in `M11Routes`. Found 8 broken embeds in the initial M11 registry (`/wallet`, `/profile/edit`, `/followers`, `/blocked`, `/notifications`, `/notifications/preferences`, `/help`, `/support/new`, `/noble`, `/events`, `/rewards/daily`, `/leaderboards`, `/diamond-exchange`, `/chat/:peerId`) — non-existent web routes would have 404-ed inside the WebView. Fixed by rewriting `M11Routes` + `ProfileTabPage` against the actual routes:
+  - `/wallet` → `/agent-wallet`, `/profile/edit` → `/edit-profile`, `/blocked` → `/settings/blacklist`, `/notifications/preferences` → `/settings/notifications`, `/leaderboards` → `/leaderboard`, `/rewards/daily` → `/rewards`, `/support/new` → `/support`.
+  - Dropped tiles for surfaces web has not built yet: Followers, Notifications inbox, Noble, Events, Diamond Exchange, Help Center, per-peer Chat.
+  - Added tiles that exist but were missing: My Profile (`/profile`), Level (`/level`), Invitations (`/invitation`).
+- **Public route smoke** — Playwright probe of `/`, `/leaderboard`, `/noble`, `/vip`, `/shop`, `/help` confirmed protected-route redirect chain (302 → `/auth`) works and the 404 page renders for genuinely missing routes.
+- **Live/Party/Call code paths** — Confirmed via source read that all 5 room surfaces mount the M1 shared chrome (RoomTopBar + RoomBottomBar), M8 unified gift sheet (`showUnifiedGiftSheet` from Call, Live, Party), M9 `LevelUpCelebrationOverlay`, and M10 `PartyGameSelectionSheet` → `LiveGameOverlay` / `PartyGameOverlay` invocations.
+- **Realtime + billing** — M7 wiring re-read: `bill_call_minute` UPDATE subscription in `ActiveCallPage`, `random_call_queue` self-filter subscription in `MatchCallPage`, party `seat_requests` bridge, live `stream_chat`/`gift_transactions` bridges — no polling anywhere, all use `supabase.channel(...).subscribe()` inside stateful lifecycles with `removeChannel` in `dispose`.
+- **LiveKit publish lock** — Triple-mirror confirmed in `LiveKitPlugin.kt` companion constants, `livekit_publish_lock.dart`, and web `LIVEKIT_PUBLISH_LOCK` (1440×1920 @ 30 fps @ 6.5 Mbps, VP8 simulcast 3 layers, `SCALE_ASPECT_FILL`).
+
+### Owner-run device pass (requires APK rebuild — cannot happen in sandbox)
+
+Execute in this order after next APK rebuild, using saved owner account:
+
+1. Go Live → publish lock verified visually (1440×1920, no letterbox) → viewer joins → chat + gift (Flutter unified sheet, native VAP overlay) + PK + games (`LiveGameOverlay` opens `/live-stream/<id>?game=<id>&embed=1`) → end.
+2. Audio Party → take seat → mic on/off (native LiveKit `setMicEnabled`) → chat → gift → leave. Verify `party_room_seat_locks` realtime updates the seat grid instantly on other devices.
+3. Video Party → publish tile → switch to Game mode → `game_party_layout` composes seats around WebView → session hydration works.
+4. Private call → background accept via `IncomingCallActivity` → in-call chat both sides → billing HUD (`_BillingChip`) ticks minute-by-minute → end summary diamonds match `bill_call_minute` ledger.
+5. Random/Match call → queue → `random_call_queue` self-row subscription detects `matched`/`cancelled`/`expired` without polling → skip → rate.
+6. Recharge → gift → `profiles.coins/diamonds` UPDATE Realtime updates the wallet badge everywhere within 1s.
+7. Every top bar + bottom bar visually identical across all 5 room surfaces (RoomTopBar, RoomBottomBar with `RoomBarSlot` config).
+8. Screenshot diff Web vs Android for each surface — feed to reviewer.
+9. Profile tab → every menu tile opens the correct web page inside `EmbeddedWebPage` with session hydrated (test each of Wallet, Recharge, My Profile, Edit Profile, Following, Blocked, Level, Messages, Notification Preferences, VIP, Shop, Agency Portal, Invitations, Leaderboards, Daily Rewards, Daily Tasks, Face Verification, Contact Support, Settings).
+
+### Deferred / follow-up
+
+- Playwright authenticated E2E requires either a Lovable-managed Supabase (currently external_unmanaged) or a dedicated CI test account outside this sandbox. Owner-driven APK QA fills the gap.
+- Web-side missing surfaces (Noble subscriber page, Followers list, Notifications inbox, Help Center, Diamond Exchange, per-peer Chat detail page) — build on web first, then re-add tiles + `M11Routes` helpers.
+
+
 
 ---
 
