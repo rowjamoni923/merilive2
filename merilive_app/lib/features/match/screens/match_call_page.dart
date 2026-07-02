@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../../call/data/private_call_bridge.dart';
+import '../../call/screens/active_call_page.dart';
 
 /// C7 — Match Call (Flutter parity with `src/pages/MatchCall.tsx`).
 ///
