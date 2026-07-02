@@ -9,7 +9,7 @@ import '../bloc/party_discovery_cubit.dart';
 import '../data/party_discovery_realtime.dart';
 import '../data/party_discovery_repository.dart';
 import '../data/party_models.dart';
-import '../widgets/party_preview_sheet.dart';
+
 import '../widgets/party_room_card.dart';
 import '../widgets/room_code_dialog.dart';
 
@@ -61,33 +61,20 @@ class _PartyDiscoveryPageState extends State<PartyDiscoveryPage>
         onSubmit: (code) async {
           final room = await _cubit.findByCode(code);
           if (!mounted) return;
+          Navigator.of(context).maybePop();
           if (room == null) {
-            Navigator.of(context).maybePop();
             _toast('Room not found');
             return;
           }
-          Navigator.of(context).maybePop();
-          _openPreview(room);
+          _enterRoom(room);
         },
       ),
     );
   }
 
-  void _openPreview(PartyRoom room) {
-    HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.45),
-      builder: (_) => PartyPreviewSheet(
-        room: room,
-        onEnter: () => _enterRoom(room),
-      ),
-    );
-  }
-
   void _enterRoom(PartyRoom room) {
+    // Web parity: instant-join. Per-room level + entry-fee gate lives inside
+    // PartyRoomPage's join flow (checkFeatureAccess mirror). No preview sheet.
     HapticFeedback.mediumImpact();
     context.router.push(PartyRoomRoute(roomId: room.id));
   }
@@ -134,7 +121,7 @@ class _PartyDiscoveryPageState extends State<PartyDiscoveryPage>
                     color: const Color(0xFF6366F1),
                     child: _RoomsGrid(
                       state: state,
-                      onTapRoom: _openPreview,
+                      onTapRoom: _enterRoom,
                     ),
                   ),
                 ),
