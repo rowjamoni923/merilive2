@@ -95,9 +95,10 @@ class _MeriLiveAppState extends State<MeriLiveApp> {
   }
 
   String? _uidOf(auth_state.AuthState s) {
-    return s.maybeWhen(
-      authenticated: (Session session) => session.user.id,
-      orElse: () => null,
-    );
+    if (s.status == auth_state.AuthStatus.authenticated) {
+      return s.session?.user.id;
+    }
+    return null;
   }
 }
+
