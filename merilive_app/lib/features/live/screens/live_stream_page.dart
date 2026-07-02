@@ -254,6 +254,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         }
       });
 
+      // Phase I15 — start the overlay ticker (connection quality + PK clock).
+      _startOverlayTicker();
+
       // A11 — Level-up entry animations: bind join events to native
       // VAP/Lottie renderer with Flutter EntryNameBarOverlay fallback.
       await RoomEntryDispatcher.instance.attach(
