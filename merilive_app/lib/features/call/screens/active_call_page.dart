@@ -353,10 +353,12 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
           SafeArea(
             child: Column(
               children: [
-                _CallHeader(
-                  name: widget.hostName,
-                  avatarUrl: widget.hostAvatarUrl,
-                  elapsed: _fmt(_elapsed),
+                RoomTopBar(
+                  hostAvatarUrl: widget.hostAvatarUrl,
+                  hostName: widget.hostName,
+                  subtitle: _fmt(_elapsed),
+                  showFollow: false,
+                  onClose: _hangUp,
                 ),
                 const Spacer(),
                 _ChatOverlay(
@@ -369,16 +371,44 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                   onSend: _sendChat,
                   onGift: _openGiftSheet,
                 ),
-                const SizedBox(height: 10),
-                _CallControls(
-                  muted: _muted,
-                  beauty: _beauty,
-                  onMute: _toggleMute,
-                  onBeauty: _toggleBeauty,
-                  onFlip: _flipCamera,
-                  onHangUp: _hangUp,
+                const SizedBox(height: 6),
+                RoomBottomBar(
+                  variant: RoomBarVariant.call,
+                  slots: [
+                    RoomBarSlot(
+                      id: 'mute',
+                      icon: _muted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                      label: _muted ? 'Muted' : 'Mic',
+                      onTap: _toggleMute,
+                    ),
+                    RoomBarSlot(
+                      id: 'beauty',
+                      icon: _beauty ? Icons.auto_awesome_rounded : Icons.auto_awesome_outlined,
+                      label: 'Beauty',
+                      onTap: _toggleBeauty,
+                    ),
+                    RoomBarSlot(
+                      id: 'gift',
+                      icon: Icons.card_giftcard_rounded,
+                      label: 'Gift',
+                      hero: true,
+                      onTap: _openGiftSheet,
+                    ),
+                    RoomBarSlot(
+                      id: 'flip',
+                      icon: Icons.cameraswitch_rounded,
+                      label: 'Flip',
+                      onTap: _flipCamera,
+                    ),
+                    RoomBarSlot(
+                      id: 'end',
+                      icon: Icons.call_end_rounded,
+                      label: 'End',
+                      destructive: true,
+                      onTap: _hangUp,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
               ],
             ),
           ),
