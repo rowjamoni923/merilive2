@@ -540,6 +540,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             // A11 — Flying entry name-bar overlay (Flutter fallback when
             // NativeEntryAnimationPlugin is unavailable).
             const EntryNameBarOverlay(),
+            // M9 — Self level-up confetti + Lv chip celebration.
+            const LevelUpCelebrationOverlay(),
+
             // A2 — chat overlay + composer, docked above the bottom bar.
             Positioned(
               left: 12,
