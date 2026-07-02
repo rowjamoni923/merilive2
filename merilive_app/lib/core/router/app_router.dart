@@ -14,6 +14,7 @@ import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
 import '../../features/home/screens/action_placeholders.dart';
+import '../../features/match/screens/match_call_page.dart';
 import '../../features/leaderboard/leaderboard_page.dart';
 import '../../features/party/screens/party_room_page.dart';
 import '../../features/search/search_page.dart';
