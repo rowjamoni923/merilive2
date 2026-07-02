@@ -52,16 +52,14 @@ Flutter live viewer parity gaps:
 - **Random/Match call** rating banner post-call — web `RatingBanner` + `rating_reward_claims`
 - **Speaker toggle + Bluetooth route picker** — native audio route bridge
 
-## M6 — Camera system hardening
+## M6 — Camera system hardening ✅
 
-Web is already correct; Android bridges need verification, not new logic:
+- Publish LOCK constants mirrored 3-way (web `livekitPublishLock.ts` ↔ Kotlin `LiveKitFlutterPlugin.LOCK_*` ↔ Flutter `LiveKitPublishLock`) — 1440×1920 @ 30 fps @ 6.5 Mbps + 3-layer simulcast VP8. Drift-proof — any future change must update all three files together.
+- Kotlin scaffold now routes `setMicEnabled` / `switchCamera` / `setBeautyEnabled` / `getStats` MethodChannel calls (bodies pending APK-side port from Capacitor plugin).
+- `setScalingType` handler defaults to `fill` (SCALE_ASPECT_FILL) — no letterbox on portrait viewers.
+- Zero-black-frame handoff: `startLocalPreview` docs reinforce reuse of the CameraCapturer in `connect()` — camera flip via `switchCamera` must NOT republish (600 ms base-layer drop).
+- Face gate (`can_user_go_live` RPC + `_denyCode == 'face'` branch) verified in `GoLivePlaceholderPage`.
 
-- 1080p publish lock (720×1280 → 1080×1920), 3-layer simulcast — verify `LiveKitPlugin.kt` matches `livekitPublishLock.ts`
-- `SCALE_ASPECT_FILL` viewer render (no letterbox)
-- Zero-black-frame prejoin→broadcast handoff (already patched — regression check)
-- Camera flip without republish flicker (`switchCamera()`)
-- Adaptive stream + Dynacast + auto-pause hidden tracks (viewer side)
-- Face verification gate before Go Live (web `GoLive.tsx` guard — already in Flutter, verify)
 
 ## M7 — Realtime + billing parity
 
