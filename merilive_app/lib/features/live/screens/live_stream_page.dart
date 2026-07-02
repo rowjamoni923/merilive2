@@ -331,6 +331,12 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
       // Phase E — host-only content-safety + call-focus.
       if (_isHost) {
+        // H5 P0 #5 — new-host live bonus: fetch state + start minute ticker.
+        unawaited(_refreshHostBonusState());
+        NewHostBonusBridge.instance.startMinuteTicker(
+          _client.auth.currentUser?.id ?? '',
+          onEachTick: _refreshHostBonusState,
+        );
         final uid = _client.auth.currentUser?.id ?? '';
         _faceDetection = LiveFaceDetection(
           streamId: widget.streamId,
