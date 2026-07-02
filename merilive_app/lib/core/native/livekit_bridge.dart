@@ -109,4 +109,11 @@ class LiveKitBridge {
   /// Toggle GPUPixel beauty pipeline (smooth + white + slim).
   Future<Map<String, dynamic>> setBeautyEnabled(bool enabled) =>
       _invoke('setBeautyEnabled', {'enabled': enabled});
+
+  // ── M5 — Call quality HUD (WebRTC getStats bridge) ─────────────────
+  //
+  // Returns {rttMs, upKbps, downKbps, lossPct, quality:'excellent'|'good'|
+  // 'poor'|'lost'} when the native plugin implements it. Safe no-op
+  // (`success:false, reason:'unimplemented'`) on older APKs / web / iOS.
+  Future<Map<String, dynamic>> getStats() => _invoke('getStats');
 }
