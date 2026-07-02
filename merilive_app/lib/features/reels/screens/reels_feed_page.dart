@@ -352,6 +352,17 @@ class _FeedPageViewState extends State<_FeedPageView> {
                       onMore: (r) => _openMoreMenu(context, r),
                     ),
                   ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: ReelBottomInfo(
+                      reel: reel,
+                      isActive: isActive && widget.canPlay,
+                      onHandleTap: (r) => _openProfile(context, r.userId),
+                      onSoundTap: (r) => _openSoundPlaceholder(context, r),
+                    ),
+                  ),
                 ],
               );
             },
