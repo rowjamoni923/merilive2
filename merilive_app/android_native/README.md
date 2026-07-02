@@ -11,11 +11,14 @@ happens.
 | Staged file | Destination in Android host |
 | --- | --- |
 | `LiveKitFlutterPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/LiveKitFlutterPlugin.kt` |
+| `NativeGiftAnimationPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/NativeGiftAnimationPlugin.kt` |
+| `NativeEntryAnimationPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/NativeEntryAnimationPlugin.kt` |
 | `IncomingCallBridgePlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/flutter/IncomingCallBridgePlugin.kt` |
 | `MeriFirebaseMessagingService.kt` | `android/app/src/main/kotlin/com/merilive/app/service/MeriFirebaseMessagingService.kt` |
 | `IncomingCallService.kt` | `android/app/src/main/kotlin/com/merilive/app/service/IncomingCallService.kt` |
 | `IncomingCallActivity.kt` | `android/app/src/main/kotlin/com/merilive/app/ui/call/IncomingCallActivity.kt` |
 | `res/layout/activity_incoming_call.xml` | `android/app/src/main/res/layout/activity_incoming_call.xml` |
+
 
 ## Integration checklist (post `flutter create`)
 
