@@ -188,6 +188,21 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     }
   }
 
+  Future<void> _promoteHostVideo(String uid) async {
+    try {
+      await _hostVideo.startAsHost(
+        roomId: roomId,
+        participantName: uid,
+      );
+    } catch (e) {
+      // Fall back to viewer path so the host at least hears the room.
+      await _connectViewer();
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+
+
 
   Future<void> _refreshRoom() async {
     try {
