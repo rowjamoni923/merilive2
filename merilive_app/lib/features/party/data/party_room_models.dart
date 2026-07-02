@@ -178,7 +178,7 @@ class PartySeatRequest extends Equatable {
         id: row['id']?.toString() ?? '',
         userId: (row['user_id'] ?? row['requester_id'])?.toString() ?? '',
         seatNumber:
-            (row['seat_number'] ?? row['seat_position'] as num?)?.toInt() ?? 0,
+            ((row['seat_number'] ?? row['seat_position']) as num?)?.toInt() ?? 0,
         createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ??
             DateTime.now(),
         displayName: displayName,
