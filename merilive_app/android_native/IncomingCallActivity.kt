@@ -242,12 +242,11 @@ class IncomingCallActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopRinging()
-        try {
-            if (wakeLock?.isHeld == true) wakeLock?.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        try { if (wakeLock?.isHeld == true) wakeLock?.release() } catch (_: Exception) {}
+        try { dismissReceiver?.let { unregisterReceiver(it) } } catch (_: Exception) {}
+        dismissReceiver = null
     }
+
 
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
