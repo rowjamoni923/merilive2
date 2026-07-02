@@ -543,6 +543,31 @@ class PartyRoomRepository {
         .map((r) => r.cast<String, dynamic>())
         .toList();
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // Phase A P0 #4 — Host seat lock (Chamet/Bigo empty-seat action)
+  // Server RPC `set_seat_lock` is the single source of truth; the DB
+  // trigger `guard_seat_lock_on_take` enforces the lock even if a
+  // client bypasses it.
+  // ─────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> setSeatLock({
+    required String roomId,
+    required int seatNumber,
+    required bool locked,
+    bool? forbidAudio,
+    bool? forbidVideo,
+  }) async {
+    final res = await _supabase.rpc('set_seat_lock', params: {
+      'p_room_id': roomId,
+      'p_seat_number': seatNumber,
+      'p_locked': locked,
+      if (forbidAudio != null) 'p_forbid_audio': forbidAudio,
+      if (forbidVideo != null) 'p_forbid_video': forbidVideo,
+    });
+    if (res is Map) return res.cast<String, dynamic>();
+    return const {'ok': true};
+  }
 }
+
 
 
