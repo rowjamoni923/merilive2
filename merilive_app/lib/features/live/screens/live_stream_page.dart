@@ -139,6 +139,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       LiveChatBridge.instance
           .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
 
+      // A6 — subscribe to server-authoritative PK battle state for this stream.
+      _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
+        if (mounted) setState(() => _pkBattle = snap);
+      });
+
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
       if (!_isHost) {
