@@ -51,6 +51,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   late final ReelVideoPool _pool;
   late final ReelsAnalyticsService _analytics;
 
+  // One realtime channel per category — subscribed lazily on first hop and
+  // reused so counter deltas from other devices tick without a refetch.
+  final Map<String, ReelsRealtime> _realtimes = {};
   final Map<String, ReelsFeedCubit> _feedCubits = {};
   final Map<String, PageController> _pageControllers = {};
 
@@ -73,6 +76,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     WidgetsBinding.instance.removeObserver(this);
     for (final c in _feedCubits.values) {
       c.close();
+    }
+    for (final rt in _realtimes.values) {
+      unawaited(rt.dispose());
     }
     for (final c in _pageControllers.values) {
       c.dispose();
