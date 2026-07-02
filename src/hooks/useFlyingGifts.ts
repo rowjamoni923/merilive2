@@ -1,5 +1,9 @@
 import { useState, useCallback, useRef } from "react";
 import type { FlyingGift } from "@/components/live/FlyingGiftAnimation";
+import {
+  enqueueFullScreenGift,
+  FULL_SCREEN_GIFT_COIN_THRESHOLD,
+} from "@/hooks/useGlobalFullScreenGift";
 
 /**
  * Combo-aware flying gift queue (Bigo / TikTok Live style).
