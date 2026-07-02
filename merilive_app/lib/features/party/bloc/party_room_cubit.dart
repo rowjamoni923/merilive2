@@ -81,15 +81,19 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required PartyRoomRepository repository,
     required PartyRoomRealtime realtime,
     required SupabaseClient supabase,
+    PartyLiveKitService? livekit,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
+        _lk = livekit ?? PartyLiveKitService(supabase),
         super(const PartyRoomState());
 
   final String roomId;
   final PartyRoomRepository _repo;
   final PartyRoomRealtime _rt;
   final SupabaseClient _supabase;
+  final PartyLiveKitService _lk;
+
 
   String? get _uid => _supabase.auth.currentUser?.id;
   bool get isHost =>
