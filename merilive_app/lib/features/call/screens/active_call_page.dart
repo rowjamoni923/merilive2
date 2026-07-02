@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,8 +14,8 @@ import '../data/private_call_bridge.dart';
 ///
 /// The native LiveKit renderer is mounted BEHIND Flutter via `attachLocal`,
 /// so the Scaffold background is intentionally transparent; only the HUD is
-/// drawn by Flutter.
-@RoutePage()
+/// drawn by Flutter. Pushed via `Navigator.push` (not auto_route) so we don't
+/// require a build_runner regeneration.
 class ActiveCallPage extends StatefulWidget {
   const ActiveCallPage({
     super.key,
