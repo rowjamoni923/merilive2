@@ -65,21 +65,33 @@ class LiveChatMessage {
 class LiveGiftEvent {
   LiveGiftEvent({
     required this.id,
+    required this.giftId,
+    required this.senderId,
     required this.senderName,
     required this.senderAvatar,
+    required this.receiverId,
     required this.giftName,
     required this.giftIcon,
+    required this.animationUrl,
+    required this.animationType,
     required this.coinAmount,
+    required this.perUnitCoins,
     required this.quantity,
     required this.createdAt,
   });
 
   final String id;
+  final String? giftId;
+  final String? senderId;
   final String senderName;
   final String? senderAvatar;
+  final String? receiverId;
   final String giftName;
   final String? giftIcon;
+  final String? animationUrl;
+  final String? animationType;
   final int coinAmount;
+  final int perUnitCoins;
   final int quantity;
   final DateTime createdAt;
 }
@@ -273,20 +285,35 @@ class LiveChatBridge {
       if (giftId != null) {
         gift = await _client
             .from('gifts')
-            .select('id, name, icon_url, coin_cost')
+            .select(
+                'id, name, icon_url, image_url, animation_url, animation_type, coin_cost, coin_price')
             .eq('id', giftId)
             .maybeSingle();
       }
 
+      final quantity = (row['quantity'] as int?) ?? 1;
+      final coinAmount = (row['coin_amount'] as int?) ?? 0;
+      final perUnitFromGift = (gift?['coin_price'] as num?)?.toInt() ??
+          (gift?['coin_cost'] as num?)?.toInt();
+      final perUnit = perUnitFromGift ??
+          (quantity > 0 ? (coinAmount / quantity).round() : coinAmount);
+
       final event = LiveGiftEvent(
         id: row['id']?.toString() ??
             DateTime.now().microsecondsSinceEpoch.toString(),
+        giftId: giftId,
+        senderId: senderId,
         senderName: sender?['display_name']?.toString() ?? 'Someone',
         senderAvatar: sender?['avatar_url']?.toString(),
+        receiverId: row['receiver_id']?.toString(),
         giftName: gift?['name']?.toString() ?? 'Gift',
-        giftIcon: gift?['icon_url']?.toString(),
-        coinAmount: (row['coin_amount'] as int?) ?? 0,
-        quantity: (row['quantity'] as int?) ?? 1,
+        giftIcon: gift?['icon_url']?.toString() ??
+            gift?['image_url']?.toString(),
+        animationUrl: gift?['animation_url']?.toString(),
+        animationType: gift?['animation_type']?.toString(),
+        coinAmount: coinAmount,
+        perUnitCoins: perUnit,
+        quantity: quantity,
         createdAt:
             DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
       );
