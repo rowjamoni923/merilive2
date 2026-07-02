@@ -1399,3 +1399,21 @@ class _CoinChip extends StatelessWidget {
 }
 
 
+
+/// Phase I14 — internal record for per-sender session totals feeding
+/// `LiveOverlayController.topGifters`. Not exported — the overlay consumes
+/// `GiftComboTrackerEntry` directly.
+class _GifterTotal {
+  final String userId;
+  final String name;
+  final String? avatarUrl;
+  final int totalCoins;
+  final DateTime lastAt;
+  const _GifterTotal({
+    required this.userId,
+    required this.name,
+    required this.totalCoins,
+    required this.lastAt,
+    this.avatarUrl,
+  });
+}
