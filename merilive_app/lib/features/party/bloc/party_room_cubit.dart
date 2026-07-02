@@ -220,6 +220,18 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     );
     if (!seat.isEmpty || seat.isLocked) return;
     await _repo.takeSeat(roomId: roomId, userId: uid, seatNumber: seatNumber);
+    // PD5b — upgrade LiveKit connection to publish-capable (mic starts muted).
+    try {
+      await _lk.upgradeToSpeaker(roomId: roomId, participantName: uid);
+    } catch (e) {
+      // Rollback seat if we can't publish (e.g. permission denied).
+      try {
+        await _repo.leaveSeat(roomId: roomId, userId: uid);
+      } catch (_) {}
+      await _refreshSeats();
+      emit(state.copyWith(error: e.toString()));
+      return;
+    }
     await _refreshSeats();
   }
 
@@ -227,6 +239,10 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     final uid = _uid;
     if (uid == null) return;
     await _repo.leaveSeat(roomId: roomId, userId: uid);
+    // PD5b — drop mic publish, keep listening as viewer.
+    try {
+      await _lk.downgradeToViewer(roomId: roomId, participantName: uid);
+    } catch (_) {}
     await _refreshSeats();
   }
 
@@ -235,6 +251,10 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     if (uid == null || state.selfSeat == null) return;
     final next = !state.isSelfMuted;
     emit(state.copyWith(isSelfMuted: next));
+    // PD5b — flip the native mic track. Cheap, no reconnect.
+    try {
+      await _lk.setMicEnabled(!next);
+    } catch (_) {}
     await _repo.toggleSelfMute(roomId: roomId, userId: uid, muted: next);
   }
 
@@ -270,9 +290,11 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   @override
   Future<void> close() async {
     await _rt.unsubscribe();
+    await _lk.disconnect();
     await leaveRoom();
     return super.close();
   }
+
 }
 
 extension _Let<T> on T {
