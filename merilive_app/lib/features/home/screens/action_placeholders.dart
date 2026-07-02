@@ -545,18 +545,488 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
   }
 }
 
+/// Create Party — Flutter parity of `src/pages/CreateParty.tsx`.
+///
+/// C5: server-authoritative preflight (profile level + host status), admin-driven
+/// mode picker (video/audio/game), games grid sourced from `game_settings`
+/// (same whitelist as web: lucky_28, aviator, plinko, dragon_tiger, andar_bahar,
+/// crash), optional entry-fee gate (password gating removed — Chamet/Bigo
+/// standard). Video/game modes warm the native LiveKit local preview via the
+/// same MethodChannel used by GoLive so seat-0 promotion in C6 is zero-gap.
+/// Real room create goes through RPC `create_party_room` (identical params to
+/// web), then hands off to /party/:roomId.
 @RoutePage()
-class CreatePartyPlaceholderPage extends StatelessWidget {
+class CreatePartyPlaceholderPage extends StatefulWidget {
   const CreatePartyPlaceholderPage({super.key});
   @override
-  Widget build(BuildContext context) => const _ComingSoon(
-        title: 'Create Party',
-        subtitle:
-            'Audio / video / game party rooms with seats, mic queue and moderation will be built out with the Party sector.',
-        icon: Icons.celebration_rounded,
-        gradient: [Color(0xFF9333EA), Color(0xFFEC4899)],
-        sector: 'Sector 3 (Party)',
+  State<CreatePartyPlaceholderPage> createState() =>
+      _CreatePartyPlaceholderPageState();
+}
+
+enum _PartyMode { video, audio, game }
+
+class _GameOption {
+  const _GameOption({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.color,
+    this.logoUrl,
+  });
+  final String id;
+  final String name;
+  final String emoji;
+  final String color;
+  final String? logoUrl;
+}
+
+const _kAllowedGames = <String>[
+  'lucky_28',
+  'aviator',
+  'plinko',
+  'dragon_tiger',
+  'andar_bahar',
+  'crash',
+];
+
+class _CreatePartyPlaceholderPageState
+    extends State<CreatePartyPlaceholderPage> {
+  _PartyMode _mode = _PartyMode.video;
+  bool _loading = true;
+  bool _creating = false;
+  bool _previewing = false;
+  String? _denyMessage;
+
+  String? _selectedGameId;
+  final _entryFeeCtrl = TextEditingController();
+
+  List<_GameOption> _games = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _bootstrap();
+  }
+
+  @override
+  void dispose() {
+    _entryFeeCtrl.dispose();
+    if (_previewing) {
+      LiveKitBridge.instance.stopLocalPreview();
+    }
+    super.dispose();
+  }
+
+  Future<void> _bootstrap() async {
+    final client = Supabase.instance.client;
+    try {
+      final gamesFuture = client
+          .from('game_settings')
+          .select('game_id, game_name, game_emoji, game_color, logo_url')
+          .eq('is_active', true)
+          .inFilter('game_id', _kAllowedGames)
+          .order('display_order', ascending: true);
+
+      final games = await gamesFuture;
+      _games = (games as List)
+          .map((g) => _GameOption(
+                id: g['game_id']?.toString() ?? '',
+                name: g['game_name']?.toString() ?? '',
+                emoji: g['game_emoji']?.toString() ?? '🎮',
+                color: g['game_color']?.toString() ?? '#7C3AED',
+                logoUrl: g['logo_url']?.toString(),
+              ))
+          .where((g) => g.id.isNotEmpty)
+          .toList();
+
+      if (!mounted) return;
+      setState(() => _loading = false);
+      await _warmPreviewForMode();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _denyMessage = 'Failed to load party options. Please try again.';
+      });
+    }
+  }
+
+  Future<void> _warmPreviewForMode() async {
+    final needsCamera = _mode != _PartyMode.audio;
+    if (needsCamera && !_previewing) {
+      await LiveKitBridge.instance.initialize();
+      final res = await LiveKitBridge.instance.startLocalPreview(front: true);
+      if (!mounted) return;
+      setState(() =>
+          _previewing = res['success'] == true || res['pending'] == true);
+    } else if (!needsCamera && _previewing) {
+      await LiveKitBridge.instance.stopLocalPreview();
+      if (!mounted) return;
+      setState(() => _previewing = false);
+    }
+  }
+
+  Future<void> _handleModeChange(_PartyMode next) async {
+    if (next == _mode) return;
+    setState(() {
+      _mode = next;
+      if (next != _PartyMode.game) _selectedGameId = null;
+    });
+    await _warmPreviewForMode();
+  }
+
+  Future<void> _handleCreate() async {
+    if (_creating) return;
+    if (_mode == _PartyMode.game && (_selectedGameId?.isEmpty ?? true)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a game to continue')),
       );
+      return;
+    }
+
+    setState(() => _creating = true);
+    final client = Supabase.instance.client;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final user = client.auth.currentUser;
+      if (user == null) {
+        if (mounted) context.router.replaceNamed('/auth');
+        return;
+      }
+
+      final profile = await client
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final displayName =
+          (profile?['display_name']?.toString() ?? 'User').trim();
+      final defaultName = "$displayName's Party";
+
+      final entryFee = int.tryParse(_entryFeeCtrl.text.trim()) ?? 0;
+
+      final res = await client.rpc('create_party_room', params: {
+        'p_name': defaultName,
+        'p_room_type': _mode.name,
+        'p_game_mode': _mode == _PartyMode.game ? _selectedGameId : null,
+        'p_password': null,
+        'p_entry_fee': entryFee < 0 ? 0 : entryFee,
+      });
+
+      final roomId = res?.toString();
+      if (roomId == null || roomId.isEmpty) {
+        throw StateError('Party room was not created');
+      }
+
+      if (!mounted) return;
+      // Preview stays alive — PartyRoom promotes the same Camera2 track (C6).
+      context.router.pushNamed('/party/$roomId');
+    } on PostgrestException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Failed to create party')));
+    } finally {
+      if (mounted) setState(() => _creating = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        title: const Text('Create Party',
+            style:
+                TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1F0B3D), Color(0xFF3B0A5E), Color(0xFF12061F)],
+          ),
+        ),
+        child: SafeArea(
+          child: _loading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _ModePicker(mode: _mode, onChange: _handleModeChange),
+                      const SizedBox(height: 20),
+                      if (_mode == _PartyMode.game)
+                        _GamesGrid(
+                          games: _games,
+                          selected: _selectedGameId,
+                          onSelect: (id) =>
+                              setState(() => _selectedGameId = id),
+                        ),
+                      if (_mode == _PartyMode.game) const SizedBox(height: 20),
+                      _EntryFeeField(controller: _entryFeeCtrl),
+                      const SizedBox(height: 24),
+                      if (_denyMessage != null) ...[
+                        Text(_denyMessage!,
+                            style: const TextStyle(
+                                color: Color(0xFFFCA5A5), fontSize: 13)),
+                        const SizedBox(height: 16),
+                      ],
+                      _CreateCta(
+                        creating: _creating,
+                        onTap: _handleCreate,
+                        label: _mode == _PartyMode.audio
+                            ? 'Start Audio Party'
+                            : _mode == _PartyMode.game
+                                ? 'Start Game Party'
+                                : 'Start Video Party',
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Party rooms are public. Set an entry fee to gate access — no password required (Chamet/Bigo standard).',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                            height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModePicker extends StatelessWidget {
+  const _ModePicker({required this.mode, required this.onChange});
+  final _PartyMode mode;
+  final ValueChanged<_PartyMode> onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <(_PartyMode, IconData, String)>[
+      (_PartyMode.video, Icons.videocam_rounded, 'Video'),
+      (_PartyMode.audio, Icons.mic_rounded, 'Audio'),
+      (_PartyMode.game, Icons.sports_esports_rounded, 'Game'),
+    ];
+    return Row(
+      children: items.map((it) {
+        final selected = it.$1 == mode;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () => onChange(it.$1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: selected
+                      ? const LinearGradient(colors: [
+                          Color(0xFFEC4899),
+                          Color(0xFF9333EA),
+                        ])
+                      : null,
+                  color: selected ? null : Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: selected
+                        ? Colors.white.withOpacity(0.4)
+                        : Colors.white.withOpacity(0.12),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(it.$2, color: Colors.white, size: 26),
+                    const SizedBox(height: 6),
+                    Text(it.$3,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        )),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _GamesGrid extends StatelessWidget {
+  const _GamesGrid({
+    required this.games,
+    required this.selected,
+    required this.onSelect,
+  });
+  final List<_GameOption> games;
+  final String? selected;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (games.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: const Text(
+          'No games available. Admin has not enabled any Create-Party games yet.',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+      );
+    }
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 0.95,
+      children: games.map((g) {
+        final isSel = g.id == selected;
+        Color parseHex(String h) {
+          final v = h.replaceAll('#', '');
+          if (v.length == 6) return Color(int.parse('FF$v', radix: 16));
+          if (v.length == 8) return Color(int.parse(v, radix: 16));
+          return const Color(0xFF7C3AED);
+        }
+
+        final tint = parseHex(g.color);
+        return GestureDetector(
+          onTap: () => onSelect(g.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [tint.withOpacity(0.55), tint.withOpacity(0.25)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSel
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.15),
+                width: isSel ? 2 : 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(g.emoji, style: const TextStyle(fontSize: 30)),
+                const SizedBox(height: 6),
+                Text(
+                  g.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _EntryFeeField extends StatelessWidget {
+  const _EntryFeeField({required this.controller});
+  final TextEditingController controller;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.12)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        style: const TextStyle(color: Colors.white, fontSize: 15),
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          icon: Icon(Icons.diamond_rounded, color: Color(0xFF60A5FA)),
+          hintText: 'Entry fee (diamonds) — 0 for free',
+          hintStyle: TextStyle(color: Colors.white38, fontSize: 13),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateCta extends StatelessWidget {
+  const _CreateCta({
+    required this.creating,
+    required this.onTap,
+    required this.label,
+  });
+  final bool creating;
+  final VoidCallback onTap;
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton(
+        onPressed: creating ? null : onTap,
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999)),
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFEC4899), Color(0xFF9333EA)],
+            ),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Container(
+            alignment: Alignment.center,
+            child: creating
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2.4),
+                  )
+                : Text(label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    )),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 @RoutePage()
