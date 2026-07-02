@@ -22,6 +22,7 @@ import '../bloc/reels_feed_cubit.dart';
 import '../data/reel_video_pool.dart';
 import '../data/reels_models.dart';
 import '../data/reels_repository.dart';
+import '../widgets/reel_bottom_info.dart';
 import '../widgets/reel_player.dart';
 import '../widgets/reel_right_rail.dart';
 import '../widgets/reels_category_chips.dart';
@@ -351,6 +352,17 @@ class _FeedPageViewState extends State<_FeedPageView> {
                       onMore: (r) => _openMoreMenu(context, r),
                     ),
                   ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: ReelBottomInfo(
+                      reel: reel,
+                      isActive: isActive && widget.canPlay,
+                      onHandleTap: (r) => _openProfile(context, r.userId),
+                      onSoundTap: (r) => _openSoundPlaceholder(context, r),
+                    ),
+                  ),
                 ],
               );
             },
@@ -416,6 +428,22 @@ void _openSharePlaceholder(BuildContext context, Reel reel) {
     ),
   );
 }
+
+void _openSoundPlaceholder(BuildContext context, Reel reel) {
+  // TODO(future): open sound detail / "reels using this sound" list.
+  final label = reel.isOriginalSound
+      ? 'Original sound'
+      : (reel.soundTitle ?? reel.musicTitle ?? 'Sound');
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(label),
+      duration: const Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+
 
 void _openMoreMenu(BuildContext context, Reel reel) {
   final cubit = context.read<ReelsFeedCubit>();
