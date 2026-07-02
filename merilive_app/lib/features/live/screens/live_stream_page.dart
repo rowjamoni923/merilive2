@@ -14,7 +14,8 @@ import '../services/live_voice_monitor.dart';
 import '../data/pk_opponent_room_bridge.dart';
 import '../widgets/pk_punishment_overlay.dart';
 import '../widgets/live_overlay_stack.dart';
-import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality;
+import '../widgets/connection_quality_indicator.dart'
+    show LiveConnectionQuality, ConnectionQualityIndicator;
 import '../widgets/pk_battle_active.dart' show PKBattleActiveState;
 import '../widgets/premium_flying_gift_banner.dart' show PremiumFlyingGift;
 import '../widgets/premium_join_chat_overlay.dart' show PremiumJoinChatEntry;
