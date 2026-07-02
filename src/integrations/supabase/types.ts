@@ -9330,6 +9330,53 @@ export type Database = {
         }
         Relationships: []
       }
+      live_raise_hand_queue: {
+        Row: {
+          id: string
+          raised_at: string
+          reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          stream_id: string
+          viewer_avatar: string | null
+          viewer_id: string
+          viewer_name: string | null
+        }
+        Insert: {
+          id?: string
+          raised_at?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          stream_id: string
+          viewer_avatar?: string | null
+          viewer_id: string
+          viewer_name?: string | null
+        }
+        Update: {
+          id?: string
+          raised_at?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          stream_id?: string
+          viewer_avatar?: string | null
+          viewer_id?: string
+          viewer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_raise_hand_queue_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       live_streams: {
         Row: {
           category_id: string | null
