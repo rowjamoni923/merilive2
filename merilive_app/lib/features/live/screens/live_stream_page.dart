@@ -231,6 +231,65 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
   Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
 
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
+  }
+
+  void _openMoreSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xF01F2937),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => LiveMoreSheet(isHost: _isHost, onSelect: _onMoreSelected),
+    );
+  }
+
+  void _onMoreSelected(String id) {
+    switch (id) {
+      case 'like':
+        _snack('❤️ Sent love');
+        break;
+      case 'share':
+        _snack('Share sheet coming soon');
+        break;
+      case 'tasks':
+        _snack('Tasks — opening');
+        break;
+      case 'topup':
+        _snack('Top Up — opening');
+        break;
+      case 'music':
+        _snack('Music player coming soon');
+        break;
+      case 'react':
+        _snack('Reactions coming soon');
+        break;
+      case 'raisehand':
+        _snack('Hand raised');
+        break;
+      case 'pk':
+        _snack('PK Battle panel coming soon');
+        break;
+      case 'sticker':
+        _snack('Stickers coming soon');
+        break;
+      case 'vbg':
+        _snack('Virtual background coming soon');
+        break;
+      case 'noise':
+        _snack('Noise cancellation coming soon');
+        break;
+      case 'raisedhands':
+        _snack('Raised hands queue coming soon');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -266,7 +325,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             Positioned(
               left: 12,
               right: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 96,
+              bottom: MediaQuery.of(context).padding.bottom + 148,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,10 +336,32 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ],
               ),
             ),
-            _BottomBar(
-              isHost: _isHost,
-              busy: _leaving,
-              onPressed: _handleLeaveOrEnd,
+            // A3 — full action bar with host quick-actions.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: LiveActionBar(
+                isHost: _isHost,
+                busy: _leaving,
+                isMicMuted: _isMicMuted,
+                isCamOff: _isCamOff,
+                onGift: () => _snack('Gift panel coming soon'),
+                onShare: () => _onMoreSelected('share'),
+                onLike: () => _onMoreSelected('like'),
+                onMore: _openMoreSheet,
+                onEndOrLeave: _handleLeaveOrEnd,
+                onToggleMic: () {
+                  setState(() => _isMicMuted = !_isMicMuted);
+                  _snack(_isMicMuted ? 'Mic muted' : 'Mic on');
+                },
+                onToggleCam: () {
+                  setState(() => _isCamOff = !_isCamOff);
+                  _snack(_isCamOff ? 'Camera off' : 'Camera on');
+                },
+                onFlipCam: () => _snack('Flip camera'),
+                onBeauty: () => _snack('Beauty panel coming soon'),
+              ),
             ),
           ],
         ],
