@@ -65,11 +65,13 @@ Last audited: 2026-06-08 (Phase II audit). Original memory said "100% broken" �
 - ✅ Duration presets [180/300/600]s: segmented selector in `PKBattlePanel` → forwarded to both `start_pk_battle` (direct) and `start_pk_battle_random` via `randomPKSearching.durationSeconds`.
 - ✅ Per-user PK stats: `profiles.pk_wins / pk_losses / pk_draws / pk_current_streak / pk_longest_streak / pk_total_battles`. Auto-updated in `end_pk_battle`. **UI card NOT added yet** (design-sacred — awaiting explicit OK).
 
-## Deferred (low-priority cleanup)
-- R2: Drop `pk_battle_gifts.receiver_id` dead column
-- R3: Drop unused `pk_match_queue` table + 3 RPCs
-- R4: MVP cash bonus — research confirms no platform does this. Skip unless product asks.
-- R5: 10s cosmetic delay between client "TIME'S UP" and server-side end (cron interval). Reduce cron to 5s OR add server-trigger on row UPDATE if it becomes a UX complaint.
+## Cleanup status (verified 2026-07-02 vs live DB)
+- ✅ R2 DONE: `pk_battle_gifts.receiver_id` already dropped
+- ✅ R3 DONE: `pk_match_queue` table + RPCs no longer exist
+- R4 SKIP: MVP cash bonus — no platform does this
+- R5 OPEN (cosmetic): 10s gap between client "TIME'S UP" and cron-driven server end. Reduce cron to 5s only if UX complaint arrives.
+
+**Backend = 100% clean. Any remaining PK work is Flutter parity (result modal, random-match notif, panel, opponent room subscription) — see `.lovable/phase-h-audit.md` P0 #3.**
 
 ## Files that touch PK Battle (sacred design — never restyle)
 - `src/components/live/PKBattleActive.tsx`
