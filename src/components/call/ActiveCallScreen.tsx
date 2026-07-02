@@ -1618,13 +1618,15 @@ export function ActiveCallScreen({
           {/* Chat input row (always visible like live stream) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Message input pill */}
-            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full backdrop-blur-xl"
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full backdrop-blur-2xl relative overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(25,12,50,0.5) 100%)',
-                border: '1px solid rgba(255,255,255,0.14)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 16px -8px rgba(0,0,0,0.5)',
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+                border: '1px solid rgba(255,255,255,0.16)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 20px -10px rgba(0,0,0,0.55)',
               }}
             >
+              <span aria-hidden className="pointer-events-none absolute inset-x-3 top-0 h-px"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }} />
               <input
                 ref={chatInputRef}
                 type="text"
@@ -1632,24 +1634,50 @@ export function ActiveCallScreen({
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
                 placeholder="Say something..."
-                className="flex-1 bg-transparent text-white text-xs font-medium outline-none placeholder:text-white/40 min-w-0"
+                className="flex-1 bg-transparent text-white text-[13px] sm:text-sm font-medium outline-none placeholder:text-white/45 min-w-0 relative"
               />
-              {chatInput.trim() && (
-                <motion.button
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  whileTap={{ scale: 0.85 }}
-                  onClick={sendChatMessage}
-                  className="w-7 h-7 rounded-full flex items-center justify-center border border-white/25"
-                  style={{
-                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-                    boxShadow: '0 4px 12px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
-                  }}
-                >
-                  <Send className="w-3.5 h-3.5 text-white" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.4))' }} />
-                </motion.button>
-              )}
+              <motion.button
+                animate={{ scale: chatInput.trim() ? 1 : 0.85, opacity: chatInput.trim() ? 1 : 0.55 }}
+                whileTap={{ scale: 0.82 }}
+                onClick={sendChatMessage}
+                disabled={!chatInput.trim()}
+                className="w-7 h-7 rounded-full flex items-center justify-center border border-white/25 relative shrink-0"
+                style={{
+                  background: chatInput.trim()
+                    ? 'linear-gradient(135deg, #f472b6, #ec4899 55%, #a855f7)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                  boxShadow: chatInput.trim()
+                    ? '0 6px 16px -6px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.45)'
+                    : 'inset 0 1px 0 rgba(255,255,255,0.15)',
+                }}
+                aria-label="Send message"
+              >
+                <Send className="w-3.5 h-3.5 text-white" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.4))' }} />
+              </motion.button>
             </div>
+
+            {/* Mic quick-toggle */}
+            <motion.button
+              whileTap={{ scale: 0.88, y: 0 }}
+              whileHover={{ y: -2 }}
+              onClick={() => { try { void toggleAudio(); } catch { /* ignore */ } }}
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl relative overflow-hidden"
+              style={{
+                background: isAudioEnabled
+                  ? 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)'
+                  : 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #b91c1c 100%)',
+                border: `1px solid ${isAudioEnabled ? 'rgba(255,255,255,0.18)' : 'rgba(252,165,165,0.45)'}`,
+                boxShadow: isAudioEnabled
+                  ? '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  : '0 10px 22px -8px rgba(239,68,68,0.6), inset 0 1px 0 rgba(255,255,255,0.4)',
+              }}
+              aria-label={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
+            >
+              {isAudioEnabled
+                ? <Mic className="w-5 h-5 text-white/90" />
+                : <MicOff className="w-5 h-5 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />}
+            </motion.button>
+
 
             {/* Call End button */}
             <motion.button
