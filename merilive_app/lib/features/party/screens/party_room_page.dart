@@ -9,6 +9,8 @@ import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../widgets/chamet_seat_grid.dart';
+import '../widgets/party_chat_composer.dart';
+import '../widgets/party_chat_overlay.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
 
@@ -80,7 +82,14 @@ class _PartyRoomView extends StatelessWidget {
                           Supabase.instance.client.auth.currentUser?.id,
                     ),
                     const SizedBox(height: 4),
-                    Expanded(child: _ChatList(messages: state.messages)),
+                    Expanded(
+                      child: PartyChatOverlay(
+                        messages: state.messages,
+                        hostId: state.host?.id,
+                        currentUserId:
+                            Supabase.instance.client.auth.currentUser?.id,
+                      ),
+                    ),
                     _BottomBar(state: state),
                   ],
                 ),
@@ -351,52 +360,6 @@ class _SeatGrid extends StatelessWidget {
 
 
 
-class _ChatList extends StatelessWidget {
-  const _ChatList({required this.messages});
-  final List<PartyChatMessage> messages;
-  @override
-  Widget build(BuildContext context) {
-    if (messages.isEmpty) {
-      return Center(
-        child: Text('Say hi 👋',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
-      );
-    }
-    return ListView.builder(
-      reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      itemCount: messages.length,
-      itemBuilder: (_, i) {
-        final m = messages[messages.length - 1 - i];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-                children: [
-                  TextSpan(
-                    text: '${m.displayName ?? "User"}: ',
-                    style: const TextStyle(
-                        color: Colors.amberAccent,
-                        fontWeight: FontWeight.w600),
-                  ),
-                  TextSpan(text: m.content),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 class _BottomBar extends StatefulWidget {
   const _BottomBar({required this.state});
@@ -406,14 +369,6 @@ class _BottomBar extends StatefulWidget {
 }
 
 class _BottomBarState extends State<_BottomBar> {
-  final _ctrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PartyRoomCubit>();
@@ -426,75 +381,57 @@ class _BottomBarState extends State<_BottomBar> {
         bottom: 6 + MediaQuery.of(context).viewInsets.bottom,
       ),
       color: Colors.black.withValues(alpha: 0.35),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _ctrl,
-              maxLength: 200,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                counterText: '',
-                hintText: 'Say something…',
-                hintStyle:
-                    TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.08),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+          PartyChatComposer(onSend: cubit.sendMessage),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Spacer(),
+              if (onSeat)
+                _circleBtn(
+                  icon: widget.state.isSelfMuted
+                      ? Icons.mic_off_rounded
+                      : Icons.mic_rounded,
+                  color: widget.state.isSelfMuted
+                      ? Colors.redAccent
+                      : Colors.greenAccent,
+                  onTap: cubit.toggleSelfMute,
+                )
+              else
+                _circleBtn(
+                  icon: Icons.chair_alt_rounded,
+                  color: Colors.amber,
+                  onTap: () async {
+                    final free = widget.state.seats.firstWhere(
+                      (s) => s.isEmpty && !s.isLocked,
+                      orElse: () => PartySeat.empty(0),
+                    );
+                    if (free.seatNumber > 0) {
+                      await cubit.takeSeat(free.seatNumber);
+                    }
+                  },
                 ),
+              const SizedBox(width: 6),
+              if (onSeat)
+                _circleBtn(
+                  icon: Icons.exit_to_app_rounded,
+                  color: Colors.white70,
+                  onTap: cubit.leaveSeat,
+                ),
+              _circleBtn(
+                icon: Icons.music_note_rounded,
+                color: const Color(0xFF10B981),
+                onTap: () => showPartyMusicSheet(context),
               ),
-              onSubmitted: (v) async {
-                await cubit.sendMessage(v);
-                _ctrl.clear();
-              },
-            ),
+              _circleBtn(
+                icon: Icons.card_giftcard_rounded,
+                color: Colors.pinkAccent,
+                onTap: () => showPartyGiftSheet(context),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          if (onSeat)
-            _circleBtn(
-              icon: widget.state.isSelfMuted
-                  ? Icons.mic_off_rounded
-                  : Icons.mic_rounded,
-              color: widget.state.isSelfMuted
-                  ? Colors.redAccent
-                  : Colors.greenAccent,
-              onTap: cubit.toggleSelfMute,
-            )
-          else
-            _circleBtn(
-              icon: Icons.chair_alt_rounded,
-              color: Colors.amber,
-              onTap: () async {
-                // Take first free unlocked seat.
-                final free = widget.state.seats.firstWhere(
-                  (s) => s.isEmpty && !s.isLocked,
-                  orElse: () => PartySeat.empty(0),
-                );
-                if (free.seatNumber > 0) await cubit.takeSeat(free.seatNumber);
-              },
-            ),
-          const SizedBox(width: 6),
-          if (onSeat)
-            _circleBtn(
-              icon: Icons.exit_to_app_rounded,
-              color: Colors.white70,
-              onTap: cubit.leaveSeat,
-            ),
-          _circleBtn(
-            icon: Icons.music_note_rounded,
-            color: const Color(0xFF10B981),
-            onTap: () => showPartyMusicSheet(context),
-          ),
-          _circleBtn(
-            icon: Icons.card_giftcard_rounded,
-            color: Colors.pinkAccent,
-            onTap: () => showPartyGiftSheet(context),
-          ),
-
         ],
       ),
     );
