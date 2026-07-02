@@ -313,6 +313,20 @@ class _RoomHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const _RequestsBadge(),
+          const SizedBox(width: 6),
+          InkResponse(
+            onTap: () => PartyContributorsSheet.show(context, room.id),
+            radius: 22,
+            child: Container(
+              width: 34, height: 34,
+              decoration: const BoxDecoration(
+                color: Color(0x33FFFFFF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emoji_events_rounded,
+                  color: Color(0xFFFACC15), size: 18),
+            ),
+          ),
           if (cubit.isHost) ...[
             const SizedBox(width: 6),
             InkResponse(
@@ -332,6 +346,9 @@ class _RoomHeader extends StatelessWidget {
         ],
       ),
       onClose: () async {
+        final choice = await showPartyCloseModal(context, isHost: cubit.isHost);
+        if (choice == PartyCloseChoice.cancel) return;
+        if (!context.mounted) return;
         await context.read<PartyRoomCubit>().leaveRoom();
         if (context.mounted) context.router.maybePop();
       },
