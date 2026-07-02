@@ -24,8 +24,10 @@ import '../data/reels_models.dart';
 import '../data/reels_repository.dart';
 import '../widgets/reel_bottom_info.dart';
 import '../widgets/reel_comments_sheet.dart';
+import '../widgets/reel_gift_sheet.dart';
 import '../widgets/reel_player.dart';
 import '../widgets/reel_right_rail.dart';
+import '../widgets/reel_share_sheet.dart';
 import '../widgets/reels_category_chips.dart';
 
 class ReelsFeedPage extends StatefulWidget {
@@ -404,30 +406,42 @@ void _openProfile(BuildContext context, String userId) {
 // R6: comments sheet handled by _ReelsFeedPageState._openCommentsSheet.
 
 void _openGiftPlaceholder(BuildContext context, Reel reel) {
-  // TODO(R7): bridge to existing gift sender.
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Gifting coming next'),
-      duration: Duration(milliseconds: 900),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
+  // R7 — real gift sheet backed by the atomic `gift-service` edge function
+  // (same server contract as web GiftingService, `reelId` scoped).
+  final uid = Supabase.instance.client.auth.currentUser?.id;
+  if (uid == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sign in to send gifts'),
+        duration: Duration(milliseconds: 1200),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+  if (uid == reel.userId) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("You can't gift your own reel"),
+        duration: Duration(milliseconds: 1200),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+  showReelGiftSheet(context: context, reel: reel);
 }
 
 void _openSharePlaceholder(BuildContext context, Reel reel) {
-  // TODO(R7): system share sheet + recordShare().
+  // R7 — Chamet-class share tray: Copy / WhatsApp / System share / Report,
+  // each routed through recordShare() so `reel_shares` + right-rail counter
+  // stay in sync (Realtime reconciles).
   final cubit = context.read<ReelsFeedCubit>();
-  unawaited(cubit.recordShare(
-    reelId: reel.id,
-    platform: 'app',
-    shareType: 'copy_link',
-  ));
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Link copied'),
-      duration: Duration(milliseconds: 900),
-      behavior: SnackBarBehavior.floating,
-    ),
+  showReelShareSheet(
+    context: context,
+    reel: reel,
+    cubit: cubit,
+    onReport: () => _openReportSheet(context, cubit, reel),
   );
 }
 
