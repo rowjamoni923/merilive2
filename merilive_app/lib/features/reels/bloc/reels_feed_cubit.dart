@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
 
 import '../data/reels_models.dart';
+import '../data/reels_realtime.dart';
 import '../data/reels_repository.dart';
 
 @immutable
@@ -54,20 +55,117 @@ class ReelsFeedState {
 class ReelsFeedCubit extends Cubit<ReelsFeedState> {
   ReelsFeedCubit({
     required ReelsRepository repository,
+    required ReelsRealtime realtime,
     required this.categorySlug,
     required this.currentUserId,
     required List<ReelCategory> knownCategories,
   })  : _repo = repository,
+        _realtime = realtime,
         _knownCategories = knownCategories,
-        super(const ReelsFeedState());
+        super(const ReelsFeedState()) {
+    _realtimeSub = _realtime.stream.listen(_onRealtimePatch);
+  }
 
   final ReelsRepository _repo;
+  final ReelsRealtime _realtime;
   final String categorySlug;
   final String? currentUserId;
   final List<ReelCategory> _knownCategories;
+  StreamSubscription<ReelPatch>? _realtimeSub;
+  Timer? _reelUpsertDebounce;
 
   /// Prefetch when the user is within this many items of the tail.
   static const int _prefetchThreshold = 3;
+
+  void _onRealtimePatch(ReelPatch p) {
+    // Ignore echoes of our own optimistic mutations — the local path already
+    // updated the counter, and applying the realtime delta on top would
+    // double-count.
+    if (p.actorUserId != null && p.actorUserId == currentUserId) return;
+
+    switch (p.kind) {
+      case ReelPatchKind.likeAdd:
+        _bumpCount(p.reelId, likeDelta: 1);
+        break;
+      case ReelPatchKind.likeRemove:
+        _bumpCount(p.reelId, likeDelta: -1);
+        break;
+      case ReelPatchKind.commentAdd:
+        _bumpCount(p.reelId, commentDelta: 1);
+        break;
+      case ReelPatchKind.commentRemove:
+        _bumpCount(p.reelId, commentDelta: -1);
+        break;
+      case ReelPatchKind.shareAdd:
+        _bumpCount(p.reelId, shareDelta: 1);
+        break;
+      case ReelPatchKind.reelUpsert:
+        // Debounced silent tail-refresh so new uploads / approval flips /
+        // deletes surface without yanking the current viewer off-screen.
+        _reelUpsertDebounce?.cancel();
+        _reelUpsertDebounce =
+            Timer(const Duration(milliseconds: 1500), _silentRefresh);
+        break;
+    }
+  }
+
+  void _bumpCount(
+    String reelId, {
+    int likeDelta = 0,
+    int commentDelta = 0,
+    int shareDelta = 0,
+  }) {
+    if (likeDelta == 0 && commentDelta == 0 && shareDelta == 0) return;
+    var touched = false;
+    final list = [
+      for (final r in state.reels)
+        if (r.id == reelId)
+          () {
+            touched = true;
+            return r.copyWith(
+              likeCount: (r.likeCount + likeDelta).clamp(0, 1 << 31),
+              commentCount:
+                  (r.commentCount + commentDelta).clamp(0, 1 << 31),
+              shareCount: (r.shareCount + shareDelta).clamp(0, 1 << 31),
+            );
+          }()
+        else
+          r,
+    ];
+    if (touched) emit(state.copyWith(reels: list));
+  }
+
+  Future<void> _silentRefresh() async {
+    try {
+      final page = await _repo.fetchFeed(
+        categorySlug: categorySlug,
+        currentUserId: currentUserId,
+        knownCategories: _knownCategories,
+        cursor: null,
+      );
+      if (page.isEmpty) return;
+      // Merge without disturbing the current index — new reels prepend only
+      // if we're at the very top so the viewer isn't yanked.
+      final existing = {for (final r in state.reels) r.id};
+      final freshTop =
+          page.where((r) => !existing.contains(r.id)).toList(growable: false);
+      if (freshTop.isEmpty) return;
+      final merged = state.currentIndex == 0
+          ? [...freshTop, ...state.reels]
+          : [...state.reels, ...freshTop];
+      emit(state.copyWith(reels: merged));
+    } catch (_) {
+      // Best-effort refresh; ignore failures.
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    _reelUpsertDebounce?.cancel();
+    await _realtimeSub?.cancel();
+    return super.close();
+  }
+
 
   Future<void> loadInitial() async {
     if (state.isInitialLoading) return;

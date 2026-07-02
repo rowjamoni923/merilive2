@@ -27,6 +27,7 @@ import '../bloc/reels_feed_cubit.dart';
 import '../data/reel_video_pool.dart';
 import '../data/reels_analytics_service.dart';
 import '../data/reels_models.dart';
+import '../data/reels_realtime.dart';
 import '../data/reels_repository.dart';
 import '../widgets/reel_bottom_info.dart';
 import '../widgets/reel_comments_sheet.dart';
@@ -50,6 +51,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   late final ReelVideoPool _pool;
   late final ReelsAnalyticsService _analytics;
 
+  // One realtime channel per category — subscribed lazily on first hop and
+  // reused so counter deltas from other devices tick without a refetch.
+  final Map<String, ReelsRealtime> _realtimes = {};
   final Map<String, ReelsFeedCubit> _feedCubits = {};
   final Map<String, PageController> _pageControllers = {};
 
@@ -72,6 +76,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     WidgetsBinding.instance.removeObserver(this);
     for (final c in _feedCubits.values) {
       c.close();
+    }
+    for (final rt in _realtimes.values) {
+      unawaited(rt.dispose());
     }
     for (final c in _pageControllers.values) {
       c.dispose();
@@ -140,8 +147,13 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
   ReelsFeedCubit _cubitFor(String slug, List<ReelCategory> knownCategories) {
     return _feedCubits.putIfAbsent(slug, () {
+      final realtime = _realtimes.putIfAbsent(
+        slug,
+        () => ReelsRealtime(Supabase.instance.client)..subscribe(slug),
+      );
       final cubit = ReelsFeedCubit(
         repository: _repo,
+        realtime: realtime,
         categorySlug: slug,
         currentUserId: Supabase.instance.client.auth.currentUser?.id,
         knownCategories: knownCategories,
