@@ -510,6 +510,75 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
+  // Host-side PK Battle start sheet (parity with web PKBattlePanel).
+  Future<void> _openPkStartSheet() async {
+    if (!_isHost) {
+      _snack('Only the host can start a PK Battle');
+      return;
+    }
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final name = (_host?['name']?.toString() ??
+            _host?['display_name']?.toString() ??
+            me.userMetadata?['name']?.toString() ??
+            'Host');
+    final avatar = _host?['avatar_url']?.toString() ?? '';
+    final level = ((_host?['host_level'] ?? _host?['level']) as num?)?.toInt() ?? 1;
+    await LivePkStartSheet.show(
+      context,
+      currentStreamId: widget.streamId,
+      currentUserId: me.id,
+      currentUserName: name,
+      currentUserAvatar: avatar,
+      currentUserLevel: level,
+      isRandomSearching: _randomPkSessionId != null,
+      onStartRandomMatch: (durationSeconds) => _startRandomPkSearch(
+        duration: durationSeconds,
+        name: name,
+        avatar: avatar,
+        level: level,
+      ),
+    );
+  }
+
+  Future<void> _startRandomPkSearch({
+    required int duration,
+    required String name,
+    required String avatar,
+    required int level,
+  }) async {
+    if (_randomPkSessionId != null) return;
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final res = await PkStartBridge.instance.startRandomMatch(
+      challengerUserId: me.id,
+      challengerName: name,
+      challengerAvatar: avatar,
+      challengerLevel: level,
+      challengerStreamId: widget.streamId,
+      durationSeconds: duration,
+    );
+    if (!mounted) return;
+    if (!res.ok) {
+      _snack(res.error ?? 'No eligible live hosts available right now');
+      return;
+    }
+    setState(() => _randomPkSessionId = res.sessionId);
+    _snack('Random PK request sent to ${res.delivered} host${(res.delivered ?? 0) > 1 ? 's' : ''}');
+    _randomPkTimeout?.cancel();
+    _randomPkTimeout = Timer(const Duration(seconds: 25), () {
+      final sid = _randomPkSessionId;
+      if (sid == null || !mounted) return;
+      PkStartBridge.instance.cancelRandomMatch(
+        challengerUserId: me.id,
+        challengerName: name,
+        inviteSessionId: sid,
+      );
+      setState(() => _randomPkSessionId = null);
+      _snack('No host accepted — try again');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
