@@ -250,56 +250,6 @@ class _RoomHeader extends StatelessWidget {
 }
 
 
-  Widget _hostAvatar() {
-    final url = host?.avatarUrl;
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.amber, width: 2),
-        image: url != null && url.isNotEmpty
-            ? DecorationImage(image: NetworkImage(url), fit: BoxFit.cover)
-            : null,
-        color: const Color(0xFF6D28D9),
-      ),
-      child: url == null || url.isEmpty
-          ? const Icon(Icons.person, color: Colors.white70, size: 20)
-          : null,
-    );
-  }
-
-  Widget _liveCountPill(int n) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.people_alt_rounded, size: 13, color: Colors.white70),
-          const SizedBox(width: 4),
-          Text('$n',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600)),
-        ]),
-      );
-
-  Widget _iconBtn(IconData i, VoidCallback onTap) => InkResponse(
-        onTap: onTap,
-        radius: 22,
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(i, color: Colors.white, size: 18),
-        ),
-      );
-}
 
 class _SeatGrid extends StatelessWidget {
   const _SeatGrid({required this.seats, required this.currentUserId});
