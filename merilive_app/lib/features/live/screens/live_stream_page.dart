@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/live_chat_bridge.dart';
+import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
 import '../widgets/live_action_bar.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_gift_feed.dart';
+import '../widgets/live_viewers_sheet.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
@@ -58,6 +60,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // the source of truth, this is UI-only until the native toggle lands).
   bool _isMicMuted = false;
   bool _isCamOff = false;
+
+  // A4 — follow-from-header state.
+  bool _isFollowingHost = false;
+  bool _followBusy = false;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -135,6 +141,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             setState(() => _error = 'Unable to join stream: $e');
           }
         }
+      }
+      // A4 — resolve initial follow state for viewers (skip for host).
+      if (!_isHost && stream['host_id'] != null) {
+        try {
+          final following = await LiveFollowBridge.instance
+              .isFollowing(stream['host_id'].toString());
+          if (mounted) setState(() => _isFollowingHost = following);
+        } catch (_) {}
       }
     } catch (e) {
       if (mounted) {
@@ -239,6 +253,40 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
+  // A4 — open viewers bottom sheet.
+  void _openViewersSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => LiveViewersSheet(
+        streamId: widget.streamId,
+        viewerCount: _viewerCount,
+      ),
+    );
+  }
+
+  // A4 — follow/unfollow host from the header CTA.
+  Future<void> _handleFollowHost() async {
+    final hostId = _stream?['host_id']?.toString();
+    if (hostId == null || _followBusy) return;
+    if (_client.auth.currentUser == null) {
+      _snack('Please sign in to follow');
+      return;
+    }
+    setState(() => _followBusy = true);
+    try {
+      final now = await LiveFollowBridge.instance.toggle(hostId);
+      if (!mounted) return;
+      setState(() => _isFollowingHost = now);
+      _snack(now ? 'Following ❤️' : 'Unfollowed');
+    } catch (_) {
+      _snack('Could not update follow');
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
+  }
+
   void _openMoreSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -313,6 +361,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             _TopHeader(
               host: _host,
               viewerCount: _viewerCount,
+              showFollow: !_isHost,
+              isFollowing: _isFollowingHost,
+              followBusy: _followBusy,
+              onFollow: _handleFollowHost,
+              onOpenViewers: _openViewersSheet,
               onClose: () => context.router.maybePop(),
             ),
             // A2 — gift ticker just below the top header.
@@ -376,11 +429,21 @@ class _TopHeader extends StatelessWidget {
     required this.host,
     required this.viewerCount,
     required this.onClose,
+    required this.onOpenViewers,
+    required this.showFollow,
+    required this.isFollowing,
+    required this.followBusy,
+    required this.onFollow,
   });
 
   final Map<String, dynamic>? host;
   final int viewerCount;
   final VoidCallback onClose;
+  final VoidCallback onOpenViewers;
+  final bool showFollow;
+  final bool isFollowing;
+  final bool followBusy;
+  final VoidCallback onFollow;
 
   @override
   Widget build(BuildContext context) {
@@ -483,33 +546,46 @@ class _TopHeader extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (showFollow) ...[
+                      const SizedBox(width: 8),
+                      _FollowPill(
+                        isFollowing: isFollowing,
+                        busy: followBusy,
+                        onTap: onFollow,
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            // Viewer count chip
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.visibility_rounded,
-                      size: 14, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text(
-                    _formatCount(viewerCount),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+            // Viewer count chip — tap opens the viewer list sheet.
+            InkResponse(
+              onTap: onOpenViewers,
+              radius: 24,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.visibility_rounded,
+                        size: 14, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatCount(viewerCount),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 6),
@@ -573,3 +649,77 @@ class _ErrorState extends StatelessWidget {
     );
   }
 }
+
+/// A4 — Compact Follow / Following pill for the top header.
+class _FollowPill extends StatelessWidget {
+  const _FollowPill({
+    required this.isFollowing,
+    required this.busy,
+    required this.onTap,
+  });
+
+  final bool isFollowing;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = isFollowing
+        ? const [Color(0x33FFFFFF), Color(0x22FFFFFF)]
+        : const [Color(0xFFEC4899), Color(0xFFA855F7)];
+    return InkResponse(
+      onTap: busy ? null : onTap,
+      radius: 26,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradient),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: isFollowing
+              ? const []
+              : const [
+                  BoxShadow(
+                    color: Color(0x66EC4899),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (busy)
+              const SizedBox(
+                width: 10,
+                height: 10,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.6,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            else
+              Icon(
+                isFollowing
+                    ? Icons.check_rounded
+                    : Icons.add_rounded,
+                size: 12,
+                color: Colors.white,
+              ),
+            const SizedBox(width: 3),
+            Text(
+              isFollowing ? 'Following' : 'Follow',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
