@@ -1036,3 +1036,67 @@ class _FollowPill extends StatelessWidget {
   }
 }
 
+/// B3 — Compact host-earnings chip. Reads `total_coins` off the live_streams
+/// row (which is kept fresh by realtime updates), formats compactly and
+/// animates on value change so a big gift feels earned.
+class _CoinChip extends StatelessWidget {
+  const _CoinChip({required this.coins});
+  final int coins;
+
+  String _fmt(int n) {
+    if (n < 1000) return '$n';
+    if (n < 1000000) {
+      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}K';
+    }
+    return '${(n / 1000000).toStringAsFixed(1)}M';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(coins),
+      tween: Tween(begin: 0.92, end: 1.0),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Color(0xCC0F172A),
+            Color(0xCC1F2937),
+          ]),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: const Color(0x66F59E0B), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33F59E0B),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.monetization_on_rounded,
+                size: 14, color: Color(0xFFFBBF24)),
+            const SizedBox(width: 4),
+            Text(
+              _fmt(coins),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
