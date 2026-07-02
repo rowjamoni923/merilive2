@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'live_captions_overlay.dart' show CaptionEvent;
 import 'live_widgets.dart';
 
 /// LiveOverlayStack — single drop-in composite that mounts every Phase I
