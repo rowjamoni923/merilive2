@@ -145,17 +145,18 @@ class LiveOverlayStack extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ConnectionQualityIndicator(
-                                quality: controller.connectionQuality),
-                            const SizedBox(width: 6),
-                            AnimatedViewerCount(
-                                value: controller.viewerCount),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
+                        if (showTopCountChip)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ConnectionQualityIndicator(
+                                  quality: controller.connectionQuality),
+                              const SizedBox(width: 6),
+                              AnimatedViewerCount(
+                                  value: controller.viewerCount),
+                            ],
+                          ),
+                        if (showTopCountChip) const SizedBox(height: 6),
                         GiftComboTracker(entries: controller.topGifters),
                       ],
                     ),
