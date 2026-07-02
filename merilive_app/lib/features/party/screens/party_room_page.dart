@@ -400,13 +400,30 @@ class _ModeLayout extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.person_remove_rounded,
-                  color: Colors.redAccent),
+                  color: Colors.orangeAccent),
               title: const Text('Kick from seat',
-                  style: TextStyle(color: Colors.redAccent)),
+                  style: TextStyle(color: Colors.orangeAccent)),
               onTap: () async {
                 Navigator.pop(context);
                 if (seat.participantId != null) {
                   await cubit.hostKick(seat.participantId!);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block_rounded,
+                  color: Colors.redAccent),
+              title: const Text('Ban from room',
+                  style: TextStyle(color: Colors.redAccent)),
+              subtitle: const Text('Kicks and blocks so they cannot rejoin',
+                  style: TextStyle(color: Colors.white38, fontSize: 11)),
+              onTap: () async {
+                Navigator.pop(context);
+                if (seat.participantId != null && seat.userId != null) {
+                  await cubit.hostBan(
+                    participantId: seat.participantId!,
+                    userId: seat.userId!,
+                  );
                 }
               },
             ),
