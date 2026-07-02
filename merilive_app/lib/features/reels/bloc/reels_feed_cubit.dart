@@ -166,6 +166,22 @@ class ReelsFeedCubit extends Cubit<ReelsFeedState> {
     emit(state.copyWith(reels: list));
   }
 
+  /// R6 — adjust the visible comment count on the target reel. Used by the
+  /// comments sheet after a successful post/delete + realtime deltas.
+  void bumpComment(String reelId, int delta) {
+    if (delta == 0) return;
+    final list = [
+      for (final r in state.reels)
+        r.id == reelId
+            ? r.copyWith(
+                commentCount:
+                    (r.commentCount + delta).clamp(0, 1 << 31),
+              )
+            : r,
+    ];
+    emit(state.copyWith(reels: list));
+  }
+
   // ── Server-backed actions with optimistic rollback (R4). ────────────────
   Future<void> toggleLike(String reelId) async {
     final uid = currentUserId;

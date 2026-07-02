@@ -23,6 +23,7 @@ import '../data/reel_video_pool.dart';
 import '../data/reels_models.dart';
 import '../data/reels_repository.dart';
 import '../widgets/reel_bottom_info.dart';
+import '../widgets/reel_comments_sheet.dart';
 import '../widgets/reel_player.dart';
 import '../widgets/reel_right_rail.dart';
 import '../widgets/reels_category_chips.dart';
@@ -113,6 +114,16 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   Future<void> _toggleMute() async {
     setState(() => _muted = !_muted);
     await _pool.setMuted(_muted);
+  }
+
+  // R6 — open comments sheet; pause playback while open, resume on close.
+  Future<void> _openCommentsSheet(Reel reel) async {
+    unawaited(_pool.pauseAll());
+    try {
+      await showReelCommentsSheet(context: context, reel: reel);
+    } finally {
+      if (mounted) _syncPlayback();
+    }
   }
 
   @override
@@ -346,7 +357,7 @@ class _FeedPageViewState extends State<_FeedPageView> {
                           .read<ReelsFeedCubit>()
                           .toggleFollow(r.userId),
                       onAvatarTap: (r) => _openProfile(context, r.userId),
-                      onComment: (r) => _openCommentsPlaceholder(context, r),
+                      onComment: (r) => _openCommentsSheet(r),
                       onGift: (r) => _openGiftPlaceholder(context, r),
                       onShare: (r) => _openSharePlaceholder(context, r),
                       onMore: (r) => _openMoreMenu(context, r),
@@ -390,16 +401,7 @@ void _openProfile(BuildContext context, String userId) {
   );
 }
 
-void _openCommentsPlaceholder(BuildContext context, Reel reel) {
-  // TODO(R6): replace with draggable comments bottom sheet.
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Comments coming next'),
-      duration: Duration(milliseconds: 900),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
+// R6: comments sheet handled by _ReelsFeedPageState._openCommentsSheet.
 
 void _openGiftPlaceholder(BuildContext context, Reel reel) {
   // TODO(R7): bridge to existing gift sender.
