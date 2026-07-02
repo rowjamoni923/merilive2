@@ -415,14 +415,6 @@ class _BottomBar extends StatefulWidget {
 }
 
 class _BottomBarState extends State<_BottomBar> {
-  final _ctrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PartyRoomCubit>();
@@ -435,75 +427,57 @@ class _BottomBarState extends State<_BottomBar> {
         bottom: 6 + MediaQuery.of(context).viewInsets.bottom,
       ),
       color: Colors.black.withValues(alpha: 0.35),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _ctrl,
-              maxLength: 200,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                counterText: '',
-                hintText: 'Say something…',
-                hintStyle:
-                    TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.08),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+          PartyChatComposer(onSend: cubit.sendMessage),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Spacer(),
+              if (onSeat)
+                _circleBtn(
+                  icon: widget.state.isSelfMuted
+                      ? Icons.mic_off_rounded
+                      : Icons.mic_rounded,
+                  color: widget.state.isSelfMuted
+                      ? Colors.redAccent
+                      : Colors.greenAccent,
+                  onTap: cubit.toggleSelfMute,
+                )
+              else
+                _circleBtn(
+                  icon: Icons.chair_alt_rounded,
+                  color: Colors.amber,
+                  onTap: () async {
+                    final free = widget.state.seats.firstWhere(
+                      (s) => s.isEmpty && !s.isLocked,
+                      orElse: () => PartySeat.empty(0),
+                    );
+                    if (free.seatNumber > 0) {
+                      await cubit.takeSeat(free.seatNumber);
+                    }
+                  },
                 ),
+              const SizedBox(width: 6),
+              if (onSeat)
+                _circleBtn(
+                  icon: Icons.exit_to_app_rounded,
+                  color: Colors.white70,
+                  onTap: cubit.leaveSeat,
+                ),
+              _circleBtn(
+                icon: Icons.music_note_rounded,
+                color: const Color(0xFF10B981),
+                onTap: () => showPartyMusicSheet(context),
               ),
-              onSubmitted: (v) async {
-                await cubit.sendMessage(v);
-                _ctrl.clear();
-              },
-            ),
+              _circleBtn(
+                icon: Icons.card_giftcard_rounded,
+                color: Colors.pinkAccent,
+                onTap: () => showPartyGiftSheet(context),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          if (onSeat)
-            _circleBtn(
-              icon: widget.state.isSelfMuted
-                  ? Icons.mic_off_rounded
-                  : Icons.mic_rounded,
-              color: widget.state.isSelfMuted
-                  ? Colors.redAccent
-                  : Colors.greenAccent,
-              onTap: cubit.toggleSelfMute,
-            )
-          else
-            _circleBtn(
-              icon: Icons.chair_alt_rounded,
-              color: Colors.amber,
-              onTap: () async {
-                // Take first free unlocked seat.
-                final free = widget.state.seats.firstWhere(
-                  (s) => s.isEmpty && !s.isLocked,
-                  orElse: () => PartySeat.empty(0),
-                );
-                if (free.seatNumber > 0) await cubit.takeSeat(free.seatNumber);
-              },
-            ),
-          const SizedBox(width: 6),
-          if (onSeat)
-            _circleBtn(
-              icon: Icons.exit_to_app_rounded,
-              color: Colors.white70,
-              onTap: cubit.leaveSeat,
-            ),
-          _circleBtn(
-            icon: Icons.music_note_rounded,
-            color: const Color(0xFF10B981),
-            onTap: () => showPartyMusicSheet(context),
-          ),
-          _circleBtn(
-            icon: Icons.card_giftcard_rounded,
-            color: Colors.pinkAccent,
-            onTap: () => showPartyGiftSheet(context),
-          ),
-
         ],
       ),
     );
