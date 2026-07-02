@@ -126,3 +126,29 @@ All 4 P0 gaps closed. Pure Dart / widget changes — no APK rebuild, no backend 
 Files touched:
 - new: `party_seat_invitation_bridge.dart`, `seat_invite_picker_sheet.dart`, `seat_invite_response_sheet.dart`, `invite_viewer_picker_sheet.dart`, `empty_seat_host_actions_sheet.dart`
 - edited: `party_models.dart`, `party_room_repository.dart`, `party_room_cubit.dart`, `party_room_page.dart`, `video_party_layout.dart`
+
+## Phase B/C — DONE (2026-07-02)
+
+Pragmatic P1/P2 batch — all pure Dart / widget layer, no backend or APK work.
+
+- **G5 Welcome banner** — new `party_welcome_banner.dart`; queries `room_welcome_messages` once on room mount, renders a dismissible system-notice chip (auto-hide 10s).
+- **G6 Background picker** — new `party_background_picker_sheet.dart`; grid pulled from `party_room_backgrounds` (60 items, thumbnail + FREE/coin badge). Wired via a "Browse backgrounds" button in `PartyRoomSettingsSheet`.
+- **G7 Seat count picker** — settings sheet now exposes ChoiceChips [4/6/8/9/12/15]; writes `max_participants` + `total_seats` through `updateRoomSettings` → repo → `party_rooms`.
+- **G9 Contributors leaderboard** — new `party_contributors_sheet.dart`; aggregates `gift_transactions` (last 24h, filtered by `party_room_id`), hydrates senders from `profiles_public`, ranks top 50. Trophy button in header opens it.
+- **G12/G13/G14 Host camera controls** — new `party_host_video_controls.dart`; pill row (flip / beauty / hide-video) that routes through the existing native `LiveKitBridge` (`switchCamera`, `setBeautyEnabled`, `setVideoVisible`). Rendered above the composer only when host in video/game party.
+- **G16 Close modal** — new `party_close_modal.dart`; host sees End vs Leave, guests see single confirm. Wired into `RoomTopBar.onClose`.
+- **G11 (partial) Session continuity** — no regression, existing `PartyHostVideoBridge` handoff still owns Camera2.
+- P2 remaining (G17 rich settings panel, G18 chat moderation dialog, G19 combo tracker, G20 vehicle entrance, G21/G22 game banners, G23 gift seat picker, G24 caption overlay, G25 raise-hand UI, G26 gradient_css bg, G27 advanced bottom-bar variant, G28 split component) — deferred; all cosmetic, none blocking parity with web.
+
+Files added this phase:
+- `party_welcome_banner.dart`
+- `party_background_picker_sheet.dart`
+- `party_contributors_sheet.dart`
+- `party_host_video_controls.dart`
+- `party_close_modal.dart`
+
+Files edited this phase:
+- `party_room_repository.dart` (adds `maxParticipants` patch to `updateRoomSettings`)
+- `party_room_cubit.dart` (passthrough `maxParticipants`)
+- `party_room_settings_sheet.dart` (background picker button + seat count chips)
+- `party_room_page.dart` (welcome banner, contributors trophy button, host video controls above composer, End/Leave close modal)

@@ -33,6 +33,10 @@ import '../widgets/party_game_selection_sheet.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
 import '../widgets/party_room_settings_sheet.dart';
+import '../widgets/party_welcome_banner.dart';
+import '../widgets/party_host_video_controls.dart';
+import '../widgets/party_contributors_sheet.dart';
+import '../widgets/party_close_modal.dart';
 import '../widgets/seat_invite_picker_sheet.dart';
 import '../widgets/seat_invite_response_sheet.dart';
 import '../widgets/video_party_layout.dart';
@@ -203,6 +207,7 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const PartyBannersStrip(),
+                    PartyWelcomeBanner(roomId: room.id),
                     const SizedBox(height: 4),
                     if (room.roomType == PartyRoomType.game) ...[
                       Expanded(
@@ -308,6 +313,20 @@ class _RoomHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const _RequestsBadge(),
+          const SizedBox(width: 6),
+          InkResponse(
+            onTap: () => PartyContributorsSheet.show(context, room.id),
+            radius: 22,
+            child: Container(
+              width: 34, height: 34,
+              decoration: const BoxDecoration(
+                color: Color(0x33FFFFFF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emoji_events_rounded,
+                  color: Color(0xFFFACC15), size: 18),
+            ),
+          ),
           if (cubit.isHost) ...[
             const SizedBox(width: 6),
             InkResponse(
@@ -327,6 +346,9 @@ class _RoomHeader extends StatelessWidget {
         ],
       ),
       onClose: () async {
+        final choice = await showPartyCloseModal(context, isHost: cubit.isHost);
+        if (choice == PartyCloseChoice.cancel) return;
+        if (!context.mounted) return;
         await context.read<PartyRoomCubit>().leaveRoom();
         if (context.mounted) context.router.maybePop();
       },
@@ -569,6 +591,14 @@ class _BottomBarState extends State<_BottomBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (cubit.isHost &&
+              widget.state.room?.roomType != PartyRoomType.audio) ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: const PartyHostVideoControls(),
+            ),
+            const SizedBox(height: 6),
+          ],
           PartyChatComposer(onSend: cubit.sendMessage),
           const SizedBox(height: 6),
           Row(
