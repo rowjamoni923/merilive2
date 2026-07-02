@@ -46,19 +46,18 @@ class _HomeTabPageState extends State<HomeTabPage>
     super.initState();
     final client = Supabase.instance.client;
     _countryCubit = CountryFilterCubit(CountryRepository(client));
-    // Hydrate persisted country BEFORE first feed fetch so the RPC uses the
-    // user's saved filter instead of always defaulting to "all".
-    _countryCubit.hydrate().whenComplete(() {
-      _countryCubit.refresh();
-      _feedCubit
-        ..selectCountry(_countryCubit.state.selectedCode)
-        ..start();
-    });
     _feedCubit = HomeFeedCubit(
       HomeFeedRepository(client),
       currentUserId: client.auth.currentUser?.id,
     );
     _bannerCubit = BannerCubit(BannerRepository(client))..start();
+    // Hydrate persisted country BEFORE first feed fetch so the RPC uses the
+    // user's saved filter instead of always defaulting to "all".
+    _countryCubit.hydrate().whenComplete(() {
+      _feedCubit.selectCountry(_countryCubit.state.selectedCode);
+      _feedCubit.start();
+      _countryCubit.refresh();
+    });
   }
 
   @override
