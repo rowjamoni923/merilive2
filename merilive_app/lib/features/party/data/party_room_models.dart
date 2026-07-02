@@ -147,3 +147,45 @@ class PartyChatMessage extends Equatable {
   @override
   List<Object?> get props => [id, content, messageType, createdAt];
 }
+
+/// PD6 — pending seat request raised by a viewer.
+class PartySeatRequest extends Equatable {
+  const PartySeatRequest({
+    required this.id,
+    required this.userId,
+    required this.seatNumber,
+    required this.createdAt,
+    required this.displayName,
+    required this.avatarUrl,
+    required this.userLevel,
+  });
+
+  final String id;
+  final String userId;
+  final int seatNumber;
+  final DateTime createdAt;
+  final String? displayName;
+  final String? avatarUrl;
+  final int userLevel;
+
+  factory PartySeatRequest.fromRow(
+    Map<String, dynamic> row, {
+    String? displayName,
+    String? avatarUrl,
+    int userLevel = 0,
+  }) =>
+      PartySeatRequest(
+        id: row['id']?.toString() ?? '',
+        userId: (row['user_id'] ?? row['requester_id'])?.toString() ?? '',
+        seatNumber:
+            ((row['seat_number'] ?? row['seat_position']) as num?)?.toInt() ?? 0,
+        createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ??
+            DateTime.now(),
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+        userLevel: userLevel,
+      );
+
+  @override
+  List<Object?> get props => [id, userId, seatNumber, createdAt];
+}

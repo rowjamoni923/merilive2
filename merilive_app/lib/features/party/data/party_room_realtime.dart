@@ -16,6 +16,7 @@ class PartyRoomRealtime {
     required VoidCallback onSeatLocksChanged,
     required ValueChanged<Map<String, dynamic>> onMessageInsert,
     required VoidCallback onRoomChanged,
+    VoidCallback? onSeatRequestsChanged,
   }) {
     unsubscribe();
     final ch = _supabase.channel('party_room:$roomId')
@@ -66,9 +67,21 @@ class PartyRoomRealtime {
         ),
         callback: (_) => onRoomChanged(),
       )
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'seat_requests',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'room_id',
+          value: roomId,
+        ),
+        callback: (_) => onSeatRequestsChanged?.call(),
+      )
       ..subscribe();
     _channel = ch;
   }
+
 
   Future<void> unsubscribe() async {
     final c = _channel;
