@@ -250,6 +250,34 @@ class _MatchCallPageState extends State<MatchCallPage>
     _broadcastId = null;
   }
 
+  /// M7 — Subscribe to the caller's own `random_call_queue` row so a
+  /// server-driven admin cancel / skip enforcement / expiry propagates to
+  /// the UI without polling. Mirrors web `useMatchQueue`.
+  void _subscribeQueueRow() {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null || _queueChannel != null) return;
+    _queueChannel = _supabase
+        .channel('random_queue_$uid')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'random_call_queue',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'caller_id',
+            value: uid,
+          ),
+          callback: (payload) {
+            if (!mounted) return;
+            final status = payload.newRecord['status'] as String?;
+            if (status == 'cancelled' || status == 'expired') {
+              _handleError(status == 'expired' ? 'skip_cooldown' : 'unauthorized', null);
+            }
+          },
+        )
+        .subscribe();
+  }
+
   void _handleError(String code, Map? payload) {
     _elapsedTimer?.cancel();
     const friendly = {
