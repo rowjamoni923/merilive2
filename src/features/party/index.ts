@@ -31,7 +31,7 @@ export { default as LayoutPickerPanel } from '@/components/party/LayoutPickerPan
 export { PartyMusicPlayer } from '@/components/party/PartyMusicPlayer';
 export { default as MusicPlayerPanelParty } from '@/components/party/MusicPlayerPanel';
 export { ParticipantVideo } from '@/components/party/ParticipantVideo';
-export { default as PartyGiftPanel } from '@/components/party/PartyGiftPanel';
+// PartyGiftPanel removed 2026-07-02 — use canonical GiftPanel from '@/features/shared/gifting'
 export { default as PartyRoomBottomBar } from '@/components/party/PartyRoomBottomBar';
 export { default as ProfessionalBottomBar } from '@/components/party/ProfessionalBottomBar';
 export { default as ProfessionalGameOverlay } from '@/components/party/ProfessionalGameOverlay';
