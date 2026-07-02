@@ -385,6 +385,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     String? announcement,
     String? backgroundUrl,
     bool? isLocked,
+    int? maxParticipants,
   }) async {
     if (!isHost) return;
     await _repo.updateRoomSettings(
@@ -394,6 +395,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       announcement: announcement,
       backgroundUrl: backgroundUrl,
       isLocked: isLocked,
+      maxParticipants: maxParticipants,
     );
   }
 
