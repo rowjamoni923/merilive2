@@ -194,6 +194,16 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
         onSeatRequestsChanged: _refreshRequests,
       );
       unawaited(_refreshRequests());
+      // Phase A P0 #2 — subscribe to incoming seat invitations for self.
+      if (uid != null) {
+        _inviteChannel = _invites.subscribeInbox(
+          roomId: roomId,
+          inviteeId: uid,
+          onChanged: _refreshInvitations,
+        );
+        unawaited(_refreshInvitations());
+      }
+
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
