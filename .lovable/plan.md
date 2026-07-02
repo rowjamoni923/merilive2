@@ -72,18 +72,13 @@ Full audit found this shipped in an earlier phase — nothing to build. Actual s
 
 ---
 
-### H4 — Privacy plumbing (Live + Party) end-to-end
+### H4 — Privacy plumbing (Live + Party) 🚫 OBSOLETE — DO NOT IMPLEMENT (locked 2026-07-02)
 
-Right now `live_streams.live_privacy` and `party_rooms.privacy` exist but plumbing is inconsistent. Fix everywhere:
+Superseded by memory constraint **🔓 LIVE + PARTY = ALWAYS PUBLIC** (mem://constraints/live-party-always-public.md). Chamet/Bigo/Poppo/Olamet all keep live streams + party rooms fully public — no password prompts, no private-mode toggles, no padlock badges. DB columns `live_streams.live_privacy` + `party_rooms.privacy` + `password_hash` are legacy dead code; `GoLive.tsx` hardcodes `'public'` + `null`. Confirmed: no Flutter file currently references these columns → nothing to remove either.
 
-- **Live feed** (`live_feed_page.dart`): hide `private` streams from public feed, show `password` streams with a padlock badge.
-- **Party feed** (matching page): same rules.
-- **Join gate**: password prompt sheet before `join_live_stream` / `join_party_room` RPC; incorrect password → 3-strike lockout via existing rate-limit helper.
-- **Share sheet**: for private streams, block share button (with toast "Private stream — link disabled"). For password streams, include password only if host explicitly toggles "include password in link".
-- **Direct deep link** (`/live-feed/:streamId` route): if private + not invited → deny screen with request-access CTA; if password → prompt sheet.
-- **Realtime**: don't leak private stream updates over public channel — filter on `privacy in ('public','password')` for the feed subscription.
+**Action taken:** None. Any future work on privacy modes requires explicit user override of the locked constraint.
 
-Deliverable: 3 privacy modes work identically on Live + Party, viewer + host, feed + deep link + share.
+
 
 ---
 
