@@ -44,12 +44,12 @@ class ViewerProfileBridge {
             'Viewer',
         avatarUrl: row['avatar_url'] as String?,
         level: (row['level'] as num?)?.toInt() ?? 1,
-        vipLevel: (row['vip_level'] as num?)?.toInt() ?? 0,
+        isVip: ((row['vip_level'] as num?)?.toInt() ?? 0) > 0,
         bio: row['bio'] as String?,
         country: row['country'] as String?,
         isHost: (row['is_host'] as bool?) ?? false,
-        followersCount: (row['followers_count'] as num?)?.toInt() ?? 0,
-        followingCount: (row['following_count'] as num?)?.toInt() ?? 0,
+        followers: (row['followers_count'] as num?)?.toInt() ?? 0,
+        following: (row['following_count'] as num?)?.toInt() ?? 0,
         isFollowing: isFollowing,
       );
     } catch (_) {
