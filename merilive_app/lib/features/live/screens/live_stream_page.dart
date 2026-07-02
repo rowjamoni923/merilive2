@@ -424,7 +424,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: true,
-      body: Stack(
+      // A5 — GlobalGiftOverlay wraps the whole surface so premium
+      // gifts render above chat, action bar, sheets and the LiveKit
+      // renderer. Native VAP (Pkg438) runs above WebView on Android;
+      // this Flutter overlay is the fallback + Flutter-only surfaces.
+      body: GlobalGiftOverlay(child: Stack(
         fit: StackFit.expand,
         children: [
           // Transparent surface — native LiveKit SurfaceViewRenderer
