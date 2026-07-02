@@ -20,12 +20,14 @@ import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../widgets/chamet_seat_grid.dart';
 import '../widgets/game_party_layout.dart';
+import '../widgets/party_banners_strip.dart';
 import '../widgets/party_chat_composer.dart';
 import '../widgets/party_chat_overlay.dart';
 import '../widgets/party_game_overlay.dart';
 import '../widgets/party_game_selection_sheet.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
+import '../widgets/party_room_settings_sheet.dart';
 import '../widgets/video_party_layout.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 
@@ -166,7 +168,8 @@ class _PartyRoomView extends StatelessWidget {
                 child: Column(
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
-                    const SizedBox(height: 6),
+                    const PartyBannersStrip(),
+                    const SizedBox(height: 4),
                     if (room.roomType == PartyRoomType.game) ...[
                       Expanded(
                         child: _ModeLayout(
@@ -251,6 +254,7 @@ class _RoomHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<PartyRoomCubit>();
     final subtitle = [
       if (room.isPrivate) '🔒',
       room.name,
@@ -263,7 +267,28 @@ class _RoomHeader extends StatelessWidget {
       showFollow: false,
       viewerCount: live,
       onOpenViewers: () {},
-      trailing: const _RequestsBadge(),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _RequestsBadge(),
+          if (cubit.isHost) ...[
+            const SizedBox(width: 6),
+            InkResponse(
+              onTap: () => PartyRoomSettingsSheet.show(context, room),
+              radius: 22,
+              child: Container(
+                width: 34, height: 34,
+                decoration: const BoxDecoration(
+                  color: Color(0x33FFFFFF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.settings_rounded,
+                    color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ],
+      ),
       onClose: () async {
         await context.read<PartyRoomCubit>().leaveRoom();
         if (context.mounted) context.router.maybePop();
@@ -375,13 +400,30 @@ class _ModeLayout extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.person_remove_rounded,
-                  color: Colors.redAccent),
+                  color: Colors.orangeAccent),
               title: const Text('Kick from seat',
-                  style: TextStyle(color: Colors.redAccent)),
+                  style: TextStyle(color: Colors.orangeAccent)),
               onTap: () async {
                 Navigator.pop(context);
                 if (seat.participantId != null) {
                   await cubit.hostKick(seat.participantId!);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block_rounded,
+                  color: Colors.redAccent),
+              title: const Text('Ban from room',
+                  style: TextStyle(color: Colors.redAccent)),
+              subtitle: const Text('Kicks and blocks so they cannot rejoin',
+                  style: TextStyle(color: Colors.white38, fontSize: 11)),
+              onTap: () async {
+                Navigator.pop(context);
+                if (seat.participantId != null && seat.userId != null) {
+                  await cubit.hostBan(
+                    participantId: seat.participantId!,
+                    userId: seat.userId!,
+                  );
                 }
               },
             ),
@@ -422,6 +464,17 @@ class _BottomBarState extends State<_BottomBar> {
           const SizedBox(height: 6),
           Row(
             children: [
+              if (cubit.isHost)
+                _circleBtn(
+                  icon: Icons.volume_off_rounded,
+                  color: const Color(0xFFEF4444),
+                  onTap: () async {
+                    await cubit.hostMuteAll();
+                    if (context.mounted) {
+                      _snack(context, 'All guests muted');
+                    }
+                  },
+                ),
               const Spacer(),
               if (onSeat)
                 _circleBtn(

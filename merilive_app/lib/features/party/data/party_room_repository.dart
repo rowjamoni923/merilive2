@@ -472,6 +472,77 @@ class PartyRoomRepository {
       'message_type': 'music',
     });
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // M4 — Party Room settings + moderation
+  // ─────────────────────────────────────────────────────────────
+
+  /// Host-only: patch editable room fields. Only supplied keys are written.
+  Future<void> updateRoomSettings({
+    required String roomId,
+    String? name,
+    String? welcomeMessage,
+    String? announcement,
+    String? backgroundUrl,
+    bool? isLocked,
+  }) async {
+    final patch = <String, dynamic>{
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (name != null) patch['name'] = name;
+    if (welcomeMessage != null) patch['welcome_message'] = welcomeMessage;
+    if (announcement != null) patch['announcement'] = announcement;
+    if (backgroundUrl != null) patch['background_url'] = backgroundUrl;
+    if (isLocked != null) patch['is_locked'] = isLocked;
+    if (patch.length == 1) return;
+    await _supabase.from('party_rooms').update(patch).eq('id', roomId);
+  }
+
+  /// Host-only: mute every currently-seated participant except the host.
+  Future<void> muteAllSeats({
+    required String roomId,
+    required String hostId,
+  }) async {
+    await _supabase
+        .from('party_room_participants')
+        .update({'muted_by_host': true, 'is_muted': true})
+        .eq('room_id', roomId)
+        .neq('user_id', hostId)
+        .filter('left_at', 'is', null);
+  }
+
+  /// Host-only: ban a user from this room. Kicks them, then writes a
+  /// `blocked_users` row from host so they can't rejoin.
+  Future<void> banUser({
+    required String hostId,
+    required String participantId,
+    required String userId,
+  }) async {
+    await _supabase
+        .from('party_room_participants')
+        .update({'left_at': DateTime.now().toIso8601String()})
+        .eq('id', participantId);
+    try {
+      await _supabase.from('blocked_users').insert({
+        'blocker_id': hostId,
+        'blocked_id': userId,
+      });
+    } catch (_) {/* duplicate = already blocked */}
+  }
+
+  /// Fetch active party banners (admin-managed, app-wide).
+  Future<List<Map<String, dynamic>>> loadPartyBanners() async {
+    final rows = await _supabase
+        .from('party_room_banners')
+        .select('id, title, image_url, link_url, display_order')
+        .eq('is_active', true)
+        .order('display_order', ascending: true)
+        .limit(10);
+    return (rows as List)
+        .cast<Map>()
+        .map((r) => r.cast<String, dynamic>())
+        .toList();
+  }
 }
 
 
