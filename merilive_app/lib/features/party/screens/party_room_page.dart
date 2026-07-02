@@ -257,27 +257,98 @@ class _RoomHeader extends StatelessWidget {
 }
 
 class _SeatGrid extends StatelessWidget {
-  const _SeatGrid({required this.seats});
+  const _SeatGrid({required this.seats, required this.currentUserId});
   final List<PartySeat> seats;
+  final String? currentUserId;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          childAspectRatio: 0.78,
-          crossAxisSpacing: 6,
-          mainAxisSpacing: 6,
+    final cubit = context.read<PartyRoomCubit>();
+    return ChametSeatGrid(
+      seats: seats,
+      currentUserId: currentUserId,
+      onSeatTap: (seat) => _handleSeatTap(context, cubit, seat),
+    );
+  }
+
+  Future<void> _handleSeatTap(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    PartySeat seat,
+  ) async {
+    final st = cubit.state;
+    if (seat.isEmpty) {
+      if (cubit.isHost) {
+        await cubit.takeSeat(seat.seatNumber);
+      } else if (st.selfSeat != null) {
+        // already seated, ignore
+      } else if (st.selfRequestSeat != null) {
+        _snack(context,
+            'Request pending for seat ${st.selfRequestSeat}. Cancel first.');
+      } else if (seat.isLocked) {
+        _snack(context, 'Seat locked by host');
+      } else {
+        await cubit.requestSeat(seat.seatNumber);
+        if (context.mounted) {
+          _snack(context, 'Seat request sent to host');
+        }
+      }
+    } else if (seat.userId != null && cubit.isHost && !seat.isHost) {
+      _showHostSheet(context, cubit, seat);
+    }
+  }
+
+  void _showHostSheet(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    PartySeat seat,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1F1B36),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                seat.mutedByHost ? Icons.mic_rounded : Icons.mic_off_rounded,
+                color: Colors.white,
+              ),
+              title: Text(
+                seat.mutedByHost ? 'Unmute' : 'Mute',
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                if (seat.participantId != null) {
+                  await cubit.hostMute(
+                      seat.participantId!, !seat.mutedByHost);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_remove_rounded,
+                  color: Colors.redAccent),
+              title: const Text('Kick from seat',
+                  style: TextStyle(color: Colors.redAccent)),
+              onTap: () async {
+                Navigator.pop(context);
+                if (seat.participantId != null) {
+                  await cubit.hostKick(seat.participantId!);
+                }
+              },
+            ),
+          ],
         ),
-        itemCount: seats.length,
-        itemBuilder: (context, i) => _SeatTile(seat: seats[i]),
       ),
     );
   }
 }
+
 
 class _SeatTile extends StatelessWidget {
   const _SeatTile({required this.seat});
