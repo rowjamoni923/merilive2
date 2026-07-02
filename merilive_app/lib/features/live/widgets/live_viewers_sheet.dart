@@ -205,13 +205,25 @@ class _LiveViewersSheetState extends State<LiveViewersSheet> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       itemCount: _viewers.length,
-      itemBuilder: (context, i) => _ViewerTile(viewer: _viewers[i], rank: i),
+      itemBuilder: (context, i) => _ViewerTile(
+        viewer: _viewers[i],
+        rank: i,
+        onModerate: widget.onModerate,
+      ),
     );
   }
 }
 
 class _ViewerTile extends StatelessWidget {
-  const _ViewerTile({required this.viewer, required this.rank});
+  const _ViewerTile({
+    required this.viewer,
+    required this.rank,
+    this.onModerate,
+  });
+
+  final void Function(String viewerId, String viewerName)? onModerate;
+
+
 
   final LiveViewer viewer;
   final int rank;
