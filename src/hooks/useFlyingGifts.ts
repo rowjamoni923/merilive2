@@ -1,5 +1,9 @@
 import { useState, useCallback, useRef } from "react";
 import type { FlyingGift } from "@/components/live/FlyingGiftAnimation";
+import {
+  enqueueFullScreenGift,
+  FULL_SCREEN_GIFT_COIN_THRESHOLD,
+} from "@/hooks/useGlobalFullScreenGift";
 
 /**
  * Combo-aware flying gift queue (Bigo / TikTok Live style).
@@ -61,6 +65,29 @@ export function useFlyingGifts() {
     };
     comboRef.current.set(senderKey, { id: newId, expiresAt: now + COMBO_WINDOW_MS });
     setGifts(prev => [...prev, newGift]);
+
+    // Auto-route high-value gifts to the global full-screen animation layer.
+    // Every gift-capable surface benefits without page-level wiring.
+    const perUnitCoins = gift.coins || 0;
+    if (perUnitCoins >= FULL_SCREEN_GIFT_COIN_THRESHOLD) {
+      try {
+        enqueueFullScreenGift({
+          gift: {
+            id: newId,
+            name: gift.giftName,
+            icon_url: gift.giftImageUrl || gift.giftIcon,
+            animation_url: gift.animationUrl,
+            sound_url: gift.soundUrl,
+            coin_value: perUnitCoins,
+          },
+          senderName: gift.senderName,
+          senderAvatar: gift.senderAvatar,
+          receiverName: gift.receiverName || '',
+          quantity: gift.count || 1,
+        });
+      } catch { /* non-blocking */ }
+    }
+
     return newId;
   }, []);
 

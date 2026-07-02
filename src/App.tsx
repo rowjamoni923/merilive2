@@ -46,6 +46,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MotionConfig } from "framer-motion";
 import { isLowEndDevice } from "@/utils/lowEndDevice";
+const GlobalGiftAnimationLayer = lazy(() => import("@/components/gifting/GlobalGiftAnimationLayer").then(m => ({ default: m.GlobalGiftAnimationLayer })));
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries
@@ -1311,6 +1312,12 @@ const App = () => {
               {session && !isAdminRoute && !isStandalonePublicRoute && <DisconnectReasonToaster />}
               {/* Lucky Gift — tier-aware celebration overlay (Nice / Big Win / MEGA JACKPOT). No-op until a winning lucky gift fires. */}
               {session && !isAdminRoute && !isStandalonePublicRoute && <LuckyGiftHost />}
+              {/* One panel, one animation layer — drains full-screen gifts enqueued from
+                  Live / Party / Call / Chat / Profile / Reels. Skips itself on native
+                  Android where the gift dispatcher owns playback. */}
+              {session && !isAdminRoute && !isStandalonePublicRoute && (
+                <Suspense fallback={null}><GlobalGiftAnimationLayer /></Suspense>
+              )}
               <CallProviderGate enabled={!!session && !isAdminRoute && !isStandalonePublicRoute}>
                   {/* Tab keep-alive is explicit opt-in only; default route owner stays single to prevent duplicate UI. */}
                   {session && !isAdminRoute && !isStandalonePublicRoute && isTabKeepAliveEnabled() && (

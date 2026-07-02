@@ -1,59 +1,89 @@
-## Sector 4 — Party button (Discover page only)
+# One Gift Panel Everywhere + Pro Animations
 
-**Correction accepted:** Party Discovery-এ কোনো live streaming card নেই। শুধু `party_rooms` (video / audio / game) দেখায়। Web source = `src/pages/Discover.tsx` (1000 LOC) — এইটাই ধরব, `PartyRooms.tsx` deprecated (`/` তে redirect)।
-
-Create button আলাদা সেক্টরে (পরে)। এই sector-এ শুধু **Party discovery page** clear করব।
+আমাদের এখন **4-5 টা আলাদা gift panel** আছে (ChatGiftPanel, PartyGiftPanel, GlobalCallGiftSheet, live GiftPanel, Flutter party_gift_sheet, reel_gift_sheet)। এগুলো merge করে **একটাই canonical panel** সব জায়গায় mount করব, plus animations (flying + full-screen + entry) সব surface-এ same behaviour দেব।
 
 ---
 
-### Web behavior (line-by-line audit summary of `Discover.tsx`)
+## Scope — যেখানে যেখানে gift panel দেখানো হয়
 
-- **Data**: `party_rooms` where `is_active = true` + live participant count from `party_room_participants` (`left_at IS NULL`) + host stitched from `profiles_public` (id, display_name, avatar, user_level, host_level, country_flag, country_code, gender, is_online, is_host, total_earnings, weekly_earnings, max_user_level).
-- **Level resolve**: `resolveLevelFromTiers()` per unique host → `getRequiredDisplayLevel(host)` for card border tier (≥40 red, ≥20 amber, else neutral).
-- **Realtime**: `subscribeToTables(['party_rooms','party_room_participants'])` with 1.5s debounce + direct `postgres_changes` UPDATE on `party_rooms` for instant-close on host end.
-- **Filters**:
-  - Tabs: `all / video / audio / game` (segmented).
-  - Country chips: All 🌍, BD, IN, PK, NP, PH, ID — filter by host `country_code`.
-  - Search: room name, host display_name, or room_code (Hash-prefixed).
-- **Sort**: by `current_participants` desc (game tab keeps same sort).
-- **Room-code quick-join**: dialog with 6-char code → `party_rooms.select().eq('room_code', code)` → join.
-- **Preview-before-enter dialog** (Chamet/Bigo pattern): tap card → dialog with host avatar/name/level, room name, type, participant count, entry fee, min-level, private lock, description, welcome message → "Enter Room" button.
-- **Feature gate**: `checkFeatureAccess('join_party', userLevel, isFemaleHost)` before navigate.
-- **Nav**: `/party/:id` on confirm.
-- **Perf**: `usePersistedCache('discover:rooms')` for instant paint, `useNativeImagePrefetch` on first-24 host avatars via `cdnAvatar(url,180,80)`, `NativePullToRefresh`, `PrewarmDiv` per card (LiveKit connection warmup for the target room).
-- **Card visual**: 2-col grid, host avatar as background (CDN-resized 180×80), dark gradient overlay, top-left type badge (Video/Audio/Game color-coded), top-right participants pill, bottom-left game-mode emoji chip (if running), bottom-right private-lock pill, tier-based outer shadow (red/amber/neutral).
+| Surface | Current panel | After |
+|---|---|---|
+| Live Stream (viewer) | `GiftPanel` (live) | ✅ same (canonical) |
+| Private Call | `GlobalCallGiftSheet` | → `GiftPanel` |
+| Chat / DM | `ChatGiftPanel` | → `GiftPanel` |
+| Party (audio/video/game) | `PartyGiftPanel` | → `GiftPanel` (with seat-picker addon) |
+| Profile Detail | inline | → `GiftPanel` |
+| Reels | `reel_gift_sheet` (Flutter) | → same canonical Flutter sheet |
+| Flutter party | `party_gift_sheet` (Flutter) | → canonical Flutter sheet |
+
+**Rule:** একটাই source-of-truth panel। যেকোনো section-এ gift button টিপলে **identical** UI, identical categories, identical recipient-picker (context-adaptive), identical send flow।
 
 ---
 
-### Flutter build (`merilive_app/lib/features/party/`)
+## Steps
 
-**PD1 — Data**
-- `party_models.dart` — `PartyRoom`, `PartyHost`, `RoomType` enum (`video/audio/game`), `GameMode` enum.
-- `party_discovery_repository.dart` — mirrors `fetchRooms`: parallel fetch of `party_rooms` + `party_room_participants`, stitch `profiles_public` hosts, resolve level via existing `levelResolver` port, return `List<PartyRoom>` with `currentParticipants` and `hostDisplayLevel`.
-- `party_discovery_realtime.dart` — Supabase channels for `party_rooms` + `party_room_participants` with 1.5s debounce → refresh; direct `UPDATE party_rooms` for instant-close.
+### G1 — Canonical `GiftPanel` upgrade (web)
+- `src/components/live/GiftPanel.tsx`-কে context-aware বানানো: prop `context: 'live' | 'call' | 'chat' | 'party' | 'profile' | 'reel'` + `recipients: {id, name, avatar, seatNumber?}[]`
+- Recipient row conditional: 1 জন হলে auto-select, একাধিক হলে horizontal chip strip (party = seat grid picker, live = host + co-host, chat = single, call = peer)
+- Quantity presets (1/10/66/188/520/1314) — already there, verify
+- Balance chip + top-up CTA — already there
+- Combo tracker integration — already there
 
-**PD2 — Cubit + Page shell**
-- `party_discovery_cubit.dart` — state: `rooms, activeTab, selectedCountry, searchQuery, refreshing`. Actions: `refresh`, `setTab`, `setCountry`, `setSearch`, `joinByCode(String)`, `applyRealtime()`. Persistent cache via `shared_preferences` (`discover:rooms`) — instant paint on cold start.
-- `party_discovery_page.dart` — deep-purple gradient scaffold (matches web backdrop), safe-area header (back + "Party Rooms" title + refresh), search field + room-code KeyRound button, tab strip (All/Video/Audio/Game) with per-tab active color (indigo/green/blue/purple), country chip strip (BD default from H2 filter).
+### G2 — Legacy panels retire
+- `ChatGiftPanel.tsx` — replace call sites with `<GiftPanel context="chat" recipients={[peer]} />`, then delete file
+- `PartyGiftPanel.tsx` + `PartyGiftSeatPicker.tsx` — merge seat-picker into canonical `GiftPanel`, replace `PartyRoom.tsx` + `PartyRoomBottomBar.tsx` call sites
+- `GlobalCallGiftSheet.tsx` — replace `ActiveCallScreen.tsx` call site
+- `ProfileDetail.tsx` — swap inline gift UI for `<GiftPanel context="profile" recipients={[profile]} />`
+- Update `src/features/shared/gifting/index.ts` — remove legacy exports
 
-**PD3 — Card grid**
-- `party_room_card.dart` — 2-col grid, 3:4-ish aspect, host avatar (CDN-resized) as background, gradient overlay, type badge (top-left, color-coded), participant pill (top-right), game-mode emoji chip (bottom-left, only if `game_mode != null`), private-lock pill (bottom-right), tier shadow (≥40 red / ≥20 amber / else neutral), room name + host display name below. Tap → preview dialog.
-- Empty state: purple gradient orb + "No Active Rooms" + hint line + pulsing accent bar (exact web wording).
+### G3 — Flutter unified sheet
+- Rename `merilive_app/lib/features/party/widgets/party_gift_sheet.dart` → `merilive_app/lib/features/gifting/widgets/unified_gift_sheet.dart`
+- Add `GiftContext` enum + `GiftRecipient` model
+- Rewire `reel_gift_sheet.dart` call sites → `UnifiedGiftSheet(context: reel, ...)`
+- Party page, live viewer page, private call page, DM page → all import same sheet
 
-**PD4 — Preview-before-enter dialog**
-- `party_preview_sheet.dart` — modal bottom-sheet with host avatar-with-frame, display name + level badge, room name, type icon, participants, entry fee (Diamond icon), min-level chip, private-lock indicator, description, welcome message, "Enter Room" CTA + Cancel. Uses `checkFeatureAccess` port before nav.
+### G4 — Full-screen animation pipeline (rule)
+- **Every gift-transaction insert** (via `useRealtimeGiftAnimations`) → route by `coin_cost`:
+  - `< 500` → `FlyingGiftAnimation` (small overlay, existing)
+  - `≥ 500` → `FullScreenGiftAnimation` (VAP/SVGA/Lottie/MP4/image, fills viewport)
+  - `≥ 5000` → full-screen + audio ducking + haptic
+- **Universal mount:** create `<GlobalGiftAnimationLayer />` in root layout — active on every gift-capable route. Remove per-page duplicate mounts to avoid double-play.
+- Native Android: `NativeGiftAnimationPlugin` already handles VAP/SVGA/Lottie with priority queue — verify all surfaces dispatch through `useNativeGiftDispatcher`
 
-**PD5 — Room-code quick-join**
-- `room_code_dialog.dart` — 6-char uppercase input, "Join" button → `joinByCode`. On success → same preview sheet then nav. On not-found → toast.
+### G5 — Entry animation (Entrance Effects) verification
+- `UnifiedEntryEffects` — already exists. Ensure it's mounted in: LiveStream, PartyRoom (all 3 modes), PrivateCall entry, ChatRoom entry, Reel long-view
+- Priority: Premium Entry (car/dragon `entry_banners`) > Flying Name Bar (`entry_name_bars`) > Vehicle Entrance > Welcome Chat Message
+- VAP MP4 for premium entries; ensure `NativeEntryAnimationPlugin` (single-slot, slide in/out) picks these up on Android
+- Web fallback path continues to work (per lifted rule 2026-06-07)
 
-**PD6 — Nav glue**
-- `auto_route` entry `/party` → `PartyDiscoveryPage`. Enter action pushes `/party/:id` (stub route for now — actual PartyRoom page is a later sector). Bottom-nav "Party" button routes here.
-
-**PD7 — Audit**
-- Verify: no live-stream data anywhere; realtime channels disposed on page pop; cache write on every refresh; prefetch top-24 avatars; tab + country + search filters compose correctly; instant-close via UPDATE removes rooms without full refetch; tier shadow matches web thresholds; deep-purple backdrop matches during nav transitions.
+### G6 — Cross-surface QA (owner test account)
+Log in as `smdollarex923@gmail.com` and verify **on each surface** that:
+1. Gift button opens **exact same panel UI** (same tabs, same grid, same presets)
+2. Sending a `coin_cost >= 500` gift plays **full-screen** animation
+3. Entry to that surface shows the sender's premium entry effect
+4. Balance debit is single-source-of-truth (admin panel `gifts.coin_cost`)
+5. No duplicate animation playback (only one layer plays each gift)
 
 ---
 
-**Out of scope for this sector:** Create page, GoLive preview, LiveStream, CreateParty, PartyRoom broadcast. Those come next after Party button clears.
+## Technical notes
 
-**Ready to build PD1→PD7?** "yes" বললে সিরিয়ালে চালাব, বা step-by-step (`PD1` first) — যেভাবে চাও।
+- **Admin panel = single source of truth** — never hardcode gift cost/receiver_beans; always read from `gifts` row.
+- **Naming lock** — Entrance Effects umbrella; Premium Entry Effects; Standard Entry Effects; Flying Name Bars; Vehicle Entrances; Welcome Chat Message। কখনো "Entry Banner" / "Flying Banner" বলা যাবে না।
+- **English-only UI strings** — all labels/toasts English।
+- **No design breakage** — panel look identical to current live GiftPanel (user already approves it); we're only widening its reach, not restyling।
+- **Realtime source** — `gift_transactions` insert stream drives animations; `NativeGiftAnimationPlugin` on Android, `FlyingGiftAnimation` + `FullScreenGiftAnimation` on web / iOS।
+- **APK rebuild** — G3/G4 Android native path changes হলে rebuild দরকার; pure Dart / TS changes হলে না।
+
+---
+
+## Execution order
+
+1. G1 (canonical panel upgrade) → verify on Live Stream (currently uses it, so baseline stays)
+2. G2 (retire legacy panels) — 5 files removed, 5 call sites updated
+3. G3 (Flutter unified sheet) — parallel to G2
+4. G4 (global animation layer) — mount in `App.tsx` / Flutter root
+5. G5 (entry effects verification) — audit + fix missing mounts
+6. G6 (owner-account QA on all 7 surfaces)
+
+কোন step-টা আগে শুরু করব বলো (G1 default), নাকি পুরো plan একসাথে execute করব?
