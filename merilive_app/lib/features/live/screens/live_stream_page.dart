@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 import '../../../core/native/livekit_bridge.dart';
 import '../services/audio_focus_auto_mute.dart';
