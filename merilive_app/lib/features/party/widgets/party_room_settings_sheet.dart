@@ -5,6 +5,13 @@ import '../bloc/party_room_cubit.dart';
 import '../data/party_models.dart';
 import 'party_background_picker_sheet.dart';
 
+/// G17 — Advanced host prefs kept in memory for the session. Values are
+/// read by the LiveKit / audio stack; adjustable from the settings sheet.
+class PartyRoomAdvancedPrefs {
+  static bool noiseCancel = true;
+  static String videoQuality = 'Auto'; // Auto | SD | HD | FHD
+}
+
 /// M4 — Host-only Party Room settings sheet.
 ///
 /// Web-truth reference: `src/components/party/PartyRoomSettings.tsx`.
@@ -190,6 +197,51 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
                       color: Colors.white, fontWeight: FontWeight.w600)),
               subtitle: const Text('Requires password / invite to join',
                   style: TextStyle(color: Colors.white54, fontSize: 12)),
+            ),
+            const Divider(color: Colors.white12, height: 20),
+            const Text('Advanced',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: PartyRoomAdvancedPrefs.noiseCancel,
+              onChanged: (v) => setState(
+                  () => PartyRoomAdvancedPrefs.noiseCancel = v),
+              activeColor: const Color(0xFF10B981),
+              title: const Text('Noise cancellation',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+              subtitle: const Text('Suppress background noise on your mic',
+                  style: TextStyle(color: Colors.white54, fontSize: 12)),
+            ),
+            const SizedBox(height: 4),
+            const Text('Video quality',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final q in const ['Auto', 'SD', 'HD', 'FHD'])
+                  ChoiceChip(
+                    label: Text(q),
+                    labelStyle: TextStyle(
+                        color: PartyRoomAdvancedPrefs.videoQuality == q
+                            ? Colors.white
+                            : Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700),
+                    backgroundColor: Colors.white10,
+                    selectedColor: const Color(0xFF3B82F6),
+                    selected: PartyRoomAdvancedPrefs.videoQuality == q,
+                    onSelected: (_) => setState(
+                        () => PartyRoomAdvancedPrefs.videoQuality = q),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
             SizedBox(

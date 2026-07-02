@@ -37,6 +37,8 @@ import '../widgets/party_welcome_banner.dart';
 import '../widgets/party_host_video_controls.dart';
 import '../widgets/party_contributors_sheet.dart';
 import '../widgets/party_close_modal.dart';
+import '../widgets/party_gift_combo_tracker.dart';
+import '../widgets/party_caption_overlay.dart';
 import '../widgets/seat_invite_picker_sheet.dart';
 import '../widgets/seat_invite_response_sheet.dart';
 import '../widgets/video_party_layout.dart';
@@ -252,6 +254,10 @@ class _PartyRoomView extends StatelessWidget {
               const EntryNameBarOverlay(),
               // M9 — Self level-up celebration overlay.
               const LevelUpCelebrationOverlay(),
+              // G19 — Gift combo counter overlay.
+              const Positioned(top: 60, right: 0, child: PartyGiftComboTracker()),
+              // G24 — Caption overlay (accessibility, off by default).
+              PartyCaptionOverlay(roomId: room.id),
             ],
 
           ),

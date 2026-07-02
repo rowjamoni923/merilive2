@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/party_games_bridge.dart';
 import '../data/party_room_models.dart';
+import 'party_game_banners_row.dart';
 import 'party_game_overlay.dart';
 import 'party_game_selection_sheet.dart';
 
@@ -48,6 +49,9 @@ class _GamePartyLayoutState extends State<GamePartyLayout> {
           currentUserId: widget.currentUserId,
           onSeatTap: widget.onSeatTap,
         ),
+        const SizedBox(height: 6),
+        if (widget.isHost && _game == null)
+          PartyGameBannersRow(onPick: (_) => _pickGame()),
         const SizedBox(height: 6),
         Expanded(
           child: Padding(
