@@ -356,7 +356,9 @@ class _ModeLayout extends StatelessWidget {
           seats: seats,
           currentUserId: currentUserId,
           onSeatTap: tap,
+          room: cubit.liveKitRoom,
         );
+
       case PartyRoomType.game:
         return GamePartyLayout(
           roomId: room.id,
