@@ -90,17 +90,21 @@ class EntryEffectsRepository {
       final finalEntrance =
           entranceMap['url'] ?? noble['url']; // equipped > level > noble
       // But if user has active noble AND nothing equipped, noble wins.
-      final resolvedEntrance = (equippedEntrance == null && noble['url'] != null)
-          ? noble['url']
-          : finalEntrance;
+      final usingNoble =
+          equippedEntrance == null && noble['url'] != null;
+      final resolvedEntrance = usingNoble ? noble['url'] : finalEntrance;
 
       final result = EntryEffectsResult(
         entranceUrl: resolvedEntrance,
         entranceSoundUrl: entranceMap['sound'],
         nameBarUrl: nameBarUrl,
         vehicleUrl: vehicleUrl,
-        nobleRankCode: noble['rankCode'],
+        // Only expose the noble rank code when the noble entrance is
+        // actually being rendered — otherwise priority ladder would
+        // wrongly promote a non-noble entrance to priority 400.
+        nobleRankCode: usingNoble ? noble['rankCode'] : null,
       );
+
 
       _put(userId, result);
       return result;

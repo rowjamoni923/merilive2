@@ -8,6 +8,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
+import '../../entry_effects/widgets/level_up_celebration_overlay.dart';
+
 import '../../gifting/data/gift_animation_config.dart';
 import '../../gifting/data/native_gift_bridge.dart';
 import '../../gifting/widgets/full_screen_gift_overlay.dart';
@@ -211,7 +213,10 @@ class _PartyRoomView extends StatelessWidget {
               ),
               // A11 — Flying entry name-bar overlay on room joins.
               const EntryNameBarOverlay(),
+              // M9 — Self level-up celebration overlay.
+              const LevelUpCelebrationOverlay(),
             ],
+
           ),
         );
       },

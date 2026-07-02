@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/private_call_bridge.dart';
 import '../widgets/call_quality_hud.dart';
+import '../../entry_effects/widgets/level_up_celebration_overlay.dart';
+
 import '../../gifting/data/gift_catalog_repository.dart';
 import '../../gifting/widgets/unified_gift_sheet.dart';
 import '../../../shared/widgets/room_top_bar.dart';
@@ -474,11 +476,14 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
               ],
             ),
           ),
+          // M9 — Self level-up confetti + Lv chip celebration overlay.
+          const LevelUpCelebrationOverlay(),
         ],
       ),
     );
   }
 }
+
 
 class _ChatMsg {
   const _ChatMsg({required this.id, required this.senderId, required this.text});
