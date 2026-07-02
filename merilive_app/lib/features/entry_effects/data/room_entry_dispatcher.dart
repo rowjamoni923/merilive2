@@ -3,7 +3,9 @@ import 'dart:async';
 import 'entry_effects_repository.dart';
 import 'native_entry_bridge.dart';
 import 'room_join_events_bridge.dart';
+import '../widgets/cinematic_join_banner_overlay.dart';
 import '../widgets/entry_name_bar_overlay.dart';
+
 
 /// A11 — Orchestrator that wires join events → per-user equipped effect
 /// lookup → native VAP/Lottie/image renderer (Pkg438) with Flutter
@@ -47,17 +49,20 @@ class RoomEntryDispatcher {
     _sub = null;
     await RoomJoinEventsBridge.instance.detach();
     EntryNameBarQueue.instance.clear();
+    CinematicJoinQueue.instance.clear();
   }
+
 
   Future<void> _dispatch(RoomJoinEvent event) async {
     final effects = await EntryEffectsRepository.instance.resolve(event.userId);
 
-    // 1-4: Premium full-screen entrance (native only, Flutter has no VAP renderer).
+    // 1-4: Premium full-screen entrance (native VAP path).
+    bool premiumNativeAccepted = false;
     if (effects.hasEntrance) {
       final priority = effects.nobleRankCode != null
           ? 400
           : (event.userLevel >= 40 ? 350 : (event.userLevel + 100));
-      await NativeEntryBridge.instance.enqueue(
+      premiumNativeAccepted = await NativeEntryBridge.instance.enqueue(
         id: 'entrance_${event.userId}_${DateTime.now().microsecondsSinceEpoch}',
         url: effects.entranceUrl!,
         type: _kindFromUrl(effects.entranceUrl!),
@@ -65,12 +70,28 @@ class RoomEntryDispatcher {
         priority: priority,
       );
     } else if (effects.hasVehicle) {
-      await NativeEntryBridge.instance.enqueue(
+      premiumNativeAccepted = await NativeEntryBridge.instance.enqueue(
         id: 'vehicle_${event.userId}_${DateTime.now().microsecondsSinceEpoch}',
         url: effects.vehicleUrl!,
         type: _kindFromUrl(effects.vehicleUrl!),
         priority: 300,
       );
+    }
+
+    // B7 — Cinematic Flutter fallback for premium joins when native VAP
+    // isn't equipped/available. Fires for noble users, or Lv ≥ 20 joins
+    // without a native premium animation route.
+    final isPremiumJoin = effects.nobleRankCode != null ||
+        effects.hasEntrance ||
+        effects.hasVehicle ||
+        event.userLevel >= 20;
+    if (isPremiumJoin && !premiumNativeAccepted) {
+      CinematicJoinQueue.instance.enqueue(CinematicJoinPayload(
+        userName: event.displayName,
+        userLevel: event.userLevel,
+        avatarUrl: event.avatarUrl,
+        nobleLabel: effects.nobleRankCode,
+      ));
     }
 
     // 5: Entry name bar — try native (with animation URL), else Flutter banner.
@@ -84,6 +105,8 @@ class RoomEntryDispatcher {
         anchor: 'top',
       );
     }
+
+
 
     if (!nativeAccepted) {
       EntryNameBarQueue.instance.enqueue(EntryNameBarPayload(

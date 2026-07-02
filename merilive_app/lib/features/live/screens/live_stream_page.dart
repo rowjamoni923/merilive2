@@ -7,7 +7,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/native/livekit_bridge.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
+import '../../entry_effects/widgets/cinematic_join_banner_overlay.dart';
 import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
+
 import '../../entry_effects/widgets/level_up_celebration_overlay.dart';
 
 import '../../gifting/data/gift_animation_config.dart';
@@ -26,7 +28,9 @@ import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_game_overlay.dart';
 import '../widgets/live_gift_feed.dart';
+import '../widgets/live_gift_combo_bar.dart';
 import '../widgets/live_host_moderation_sheet.dart';
+
 import '../widgets/live_multi_guest_sheet.dart';
 import '../widgets/live_pk_start_sheet.dart';
 import '../widgets/live_report_block_sheet.dart';
@@ -630,20 +634,43 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ),
               ),
             ),
-            // A2 — gift ticker just below the top header.
+            // B3 — Host earnings / room-coin chip (top-left below header).
             Positioned(
-              top: MediaQuery.of(context).padding.top + 78,
+              top: MediaQuery.of(context).padding.top + 74,
+              left: 12,
+              child: _CoinChip(
+                coins: (_stream?['total_coins'] as num?)?.toInt() ??
+                    (_stream?['coin_count'] as num?)?.toInt() ??
+                    0,
+              ),
+            ),
+            // A2 — gift ticker just below the coin chip.
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 112,
               left: 12,
               right: 80,
               child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
             ),
+
             // A11 — Flying entry name-bar overlay (Flutter fallback when
             // NativeEntryAnimationPlugin is unavailable).
             const EntryNameBarOverlay(),
+            // B7 — Cinematic full-width join banner for premium joins
+            // when the native VAP path isn't available.
+            const CinematicJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
 
+            // B4 — Right-anchored combo bar (real-time xN stacker).
+            Positioned(
+              right: 10,
+              bottom: MediaQuery.of(context).padding.bottom + 210,
+              child: LiveGiftComboBar(stream: LiveChatBridge.instance.gifts$),
+            ),
+
             // A2 — chat overlay + composer, docked above the bottom bar.
+            // B1 — Chat composer is available to the host too now; the
+            // web version lets hosts chat with viewers in-room.
             Positioned(
               left: 12,
               right: 12,
@@ -654,10 +681,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 children: [
                   LiveChatOverlay(messages: _chatMessages),
                   const SizedBox(height: 8),
-                  if (!_isHost) LiveChatComposer(onSend: _sendChat),
+                  LiveChatComposer(onSend: _sendChat),
                 ],
               ),
             ),
+
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
             if (_pkBattle != null)
               PkBattleOverlay(
@@ -1007,4 +1035,68 @@ class _FollowPill extends StatelessWidget {
     );
   }
 }
+
+/// B3 — Compact host-earnings chip. Reads `total_coins` off the live_streams
+/// row (which is kept fresh by realtime updates), formats compactly and
+/// animates on value change so a big gift feels earned.
+class _CoinChip extends StatelessWidget {
+  const _CoinChip({required this.coins});
+  final int coins;
+
+  String _fmt(int n) {
+    if (n < 1000) return '$n';
+    if (n < 1000000) {
+      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}K';
+    }
+    return '${(n / 1000000).toStringAsFixed(1)}M';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(coins),
+      tween: Tween(begin: 0.92, end: 1.0),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Color(0xCC0F172A),
+            Color(0xCC1F2937),
+          ]),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: const Color(0x66F59E0B), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33F59E0B),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.monetization_on_rounded,
+                size: 14, color: Color(0xFFFBBF24)),
+            const SizedBox(width: 4),
+            Text(
+              _fmt(coins),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
