@@ -595,6 +595,7 @@ class _CreatePartyPlaceholderPageState
   bool _loading = true;
   bool _creating = false;
   bool _previewing = false;
+  bool _preserveOnDispose = false; // C6 — set true on room handoff
   String? _denyMessage;
 
   String? _selectedGameId;
@@ -611,7 +612,10 @@ class _CreatePartyPlaceholderPageState
   @override
   void dispose() {
     _entryFeeCtrl.dispose();
-    if (_previewing) {
+    // C6 — when a video/game room was created, keep the native prejoin
+    // camera alive so PartyRoom promotes the same Camera2 track (zero-gap
+    // handoff). Audio parties + user backouts fall through the teardown.
+    if (_previewing && !_preserveOnDispose) {
       LiveKitBridge.instance.stopLocalPreview();
     }
     super.dispose();
@@ -720,7 +724,11 @@ class _CreatePartyPlaceholderPageState
       }
 
       if (!mounted) return;
-      // Preview stays alive — PartyRoom promotes the same Camera2 track (C6).
+      // C6 — keep native prejoin camera alive across the handoff for
+      // video/game rooms so PartyRoom promotes the same Camera2 track.
+      if (_mode != _PartyMode.audio) {
+        _preserveOnDispose = true;
+      }
       context.router.pushNamed('/party/$roomId');
     } on PostgrestException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));

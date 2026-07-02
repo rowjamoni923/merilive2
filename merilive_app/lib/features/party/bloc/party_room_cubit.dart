@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/party_host_video_bridge.dart';
 import '../data/party_livekit_service.dart';
 import '../data/party_models.dart';
 import '../data/party_room_models.dart';
@@ -96,10 +97,12 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required PartyRoomRealtime realtime,
     required SupabaseClient supabase,
     PartyLiveKitService? livekit,
+    PartyHostVideoBridge? hostVideo,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
         _lk = livekit ?? PartyLiveKitService(supabase),
+        _hostVideo = hostVideo ?? PartyHostVideoBridge(supabase),
         super(const PartyRoomState());
 
   final String roomId;
@@ -107,6 +110,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   final PartyRoomRealtime _rt;
   final SupabaseClient _supabase;
   final PartyLiveKitService _lk;
+  final PartyHostVideoBridge _hostVideo;
 
   /// Public repo handle for PD7 gift/music sheets.
   PartyRoomRepository get repository => _repo;
@@ -147,8 +151,16 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       if (uid != null) {
         await _repo.joinAsViewer(roomId, uid);
         emit(state.copyWith(isJoined: true));
-        // PD5b — connect to LiveKit as subscribe-only viewer for room audio.
-        unawaited(_connectViewer());
+        // C6 — video/game host reuses the prejoin native camera (Camera2
+        // sensor never re-opens). Audio parties + all viewers still use the
+        // Dart livekit_client subscribe path.
+        final needsHostVideo = isHost &&
+            res.room.roomType != PartyRoomType.audio;
+        if (needsHostVideo) {
+          unawaited(_promoteHostVideo(uid));
+        } else {
+          unawaited(_connectViewer());
+        }
       }
 
       _rt.subscribe(
@@ -175,6 +187,21 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       // Non-fatal: chat/seats still work; user just won't hear audio.
     }
   }
+
+  Future<void> _promoteHostVideo(String uid) async {
+    try {
+      await _hostVideo.startAsHost(
+        roomId: roomId,
+        participantName: uid,
+      );
+    } catch (e) {
+      // Fall back to viewer path so the host at least hears the room.
+      await _connectViewer();
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+
 
 
   Future<void> _refreshRoom() async {
@@ -380,6 +407,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   Future<void> close() async {
     await _rt.unsubscribe();
     await _lk.disconnect();
+    await _hostVideo.stop();
     await leaveRoom();
     return super.close();
   }
