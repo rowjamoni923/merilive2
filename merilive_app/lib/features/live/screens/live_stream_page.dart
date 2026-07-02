@@ -518,7 +518,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _snack('❤️ Sent love');
         break;
       case 'share':
-        _snack('Share sheet coming soon');
+        _shareStream();
         break;
       case 'games':
         _openGamesSheet();
@@ -542,16 +542,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         );
         break;
       case 'tasks':
-        _snack('Tasks — opening');
+        _openExternal('https://merilive.top/tasks');
         break;
       case 'topup':
-        _snack('Top Up — opening');
+        _openExternal('https://merilive.top/topup');
         break;
       case 'music':
-        _snack('Music player coming soon');
+        LiveMusicSheet.show(context);
         break;
       case 'react':
-        _snack('Reactions coming soon');
+        ReactionsPickerSheet.show(context);
         break;
       case 'pk':
         _openPkStartSheet();
@@ -567,16 +567,46 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         }
         break;
       case 'sticker':
-        _snack('Stickers coming soon');
+        LiveStickerSheet.show(
+          context,
+          activeStickerId: null,
+          onChanged: (_) {},
+        );
         break;
       case 'vbg':
-        _snack('Virtual background coming soon');
+        LiveVirtualBgSheet.show(context);
         break;
       case 'noise':
-        _snack('Noise cancellation coming soon');
+        LiveNoiseCancelSheet.show(context);
         break;
     }
   }
+
+  Future<void> _shareStream() async {
+    final hostName =
+        _host?['name']?.toString() ?? _host?['display_name']?.toString();
+    final title = hostName != null
+        ? '$hostName is live on MeriLive 🎥'
+        : 'Live on MeriLive 🎥';
+    final url = 'https://merilive.top/live-feed/${widget.streamId}';
+    try {
+      await Share.share('$title\n$url', subject: title);
+    } catch (_) {
+      if (mounted) _snack('Could not open share sheet');
+    }
+  }
+
+  Future<void> _openExternal(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && mounted) _snack('Could not open link');
+    } catch (_) {
+      if (mounted) _snack('Could not open link');
+    }
+  }
+
 
   Future<void> _openGamesSheet() async {
     final picked = await PartyGameSelectionSheet.show(context);
