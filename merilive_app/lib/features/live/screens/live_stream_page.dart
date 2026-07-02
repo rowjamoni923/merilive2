@@ -506,6 +506,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       )),
     );
   }
+}
 
 class _TopHeader extends StatelessWidget {
   const _TopHeader({
