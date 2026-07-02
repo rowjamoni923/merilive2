@@ -4,7 +4,19 @@ Five workstreams, delivered in five sub-messages so each one is atomic and revie
 
 ---
 
-### H1 — Full Android module bootstrap (unblocks everything else)
+### H1 — Full Android module bootstrap (unblocks everything else) ✅ COMPLETE (2026-07-02)
+
+Verified done: `merilive_app/android/` real Flutter module with settings.gradle
+(Gradle 8.6 / AGP 8.3.0 / Kotlin 1.9.24), gradle wrapper jar + gradlew fetched,
+app/build.gradle with LiveKit 2.23.5 / VAP 1.0.15 / SVGA 2.5.14 / Lottie 6.4.0 /
+ML Kit segmentation / Firebase BOM, MainActivity registers all 4 native plugins,
+manifest declares CAMERA/RECORD_AUDIO/POST_NOTIFICATIONS/FOREGROUND_SERVICE_*,
+IncomingCallService + IncomingCallActivity + FCM MessagingService registered,
+stale `android_native/` staging folder deleted so single source of truth.
+Developer still supplies `local.properties` (flutter.sdk) + `google-services.json`
+(Firebase console) — template committed at `android/app/google-services.json.template`.
+GPUPixel dep deferred to H2 (`setBeautyEnabled` is dormant today).
+
 
 Right now `merilive_app/android_native/*.kt` is a **staging folder** — the plugins aren't in a real Flutter `android/` module, so APK builds get nothing.
 
