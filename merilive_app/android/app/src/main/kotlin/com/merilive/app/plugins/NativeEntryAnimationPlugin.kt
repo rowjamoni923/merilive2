@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *   • Queue cap 32, priority ordered (noble 400 > vip 300 > level > 0).
  *   • Hard watchdog 10s per slot.
  */
-class NativeEntryAnimationPlugin : FlutterPlugin, MethodChannel.MethodHandler {
+class NativeEntryAnimationPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     companion object {
         private const val TAG = "NativeEntryAnimPlugin"

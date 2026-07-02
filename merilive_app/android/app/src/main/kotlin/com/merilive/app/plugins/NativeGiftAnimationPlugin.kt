@@ -70,7 +70,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *     is force-recycled.
  *   • Lifecycle: `stopAll` from Dart on room leave / host end.
  */
-class NativeGiftAnimationPlugin : FlutterPlugin, MethodChannel.MethodHandler {
+class NativeGiftAnimationPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     companion object {
         private const val TAG = "NativeGiftAnimPlugin"
