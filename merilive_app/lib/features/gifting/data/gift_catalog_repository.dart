@@ -15,7 +15,7 @@ class GiftCatalogRepository {
     final rows = await _client
         .from('gifts')
         .select(
-          'id,name,icon_url,animation_url,sound_url,'
+          'id,name,icon_url,image_url,animation_url,animation_type,sound_url,'
           'coin_price,coin_value,receiver_beans,category,is_active',
         )
         .eq('is_active', true)
