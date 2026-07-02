@@ -1038,7 +1038,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             Positioned.fill(
               child: IgnorePointer(
                 ignoring: !_overlay.audioUnlockNeeded,
-                child: LiveOverlayStack(controller: _overlay),
+                child: LiveOverlayStack(
+                  controller: _overlay,
+                  showTopCountChip: false,
+                ),
               ),
             ),
             // A3 — full action bar with host quick-actions.
