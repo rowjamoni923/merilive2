@@ -167,7 +167,8 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const SizedBox(height: 6),
-                    _SeatGrid(
+                    _ModeLayout(
+                      room: room,
                       seats: state.seats,
                       currentUserId:
                           Supabase.instance.client.auth.currentUser?.id,
