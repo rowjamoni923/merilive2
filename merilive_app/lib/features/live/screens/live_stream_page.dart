@@ -57,6 +57,7 @@ import '../widgets/live_sticker_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
 import '../widgets/live_raise_hand_queue_sheet.dart';
 import '../data/live_raise_hand_bridge.dart';
+import '../data/live_stream_swipe_controller.dart';
 import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
 import '../widgets/reactions_picker_sheet.dart';
@@ -286,6 +287,15 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               .isFollowing(stream['host_id'].toString());
           if (mounted) setState(() => _isFollowingHost = following);
         } catch (_) {}
+      }
+
+      // H5 P0 #1 — viewer-only vertical-swipe attach (idempotent, shared
+      // singleton). Skipped for the host since they cannot leave their own
+      // broadcast by swiping.
+      if (!_isHost) {
+        // Fire-and-forget — never block the join path on the neighbours fetch.
+        // ignore: discarded_futures
+        LiveStreamSwipeController.instance.attach();
       }
 
       // Phase E — host-only content-safety + call-focus.
@@ -898,6 +908,71 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     });
   }
 
+  // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
+  //
+  // Web-truth: `src/hooks/useLiveStreamSwipe.ts` (80 px min, 300 ms fast
+  // window, 150 px slow-swipe fallback, `navigate(..., { replace: true })`).
+  // Hosts are excluded — they cannot swipe away from their own broadcast.
+  // While a sheet or gift/entry animation is capturing gestures the
+  // GestureDetector's `HitTestBehavior.translucent` still lets the child
+  // widgets win via their own recognizers (Sheets/InkResponses).
+  bool _swipeNavigating = false;
+  double _swipeAccumDy = 0; // + = swiped UP overall
+  int _swipeStartMs = 0;
+
+  Widget _wrapWithSwipe(Widget child) {
+    if (_isHost) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: (_) {
+        _swipeAccumDy = 0;
+        _swipeStartMs = DateTime.now().millisecondsSinceEpoch;
+      },
+      onVerticalDragUpdate: (d) {
+        // primaryDelta is +ve when finger moves DOWN in Flutter's coord
+        // system. We want +ve to mean "swipe UP" (matching web `deltaY`
+        // sign convention), so subtract.
+        _swipeAccumDy -= d.primaryDelta ?? 0;
+      },
+      onVerticalDragEnd: (d) {
+        final dy = _swipeAccumDy;
+        final dt = DateTime.now().millisecondsSinceEpoch - _swipeStartMs;
+        const minDist = 80.0;
+        const maxFastMs = 300;
+        if (dy.abs() < minDist) return;
+        if (dt > maxFastMs && dy.abs() < 150) return;
+        if (dy > 0) {
+          _swipeToNeighbour(next: true);
+        } else {
+          _swipeToNeighbour(next: false);
+        }
+      },
+      child: child,
+    );
+  }
+
+
+  Future<void> _swipeToNeighbour({required bool next}) async {
+    if (_swipeNavigating) return;
+    final ctrl = LiveStreamSwipeController.instance;
+    final targetId =
+        next ? ctrl.next(widget.streamId) : ctrl.prev(widget.streamId);
+    if (targetId == null) {
+      _snack(next ? 'You\'re at the last live stream' : 'You\'re at the top');
+      return;
+    }
+    _swipeNavigating = true;
+    try {
+      // Replace so the browser/back-stack behaves like a feed swipe, not a
+      // deep push. `replaceNamed` is available on both AutoRoute stacks and
+      // maps to `context.router.replace(...)` internally.
+      await context.router.replaceNamed('/live/$targetId');
+    } catch (_) {
+      _swipeNavigating = false;
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -907,7 +982,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // gifts render above chat, action bar, sheets and the LiveKit
       // renderer. Native VAP (Pkg438) runs above WebView on Android;
       // this Flutter overlay is the fallback + Flutter-only surfaces.
-      body: GlobalGiftOverlay(child: Stack(
+      body: GlobalGiftOverlay(child: _wrapWithSwipe(Stack(
         fit: StackFit.expand,
         children: [
           // Transparent surface — native LiveKit SurfaceViewRenderer
@@ -1095,7 +1170,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             ),
           ],
         ],
-      )),
+      ))),
     );
   }
 }
