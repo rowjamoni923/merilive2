@@ -5,6 +5,13 @@ import '../bloc/party_room_cubit.dart';
 import '../data/party_models.dart';
 import 'party_background_picker_sheet.dart';
 
+/// G17 — Advanced host prefs kept in memory for the session. Values are
+/// read by the LiveKit / audio stack; adjustable from the settings sheet.
+class PartyRoomAdvancedPrefs {
+  static bool noiseCancel = true;
+  static String videoQuality = 'Auto'; // Auto | SD | HD | FHD
+}
+
 /// M4 — Host-only Party Room settings sheet.
 ///
 /// Web-truth reference: `src/components/party/PartyRoomSettings.tsx`.
