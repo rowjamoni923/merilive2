@@ -917,21 +917,25 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // GestureDetector's `HitTestBehavior.translucent` still lets the child
   // widgets win via their own recognizers (Sheets/InkResponses).
   bool _swipeNavigating = false;
-  double _swipeStartDy = 0;
+  double _swipeAccumDy = 0; // + = swiped UP overall
   int _swipeStartMs = 0;
 
   Widget _wrapWithSwipe(Widget child) {
     if (_isHost) return child;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onVerticalDragStart: (d) {
-        _swipeStartDy = d.globalPosition.dy;
+      onVerticalDragStart: (_) {
+        _swipeAccumDy = 0;
         _swipeStartMs = DateTime.now().millisecondsSinceEpoch;
       },
+      onVerticalDragUpdate: (d) {
+        // primaryDelta is +ve when finger moves DOWN in Flutter's coord
+        // system. We want +ve to mean "swipe UP" (matching web `deltaY`
+        // sign convention), so subtract.
+        _swipeAccumDy -= d.primaryDelta ?? 0;
+      },
       onVerticalDragEnd: (d) {
-        final endDy = d.globalPosition?.dy ??
-            (_swipeStartDy - (d.primaryVelocity ?? 0) * 0.05);
-        final dy = _swipeStartDy - endDy; // + = swipe UP
+        final dy = _swipeAccumDy;
         final dt = DateTime.now().millisecondsSinceEpoch - _swipeStartMs;
         const minDist = 80.0;
         const maxFastMs = 300;
@@ -946,6 +950,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       child: child,
     );
   }
+
 
   Future<void> _swipeToNeighbour({required bool next}) async {
     if (_swipeNavigating) return;
