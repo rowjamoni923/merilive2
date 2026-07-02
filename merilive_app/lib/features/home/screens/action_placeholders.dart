@@ -125,13 +125,15 @@ class GoLivePlaceholderPage extends StatefulWidget {
 /// Actual room publish + LiveKit connect handoff lands with C4 (native
 /// LiveKit publish port). Until then the CTA reports "publish pending —
 /// needs Android host + Kotlin port" so nothing lies to the user.
-class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
+class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
+    with WidgetsBindingObserver {
   final _titleCtrl = TextEditingController();
 
   bool _checking = true;
   bool _previewing = false;
   bool _allowed = false;
   bool _starting = false;
+  bool _endingExisting = false;
   String? _displayName;
 
   // Denial state
@@ -143,17 +145,30 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _runGate();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _titleCtrl.dispose();
     if (_previewing) {
       LiveKitBridge.instance.stopLocalPreview();
     }
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Auto-refresh the gate when the user returns from face verification
+    // or any external flow (matches web behaviour where the profile realtime
+    // listener flips the CTA back on approval).
+    if (state == AppLifecycleState.resumed && !_allowed) {
+      _runGate();
+    }
+  }
+
 
   Future<void> _runGate() async {
     setState(() {
@@ -237,8 +252,8 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
       case 'already_live':
         return (
           title: 'Already Live',
-          message: 'You already have an active live stream. Please end it first.',
-          cta: null,
+          message: 'You already have an active live stream. End it to start a new session.',
+          cta: _endingExisting ? 'Ending…' : 'End Existing Stream',
           icon: Icons.podcasts_rounded,
         );
       case 'disabled':
@@ -274,13 +289,33 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
     }
   }
 
+  Future<void> _endExistingStream() async {
+    if (_endingExisting) return;
+    setState(() => _endingExisting = true);
+    try {
+      await Supabase.instance.client
+          .rpc('end_live_stream', params: {'p_reason': 'user_switch'});
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _endingExisting = false);
+    _runGate();
+  }
+
   void _handleDenyCta() {
     switch (_denyCode) {
       case 'face':
-        // TODO: route to /face-verification once C-face lands (Sector 6).
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Face verification screen lands with Sector 6.'),
-        ));
+        // Route to face verification if the app registered it; fall back to
+        // an honest snackbar. Web uses /face-verification; matching name.
+        try {
+          context.router.pushNamed('/face-verification');
+        } catch (_) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Face verification screen lands with Sector 6.'),
+          ));
+        }
+        break;
+      case 'already_live':
+        _endExistingStream();
         break;
       case 'auth':
         context.router.replaceNamed('/auth');
@@ -289,6 +324,7 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
         _runGate();
     }
   }
+
 
   Future<void> _handleStartLive() async {
     if (_starting) return;
