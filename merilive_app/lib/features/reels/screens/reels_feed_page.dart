@@ -429,6 +429,22 @@ void _openSharePlaceholder(BuildContext context, Reel reel) {
   );
 }
 
+void _openSoundPlaceholder(BuildContext context, Reel reel) {
+  // TODO(future): open sound detail / "reels using this sound" list.
+  final label = reel.isOriginalSound
+      ? 'Original sound'
+      : (reel.soundTitle ?? reel.musicTitle ?? 'Sound');
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(label),
+      duration: const Duration(milliseconds: 900),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+
+
 void _openMoreMenu(BuildContext context, Reel reel) {
   final cubit = context.read<ReelsFeedCubit>();
   showModalBottomSheet<void>(
