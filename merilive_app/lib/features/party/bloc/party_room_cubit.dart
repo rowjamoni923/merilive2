@@ -97,10 +97,12 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required PartyRoomRealtime realtime,
     required SupabaseClient supabase,
     PartyLiveKitService? livekit,
+    PartyHostVideoBridge? hostVideo,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
         _lk = livekit ?? PartyLiveKitService(supabase),
+        _hostVideo = hostVideo ?? PartyHostVideoBridge(supabase),
         super(const PartyRoomState());
 
   final String roomId;
