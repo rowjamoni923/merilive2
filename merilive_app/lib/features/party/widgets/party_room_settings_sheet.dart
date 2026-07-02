@@ -191,6 +191,51 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
               subtitle: const Text('Requires password / invite to join',
                   style: TextStyle(color: Colors.white54, fontSize: 12)),
             ),
+            const Divider(color: Colors.white12, height: 20),
+            const Text('Advanced',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: PartyRoomAdvancedPrefs.noiseCancel,
+              onChanged: (v) => setState(
+                  () => PartyRoomAdvancedPrefs.noiseCancel = v),
+              activeColor: const Color(0xFF10B981),
+              title: const Text('Noise cancellation',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+              subtitle: const Text('Suppress background noise on your mic',
+                  style: TextStyle(color: Colors.white54, fontSize: 12)),
+            ),
+            const SizedBox(height: 4),
+            const Text('Video quality',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final q in const ['Auto', 'SD', 'HD', 'FHD'])
+                  ChoiceChip(
+                    label: Text(q),
+                    labelStyle: TextStyle(
+                        color: PartyRoomAdvancedPrefs.videoQuality == q
+                            ? Colors.white
+                            : Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700),
+                    backgroundColor: Colors.white10,
+                    selectedColor: const Color(0xFF3B82F6),
+                    selected: PartyRoomAdvancedPrefs.videoQuality == q,
+                    onSelected: (_) => setState(
+                        () => PartyRoomAdvancedPrefs.videoQuality = q),
+                  ),
+              ],
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
