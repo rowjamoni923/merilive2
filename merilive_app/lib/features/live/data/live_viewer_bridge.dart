@@ -33,6 +33,7 @@ class LiveViewerBridge {
   Future<void> joinAsViewer({
     required String streamId,
     required String participantName,
+    String? password,
   }) async {
     if (_joined && _streamId == streamId) return;
     await leave();
@@ -40,11 +41,18 @@ class LiveViewerBridge {
     final client = Supabase.instance.client;
 
     // 1) Server-authoritative enter (viewer_count++, stream_viewers row).
+    //    H4 — forwards optional `p_password` for password-locked streams
+    //    (web-truth: LiveStream.tsx L2511 `p_password`).
     try {
       await client.rpc('join_live_stream_viewer', params: {
         'p_stream_id': streamId,
+        if (password != null && password.isNotEmpty) 'p_password': password,
       });
-    } catch (_) {
+    } catch (e) {
+      final msg = e.toString();
+      if (RegExp(r'password', caseSensitive: false).hasMatch(msg)) {
+        throw StateError('live_password_required');
+      }
       // Non-fatal — viewing can still proceed if RPC hiccups; the row
       // will be reconciled by the next heartbeat / cron sweep.
     }
