@@ -465,6 +465,65 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     await _refreshRequests();
   }
 
+  // ─── Phase A P0 #2 — Seat invitations (invitee inbox) ─────────────
+  Future<void> _refreshInvitations() async {
+    final uid = _uid;
+    if (uid == null) return;
+    try {
+      final rows = await _invites.fetchInbox(roomId: roomId, inviteeId: uid);
+      final first = rows.isEmpty ? null : rows.first;
+      if (first == null) {
+        emit(state.copyWith(clearPendingInvitation: true));
+      } else if (state.pendingInvitation?.id != first.id) {
+        emit(state.copyWith(pendingInvitation: first));
+      }
+    } catch (_) {}
+  }
+
+  /// Invitee accepts a pending seat invitation — server RPC handles the seat
+  /// assignment. Also upgrades the LiveKit connection to publish-capable.
+  Future<void> acceptSeatInvitation(PartySeatInvitation inv) async {
+    final uid = _uid;
+    if (uid == null) return;
+    try {
+      await _invites.accept(inv.id);
+      emit(state.copyWith(clearPendingInvitation: true));
+      try {
+        await _lk.upgradeToSpeaker(roomId: roomId, participantName: uid);
+      } catch (_) {}
+      await _refreshSeats();
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> declineSeatInvitation(PartySeatInvitation inv) async {
+    try {
+      await _invites.decline(inv.id);
+    } catch (_) {}
+    emit(state.copyWith(clearPendingInvitation: true));
+  }
+
+  // ─── Phase A P0 #4 — Host seat lock ───────────────────────────────
+  Future<Map<String, dynamic>?> setSeatLock({
+    required int seatNumber,
+    required bool locked,
+  }) async {
+    if (!isHost) return null;
+    try {
+      final res = await _repo.setSeatLock(
+        roomId: roomId,
+        seatNumber: seatNumber,
+        locked: locked,
+      );
+      await _refreshSeats();
+      return res;
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+      return {'ok': false, 'error': e.toString()};
+    }
+  }
+
   Future<void> leaveRoom() async {
     final uid = _uid;
     if (uid != null) {
@@ -476,6 +535,13 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
 
   @override
   Future<void> close() async {
+    final ch = _inviteChannel;
+    _inviteChannel = null;
+    if (ch != null) {
+      try {
+        await _supabase.removeChannel(ch);
+      } catch (_) {}
+    }
     await _rt.unsubscribe();
     await _lk.disconnect();
     await _hostVideo.stop();
@@ -484,6 +550,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   }
 
 }
+
 
 extension _Let<T> on T {
   R let<R>(R Function(T) f) => f(this);
