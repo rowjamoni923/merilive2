@@ -50,6 +50,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   Map<String, dynamic>? _host;
   int _viewerCount = 0;
   RealtimeChannel? _channel;
+  List<LiveChatMessage> _chatMessages = const [];
+  StreamSubscription<List<LiveChatMessage>>? _chatSub;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
