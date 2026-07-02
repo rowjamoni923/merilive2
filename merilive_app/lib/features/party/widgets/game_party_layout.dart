@@ -50,6 +50,9 @@ class _GamePartyLayoutState extends State<GamePartyLayout> {
           onSeatTap: widget.onSeatTap,
         ),
         const SizedBox(height: 6),
+        if (widget.isHost && _game == null)
+          PartyGameBannersRow(onPick: (_) => _pickGame()),
+        const SizedBox(height: 6),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
