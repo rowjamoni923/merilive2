@@ -125,6 +125,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       _chatSub = LiveChatBridge.instance.messages$.listen((m) {
         if (mounted) setState(() => _chatMessages = m);
       });
+      // A5 — realtime gift stream drives full-screen animations for
+      // every viewer + host, native-first with Flutter overlay fallback.
+      _giftSub = LiveChatBridge.instance.gifts$.listen(_onGiftEvent);
       _chatMessages = LiveChatBridge.instance.snapshot;
       final welcome = (host?['name']?.toString() ?? 'the host');
       LiveChatBridge.instance
@@ -238,7 +241,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   void dispose() {
     _channel?.unsubscribe();
     _chatSub?.cancel();
+    _giftSub?.cancel();
     LiveChatBridge.instance.detach();
+    NativeGiftBridge.instance.stopAll();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
@@ -250,6 +255,76 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   }
 
   Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
+
+  /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
+  /// renderer is tried first (Pkg438 plugin on Android); when the
+  /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
+  /// takes over so Flutter surfaces never render nothing.
+  Future<void> _onGiftEvent(LiveGiftEvent e) async {
+    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
+      return;
+    }
+    final receiverLabel =
+        (_host?['name']?.toString() ?? _host?['display_name']?.toString()) ??
+            'Host';
+    final payload = {
+      'id': e.id,
+      'kind': (e.animationType ?? '').toLowerCase().isNotEmpty
+          ? e.animationType!.toLowerCase()
+          : 'image',
+      'url': e.animationUrl ?? e.giftIcon ?? '',
+      'fallbackImage': e.giftIcon ?? '',
+      'durationMs': 3500,
+      'priority': e.perUnitCoins,
+      'senderName': e.senderName,
+      'receiverName': receiverLabel,
+      'giftName': e.giftName,
+      'quantity': e.quantity,
+      'coinValue': e.perUnitCoins,
+      'surface': 'live',
+    };
+    final acceptedByNative = await NativeGiftBridge.instance.dispatch(payload);
+    if (acceptedByNative) return;
+
+    FullScreenGiftQueue.instance.enqueue(FullScreenGiftPayload(
+      id: e.id,
+      giftName: e.giftName,
+      senderName: e.senderName,
+      receiverName: receiverLabel,
+      quantity: e.quantity,
+      imageUrl: e.giftIcon,
+      animationUrl: e.animationUrl,
+      animationType: e.animationType,
+    ));
+  }
+
+  void _openGiftPanel() {
+    final hostId = _stream?['host_id']?.toString();
+    if (hostId == null) {
+      _snack('Host unavailable');
+      return;
+    }
+    if (_isHost) {
+      _snack("You can't send gifts to yourself");
+      return;
+    }
+    showUnifiedGiftSheet(
+      context,
+      surface: GiftSurface.live,
+      contextId: widget.streamId,
+      recipients: [
+        GiftRecipient(
+          id: hostId,
+          label: (_host?['name']?.toString() ??
+              _host?['display_name']?.toString() ??
+              'Host'),
+          avatarUrl: _host?['avatar_url']?.toString(),
+          badge: 'Host',
+        ),
+      ],
+      initialRecipientId: hostId,
+    );
+  }
 
   void _snack(String msg) {
     if (!mounted) return;
