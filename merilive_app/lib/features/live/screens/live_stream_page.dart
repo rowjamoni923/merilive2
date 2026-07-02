@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/native/livekit_bridge.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
+import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
 import '../../entry_effects/widgets/cinematic_join_banner_overlay.dart';
 import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
 
