@@ -145,7 +145,7 @@ class LiveOverlayStack extends StatelessWidget {
                                 quality: controller.connectionQuality),
                             const SizedBox(width: 6),
                             AnimatedViewerCount(
-                                count: controller.viewerCount),
+                                value: controller.viewerCount),
                           ],
                         ),
                         const SizedBox(height: 6),
