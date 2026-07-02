@@ -136,3 +136,22 @@ Native bridge additions require **APK rebuild** to take effect. All Dart-only ch
 6. Owner-account walkthrough report
 
 আমি approve পেলে এক টানে 1→6 ship করব, কোন "option A/B" জিজ্ঞেস করব না।
+
+---
+
+## M14 — Create section prep polish (2026-07-02 shipped)
+
+Delivered Chamet-parity Go Live prep + Create Party prep in Flutter:
+
+- Full-screen native camera preview backdrop (both screens)
+- Left rail: Beauty (5-slider persisted panel), Cover (camera / gallery / current-frame snapshot → `host-covers` public bucket), Category (`live_categories` / `party_categories`)
+- Right rail: Flip (front/rear), Mic (LiveKit local audio), Mirror
+- Top bar: Close, Privacy pill (Public / Private / 4-digit PIN), Category chip, Grid toggle (GoLive) / Mode segmented (video/audio/game) + Seat picker (CreateParty)
+- Bottom composer: title input + gradient Start-Live / Start-Party CTA
+- Publish handoff untouched — `start_live_stream` + `LiveHostBridge.startAsHost` (GoLive), `create_party_room` + `/party/:id` (Create Party)
+- Deny states preserved (face / host_not_approved / agency_required / banned / disabled / level / already_live / auth) with cta routing
+- Extended `LiveKitBridge` with additive Dart methods (`setBeautyParams`, `setStickerOverlay`, `snapshotLocalPreview`) — safe no-ops on old APKs
+- `image_picker` added to pubspec
+- Cover storage bucket reuses existing public `host-covers`
+
+Native beauty-slider + sticker overlay + preview snapshot require APK rebuild for full effect; UI + persistence + all Supabase side effects work in Dart today.
