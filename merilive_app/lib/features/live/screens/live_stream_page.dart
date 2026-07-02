@@ -634,13 +634,24 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ),
               ),
             ),
-            // A2 — gift ticker just below the top header.
+            // B3 — Host earnings / room-coin chip (top-left below header).
             Positioned(
-              top: MediaQuery.of(context).padding.top + 78,
+              top: MediaQuery.of(context).padding.top + 74,
+              left: 12,
+              child: _CoinChip(
+                coins: (_stream?['total_coins'] as num?)?.toInt() ??
+                    (_stream?['coin_count'] as num?)?.toInt() ??
+                    0,
+              ),
+            ),
+            // A2 — gift ticker just below the coin chip.
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 112,
               left: 12,
               right: 80,
               child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
             ),
+
             // A11 — Flying entry name-bar overlay (Flutter fallback when
             // NativeEntryAnimationPlugin is unavailable).
             const EntryNameBarOverlay(),
