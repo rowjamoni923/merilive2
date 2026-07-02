@@ -22,6 +22,10 @@ class _PartyChatComposerState extends State<PartyChatComposer> {
   Future<void> _submit() async {
     final t = _controller.text.trim();
     if (t.isEmpty || _sending) return;
+    if (PartyNumberWarningDialog.isFlagged(t)) {
+      final proceed = await PartyNumberWarningDialog.confirm(context);
+      if (!mounted || !proceed) return;
+    }
     setState(() => _sending = true);
     _controller.clear();
     try {
