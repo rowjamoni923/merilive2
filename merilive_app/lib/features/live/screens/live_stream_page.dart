@@ -118,6 +118,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // A6 — PK Battle overlay state.
   PkBattleSnapshot? _pkBattle;
   StreamSubscription<PkBattleSnapshot?>? _pkSub;
+  StreamSubscription<RoomJoinEvent>? _joinSub;
 
   // R6a — challenger-side random-match search state (lifted from panel so
   // the search survives closing the sheet). Mirrors LiveStream.tsx.
