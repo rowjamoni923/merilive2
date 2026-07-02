@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/native/livekit_bridge.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
@@ -17,11 +18,16 @@ import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
 import '../data/pk_battle_bridge.dart';
 import '../widgets/live_action_bar.dart';
+import '../widgets/live_beauty_panel.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
+import '../widgets/live_game_overlay.dart';
 import '../widgets/live_gift_feed.dart';
+import '../widgets/live_multi_guest_sheet.dart';
+import '../widgets/live_report_block_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../../party/widgets/party_game_selection_sheet.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
@@ -412,6 +418,27 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       case 'share':
         _snack('Share sheet coming soon');
         break;
+      case 'games':
+        _openGamesSheet();
+        break;
+      case 'multiguest':
+        LiveMultiGuestSheet.show(
+          context,
+          streamId: widget.streamId,
+          isHost: _isHost,
+        );
+        break;
+      case 'report':
+        final hostId = _stream?['host_id']?.toString();
+        if (hostId == null) return;
+        LiveReportBlockSheet.show(
+          context,
+          targetUserId: hostId,
+          targetName:
+              _host?['name']?.toString() ?? 'Host',
+          streamId: widget.streamId,
+        );
+        break;
       case 'tasks':
         _snack('Tasks — opening');
         break;
@@ -423,9 +450,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         break;
       case 'react':
         _snack('Reactions coming soon');
-        break;
-      case 'raisehand':
-        _snack('Hand raised');
         break;
       case 'pk':
         _snack('PK Battle panel coming soon');
@@ -439,10 +463,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       case 'noise':
         _snack('Noise cancellation coming soon');
         break;
-      case 'raisedhands':
-        _snack('Raised hands queue coming soon');
-        break;
     }
+  }
+
+  Future<void> _openGamesSheet() async {
+    final picked = await PartyGameSelectionSheet.show(context);
+    if (picked == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => LiveGameOverlay(
+          streamId: widget.streamId,
+          game: picked,
+        ),
+      ),
+    );
   }
 
   @override
@@ -546,15 +581,22 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 onMore: _openMoreSheet,
                 onEndOrLeave: _handleLeaveOrEnd,
                 onToggleMic: () {
-                  setState(() => _isMicMuted = !_isMicMuted);
-                  _snack(_isMicMuted ? 'Mic muted' : 'Mic on');
+                  final next = !_isMicMuted;
+                  setState(() => _isMicMuted = next);
+                  LiveKitBridge.instance.setMicEnabled(!next);
+                  _snack(next ? 'Mic muted' : 'Mic on');
                 },
                 onToggleCam: () {
-                  setState(() => _isCamOff = !_isCamOff);
-                  _snack(_isCamOff ? 'Camera off' : 'Camera on');
+                  final next = !_isCamOff;
+                  setState(() => _isCamOff = next);
+                  LiveKitBridge.instance.setVideoVisible(!next);
+                  _snack(next ? 'Camera off' : 'Camera on');
                 },
-                onFlipCam: () => _snack('Flip camera'),
-                onBeauty: () => _snack('Beauty panel coming soon'),
+                onFlipCam: () {
+                  LiveKitBridge.instance.switchCamera();
+                  _snack('Camera flipped');
+                },
+                onBeauty: () => LiveBeautyPanel.show(context),
               ),
             ),
           ],
