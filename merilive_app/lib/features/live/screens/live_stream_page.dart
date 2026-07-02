@@ -448,6 +448,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _joinSub?.cancel();
     _randomPkTimeout?.cancel();
     _overlayTicker?.cancel();
+    NewHostBonusBridge.instance.stopMinuteTicker();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     LiveReactionsBus.instance.detach();
