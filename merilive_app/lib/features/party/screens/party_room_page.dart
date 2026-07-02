@@ -132,14 +132,40 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
         realtime: PartyRoomRealtime(supabase),
         supabase: supabase,
       )..start(),
-      child: BlocListener<PartyRoomCubit, PartyRoomState>(
-        listenWhen: (a, b) => a.host?.id != b.host?.id,
-        listener: (_, state) => _host = state.host,
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<PartyRoomCubit, PartyRoomState>(
+            listenWhen: (a, b) => a.host?.id != b.host?.id,
+            listener: (_, state) => _host = state.host,
+          ),
+          // Phase A P0 #2 — Show accept/decline sheet whenever a fresh
+          // pending seat invitation arrives.
+          BlocListener<PartyRoomCubit, PartyRoomState>(
+            listenWhen: (a, b) =>
+                a.pendingInvitation?.id != b.pendingInvitation?.id,
+            listener: _onInvitation,
+          ),
+        ],
         child: const _PartyRoomView(),
       ),
     );
   }
+
+  Future<void> _onInvitation(
+      BuildContext ctx, PartyRoomState state) async {
+    final inv = state.pendingInvitation;
+    if (inv == null) return;
+    final accepted = await SeatInviteResponseSheet.show(ctx, invitation: inv);
+    if (!ctx.mounted) return;
+    final cubit = ctx.read<PartyRoomCubit>();
+    if (accepted == true) {
+      await cubit.acceptSeatInvitation(inv);
+    } else {
+      await cubit.declineSeatInvitation(inv);
+    }
+  }
 }
+
 
 class _PartyRoomView extends StatelessWidget {
   const _PartyRoomView();
