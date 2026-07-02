@@ -48,6 +48,7 @@ class _MatchCallPageState extends State<MatchCallPage>
   String? _errorMsg;
   String? _broadcastId;
   RealtimeChannel? _broadcastChannel;
+  RealtimeChannel? _queueChannel;
   Timer? _elapsedTimer;
   Timer? _hostsPollTimer;
 
