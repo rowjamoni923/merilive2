@@ -3,7 +3,9 @@ import 'dart:async';
 import 'entry_effects_repository.dart';
 import 'native_entry_bridge.dart';
 import 'room_join_events_bridge.dart';
+import '../widgets/cinematic_join_banner_overlay.dart';
 import '../widgets/entry_name_bar_overlay.dart';
+
 
 /// A11 — Orchestrator that wires join events → per-user equipped effect
 /// lookup → native VAP/Lottie/image renderer (Pkg438) with Flutter
