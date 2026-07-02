@@ -138,54 +138,66 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocProvider.value(
-      value: _categoriesCubit,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        extendBodyBehindAppBar: true,
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light,
-          child: Stack(
-            children: [
-              // ── Feed layer ─────────────────────────────────────────────
-              Positioned.fill(
-                child: BlocBuilder<ReelsCategoriesCubit, ReelsCategoriesState>(
-                  builder: (context, catState) {
-                    final slug = catState.selectedSlug;
-                    final cubit = _cubitFor(slug, catState.categories);
-                    return BlocProvider.value(
-                      value: cubit,
-                      child: _FeedPageView(
-                        pageController: _pageControllerFor(slug),
-                      ),
-                    );
-                  },
+    return VisibilityDetector(
+      key: const Key('reels-tab-visibility'),
+      onVisibilityChanged: (info) => _onTabVisibility(info.visibleFraction),
+      child: BlocProvider.value(
+        value: _categoriesCubit,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          extendBodyBehindAppBar: true,
+          body: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: Stack(
+              children: [
+                // ── Feed layer ────────────────────────────────────────────
+                Positioned.fill(
+                  child:
+                      BlocBuilder<ReelsCategoriesCubit, ReelsCategoriesState>(
+                    builder: (context, catState) {
+                      final slug = catState.selectedSlug;
+                      final cubit = _cubitFor(slug, catState.categories);
+                      // Pause any other-category playback the moment slug
+                      // changes — we keep controllers warm in the LRU.
+                      unawaited(_pool.pauseAll());
+                      return BlocProvider.value(
+                        value: cubit,
+                        child: _FeedPageView(
+                          pageController: _pageControllerFor(slug),
+                          pool: _pool,
+                          canPlay: _canPlay,
+                          muted: _muted,
+                          onToggleMute: _toggleMute,
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
 
-              // ── Top chip overlay (safe area padded) ────────────────────
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 6),
-                    child: BlocBuilder<ReelsCategoriesCubit,
-                        ReelsCategoriesState>(
-                      builder: (context, state) {
-                        return ReelsCategoryChips(
-                          categories: state.categories,
-                          selectedSlug: state.selectedSlug,
-                          onSelected: _categoriesCubit.select,
-                        );
-                      },
+                // ── Top chip overlay (safe area padded) ───────────────────
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6, bottom: 6),
+                      child: BlocBuilder<ReelsCategoriesCubit,
+                          ReelsCategoriesState>(
+                        builder: (context, state) {
+                          return ReelsCategoryChips(
+                            categories: state.categories,
+                            selectedSlug: state.selectedSlug,
+                            onSelected: _categoriesCubit.select,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -193,14 +205,88 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   }
 }
 
-class _FeedPageView extends StatelessWidget {
-  const _FeedPageView({required this.pageController});
+/// Feed body: watches feed state, drives the pool (preload/play/evict), and
+/// renders a ReelPlayer per page.
+class _FeedPageView extends StatefulWidget {
+  const _FeedPageView({
+    required this.pageController,
+    required this.pool,
+    required this.canPlay,
+    required this.muted,
+    required this.onToggleMute,
+  });
 
   final PageController pageController;
+  final ReelVideoPool pool;
+  final bool canPlay;
+  final bool muted;
+  final VoidCallback onToggleMute;
+
+  @override
+  State<_FeedPageView> createState() => _FeedPageViewState();
+}
+
+class _FeedPageViewState extends State<_FeedPageView> {
+  String? _lastActiveReelId;
+
+  @override
+  void didUpdateWidget(covariant _FeedPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Lifecycle/mute changes may need to re-sync playback.
+    if (oldWidget.canPlay != widget.canPlay) {
+      _syncActive(context.read<ReelsFeedCubit>().state);
+    }
+  }
+
+  Future<void> _syncActive(ReelsFeedState state) async {
+    if (state.reels.isEmpty) return;
+    final idx = state.currentIndex.clamp(0, state.reels.length - 1);
+    final active = state.reels[idx];
+
+    // Keep-set: index-1 .. index+2 → matches pool max (5).
+    final keep = <String>{};
+    for (int i = idx - 1; i <= idx + 2; i++) {
+      if (i >= 0 && i < state.reels.length) {
+        keep.add(state.reels[i].id);
+      }
+    }
+    // Retain warm controllers only for the neighborhood.
+    await widget.pool.retainOnly(keep);
+
+    // Acquire active + neighbors (fire-and-forget for non-active).
+    unawaited(widget.pool.acquire(active.id, active.videoUrl).then((_) async {
+      if (!mounted) return;
+      if (widget.canPlay &&
+          context.read<ReelsFeedCubit>().state.currentIndex == idx) {
+        await widget.pool.play(active.id);
+        setState(() {}); // rebuild player once handle is ready
+      }
+    }));
+    for (int i = idx - 1; i <= idx + 2; i++) {
+      if (i == idx) continue;
+      if (i >= 0 && i < state.reels.length) {
+        final r = state.reels[i];
+        unawaited(widget.pool.acquire(r.id, r.videoUrl).then((_) {
+          if (mounted) setState(() {});
+        }));
+      }
+    }
+
+    // Pause any previously active reel that isn't active anymore.
+    if (_lastActiveReelId != null && _lastActiveReelId != active.id) {
+      unawaited(widget.pool.pause(_lastActiveReelId!));
+    }
+    _lastActiveReelId = active.id;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ReelsFeedCubit, ReelsFeedState>(
+    return BlocConsumer<ReelsFeedCubit, ReelsFeedState>(
+      listenWhen: (a, b) =>
+          a.currentIndex != b.currentIndex ||
+          a.reels.length != b.reels.length ||
+          (a.reels.isEmpty && b.reels.isNotEmpty),
+      listener: (context, state) => _syncActive(state),
       builder: (context, state) {
         if (state.isInitialLoading && state.reels.isEmpty) {
           return const _CenterLoader();
@@ -218,13 +304,23 @@ class _FeedPageView extends StatelessWidget {
           backgroundColor: Colors.black87,
           onRefresh: () => context.read<ReelsFeedCubit>().refresh(),
           child: PageView.builder(
-            controller: pageController,
+            controller: widget.pageController,
             scrollDirection: Axis.vertical,
             physics: const _SnappyPageScrollPhysics(),
             onPageChanged: context.read<ReelsFeedCubit>().onIndexChanged,
             itemCount: state.reels.length,
             itemBuilder: (context, i) {
-              return ReelCardPlaceholder(reel: state.reels[i]);
+              final reel = state.reels[i];
+              final handle = widget.pool.peek(reel.id);
+              final isActive = i == state.currentIndex;
+              return ReelPlayer(
+                key: ValueKey('reel-${reel.id}'),
+                reel: reel,
+                handle: handle,
+                isActive: isActive && widget.canPlay,
+                isMuted: widget.muted,
+                onToggleMute: widget.onToggleMute,
+              );
             },
           ),
         );
@@ -232,6 +328,8 @@ class _FeedPageView extends StatelessWidget {
     );
   }
 }
+
+
 
 class _SnappyPageScrollPhysics extends PageScrollPhysics {
   const _SnappyPageScrollPhysics({super.parent});
