@@ -386,10 +386,31 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
         return;
       }
 
-      // Preserve the native camera handoff — do NOT stop the preview here,
-      // the LiveStream page adopts the same LiveKit LocalVideoTrack.
-      // (Sector 6 LiveStream page owns the actual publish; until it lands
-      // we still navigate so the flow is verifiable end-to-end.)
+      // C4 — Zero-gap native publish handoff.
+      // Promote the prejoin preview Room into the real live room BEFORE we
+      // navigate, so LiveStream lands on an already-connected/publishing
+      // session (Camera2 sensor is never re-opened). If the bridge fails we
+      // still surface the error and stay on the prejoin screen — we do NOT
+      // want to leave the user on /live with an offline publisher.
+      try {
+        await LiveHostBridge.instance.startAsHost(
+          streamId: streamId,
+          participantName: _displayName ?? 'Host',
+        );
+      } catch (e) {
+        // Roll back the server-side stream so the host isn't stuck "already_live".
+        try {
+          await client.rpc('end_live_stream',
+              params: {'p_reason': 'publish_failed'});
+        } catch (_) {}
+        messenger.showSnackBar(
+            SnackBar(content: Text('Publish failed: $e')));
+        return;
+      }
+
+      // Bridge owns the preview from here — do NOT tear it down in dispose.
+      _preservePreviewOnDispose = true;
+
       if (!mounted) return;
       context.router.replaceNamed('/live/$streamId');
     } catch (e) {
