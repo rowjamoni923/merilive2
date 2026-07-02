@@ -18,6 +18,7 @@ import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality
 import '../widgets/pk_battle_active.dart' show PKBattleActiveState;
 import '../widgets/premium_flying_gift_banner.dart' show PremiumFlyingGift;
 import '../widgets/premium_join_chat_overlay.dart' show PremiumJoinChatEntry;
+import '../widgets/gift_combo_tracker.dart' show GiftComboTrackerEntry;
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
