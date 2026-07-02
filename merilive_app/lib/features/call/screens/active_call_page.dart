@@ -71,7 +71,7 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
       } catch (_) {}
     }
     if (!mounted) return;
-    context.router.maybePop();
+    Navigator.of(context).maybePop();
   }
 
   Future<void> _toggleMute() async {
