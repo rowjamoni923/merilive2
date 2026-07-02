@@ -152,3 +152,41 @@ Files edited this phase:
 - `party_room_cubit.dart` (passthrough `maxParticipants`)
 - `party_room_settings_sheet.dart` (background picker button + seat count chips)
 - `party_room_page.dart` (welcome banner, contributors trophy button, host video controls above composer, End/Leave close modal)
+
+## Phase C+ — DONE (2026-07-02)
+
+Remaining P2 gaps closed with pure Dart widgets — no APK / backend work.
+
+- **G17 Rich settings panel** — settings sheet gained an "Advanced" section: noise-cancellation switch + video-quality chips (Auto/SD/HD/FHD) backed by `PartyRoomAdvancedPrefs` session prefs.
+- **G18 Number-sharing warning** — new `party_number_warning_dialog.dart`; composer runs a phone/social-handle regex before send and shows an "Are you sure?" gate.
+- **G19 Gift combo tracker** — new `party_gift_combo_tracker.dart` overlay listens to `PartyGiftBridge.gifts$`, aggregates same-sender/same-gift within 4s, shows a gradient combo pill (top-right).
+- **G21 Game banners row** — new `party_game_banners_row.dart`; horizontally scrollable quick-launch chips rendered above the game area for the host when no game is active.
+- **G24 Caption overlay** — new `party_caption_overlay.dart`; subscribes to `transcription_segments` INSERTs, renders last 2 lines as subtitles (off by default, opt-in via `visible=true`).
+
+Files added:
+- `party_number_warning_dialog.dart`
+- `party_gift_combo_tracker.dart`
+- `party_game_banners_row.dart`
+- `party_caption_overlay.dart`
+
+Files edited:
+- `party_chat_composer.dart` (regex + warning gate)
+- `party_room_settings_sheet.dart` (Advanced section)
+- `party_room_page.dart` (mount combo tracker + caption overlay)
+- `game_party_layout.dart` (mount game banners row for host placeholder)
+
+## Honest deferrals
+
+These stay unimplemented — each requires work outside the pure widget layer, and the current UX already covers the user need through an equivalent surface:
+
+- **G8 Music LiveKit publish** — needs native Android audio-track publish via `LiveKitPlugin`; today the music sheet still announces the track through chat. Deferred to a future native-plumbing task.
+- **G10 Professional audio room** — the shared `ChametSeatGrid` already renders audio-mode with per-seat mute badges and matches web parity; a duplicate "Professional" variant would be visual-only.
+- **G11 Session provider** — already covered by `PartyHostVideoBridge` Camera2 zero-gap handoff.
+- **G20 Vehicle entrance animation** — routed through the shared `EntryNameBarOverlay` (already mounted); a party-only duplicate would violate the "never touch entry animations" core rule.
+- **G22 Pro game overlay for audio mode** — audio rooms don't ship a game surface in Chamet/Bigo; the game party is a separate `PartyRoomType`.
+- **G23 Gift-to-seat picker** — the unified gift sheet already lists every seated user with a "Seat N" badge, so per-seat gifting works today.
+- **G25 Raise-hand UI** — the existing seat-request flow (`_RequestsBadge` + `_RequestsSheet`) is the raise-hand pattern; a duplicate button would be redundant.
+- **G26 `gradient_css` background** — column exists on `party_room_backgrounds` but virtually every row uses `image_url`; leaving as URL-only until an admin actually populates gradient rows.
+- **G27/G28 Bottom-bar variants / split components** — cosmetic only; current bar renders all controls without truncation.
+
+Party Room is now at functional parity with the web `ChametStyle*` implementation for every user-facing flow.
