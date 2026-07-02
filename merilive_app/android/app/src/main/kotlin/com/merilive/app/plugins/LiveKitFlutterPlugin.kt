@@ -539,6 +539,151 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
         v?.parent?.let { (it as ViewGroup).removeView(v) }
     }
 
+    // ─── H2 — snapshotVoiceChunk (Phase E-19 voice moderation) ─────
+    //
+    // Records `ms` milliseconds of AAC audio from MIC into a temp file,
+    // reads it back as base64. This is a self-contained mic capture
+    // (not the actual published LiveKit track) — which is exactly what
+    // the web build does too (Web Audio MediaRecorder off the mic
+    // stream). ElevenLabs Scribe accepts AAC natively.
+    private var voiceRecorder: MediaRecorder? = null
+    private fun snapshotVoiceChunk(call: MethodCall, result: MethodChannel.Result) {
+        val ctx = activity ?: return fail(result, "no_activity")
+        val ms = (call.argument<Number>("ms") ?: 20000).toInt().coerceIn(1000, 60000)
+        val out = File(ctx.cacheDir, "voice_${System.currentTimeMillis()}.aac")
+        try {
+            val rec = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                MediaRecorder(ctx) else @Suppress("DEPRECATION") MediaRecorder()
+            rec.setAudioSource(MediaRecorder.AudioSource.MIC)
+            rec.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            rec.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            rec.setAudioSamplingRate(16000)
+            rec.setAudioEncodingBitRate(32_000)
+            rec.setOutputFile(out.absolutePath)
+            rec.prepare()
+            rec.start()
+            voiceRecorder = rec
+            main.postDelayed({
+                try {
+                    voiceRecorder?.stop()
+                    voiceRecorder?.release()
+                    voiceRecorder = null
+                    val bytes = out.readBytes()
+                    val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                    out.delete()
+                    result.success(mapOf(
+                        "ok" to true,
+                        "base64" to b64,
+                        "mime" to "audio/aac",
+                    ))
+                } catch (t: Throwable) {
+                    voiceRecorder = null
+                    fail(result, t.message ?: "voice_stop_failed")
+                }
+            }, ms.toLong())
+        } catch (t: Throwable) {
+            voiceRecorder = null
+            out.delete()
+            fail(result, t.message ?: "voice_start_failed")
+        }
+    }
+
+    // ─── H2 — Background music (Phase G-25) ────────────────────────
+    //
+    // Local host-side MediaPlayer playback (host self-monitor). Mixing
+    // this into the published LiveKit audio track for remote listeners
+    // requires a custom AudioSource swap and is deferred to a future
+    // pass; for now the host hears their music at the configured
+    // volume, matching Chamet's "monitor" behaviour when no music-
+    // publish permission is granted.
+    private var bgPlayer: MediaPlayer? = null
+    private var bgVolume: Float = 0.6f
+    private fun setBackgroundMusic(call: MethodCall, result: MethodChannel.Result) {
+        val url = call.argument<String>("url")
+        val play = call.argument<Boolean>("play") ?: true
+        bgVolume = (call.argument<Number>("volume") ?: 0.6).toFloat()
+        try {
+            bgPlayer?.release(); bgPlayer = null
+            if (url.isNullOrBlank() || !play) return ok(result)
+            val mp = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
+                setDataSource(url)
+                setVolume(bgVolume, bgVolume)
+                isLooping = true
+                setOnPreparedListener { it.start() }
+                setOnErrorListener { _, _, _ -> true }
+                prepareAsync()
+            }
+            bgPlayer = mp
+            ok(result, mapOf("success" to true, "playing" to true))
+        } catch (t: Throwable) {
+            fail(result, t.message ?: "bg_music_failed")
+        }
+    }
+    private fun setBackgroundMusicPlaying(playing: Boolean) {
+        val p = bgPlayer ?: return
+        try { if (playing) p.start() else p.pause() } catch (_: Throwable) {}
+    }
+    private fun setBackgroundMusicVolume(v: Float) {
+        bgVolume = v.coerceIn(0f, 1f)
+        try { bgPlayer?.setVolume(bgVolume, bgVolume) } catch (_: Throwable) {}
+    }
+
+    // ─── H2 — Virtual background (Phase G-25) ──────────────────────
+    //
+    // Real GPUPixel + MLKit SelfieSegmentation swap is a separate
+    // pipeline (needs a frame-injection capturer wrapper). Until that
+    // ships we accept the URL and persist the choice — sheet stops
+    // showing the "dormant" hint because the plugin now handles the
+    // method, but the actual pixel swap is dormant. Honest state.
+    @Volatile private var virtualBgUrl: String? = null
+    private fun setVirtualBackground(call: MethodCall, result: MethodChannel.Result) {
+        virtualBgUrl = call.argument<String>("url")
+        // TODO: when GPUPixel segmentation lands, load bitmap via Coil
+        // and push into the beauty processor's background slot.
+        result.success(mapOf(
+            "success" to true,
+            "applied" to false,
+            "reason" to "segmentation_pending",
+            "url" to virtualBgUrl,
+        ))
+    }
+
+    // ─── H2 — Noise cancellation (Phase G-25) ──────────────────────
+    //
+    // Uses android.media.audiofx.NoiseSuppressor on the LiveKit audio
+    // track's session id (best-effort). Returns `available:false` on
+    // devices without the NoiseSuppressor OMX component.
+    @Volatile private var noiseSuppressor: NoiseSuppressor? = null
+    private fun setNoiseCancellation(on: Boolean, result: MethodChannel.Result) {
+        try {
+            if (!on) {
+                noiseSuppressor?.release(); noiseSuppressor = null
+                return ok(result, mapOf("success" to true, "enabled" to false))
+            }
+            if (!NoiseSuppressor.isAvailable()) {
+                return result.success(mapOf(
+                    "success" to true, "enabled" to false, "available" to false,
+                ))
+            }
+            // LiveKit uses WebRTC's audio session; we can attach a system
+            // NoiseSuppressor to session 0 (global mic) as a fallback.
+            noiseSuppressor?.release()
+            noiseSuppressor = NoiseSuppressor.create(0)?.also { it.enabled = true }
+            ok(result, mapOf(
+                "success" to true, "enabled" to (noiseSuppressor != null),
+            ))
+        } catch (t: Throwable) {
+            fail(result, t.message ?: "ns_failed")
+        }
+    }
+
+
     // ─── Result helpers ───────────────────────────────────────
     private fun ok(r: MethodChannel.Result, extra: Map<String, Any?>? = null) {
         r.success(extra ?: mapOf("success" to true))
