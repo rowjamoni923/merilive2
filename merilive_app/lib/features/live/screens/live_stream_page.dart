@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/live_chat_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
+import '../widgets/live_action_bar.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_gift_feed.dart';
@@ -52,6 +53,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   RealtimeChannel? _channel;
   List<LiveChatMessage> _chatMessages = const [];
   StreamSubscription<List<LiveChatMessage>>? _chatSub;
+
+  // A3 — host quick-action state (mirrors LiveHostBridge; native side is
+  // the source of truth, this is UI-only until the native toggle lands).
+  bool _isMicMuted = false;
+  bool _isCamOff = false;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -226,6 +232,65 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
   Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
 
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
+  }
+
+  void _openMoreSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xF01F2937),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => LiveMoreSheet(isHost: _isHost, onSelect: _onMoreSelected),
+    );
+  }
+
+  void _onMoreSelected(String id) {
+    switch (id) {
+      case 'like':
+        _snack('❤️ Sent love');
+        break;
+      case 'share':
+        _snack('Share sheet coming soon');
+        break;
+      case 'tasks':
+        _snack('Tasks — opening');
+        break;
+      case 'topup':
+        _snack('Top Up — opening');
+        break;
+      case 'music':
+        _snack('Music player coming soon');
+        break;
+      case 'react':
+        _snack('Reactions coming soon');
+        break;
+      case 'raisehand':
+        _snack('Hand raised');
+        break;
+      case 'pk':
+        _snack('PK Battle panel coming soon');
+        break;
+      case 'sticker':
+        _snack('Stickers coming soon');
+        break;
+      case 'vbg':
+        _snack('Virtual background coming soon');
+        break;
+      case 'noise':
+        _snack('Noise cancellation coming soon');
+        break;
+      case 'raisedhands':
+        _snack('Raised hands queue coming soon');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -261,7 +326,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             Positioned(
               left: 12,
               right: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 96,
+              bottom: MediaQuery.of(context).padding.bottom + 148,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -272,10 +337,32 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ],
               ),
             ),
-            _BottomBar(
-              isHost: _isHost,
-              busy: _leaving,
-              onPressed: _handleLeaveOrEnd,
+            // A3 — full action bar with host quick-actions.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: LiveActionBar(
+                isHost: _isHost,
+                busy: _leaving,
+                isMicMuted: _isMicMuted,
+                isCamOff: _isCamOff,
+                onGift: () => _snack('Gift panel coming soon'),
+                onShare: () => _onMoreSelected('share'),
+                onLike: () => _onMoreSelected('like'),
+                onMore: _openMoreSheet,
+                onEndOrLeave: _handleLeaveOrEnd,
+                onToggleMic: () {
+                  setState(() => _isMicMuted = !_isMicMuted);
+                  _snack(_isMicMuted ? 'Mic muted' : 'Mic on');
+                },
+                onToggleCam: () {
+                  setState(() => _isCamOff = !_isCamOff);
+                  _snack(_isCamOff ? 'Camera off' : 'Camera on');
+                },
+                onFlipCam: () => _snack('Flip camera'),
+                onBeauty: () => _snack('Beauty panel coming soon'),
+              ),
             ),
           ],
         ],
@@ -452,67 +539,6 @@ class _TopHeader extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.isHost,
-    required this.busy,
-    required this.onPressed,
-  });
-
-  final bool isHost;
-  final bool busy;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          MediaQuery.of(context).padding.bottom + 16,
-        ),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0xCC000000), Color(0x00000000)],
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: busy ? null : onPressed,
-              icon: Icon(isHost ? Icons.stop_rounded : Icons.logout_rounded),
-              label: Text(
-                busy
-                    ? 'Please wait…'
-                    : (isHost ? 'End Live Stream' : 'Leave Stream'),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isHost ? const Color(0xFFEF4444) : Colors.white,
-                foregroundColor:
-                    isHost ? Colors.white : const Color(0xFF111827),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.message, required this.onClose});
