@@ -1,129 +1,75 @@
+# Sector 3 — Reels / Discover Tab
 
-# Sector 2 — Home Tab (Flutter Rebuild Plan)
+Flutter target: `merilive_app/lib/features/reels/` (new). Pixel + behavior parity with `src/pages/Reels.tsx` (1425 lines) plus Chamet/Bigo/TikTok-standard patterns from the background research brief (applied per step).
 
-Full parity with web `src/pages/Index.tsx` (970 lines) + all home widgets.
-Design-sacred: pixel-perfect port of every color, gradient, shadow, spacing, animation.
-Data source: Admin Panel = single source of truth (no hardcoded numbers).
+Web `src/pages/Reels.tsx` stays untouched — Flutter is a parallel implementation.
 
-## A → Z Scan Result (What Web Home Contains)
+## Build Order (R1 → R8)
 
-```text
-┌─ HEADER (sticky, safe-area, glass card, shadow) ─────────────┐
-│ [🔍 Search 36pt]  [Popular│Live│New│Follow pill tabs]  [🏆]  │
-│ ─────────────── Country chip row (horizontal scroll) ─────── │
-│ [🌍 All] [🇧🇩 BD] [🇮🇳 IN] [🇵🇰 PK] [🇳🇵 NP] … + dynamic  │
-└──────────────────────────────────────────────────────────────┘
-┌─ SCROLL BODY (pull-to-refresh) ──────────────────────────────┐
-│ 1. DynamicBanner position="top"   ← banners table            │
-│ 2. Grid 2-col: first 6 host cards (aspect 3/4)               │
-│ 3. DynamicBanner position="middle"                           │
-│ 4. Grid 2-col: remaining host cards                          │
-│ 5. Empty state (glow halo + gradient icon + CTA) when 0      │
-└──────────────────────────────────────────────────────────────┘
-┌─ OVERLAYS ───────────────────────────────────────────────────┐
-│ • FullScreenPromoBanners (rating_banners, event popups)      │
-│ • DailyLoginPopup (rewards)                                  │
-│ • FloatingRandomMatchPill (bottom-right)                     │
-└──────────────────────────────────────────────────────────────┘
-```
+### R1 — Data Layer
+- `reels_models.dart` — Reel, Comment, Sound, ReelCategory
+- `reels_repository.dart` — feed pagination (cursor by `created_at`), category list, per-reel comments, likes, share increment, view record
+- Ports web supabase queries: `reels` join `profiles`, `reel_likes`, `reel_comments`, `reel_categories`, `reel_shares`, `reel_views`, `saved_reels`, `followers`
+- Realtime channels for like_count / comment_count patches (parity with web `subscribeToTables`)
 
-### Host Card Anatomy (LiveStreamCard / UserCard)
-- Aspect 3/4, rounded-2xl, dynamic shadow by level & live state.
-- Live thumbnail (Ken-Burns) OR avatar (with placeholder fallback).
-- Top-left status pill: **LIVE (red pulse) / BUSY (amber) / ONLINE (green pulse)**.
-- Top-right: viewer count pill (Eye icon) when live; verified checkmark badge.
-- Bottom overlay: mini avatar + frame, display name, LevelBadge, CountryFlag.
-- Bottom-right: **CallButton** — only for online female hosts, not busy.
-- Tap routing (locked by user):
-  - `isLive === true` → **LiveStream viewer** (`/live/:id`)
-  - `is_online === true` (not live) → **ProfileDetail** (`/profile-detail/:id`)
-  - `actuallyBusy === true` → **ProfileDetail** (still opens profile, not call)
-  - offline → **ProfileDetail**
+### R2 — Vertical Feed Skeleton
+- `reels_feed_page.dart` — `PageView.builder(scrollDirection: vertical)` with cached_network_image thumbnails
+- Category chips top strip (horizontal) — All / Following / per-category (data from `reel_categories`)
+- Empty + error + end-of-feed states (no fake skeletons — real spinner only per project rule)
+- Pull-to-refresh via `RefreshIndicator` on the page view wrapper
 
-### Data (Supabase RPCs & tables — already exist)
-- `get_public_home_hosts_v2(country, sub_tab, current_user_id)` — feed.
-- `get_public_host_countries_v1()` — dynamic country chips.
-- `banners` — Dynamic banners by `position` (`top` / `middle`).
-- `popup_event_banners` — event popups.
-- `rating_banners` + `rating_reward_claims` — rating rewards.
-- `daily_login_rewards` — daily reward calendar (admin-managed).
-- `leaderboard_reward_config` — trophy button destination data.
-- Realtime: `live_streams`, `private_calls`, `random_call_sessions`, `party_rooms`, `profiles` — reorder feed instantly.
+### R3 — Video Player Core
+- `reel_player_widget.dart` using `video_player` + `chewie`-less custom controls
+- Preload window: prev-1, current, next-2 (TikTok pattern from research)
+- Autoplay muted-off (Chamet default = sound on, unlike TikTok's muted); persist mute across swipes via `ReelsPreferences`
+- Single tap = pause/play toggle with center icon flash
+- Double tap = like + heart burst (native `tryHeartBurst` bridge already exists on Android)
+- Loop, first-frame latency target <300ms, aspect-fit with blurred background fill for non-9:16
 
-### Sort Order (locked, must match web exactly)
-1. LIVE (longest streaming first) → 2. ONLINE (longest online first) → 3. OFFLINE.
+### R4 — Right Rail Actions
+- Vertical stack: `FramedAvatar` + Follow (+) → Like → Comment → Gift → Share → More
+- Counts formatted (1.2K / 3.4M)
+- Follow button hides when already following or self-owned
+- All buttons debounced 400ms; optimistic like/unlike with rollback on error
 
-## Build Order (8 steps)
+### R5 — Bottom Info + Music Ticker
+- Username row with level badge, verified check, live-now badge (tap → LiveViewer)
+- Caption with expand-on-tap ("more"/"less")
+- Music row: spinning cover disc + scrolling title/artist marquee
+- Tap music row → SoundDetail sheet (list of reels using that sound) — deferred to R8 stretch
 
-**H1 — Home Scaffold & Header**
-- `home_tab_page.dart`: sticky glass header, safe-area, shadow.
-- Search icon → `/search` route (placeholder next sector).
-- Sub-tab pill row: Popular / Live / New / Follow — gradient active state, red dot on Live.
-- Trophy button (right) → `/leaderboard`.
-- Uses admin-configured tab labels/order if present.
+### R6 — Comments Sheet
+- `DraggableScrollableSheet` bottom sheet (0.55 → 0.9)
+- List with reply threading (1 level), pinned by creator badge
+- Realtime append via supabase channel on `reel_comments`
+- Send composer with @mention autocomplete disabled for MVP (parity with current web)
+- Optimistic insert with pending state
 
-**H2 — Country Filter Row**
-- Horizontal scroll chip row (design tokens: pearl card, gradient active).
-- Static seed (BD/IN/PK/NP/PH/ID) + merged dynamic list from `get_public_host_countries_v1`.
-- "All 🌍" always first. Selection triggers feed refetch (single source of truth).
+### R7 — Gift + Share + Report/Block
+- Gift button opens existing native gift sheet bridge (reuse Home tab wiring if exists; else stub Flutter sheet feeding `gift_transactions` via RPC)
+- Share sheet: WhatsApp / Copy Link / Save Video (native share plugin already in pubspec check)
+- More menu: Report (categories from web) / Block user / Not interested / Save reel
 
-**H3 — Feed Repository & State**
-- `HomeFeedRepository` calling `get_public_home_hosts_v2` RPC.
-- `HomeFeedCubit` (flutter_bloc) — country + subTab + userId as dependencies.
-- LocalStorage snapshot cache (parity with `index-hosts-instant-cache-v3`) so cold-start paints instantly.
-- Client-side sort (LIVE→ONLINE→OFFLINE, then longest-first inside each bucket).
-- Realtime subscriptions on 5 tables → debounced invalidate (150ms rooms, 600ms profiles) — identical to web timings.
+### R8 — Analytics, Prefetch, Polish
+- Fire `reel_views` insert at 3s watched (Chamet threshold from research)
+- Watch-time buckets logged to `reel_moderation_log` style event table
+- Prefetch next 2 video URLs via `http` head-only + first 512KB range request (mirrors `useReelsPrefetcher`)
+- Lifecycle: pause current video when app backgrounds or route changes (integrate with `AppLifecycleState`)
+- Wire the tab into `home_shell_page.dart` replacing the placeholder
 
-**H4 — Host Card Widget**
-- `HostCard` widget: aspect 3/4, RoundedRectangleBorder, dynamic BoxShadow.
-- Image loader: live thumbnail (Ken-Burns via `AnimatedScale`) → avatar → gender-aware placeholder → default. Same fallback chain as web.
-- Status pill (LIVE/BUSY/ONLINE) with pulsing dot animation.
-- Viewer-count pill, verified badge, LevelBadge, CountryFlag, mini avatar with frame.
-- CallButton child (online female non-busy only) — real navigation into private-call flow (deferred to Sector 7; here it just triggers a placeholder toast until Sector 7 lands, per honesty rule).
-- Tap routing matrix locked as above.
-- Grid: `SliverGrid` 2-col, 8px gap, edge padding 8px.
+## Technical Notes
 
-**H5 — Dynamic Banners (top + middle)**
-- `DynamicBannerWidget(position)` reading `banners` table, filtered by admin `position` field + `active` + schedule window.
-- Swipeable carousel (PageView + indicators) when >1 banner per slot.
-- Tap → deep-link URL from admin row (external URL / internal route).
-- Insertion: top banner above grid, middle banner between first 6 cards and remainder (exact parity).
+- **New Flutter deps to add** (single `bun-equivalent` install at R3): `video_player`, `visibility_detector`, `share_plus`
+- **Native bridges reused** on Android APK build only (no-op on web/iOS): `NativeHeartBurst`, `NativeReelsPlayer` (evaluate whether we invoke it or stay with `video_player` — decision at R3 after research brief lands)
+- **Realtime**: `reel_likes` + `reel_comments` per-reel channel opened only for the currently visible reel (± 1) to keep concurrent subscriptions ≤3 — cost-safe
+- **Rules honored**: research-first (brief pending before R3 player choices), admin-panel single source of truth (no hardcoded thresholds — read from `app_settings` where a knob exists), English-only UI strings, design-sacred does NOT apply (redesign allowed per 2026-06-18 lift), no fake loading UI
+- **Files created**: ~12 new files under `merilive_app/lib/features/reels/{data,bloc,widgets,pages}/`
 
-**H6 — Overlays: Daily Reward + Event Popup + Rating**
-- `DailyLoginPopup`: shows on first Home mount per day, reads `daily_login_rewards` config from admin, gradient calendar UI, claim RPC.
-- `FullScreenPromoBanners`: sequential popups from `popup_event_banners` (event) + `rating_banners` (rating), dismiss persistence per-user.
-- Show ONLY over Home tab, respecting min-app-open threshold from admin.
+## Web Side
+Zero changes to `src/pages/Reels.tsx` or any web reels files.
 
-**H7 — Floating Random Match Pill + Pull-to-Refresh**
-- Bottom-right floating pill (gradient), tap → random match flow (placeholder until Sector 7).
-- Native pull-to-refresh (CupertinoSliverRefreshControl on iOS, MaterialClassicHeader Android) → invalidates feed cache.
+## Verification per step
+After each R-step: run `flutter analyze` via harness build, log tail for errors, then confirm to user before moving to next.
 
-**H8 — Empty State + Polish**
-- Contextual empty view (Popular/Live/New/Following) with animated glow halo, gradient circle icon (Compass/Radio/Sparkles/Heart), CTA.
-- Skeleton shimmer for first-load only (not stale-refresh).
-- Performance: `AutomaticKeepAliveClientMixin` on tab, `RepaintBoundary` around each card, precacheImage for first 8 cards, image cache limit tuned.
-- Analytics event on card tap, banner tap, tab switch.
-
-## Technical Details
-
-- **State**: `flutter_bloc` — `HomeFeedCubit`, `CountryFilterCubit`, `SubTabCubit`, `BannerCubit`, `DailyRewardCubit`.
-- **Routing**: `auto_route` — `/home` (inside shell), `/live/:id`, `/profile-detail/:id`, `/leaderboard`, `/search`.
-- **Realtime**: existing `supabase_flutter` Realtime channels; single shared channel manager reused across sectors.
-- **Design tokens**: Extend `DT` with `homeCardShadow`, `statusPillLive/Busy/Online`, `countryChipGradient`, banner radius/shadow — all mirroring web hex.
-- **Honesty rule**: Any button whose destination lives in a later sector shows a real toast "Coming in Sector X" — never fake screen.
-- **Admin parity**: Country list, banner order, popup thresholds, daily-reward amounts, rating trigger thresholds — every value read from admin tables. No hardcoded fallback numbers.
-
-## Deferred to Later Sectors (Honesty)
-- LiveStream viewer screen → **Sector 6**.
-- Private-call initiation from CallButton → **Sector 7**.
-- Profile Detail page → **Sector 5**.
-- Leaderboard page → later Sector.
-- Search page → later Sector.
-
-Home cards will *navigate* to these routes; the destination screens themselves are built in their own sector. Placeholder scaffolds land immediately so nothing breaks.
-
-## Verification Checklist (per step)
-- Static analyzer clean (`flutter analyze`).
-- Widget layout visually matches web screenshot (I will note "APK rebuild required to verify on device" honestly — Lovable sandbox can't run Flutter).
-- All admin values resolve from DB, no hardcoded numbers.
-- Realtime reorder confirmed via SQL insert simulation.
+## Which step first?
+Recommend starting R1 (data layer) — foundation for everything else. Ask user to confirm or pick a different starting step.
