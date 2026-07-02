@@ -4,8 +4,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/live_chat_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
+import '../widgets/live_chat_composer.dart';
+import '../widgets/live_chat_overlay.dart';
+import '../widgets/live_gift_feed.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
@@ -46,6 +50,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   Map<String, dynamic>? _host;
   int _viewerCount = 0;
   RealtimeChannel? _channel;
+  List<LiveChatMessage> _chatMessages = const [];
+  StreamSubscription<List<LiveChatMessage>>? _chatSub;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -96,6 +102,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       });
 
       _subscribeRealtime();
+
+      // A2 — attach chat/gift feed for both host and viewer.
+      await LiveChatBridge.instance.attach(widget.streamId);
+      _chatSub = LiveChatBridge.instance.messages$.listen((m) {
+        if (mounted) setState(() => _chatMessages = m);
+      });
+      _chatMessages = LiveChatBridge.instance.snapshot;
+      final welcome = (host?['name']?.toString() ?? 'the host');
+      LiveChatBridge.instance
+          .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
 
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
@@ -196,6 +212,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   @override
   void dispose() {
     _channel?.unsubscribe();
+    _chatSub?.cancel();
+    LiveChatBridge.instance.detach();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
@@ -206,10 +224,13 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     super.dispose();
   }
 
+  Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -228,6 +249,28 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               host: _host,
               viewerCount: _viewerCount,
               onClose: () => context.router.maybePop(),
+            ),
+            // A2 — gift ticker just below the top header.
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 78,
+              left: 12,
+              right: 80,
+              child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
+            ),
+            // A2 — chat overlay + composer, docked above the bottom bar.
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: MediaQuery.of(context).padding.bottom + 96,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LiveChatOverlay(messages: _chatMessages),
+                  const SizedBox(height: 8),
+                  if (!_isHost) LiveChatComposer(onSend: _sendChat),
+                ],
+              ),
             ),
             _BottomBar(
               isHost: _isHost,
