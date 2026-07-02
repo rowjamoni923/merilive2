@@ -53,6 +53,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   List<LiveChatMessage> _chatMessages = const [];
   StreamSubscription<List<LiveChatMessage>>? _chatSub;
 
+  // A3 — host quick-action state (mirrors LiveHostBridge; native side is
+  // the source of truth, this is UI-only until the native toggle lands).
+  bool _isMicMuted = false;
+  bool _isCamOff = false;
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
