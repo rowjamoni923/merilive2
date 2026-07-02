@@ -61,6 +61,8 @@ import '../data/live_raise_hand_bridge.dart';
 import '../data/live_stream_swipe_controller.dart';
 import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../widgets/pk_battle_result.dart';
+import '../widgets/pk_random_match_notification.dart';
 import '../widgets/reactions_picker_sheet.dart';
 import '../data/live_reactions_bus.dart';
 import '../../party/widgets/party_game_selection_sheet.dart';
@@ -127,7 +129,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // R6a — challenger-side random-match search state (lifted from panel so
   // the search survives closing the sheet). Mirrors LiveStream.tsx.
   String? _randomPkSessionId;
+  DateTime? _randomPkStartedAt;
   Timer? _randomPkTimeout;
+  // Track battles for which the result modal already fired (avoid re-showing).
+  final Set<String> _shownResultForBattleId = <String>{};
 
   // Phase E — content safety + call-focus (host-only, mounted after
   // stream resolves so we know who the host is).
@@ -227,6 +232,25 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   ?.toString() ??
               'viewer',
         );
+        // H5 P0 #3 — post-battle result modal (Chamet/Bigo parity).
+        // Fire once per battleId when server transitions status → 'ended'.
+        if (snap != null &&
+            snap.status == 'ended' &&
+            !_shownResultForBattleId.contains(snap.battleId)) {
+          _shownResultForBattleId.add(snap.battleId);
+          // Also clear the random-search toast if this ended battle was
+          // the one we were waiting on.
+          if (_randomPkSessionId != null) {
+            _randomPkTimeout?.cancel();
+            if (mounted) {
+              setState(() {
+                _randomPkSessionId = null;
+                _randomPkStartedAt = null;
+              });
+            }
+          }
+          _showPkResultModal(snap);
+        }
       });
 
       // Phase I12/I16 — mirror room join events into the NEW overlay
@@ -905,7 +929,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       _snack(res.error ?? 'No eligible live hosts available right now');
       return;
     }
-    setState(() => _randomPkSessionId = res.sessionId);
+    setState(() {
+      _randomPkSessionId = res.sessionId;
+      _randomPkStartedAt = DateTime.now();
+    });
     _snack('Random PK request sent to ${res.delivered} host${(res.delivered ?? 0) > 1 ? 's' : ''}');
     _randomPkTimeout?.cancel();
     _randomPkTimeout = Timer(const Duration(seconds: 25), () {
@@ -916,10 +943,58 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         challengerName: name,
         inviteSessionId: sid,
       );
-      setState(() => _randomPkSessionId = null);
+      setState(() {
+        _randomPkSessionId = null;
+        _randomPkStartedAt = null;
+      });
       _snack('No host accepted — try again');
     });
   }
+
+  void _cancelRandomPkSearch() {
+    final sid = _randomPkSessionId;
+    final me = _client.auth.currentUser;
+    _randomPkTimeout?.cancel();
+    if (sid != null && me != null) {
+      PkStartBridge.instance.cancelRandomMatch(
+        challengerUserId: me.id,
+        challengerName:
+            me.userMetadata?['name']?.toString() ?? 'host',
+        inviteSessionId: sid,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _randomPkSessionId = null;
+        _randomPkStartedAt = null;
+      });
+    }
+  }
+
+  // H5 P0 #3 — Show the post-battle result modal with 70/30 coin split
+  // (server-authoritative winner already resolved via `end_pk_battle` RPC;
+  // we display the split derived from the losing team's score, matching
+  // web `PKBattleResult.tsx`).
+  Future<void> _showPkResultModal(PkBattleSnapshot snap) async {
+    if (!mounted) return;
+    final challengerWon = snap.winnerUserId == snap.challengerId;
+    final loserScore = challengerWon ? snap.opponentScore : snap.challengerScore;
+    final winnerCoins = (loserScore * 0.7).round();
+    final loserCoins = (loserScore * 0.3).round();
+    final data = PKBattleResultData(
+      hostName: snap.challengerName,
+      hostAvatarUrl: snap.challengerAvatar,
+      hostScore: snap.challengerScore,
+      opponentName: snap.opponentName,
+      opponentAvatarUrl: snap.opponentAvatar,
+      opponentScore: snap.opponentScore,
+      winnerCoins: winnerCoins,
+      loserCoins: loserCoins,
+    );
+    await PKBattleResult.show(context, data);
+  }
+
+
 
   // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
   //
@@ -1106,6 +1181,22 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ],
               ),
             ),
+
+            // H5 P0 #3 — Random-match search toast (challenger-side).
+            if (_randomPkSessionId != null && _randomPkStartedAt != null)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 96,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: PKRandomMatchNotification(
+                    startedAt: _randomPkStartedAt!,
+                    onCancel: _cancelRandomPkSearch,
+                  ),
+                ),
+              ),
+
+
 
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
             if (_pkBattle != null)
