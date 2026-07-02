@@ -178,6 +178,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _viewerCount = (stream['viewer_count'] as int?) ?? 0;
         _loading = false;
       });
+      _overlay.setViewerCount(_viewerCount);
 
       _subscribeRealtime();
 
