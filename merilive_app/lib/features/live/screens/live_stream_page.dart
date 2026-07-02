@@ -468,15 +468,32 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           else if (_error != null)
             _ErrorState(message: _error!, onClose: () => context.router.maybePop())
           else ...[
-            _TopHeader(
-              host: _host,
-              viewerCount: _viewerCount,
-              showFollow: !_isHost,
-              isFollowing: _isFollowingHost,
-              followBusy: _followBusy,
-              onFollow: _handleFollowHost,
-              onOpenViewers: _openViewersSheet,
-              onClose: () => context.router.maybePop(),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xB3000000), Color(0x00000000)],
+                  ),
+                ),
+                padding: const EdgeInsets.only(bottom: 12),
+                child: RoomTopBar(
+                  hostAvatarUrl: _host?['avatar_url']?.toString(),
+                  hostName: _host?['name']?.toString() ?? 'Host',
+                  subtitle: 'LIVE',
+                  hostLevel: (_host?['host_level'] ?? _host?['level']) as int?,
+                  isFollowing: _isFollowingHost,
+                  showFollow: !_isHost,
+                  onFollow: _followBusy ? null : _handleFollowHost,
+                  viewerCount: _viewerCount,
+                  onOpenViewers: _openViewersSheet,
+                  onClose: () => context.router.maybePop(),
+                ),
+              ),
             ),
             // A2 — gift ticker just below the top header.
             Positioned(
