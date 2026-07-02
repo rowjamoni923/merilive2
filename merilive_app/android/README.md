@@ -1,8 +1,8 @@
-# Android host — Phase H1
+# Android host — Phase H1 ✅ complete
 
-Real Flutter Android module. `merilive_app/android_native/` is now retired
-as a staging folder — every source file has been copied to its final
-package path under `android/app/src/main/kotlin/com/merilive/app/`.
+Real Flutter Android module. The old `merilive_app/android_native/`
+staging folder has been **deleted** — this directory is now the single
+source of truth for every Kotlin/Gradle file.
 
 ## Local build
 
