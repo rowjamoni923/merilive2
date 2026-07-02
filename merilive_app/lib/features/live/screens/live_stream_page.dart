@@ -539,67 +539,6 @@ class _TopHeader extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.isHost,
-    required this.busy,
-    required this.onPressed,
-  });
-
-  final bool isHost;
-  final bool busy;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          MediaQuery.of(context).padding.bottom + 16,
-        ),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0xCC000000), Color(0x00000000)],
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: busy ? null : onPressed,
-              icon: Icon(isHost ? Icons.stop_rounded : Icons.logout_rounded),
-              label: Text(
-                busy
-                    ? 'Please wait…'
-                    : (isHost ? 'End Live Stream' : 'Leave Stream'),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isHost ? const Color(0xFFEF4444) : Colors.white,
-                foregroundColor:
-                    isHost ? Colors.white : const Color(0xFF111827),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.message, required this.onClose});
