@@ -1105,7 +1105,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             ),
           ],
         ],
-      )),
+      ))),
     );
   }
 }
