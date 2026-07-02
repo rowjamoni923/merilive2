@@ -277,8 +277,23 @@ class _SeatTile extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () async {
-        if (seat.isEmpty && !seat.isLocked) {
-          await cubit.takeSeat(seat.seatNumber);
+        final st = cubit.state;
+        if (seat.isEmpty) {
+          if (cubit.isHost) {
+            await cubit.takeSeat(seat.seatNumber);
+          } else if (st.selfSeat != null) {
+            // already seated, ignore
+          } else if (st.selfRequestSeat != null) {
+            _snack(context,
+                'Request pending for seat ${st.selfRequestSeat}. Cancel first.');
+          } else if (seat.isLocked) {
+            _snack(context, 'Seat locked by host');
+          } else {
+            await cubit.requestSeat(seat.seatNumber);
+            if (context.mounted) {
+              _snack(context, 'Seat request sent to host');
+            }
+          }
         } else if (seat.userId != null && cubit.isHost && !seat.isHost) {
           _showHostSheet(context, cubit);
         }
