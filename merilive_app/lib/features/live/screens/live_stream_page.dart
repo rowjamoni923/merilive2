@@ -38,15 +38,23 @@ import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_game_overlay.dart';
 import '../widgets/live_gift_combo_bar.dart';
 import '../widgets/flying_gift_capsule.dart';
+import '../widgets/floating_reactions_overlay.dart';
 import '../widgets/live_host_moderation_sheet.dart';
 
 import '../widgets/live_multi_guest_sheet.dart';
+import '../widgets/live_music_sheet.dart';
+import '../widgets/live_noise_cancel_sheet.dart';
 import '../widgets/live_pk_start_sheet.dart';
 import '../widgets/live_report_block_sheet.dart';
+import '../widgets/live_sticker_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
+import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../widgets/reactions_picker_sheet.dart';
+import '../data/live_reactions_bus.dart';
 import '../../party/widgets/party_game_selection_sheet.dart';
 import '../../../shared/widgets/room_top_bar.dart';
+
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
