@@ -49,7 +49,9 @@ class RoomEntryDispatcher {
     _sub = null;
     await RoomJoinEventsBridge.instance.detach();
     EntryNameBarQueue.instance.clear();
+    CinematicJoinQueue.instance.clear();
   }
+
 
   Future<void> _dispatch(RoomJoinEvent event) async {
     final effects = await EntryEffectsRepository.instance.resolve(event.userId);
