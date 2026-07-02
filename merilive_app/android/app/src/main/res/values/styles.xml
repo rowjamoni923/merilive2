@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launch splash — solid black so the LiveKit renderer beneath Flutter
+         doesn't flash a light frame while the engine warms up. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Applied once Flutter has drawn its first frame -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <!-- Full-screen incoming call theme (referenced by AndroidManifest) -->
+    <style name="Theme.AppCompat.NoActionBar.Fullscreen" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+</resources>
