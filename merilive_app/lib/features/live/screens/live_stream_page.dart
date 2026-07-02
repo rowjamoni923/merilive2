@@ -268,6 +268,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
+    RoomEntryDispatcher.instance.detach();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
