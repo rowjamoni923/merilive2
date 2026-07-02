@@ -59,6 +59,8 @@ class _MeriLiveAppState extends State<MeriLiveApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         routerConfig: _router.config(),
+        builder: (context, child) =>
+            GlobalGiftOverlay(child: child ?? const SizedBox.shrink()),
       ),
     );
   }
