@@ -431,7 +431,19 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     super.dispose();
   }
 
-  Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
+  Future<void> _sendChat(String text) async {
+    try {
+      await LiveChatBridge.instance.sendMessage(text);
+    } on ContactViolationException {
+      // P0 #2 — host attempted to share contact info: server has already
+      // logged the offence and deducted beans; surface the warning UI.
+      if (!mounted) return;
+      NumberSharingWarningDialog.showGeneric(context);
+    } catch (_) {
+      if (!mounted) return;
+      _snack('Failed to send message');
+    }
+  }
 
   /// Which stream id represents "the opponent" from this tile's POV?
   /// If we're viewing/hosting the challenger side, opponent is the opponent's stream;
