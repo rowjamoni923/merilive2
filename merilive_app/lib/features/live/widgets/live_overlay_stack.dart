@@ -168,7 +168,7 @@ class LiveOverlayStack extends StatelessWidget {
                         controller: controller.joinNotifications),
                     const SizedBox(height: 4),
                     LiveBigoJoinBanner(
-                        controller: controller.joinNotifications),
+                        controller: controller.bigoBanner),
                   ],
                 ),
               ),
