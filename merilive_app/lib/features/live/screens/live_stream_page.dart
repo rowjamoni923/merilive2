@@ -472,7 +472,17 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _snack('Reactions coming soon');
         break;
       case 'pk':
-        _snack('PK Battle panel coming soon');
+        _openPkStartSheet();
+        break;
+      case 'moderate_all':
+        if (_isHost) {
+          LiveHostModerationSheet.show(
+            context,
+            roomName: 'live_${widget.streamId}',
+            identity: _client.auth.currentUser?.id ?? '',
+            displayName: 'Room',
+          );
+        }
         break;
       case 'sticker':
         _snack('Stickers coming soon');
