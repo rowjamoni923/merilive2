@@ -1,0 +1,89 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader -> localProperties.load(reader) }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
+
+android {
+    namespace "com.merilive.app"
+    compileSdk 34
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    defaultConfig {
+        applicationId "com.merilive.app"
+        minSdk 24
+        targetSdk 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true
+    }
+
+    signingConfigs {
+        release {
+            // Populate via key.properties in your CI; falls back to debug for local builds.
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ["META-INF/AL2.0", "META-INF/LGPL2.1"]
+        }
+        jniLibs {
+            pickFirsts += ["**/libc++_shared.so"]
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {
+    implementation "androidx.core:core-ktx:1.13.1"
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.multidex:multidex:2.0.1"
+
+    // LiveKit SFU client (self-hosted at wss://livekit.merilive.xyz)
+    implementation "io.livekit:livekit-android:2.23.5"
+
+    // Firebase Cloud Messaging — incoming call push
+    implementation platform("com.google.firebase:firebase-bom:33.5.0")
+    implementation "com.google.firebase:firebase-messaging-ktx"
+
+    // Gift / entry animation renderers
+    implementation "com.tencent.qgame:vap:1.0.15"
+    implementation "com.github.yyued:SVGAPlayer-Android:2.5.14"
+    implementation "com.airbnb.android:lottie:6.4.0"
+
+    // Image loading for entry banners + virtual background
+    implementation "io.coil-kt:coil:2.6.0"
+
+    // ML Kit selfie segmentation (virtual background — Phase H2)
+    implementation "com.google.mlkit:segmentation-selfie:16.0.0-beta5"
+}
