@@ -21,12 +21,12 @@ class LiveStickerSheet extends StatefulWidget {
   final String? activeStickerId;
 
   /// Called after the native call resolves so the caller can update UI.
-  final ValueChanged<_StickerItem?> onChanged;
+  final ValueChanged<StickerItem?> onChanged;
 
   static Future<void> show(
     BuildContext context, {
     required String? activeStickerId,
-    required ValueChanged<_StickerItem?> onChanged,
+    required ValueChanged<StickerItem?> onChanged,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -43,8 +43,8 @@ class LiveStickerSheet extends StatefulWidget {
   State<LiveStickerSheet> createState() => _LiveStickerSheetState();
 }
 
-class _StickerItem {
-  _StickerItem({
+class StickerItem {
+  StickerItem({
     required this.id,
     required this.name,
     required this.category,
@@ -61,7 +61,7 @@ class _StickerItem {
 class _LiveStickerSheetState extends State<LiveStickerSheet> {
   bool _loading = true;
   String? _error;
-  List<_StickerItem> _stickers = const [];
+  List<StickerItem> _stickers = const [];
   String _category = 'all';
   bool _applying = false;
 
@@ -78,12 +78,12 @@ class _LiveStickerSheetState extends State<LiveStickerSheet> {
           .select('id,name,category,preview_url,asset_url')
           .eq('is_active', true)
           .order('display_order');
-      final list = <_StickerItem>[];
+      final list = <StickerItem>[];
       for (final r in rows as List) {
         final preview = (r['preview_url'] ?? '').toString();
         final asset = (r['asset_url'] ?? r['file_url'] ?? preview).toString();
         if (preview.isEmpty || asset.isEmpty) continue;
-        list.add(_StickerItem(
+        list.add(StickerItem(
           id: r['id'].toString(),
           name: (r['name'] ?? '').toString(),
           category: (r['category'] ?? 'other').toString(),
@@ -116,11 +116,11 @@ class _LiveStickerSheetState extends State<LiveStickerSheet> {
     return set.toList();
   }
 
-  List<_StickerItem> get _filtered => _category == 'all'
+  List<StickerItem> get _filtered => _category == 'all'
       ? _stickers
       : _stickers.where((s) => s.category == _category).toList();
 
-  Future<void> _apply(_StickerItem? item) async {
+  Future<void> _apply(StickerItem? item) async {
     if (_applying) return;
     setState(() => _applying = true);
     try {
@@ -302,7 +302,7 @@ class _StickerTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final _StickerItem item;
+  final StickerItem item;
   final bool active;
   final VoidCallback onTap;
 
