@@ -45,11 +45,19 @@ class _HomeTabPageState extends State<HomeTabPage>
   void initState() {
     super.initState();
     final client = Supabase.instance.client;
-    _countryCubit = CountryFilterCubit(CountryRepository(client))..refresh();
+    _countryCubit = CountryFilterCubit(CountryRepository(client));
+    // Hydrate persisted country BEFORE first feed fetch so the RPC uses the
+    // user's saved filter instead of always defaulting to "all".
+    _countryCubit.hydrate().whenComplete(() {
+      _countryCubit.refresh();
+      _feedCubit
+        ..selectCountry(_countryCubit.state.selectedCode)
+        ..start();
+    });
     _feedCubit = HomeFeedCubit(
       HomeFeedRepository(client),
       currentUserId: client.auth.currentUser?.id,
-    )..start();
+    );
     _bannerCubit = BannerCubit(BannerRepository(client))..start();
   }
 
