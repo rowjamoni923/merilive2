@@ -4,6 +4,8 @@
 // share, WhatsApp quick share, or Report. Every action records a row in
 // `reel_shares` through ReelsFeedCubit.recordShare so the right-rail counter
 // bumps optimistically and Realtime reconciles across devices.
+import 'dart:async';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -193,5 +195,4 @@ class _ShareChip extends StatelessWidget {
   }
 }
 
-// Local unawaited so we don't force a dart:async import in every caller.
-void unawaited(Future<void> f) {}
+
