@@ -10,6 +10,7 @@
 // occupies the bottom-left third, padded above the app tab bar and safe area.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../data/reels_models.dart';
