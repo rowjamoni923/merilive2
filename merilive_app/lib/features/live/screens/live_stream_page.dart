@@ -4,6 +4,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../gifting/data/gift_animation_config.dart';
+import '../../gifting/data/native_gift_bridge.dart';
+import '../../gifting/widgets/full_screen_gift_overlay.dart';
+import '../../gifting/widgets/unified_gift_sheet.dart';
 import '../data/live_chat_bridge.dart';
 import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
@@ -55,6 +59,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   RealtimeChannel? _channel;
   List<LiveChatMessage> _chatMessages = const [];
   StreamSubscription<List<LiveChatMessage>>? _chatSub;
+  StreamSubscription<LiveGiftEvent>? _giftSub;
 
   // A3 — host quick-action state (mirrors LiveHostBridge; native side is
   // the source of truth, this is UI-only until the native toggle lands).
