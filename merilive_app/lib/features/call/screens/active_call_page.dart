@@ -850,3 +850,47 @@ class _GiftSheetPlaceholder extends StatelessWidget {
     );
   }
 }
+
+/// M7 — Compact billing chip. Rendered only after the first
+/// `bill_call_minute` tick populates `viewer_rate_per_min`, so we never
+/// show a bogus "0 min left" during the connect grace window. Color turns
+/// amber when the caller is inside the last 3 minutes of runway.
+class _BillingChip extends StatelessWidget {
+  const _BillingChip({
+    required this.remainingMinutes,
+    required this.ratePerMin,
+  });
+  final int remainingMinutes;
+  final int ratePerMin;
+
+  @override
+  Widget build(BuildContext context) {
+    final low = remainingMinutes <= 3;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: (low ? const Color(0xFFF97316) : Colors.black).withOpacity(0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: (low ? const Color(0xFFF97316) : Colors.white).withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.diamond_rounded, color: Color(0xFFFBBF24), size: 12),
+          const SizedBox(width: 4),
+          Text(
+            '$remainingMinutes min · $ratePerMin/min',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
