@@ -15,6 +15,9 @@ import '../data/pk_opponent_room_bridge.dart';
 import '../widgets/pk_punishment_overlay.dart';
 import '../widgets/live_overlay_stack.dart';
 import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality;
+import '../widgets/pk_battle_active.dart' show PKBattleActiveState;
+import '../widgets/premium_flying_gift_banner.dart' show PremiumFlyingGift;
+import '../widgets/premium_join_chat_overlay.dart' show PremiumJoinChatEntry;
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
@@ -115,6 +118,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // A6 — PK Battle overlay state.
   PkBattleSnapshot? _pkBattle;
   StreamSubscription<PkBattleSnapshot?>? _pkSub;
+  StreamSubscription<RoomJoinEvent>? _joinSub;
 
   // R6a — challenger-side random-match search state (lifted from panel so
   // the search survives closing the sheet). Mirrors LiveStream.tsx.
@@ -202,6 +206,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // A6 — subscribe to server-authoritative PK battle state for this stream.
       _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
         if (mounted) setState(() => _pkBattle = snap);
+        // Phase I12 — surface PK HUD via unified overlay controller.
+        _overlay.setPKState(_pkActiveStateFrom(snap));
         // Phase F-24 — cross-room opponent audio bridge. During an active
         // PK, subscribe (audio auto-plays); on end/idle, tear down.
         final isLive = snap != null &&
@@ -212,6 +218,34 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   ?.toString() ??
               'viewer',
         );
+      });
+
+      // Phase I12 — mirror room join events into the overlay controller:
+      //   • all joins → stacking join notifications (tier-colored)
+      //   • Lv40+     → Bigo cinematic banner
+      //   • Lv10-39   → premium mid-tier chat strip
+      _joinSub = RoomJoinEventsBridge.instance.events$.listen((ev) {
+        _overlay.joinNotifications.add(
+          userId: ev.userId,
+          userName: ev.userName,
+          userLevel: ev.userLevel,
+          userAvatar: ev.userAvatar,
+        );
+        if (ev.userLevel >= 40) {
+          _overlay.bigoBanner.add(
+            userId: ev.userId,
+            userName: ev.userName,
+            userLevel: ev.userLevel,
+            userAvatar: ev.userAvatar,
+          );
+        } else if (ev.userLevel >= 10) {
+          _overlay.premiumJoinChat.push(PremiumJoinChatEntry(
+            id: '${ev.userId}_${DateTime.now().microsecondsSinceEpoch}',
+            userName: ev.userName,
+            level: ev.userLevel,
+            avatarUrl: ev.userAvatar,
+          ));
+        }
       });
 
       // A11 — Level-up entry animations: bind join events to native
@@ -358,6 +392,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _chatSub?.cancel();
     _giftSub?.cancel();
     _pkSub?.cancel();
+    _joinSub?.cancel();
     _randomPkTimeout?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
@@ -391,11 +426,70 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     return snap.opponentStreamId;
   }
 
+  /// Phase I12 — map server PK snapshot → presentation state consumed by
+  /// the unified overlay stack. From this tile's POV, "host" is the local
+  /// stream's side (challenger if streamId matches, else opponent).
+  PKBattleActiveState? _pkActiveStateFrom(PkBattleSnapshot? snap) {
+    if (snap == null) return null;
+    if (snap.status != 'active' && snap.status != 'punishment') return null;
+    final localIsChallenger = snap.challengerStreamId == widget.streamId;
+    final hostName =
+        localIsChallenger ? snap.challengerName : snap.opponentName;
+    final hostAvatar =
+        localIsChallenger ? snap.challengerAvatar : snap.opponentAvatar;
+    final hostScore =
+        localIsChallenger ? snap.challengerScore : snap.opponentScore;
+    final oppName =
+        localIsChallenger ? snap.opponentName : snap.challengerName;
+    final oppAvatar =
+        localIsChallenger ? snap.opponentAvatar : snap.challengerAvatar;
+    final oppScore =
+        localIsChallenger ? snap.opponentScore : snap.challengerScore;
+    int remaining = snap.durationSeconds;
+    final started = snap.startedAt;
+    if (started != null) {
+      final elapsed = DateTime.now().difference(started).inSeconds;
+      remaining = (snap.durationSeconds - elapsed).clamp(0, 1 << 30);
+    }
+    return PKBattleActiveState(
+      hostName: hostName,
+      hostAvatarUrl: hostAvatar.isNotEmpty ? hostAvatar : null,
+      hostScore: hostScore,
+      opponentName: oppName,
+      opponentAvatarUrl: oppAvatar.isNotEmpty ? oppAvatar : null,
+      opponentScore: oppScore,
+      remainingSeconds: remaining,
+      punishmentPhase: snap.status == 'punishment' || snap.inPunishment,
+    );
+  }
+
   /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
   /// renderer is tried first (Pkg438 plugin on Android); when the
   /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
   /// takes over so Flutter surfaces never render nothing.
   Future<void> _onGiftEvent(LiveGiftEvent e) async {
+    // Phase I12 — every gift feeds the overlay combo tracker + premium
+    // flying banner. Runs regardless of full-screen threshold.
+    _overlay.giftCombos.increment(
+      senderId: e.senderId ?? 'anon',
+      giftId: e.giftId ?? e.giftName,
+      senderName: e.senderName,
+      senderAvatarUrl: e.senderAvatar,
+      giftName: e.giftName,
+      giftImageUrl: e.giftIcon,
+      by: e.quantity,
+    );
+    if (e.perUnitCoins >= 100) {
+      _overlay.premiumFlyingGifts.push(PremiumFlyingGift(
+        senderName: e.senderName,
+        senderAvatarUrl: e.senderAvatar,
+        giftName: e.giftName,
+        giftImageUrl: e.giftIcon,
+        giftValue: e.perUnitCoins,
+        count: e.quantity,
+      ));
+    }
+
     if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
       return;
     }
