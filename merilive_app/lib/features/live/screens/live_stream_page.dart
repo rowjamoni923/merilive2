@@ -145,7 +145,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       final stream = await _client
           .from('live_streams')
           .select(
-              'id, host_id, title, status, viewer_count, total_coins, coin_count, live_privacy, live_password_hash')
+              'id, host_id, title, status, viewer_count, total_coins, coin_count')
           .eq('id', widget.streamId)
           .maybeSingle();
 
@@ -153,19 +153,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         setState(() {
           _loading = false;
           _error = 'This stream is no longer available.';
-        });
-        return;
-      }
-
-      // H4 — privacy gate. Private streams are host+invitee only; if the
-      // caller isn't the host, refuse before we touch LiveKit or RPCs.
-      final privacy = (stream['live_privacy'] as String?) ?? 'public';
-      final myId = _client.auth.currentUser?.id;
-      final isHostRow = stream['host_id'] == myId;
-      if (privacy == 'private' && !isHostRow) {
-        setState(() {
-          _loading = false;
-          _error = 'This live stream is private.';
         });
         return;
       }
