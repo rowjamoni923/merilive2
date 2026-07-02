@@ -8,6 +8,7 @@ import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
+import '../widgets/chamet_seat_grid.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
 
@@ -73,7 +74,11 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const SizedBox(height: 6),
-                    _SeatGrid(seats: state.seats),
+                    _SeatGrid(
+                      seats: state.seats,
+                      currentUserId:
+                          Supabase.instance.client.auth.currentUser?.id,
+                    ),
                     const SizedBox(height: 4),
                     Expanded(child: _ChatList(messages: state.messages)),
                     _BottomBar(state: state),
@@ -252,129 +257,52 @@ class _RoomHeader extends StatelessWidget {
 }
 
 class _SeatGrid extends StatelessWidget {
-  const _SeatGrid({required this.seats});
+  const _SeatGrid({required this.seats, required this.currentUserId});
   final List<PartySeat> seats;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          childAspectRatio: 0.78,
-          crossAxisSpacing: 6,
-          mainAxisSpacing: 6,
-        ),
-        itemCount: seats.length,
-        itemBuilder: (context, i) => _SeatTile(seat: seats[i]),
-      ),
-    );
-  }
-}
+  final String? currentUserId;
 
-class _SeatTile extends StatelessWidget {
-  const _SeatTile({required this.seat});
-  final PartySeat seat;
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PartyRoomCubit>();
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () async {
-        final st = cubit.state;
-        if (seat.isEmpty) {
-          if (cubit.isHost) {
-            await cubit.takeSeat(seat.seatNumber);
-          } else if (st.selfSeat != null) {
-            // already seated, ignore
-          } else if (st.selfRequestSeat != null) {
-            _snack(context,
-                'Request pending for seat ${st.selfRequestSeat}. Cancel first.');
-          } else if (seat.isLocked) {
-            _snack(context, 'Seat locked by host');
-          } else {
-            await cubit.requestSeat(seat.seatNumber);
-            if (context.mounted) {
-              _snack(context, 'Seat request sent to host');
-            }
-          }
-        } else if (seat.userId != null && cubit.isHost && !seat.isHost) {
-          _showHostSheet(context, cubit);
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: seat.isHost
-                ? Colors.amber
-                : Colors.white.withValues(alpha: 0.15),
-            width: seat.isHost ? 1.6 : 1,
-          ),
-        ),
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: const Color(0xFF4C1D95),
-                  backgroundImage:
-                      seat.avatarUrl != null && seat.avatarUrl!.isNotEmpty
-                          ? NetworkImage(seat.avatarUrl!)
-                          : null,
-                  child: seat.isEmpty
-                      ? Icon(
-                          seat.isLocked
-                              ? Icons.lock_rounded
-                              : Icons.add_rounded,
-                          color: Colors.white70,
-                          size: 18,
-                        )
-                      : (seat.avatarUrl == null || seat.avatarUrl!.isEmpty)
-                          ? const Icon(Icons.person,
-                              color: Colors.white70, size: 20)
-                          : null,
-                ),
-                if (!seat.isEmpty && (seat.isMuted || seat.mutedByHost))
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.mic_off,
-                        size: 10, color: Colors.white),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              seat.isEmpty ? '${seat.seatNumber}' : (seat.displayName ?? '—'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: seat.isEmpty
-                    ? Colors.white.withValues(alpha: 0.5)
-                    : Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ChametSeatGrid(
+      seats: seats,
+      currentUserId: currentUserId,
+      onSeatTap: (seat) => _handleSeatTap(context, cubit, seat),
     );
   }
 
-  void _showHostSheet(BuildContext context, PartyRoomCubit cubit) {
+  Future<void> _handleSeatTap(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    PartySeat seat,
+  ) async {
+    final st = cubit.state;
+    if (seat.isEmpty) {
+      if (cubit.isHost) {
+        await cubit.takeSeat(seat.seatNumber);
+      } else if (st.selfSeat != null) {
+        // already seated, ignore
+      } else if (st.selfRequestSeat != null) {
+        _snack(context,
+            'Request pending for seat ${st.selfRequestSeat}. Cancel first.');
+      } else if (seat.isLocked) {
+        _snack(context, 'Seat locked by host');
+      } else {
+        await cubit.requestSeat(seat.seatNumber);
+        if (context.mounted) {
+          _snack(context, 'Seat request sent to host');
+        }
+      }
+    } else if (seat.userId != null && cubit.isHost && !seat.isHost) {
+      _showHostSheet(context, cubit, seat);
+    }
+  }
+
+  void _showHostSheet(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    PartySeat seat,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1F1B36),
@@ -397,7 +325,8 @@ class _SeatTile extends StatelessWidget {
               onTap: () async {
                 Navigator.pop(context);
                 if (seat.participantId != null) {
-                  await cubit.hostMute(seat.participantId!, !seat.mutedByHost);
+                  await cubit.hostMute(
+                      seat.participantId!, !seat.mutedByHost);
                 }
               },
             ),
@@ -419,6 +348,8 @@ class _SeatTile extends StatelessWidget {
     );
   }
 }
+
+
 
 class _ChatList extends StatelessWidget {
   const _ChatList({required this.messages});
