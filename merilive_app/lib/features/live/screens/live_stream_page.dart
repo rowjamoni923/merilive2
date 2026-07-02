@@ -176,6 +176,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // A6 — subscribe to server-authoritative PK battle state for this stream.
       _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
         if (mounted) setState(() => _pkBattle = snap);
+        // Phase F-24 — cross-room opponent audio bridge. During an active
+        // PK, subscribe (audio auto-plays); on end/idle, tear down.
+        final isLive = snap != null &&
+            (snap.status == 'active' || snap.status == 'punishment');
+        PkOpponentRoomBridge.instance.connect(
+          opponentStreamId: isLive ? _opponentStreamIdFor(snap!) : null,
+          participantName: _client.auth.currentUser?.userMetadata?['name']
+                  ?.toString() ??
+              'viewer',
+        );
       });
 
       // A11 — Level-up entry animations: bind join events to native
