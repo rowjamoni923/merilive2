@@ -147,8 +147,13 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
   ReelsFeedCubit _cubitFor(String slug, List<ReelCategory> knownCategories) {
     return _feedCubits.putIfAbsent(slug, () {
+      final realtime = _realtimes.putIfAbsent(
+        slug,
+        () => ReelsRealtime(Supabase.instance.client)..subscribe(slug),
+      );
       final cubit = ReelsFeedCubit(
         repository: _repo,
+        realtime: realtime,
         categorySlug: slug,
         currentUserId: Supabase.instance.client.auth.currentUser?.id,
         knownCategories: knownCategories,
