@@ -33,6 +33,7 @@ import '../../gifting/data/native_gift_bridge.dart';
 import '../../gifting/widgets/full_screen_gift_overlay.dart';
 import '../../gifting/widgets/unified_gift_sheet.dart';
 import '../data/live_chat_bridge.dart';
+import '../widgets/number_sharing_warning_dialog.dart';
 import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
