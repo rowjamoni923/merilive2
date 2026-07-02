@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
 import '../../live/data/live_host_bridge.dart';
+import '../../live/widgets/live_sticker_sheet.dart';
 
 // ============================================================================
 // M14 — Create section: full web-parity Go Live prep + Create Party prep.
