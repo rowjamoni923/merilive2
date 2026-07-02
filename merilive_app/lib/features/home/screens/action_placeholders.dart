@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../../live/data/live_host_bridge.dart';
 
 /// Honest scaffold surfaces for the "+" FAB destinations.
 ///
@@ -134,6 +135,7 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   bool _allowed = false;
   bool _starting = false;
   bool _endingExisting = false;
+  bool _preservePreviewOnDispose = false; // set true right before /live handoff
   String? _displayName;
 
   // Denial state
@@ -153,7 +155,10 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _titleCtrl.dispose();
-    if (_previewing) {
+    // Only stop the preview if we're NOT handing off to /live. On successful
+    // publish LiveHostBridge already promoted this same Room to the live
+    // session — tearing it down here would kill the Camera2 sensor mid-stream.
+    if (_previewing && !_preservePreviewOnDispose) {
       LiveKitBridge.instance.stopLocalPreview();
     }
     super.dispose();
@@ -381,10 +386,31 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
         return;
       }
 
-      // Preserve the native camera handoff — do NOT stop the preview here,
-      // the LiveStream page adopts the same LiveKit LocalVideoTrack.
-      // (Sector 6 LiveStream page owns the actual publish; until it lands
-      // we still navigate so the flow is verifiable end-to-end.)
+      // C4 — Zero-gap native publish handoff.
+      // Promote the prejoin preview Room into the real live room BEFORE we
+      // navigate, so LiveStream lands on an already-connected/publishing
+      // session (Camera2 sensor is never re-opened). If the bridge fails we
+      // still surface the error and stay on the prejoin screen — we do NOT
+      // want to leave the user on /live with an offline publisher.
+      try {
+        await LiveHostBridge.instance.startAsHost(
+          streamId: streamId,
+          participantName: _displayName ?? 'Host',
+        );
+      } catch (e) {
+        // Roll back the server-side stream so the host isn't stuck "already_live".
+        try {
+          await client.rpc('end_live_stream',
+              params: {'p_reason': 'publish_failed'});
+        } catch (_) {}
+        messenger.showSnackBar(
+            SnackBar(content: Text('Publish failed: $e')));
+        return;
+      }
+
+      // Bridge owns the preview from here — do NOT tear it down in dispose.
+      _preservePreviewOnDispose = true;
+
       if (!mounted) return;
       context.router.replaceNamed('/live/$streamId');
     } catch (e) {
@@ -1077,20 +1103,44 @@ class _CreateCta extends StatelessWidget {
 // `features/match/screens/match_call_page.dart` and is wired directly in
 // `core/router/app_router.dart` via `RandomCallPlaceholderRoute`.
 
-/// Live viewer placeholder — reached by tapping a LIVE host card.
-/// Real player (LiveKit viewer + chat + gifts + PK) lands in the Live sector.
+/// Live viewer/host placeholder — reached by tapping a LIVE host card OR
+/// arriving straight from Go Live. Host-side (C4) already has a native
+/// LiveKit publish session running via `LiveHostBridge`; this screen owns
+/// its teardown so leaving the route ends the broadcast cleanly.
 @RoutePage()
-class LiveStreamPlaceholderPage extends StatelessWidget {
+class LiveStreamPlaceholderPage extends StatefulWidget {
   const LiveStreamPlaceholderPage({
     super.key,
     @PathParam('streamId') required this.streamId,
   });
   final String streamId;
   @override
+  State<LiveStreamPlaceholderPage> createState() =>
+      _LiveStreamPlaceholderPageState();
+}
+
+class _LiveStreamPlaceholderPageState extends State<LiveStreamPlaceholderPage> {
+  bool get _isHostSession =>
+      LiveHostBridge.instance.isActive &&
+      LiveHostBridge.instance.streamId == widget.streamId;
+
+  @override
+  void dispose() {
+    // If this route owns an active host publish, end it on unmount so we
+    // don't leak Camera2 / LiveKit resources. Server-side `end_live_stream`
+    // still runs from the host bottom-bar End button (or admin auto-end);
+    // this is the transport-level cleanup only.
+    if (_isHostSession) {
+      LiveHostBridge.instance.stop();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => _ComingSoon(
-        title: 'Live Stream',
+        title: _isHostSession ? 'Live Stream — On Air' : 'Live Stream',
         subtitle:
-            'Stream ID: $streamId\n\nFull viewer player (LiveKit video/voice, chat, gifts, PK) lands with the Live Streaming sector.',
+            'Stream ID: ${widget.streamId}\n\n${_isHostSession ? 'You are publishing to LiveKit right now. ' : ''}Full viewer player (LiveKit video/voice, chat, gifts, PK) lands with the Live Streaming sector.',
         icon: Icons.live_tv_rounded,
         gradient: const [Color(0xFFEF4444), Color(0xFFEC4899)],
         sector: 'Sector 6 (Live Streaming)',
