@@ -116,4 +116,47 @@ class LiveKitBridge {
   // 'poor'|'lost'} when the native plugin implements it. Safe no-op
   // (`success:false, reason:'unimplemented'`) on older APKs / web / iOS.
   Future<Map<String, dynamic>> getStats() => _invoke('getStats');
+
+  // ── M14 — Create-section prep controls ─────────────────────────────
+  //
+  // All safe no-ops on old APKs / web (see `_invoke`'s MissingPluginException
+  // handling). Native side lands in LiveKitFlutterPlugin.kt.
+
+  /// Per-slider beauty tuning (0.0–1.0). Native routes into the existing
+  /// GPUPixel filter chain. When any value is non-zero the master switch is
+  /// implicitly enabled; setBeautyEnabled(false) still overrides.
+  Future<Map<String, dynamic>> setBeautyParams({
+    double smooth = 0,
+    double whiten = 0,
+    double slim = 0,
+    double eye = 0,
+    double rosy = 0,
+  }) =>
+      _invoke('setBeautyParams', {
+        'smooth': smooth,
+        'whiten': whiten,
+        'slim': slim,
+        'eye': eye,
+        'rosy': rosy,
+      });
+
+  /// Overlay a sticker on the composited camera frame. Pass null to clear.
+  Future<Map<String, dynamic>> setStickerOverlay({
+    String? stickerId,
+    String? assetUrl,
+    double x = 0.5,
+    double y = 0.5,
+    double scale = 1.0,
+  }) =>
+      _invoke('setStickerOverlay', {
+        'stickerId': stickerId,
+        'assetUrl': assetUrl,
+        'x': x,
+        'y': y,
+        'scale': scale,
+      });
+
+  /// Snapshot the current local-preview frame as a base64 JPEG.
+  Future<Map<String, dynamic>> snapshotLocalPreview() =>
+      _invoke('snapshotLocalPreview');
 }
