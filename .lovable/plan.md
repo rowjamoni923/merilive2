@@ -1,122 +1,114 @@
-## Phase H — 100% parity finish line
+# Party Room — Full A-to-Z Audit & Fix Plan
 
-Five workstreams, delivered in five sub-messages so each one is atomic and reviewable.
-
----
-
-### H1 — Full Android module bootstrap (unblocks everything else) ✅ COMPLETE (2026-07-02)
-
-Verified done: `merilive_app/android/` real Flutter module with settings.gradle
-(Gradle 8.6 / AGP 8.3.0 / Kotlin 1.9.24), gradle wrapper jar + gradlew fetched,
-app/build.gradle with LiveKit 2.23.5 / VAP 1.0.15 / SVGA 2.5.14 / Lottie 6.4.0 /
-ML Kit segmentation / Firebase BOM, MainActivity registers all 4 native plugins,
-manifest declares CAMERA/RECORD_AUDIO/POST_NOTIFICATIONS/FOREGROUND_SERVICE_*,
-IncomingCallService + IncomingCallActivity + FCM MessagingService registered,
-stale `android_native/` staging folder deleted so single source of truth.
-Developer still supplies `local.properties` (flutter.sdk) + `google-services.json`
-(Firebase console) — template committed at `android/app/google-services.json.template`.
-GPUPixel dep deferred to H2 (`setBeautyEnabled` is dormant today).
-
-
-Right now `merilive_app/android_native/*.kt` is a **staging folder** — the plugins aren't in a real Flutter `android/` module, so APK builds get nothing.
-
-- Create `merilive_app/android/` structure (settings.gradle, app/build.gradle, AndroidManifest.xml, MainActivity.kt).
-- Move `LiveKitFlutterPlugin.kt`, `NativeEntryAnimationPlugin.kt`, `NativeGiftAnimationPlugin.kt`, `IncomingCall*.kt`, `MeriFirebaseMessagingService.kt` into `android/app/src/main/kotlin/com/merilive/app/`.
-- Register all 5 plugins in `MainActivity.configureFlutterEngine`.
-- Add gradle deps: LiveKit 2.23.5, SVGA 2.5.14, VAP 1.0.15, Lottie 6.4.0, GPUPixel, Firebase Messaging, Play Integrity.
-- Manifest permissions: CAMERA, RECORD_AUDIO, INTERNET, POST_NOTIFICATIONS, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MEDIA_PROJECTION, BLUETOOTH_CONNECT.
-- Register `IncomingCallService` + `IncomingCallActivity` in manifest.
-
-Deliverable: `flutter build apk --debug` succeeds, all Phase A methods live.
+Honest audit of every Party Room file in `merilive_app/lib/features/party/` vs. (a) our own web/React implementation and (b) Chamet / Bigo / Yalla / Poppo / Olamet professional standard.
 
 ---
 
-### H2 — Missing native handlers (Kotlin implementations) ✅ AUDITED + PARTIAL COMPLETE (2026-07-02)
+## Current State (what already works)
 
-Audit revealed the 5 "dormant" handlers are actually wired in `LiveKitFlutterPlugin.kt` — real status:
+**Discovery & entry** — 100% ✅ (tabs, country strip, search, code-join, realtime, preview sheet, room card)
+**Create party** — 95% ✅ (mode select, game picker, camera preview, beauty, entry fee, RPC)
+**Chat** — 90% ✅ (composer, quick emoji, realtime, system messages)
+**Gifts** — 80% ✅ (unified sheet, VAP/SVGA native, realtime)
+**Game party** — 90% ✅ (WebView overlay, game picker)
+**Seat CRUD** — 80% ✅ (take/leave/request/approve/deny/mute/kick/ban/mute-all)
+**Host video publish** — 100% ✅ (Camera2 zero-gap handoff via native LiveKit)
 
-| Method | Actual status |
-|---|---|
-| `snapshotVoiceChunk` | ✅ Implemented via `MediaRecorder` AAC 16kHz → base64 (voice moderation ready) |
-| `setBackgroundMusic` / `Playing` / `Volume` | ✅ Host-monitor via `MediaPlayer` (Chamet-parity when no music-publish grant). Mixing into published track deferred (needs custom AudioSource swap) |
-| `setVirtualBackground` | ⚠️ URL persists but pixel swap dormant (`applied:false, reason:segmentation_pending`) — needs GPUPixel `.so` + MLKit SelfieSegmentation pipeline |
-| `setNoiseCancellation` | ✅ `android.media.audiofx.NoiseSuppressor` on session 0 (best-effort, reports `available:false` on unsupported OMX) |
-| `audio_focus` EventChannel | ✅ `AudioFocusEventEmitter` with `AudioFocusRequest` API 26+ + legacy fallback |
-| `getStats` (Phase I18 blocker) | ✅ **NEW** — now returns `quality: excellent\|good\|poor\|unknown` from LiveKit server-computed `LocalParticipant.connectionQuality` (SFU-smoothed from RTCStats). ConnectionQualityIndicator will now animate live. |
+## Room Categories
 
-**Remaining real gaps (deferred, need heavy native work):**
-1. GPUPixel `libgpupixel.so` + MLKit SelfieSegmentation for real virtual background swap
-2. LiveKit `MixerAudioSource` for publishing BGM to remote listeners (currently host-monitor only)
-3. GPUPixel beauty filter chain (`BeautyProcessor.pushToNative` no-ops when `.so` missing)
 
-**APK rebuild REQUIRED** for `getStats` quality field to reach ConnectionQualityIndicator.
-
+| Type              | Flutter                                                | Web |
+| ----------------- | ------------------------------------------------------ | --- |
+| Audio-only party  | ✅ (uses generic seat grid, no `ProfessionalAudioRoom`) | ✅   |
+| Video multi-guest | ⚠️ (no per-seat video tiles)                           | ✅   |
+| Game party        | ✅                                                      | ✅   |
 
 
 ---
 
-### H3 — E-22 Raise-hand queue ✅ ALREADY COMPLETE (verified 2026-07-02)
+## Gap List (28 items · 4 P0 · 11 P1 · 13 P2)
 
-Full audit found this shipped in an earlier phase — nothing to build. Actual state:
-
-- ✅ **Table** `live_raise_hand_queue` (10 cols) with `UNIQUE(stream_id, viewer_id)` + FIFO index `(stream_id, status, raised_at)`
-- ✅ **RLS**: viewer-manages-own-row + host-reads/updates-own-stream (via `live_streams.host_id = auth.uid()`)
-- ✅ **Realtime publication** enabled on `supabase_realtime`
-- ✅ **`LiveRaiseHandBridge`** (264 L): raise/lower/isRaised (viewer), approve/reject (host), seed-from-REST + Realtime `postgres_changes` FIFO sort, **auto-promotes approved viewer via `livekit-update-permission` edge fn** (PROMOTE_TO_SPEAKER: camera+mic+screen sources)
-- ✅ **UI**: `LiveRaiseHandButton` (90 L) + `LiveRaiseHandQueueSheet` (176 L), wired in `live_stream_page.dart` `_toggleRaiseHand` and `live_action_bar.dart` (`raise_hand` viewer entry + `raise_queue` host entry)
-- ✅ Uses existing `livekit-update-permission` edge fn instead of a new `live-raise-hand` fn — simpler, less surface area, matches web-truth `src/lib/livekitRaiseHand.ts` promote flow
-
-**No APK rebuild needed** (pure Dart + DB + existing edge fn).
+### 🔴 P0 — Blockers / broken
 
 
-
----
-
-### H4 — Privacy plumbing (Live + Party) 🚫 OBSOLETE — DO NOT IMPLEMENT (locked 2026-07-02)
-
-Superseded by memory constraint **🔓 LIVE + PARTY = ALWAYS PUBLIC** (mem://constraints/live-party-always-public.md). Chamet/Bigo/Poppo/Olamet all keep live streams + party rooms fully public — no password prompts, no private-mode toggles, no padlock badges. DB columns `live_streams.live_privacy` + `party_rooms.privacy` + `password_hash` are legacy dead code; `GoLive.tsx` hardcodes `'public'` + `null`. Confirmed: no Flutter file currently references these columns → nothing to remove either.
-
-**Action taken:** None. Any future work on privacy modes requires explicit user override of the locked constraint.
+| #      | Gap                                                                                                                                                                                                            | Why it's P0                                                                |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **G1** | `PartyRoom.isPrivate` referenced in 4 files but field **doesn't exist** in the model — always evaluates falsy, silently breaks lock badge and private-room join logic                                          | Latent bug across the whole feature                                        |
+| **G2** | **Seat invitation system entirely missing** — `seat_invitations` table, `accept_seat_invitation` / `decline_seat_invitation` RPCs, invite picker sheet, response sheet, inbox listener — none exist in Flutter | Chamet/Bigo core UX; without it host has no way to pull specific viewer up |
+| **G3** | **Per-seat video tiles missing** in video party — `video_party_layout.dart` renders only the seat grid, no `LiveKitVideoPlayer` per seat → video party mode shows blank tiles                                  | Video party is unusable                                                    |
+| **G4** | `**set_seat_lock` RPC never called** — Flutter reads lock state but host cannot lock/unlock individual seats; no `EmptySeatHostActionsSheet`                                                                   | Core moderation control                                                    |
 
 
+### 🟡 P1 — Feature parity gaps
 
----
 
-### H5 — Deep parity audit report ✅ COMPLETE (2026-07-02)
+| #   | Gap                                                                                                              |
+| --- | ---------------------------------------------------------------------------------------------------------------- |
+| G5  | `RoomWelcomeBanner` — `room_welcome_messages` table never queried; no banner shown on join                       |
+| G6  | `BackgroundPickerPanel` — `party_room_backgrounds` table never queried; host can only paste raw URL              |
+| G7  | Seat count / layout picker (`SeatSelectorPanel`, `LayoutPickerPanel`) — no way to change `active_seats` mid-room |
+| G8  | Music actual playback — sheet only announces track name; no LiveKit publish of audio track                       |
+| G9  | Gift contributors leaderboard panel (top senders + host commission)                                              |
+| G10 | `ProfessionalAudioRoom` / `ProfessionalSeatGrid` / `ProfessionalBottomBar` — dedicated audio-mode UI             |
+| G11 | `PartySessionProvider` — camera preview preserved across Create→Room without native teardown                     |
+| G12 | Host **beauty filter** toggle inside room (exists only in GoLive)                                                |
+| G13 | Host **camera flip** button inside room                                                                          |
+| G14 | Host **video hide** toggle (`isVideoOff`) in video party                                                         |
+| G15 | `EmptySeatHostActionsSheet` — Lock / Unlock / Move-here on empty seat tap                                        |
 
-Written to `.lovable/phase-h-audit.md` — 9-section component-by-component gap list (video/chat/gifting/host tools/games/PK/viewer/safety/entry effects) comparing web (5,334 L `LiveStream.tsx` + 3,174 L `PartyRoom.tsx`, source of truth) vs Flutter (1,483 L + 777 L).
 
-**Findings summary:**
-- **8 P0 gaps** — ~~live-stream swipe~~ ✅ 2026-07-02, ~~contact-sharing moderation (text)~~ ✅ 2026-07-02 (`core/moderation/contact_detection.dart` + `contact_moderation.dart` + `NumberSharingWarningDialog`, wired into `LiveChatBridge.sendMessage` → `process_contact_violation` RPC. Image OCR deferred), PK result modal, premium viewer profile card, live tasks card, new-host bonus card
-- **8 P1 gaps** — host tools mostly (publish layers, audio-only toggle, agent dispatch, SIP dial, room-ended modal, frame monitor reporting, room protection, virtual bg pixel swap)
-- **4 P2 gaps** — reactions quick bar, screen lock, high refresh rate, ingress dialog (likely intentionally skipped per not-an-OBS memory)
-- **Entry effects, gifting, chat, moderation core, raise-hand (H3), noise cancel (H2), audio focus (H2), face detection all at ✅ parity**
+### ⚪ P2 — Polish / niche
 
-Playwright screenshot diff deferred until H1+H2 APK rebuild lands so both platforms diff live. Party-only deeper audit (H5b) available on request.
-
+G16 `ChametStyleCloseModal` (End vs Leave) · G17 rich `ChametStyleSettingsPanel` (noise cancel, video quality) · G18 chat content moderation + `NumberSharingWarningDialog` · G19 `GiftComboTracker` overlay · G20 `VehicleEntranceAnimation` · G21 `ChametStyleGameBanners` · G22 `ProfessionalGameOverlay` (audio-mode game) · G23 `PartyGiftSeatPicker` (gift to specific seat #) · G24 `CaptionOverlay` · G25 `PartyRaiseHandUI` · G26 `gradient_css` read from bg table · G27 `AdvancedPartyBottomBar` variant · G28 `PartyRoomBottomBar` split component
 
 ---
 
-## Delivery order
+## Fix Order (implementation phases)
 
-```
-H1 (Android bootstrap)  →  H2 (native handlers)
-                       ↘
-H4 (privacy — Dart-only, parallel to H1/H2)
-H3 (raise-hand — Dart + DB, parallel)
-                       ↘
-H5 (audit report — after H1–H4 land, produces final gap list)
+```text
+Phase A (this task, P0, ~1 pass)
+  A1. Add `isPrivate` field to PartyRoom model + repository mapping
+  A2. Seat invitation system:
+        - New file: data/party_seat_invitation_bridge.dart
+        - New file: widgets/seat_invite_picker_sheet.dart (host)
+        - New file: widgets/seat_invite_response_sheet.dart (viewer)
+        - Realtime inbox subscription in party_room_cubit
+        - Wire "Invite to seat" action on empty-seat tap (host)
+  A3. Per-seat video tiles in video_party_layout.dart
+        - Subscribe to LiveKit RemoteVideoTrack per seat uid
+        - Render VideoTrackRenderer inside each seat tile
+  A4. Empty-seat host actions:
+        - New file: widgets/empty_seat_host_actions_sheet.dart
+        - Options: Lock/Unlock (calls set_seat_lock RPC) · Invite viewer
+        - Add setSeatLock() to party_room_repository.dart
+
+Phase B (next task, P1 batch)
+  G5, G6, G8, G10, G12–G15 in one pass — all cosmetic/UX additions
+  G7, G9, G11 in a follow-up pass
+
+Phase C (later, P2 polish)
+  G16–G28 batched as time permits
 ```
 
-H1+H4+H3 can ship in parallel (independent files). H2 needs H1 to be real. H5 is the closer.
+---
 
-## Technical notes
+## Technical Notes
 
-- No design changes anywhere — pure functional/native plumbing.
-- Every native method stays dormant-safe (Dart bridge unchanged; Kotlin just replaces the missing method).
-- Privacy migration touches only column semantics + edge fn logic; no destructive schema changes to `live_streams` / `party_rooms`.
-- APK rebuild required after H1 + H2. H3/H4/H5 are pure Dart/DB/edge-fn — no rebuild needed.
+- **Zero backend work needed** — every table, column, RPC (`accept_seat_invitation`, `decline_seat_invitation`, `set_seat_lock`) already exists in Supabase. Flutter is purely catching up to web.
+- **APK rebuild**: NOT needed for Phase A. All changes are pure Dart / widget layer.
+- **LiveKit pattern for per-seat video** (G3): subscribe to `RemoteParticipant` by identity == seat.userId, filter for `TrackSource.Camera`, mount `VideoTrack.attachTo()` renderer inside seat tile. No native plugin change — existing `party_livekit_service.dart` already exposes track events.
+- **Research citations** (Chamet/Bigo/Yalla/Poppo/Agora seat-manager reference + LiveKit RoomServiceClient docs) saved for follow-up: seat state machine EMPTY/LOCKED/OCCUPIED/MUTED/SPEAKING/PENDING is universal; atomic seat writes via server-authoritative metadata is the standard pattern — we already have this via Supabase row + realtime, so no rearchitecture.
+- **Design sacred**: no visual redesign — only wiring missing widgets that mirror existing web components 1:1.
 
-## What I need from you
+---
 
-**Approve this plan or edit any section** (e.g. drop H5 if you don't want the report; combine H3 into H4 if you'd rather ship one privacy+raise-hand phase; skip H1 if you already have an Android module you'll drop in).
+## Deliverable of Phase A
+
+4 P0 fixes in one implementation pass. After it lands:
+
+- Party room private-mode flag works end-to-end
+- Host can invite specific viewer to a specific seat with accept/decline UX
+- Video party mode actually shows video per seat
+- Host can lock / unlock individual seats + tap-empty-seat action menu
+
+Party Room will match web at feature-parity for all critical flows; only cosmetic / niche gaps (P1/P2) remain for follow-up passes.
