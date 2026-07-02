@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../services/audio_focus_auto_mute.dart';
+import '../services/live_face_detection.dart';
+import '../services/live_voice_monitor.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
@@ -100,6 +103,12 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // the search survives closing the sheet). Mirrors LiveStream.tsx.
   String? _randomPkSessionId;
   Timer? _randomPkTimeout;
+
+  // Phase E — content safety + call-focus (host-only, mounted after
+  // stream resolves so we know who the host is).
+  LiveFaceDetection? _faceDetection;
+  LiveVoiceMonitor? _voiceMonitor;
+  AudioFocusAutoMute? _audioFocusMute;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -202,6 +211,31 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           if (mounted) setState(() => _isFollowingHost = following);
         } catch (_) {}
       }
+
+      // Phase E — host-only content-safety + call-focus.
+      if (_isHost) {
+        final uid = _client.auth.currentUser?.id ?? '';
+        _faceDetection = LiveFaceDetection(
+          streamId: widget.streamId,
+          hostId: uid,
+          onAutoClose: () {
+            if (!mounted) return;
+            _handleLeaveOrEnd();
+          },
+        )..start();
+        _voiceMonitor = LiveVoiceMonitor(
+          streamId: widget.streamId,
+          userId: uid,
+        )..start();
+        _audioFocusMute = AudioFocusAutoMute(
+          isMicEnabled: () => !_isMicMuted,
+          setMicEnabled: (on) async {
+            if (!mounted) return;
+            setState(() => _isMicMuted = !on);
+            await LiveKitBridge.instance.setMicEnabled(on);
+          },
+        )..start();
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -292,6 +326,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
     RoomEntryDispatcher.instance.detach();
+    _faceDetection?.dispose();
+    _voiceMonitor?.dispose();
+    _audioFocusMute?.dispose();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
@@ -721,6 +758,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   final next = !_isMicMuted;
                   setState(() => _isMicMuted = next);
                   LiveKitBridge.instance.setMicEnabled(!next);
+                  _voiceMonitor?.micEnabled = !next;
+                  _audioFocusMute?.noteManualMicChange();
                   _snack(next ? 'Mic muted' : 'Mic on');
                 },
                 onToggleCam: () {
