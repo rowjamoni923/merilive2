@@ -1181,7 +1181,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  LiveChatOverlay(messages: _chatMessages),
+                  LiveChatOverlay(
+                    messages: _chatMessages,
+                    onUserTap: (userId, _) => _openViewerProfile(userId),
+                  ),
                   const SizedBox(height: 8),
                   LiveChatComposer(onSend: _sendChat),
                 ],
