@@ -19,12 +19,14 @@ import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../widgets/chamet_seat_grid.dart';
+import '../widgets/game_party_layout.dart';
 import '../widgets/party_chat_composer.dart';
 import '../widgets/party_chat_overlay.dart';
 import '../widgets/party_game_overlay.dart';
 import '../widgets/party_game_selection_sheet.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
+import '../widgets/video_party_layout.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 
 
@@ -165,20 +167,41 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const SizedBox(height: 6),
-                    _SeatGrid(
-                      seats: state.seats,
-                      currentUserId:
-                          Supabase.instance.client.auth.currentUser?.id,
-                    ),
-                    const SizedBox(height: 4),
-                    Expanded(
-                      child: PartyChatOverlay(
-                        messages: state.messages,
-                        hostId: state.host?.id,
+                    if (room.roomType == PartyRoomType.game) ...[
+                      Expanded(
+                        child: _ModeLayout(
+                          room: room,
+                          seats: state.seats,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 140,
+                        child: PartyChatOverlay(
+                          messages: state.messages,
+                          hostId: state.host?.id,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                    ] else ...[
+                      _ModeLayout(
+                        room: room,
+                        seats: state.seats,
                         currentUserId:
                             Supabase.instance.client.auth.currentUser?.id,
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: PartyChatOverlay(
+                          messages: state.messages,
+                          hostId: state.host?.id,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                    ],
                     _BottomBar(state: state),
                   ],
                 ),
@@ -251,20 +274,45 @@ class _RoomHeader extends StatelessWidget {
 
 
 
-class _SeatGrid extends StatelessWidget {
-  const _SeatGrid({required this.seats, required this.currentUserId});
+class _ModeLayout extends StatelessWidget {
+  const _ModeLayout({
+    required this.room,
+    required this.seats,
+    required this.currentUserId,
+  });
+  final PartyRoom room;
   final List<PartySeat> seats;
   final String? currentUserId;
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PartyRoomCubit>();
-    return ChametSeatGrid(
-      seats: seats,
-      currentUserId: currentUserId,
-      onSeatTap: (seat) => _handleSeatTap(context, cubit, seat),
-    );
+    void tap(PartySeat s) => _handleSeatTap(context, cubit, s);
+    switch (room.roomType) {
+      case PartyRoomType.video:
+        return VideoPartyLayout(
+          seats: seats,
+          currentUserId: currentUserId,
+          onSeatTap: tap,
+        );
+      case PartyRoomType.game:
+        return GamePartyLayout(
+          roomId: room.id,
+          seats: seats,
+          currentUserId: currentUserId,
+          isHost: cubit.isHost,
+          onSeatTap: tap,
+        );
+      case PartyRoomType.audio:
+      case PartyRoomType.other:
+        return ChametSeatGrid(
+          seats: seats,
+          currentUserId: currentUserId,
+          onSeatTap: tap,
+        );
+    }
   }
+
 
   Future<void> _handleSeatTap(
     BuildContext context,
