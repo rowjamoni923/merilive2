@@ -1634,6 +1634,7 @@ const App = () => {
                   <Route path="level-management" element={<AdminRouteGuard routeSegment="level-management"><AdminLevelManagement /></AdminRouteGuard>} />
                   <Route path="vip-management" element={<AdminRouteGuard routeSegment="vip-management"><AdminVIPManagement /></AdminRouteGuard>} />
                   <Route path="entry-effects" element={<AdminRouteGuard routeSegment="entry-effects"><AdminEntryEffects /></AdminRouteGuard>} />
+                  <Route path="gift-animation-config" element={<AdminRouteGuard routeSegment="gift-animation-config"><AdminGiftAnimationConfig /></AdminRouteGuard>} />
                   <Route path="finance" element={<AdminRouteGuard routeSegment="finance"><AdminFinance /></AdminRouteGuard>} />
                   <Route path="game-management" element={<AdminRouteGuard routeSegment="game-management"><AdminGameManagement /></AdminRouteGuard>} />
                   <Route path="party-management" element={<AdminRouteGuard routeSegment="party-management"><AdminPartyManagement /></AdminRouteGuard>} />
