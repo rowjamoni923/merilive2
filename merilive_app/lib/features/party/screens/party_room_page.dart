@@ -360,52 +360,6 @@ class _SeatGrid extends StatelessWidget {
 
 
 
-class _ChatList extends StatelessWidget {
-  const _ChatList({required this.messages});
-  final List<PartyChatMessage> messages;
-  @override
-  Widget build(BuildContext context) {
-    if (messages.isEmpty) {
-      return Center(
-        child: Text('Say hi 👋',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
-      );
-    }
-    return ListView.builder(
-      reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      itemCount: messages.length,
-      itemBuilder: (_, i) {
-        final m = messages[messages.length - 1 - i];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-                children: [
-                  TextSpan(
-                    text: '${m.displayName ?? "User"}: ',
-                    style: const TextStyle(
-                        color: Colors.amberAccent,
-                        fontWeight: FontWeight.w600),
-                  ),
-                  TextSpan(text: m.content),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 class _BottomBar extends StatefulWidget {
   const _BottomBar({required this.state});
