@@ -487,6 +487,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ],
               ),
             ),
+            // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
+            if (_pkBattle != null)
+              PkBattleOverlay(
+                snapshot: _pkBattle!,
+                currentUserId: _client.auth.currentUser?.id,
+                currentStreamId: widget.streamId,
+                onEnded: () {
+                  if (mounted) setState(() => _pkBattle = null);
+                },
+              ),
             // A3 — full action bar with host quick-actions.
             Positioned(
               left: 0,
