@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/gift_animation_config.dart';
 import '../data/gift_catalog_repository.dart';
+import 'full_screen_gift_overlay.dart';
 
 /// One recipient displayed in the horizontal picker strip.
 class GiftRecipient {
