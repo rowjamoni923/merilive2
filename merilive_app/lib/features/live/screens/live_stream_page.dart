@@ -212,6 +212,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   @override
   void dispose() {
     _channel?.unsubscribe();
+    _chatSub?.cancel();
+    LiveChatBridge.instance.detach();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
@@ -222,10 +224,13 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     super.dispose();
   }
 
+  Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -244,6 +249,28 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               host: _host,
               viewerCount: _viewerCount,
               onClose: () => context.router.maybePop(),
+            ),
+            // A2 — gift ticker just below the top header.
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 78,
+              left: 12,
+              right: 80,
+              child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
+            ),
+            // A2 — chat overlay + composer, docked above the bottom bar.
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: MediaQuery.of(context).padding.bottom + 96,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LiveChatOverlay(messages: _chatMessages),
+                  const SizedBox(height: 8),
+                  if (!_isHost) LiveChatComposer(onSend: _sendChat),
+                ],
+              ),
             ),
             _BottomBar(
               isHost: _isHost,
