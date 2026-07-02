@@ -104,6 +104,12 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   String? _randomPkSessionId;
   Timer? _randomPkTimeout;
 
+  // Phase E — content safety + call-focus (host-only, mounted after
+  // stream resolves so we know who the host is).
+  LiveFaceDetection? _faceDetection;
+  LiveVoiceMonitor? _voiceMonitor;
+  AudioFocusAutoMute? _audioFocusMute;
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
