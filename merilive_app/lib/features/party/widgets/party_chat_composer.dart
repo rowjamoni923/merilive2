@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'party_number_warning_dialog.dart';
+
+
 /// A8 — Glass composer for Party Room chat with quick-emoji row,
 /// mirroring `ChametStyleChatPanel`'s input treatment.
 class PartyChatComposer extends StatefulWidget {
