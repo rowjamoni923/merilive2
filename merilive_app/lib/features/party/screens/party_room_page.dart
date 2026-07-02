@@ -587,3 +587,209 @@ class _BottomBarState extends State<_BottomBar> {
         ),
       );
 }
+
+// ─── PD6: Seat request UI ─────────────────────────────────────────
+void _snack(BuildContext context, String msg) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(msg),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+class _RequestsBadge extends StatelessWidget {
+  const _RequestsBadge();
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PartyRoomCubit, PartyRoomState>(
+      buildWhen: (a, b) =>
+          a.pendingRequests.length != b.pendingRequests.length ||
+          a.selfRequestSeat != b.selfRequestSeat,
+      builder: (context, state) {
+        final cubit = context.read<PartyRoomCubit>();
+        // Viewer waiting: show "cancel request" chip.
+        if (!cubit.isHost && state.selfRequestSeat != null) {
+          return InkWell(
+            onTap: cubit.cancelSeatRequest,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.hourglass_top_rounded,
+                    size: 13, color: Colors.white),
+                const SizedBox(width: 4),
+                Text('Seat ${state.selfRequestSeat}',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+              ]),
+            ),
+          );
+        }
+        // Host with pending: show badge count → open sheet.
+        if (cubit.isHost && state.pendingRequests.isNotEmpty) {
+          return InkWell(
+            onTap: () => _showRequestsSheet(context, cubit),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.pan_tool_alt_rounded,
+                      color: Colors.white, size: 18),
+                ),
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints:
+                        const BoxConstraints(minWidth: 18, minHeight: 18),
+                    child: Text(
+                      '${state.pendingRequests.length}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+void _showRequestsSheet(BuildContext ctx, PartyRoomCubit cubit) {
+  showModalBottomSheet(
+    context: ctx,
+    backgroundColor: const Color(0xFF1E1B4B),
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => BlocProvider.value(
+      value: cubit,
+      child: const _RequestsSheet(),
+    ),
+  );
+}
+
+class _RequestsSheet extends StatelessWidget {
+  const _RequestsSheet();
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PartyRoomCubit, PartyRoomState>(
+      buildWhen: (a, b) => a.pendingRequests != b.pendingRequests,
+      builder: (context, state) {
+        final cubit = context.read<PartyRoomCubit>();
+        final reqs = state.pendingRequests;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.pan_tool_alt_rounded,
+                        color: Colors.amber, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Seat Requests (${reqs.length})',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (reqs.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text('No pending requests',
+                          style: TextStyle(color: Colors.white54)),
+                    ),
+                  ),
+                for (final r in reqs)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: const Color(0xFF6D28D9),
+                          backgroundImage:
+                              r.avatarUrl != null && r.avatarUrl!.isNotEmpty
+                                  ? NetworkImage(r.avatarUrl!)
+                                  : null,
+                          child: r.avatarUrl == null || r.avatarUrl!.isEmpty
+                              ? const Icon(Icons.person,
+                                  color: Colors.white70, size: 18)
+                              : null,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                r.displayName ?? 'User',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              Text('Wants seat ${r.seatNumber}',
+                                  style: const TextStyle(
+                                      color: Colors.white54, fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => cubit.denySeatRequest(r),
+                          icon: const Icon(Icons.close_rounded,
+                              color: Colors.redAccent),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            await cubit.approveSeatRequest(r);
+                          },
+                          icon: const Icon(Icons.check_circle_rounded,
+                              color: Colors.greenAccent),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
