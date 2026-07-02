@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 import '../../../core/native/livekit_bridge.dart';
 import '../services/audio_focus_auto_mute.dart';
@@ -35,15 +38,23 @@ import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_game_overlay.dart';
 import '../widgets/live_gift_combo_bar.dart';
 import '../widgets/flying_gift_capsule.dart';
+import '../widgets/floating_reactions_overlay.dart';
 import '../widgets/live_host_moderation_sheet.dart';
 
 import '../widgets/live_multi_guest_sheet.dart';
+import '../widgets/live_music_sheet.dart';
+import '../widgets/live_noise_cancel_sheet.dart';
 import '../widgets/live_pk_start_sheet.dart';
 import '../widgets/live_report_block_sheet.dart';
+import '../widgets/live_sticker_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
+import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../widgets/reactions_picker_sheet.dart';
+import '../data/live_reactions_bus.dart';
 import '../../party/widgets/party_game_selection_sheet.dart';
 import '../../../shared/widgets/room_top_bar.dart';
+
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
@@ -171,6 +182,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // every viewer + host, native-first with Flutter overlay fallback.
       _giftSub = LiveChatBridge.instance.gifts$.listen(_onGiftEvent);
       _chatMessages = LiveChatBridge.instance.snapshot;
+      // G-25 — floating reactions bus (broadcast channel per stream).
+      await LiveReactionsBus.instance.attach(widget.streamId);
+      // Re-apply persisted noise cancellation from last session.
+      await LiveNoiseCancelSheet.applyOnStart();
       final welcome = (host?['name']?.toString() ?? 'the host');
       LiveChatBridge.instance
           .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
@@ -336,6 +351,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _randomPkTimeout?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
+    LiveReactionsBus.instance.detach();
     NativeGiftBridge.instance.stopAll();
     RoomEntryDispatcher.instance.detach();
     _faceDetection?.dispose();
@@ -502,7 +518,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _snack('❤️ Sent love');
         break;
       case 'share':
-        _snack('Share sheet coming soon');
+        _shareStream();
         break;
       case 'games':
         _openGamesSheet();
@@ -526,16 +542,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         );
         break;
       case 'tasks':
-        _snack('Tasks — opening');
+        _openExternal('https://merilive.top/tasks');
         break;
       case 'topup':
-        _snack('Top Up — opening');
+        _openExternal('https://merilive.top/topup');
         break;
       case 'music':
-        _snack('Music player coming soon');
+        LiveMusicSheet.show(context);
         break;
       case 'react':
-        _snack('Reactions coming soon');
+        ReactionsPickerSheet.show(context);
         break;
       case 'pk':
         _openPkStartSheet();
@@ -551,16 +567,46 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         }
         break;
       case 'sticker':
-        _snack('Stickers coming soon');
+        LiveStickerSheet.show(
+          context,
+          activeStickerId: null,
+          onChanged: (_) {},
+        );
         break;
       case 'vbg':
-        _snack('Virtual background coming soon');
+        LiveVirtualBgSheet.show(context);
         break;
       case 'noise':
-        _snack('Noise cancellation coming soon');
+        LiveNoiseCancelSheet.show(context);
         break;
     }
   }
+
+  Future<void> _shareStream() async {
+    final hostName =
+        _host?['name']?.toString() ?? _host?['display_name']?.toString();
+    final title = hostName != null
+        ? '$hostName is live on MeriLive 🎥'
+        : 'Live on MeriLive 🎥';
+    final url = 'https://merilive.top/live-feed/${widget.streamId}';
+    try {
+      await Share.share('$title\n$url', subject: title);
+    } catch (_) {
+      if (mounted) _snack('Could not open share sheet');
+    }
+  }
+
+  Future<void> _openExternal(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && mounted) _snack('Could not open link');
+    } catch (_) {
+      if (mounted) _snack('Could not open link');
+    }
+  }
+
 
   Future<void> _openGamesSheet() async {
     final picked = await PartyGameSelectionSheet.show(context);
@@ -726,6 +772,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             const BigoJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
+            // G-25 — Floating emoji reactions column (pointer-events-none).
+            const Positioned.fill(child: FloatingReactionsOverlay()),
 
             // B4 — Right-anchored combo bar (real-time xN stacker).
             Positioned(

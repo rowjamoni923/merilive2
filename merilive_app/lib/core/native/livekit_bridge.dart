@@ -171,6 +171,40 @@ class LiveKitBridge {
   /// after `ms` ms; missing plugin returns unimplemented.
   Future<Map<String, dynamic>> snapshotVoiceChunk({int ms = 20000}) =>
       _invoke('snapshotVoiceChunk', {'ms': ms});
+
+  // ── Phase G — background music / virtual bg / noise cancel ─────────
+  //
+  // All dormant-safe: `unimplemented` when native handler isn't shipped.
+  // UI treats that as "queued for next APK" and still persists local
+  // state so the toggle survives restarts.
+
+  /// Play a remote music URL through the LiveKit audio mixer (ducked
+  /// against the mic). Pass `url: null` (and `play: false`) to stop.
+  Future<Map<String, dynamic>> setBackgroundMusic({
+    String? url,
+    bool play = true,
+    double volume = 0.6,
+  }) =>
+      _invoke('setBackgroundMusic', {
+        'url': url,
+        'play': play,
+        'volume': volume,
+      });
+
+  Future<Map<String, dynamic>> setBackgroundMusicPlaying(bool playing) =>
+      _invoke('setBackgroundMusicPlaying', {'playing': playing});
+
+  Future<Map<String, dynamic>> setBackgroundMusicVolume(double volume) =>
+      _invoke('setBackgroundMusicVolume', {'volume': volume});
+
+  /// Replace the camera background with a still image (URL) or clear
+  /// with `url: null`. Native side runs GPUPixel segmentation.
+  Future<Map<String, dynamic>> setVirtualBackground({String? url}) =>
+      _invoke('setVirtualBackground', {'url': url});
+
+  /// Toggle RNNoise / WebRTC-NS on the local audio track.
+  Future<Map<String, dynamic>> setNoiseCancellation(bool enabled) =>
+      _invoke('setNoiseCancellation', {'enabled': enabled});
 }
 
 /// Android AudioFocus event bridge — emits transient-loss / gain events
