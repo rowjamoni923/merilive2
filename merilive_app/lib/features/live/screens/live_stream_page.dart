@@ -917,7 +917,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // gifts render above chat, action bar, sheets and the LiveKit
       // renderer. Native VAP (Pkg438) runs above WebView on Android;
       // this Flutter overlay is the fallback + Flutter-only surfaces.
-      body: GlobalGiftOverlay(child: Stack(
+      body: GlobalGiftOverlay(child: _wrapWithSwipe(Stack(
         fit: StackFit.expand,
         children: [
           // Transparent surface — native LiveKit SurfaceViewRenderer
