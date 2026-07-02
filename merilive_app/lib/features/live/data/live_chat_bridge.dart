@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/moderation/contact_moderation.dart';
+
 /// A2 — Chat + Gift + System-notice feed for a live stream.
 ///
 /// Web-truth reference: `src/pages/LiveStream.tsx`.
