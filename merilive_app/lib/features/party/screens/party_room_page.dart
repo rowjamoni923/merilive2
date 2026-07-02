@@ -37,6 +37,8 @@ import '../widgets/party_welcome_banner.dart';
 import '../widgets/party_host_video_controls.dart';
 import '../widgets/party_contributors_sheet.dart';
 import '../widgets/party_close_modal.dart';
+import '../widgets/party_gift_combo_tracker.dart';
+import '../widgets/party_caption_overlay.dart';
 import '../widgets/seat_invite_picker_sheet.dart';
 import '../widgets/seat_invite_response_sheet.dart';
 import '../widgets/video_party_layout.dart';
