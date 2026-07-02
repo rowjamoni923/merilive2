@@ -17,6 +17,7 @@ import '../../features/home/home_shell_page.dart';
 
 
 import '../../features/home/screens/action_placeholders.dart';
+import '../../features/live/screens/live_feed_page.dart';
 import '../../features/live/screens/live_stream_page.dart';
 import '../../features/match/screens/match_call_page.dart';
 import '../../features/leaderboard/leaderboard_page.dart';
@@ -78,6 +79,9 @@ class AppRouter extends _$AppRouter {
           page: LiveStreamRoute.page,
           path: '/live/:streamId',
         ),
+        // Live viewer feed swipe (TikTok/Chamet/Bigo/Hollah/WeJoy style).
+        AutoRoute(page: LiveFeedRoute.page, path: '/live-feed'),
+        AutoRoute(page: LiveFeedRoute.page, path: '/live-feed/:streamId'),
         AutoRoute(
           page: ProfileDetailPlaceholderRoute.page,
           path: '/profile-detail/:userId',
