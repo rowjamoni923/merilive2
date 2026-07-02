@@ -386,7 +386,29 @@ class _ModeLayout extends StatelessWidget {
     final st = cubit.state;
     if (seat.isEmpty) {
       if (cubit.isHost) {
-        await cubit.takeSeat(seat.seatNumber);
+        // Phase A P0 #4 — Chamet-style empty-seat action sheet for host:
+        // move here / invite viewer / lock-unlock.
+        await EmptySeatHostActionsSheet.show(
+          context,
+          seatNumber: seat.seatNumber,
+          isLocked: seat.isLocked,
+          onMoveHere: () => cubit.takeSeat(seat.seatNumber),
+          onToggleLock: () async {
+            final res = await cubit.setSeatLock(
+              seatNumber: seat.seatNumber,
+              locked: !seat.isLocked,
+            );
+            if (!context.mounted) return;
+            final ok = res == null || res['ok'] != false;
+            _snack(
+              context,
+              ok
+                  ? (seat.isLocked ? 'Seat unlocked' : 'Seat locked')
+                  : (res?['error']?.toString() ?? 'Action failed'),
+            );
+          },
+          onInvite: () => _openInviteFlow(context, cubit, seat.seatNumber),
+        );
       } else if (st.selfSeat != null) {
         // already seated, ignore
       } else if (st.selfRequestSeat != null) {
@@ -404,6 +426,54 @@ class _ModeLayout extends StatelessWidget {
       _showHostSheet(context, cubit, seat);
     }
   }
+
+  /// Phase A P0 #2 — Host invite flow: pick a viewer → pick a seat number
+  /// (defaulted to the seat that was tapped) → write into seat_invitations.
+  Future<void> _openInviteFlow(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    int suggestedSeat,
+  ) async {
+    final room = cubit.state.room;
+    final me = Supabase.instance.client.auth.currentUser?.id;
+    if (room == null || me == null) return;
+    final viewer = await InviteViewerPickerSheet.show(context,
+        roomId: room.id);
+    if (viewer == null || !context.mounted) return;
+    final occupied = <int>[
+      for (final s in cubit.state.seats)
+        if (!s.isEmpty) s.seatNumber,
+    ];
+    // Ensure the suggested seat appears first if still free.
+    final maxSeats =
+        room.maxParticipants > 0 ? room.maxParticipants + 1 : 9;
+    final emptySeats = <int>[
+      if (!occupied.contains(suggestedSeat)) suggestedSeat,
+      for (var i = 1; i < maxSeats; i++)
+        if (i != suggestedSeat && !occupied.contains(i)) i,
+    ];
+    final seatNum = await SeatInvitePickerSheet.show(
+      context,
+      inviteeName: viewer.displayName,
+      emptySeats: emptySeats,
+    );
+    if (seatNum == null || !context.mounted) return;
+    try {
+      await cubit.invitations.invite(
+        roomId: room.id,
+        inviterId: me,
+        inviteeId: viewer.id,
+        seatNumber: seatNum,
+      );
+      if (context.mounted) {
+        _snack(context,
+            'Invited ${viewer.displayName} to seat $seatNum');
+      }
+    } catch (e) {
+      if (context.mounted) _snack(context, 'Invite failed: $e');
+    }
+  }
+
 
   void _showHostSheet(
     BuildContext context,
