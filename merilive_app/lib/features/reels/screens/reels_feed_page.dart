@@ -322,13 +322,36 @@ class _FeedPageViewState extends State<_FeedPageView> {
               final reel = state.reels[i];
               final handle = widget.pool.peek(reel.id);
               final isActive = i == state.currentIndex;
-              return ReelPlayer(
-                key: ValueKey('reel-${reel.id}'),
-                reel: reel,
-                handle: handle,
-                isActive: isActive && widget.canPlay,
-                isMuted: widget.muted,
-                onToggleMute: widget.onToggleMute,
+              return Stack(
+                key: ValueKey('reel-stack-${reel.id}'),
+                fit: StackFit.expand,
+                children: [
+                  ReelPlayer(
+                    key: ValueKey('reel-${reel.id}'),
+                    reel: reel,
+                    handle: handle,
+                    isActive: isActive && widget.canPlay,
+                    isMuted: widget.muted,
+                    onToggleMute: widget.onToggleMute,
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: ReelRightRail(
+                      reel: reel,
+                      onLike: (r) =>
+                          context.read<ReelsFeedCubit>().toggleLike(r.id),
+                      onFollow: (r) => context
+                          .read<ReelsFeedCubit>()
+                          .toggleFollow(r.userId),
+                      onAvatarTap: (r) => _openProfile(context, r.userId),
+                      onComment: (r) => _openCommentsPlaceholder(context, r),
+                      onGift: (r) => _openGiftPlaceholder(context, r),
+                      onShare: (r) => _openSharePlaceholder(context, r),
+                      onMore: (r) => _openMoreMenu(context, r),
+                    ),
+                  ),
+                ],
               );
             },
           ),
