@@ -312,6 +312,7 @@ const AdminAgencyPolicy = lazy(lazyRetry(() => import("./pages/admin/AdminAgency
 const AdminLevelManagement = lazy(lazyRetry(() => import("./pages/admin/AdminLevelManagement")));
 const AdminVIPManagement = lazy(lazyRetry(() => import("./pages/admin/AdminVIPManagement")));
 const AdminEntryEffects = lazy(lazyRetry(() => import("./pages/admin/AdminEntryEffects")));
+const AdminGiftAnimationConfig = lazy(lazyRetry(() => import("./pages/admin/AdminGiftAnimationConfig")));
 const AdminFinance = lazy(lazyRetry(() => import("./pages/admin/AdminFinance")));
 const AdminGameManagement = lazy(lazyRetry(() => import("./pages/admin/AdminGameManagement")));
 const AdminPartyManagement = lazy(lazyRetry(() => import("./pages/admin/AdminPartyManagement")));
