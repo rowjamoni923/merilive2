@@ -361,6 +361,13 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                   showFollow: false,
                   onClose: _hangUp,
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, right: 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: CallQualityHud(),
+                  ),
+                ),
                 const Spacer(),
                 _ChatOverlay(
                   scroll: _chatScroll,
