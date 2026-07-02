@@ -1,8 +1,10 @@
 package com.merilive.app.ui.call
 
 import android.app.KeyguardManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -14,12 +16,13 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.View
 import android.view.WindowManager
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.merilive.app.MainActivity
 import com.merilive.app.R
 import com.merilive.app.service.IncomingCallService
+import com.merilive.app.service.MeriFirebaseMessagingService
+
 
 class IncomingCallActivity : AppCompatActivity() {
 
@@ -47,7 +50,9 @@ class IncomingCallActivity : AppCompatActivity() {
         initializeViews()
         startRinging()
         acquireWakeLock()
+        registerDismissReceiver()
     }
+
 
     private fun setupWindowFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -172,13 +177,55 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun sendActionToWebView(action: String) {
-        val broadcastIntent = Intent("com.merilive.app.CALL_ACTION").apply {
+        // Persist to SharedPreferences FIRST so a cold-starting Flutter engine
+        // can pick this up via IncomingCallBridgePlugin.pending even if the
+        // broadcast fires before its receiver is registered.
+        try {
+            val prefs = getSharedPreferences(
+                MeriFirebaseMessagingService.PENDING_PREFS, Context.MODE_PRIVATE
+            )
+            prefs.edit()
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_ACTION, action)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALL_ID, callId)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_ID, callerId)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_NAME, callerName)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_AVATAR, callerAvatar)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALL_TYPE, callType)
+                .putLong(MeriFirebaseMessagingService.PENDING_KEY_TS, System.currentTimeMillis())
+                .apply()
+        } catch (_: Exception) {}
+        val broadcastIntent = Intent(MeriFirebaseMessagingService.BROADCAST_ACTION).apply {
+            setPackage(packageName)
             putExtra("action", action)
             putExtra("call_id", callId)
             putExtra("caller_id", callerId)
+            putExtra("caller_name", callerName)
+            putExtra("caller_avatar", callerAvatar)
+            putExtra("call_type", callType)
         }
         sendBroadcast(broadcastIntent)
     }
+
+    private var dismissReceiver: BroadcastReceiver? = null
+    private fun registerDismissReceiver() {
+        dismissReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val incomingId = intent?.getStringExtra("call_id")
+                if (incomingId == null || incomingId == callId) {
+                    stopRinging()
+                    finish()
+                }
+            }
+        }
+        val filter = IntentFilter("com.merilive.app.INCOMING_CALL_DISMISS")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(dismissReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(dismissReceiver, filter)
+        }
+    }
+
 
     private fun openMainActivityWithCall() {
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -195,12 +242,11 @@ class IncomingCallActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopRinging()
-        try {
-            if (wakeLock?.isHeld == true) wakeLock?.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        try { if (wakeLock?.isHeld == true) wakeLock?.release() } catch (_: Exception) {}
+        try { dismissReceiver?.let { unregisterReceiver(it) } } catch (_: Exception) {}
+        dismissReceiver = null
     }
+
 
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
