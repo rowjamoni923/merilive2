@@ -121,7 +121,7 @@ class _PartyDiscoveryPageState extends State<PartyDiscoveryPage>
                     color: const Color(0xFF6366F1),
                     child: _RoomsGrid(
                       state: state,
-                      onTapRoom: _openPreview,
+                      onTapRoom: _enterRoom,
                     ),
                   ),
                 ),
