@@ -211,7 +211,40 @@ class LiveRaiseHandBridge {
 
   // ── Host actions ─────────────────────────────────────────────────
 
-  Future<bool> approve(RaiseHandEntry entry) => _resolve(entry, 'approved');
+  Future<bool> approve(RaiseHandEntry entry) async {
+    final ok = await _resolve(entry, 'approved');
+    if (!ok) return false;
+
+    // Web-truth (PartyRoom.tsx L2205): on approve, promote the viewer to
+    // speaker via the `livekit-update-permission` edge fn using the
+    // PROMOTE_TO_SPEAKER preset (canPublish + camera/mic/screen sources).
+    try {
+      await _client.functions.invoke(
+        'livekit-update-permission',
+        body: {
+          'roomName': 'live_${entry.streamId}',
+          'identity': entry.viewerId,
+          'permission': {
+            'canPublish': true,
+            'canSubscribe': true,
+            'canPublishData': true,
+            'canPublishSources': [
+              'camera',
+              'microphone',
+              'screen_share',
+              'screen_share_audio',
+            ],
+          },
+          'reason': 'raise_hand_approved',
+        },
+      );
+    } catch (_) {
+      // Non-fatal — queue is already resolved; host can retry from the
+      // multi-guest sheet if the promote round-trip fails.
+    }
+    return true;
+  }
+
   Future<bool> reject(RaiseHandEntry entry) => _resolve(entry, 'rejected');
 
   Future<bool> _resolve(RaiseHandEntry entry, String status) async {

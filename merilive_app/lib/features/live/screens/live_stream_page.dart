@@ -234,14 +234,33 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         final name =
             _client.auth.currentUser?.userMetadata?['name']?.toString() ??
                 'viewer';
+
+        // H4 — password-locked streams: prompt viewer before join RPC.
+        String? password;
+        if (privacy == 'password') {
+          password = await _promptLivePassword();
+          if (!mounted) return;
+          if (password == null || password.isEmpty) {
+            setState(() {
+              _loading = false;
+              _error = 'Password required to enter this live stream.';
+            });
+            return;
+          }
+        }
+
         try {
           await LiveViewerBridge.instance.joinAsViewer(
             streamId: widget.streamId,
             participantName: name,
+            password: password,
           );
         } catch (e) {
           if (mounted) {
-            setState(() => _error = 'Unable to join stream: $e');
+            final needsPwd = e.toString().contains('live_password_required');
+            setState(() => _error = needsPwd
+                ? 'Incorrect password. Please rejoin and try again.'
+                : 'Unable to join stream: $e');
           }
         }
       }
@@ -613,6 +632,37 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         : await b.raise(streamId: widget.streamId);
     if (!mounted) return;
     if (ok) _snack(raised ? 'Hand lowered' : '✋ Hand raised');
+
+  Future<String?> _promptLivePassword() async {
+    final ctrl = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1F2937),
+        title: const Text('Password required',
+            style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: ctrl,
+          obscureText: true,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Enter stream password',
+            hintStyle: TextStyle(color: Colors.white38),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, null),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('Enter')),
+        ],
+      ),
+    );
+  }
 
   Future<void> _shareStream() async {
     final hostName =
