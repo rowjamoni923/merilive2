@@ -48,6 +48,8 @@ import '../widgets/live_pk_start_sheet.dart';
 import '../widgets/live_report_block_sheet.dart';
 import '../widgets/live_sticker_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
+import '../widgets/live_raise_hand_queue_sheet.dart';
+import '../data/live_raise_hand_bridge.dart';
 import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
 import '../widgets/reactions_picker_sheet.dart';
@@ -579,8 +581,25 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       case 'noise':
         LiveNoiseCancelSheet.show(context);
         break;
+      case 'raise_hand':
+        _toggleRaiseHand();
+        break;
+      case 'raise_queue':
+        if (_isHost) {
+          LiveRaiseHandQueueSheet.show(context, widget.streamId);
+        }
+        break;
     }
   }
+
+  Future<void> _toggleRaiseHand() async {
+    final b = LiveRaiseHandBridge.instance;
+    final raised = await b.isRaised(streamId: widget.streamId);
+    final ok = raised
+        ? await b.lower(streamId: widget.streamId)
+        : await b.raise(streamId: widget.streamId);
+    if (!mounted) return;
+    if (ok) _snack(raised ? 'Hand lowered' : '✋ Hand raised');
 
   Future<void> _shareStream() async {
     final hostName =
