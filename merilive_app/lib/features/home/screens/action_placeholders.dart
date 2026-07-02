@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
 
