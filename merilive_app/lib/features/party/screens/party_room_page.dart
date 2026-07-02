@@ -8,6 +8,9 @@ import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
+import '../widgets/party_gift_sheet.dart';
+import '../widgets/party_music_sheet.dart';
+
 
 /// Party Room broadcast + viewer page — PD5.
 /// Native LiveKit audio publish is delegated to the platform plugin in the
@@ -551,15 +554,16 @@ class _BottomBarState extends State<_BottomBar> {
               onTap: cubit.leaveSeat,
             ),
           _circleBtn(
+            icon: Icons.music_note_rounded,
+            color: const Color(0xFF10B981),
+            onTap: () => showPartyMusicSheet(context),
+          ),
+          _circleBtn(
             icon: Icons.card_giftcard_rounded,
             color: Colors.pinkAccent,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Gift panel — arrives with gifting bridge'),
-                duration: Duration(seconds: 2),
-              ));
-            },
+            onTap: () => showPartyGiftSheet(context),
           ),
+
         ],
       ),
     );

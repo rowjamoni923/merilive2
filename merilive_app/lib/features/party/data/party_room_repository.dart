@@ -380,5 +380,98 @@ class PartyRoomRepository {
         })
         .eq('id', requestId);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // PD7 — Gifting bridge (party rooms)
+  // ─────────────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> loadGifts() async {
+    final rows = await _supabase
+        .from('gifts')
+        .select(
+          'id, name, coin_price, coin_value, receiver_beans, icon_url, '
+          'animation_url, svga_url, animation_format, is_full_screen, category',
+        )
+        .eq('is_active', true)
+        .order('coin_price', ascending: true)
+        .limit(200);
+    return (rows as List)
+        .cast<Map>()
+        .map((r) => r.cast<String, dynamic>())
+        .toList();
+  }
+
+  /// Records a gift transaction against the party room. Server triggers
+  /// (idempotency + balance) already exist for `gift_transactions`.
+  Future<void> sendGift({
+    required String roomId,
+    required String senderId,
+    required String receiverId,
+    required String giftId,
+    required int coinCost,
+    required int receiverBeans,
+    int quantity = 1,
+  }) async {
+    final totalCoins = coinCost * quantity;
+    final totalBeans = receiverBeans * quantity;
+    await _supabase.from('gift_transactions').insert({
+      'gift_id': giftId,
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'party_room_id': roomId,
+      'room_id': roomId,
+      'quantity': quantity,
+      'coin_amount': totalCoins,
+      'coin_cost': totalCoins,
+      'coin_value': coinCost,
+      'total_coins': totalCoins,
+      'receiver_beans': totalBeans,
+      'sender_type': 'user',
+    });
+    await _supabase.from('party_room_messages').insert({
+      'room_id': roomId,
+      'user_id': senderId,
+      'content': 'sent a gift',
+      'message_type': 'gift',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // PD7 — Music bridge (host-only)
+  // ─────────────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> loadMusicTracks() async {
+    final rows = await _supabase
+        .from('admin_music_library')
+        .select(
+          'id, title, artist, audio_url, cover_image_url, '
+          'duration_seconds, genre, category',
+        )
+        .eq('is_active', true)
+        .order('display_order', ascending: true)
+        .limit(500);
+    return (rows as List)
+        .cast<Map>()
+        .map((r) => r.cast<String, dynamic>())
+        .toList();
+  }
+
+  Future<void> announceMusic({
+    required String roomId,
+    required String hostId,
+    required String trackTitle,
+    String? artist,
+  }) async {
+    final label = (artist == null || artist.isEmpty)
+        ? trackTitle
+        : '$trackTitle · $artist';
+    await _supabase.from('party_room_messages').insert({
+      'room_id': roomId,
+      'user_id': hostId,
+      'content': 'Now playing: $label',
+      'message_type': 'music',
+    });
+  }
 }
+
 
