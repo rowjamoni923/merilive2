@@ -483,6 +483,12 @@ const navGroups: NavGroup[] = [
         path: "/admin/entry-effects",
         hubKey: "visual-hub",
         description: "SVGA/Lottie animations played in live rooms when a high-level or VIP user enters.",
+      {
+        label: "Gift Animation Config",
+        icon: Sparkles,
+        path: "/admin/gift-animation-config",
+        hubKey: "visual-hub",
+        description: "Global full-screen gift animation toggle + coin threshold (web + Flutter).",
       },
       {
         label: "Entry Banners",
