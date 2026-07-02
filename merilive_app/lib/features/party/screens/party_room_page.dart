@@ -274,20 +274,45 @@ class _RoomHeader extends StatelessWidget {
 
 
 
-class _SeatGrid extends StatelessWidget {
-  const _SeatGrid({required this.seats, required this.currentUserId});
+class _ModeLayout extends StatelessWidget {
+  const _ModeLayout({
+    required this.room,
+    required this.seats,
+    required this.currentUserId,
+  });
+  final PartyRoom room;
   final List<PartySeat> seats;
   final String? currentUserId;
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PartyRoomCubit>();
-    return ChametSeatGrid(
-      seats: seats,
-      currentUserId: currentUserId,
-      onSeatTap: (seat) => _handleSeatTap(context, cubit, seat),
-    );
+    void tap(PartySeat s) => _handleSeatTap(context, cubit, s);
+    switch (room.roomType) {
+      case PartyRoomType.video:
+        return VideoPartyLayout(
+          seats: seats,
+          currentUserId: currentUserId,
+          onSeatTap: tap,
+        );
+      case PartyRoomType.game:
+        return GamePartyLayout(
+          roomId: room.id,
+          seats: seats,
+          currentUserId: currentUserId,
+          isHost: cubit.isHost,
+          onSeatTap: tap,
+        );
+      case PartyRoomType.audio:
+      case PartyRoomType.other:
+        return ChametSeatGrid(
+          seats: seats,
+          currentUserId: currentUserId,
+          onSeatTap: tap,
+        );
+    }
   }
+
 
   Future<void> _handleSeatTap(
     BuildContext context,
