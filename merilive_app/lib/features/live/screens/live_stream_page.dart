@@ -944,6 +944,18 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   viewerCount: _viewerCount,
                   onOpenViewers: _openViewersSheet,
                   onClose: () => context.router.maybePop(),
+                  // Phase I18 — surface real-time connection quality inside
+                  // the canonical header (RoomTopBar) so we don't lose the
+                  // signal indicator after Phase I17 hid the overlay chip.
+                  trailing: AnimatedBuilder(
+                    animation: _overlay,
+                    builder: (_, __) => Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: ConnectionQualityIndicator(
+                        quality: _overlay.connectionQuality,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
