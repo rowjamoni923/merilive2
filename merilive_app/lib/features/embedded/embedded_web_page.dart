@@ -152,71 +152,62 @@ class _EmbeddedWebPageState extends State<EmbeddedWebPage> {
 }
 
 /// M11 — Central registry so every surface uses the same title + web path.
-/// When a native Flutter screen replaces one of these, swap the helper body
-/// to push the native page instead — call sites don't need to change.
+/// Paths verified against `src/App.tsx` during M12 QA sweep — only entries
+/// that actually exist on the web are exposed. When a native Flutter screen
+/// replaces one of these, swap the helper body to push the native page
+/// instead — call sites don't need to change.
 class M11Routes {
   M11Routes._();
 
   // Wallet / money
   static Future<void> openWallet(BuildContext c) =>
-      _push(c, '/wallet', 'Wallet');
+      _push(c, '/agent-wallet', 'Wallet');
   static Future<void> openRecharge(BuildContext c) =>
       _push(c, '/recharge', 'Recharge');
-  static Future<void> openDiamondExchange(BuildContext c) =>
-      _push(c, '/diamond-exchange', 'Diamond Exchange');
 
   // Identity
+  static Future<void> openMyProfile(BuildContext c) =>
+      _push(c, '/profile', 'My Profile');
   static Future<void> openProfile(BuildContext c, String userId) =>
       _push(c, '/profile/$userId', 'Profile');
   static Future<void> openProfileEdit(BuildContext c) =>
-      _push(c, '/profile/edit', 'Edit Profile');
-  static Future<void> openFollowers(BuildContext c) =>
-      _push(c, '/followers', 'Followers');
+      _push(c, '/edit-profile', 'Edit Profile');
   static Future<void> openFollowing(BuildContext c) =>
       _push(c, '/following', 'Following');
   static Future<void> openBlocked(BuildContext c) =>
-      _push(c, '/blocked', 'Blocked Users');
+      _push(c, '/settings/blacklist', 'Blocked Users');
 
-  // Notifications + support
-  static Future<void> openNotifications(BuildContext c) =>
-      _push(c, '/notifications', 'Notifications');
+  // Inbox
+  static Future<void> openChatList(BuildContext c) =>
+      _push(c, '/chat', 'Messages');
   static Future<void> openNotificationPrefs(BuildContext c) =>
-      _push(c, '/notifications/preferences', 'Notification Preferences');
-  static Future<void> openHelpCenter(BuildContext c) =>
-      _push(c, '/help', 'Help Center');
-  static Future<void> openSupportTicket(BuildContext c) =>
-      _push(c, '/support/new', 'Contact Support');
+      _push(c, '/settings/notifications', 'Notification Preferences');
 
   // Programs
   static Future<void> openAgencyPortal(BuildContext c) =>
       _push(c, '/agency', 'Agency Portal');
-  static Future<void> openNoble(BuildContext c) =>
-      _push(c, '/noble', 'Noble Subscription');
   static Future<void> openVip(BuildContext c) => _push(c, '/vip', 'VIP');
   static Future<void> openShop(BuildContext c) => _push(c, '/shop', 'Shop');
+  static Future<void> openInvitation(BuildContext c) =>
+      _push(c, '/invitation', 'Invitations');
 
   // Discovery
   static Future<void> openLeaderboards(BuildContext c) =>
-      _push(c, '/leaderboards', 'Leaderboards');
-  static Future<void> openEvents(BuildContext c) =>
-      _push(c, '/events', 'Events');
+      _push(c, '/leaderboard', 'Leaderboards');
   static Future<void> openDailyRewards(BuildContext c) =>
-      _push(c, '/rewards/daily', 'Daily Rewards');
+      _push(c, '/rewards', 'Daily Rewards');
   static Future<void> openTasks(BuildContext c) =>
       _push(c, '/tasks', 'Daily Tasks');
+  static Future<void> openLevel(BuildContext c) =>
+      _push(c, '/level', 'Level & Privileges');
 
   // Compliance + settings
   static Future<void> openFaceVerification(BuildContext c) =>
       _push(c, '/face-verification', 'Face Verification');
+  static Future<void> openSupport(BuildContext c) =>
+      _push(c, '/support', 'Contact Support');
   static Future<void> openSettings(BuildContext c) =>
       _push(c, '/settings', 'Settings');
-
-  // DM chat (M10 chat-games surface will call PartyGameSelectionSheet
-  // from the composer inside this page).
-  static Future<void> openChatConversation(BuildContext c, String peerId) =>
-      _push(c, '/chat/$peerId', 'Chat');
-  static Future<void> openChatList(BuildContext c) =>
-      _push(c, '/chat', 'Messages');
 
   static Future<void> _push(BuildContext c, String path, String title) {
     return Navigator.of(c).push(
@@ -224,3 +215,4 @@ class M11Routes {
     );
   }
 }
+
