@@ -87,7 +87,7 @@ Superseded by memory constraint **🔓 LIVE + PARTY = ALWAYS PUBLIC** (mem://con
 Written to `.lovable/phase-h-audit.md` — 9-section component-by-component gap list (video/chat/gifting/host tools/games/PK/viewer/safety/entry effects) comparing web (5,334 L `LiveStream.tsx` + 3,174 L `PartyRoom.tsx`, source of truth) vs Flutter (1,483 L + 777 L).
 
 **Findings summary:**
-- **8 P0 gaps** — most impactful: ~~live-stream swipe~~ ✅ SHIPPED 2026-07-02 (`LiveStreamSwipeController` + `_wrapWithSwipe` in `live_stream_page.dart`, web-truth 80/300/150 thresholds), contact-sharing moderation, PK result modal, premium viewer profile card, live tasks card, new-host bonus card
+- **8 P0 gaps** — ~~live-stream swipe~~ ✅ 2026-07-02, ~~contact-sharing moderation (text)~~ ✅ 2026-07-02 (`core/moderation/contact_detection.dart` + `contact_moderation.dart` + `NumberSharingWarningDialog`, wired into `LiveChatBridge.sendMessage` → `process_contact_violation` RPC. Image OCR deferred), PK result modal, premium viewer profile card, live tasks card, new-host bonus card
 - **8 P1 gaps** — host tools mostly (publish layers, audio-only toggle, agent dispatch, SIP dial, room-ended modal, frame monitor reporting, room protection, virtual bg pixel swap)
 - **4 P2 gaps** — reactions quick bar, screen lock, high refresh rate, ingress dialog (likely intentionally skipped per not-an-OBS memory)
 - **Entry effects, gifting, chat, moderation core, raise-hand (H3), noise cancel (H2), audio focus (H2), face detection all at ✅ parity**
