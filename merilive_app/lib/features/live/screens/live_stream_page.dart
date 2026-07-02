@@ -484,6 +484,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               right: 80,
               child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
             ),
+            // A11 — Flying entry name-bar overlay (Flutter fallback when
+            // NativeEntryAnimationPlugin is unavailable).
+            const EntryNameBarOverlay(),
             // A2 — chat overlay + composer, docked above the bottom bar.
             Positioned(
               left: 12,
