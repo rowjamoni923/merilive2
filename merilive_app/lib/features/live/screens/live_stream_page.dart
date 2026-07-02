@@ -72,6 +72,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   bool _isFollowingHost = false;
   bool _followBusy = false;
 
+  // A6 — PK Battle overlay state.
+  PkBattleSnapshot? _pkBattle;
+  StreamSubscription<PkBattleSnapshot?>? _pkSub;
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
