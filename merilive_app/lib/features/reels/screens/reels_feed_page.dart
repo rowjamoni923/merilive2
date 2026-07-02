@@ -401,16 +401,7 @@ void _openProfile(BuildContext context, String userId) {
   );
 }
 
-void _openCommentsPlaceholder(BuildContext context, Reel reel) {
-  // TODO(R6): replace with draggable comments bottom sheet.
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Comments coming next'),
-      duration: Duration(milliseconds: 900),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
+// R6: comments sheet handled by _ReelsFeedPageState._openCommentsSheet.
 
 void _openGiftPlaceholder(BuildContext context, Reel reel) {
   // TODO(R7): bridge to existing gift sender.
