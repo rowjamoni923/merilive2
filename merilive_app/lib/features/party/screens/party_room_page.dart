@@ -167,21 +167,41 @@ class _PartyRoomView extends StatelessWidget {
                   children: [
                     _RoomHeader(room: room, host: state.host, live: state.liveCount),
                     const SizedBox(height: 6),
-                    _ModeLayout(
-                      room: room,
-                      seats: state.seats,
-                      currentUserId:
-                          Supabase.instance.client.auth.currentUser?.id,
-                    ),
-                    const SizedBox(height: 4),
-                    Expanded(
-                      child: PartyChatOverlay(
-                        messages: state.messages,
-                        hostId: state.host?.id,
+                    if (room.roomType == PartyRoomType.game) ...[
+                      Expanded(
+                        child: _ModeLayout(
+                          room: room,
+                          seats: state.seats,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 140,
+                        child: PartyChatOverlay(
+                          messages: state.messages,
+                          hostId: state.host?.id,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                    ] else ...[
+                      _ModeLayout(
+                        room: room,
+                        seats: state.seats,
                         currentUserId:
                             Supabase.instance.client.auth.currentUser?.id,
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: PartyChatOverlay(
+                          messages: state.messages,
+                          hostId: state.host?.id,
+                          currentUserId:
+                              Supabase.instance.client.auth.currentUser?.id,
+                        ),
+                      ),
+                    ],
                     _BottomBar(state: state),
                   ],
                 ),
