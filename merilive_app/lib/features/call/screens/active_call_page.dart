@@ -474,11 +474,14 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
               ],
             ),
           ),
+          // M9 — Self level-up confetti + Lv chip celebration overlay.
+          const LevelUpCelebrationOverlay(),
         ],
       ),
     );
   }
 }
+
 
 class _ChatMsg {
   const _ChatMsg({required this.id, required this.senderId, required this.text});
