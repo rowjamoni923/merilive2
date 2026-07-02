@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/party_host_video_bridge.dart';
@@ -10,6 +11,9 @@ import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
+import '../data/party_seat_invitation_bridge.dart';
+
+
 
 
 class PartyRoomState extends Equatable {
@@ -25,6 +29,7 @@ class PartyRoomState extends Equatable {
     this.isSelfMuted = true,
     this.pendingRequests = const [],
     this.selfRequestSeat,
+    this.pendingInvitation,
   });
 
   final bool isLoading;
@@ -38,6 +43,7 @@ class PartyRoomState extends Equatable {
   final bool isSelfMuted;
   final List<PartySeatRequest> pendingRequests;
   final int? selfRequestSeat; // seat number user is waiting on
+  final PartySeatInvitation? pendingInvitation; // Phase A P0 #2
 
   int get liveCount =>
       seats.where((s) => !s.isEmpty).length; // seat-occupant count
@@ -56,6 +62,8 @@ class PartyRoomState extends Equatable {
     List<PartySeatRequest>? pendingRequests,
     int? selfRequestSeat,
     bool clearSelfRequest = false,
+    PartySeatInvitation? pendingInvitation,
+    bool clearPendingInvitation = false,
   }) =>
       PartyRoomState(
         isLoading: isLoading ?? this.isLoading,
@@ -71,6 +79,9 @@ class PartyRoomState extends Equatable {
         selfRequestSeat: clearSelfRequest
             ? null
             : (selfRequestSeat ?? this.selfRequestSeat),
+        pendingInvitation: clearPendingInvitation
+            ? null
+            : (pendingInvitation ?? this.pendingInvitation),
       );
 
   @override
@@ -86,9 +97,11 @@ class PartyRoomState extends Equatable {
         isSelfMuted,
         pendingRequests,
         selfRequestSeat,
+        pendingInvitation,
       ];
 
 }
+
 
 class PartyRoomCubit extends Cubit<PartyRoomState> {
   PartyRoomCubit({
@@ -98,11 +111,13 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required SupabaseClient supabase,
     PartyLiveKitService? livekit,
     PartyHostVideoBridge? hostVideo,
+    PartySeatInvitationBridge? invitations,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
         _lk = livekit ?? PartyLiveKitService(supabase),
         _hostVideo = hostVideo ?? PartyHostVideoBridge(supabase),
+        _invites = invitations ?? PartySeatInvitationBridge(supabase),
         super(const PartyRoomState());
 
   final String roomId;
@@ -111,16 +126,23 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   final SupabaseClient _supabase;
   final PartyLiveKitService _lk;
   final PartyHostVideoBridge _hostVideo;
+  final PartySeatInvitationBridge _invites;
+  RealtimeChannel? _inviteChannel;
 
   /// Public repo handle for PD7 gift/music sheets.
   PartyRoomRepository get repository => _repo;
 
+  /// Phase A P0 #3 — LiveKit Room handle (viewer subscribe path) so the
+  /// video party layout can render per-seat remote camera tracks.
+  lk.Room? get liveKitRoom => _lk.room;
 
-
+  /// Phase A P0 #2 — Invitation bridge handle for host-side sheets.
+  PartySeatInvitationBridge get invitations => _invites;
 
   String? get _uid => _supabase.auth.currentUser?.id;
   bool get isHost =>
       _uid != null && state.host != null && state.host!.id == _uid;
+
 
   Future<void> start() async {
     try {
@@ -172,6 +194,16 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
         onSeatRequestsChanged: _refreshRequests,
       );
       unawaited(_refreshRequests());
+      // Phase A P0 #2 — subscribe to incoming seat invitations for self.
+      if (uid != null) {
+        _inviteChannel = _invites.subscribeInbox(
+          roomId: roomId,
+          inviteeId: uid,
+          onChanged: _refreshInvitations,
+        );
+        unawaited(_refreshInvitations());
+      }
+
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
@@ -433,6 +465,65 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     await _refreshRequests();
   }
 
+  // ─── Phase A P0 #2 — Seat invitations (invitee inbox) ─────────────
+  Future<void> _refreshInvitations() async {
+    final uid = _uid;
+    if (uid == null) return;
+    try {
+      final rows = await _invites.fetchInbox(roomId: roomId, inviteeId: uid);
+      final first = rows.isEmpty ? null : rows.first;
+      if (first == null) {
+        emit(state.copyWith(clearPendingInvitation: true));
+      } else if (state.pendingInvitation?.id != first.id) {
+        emit(state.copyWith(pendingInvitation: first));
+      }
+    } catch (_) {}
+  }
+
+  /// Invitee accepts a pending seat invitation — server RPC handles the seat
+  /// assignment. Also upgrades the LiveKit connection to publish-capable.
+  Future<void> acceptSeatInvitation(PartySeatInvitation inv) async {
+    final uid = _uid;
+    if (uid == null) return;
+    try {
+      await _invites.accept(inv.id);
+      emit(state.copyWith(clearPendingInvitation: true));
+      try {
+        await _lk.upgradeToSpeaker(roomId: roomId, participantName: uid);
+      } catch (_) {}
+      await _refreshSeats();
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> declineSeatInvitation(PartySeatInvitation inv) async {
+    try {
+      await _invites.decline(inv.id);
+    } catch (_) {}
+    emit(state.copyWith(clearPendingInvitation: true));
+  }
+
+  // ─── Phase A P0 #4 — Host seat lock ───────────────────────────────
+  Future<Map<String, dynamic>?> setSeatLock({
+    required int seatNumber,
+    required bool locked,
+  }) async {
+    if (!isHost) return null;
+    try {
+      final res = await _repo.setSeatLock(
+        roomId: roomId,
+        seatNumber: seatNumber,
+        locked: locked,
+      );
+      await _refreshSeats();
+      return res;
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+      return {'ok': false, 'error': e.toString()};
+    }
+  }
+
   Future<void> leaveRoom() async {
     final uid = _uid;
     if (uid != null) {
@@ -444,6 +535,13 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
 
   @override
   Future<void> close() async {
+    final ch = _inviteChannel;
+    _inviteChannel = null;
+    if (ch != null) {
+      try {
+        await _supabase.removeChannel(ch);
+      } catch (_) {}
+    }
     await _rt.unsubscribe();
     await _lk.disconnect();
     await _hostVideo.stop();
@@ -452,6 +550,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   }
 
 }
+
 
 extension _Let<T> on T {
   R let<R>(R Function(T) f) => f(this);

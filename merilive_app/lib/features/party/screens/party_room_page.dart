@@ -20,8 +20,11 @@ import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
+import '../data/party_seat_invitation_bridge.dart';
 import '../widgets/chamet_seat_grid.dart';
+import '../widgets/empty_seat_host_actions_sheet.dart';
 import '../widgets/game_party_layout.dart';
+import '../widgets/invite_viewer_picker_sheet.dart';
 import '../widgets/party_banners_strip.dart';
 import '../widgets/party_chat_composer.dart';
 import '../widgets/party_chat_overlay.dart';
@@ -30,8 +33,11 @@ import '../widgets/party_game_selection_sheet.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
 import '../widgets/party_room_settings_sheet.dart';
+import '../widgets/seat_invite_picker_sheet.dart';
+import '../widgets/seat_invite_response_sheet.dart';
 import '../widgets/video_party_layout.dart';
 import '../../../shared/widgets/room_top_bar.dart';
+
 
 
 
@@ -126,14 +132,40 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
         realtime: PartyRoomRealtime(supabase),
         supabase: supabase,
       )..start(),
-      child: BlocListener<PartyRoomCubit, PartyRoomState>(
-        listenWhen: (a, b) => a.host?.id != b.host?.id,
-        listener: (_, state) => _host = state.host,
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<PartyRoomCubit, PartyRoomState>(
+            listenWhen: (a, b) => a.host?.id != b.host?.id,
+            listener: (_, state) => _host = state.host,
+          ),
+          // Phase A P0 #2 — Show accept/decline sheet whenever a fresh
+          // pending seat invitation arrives.
+          BlocListener<PartyRoomCubit, PartyRoomState>(
+            listenWhen: (a, b) =>
+                a.pendingInvitation?.id != b.pendingInvitation?.id,
+            listener: _onInvitation,
+          ),
+        ],
         child: const _PartyRoomView(),
       ),
     );
   }
+
+  Future<void> _onInvitation(
+      BuildContext ctx, PartyRoomState state) async {
+    final inv = state.pendingInvitation;
+    if (inv == null) return;
+    final accepted = await SeatInviteResponseSheet.show(ctx, invitation: inv);
+    if (!ctx.mounted) return;
+    final cubit = ctx.read<PartyRoomCubit>();
+    if (accepted == true) {
+      await cubit.acceptSeatInvitation(inv);
+    } else {
+      await cubit.declineSeatInvitation(inv);
+    }
+  }
 }
+
 
 class _PartyRoomView extends StatelessWidget {
   const _PartyRoomView();
@@ -324,7 +356,9 @@ class _ModeLayout extends StatelessWidget {
           seats: seats,
           currentUserId: currentUserId,
           onSeatTap: tap,
+          room: cubit.liveKitRoom,
         );
+
       case PartyRoomType.game:
         return GamePartyLayout(
           roomId: room.id,
@@ -352,7 +386,29 @@ class _ModeLayout extends StatelessWidget {
     final st = cubit.state;
     if (seat.isEmpty) {
       if (cubit.isHost) {
-        await cubit.takeSeat(seat.seatNumber);
+        // Phase A P0 #4 — Chamet-style empty-seat action sheet for host:
+        // move here / invite viewer / lock-unlock.
+        await EmptySeatHostActionsSheet.show(
+          context,
+          seatNumber: seat.seatNumber,
+          isLocked: seat.isLocked,
+          onMoveHere: () => cubit.takeSeat(seat.seatNumber),
+          onToggleLock: () async {
+            final res = await cubit.setSeatLock(
+              seatNumber: seat.seatNumber,
+              locked: !seat.isLocked,
+            );
+            if (!context.mounted) return;
+            final ok = res == null || res['ok'] != false;
+            _snack(
+              context,
+              ok
+                  ? (seat.isLocked ? 'Seat unlocked' : 'Seat locked')
+                  : (res?['error']?.toString() ?? 'Action failed'),
+            );
+          },
+          onInvite: () => _openInviteFlow(context, cubit, seat.seatNumber),
+        );
       } else if (st.selfSeat != null) {
         // already seated, ignore
       } else if (st.selfRequestSeat != null) {
@@ -370,6 +426,54 @@ class _ModeLayout extends StatelessWidget {
       _showHostSheet(context, cubit, seat);
     }
   }
+
+  /// Phase A P0 #2 — Host invite flow: pick a viewer → pick a seat number
+  /// (defaulted to the seat that was tapped) → write into seat_invitations.
+  Future<void> _openInviteFlow(
+    BuildContext context,
+    PartyRoomCubit cubit,
+    int suggestedSeat,
+  ) async {
+    final room = cubit.state.room;
+    final me = Supabase.instance.client.auth.currentUser?.id;
+    if (room == null || me == null) return;
+    final viewer = await InviteViewerPickerSheet.show(context,
+        roomId: room.id);
+    if (viewer == null || !context.mounted) return;
+    final occupied = <int>[
+      for (final s in cubit.state.seats)
+        if (!s.isEmpty) s.seatNumber,
+    ];
+    // Ensure the suggested seat appears first if still free.
+    final maxSeats =
+        room.maxParticipants > 0 ? room.maxParticipants + 1 : 9;
+    final emptySeats = <int>[
+      if (!occupied.contains(suggestedSeat)) suggestedSeat,
+      for (var i = 1; i < maxSeats; i++)
+        if (i != suggestedSeat && !occupied.contains(i)) i,
+    ];
+    final seatNum = await SeatInvitePickerSheet.show(
+      context,
+      inviteeName: viewer.displayName,
+      emptySeats: emptySeats,
+    );
+    if (seatNum == null || !context.mounted) return;
+    try {
+      await cubit.invitations.invite(
+        roomId: room.id,
+        inviterId: me,
+        inviteeId: viewer.id,
+        seatNumber: seatNum,
+      );
+      if (context.mounted) {
+        _snack(context,
+            'Invited ${viewer.displayName} to seat $seatNum');
+      }
+    } catch (e) {
+      if (context.mounted) _snack(context, 'Invite failed: $e');
+    }
+  }
+
 
   void _showHostSheet(
     BuildContext context,

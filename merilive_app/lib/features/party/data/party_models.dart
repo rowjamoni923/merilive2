@@ -88,6 +88,7 @@ class PartyRoom extends Equatable {
     required this.mood,
     required this.description,
     required this.welcomeMessage,
+    required this.isPrivate,
     required this.host,
   });
 
@@ -104,9 +105,18 @@ class PartyRoom extends Equatable {
   final String? mood;
   final String? description;
   final String? welcomeMessage;
+  /// Reflects the `is_locked` column on `party_rooms`. The DB `password_hash`
+  /// column is legacy dead code (per project memory: live+party always public);
+  /// this flag only drives the 🔒 badge and the settings-sheet toggle UI.
+  final bool isPrivate;
   final PartyHost? host;
 
-  PartyRoom copyWith({int? currentParticipants, PartyHost? host}) => PartyRoom(
+  PartyRoom copyWith({
+    int? currentParticipants,
+    PartyHost? host,
+    bool? isPrivate,
+  }) =>
+      PartyRoom(
         id: id,
         name: name,
         roomType: roomType,
@@ -120,12 +130,10 @@ class PartyRoom extends Equatable {
         mood: mood,
         description: description,
         welcomeMessage: welcomeMessage,
+        isPrivate: isPrivate ?? this.isPrivate,
         host: host ?? this.host,
       );
 
-  // Party rooms are always public — professional live-streaming apps
-  // (Chamet / Bigo / Poppo / Olamet) never gate party rooms behind a
-  // password. The DB `password_hash` column is legacy and unused.
   factory PartyRoom.fromRow(Map<String, dynamic> row, {PartyHost? host}) {
     return PartyRoom(
       id: row['id']?.toString() ?? '',
@@ -141,13 +149,16 @@ class PartyRoom extends Equatable {
       mood: row['mood'] as String?,
       description: row['description'] as String?,
       welcomeMessage: row['welcome_message'] as String?,
+      isPrivate: row['is_locked'] == true,
       host: host,
     );
   }
 
   @override
-  List<Object?> get props => [id, currentParticipants, roomType, host];
+  List<Object?> get props =>
+      [id, currentParticipants, roomType, host, isPrivate];
 }
+
 
 /// Party discovery country strip — mirrors web `partyCountries` in `Discover.tsx`.
 class PartyCountry {
