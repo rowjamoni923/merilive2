@@ -33,24 +33,32 @@ class ReelsFeedPage extends StatefulWidget {
 }
 
 class _ReelsFeedPageState extends State<ReelsFeedPage>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   late final ReelsRepository _repo;
   late final ReelsCategoriesCubit _categoriesCubit;
+  late final ReelVideoPool _pool;
 
   // One feed cubit per category slug — TikTok/Bigo keep each tab's scroll
   // position + prefetched pages when the user hops chips.
   final Map<String, ReelsFeedCubit> _feedCubits = {};
   final Map<String, PageController> _pageControllers = {};
 
+  bool _tabVisible = true;
+  bool _appResumed = true;
+  bool _muted = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _repo = ReelsRepository(Supabase.instance.client);
     _categoriesCubit = ReelsCategoriesCubit(_repo)..load();
+    _pool = ReelVideoPool();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     for (final c in _feedCubits.values) {
       c.close();
     }
@@ -58,7 +66,51 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
       c.dispose();
     }
     _categoriesCubit.close();
+    unawaited(_pool.disposeAll());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appResumed = state == AppLifecycleState.resumed;
+    if (!_appResumed) {
+      unawaited(_pool.pauseAll());
+    } else {
+      _syncPlayback();
+    }
+  }
+
+  void _onTabVisibility(double fraction) {
+    final visible = fraction > 0.6;
+    if (visible == _tabVisible) return;
+    _tabVisible = visible;
+    if (!visible) {
+      unawaited(_pool.pauseAll());
+    } else {
+      _syncPlayback();
+    }
+  }
+
+  bool get _canPlay => _tabVisible && _appResumed;
+
+  void _syncPlayback() {
+    // Called after visibility/lifecycle change — the current visible slug's
+    // active reel resumes if we can play.
+    if (!mounted) return;
+    final slug = _categoriesCubit.state.selectedSlug;
+    final cubit = _feedCubits[slug];
+    if (cubit == null) return;
+    final s = cubit.state;
+    if (s.reels.isEmpty) return;
+    final active = s.reels[s.currentIndex.clamp(0, s.reels.length - 1)];
+    if (_canPlay) {
+      unawaited(_pool.play(active.id));
+    }
+  }
+
+  Future<void> _toggleMute() async {
+    setState(() => _muted = !_muted);
+    await _pool.setMuted(_muted);
   }
 
   @override
