@@ -152,7 +152,9 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
         onSeatLocksChanged: _refreshSeats,
         onMessageInsert: _handleMessage,
         onRoomChanged: _refreshRoom,
+        onSeatRequestsChanged: _refreshRequests,
       );
+      unawaited(_refreshRequests());
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
