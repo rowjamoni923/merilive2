@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show VoidCallback;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/new_host_bonus_card.dart';
@@ -117,4 +118,4 @@ class NewHostBonusBridge {
   }
 }
 
-typedef VoidCallback = void Function();
+
