@@ -115,8 +115,22 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
       if (state.category == LeaderboardCategory.pkCompetition) {
         final comps = await _repo.fetchPkCompetitions();
         if (myReq != _reqSeq) return;
-        final active =
-            comps.firstWhere((c) => c.status == 'active', orElse: () => comps.isNotEmpty ? comps.first : _empty);
+        // Prefer user-selected competition if it still exists in the refreshed
+        // list (keeps the strip stable during auto-refresh); else first active.
+        PkCompetitionRow active = _empty;
+        final currentId = state.activePk?.id;
+        if (currentId != null && currentId.isNotEmpty) {
+          active = comps.firstWhere(
+            (c) => c.id == currentId,
+            orElse: () => _empty,
+          );
+        }
+        if (active == _empty) {
+          active = comps.firstWhere(
+            (c) => c.status == 'active',
+            orElse: () => comps.isNotEmpty ? comps.first : _empty,
+          );
+        }
         if (active == _empty) {
           emit(state.copyWith(
             isLoading: false,
