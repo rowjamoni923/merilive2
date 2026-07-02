@@ -253,6 +253,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _channel?.unsubscribe();
     _chatSub?.cancel();
     _giftSub?.cancel();
+    _pkSub?.cancel();
+    PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
     // Best-effort viewer cleanup on route pop without pressing Leave
