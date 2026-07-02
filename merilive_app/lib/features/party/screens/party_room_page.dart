@@ -503,6 +503,11 @@ class _BottomBarState extends State<_BottomBar> {
                 onTap: () => showPartyMusicSheet(context),
               ),
               _circleBtn(
+                icon: Icons.sports_esports_rounded,
+                color: const Color(0xFFA855F7),
+                onTap: () => _openGames(context),
+              ),
+              _circleBtn(
                 icon: Icons.card_giftcard_rounded,
                 color: Colors.pinkAccent,
                 onTap: () => showPartyGiftSheet(context),
@@ -510,6 +515,19 @@ class _BottomBarState extends State<_BottomBar> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _openGames(BuildContext context) async {
+    final roomId = context.read<PartyRoomCubit>().state.room?.id;
+    if (roomId == null) return;
+    final picked = await PartyGameSelectionSheet.show(context);
+    if (picked == null || !context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => PartyGameOverlay(roomId: roomId, game: picked),
       ),
     );
   }
