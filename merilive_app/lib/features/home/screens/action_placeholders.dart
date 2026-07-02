@@ -131,6 +131,8 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
   bool _checking = true;
   bool _previewing = false;
   bool _allowed = false;
+  bool _starting = false;
+  String? _displayName;
 
   // Denial state
   String? _denyCode;
@@ -289,14 +291,84 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
   }
 
   Future<void> _handleStartLive() async {
-    // Actual publish path (LiveKit connect + live_streams insert + FCM push)
-    // lands with C4. Be honest until that ships.
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text(
-        'Publish handoff arrives with C4 (native LiveKit port + Android host).',
-      ),
-      duration: Duration(seconds: 4),
-    ));
+    if (_starting) return;
+    setState(() => _starting = true);
+    final client = Supabase.instance.client;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final user = client.auth.currentUser;
+      if (user == null) {
+        if (mounted) context.router.replaceNamed('/auth');
+        return;
+      }
+
+      // Re-check live-ban immediately before publish — parity with web.
+      final banned = await client.rpc('is_user_live_banned', params: {
+        'p_user_id': user.id,
+      });
+      if (banned == true) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text('Your live has been banned.'),
+        ));
+        return;
+      }
+
+      // Load display name once for the title fallback.
+      _displayName ??= await _fetchDisplayName(client, user.id);
+
+      final titleTrim = _titleCtrl.text.trim();
+      final streamTitle = titleTrim.isNotEmpty
+          ? titleTrim
+          : "${_displayName ?? 'User'}'s Live";
+
+      final startResult = await client.rpc('start_live_stream', params: {
+        'p_title': streamTitle,
+        // Native thumbnail capture arrives with C4b (Kotlin renderer snapshot).
+        'p_thumbnail_url': null,
+        'p_display_name': _displayName ?? 'User',
+        'p_category_id': null,
+        'p_live_privacy': 'public',
+        'p_password': null,
+      });
+
+      final parsed =
+          startResult is Map ? Map<String, dynamic>.from(startResult) : const {};
+      final success = parsed['success'] == true;
+      final stream = parsed['stream'] is Map
+          ? Map<String, dynamic>.from(parsed['stream'])
+          : null;
+      final streamId = stream?['id']?.toString();
+
+      if (!success || streamId == null) {
+        final reason = (parsed['reason'] ?? parsed['error'] ?? 'Failed to start live stream').toString();
+        messenger.showSnackBar(SnackBar(content: Text(reason)));
+        return;
+      }
+
+      // Preserve the native camera handoff — do NOT stop the preview here,
+      // the LiveStream page adopts the same LiveKit LocalVideoTrack.
+      // (Sector 6 LiveStream page owns the actual publish; until it lands
+      // we still navigate so the flow is verifiable end-to-end.)
+      if (!mounted) return;
+      context.router.replaceNamed('/live/$streamId');
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Failed to start live: $e')));
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
+
+  Future<String?> _fetchDisplayName(SupabaseClient client, String userId) async {
+    try {
+      final row = await client
+          .from('profiles')
+          .select('display_name')
+          .eq('id', userId)
+          .maybeSingle();
+      return row?['display_name'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -371,12 +443,24 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
-                    onPressed: _handleStartLive,
-                    icon: const Icon(Icons.radio_rounded),
-                    label: const Text('Start Live'),
+                    onPressed: _starting ? null : _handleStartLive,
+                    icon: _starting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.radio_rounded),
+                    label: Text(_starting ? 'Starting…' : 'Start Live'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          const Color(0xFFEF4444).withOpacity(0.6),
+                      disabledForegroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       shape: RoundedRectangleBorder(
