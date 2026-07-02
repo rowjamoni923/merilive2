@@ -399,8 +399,9 @@ class _CountryStrip extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: active
                     ? const LinearGradient(colors: [
-                        Color(0xFFEC4899),
-                        Color(0xFFF43F5E),
+                        Color(0xFF6D28D9),
+                        Color(0xFF7C3AED),
+                        Color(0xFF4F46E5),
                       ])
                     : null,
                 color: active ? null : Colors.white,
@@ -411,7 +412,7 @@ class _CountryStrip extends StatelessWidget {
                 boxShadow: active
                     ? [
                         BoxShadow(
-                          color: const Color(0xFFEC4899).withOpacity(0.35),
+                          color: const Color(0xFF4F46E5).withOpacity(0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -471,22 +472,81 @@ class _RoomsGrid extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+    return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.82,
-      ),
-      itemCount: rooms.length,
-      itemBuilder: (_, i) => PartyRoomCard(
-        room: rooms[i],
-        onTap: () => onTapRoom(rooms[i]),
+      slivers: [
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _ActiveRoomsHeaderDelegate(count: rooms.length),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.82,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (_, i) => PartyRoomCard(
+                room: rooms[i],
+                onTap: () => onTapRoom(rooms[i]),
+              ),
+              childCount: rooms.length,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActiveRoomsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _ActiveRoomsHeaderDelegate({required this.count});
+  final int count;
+
+  @override
+  double get minExtent => 40;
+  @override
+  double get maxExtent => 40;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: const Color(0xFFFAF7F0).withOpacity(0.96),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      alignment: Alignment.center,
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome_rounded,
+              size: 15, color: Color(0xFFF59E0B)),
+          const SizedBox(width: 6),
+          const Text(
+            'Active Rooms',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '$count rooms',
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  @override
+  bool shouldRebuild(covariant _ActiveRoomsHeaderDelegate old) =>
+      old.count != count;
 }
 
 class _EmptyState extends StatelessWidget {
