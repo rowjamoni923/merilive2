@@ -373,6 +373,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // Fire-and-forget; page is being disposed anyway.
       LiveViewerBridge.instance.leave();
     }
+    _overlay.dispose();
     super.dispose();
   }
 
