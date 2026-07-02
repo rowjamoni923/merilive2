@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/private_call_bridge.dart';
+import '../widgets/call_quality_hud.dart';
 import '../../../shared/widgets/room_top_bar.dart';
 import '../../../shared/widgets/room_bottom_bar.dart';
 
@@ -359,6 +360,13 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                   subtitle: _fmt(_elapsed),
                   showFollow: false,
                   onClose: _hangUp,
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, right: 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: CallQualityHud(),
+                  ),
                 ),
                 const Spacer(),
                 _ChatOverlay(
