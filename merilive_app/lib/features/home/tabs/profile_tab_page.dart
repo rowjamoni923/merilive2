@@ -9,12 +9,11 @@ import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../embedded/embedded_web_page.dart';
 
-/// M11 — Profile tab landing page.
+/// M11 — Profile tab landing.
 ///
-/// A grouped menu that exposes every non-room web surface (wallet, profile,
-/// followers, notifications, agency, noble, VIP, shop, leaderboards, events,
-/// daily rewards, tasks, face verification, settings, DM chat) via
-/// [M11Routes]. Each entry pushes an [EmbeddedWebPage] today; when a native
+/// Grouped menu exposing every non-room web surface that actually exists
+/// (paths verified against `src/App.tsx` in the M12 QA sweep) via
+/// [M11Routes]. Each entry pushes an [EmbeddedWebPage]; when a native
 /// Flutter replacement lands, only the corresponding `M11Routes.open…`
 /// body flips — call sites stay the same.
 class ProfileTabPage extends StatelessWidget {
@@ -45,12 +44,6 @@ class ProfileTabPage extends StatelessWidget {
                     color: const Color(0xFF10B981),
                     onTap: () => M11Routes.openRecharge(context),
                   ),
-                  _Tile(
-                    icon: Icons.diamond_rounded,
-                    label: 'Diamond Exchange',
-                    color: const Color(0xFF06B6D4),
-                    onTap: () => M11Routes.openDiamondExchange(context),
-                  ),
                 ]),
                 _Section(title: 'Identity', tiles: [
                   _Tile(
@@ -59,19 +52,13 @@ class ProfileTabPage extends StatelessWidget {
                     color: const Color(0xFF8B5CF6),
                     onTap: uid == null
                         ? null
-                        : () => M11Routes.openProfile(context, uid),
+                        : () => M11Routes.openMyProfile(context),
                   ),
                   _Tile(
                     icon: Icons.edit_rounded,
                     label: 'Edit Profile',
                     color: const Color(0xFF6366F1),
                     onTap: () => M11Routes.openProfileEdit(context),
-                  ),
-                  _Tile(
-                    icon: Icons.group_rounded,
-                    label: 'Followers',
-                    color: const Color(0xFFEC4899),
-                    onTap: () => M11Routes.openFollowers(context),
                   ),
                   _Tile(
                     icon: Icons.person_add_rounded,
@@ -85,6 +72,12 @@ class ProfileTabPage extends StatelessWidget {
                     color: const Color(0xFF64748B),
                     onTap: () => M11Routes.openBlocked(context),
                   ),
+                  _Tile(
+                    icon: Icons.workspace_premium_rounded,
+                    label: 'Level & Privileges',
+                    color: const Color(0xFFD946EF),
+                    onTap: () => M11Routes.openLevel(context),
+                  ),
                 ]),
                 _Section(title: 'Inbox', tiles: [
                   _Tile(
@@ -94,12 +87,6 @@ class ProfileTabPage extends StatelessWidget {
                     onTap: () => M11Routes.openChatList(context),
                   ),
                   _Tile(
-                    icon: Icons.notifications_rounded,
-                    label: 'Notifications',
-                    color: const Color(0xFFEAB308),
-                    onTap: () => M11Routes.openNotifications(context),
-                  ),
-                  _Tile(
                     icon: Icons.tune_rounded,
                     label: 'Notification Preferences',
                     color: const Color(0xFF7C3AED),
@@ -107,12 +94,6 @@ class ProfileTabPage extends StatelessWidget {
                   ),
                 ]),
                 _Section(title: 'Programs', tiles: [
-                  _Tile(
-                    icon: Icons.workspace_premium_rounded,
-                    label: 'Noble',
-                    color: const Color(0xFFD946EF),
-                    onTap: () => M11Routes.openNoble(context),
-                  ),
                   _Tile(
                     icon: Icons.star_rounded,
                     label: 'VIP',
@@ -131,6 +112,12 @@ class ProfileTabPage extends StatelessWidget {
                     color: const Color(0xFF0EA5E9),
                     onTap: () => M11Routes.openAgencyPortal(context),
                   ),
+                  _Tile(
+                    icon: Icons.card_giftcard_rounded,
+                    label: 'Invitations',
+                    color: const Color(0xFFEC4899),
+                    onTap: () => M11Routes.openInvitation(context),
+                  ),
                 ]),
                 _Section(title: 'Discover', tiles: [
                   _Tile(
@@ -140,13 +127,7 @@ class ProfileTabPage extends StatelessWidget {
                     onTap: () => M11Routes.openLeaderboards(context),
                   ),
                   _Tile(
-                    icon: Icons.event_rounded,
-                    label: 'Events',
-                    color: const Color(0xFFF59E0B),
-                    onTap: () => M11Routes.openEvents(context),
-                  ),
-                  _Tile(
-                    icon: Icons.card_giftcard_rounded,
+                    icon: Icons.emoji_events_rounded,
                     label: 'Daily Rewards',
                     color: const Color(0xFF10B981),
                     onTap: () => M11Routes.openDailyRewards(context),
@@ -166,16 +147,10 @@ class ProfileTabPage extends StatelessWidget {
                     onTap: () => M11Routes.openFaceVerification(context),
                   ),
                   _Tile(
-                    icon: Icons.help_outline_rounded,
-                    label: 'Help Center',
-                    color: const Color(0xFF6B7280),
-                    onTap: () => M11Routes.openHelpCenter(context),
-                  ),
-                  _Tile(
                     icon: Icons.support_agent_rounded,
                     label: 'Contact Support',
                     color: const Color(0xFF64748B),
-                    onTap: () => M11Routes.openSupportTicket(context),
+                    onTap: () => M11Routes.openSupport(context),
                   ),
                   _Tile(
                     icon: Icons.settings_rounded,
