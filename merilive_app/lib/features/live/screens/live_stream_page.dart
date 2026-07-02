@@ -182,6 +182,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // every viewer + host, native-first with Flutter overlay fallback.
       _giftSub = LiveChatBridge.instance.gifts$.listen(_onGiftEvent);
       _chatMessages = LiveChatBridge.instance.snapshot;
+      // G-25 — floating reactions bus (broadcast channel per stream).
+      await LiveReactionsBus.instance.attach(widget.streamId);
+      // Re-apply persisted noise cancellation from last session.
+      await LiveNoiseCancelSheet.applyOnStart();
       final welcome = (host?['name']?.toString() ?? 'the host');
       LiveChatBridge.instance
           .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
