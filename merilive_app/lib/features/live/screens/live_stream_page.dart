@@ -354,6 +354,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
 
   Future<void> _sendChat(String text) => LiveChatBridge.instance.sendMessage(text);
 
+  /// Which stream id represents "the opponent" from this tile's POV?
+  /// If we're viewing/hosting the challenger side, opponent is the opponent's stream;
+  /// otherwise it's the challenger's stream.
+  String? _opponentStreamIdFor(PkBattleSnapshot snap) {
+    final my = widget.streamId;
+    if (snap.challengerStreamId == my) return snap.opponentStreamId;
+    if (snap.opponentStreamId == my) return snap.challengerStreamId;
+    return snap.opponentStreamId;
+  }
+
   /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
   /// renderer is tried first (Pkg438 plugin on Android); when the
   /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
