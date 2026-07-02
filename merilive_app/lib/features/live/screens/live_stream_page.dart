@@ -465,6 +465,36 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
+  /// Phase I14 — accumulate per-sender coin totals for this session and
+  /// push the top-5 into the overlay's `topGifters` list. Runs on every
+  /// gift event (host + viewer tiles both see the same leaderboard).
+  void _accrueTopGifter(LiveGiftEvent e) {
+    final uid = e.senderId;
+    if (uid == null || uid.isEmpty) return;
+    final delta = e.perUnitCoins * e.quantity;
+    if (delta <= 0) return;
+    final existing = _gifterTotals[uid];
+    _gifterTotals[uid] = _GifterTotal(
+      userId: uid,
+      name: e.senderName,
+      avatarUrl: e.senderAvatar,
+      totalCoins: (existing?.totalCoins ?? 0) + delta,
+      lastAt: DateTime.now(),
+    );
+    final sorted = _gifterTotals.values.toList()
+      ..sort((a, b) => b.totalCoins.compareTo(a.totalCoins));
+    _overlay.setTopGifters(sorted
+        .take(5)
+        .map((g) => GiftComboTrackerEntry(
+              userId: g.userId,
+              name: g.name,
+              avatarUrl: g.avatarUrl,
+              totalCoins: g.totalCoins,
+              lastAt: g.lastAt,
+            ))
+        .toList());
+  }
+
   /// A5 — Enqueue full-screen animation for premium gifts. Native VAP
   /// renderer is tried first (Pkg438 plugin on Android); when the
   /// channel is missing or fails, the Flutter `FullScreenGiftQueue`
