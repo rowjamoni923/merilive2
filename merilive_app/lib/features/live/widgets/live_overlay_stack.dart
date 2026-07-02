@@ -98,6 +98,12 @@ class LiveOverlayStack extends StatelessWidget {
   final VoidCallback? onCaptionsToggle;
   final VoidCallback? onAudioUnlock;
 
+  /// Phase I17 — when the caller already renders its own top pill
+  /// (host avatar / follow / viewer-count chip), suppress the overlay's
+  /// duplicate right-side count + quality chip. Top-gifters column and
+  /// PK HUD still render on the left/right.
+  final bool showTopCountChip;
+
   const LiveOverlayStack({
     super.key,
     required this.controller,
@@ -106,6 +112,7 @@ class LiveOverlayStack extends StatelessWidget {
     this.actionBar,
     this.onCaptionsToggle,
     this.onAudioUnlock,
+    this.showTopCountChip = true,
   });
 
   @override
