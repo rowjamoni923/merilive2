@@ -854,6 +854,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   },
                 ),
               ),
+            // Phase I11 — unified overlay layer. Additive; contributes viewer
+            // count HUD, gift combos, premium flying gift banners, premium
+            // join-chat mid-tier, top gifters column, captions, audio unlock,
+            // and PK HUD. Sits above chat + below action bar / modals.
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_overlay.audioUnlockNeeded,
+                child: LiveOverlayStack(controller: _overlay),
+              ),
+            ),
             // A3 — full action bar with host quick-actions.
             Positioned(
               left: 0,
