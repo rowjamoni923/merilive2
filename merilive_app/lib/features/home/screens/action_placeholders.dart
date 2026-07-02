@@ -443,12 +443,24 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
-                    onPressed: _handleStartLive,
-                    icon: const Icon(Icons.radio_rounded),
-                    label: const Text('Start Live'),
+                    onPressed: _starting ? null : _handleStartLive,
+                    icon: _starting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.radio_rounded),
+                    label: Text(_starting ? 'Starting…' : 'Start Live'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          const Color(0xFFEF4444).withOpacity(0.6),
+                      disabledForegroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       shape: RoundedRectangleBorder(
