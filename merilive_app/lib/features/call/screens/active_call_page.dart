@@ -229,11 +229,20 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
 
   Future<void> _openGiftSheet() async {
     HapticFeedback.mediumImpact();
-    // Placeholder — the shared native gift sheet ships in the Gifts sector.
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFF0B1220),
-      builder: (_) => const _GiftSheetPlaceholder(),
+    // M8 — single UnifiedGiftSheet used across Live / Party / Call / Chat /
+    // Reels. Recipient locked to the peer host; `contextId` is the call id
+    // so `gift_transactions` rows are attributed to this session.
+    await showUnifiedGiftSheet(
+      context,
+      surface: GiftSurface.privateCall,
+      contextId: widget.bridge.callId,
+      recipients: [
+        GiftRecipient(
+          id: widget.hostId,
+          label: widget.hostName,
+          avatarUrl: widget.hostAvatarUrl,
+        ),
+      ],
     );
   }
 
