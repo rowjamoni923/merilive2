@@ -57,6 +57,12 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
   bool _reconnecting = false;
   Duration _elapsed = Duration.zero;
 
+  // M7 — billing HUD state (populated from `private_calls` UPDATE payloads
+  // emitted after every `bill_call_minute` tick — no polling).
+  int? _lastBilledMinute;
+  int? _viewerRatePerMin;
+  int? _remainingMinutes;
+
   RealtimeChannel? _chatChannel;
   RealtimeChannel? _statusChannel;
   final List<_ChatMsg> _messages = [];
@@ -132,16 +138,46 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
             value: cid,
           ),
           callback: (payload) {
-            final status = payload.newRecord['status'] as String?;
+            final row = payload.newRecord;
+            final status = row['status'] as String?;
             if (!mounted) return;
+            // M7 — surface every bill_call_minute tick.
+            final billed = (row['last_billed_minute'] as num?)?.toInt();
+            final rate = (row['viewer_rate_per_min'] as num?)?.toInt() ??
+                (row['coins_per_minute'] as num?)?.toInt();
+            setState(() {
+              _reconnecting = status == 'reconnecting';
+              if (billed != null) _lastBilledMinute = billed;
+              if (rate != null && rate > 0) _viewerRatePerMin = rate;
+            });
+            if (rate != null && rate > 0) _refreshRemainingMinutes();
             if (status == 'ended' || status == 'cancelled') {
               _closeWithSettle(reason: 'peer_ended', showRating: true);
-            } else {
-              setState(() => _reconnecting = status == 'reconnecting');
             }
           },
         )
         .subscribe();
+  }
+
+  /// Reads caller's live balance and divides by viewer rate. Runs once per
+  /// billing tick — the RPC already returned `remaining_minutes` but we
+  /// re-compute locally so a mid-call recharge is reflected instantly.
+  Future<void> _refreshRemainingMinutes() async {
+    final uid = _supabase.auth.currentUser?.id;
+    final rate = _viewerRatePerMin;
+    if (uid == null || rate == null || rate <= 0) return;
+    try {
+      final row = await _supabase
+          .from('profiles')
+          .select('coins, diamonds')
+          .eq('id', uid)
+          .maybeSingle();
+      if (row == null || !mounted) return;
+      final coins = (row['coins'] as num?)?.toInt() ?? 0;
+      final diamonds = (row['diamonds'] as num?)?.toInt() ?? 0;
+      final balance = coins > diamonds ? coins : diamonds;
+      setState(() => _remainingMinutes = (balance / rate).floor());
+    } catch (_) {}
   }
 
   void _scrollChatToEnd() {
@@ -361,11 +397,18 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                   showFollow: false,
                   onClose: _hangUp,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 4, right: 12),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: CallQualityHud(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, right: 12, left: 12),
+                  child: Row(
+                    children: [
+                      if (_remainingMinutes != null)
+                        _BillingChip(
+                          remainingMinutes: _remainingMinutes!,
+                          ratePerMin: _viewerRatePerMin ?? 0,
+                        ),
+                      const Spacer(),
+                      const CallQualityHud(),
+                    ],
                   ),
                 ),
                 const Spacer(),
@@ -803,6 +846,50 @@ class _GiftSheetPlaceholder extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// M7 — Compact billing chip. Rendered only after the first
+/// `bill_call_minute` tick populates `viewer_rate_per_min`, so we never
+/// show a bogus "0 min left" during the connect grace window. Color turns
+/// amber when the caller is inside the last 3 minutes of runway.
+class _BillingChip extends StatelessWidget {
+  const _BillingChip({
+    required this.remainingMinutes,
+    required this.ratePerMin,
+  });
+  final int remainingMinutes;
+  final int ratePerMin;
+
+  @override
+  Widget build(BuildContext context) {
+    final low = remainingMinutes <= 3;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: (low ? const Color(0xFFF97316) : Colors.black).withOpacity(0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: (low ? const Color(0xFFF97316) : Colors.white).withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.diamond_rounded, color: Color(0xFFFBBF24), size: 12),
+          const SizedBox(width: 4),
+          Text(
+            '$remainingMinutes min · $ratePerMin/min',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
     );
   }

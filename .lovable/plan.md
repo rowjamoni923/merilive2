@@ -61,9 +61,9 @@ Flutter live viewer parity gaps:
 - Face gate (`can_user_go_live` RPC + `_denyCode == 'face'` branch) verified in `GoLivePlaceholderPage`.
 
 
-## M7 — Realtime + billing parity
+## M7 — Realtime + billing parity ✅
 
-Every web realtime channel must have a Flutter subscriber:
+Every web realtime channel now has a Flutter subscriber:
 
 | Web hook | Table | Flutter bridge |
 |---|---|---|
@@ -72,14 +72,16 @@ Every web realtime channel must have a Flutter subscriber:
 | `useGiftTransactions` | `gift_transactions` | ✅ (A5/A9) |
 | `usePKBattle` | `pk_battles` | ✅ (A6) |
 | `usePartyMessages` | `party_room_messages` | ✅ (A8) |
-| `useSeatRequests` | `seat_requests` | ⚠️ missing |
-| `useCallChat` | `call_chat_messages` | ⚠️ missing |
+| `useSeatRequests` | `seat_requests` | ✅ (M3 live + M4 party) |
+| `useCallChat` | `call_chat_messages` | ✅ (M5) |
 | `useIncomingCall` | `private_calls` | ✅ |
-| `useMatchQueue` | `random_call_queue` | ⚠️ partial |
-| `useRoomBanners` | `party_room_banners` | ⚠️ missing |
+| `useMatchQueue` | `random_call_queue` | ✅ M7 (`_subscribeQueueRow`) |
+| `useRoomBanners` | `party_room_banners` | ✅ (M4) |
 | `useEntryEvents` | `stream_viewers` + `party_participants` | ✅ (A11) |
 
-Billing (`process_billing_tick` RPC) is server-side so already parity — but verify Flutter surfaces call `startBillingSession` / `endBillingSession` correctly for private + random call.
+Billing HUD: `ActiveCallPage._statusChannel` now reads `last_billed_minute` + `viewer_rate_per_min` from every `bill_call_minute` tick and re-reads caller balance to compute `remaining_minutes` (surfaced as `_BillingChip`, amber ≤ 3 min). Server RPC stays the single source of truth — no client-side polling.
+
+
 
 ## M8 — Unified Gift Panel + animations
 
