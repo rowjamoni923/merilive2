@@ -59,16 +59,19 @@ happens.
      repositories { maven { url 'https://jitpack.io' } }
    }
    ```
-6. Register both plugins in `MainActivity.kt`:
+6. Register all plugins in `MainActivity.kt`:
    ```kotlin
    class MainActivity : FlutterActivity() {
      override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
        super.configureFlutterEngine(flutterEngine)
        LiveKitFlutterPlugin.register(flutterEngine, this)
+       NativeGiftAnimationPlugin().register(flutterEngine, this)
+       NativeEntryAnimationPlugin().register(flutterEngine, this)
        flutterEngine.plugins.add(IncomingCallBridgePlugin())
      }
    }
    ```
+
 7. `android/app/src/main/AndroidManifest.xml` — inside `<application>`:
    ```xml
    <service
