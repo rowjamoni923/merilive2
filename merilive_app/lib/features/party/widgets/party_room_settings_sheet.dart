@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/party_room_cubit.dart';
 import '../data/party_models.dart';
+import 'party_background_picker_sheet.dart';
 
 /// M4 — Host-only Party Room settings sheet.
 ///
