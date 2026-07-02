@@ -39,8 +39,8 @@ Future<void> showPartyGiftSheet(BuildContext context) async {
   // Video / audio / game rooms are distinguished by the room type so admin
   // analytics can attribute gifts to the exact surface.
   final surface = switch (state.room?.roomType) {
-    'audio' => GiftSurface.partyAudio,
-    'game' => GiftSurface.partyGame,
+    PartyRoomType.audio => GiftSurface.partyAudio,
+    PartyRoomType.game => GiftSurface.partyGame,
     _ => GiftSurface.partyVideo,
   };
 
