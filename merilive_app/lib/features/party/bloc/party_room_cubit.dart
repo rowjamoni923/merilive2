@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/party_host_video_bridge.dart';
 import '../data/party_livekit_service.dart';
 import '../data/party_models.dart';
 import '../data/party_room_models.dart';
