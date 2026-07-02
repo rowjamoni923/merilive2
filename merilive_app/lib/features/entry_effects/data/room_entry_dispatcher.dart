@@ -107,17 +107,6 @@ class RoomEntryDispatcher {
     }
 
 
-    // 5: Entry name bar — try native (with animation URL), else Flutter banner.
-    bool nativeAccepted = false;
-    if (effects.hasNameBar) {
-      nativeAccepted = await NativeEntryBridge.instance.enqueue(
-        id: 'namebar_${event.userId}_${DateTime.now().microsecondsSinceEpoch}',
-        url: effects.nameBarUrl!,
-        type: _kindFromUrl(effects.nameBarUrl!),
-        priority: event.userLevel,
-        anchor: 'top',
-      );
-    }
 
     if (!nativeAccepted) {
       EntryNameBarQueue.instance.enqueue(EntryNameBarPayload(
