@@ -1,24 +1,28 @@
-// R2 — Vertical feed skeleton.
+// R2 + R3 — Vertical feed with real video player and preload pool.
 //
-// Full-screen dark canvas that hosts:
-//   • Sticky top overlay with category chips (translucent, over video).
-//   • Vertical PageView of reels for the active category.
-//   • Pull-to-refresh at the top.
-//   • Bottom gradient scrim for future info bar (R5).
-//
-// R3 will swap the ReelCardPlaceholder body for the real video player and
-// wire preloading. This file owns the layout skeleton only.
+// R2 laid down the layout skeleton (chip strip + PageView + refresh + states).
+// R3 adds:
+//   • Shared ReelVideoPool (5-controller LRU) with index-1..index+2 preload.
+//   • Global mute toggle propagated to every pooled controller.
+//   • Lifecycle awareness: pauses when tab hidden, app backgrounded, or the
+//     current route is covered by another PageRoute.
+//   • Handoff on category switch — old category's controllers are paused
+//     (kept warm in LRU so hopping back is instant).
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../bloc/reels_categories_cubit.dart';
 import '../bloc/reels_feed_cubit.dart';
+import '../data/reel_video_pool.dart';
 import '../data/reels_models.dart';
 import '../data/reels_repository.dart';
-import '../widgets/reel_card_placeholder.dart';
+import '../widgets/reel_player.dart';
 import '../widgets/reels_category_chips.dart';
 
 class ReelsFeedPage extends StatefulWidget {
