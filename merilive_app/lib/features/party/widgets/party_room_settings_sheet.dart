@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/party_room_cubit.dart';
-import '../data/party_room_models.dart';
+import '../data/party_models.dart';
 
 /// M4 — Host-only Party Room settings sheet.
 ///
