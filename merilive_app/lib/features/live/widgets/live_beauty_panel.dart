@@ -123,7 +123,7 @@ class _LiveBeautyPanelState extends State<LiveBeautyPanel> {
                 ),
                 Switch.adaptive(
                   value: _enabled,
-                  activeThumbColor: const Color(0xFFEC4899),
+                  activeColor: const Color(0xFFEC4899),
                   onChanged: _busy ? null : _toggle,
                 ),
               ],
