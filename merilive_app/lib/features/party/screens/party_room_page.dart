@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../gifting/data/gift_animation_config.dart';
+import '../../gifting/data/native_gift_bridge.dart';
+import '../../gifting/widgets/full_screen_gift_overlay.dart';
+import '../../live/data/live_chat_bridge.dart' show LiveGiftEvent;
 import '../bloc/party_room_cubit.dart';
+import '../data/party_gift_bridge.dart';
 import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
@@ -20,22 +27,90 @@ import '../widgets/party_music_sheet.dart';
 /// broadcast follow-up; this page renders the full seat grid, chat, and
 /// controls so the room is functional immediately for viewers.
 @RoutePage()
-class PartyRoomPage extends StatelessWidget {
+class PartyRoomPage extends StatefulWidget {
   const PartyRoomPage({super.key, @PathParam('roomId') required this.roomId});
 
   final String roomId;
+
+  @override
+  State<PartyRoomPage> createState() => _PartyRoomPageState();
+}
+
+class _PartyRoomPageState extends State<PartyRoomPage> {
+  StreamSubscription<LiveGiftEvent>? _giftSub;
+  PartyHost? _host;
+
+  @override
+  void initState() {
+    super.initState();
+    // A9 — Attach party gift realtime bridge and dispatch premium gifts
+    // through the native VAP/SVGA renderer (Pkg438 plugin); fallback to
+    // Flutter FullScreenGiftQueue via GlobalGiftOverlay in main.dart.
+    PartyGiftBridge.instance.attach(widget.roomId);
+    _giftSub = PartyGiftBridge.instance.gifts$.listen(_onGiftEvent);
+  }
+
+  @override
+  void dispose() {
+    _giftSub?.cancel();
+    PartyGiftBridge.instance.detach();
+    NativeGiftBridge.instance.stopAll();
+    super.dispose();
+  }
+
+  Future<void> _onGiftEvent(LiveGiftEvent e) async {
+    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
+      return;
+    }
+    final receiverLabel =
+        _host?.displayName ?? 'Host';
+    final payload = {
+      'id': e.id,
+      'kind': (e.animationType ?? '').toLowerCase().isNotEmpty
+          ? e.animationType!.toLowerCase()
+          : 'image',
+      'url': e.animationUrl ?? e.giftIcon ?? '',
+      'fallbackImage': e.giftIcon ?? '',
+      'durationMs': 3500,
+      'priority': e.perUnitCoins,
+      'senderName': e.senderName,
+      'receiverName': receiverLabel,
+      'giftName': e.giftName,
+      'quantity': e.quantity,
+      'coinValue': e.perUnitCoins,
+      'surface': 'party',
+    };
+    final acceptedByNative =
+        await NativeGiftBridge.instance.dispatch(payload);
+    if (acceptedByNative) return;
+
+    FullScreenGiftQueue.instance.enqueue(FullScreenGiftPayload(
+      id: e.id,
+      giftName: e.giftName,
+      senderName: e.senderName,
+      receiverName: receiverLabel,
+      quantity: e.quantity,
+      imageUrl: e.giftIcon,
+      animationUrl: e.animationUrl,
+      animationType: e.animationType,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
     return BlocProvider(
       create: (_) => PartyRoomCubit(
-        roomId: roomId,
+        roomId: widget.roomId,
         repository: PartyRoomRepository(supabase),
         realtime: PartyRoomRealtime(supabase),
         supabase: supabase,
       )..start(),
-      child: const _PartyRoomView(),
+      child: BlocListener<PartyRoomCubit, PartyRoomState>(
+        listenWhen: (a, b) => a.host?.id != b.host?.id,
+        listener: (_, state) => _host = state.host,
+        child: const _PartyRoomView(),
+      ),
     );
   }
 }
