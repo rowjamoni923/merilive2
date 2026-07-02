@@ -784,7 +784,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         );
         break;
       case 'tasks':
-        _openExternal('https://merilive.top/tasks');
+        _openTasksSheet();
         break;
       case 'topup':
         _openExternal('https://merilive.top/topup');
