@@ -139,6 +139,46 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
                 hint: 'Pinned announcement in room', maxLines: 3),
             _field('Background image URL', _bg,
                 hint: 'https://...', maxLines: 1),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () async {
+                  final picked =
+                      await PartyBackgroundPickerSheet.show(context);
+                  if (picked != null && mounted) {
+                    setState(() => _bg.text = picked);
+                  }
+                },
+                icon: const Icon(Icons.wallpaper_rounded,
+                    size: 16, color: Color(0xFFA855F7)),
+                label: const Text('Browse backgrounds',
+                    style: TextStyle(color: Color(0xFFA855F7), fontSize: 12)),
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text('Seat count',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final n in const [4, 6, 8, 9, 12, 15])
+                  ChoiceChip(
+                    label: Text('$n'),
+                    labelStyle: TextStyle(
+                        color: _seats == n ? Colors.white : Colors.white70,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12),
+                    backgroundColor: Colors.white10,
+                    selectedColor: const Color(0xFFA855F7),
+                    selected: _seats == n,
+                    onSelected: (_) => setState(() => _seats = n),
+                  ),
+              ],
+            ),
             const SizedBox(height: 6),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
