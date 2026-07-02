@@ -57,6 +57,12 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
   bool _reconnecting = false;
   Duration _elapsed = Duration.zero;
 
+  // M7 — billing HUD state (populated from `private_calls` UPDATE payloads
+  // emitted after every `bill_call_minute` tick — no polling).
+  int? _lastBilledMinute;
+  int? _viewerRatePerMin;
+  int? _remainingMinutes;
+
   RealtimeChannel? _chatChannel;
   RealtimeChannel? _statusChannel;
   final List<_ChatMsg> _messages = [];
