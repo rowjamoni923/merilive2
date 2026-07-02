@@ -1267,6 +1267,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ),
               ),
 
+            // H5 P0 #5 — Host-only new-host bonus card (auto-mounts within
+            // eligibility window; dismiss ✕ hides for the session).
+            if (_isHost && _bonusState.eligible && !_bonusDismissed)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 140,
+                left: 0,
+                right: 0,
+                child: NewHostBonusCard(
+                  daysLeft: _bonusState.daysLeft,
+                  minutesStreamed: _bonusState.minutesStreamed,
+                  coinsEarned: _bonusState.coinsEarned,
+                  milestones: _bonusState.milestones,
+                  onDismiss: () => setState(() => _bonusDismissed = true),
+                ),
+              ),
 
 
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
