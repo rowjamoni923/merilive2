@@ -116,6 +116,16 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     await _pool.setMuted(_muted);
   }
 
+  // R6 — open comments sheet; pause playback while open, resume on close.
+  Future<void> _openCommentsSheet(Reel reel) async {
+    unawaited(_pool.pauseAll());
+    try {
+      await showReelCommentsSheet(context: context, reel: reel);
+    } finally {
+      if (mounted) _syncPlayback();
+    }
+  }
+
   @override
   bool get wantKeepAlive => true;
 
