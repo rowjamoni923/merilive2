@@ -36,6 +36,7 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
   late final TextEditingController _announce;
   late final TextEditingController _bg;
   late bool _locked;
+  late int _seats;
   bool _busy = false;
 
   @override
@@ -46,6 +47,7 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
     _announce = TextEditingController(text: '');
     _bg = TextEditingController(text: widget.room.backgroundUrl ?? '');
     _locked = widget.room.isPrivate;
+    _seats = widget.room.maxParticipants > 0 ? widget.room.maxParticipants : 8;
   }
 
   @override
@@ -67,6 +69,8 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
             announcement: _announce.text.trim(),
             backgroundUrl: _bg.text.trim(),
             isLocked: _locked,
+            maxParticipants:
+                _seats != widget.room.maxParticipants ? _seats : null,
           );
       if (!mounted) return;
       Navigator.of(context).pop();
