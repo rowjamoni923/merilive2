@@ -361,6 +361,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             _TopHeader(
               host: _host,
               viewerCount: _viewerCount,
+              showFollow: !_isHost,
+              isFollowing: _isFollowingHost,
+              followBusy: _followBusy,
+              onFollow: _handleFollowHost,
+              onOpenViewers: _openViewersSheet,
               onClose: () => context.router.maybePop(),
             ),
             // A2 — gift ticker just below the top header.
