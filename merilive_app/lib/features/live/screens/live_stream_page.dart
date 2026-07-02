@@ -22,6 +22,7 @@ import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_gift_feed.dart';
 import '../widgets/live_viewers_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../../../shared/widgets/room_top_bar.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
