@@ -399,8 +399,9 @@ class _CountryStrip extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: active
                     ? const LinearGradient(colors: [
-                        Color(0xFFEC4899),
-                        Color(0xFFF43F5E),
+                        Color(0xFF6D28D9),
+                        Color(0xFF7C3AED),
+                        Color(0xFF4F46E5),
                       ])
                     : null,
                 color: active ? null : Colors.white,
@@ -411,7 +412,7 @@ class _CountryStrip extends StatelessWidget {
                 boxShadow: active
                     ? [
                         BoxShadow(
-                          color: const Color(0xFFEC4899).withOpacity(0.35),
+                          color: const Color(0xFF4F46E5).withOpacity(0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
