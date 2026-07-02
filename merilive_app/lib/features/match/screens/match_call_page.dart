@@ -172,6 +172,7 @@ class _MatchCallPageState extends State<MatchCallPage>
       const Duration(seconds: 1),
       (_) => mounted ? setState(() => _elapsed += 1) : null,
     );
+    _subscribeQueueRow();
 
     try {
       final res = await _supabase.functions.invoke(
