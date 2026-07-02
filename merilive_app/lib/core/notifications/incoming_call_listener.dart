@@ -219,7 +219,6 @@ class IncomingCallListener {
         return true;
       case 'accept':
         if (callId.isNotEmpty) {
-          // Native ringer already fired accept → jump straight to accept flow.
           _dismissRinger();
           _router?.pushNamed('/call/incoming/$callId?auto=1');
         }
@@ -231,10 +230,18 @@ class IncomingCallListener {
           await _serverDecline(callId);
         }
         return true;
+      case 'cancelled':
+        // Caller hung up mid-ring — tear ringer down, no server call.
+        if (callId.isNotEmpty) {
+          _endedCallIds.add(callId);
+          if (_activeCallId == callId) _dismissRinger();
+        }
+        return true;
       default:
         return null;
     }
   }
+
 
   // ─────────────────────────────────────────────────────────────
   // Verified show — mirrors web `showVerifiedIncomingCall`
