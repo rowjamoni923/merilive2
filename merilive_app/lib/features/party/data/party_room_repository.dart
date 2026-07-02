@@ -485,6 +485,7 @@ class PartyRoomRepository {
     String? announcement,
     String? backgroundUrl,
     bool? isLocked,
+    int? maxParticipants,
   }) async {
     final patch = <String, dynamic>{
       'updated_at': DateTime.now().toIso8601String(),
@@ -494,6 +495,10 @@ class PartyRoomRepository {
     if (announcement != null) patch['announcement'] = announcement;
     if (backgroundUrl != null) patch['background_url'] = backgroundUrl;
     if (isLocked != null) patch['is_locked'] = isLocked;
+    if (maxParticipants != null && maxParticipants > 0) {
+      patch['max_participants'] = maxParticipants;
+      patch['total_seats'] = maxParticipants;
+    }
     if (patch.length == 1) return;
     await _supabase.from('party_rooms').update(patch).eq('id', roomId);
   }
