@@ -12,7 +12,10 @@ import '../../features/auth/screens/phone_input_page.dart';
 import '../../features/auth/screens/phone_otp_page.dart';
 import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
+import '../../features/call/screens/active_call_page.dart';
+import '../../features/call/screens/incoming_call_page.dart';
 import '../../features/home/home_shell_page.dart';
+
 import '../../features/home/screens/action_placeholders.dart';
 import '../../features/live/screens/live_stream_page.dart';
 import '../../features/match/screens/match_call_page.dart';
@@ -58,6 +61,18 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: GoLivePlaceholderRoute.page, path: '/go-live'),
         AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
         AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/match-call'),
+
+        // M13 — Incoming private-call ringer + active call surface.
+        AutoRoute(
+          page: IncomingCallRoute.page,
+          path: '/call/incoming/:callId',
+          fullscreenDialog: true,
+        ),
+        AutoRoute(
+          page: ActiveCallRoute.page,
+          path: '/call/active/:callId',
+        ),
+
 
         // Home HostCard tap destinations (H4)
         AutoRoute(

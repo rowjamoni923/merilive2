@@ -112,6 +112,53 @@ class PrivateCallBridge {
     return payload;
   }
 
+  /// M13 — Receiver-side accept path.
+  ///
+  /// Called by the full-screen ringer AFTER the `accept_private_call` RPC
+  /// has returned `true`. Mints the receiver-side LiveKit token (roomType
+  /// `call`, roomName `call_<callId>`), connects native LiveKit with mic +
+  /// camera publishing, and attaches the local renderer. Returns `false`
+  /// if any leg fails so the caller can surface an error + navigate back.
+  Future<bool> acceptIncoming({
+    required String callId,
+    required String participantName,
+  }) async {
+    try {
+      final token = await _supabase.functions.invoke(
+        'livekit-token',
+        body: {
+          'roomName': 'call_$callId',
+          'roomType': 'call',
+          'participantName': participantName,
+        },
+      );
+      final tokenData = token.data;
+      if (tokenData is! Map ||
+          tokenData['token'] == null ||
+          tokenData['url'] == null) {
+        return false;
+      }
+      await LiveKitBridge.instance.initialize();
+      final connect = await LiveKitBridge.instance.connect(
+        wsUrl: tokenData['url'] as String,
+        token: tokenData['token'] as String,
+        publishVideo: true,
+        publishAudio: true,
+      );
+      if (connect['success'] == false &&
+          connect['reason'] != 'unimplemented') {
+        return false;
+      }
+      await LiveKitBridge.instance.attachLocal();
+      _connected = true;
+      _callId = callId;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+
   /// C9 — mic mute wired to native LiveKit local audio publication.
   Future<void> setMuted(bool muted) async {
     try {
