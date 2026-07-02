@@ -546,33 +546,46 @@ class _TopHeader extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (showFollow) ...[
+                      const SizedBox(width: 8),
+                      _FollowPill(
+                        isFollowing: isFollowing,
+                        busy: followBusy,
+                        onTap: onFollow,
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            // Viewer count chip
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.visibility_rounded,
-                      size: 14, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text(
-                    _formatCount(viewerCount),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+            // Viewer count chip — tap opens the viewer list sheet.
+            InkResponse(
+              onTap: onOpenViewers,
+              radius: 24,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.visibility_rounded,
+                        size: 14, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatCount(viewerCount),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 6),
