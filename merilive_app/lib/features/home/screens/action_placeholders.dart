@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
 
@@ -112,70 +113,350 @@ class GoLivePlaceholderPage extends StatefulWidget {
   State<GoLivePlaceholderPage> createState() => _GoLivePlaceholderPageState();
 }
 
+/// GoLive prep screen — Flutter parity of `src/pages/GoLive.tsx`.
+///
+/// Mirrors the exact server contract: calls RPC `can_user_go_live` first,
+/// maps every denial `code` to the same user-facing message as web
+/// (face / host_not_approved / agency_required / account_blocked / banned /
+/// already_live / disabled / level / auth). Only when the gate returns
+/// `allowed:true` do we surface the "Start Live" CTA and start the local
+/// camera preview through the LiveKit bridge.
+///
+/// Actual room publish + LiveKit connect handoff lands with C4 (native
+/// LiveKit publish port). Until then the CTA reports "publish pending —
+/// needs Android host + Kotlin port" so nothing lies to the user.
 class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
-  String _bridgeStatus = 'idle';
+  final _titleCtrl = TextEditingController();
+
+  bool _checking = true;
+  bool _previewing = false;
+  bool _allowed = false;
+
+  // Denial state
+  String? _denyCode;
+  String? _denyMessage;
+  int? _requiredLevel;
+  int? _currentLevel;
 
   @override
   void initState() {
     super.initState();
-    _probeBridge();
-  }
-
-  Future<void> _probeBridge() async {
-    // Fire-and-observe: confirms MethodChannel wiring end-to-end.
-    // Safe no-op on web/iOS or before the Android host is scaffolded.
-    final init = await LiveKitBridge.instance.initialize();
-    final preview =
-        await LiveKitBridge.instance.startLocalPreview(front: true);
-    if (!mounted) return;
-    setState(() {
-      _bridgeStatus =
-          'init=${init['success'] ?? init['reason']}  preview=${preview['success'] ?? preview['reason']}';
-    });
+    _runGate();
   }
 
   @override
   void dispose() {
-    LiveKitBridge.instance.stopLocalPreview();
+    _titleCtrl.dispose();
+    if (_previewing) {
+      LiveKitBridge.instance.stopLocalPreview();
+    }
     super.dispose();
+  }
+
+  Future<void> _runGate() async {
+    setState(() {
+      _checking = true;
+      _denyCode = null;
+      _denyMessage = null;
+    });
+
+    try {
+      final data = await Supabase.instance.client.rpc('can_user_go_live');
+      final gate = (data is Map) ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+      final allowed = gate['allowed'] == true;
+      if (allowed) {
+        setState(() {
+          _allowed = true;
+          _checking = false;
+        });
+        // Warm the surface + start preview only after gate passes.
+        await LiveKitBridge.instance.initialize();
+        final res = await LiveKitBridge.instance.startLocalPreview(front: true);
+        if (!mounted) return;
+        setState(() => _previewing = res['success'] == true || res['pending'] == true);
+      } else {
+        setState(() {
+          _allowed = false;
+          _checking = false;
+          _denyCode = (gate['code'] ?? 'denied').toString();
+          _denyMessage = (gate['reason'] ?? 'You cannot go live right now.').toString();
+          _requiredLevel = (gate['required_level'] as num?)?.toInt();
+          _currentLevel = (gate['current_level'] as num?)?.toInt();
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _allowed = false;
+        _checking = false;
+        _denyCode = 'error';
+        _denyMessage = 'Gate check failed. Please try again.';
+      });
+    }
+  }
+
+  ({String title, String message, String? cta, IconData icon}) _denyCopy() {
+    switch (_denyCode) {
+      case 'face':
+        return (
+          title: 'Face Verification Required',
+          message: 'Verify your face before you can go live. This keeps the community safe.',
+          cta: 'Start Verification',
+          icon: Icons.verified_user_rounded,
+        );
+      case 'host_not_approved':
+        return (
+          title: 'Host Approval Pending',
+          message: 'Your host application is not approved yet. Please wait for admin review.',
+          cta: null,
+          icon: Icons.hourglass_bottom_rounded,
+        );
+      case 'agency_required':
+        return (
+          title: 'Agency Required',
+          message: 'Join an agency before going live as a registered host.',
+          cta: null,
+          icon: Icons.groups_rounded,
+        );
+      case 'account_blocked':
+        return (
+          title: 'Account Blocked',
+          message: 'Your account cannot start live streams.',
+          cta: null,
+          icon: Icons.block_rounded,
+        );
+      case 'banned':
+        return (
+          title: 'Live Ban Active',
+          message: 'You currently have an active live streaming ban.',
+          cta: null,
+          icon: Icons.gavel_rounded,
+        );
+      case 'already_live':
+        return (
+          title: 'Already Live',
+          message: 'You already have an active live stream. Please end it first.',
+          cta: null,
+          icon: Icons.podcasts_rounded,
+        );
+      case 'disabled':
+        return (
+          title: 'Live Streaming Disabled',
+          message: 'Live streaming is temporarily disabled by admin.',
+          cta: null,
+          icon: Icons.pause_circle_filled_rounded,
+        );
+      case 'level':
+        final req = _requiredLevel ?? '?';
+        final cur = _currentLevel ?? 0;
+        return (
+          title: 'Level $req Required',
+          message: 'You need level $req to go live. Your current level is $cur. Recharge, chat and receive gifts to level up.',
+          cta: null,
+          icon: Icons.trending_up_rounded,
+        );
+      case 'auth':
+        return (
+          title: 'Please Sign In',
+          message: 'Your session expired. Please sign in again.',
+          cta: 'Sign In',
+          icon: Icons.login_rounded,
+        );
+      default:
+        return (
+          title: 'Cannot Go Live',
+          message: _denyMessage ?? 'You cannot go live right now.',
+          cta: 'Retry',
+          icon: Icons.error_outline_rounded,
+        );
+    }
+  }
+
+  void _handleDenyCta() {
+    switch (_denyCode) {
+      case 'face':
+        // TODO: route to /face-verification once C-face lands (Sector 6).
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Face verification screen lands with Sector 6.'),
+        ));
+        break;
+      case 'auth':
+        context.router.replaceNamed('/auth');
+        break;
+      default:
+        _runGate();
+    }
+  }
+
+  Future<void> _handleStartLive() async {
+    // Actual publish path (LiveKit connect + live_streams insert + FCM push)
+    // lands with C4. Be honest until that ships.
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text(
+        'Publish handoff arrives with C4 (native LiveKit port + Android host).',
+      ),
+      duration: Duration(seconds: 4),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        const _ComingSoon(
-          title: 'Go Live',
-          subtitle:
-              'Face verification + camera preview + broadcaster controls will be built out with the Live Streaming sector.',
-          icon: Icons.radio_rounded,
-          gradient: [Color(0xFFEF4444), Color(0xFFF43F5E)],
-          sector: 'Sector 6 (Live Streaming)',
-        ),
-        Positioned(
-          left: 16,
-          right: 16,
-          bottom: 24,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.55),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.15)),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        title: const Text('Go Live',
+            style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+      ),
+      extendBodyBehindAppBar: true,
+      body: _checking
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : _allowed
+              ? _buildAllowedBody()
+              : _buildDeniedBody(),
+    );
+  }
+
+  Widget _buildAllowedBody() {
+    // Camera preview mounts natively behind Flutter (via LiveKit bridge).
+    // On non-Android or before Kotlin port, we still show controls so the flow
+    // is testable — no fake pixels, just an honest empty stage.
+    return SafeArea(
+      child: Stack(
+        children: [
+          if (!_previewing)
+            Container(
+              color: const Color(0xFF0B0B12),
+              alignment: Alignment.center,
+              child: const Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Camera preview mounts natively.\nOn Android with the LiveKit host, your face appears here.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                ),
+              ),
             ),
-            child: Text(
-              'LiveKit bridge: $_bridgeStatus',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.55),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.12)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _titleCtrl,
+                    maxLength: 60,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Stream title (optional)',
+                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      counterStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.08),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: _handleStartLive,
+                    icon: const Icon(Icons.radio_rounded),
+                    label: const Text('Start Live'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeniedBody() {
+    final copy = _denyCopy();
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFEF4444), Color(0xFFF43F5E)],
         ),
-      ],
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                  ),
+                  child: Icon(copy.icon, color: Colors.white, size: 48),
+                ),
+                const SizedBox(height: 24),
+                Text(copy.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900)),
+                const SizedBox(height: 10),
+                Text(copy.message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.92),
+                        fontSize: 14,
+                        height: 1.5)),
+                if (copy.cta != null) ...[
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _handleDenyCta,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFFEF4444),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 14),
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    child: Text(copy.cta!),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
