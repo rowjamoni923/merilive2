@@ -1,14 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/native/livekit_bridge.dart';
 
-/// M3 — Beauty bottom sheet for live host.
+/// M3 + B2 — Beauty bottom sheet for live host.
 ///
-/// Wires the four GPUPixel levels the native `LiveKitPlugin` exposes via
-/// `setBeautyEnabled` (master switch). Slider values are UI-only for now
-/// (native side runs the whole pipeline at a single tuned preset); when
-/// per-level channel methods land, they hook into this same panel with
-/// no other UI changes.
+/// Sliders are debounced and forwarded to `LiveKitBridge.setBeautyParams`
+/// which routes into the native GPUPixel filter chain on Android.
+/// On surfaces without the plugin (web / old APK) the calls no-op.
 class LiveBeautyPanel extends StatefulWidget {
   const LiveBeautyPanel({super.key});
 
@@ -30,7 +30,28 @@ class _LiveBeautyPanelState extends State<LiveBeautyPanel> {
   double _whiten = 0.20;
   double _slim = 0.15;
   double _eye = 0.10;
+  double _rosy = 0.05;
   bool _busy = false;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _pushParams() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 90), () {
+      LiveKitBridge.instance.setBeautyParams(
+        smooth: _enabled ? _smooth : 0,
+        whiten: _enabled ? _whiten : 0,
+        slim: _enabled ? _slim : 0,
+        eye: _enabled ? _eye : 0,
+        rosy: _enabled ? _rosy : 0,
+      );
+    });
+  }
 
   Future<void> _toggle(bool v) async {
     setState(() {
@@ -38,7 +59,19 @@ class _LiveBeautyPanelState extends State<LiveBeautyPanel> {
       _busy = true;
     });
     await LiveKitBridge.instance.setBeautyEnabled(v);
+    _pushParams();
     if (mounted) setState(() => _busy = false);
+  }
+
+  void _reset() {
+    setState(() {
+      _smooth = 0;
+      _whiten = 0;
+      _slim = 0;
+      _eye = 0;
+      _rosy = 0;
+    });
+    _pushParams();
   }
 
   @override
@@ -59,7 +92,8 @@ class _LiveBeautyPanelState extends State<LiveBeautyPanel> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: Colors.white24,
                 borderRadius: BorderRadius.circular(2),
@@ -78,18 +112,43 @@ class _LiveBeautyPanelState extends State<LiveBeautyPanel> {
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),
                 ),
+                TextButton(
+                  onPressed: _busy ? null : _reset,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    minimumSize: const Size(0, 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  child: const Text('Reset', style: TextStyle(fontSize: 12)),
+                ),
                 Switch.adaptive(
                   value: _enabled,
-                  activeColor: const Color(0xFFEC4899),
+                  activeThumbColor: const Color(0xFFEC4899),
                   onChanged: _busy ? null : _toggle,
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            _slider('Smooth', _smooth, (v) => setState(() => _smooth = v)),
-            _slider('Whiten', _whiten, (v) => setState(() => _whiten = v)),
-            _slider('Face Slim', _slim, (v) => setState(() => _slim = v)),
-            _slider('Eye Enlarge', _eye, (v) => setState(() => _eye = v)),
+            _slider('Smooth', _smooth, (v) {
+              setState(() => _smooth = v);
+              _pushParams();
+            }),
+            _slider('Whiten', _whiten, (v) {
+              setState(() => _whiten = v);
+              _pushParams();
+            }),
+            _slider('Face Slim', _slim, (v) {
+              setState(() => _slim = v);
+              _pushParams();
+            }),
+            _slider('Eye Enlarge', _eye, (v) {
+              setState(() => _eye = v);
+              _pushParams();
+            }),
+            _slider('Rosy', _rosy, (v) {
+              setState(() => _rosy = v);
+              _pushParams();
+            }),
           ],
         ),
       ),
