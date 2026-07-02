@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
+import '../../call/data/private_call_bridge.dart';
+import '../../call/screens/active_call_page.dart';
 
 /// C7 — Match Call (Flutter parity with `src/pages/MatchCall.tsx`).
 ///
@@ -272,10 +274,55 @@ class _MatchCallPageState extends State<MatchCallPage>
     _broadcastId = null;
     if (!mounted) return;
     setState(() => _phase = _MatchPhase.matched);
-    // TODO(C8): promote LiveKit preview → private-call room via native bridge
-    // and open the ActiveCall surface. For now surface the handoff cleanly.
-    await Future.delayed(const Duration(milliseconds: 700));
-    _snack('Matched! Opening call surface…');
+
+    // C8 — server-authoritative dial + native LiveKit connect. We reuse the
+    // warmed prejoin camera by leaving the native preview alive; the plugin
+    // promotes it into the new call room on `connect(publishVideo:true)`.
+    _previewStarted = false; // ownership handed to PrivateCallBridge
+    Map<String, dynamic>? hostProfile;
+    try {
+      hostProfile = await _supabase
+          .from('profiles')
+          .select('username, avatar_url')
+          .eq('id', hostId)
+          .maybeSingle();
+    } catch (_) {}
+
+    final bridge = PrivateCallBridge(_supabase);
+    Map<String, dynamic>? result;
+    try {
+      result = await bridge.startAsCaller(
+        hostId: hostId,
+        participantName: _supabase.auth.currentUser?.id ?? 'caller',
+      );
+    } catch (e) {
+      _handleError('internal_error', {'message': '$e'});
+      return;
+    }
+    if (result == null || result['success'] == false) {
+      final code = (result?['error'] as String?) ?? 'internal_error';
+      _handleError(code, result);
+      return;
+    }
+
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => ActiveCallPage(
+          bridge: bridge,
+          hostName: (hostProfile?['username'] as String?) ?? 'Host',
+          hostAvatarUrl: hostProfile?['avatar_url'] as String?,
+          matchSessionId: sessionId,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    // Returned from call → reset to prep.
+    setState(() {
+      _phase = _MatchPhase.prep;
+      _elapsed = 0;
+    });
   }
 
   Future<void> _cancelSearch() async {
