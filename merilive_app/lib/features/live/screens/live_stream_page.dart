@@ -491,6 +491,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         count: e.quantity,
       ));
     }
+    // Phase I14 — session leaderboard (host tile shows top 5 gifters).
+    _accrueTopGifter(e);
 
     if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
       return;
