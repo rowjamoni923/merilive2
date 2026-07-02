@@ -645,12 +645,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                     0,
               ),
             ),
-            // A2 — gift ticker just below the coin chip.
+            // A2 + B5 — Flying gift capsule stack (top-left below coin chip).
+            // Bigo/Chamet-style tier-gradient capsule stack (≤3 visible,
+            // 44px offset, count-up on combo merge, 3.5s dismiss window).
             Positioned(
               top: MediaQuery.of(context).padding.top + 112,
               left: 12,
               right: 80,
-              child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
+              child: FlyingGiftCapsuleStack(stream: LiveChatBridge.instance.gifts$),
             ),
 
             // A11 — Flying entry name-bar overlay (Flutter fallback when
