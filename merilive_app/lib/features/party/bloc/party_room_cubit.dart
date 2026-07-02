@@ -151,8 +151,16 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       if (uid != null) {
         await _repo.joinAsViewer(roomId, uid);
         emit(state.copyWith(isJoined: true));
-        // PD5b — connect to LiveKit as subscribe-only viewer for room audio.
-        unawaited(_connectViewer());
+        // C6 — video/game host reuses the prejoin native camera (Camera2
+        // sensor never re-opens). Audio parties + all viewers still use the
+        // Dart livekit_client subscribe path.
+        final needsHostVideo = isHost &&
+            res.room.roomType != PartyRoomType.audio;
+        if (needsHostVideo) {
+          unawaited(_promoteHostVideo(uid));
+        } else {
+          unawaited(_connectViewer());
+        }
       }
 
       _rt.subscribe(
