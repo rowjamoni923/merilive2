@@ -138,16 +138,46 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
             value: cid,
           ),
           callback: (payload) {
-            final status = payload.newRecord['status'] as String?;
+            final row = payload.newRecord;
+            final status = row['status'] as String?;
             if (!mounted) return;
+            // M7 — surface every bill_call_minute tick.
+            final billed = (row['last_billed_minute'] as num?)?.toInt();
+            final rate = (row['viewer_rate_per_min'] as num?)?.toInt() ??
+                (row['coins_per_minute'] as num?)?.toInt();
+            setState(() {
+              _reconnecting = status == 'reconnecting';
+              if (billed != null) _lastBilledMinute = billed;
+              if (rate != null && rate > 0) _viewerRatePerMin = rate;
+            });
+            if (rate != null && rate > 0) _refreshRemainingMinutes();
             if (status == 'ended' || status == 'cancelled') {
               _closeWithSettle(reason: 'peer_ended', showRating: true);
-            } else {
-              setState(() => _reconnecting = status == 'reconnecting');
             }
           },
         )
         .subscribe();
+  }
+
+  /// Reads caller's live balance and divides by viewer rate. Runs once per
+  /// billing tick — the RPC already returned `remaining_minutes` but we
+  /// re-compute locally so a mid-call recharge is reflected instantly.
+  Future<void> _refreshRemainingMinutes() async {
+    final uid = _supabase.auth.currentUser?.id;
+    final rate = _viewerRatePerMin;
+    if (uid == null || rate == null || rate <= 0) return;
+    try {
+      final row = await _supabase
+          .from('profiles')
+          .select('coins, diamonds')
+          .eq('id', uid)
+          .maybeSingle();
+      if (row == null || !mounted) return;
+      final coins = (row['coins'] as num?)?.toInt() ?? 0;
+      final diamonds = (row['diamonds'] as num?)?.toInt() ?? 0;
+      final balance = coins > diamonds ? coins : diamonds;
+      setState(() => _remainingMinutes = (balance / rate).floor());
+    } catch (_) {}
   }
 
   void _scrollChatToEnd() {
