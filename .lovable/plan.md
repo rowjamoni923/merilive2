@@ -112,3 +112,17 @@ Phase C (later, P2 polish)
 - Host can lock / unlock individual seats + tap-empty-seat action menu
 
 Party Room will match web at feature-parity for all critical flows; only cosmetic / niche gaps (P1/P2) remain for follow-up passes.
+---
+
+## Phase A — DONE (2026-07-02)
+
+All 4 P0 gaps closed. Pure Dart / widget changes — no APK rebuild, no backend migration (every RPC/table already exists in Supabase).
+
+- **G1 `isPrivate`** — added to `PartyRoom` model, derived from `party_rooms.is_locked`, propagated through `copyWith` + `fromRow`. All 4 pre-existing call sites now compile against a real field.
+- **G2 Seat invitations** — new `party_seat_invitation_bridge.dart` (invite / accept / decline / inbox fetch + realtime subscribe). Cubit tracks `pendingInvitation` and shows `SeatInviteResponseSheet` (30s countdown, accept/decline) on invitee side. Host flow: empty-seat sheet → `InviteViewerPickerSheet` (lists free viewers) → `SeatInvitePickerSheet` (picks seat) → `seat_invitations` insert. Server RPCs `accept_seat_invitation` / `decline_seat_invitation` used.
+- **G3 Per-seat video** — `video_party_layout.dart` rewritten to subscribe to LiveKit `Room` events (`TrackSubscribed`, `TrackPublished`, etc.), map seat.userId → RemoteParticipant.identity, mount `VideoTrackRenderer` on the seat tile with avatar fallback. Cubit exposes `liveKitRoom` getter. Host-on-native-Camera2 path still shows avatar (known follow-up).
+- **G4 Seat lock** — `PartyRoomRepository.setSeatLock` → `set_seat_lock` RPC; `EmptySeatHostActionsSheet` (Move here / Invite viewer / Lock-Unlock) replaces the auto-take-seat behavior on host empty-seat tap. Lock state renders in both video tile (padlock) and audio grid (existing `isLocked` handling).
+
+Files touched:
+- new: `party_seat_invitation_bridge.dart`, `seat_invite_picker_sheet.dart`, `seat_invite_response_sheet.dart`, `invite_viewer_picker_sheet.dart`, `empty_seat_host_actions_sheet.dart`
+- edited: `party_models.dart`, `party_room_repository.dart`, `party_room_cubit.dart`, `party_room_page.dart`, `video_party_layout.dart`
