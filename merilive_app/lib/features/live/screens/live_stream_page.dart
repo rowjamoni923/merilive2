@@ -211,6 +211,31 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           if (mounted) setState(() => _isFollowingHost = following);
         } catch (_) {}
       }
+
+      // Phase E — host-only content-safety + call-focus.
+      if (_isHost) {
+        final uid = _client.auth.currentUser?.id ?? '';
+        _faceDetection = LiveFaceDetection(
+          streamId: widget.streamId,
+          hostId: uid,
+          onAutoClose: () {
+            if (!mounted) return;
+            _handleLeaveOrEnd();
+          },
+        )..start();
+        _voiceMonitor = LiveVoiceMonitor(
+          streamId: widget.streamId,
+          userId: uid,
+        )..start();
+        _audioFocusMute = AudioFocusAutoMute(
+          isMicEnabled: () => !_isMicMuted,
+          setMicEnabled: (on) async {
+            if (!mounted) return;
+            setState(() => _isMicMuted = !on);
+            await LiveKitBridge.instance.setMicEnabled(on);
+          },
+        )..start();
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
