@@ -125,13 +125,15 @@ class GoLivePlaceholderPage extends StatefulWidget {
 /// Actual room publish + LiveKit connect handoff lands with C4 (native
 /// LiveKit publish port). Until then the CTA reports "publish pending —
 /// needs Android host + Kotlin port" so nothing lies to the user.
-class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
+class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
+    with WidgetsBindingObserver {
   final _titleCtrl = TextEditingController();
 
   bool _checking = true;
   bool _previewing = false;
   bool _allowed = false;
   bool _starting = false;
+  bool _endingExisting = false;
   String? _displayName;
 
   // Denial state
@@ -143,17 +145,30 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _runGate();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _titleCtrl.dispose();
     if (_previewing) {
       LiveKitBridge.instance.stopLocalPreview();
     }
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Auto-refresh the gate when the user returns from face verification
+    // or any external flow (matches web behaviour where the profile realtime
+    // listener flips the CTA back on approval).
+    if (state == AppLifecycleState.resumed && !_allowed) {
+      _runGate();
+    }
+  }
+
 
   Future<void> _runGate() async {
     setState(() {
