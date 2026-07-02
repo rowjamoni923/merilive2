@@ -4514,36 +4514,105 @@ const LiveStream = () => {
             </motion.button>
           )}
 
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            whileHover={{ scale: 1.06 }}
-            onClick={() => setShowGamePanel(true)}
-            aria-label="Open games"
-            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-            style={{
-              background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%)',
-              boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
-            }}
-          >
-            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-            <BrandedGameIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
-          </motion.button>
+          {/* Host-only quick actions — Beauty, Flip, Mic (parity with Bigo/Chamet host bar) */}
+          {isHost && (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={() => {
+                  setShowBeautyPanel(true);
+                  if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => {}); }
+                }}
+                aria-label="Beauty filters"
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #d946ef 45%, #7e22ce 100%)',
+                  boxShadow: '0 6px 18px rgba(217,70,239,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.2} />
+              </motion.button>
 
-          {/* Quick Like — one-tap heart orb (industry standard on Bigo/Chamet) */}
-          <motion.button
-            whileTap={{ scale: 0.82 }}
-            whileHover={{ scale: 1.06 }}
-            onClick={handleLike}
-            aria-label="Send heart"
-            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-            style={{
-              background: 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #f43f5e 45%, #9f1239 100%)',
-              boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
-            }}
-          >
-            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-            <Heart className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10 fill-white/90" strokeWidth={2.2} />
-          </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={() => { void handleFlipCamera(); }}
+                aria-label="Flip camera"
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #ddd6fe 0%, #8b5cf6 45%, #5b21b6 100%)',
+                  boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+                <SwitchCamera className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.2} />
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={() => {
+                  const next = !isHostMicMuted;
+                  setIsHostMicMuted(next);
+                  try { void toggleAudio(!next); } catch {}
+                }}
+                aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{
+                  background: isHostMicMuted
+                    ? 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #ef4444 45%, #991b1b 100%)'
+                    : 'radial-gradient(120% 120% at 30% 20%, #a5f3fc 0%, #06b6d4 45%, #0e7490 100%)',
+                  boxShadow: isHostMicMuted
+                    ? '0 6px 18px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)'
+                    : '0 6px 18px rgba(6,182,212,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+                {isHostMicMuted
+                  ? <MicOff className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.3} />
+                  : <Mic className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.3} />}
+              </motion.button>
+            </>
+          )}
+
+          {/* Viewer-only: Games + quick Heart */}
+          {!isHost && (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={() => setShowGamePanel(true)}
+                aria-label="Open games"
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%)',
+                  boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+                <BrandedGameIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.82 }}
+                whileHover={{ scale: 1.06 }}
+                onClick={handleLike}
+                aria-label="Send heart"
+                className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #f43f5e 45%, #9f1239 100%)',
+                  boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+                <Heart className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10 fill-white/90" strokeWidth={2.2} />
+              </motion.button>
+            </>
+          )}
+
+
 
 
 
