@@ -37,6 +37,7 @@ import io.livekit.android.events.RoomEvent
 import io.livekit.android.events.collect
 import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.Room
+import io.livekit.android.room.participant.ConnectionQuality
 import io.livekit.android.room.participant.LocalParticipant
 import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrack
@@ -468,11 +469,24 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
     private fun getStats(result: MethodChannel.Result) {
         val r = room
         if (r == null) return result.success(mapOf("success" to false, "reason" to "no_room"))
+        // LiveKit exposes server-computed per-participant ConnectionQuality
+        // (EXCELLENT / GOOD / POOR / LOST / UNKNOWN) already smoothed on the
+        // SFU from RTCStats (packetsLost, jitter, rtt). We just forward the
+        // local participant's value — matches Bigo/Chamet host-side signal
+        // chip logic (they surface their host's uplink, not viewer downlink).
+        val lp = r.localParticipant
+        val qLabel = when (lp.connectionQuality) {
+            ConnectionQuality.EXCELLENT -> "excellent"
+            ConnectionQuality.GOOD -> "good"
+            ConnectionQuality.POOR, ConnectionQuality.LOST -> "poor"
+            else -> "unknown"
+        }
         result.success(
             mapOf(
                 "success" to true,
                 "state" to (r.state?.name ?: "unknown"),
                 "numParticipants" to (r.remoteParticipants.size + if (connected.get()) 1 else 0),
+                "quality" to qLabel,
             )
         )
     }
