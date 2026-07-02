@@ -134,6 +134,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // Phase I11 — unified overlay controller (viewer count, HUD, gift combos,
   // premium banners, captions, audio unlock, top gifters, PK HUD).
   final LiveOverlayController _overlay = LiveOverlayController();
+  // Phase I14 — session-scope running totals per gifter (host-side leaderboard).
+  final Map<String, _GifterTotal> _gifterTotals = {};
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
