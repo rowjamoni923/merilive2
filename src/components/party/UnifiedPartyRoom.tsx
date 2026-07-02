@@ -1888,16 +1888,26 @@ export function UnifiedPartyRoom({
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-9 bg-black/60 border border-white/20 rounded-full text-white placeholder:text-white/50 pr-9 text-xs pl-3.5 focus:outline-none focus:border-white/40"
+              className="w-full h-10 rounded-full text-white placeholder:text-white/55 pr-10 text-[13px] pl-4 focus:outline-none border transition-colors"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.65), rgba(20,15,35,0.75))',
+                borderColor: 'rgba(255,255,255,0.18)',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(14px)',
+              }}
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.form?.requestSubmit()}
             />
             <button
               type="submit"
               disabled={!chatInput.trim()}
               aria-label="Send message"
-              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-white hover:bg-white/10 flex items-center justify-center disabled:opacity-50"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-40 transition-all"
+              style={{
+                background: chatInput.trim() ? 'linear-gradient(135deg, #ec4899, #f43f5e)' : 'rgba(255,255,255,0.08)',
+                boxShadow: chatInput.trim() ? '0 2px 10px rgba(236,72,153,0.45)' : 'none',
+              }}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-white" />
             </button>
           </form>
 
