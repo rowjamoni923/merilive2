@@ -110,6 +110,7 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   final PartyRoomRealtime _rt;
   final SupabaseClient _supabase;
   final PartyLiveKitService _lk;
+  final PartyHostVideoBridge _hostVideo;
 
   /// Public repo handle for PD7 gift/music sheets.
   PartyRoomRepository get repository => _repo;
