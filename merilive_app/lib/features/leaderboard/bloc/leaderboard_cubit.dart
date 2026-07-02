@@ -74,6 +74,40 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     await load();
   }
 
+  /// Switch the active PK competition (chip strip). Reloads only the
+  /// participants + reward tiers for that competition — the competitions list
+  /// itself isn't refetched, which keeps the strip stable while data loads.
+  Future<void> selectPkCompetition(String competitionId) async {
+    if (state.category != LeaderboardCategory.pkCompetition) return;
+    if (state.activePk?.id == competitionId) return;
+    final target = state.pkCompetitions.firstWhere(
+      (c) => c.id == competitionId,
+      orElse: () => _empty,
+    );
+    if (target == _empty) return;
+    final myReq = ++_reqSeq;
+    emit(state.copyWith(
+      activePk: target,
+      isLoading: true,
+      rankings: const [],
+      rewardTiers: const [],
+      clearError: true,
+    ));
+    try {
+      final parts = await _repo.fetchPkParticipants(target);
+      final rewards = await _repo.fetchPkRewardTiers(target.id);
+      if (myReq != _reqSeq) return;
+      emit(state.copyWith(
+        isLoading: false,
+        rankings: parts,
+        rewardTiers: rewards,
+      ));
+    } catch (e) {
+      if (myReq != _reqSeq) return;
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
   Future<void> load() async {
     final myReq = ++_reqSeq;
     emit(state.copyWith(isLoading: true, clearError: true));
