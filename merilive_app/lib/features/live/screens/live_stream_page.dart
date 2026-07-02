@@ -19,13 +19,16 @@ import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
 import '../data/pk_battle_bridge.dart';
+import '../data/pk_start_bridge.dart';
 import '../widgets/live_action_bar.dart';
 import '../widgets/live_beauty_panel.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_game_overlay.dart';
 import '../widgets/live_gift_feed.dart';
+import '../widgets/live_host_moderation_sheet.dart';
 import '../widgets/live_multi_guest_sheet.dart';
+import '../widgets/live_pk_start_sheet.dart';
 import '../widgets/live_report_block_sheet.dart';
 import '../widgets/live_viewers_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
@@ -87,6 +90,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // A6 — PK Battle overlay state.
   PkBattleSnapshot? _pkBattle;
   StreamSubscription<PkBattleSnapshot?>? _pkSub;
+
+  // R6a — challenger-side random-match search state (lifted from panel so
+  // the search survives closing the sheet). Mirrors LiveStream.tsx.
+  String? _randomPkSessionId;
+  Timer? _randomPkTimeout;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -274,6 +282,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _chatSub?.cancel();
     _giftSub?.cancel();
     _pkSub?.cancel();
+    _randomPkTimeout?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
@@ -367,7 +376,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     );
   }
 
-  // A4 — open viewers bottom sheet.
+  // A4 — open viewers bottom sheet. Host gets long-press → moderation.
   void _openViewersSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -376,7 +385,17 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       builder: (_) => LiveViewersSheet(
         streamId: widget.streamId,
         viewerCount: _viewerCount,
+        onModerate: _isHost ? _openModerationForViewer : null,
       ),
+    );
+  }
+
+  void _openModerationForViewer(String viewerId, String viewerName) {
+    LiveHostModerationSheet.show(
+      context,
+      roomName: 'live_${widget.streamId}',
+      identity: viewerId,
+      displayName: viewerName,
     );
   }
 
@@ -454,7 +473,17 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         _snack('Reactions coming soon');
         break;
       case 'pk':
-        _snack('PK Battle panel coming soon');
+        _openPkStartSheet();
+        break;
+      case 'moderate_all':
+        if (_isHost) {
+          LiveHostModerationSheet.show(
+            context,
+            roomName: 'live_${widget.streamId}',
+            identity: _client.auth.currentUser?.id ?? '',
+            displayName: 'Room',
+          );
+        }
         break;
       case 'sticker':
         _snack('Stickers coming soon');
@@ -480,6 +509,75 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         ),
       ),
     );
+  }
+
+  // Host-side PK Battle start sheet (parity with web PKBattlePanel).
+  Future<void> _openPkStartSheet() async {
+    if (!_isHost) {
+      _snack('Only the host can start a PK Battle');
+      return;
+    }
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final name = (_host?['name']?.toString() ??
+            _host?['display_name']?.toString() ??
+            me.userMetadata?['name']?.toString() ??
+            'Host');
+    final avatar = _host?['avatar_url']?.toString() ?? '';
+    final level = ((_host?['host_level'] ?? _host?['level']) as num?)?.toInt() ?? 1;
+    await LivePkStartSheet.show(
+      context,
+      currentStreamId: widget.streamId,
+      currentUserId: me.id,
+      currentUserName: name,
+      currentUserAvatar: avatar,
+      currentUserLevel: level,
+      isRandomSearching: _randomPkSessionId != null,
+      onStartRandomMatch: (durationSeconds) => _startRandomPkSearch(
+        duration: durationSeconds,
+        name: name,
+        avatar: avatar,
+        level: level,
+      ),
+    );
+  }
+
+  Future<void> _startRandomPkSearch({
+    required int duration,
+    required String name,
+    required String avatar,
+    required int level,
+  }) async {
+    if (_randomPkSessionId != null) return;
+    final me = _client.auth.currentUser;
+    if (me == null) return;
+    final res = await PkStartBridge.instance.startRandomMatch(
+      challengerUserId: me.id,
+      challengerName: name,
+      challengerAvatar: avatar,
+      challengerLevel: level,
+      challengerStreamId: widget.streamId,
+      durationSeconds: duration,
+    );
+    if (!mounted) return;
+    if (!res.ok) {
+      _snack(res.error ?? 'No eligible live hosts available right now');
+      return;
+    }
+    setState(() => _randomPkSessionId = res.sessionId);
+    _snack('Random PK request sent to ${res.delivered} host${(res.delivered ?? 0) > 1 ? 's' : ''}');
+    _randomPkTimeout?.cancel();
+    _randomPkTimeout = Timer(const Duration(seconds: 25), () {
+      final sid = _randomPkSessionId;
+      if (sid == null || !mounted) return;
+      PkStartBridge.instance.cancelRandomMatch(
+        challengerUserId: me.id,
+        challengerName: name,
+        inviteSessionId: sid,
+      );
+      setState(() => _randomPkSessionId = null);
+      _snack('No host accepted — try again');
+    });
   }
 
   @override

@@ -12,10 +12,15 @@ class LiveViewersSheet extends StatefulWidget {
     super.key,
     required this.streamId,
     required this.viewerCount,
+    this.onModerate,
   });
 
   final String streamId;
   final int viewerCount;
+
+  /// Host-only: long-press a viewer tile to open moderation actions.
+  /// Null on viewer side (moderation entry hidden).
+  final void Function(String viewerId, String viewerName)? onModerate;
 
   @override
   State<LiveViewersSheet> createState() => _LiveViewersSheetState();
@@ -200,13 +205,25 @@ class _LiveViewersSheetState extends State<LiveViewersSheet> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       itemCount: _viewers.length,
-      itemBuilder: (context, i) => _ViewerTile(viewer: _viewers[i], rank: i),
+      itemBuilder: (context, i) => _ViewerTile(
+        viewer: _viewers[i],
+        rank: i,
+        onModerate: widget.onModerate,
+      ),
     );
   }
 }
 
 class _ViewerTile extends StatelessWidget {
-  const _ViewerTile({required this.viewer, required this.rank});
+  const _ViewerTile({
+    required this.viewer,
+    required this.rank,
+    this.onModerate,
+  });
+
+  final void Function(String viewerId, String viewerName)? onModerate;
+
+
 
   final LiveViewer viewer;
   final int rank;
@@ -218,7 +235,12 @@ class _ViewerTile extends StatelessWidget {
         ? ['🥇', '🥈', '🥉'][rank]
         : '${rank + 1}';
 
-    return Padding(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: onModerate == null
+          ? null
+          : () => onModerate!(viewer.id, viewer.displayName),
+      child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
       child: Row(
         children: [
@@ -303,8 +325,10 @@ class _ViewerTile extends StatelessWidget {
             ),
         ],
       ),
+    ),
     );
   }
+
 
   List<Color> _levelColors(int lvl) {
     if (lvl >= 50) {
