@@ -14,7 +14,8 @@ import '../services/live_voice_monitor.dart';
 import '../data/pk_opponent_room_bridge.dart';
 import '../widgets/pk_punishment_overlay.dart';
 import '../widgets/live_overlay_stack.dart';
-import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality;
+import '../widgets/connection_quality_indicator.dart'
+    show LiveConnectionQuality, ConnectionQualityIndicator;
 import '../widgets/pk_battle_active.dart' show PKBattleActiveState;
 import '../widgets/premium_flying_gift_banner.dart' show PremiumFlyingGift;
 import '../widgets/premium_join_chat_overlay.dart' show PremiumJoinChatEntry;
@@ -944,6 +945,18 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   viewerCount: _viewerCount,
                   onOpenViewers: _openViewersSheet,
                   onClose: () => context.router.maybePop(),
+                  // Phase I18 — surface real-time connection quality inside
+                  // the canonical header (RoomTopBar) so we don't lose the
+                  // signal indicator after Phase I17 hid the overlay chip.
+                  trailing: AnimatedBuilder(
+                    animation: _overlay,
+                    builder: (_, __) => Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: ConnectionQualityIndicator(
+                        quality: _overlay.connectionQuality,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
