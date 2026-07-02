@@ -1950,6 +1950,61 @@ const GoLive = () => {
             <span className={cn("text-[11px] font-semibold", stickerActive ? "text-amber-200" : "text-white/55")}>Sticker</span>
           </motion.button>
 
+          {/* Flip Camera */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={switchCamera}
+            className="flex flex-col items-center gap-1 touch-manipulation"
+          >
+            <div
+              className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+              }}
+            >
+              <SwitchCamera className="w-6 h-6 text-white/85" />
+            </div>
+            <span className="text-[11px] text-white/55 font-semibold">Flip</span>
+          </motion.button>
+
+          {/* Mic Toggle */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsMicEnabled((v) => !v)}
+            className="flex flex-col items-center gap-1 touch-manipulation"
+          >
+            <div
+              className="w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all"
+              style={
+                isMicEnabled
+                  ? {
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                      borderColor: 'rgba(255,255,255,0.20)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+                    }
+                  : {
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.45), rgba(220,38,38,0.35))',
+                      borderColor: 'rgba(248,113,113,0.65)',
+                      boxShadow: '0 6px 18px -4px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
+                    }
+              }
+            >
+              {isMicEnabled ? (
+                <Mic className="w-6 h-6 text-white/85" />
+              ) : (
+                <MicOff className="w-6 h-6 text-white" />
+              )}
+            </div>
+            <span className={cn("text-[11px] font-semibold", isMicEnabled ? "text-white/55" : "text-red-200")}>
+              {isMicEnabled ? 'Mic' : 'Muted'}
+            </span>
+          </motion.button>
+
           {/* Settings (small) */}
           <motion.button
             whileTap={{ scale: 0.9 }}
@@ -1972,8 +2027,24 @@ const GoLive = () => {
 
         </div>
 
-        {/* Go Live Button - Chamet Style */}
+        {/* HD Badge + Go Live Button - Chamet Style */}
         <div className="relative px-4">
+          {/* HD Pro Signal */}
+          <div className="flex items-center justify-center mb-2.5">
+            <div
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-white/15"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+              <span className="text-[10px] font-bold tracking-wider text-white/90">HD · 1080p</span>
+            </div>
+          </div>
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleGoLive}
@@ -1994,7 +2065,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-              Go Live
+              {isStarting || isProbing || livekitLoading ? 'Preparing…' : 'Go Live'}
             </span>
           </motion.button>
         </div>
