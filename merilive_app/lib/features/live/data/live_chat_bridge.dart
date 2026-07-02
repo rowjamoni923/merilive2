@@ -362,3 +362,13 @@ class LiveChatBridge {
     _messagesCtrl.add(List.unmodifiable(_messages));
   }
 }
+
+/// Thrown by `LiveChatBridge.sendMessage` when contact-sharing moderation
+/// blocks the message. UI catches this to show the warning dialog and
+/// suppress the generic error toast.
+class ContactViolationException implements Exception {
+  const ContactViolationException();
+  @override
+  String toString() => 'ContactViolationException';
+}
+
