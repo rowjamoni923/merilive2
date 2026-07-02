@@ -417,6 +417,27 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       case 'share':
         _snack('Share sheet coming soon');
         break;
+      case 'games':
+        _openGamesSheet();
+        break;
+      case 'multiguest':
+        LiveMultiGuestSheet.show(
+          context,
+          streamId: widget.streamId,
+          isHost: _isHost,
+        );
+        break;
+      case 'report':
+        final hostId = _stream?['host_id']?.toString();
+        if (hostId == null) return;
+        LiveReportBlockSheet.show(
+          context,
+          targetUserId: hostId,
+          targetName:
+              _host?['name']?.toString() ?? 'Host',
+          streamId: widget.streamId,
+        );
+        break;
       case 'tasks':
         _snack('Tasks — opening');
         break;
@@ -428,9 +449,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         break;
       case 'react':
         _snack('Reactions coming soon');
-        break;
-      case 'raisehand':
-        _snack('Hand raised');
         break;
       case 'pk':
         _snack('PK Battle panel coming soon');
@@ -444,10 +462,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       case 'noise':
         _snack('Noise cancellation coming soon');
         break;
-      case 'raisedhands':
-        _snack('Raised hands queue coming soon');
-        break;
     }
+  }
+
+  Future<void> _openGamesSheet() async {
+    final picked = await PartyGameSelectionSheet.show(context);
+    if (picked == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => LiveGameOverlay(
+          streamId: widget.streamId,
+          game: picked,
+        ),
+      ),
+    );
   }
 
   @override
