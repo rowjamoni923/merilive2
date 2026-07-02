@@ -27,6 +27,7 @@ import '../bloc/reels_feed_cubit.dart';
 import '../data/reel_video_pool.dart';
 import '../data/reels_analytics_service.dart';
 import '../data/reels_models.dart';
+import '../data/reels_realtime.dart';
 import '../data/reels_repository.dart';
 import '../widgets/reel_bottom_info.dart';
 import '../widgets/reel_comments_sheet.dart';
