@@ -772,6 +772,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             const BigoJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
+            // G-25 — Floating emoji reactions column (pointer-events-none).
+            const Positioned.fill(child: FloatingReactionsOverlay()),
 
             // B4 — Right-anchored combo bar (real-time xN stacker).
             Positioned(
