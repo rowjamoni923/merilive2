@@ -12,10 +12,15 @@ class LiveViewersSheet extends StatefulWidget {
     super.key,
     required this.streamId,
     required this.viewerCount,
+    this.onModerate,
   });
 
   final String streamId;
   final int viewerCount;
+
+  /// Host-only: long-press a viewer tile to open moderation actions.
+  /// Null on viewer side (moderation entry hidden).
+  final void Function(String viewerId, String viewerName)? onModerate;
 
   @override
   State<LiveViewersSheet> createState() => _LiveViewersSheetState();
