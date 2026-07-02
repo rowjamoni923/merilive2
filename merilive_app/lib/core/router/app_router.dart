@@ -15,8 +15,10 @@ import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
 import '../../features/home/screens/action_placeholders.dart';
 import '../../features/leaderboard/leaderboard_page.dart';
+import '../../features/party/screens/party_room_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/splash/splash_page.dart';
+
 
 part 'app_router.gr.dart';
 
@@ -65,11 +67,12 @@ class AppRouter extends _$AppRouter {
           path: '/profile-detail/:userId',
         ),
 
-        // Party Discovery → Party Room (broadcast placeholder for now).
+        // Party Discovery → Party Room (real broadcast + viewer page, PD5).
         AutoRoute(
-          page: PartyRoomPlaceholderRoute.page,
+          page: PartyRoomRoute.page,
           path: '/party/:roomId',
         ),
+
 
         // H7 — user search (App-ID + tag filters).
         AutoRoute(page: SearchRoute.page, path: '/search'),

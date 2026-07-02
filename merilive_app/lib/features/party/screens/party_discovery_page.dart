@@ -89,7 +89,7 @@ class _PartyDiscoveryPageState extends State<PartyDiscoveryPage>
 
   void _enterRoom(PartyRoom room) {
     HapticFeedback.mediumImpact();
-    context.router.push(PartyRoomPlaceholderRoute(roomId: room.id));
+    context.router.push(PartyRoomRoute(roomId: room.id));
   }
 
   void _toast(String msg) {
