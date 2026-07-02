@@ -1,223 +1,182 @@
 
-# CREATE BUTTON — Web-Truth Master Plan (Web → Kotlin → Flutter parity)
+# Web → Android Full Parity Plan (M1–M12)
 
-Everything below is **scanned from our actual codebase**, not guessed. Numbers, gates, and rules are the ones already running in production Web. Kotlin + Flutter must match this byte-for-byte.
+**একটাই goal:** Web-এ যা যা আছে হুবহু সেটাই Android (Flutter shell + Native Kotlin bridges) এ থাকবে। Web = single source of truth। কোনো নতুন feature invent হবে না, শুধু যা web-এ working সেটাই Android-এ port।
 
----
-
-## 0. What "Create" opens (already implemented — Web)
-
-File: `src/components/layout/BottomNavigation.tsx`
-
-The center Create button opens a 3-card action panel. **No sheet, no confirmation** — direct navigation with route prefetch:
-
-| Card | Route | Prefetches | Icon/Color |
-|---|---|---|---|
-| **Go Live** | `/go-live` | `LiveSessionPage` | red gradient, camera |
-| **Create Party** | `/create-party` | `PartySessionPage` | purple gradient, users |
-| **Match Call** | `/match-call` | `MatchCall` | cyan gradient, video |
-
-Every gate is enforced **inside the destination screen** so the user always sees the specific reason they're blocked (never a silent nav failure).
+Honest gap list — সবগুলো missing/incomplete piece A→Z:
 
 ---
 
-## 1. Admin Panel — single source of truth (already wired)
+## M1 — Shared Room Chrome (top bar + bottom bar)
 
-All numeric thresholds come from admin tables. **Zero hardcoding.**
+Web-এ Live Stream, Audio Party, Video Party, Game Party, Private Call — পাঁচটাই আলাদা bar। Flutter shell-এ এদের **একটাই canonical** primitive হবে (web pattern মিরর করে):
 
-| What | Admin table | Column read | Consumer |
-|---|---|---|---|
-| Level needed to Go Live | `feature_level_requirements` where `feature_key='go_live'` | `min_level_user`, `min_level_host` | `useFeatureLevelCheck` |
-| Level needed to Create Party | `feature_level_requirements` where `feature_key='create_party'` | same | `useFeatureLevelCheck` |
-| Level needed for Match Call | `feature_level_requirements` where `feature_key='match_call'` | same | `useFeatureLevelCheck` |
-| Random-call rate & rules | `random_call_settings` (id=1) | `diamond_price_per_minute`, `min_billable_seconds`, `free_trial_seconds`, `ring_timeout_seconds`, gender/language/country filters | `MatchCall.tsx`, `settle_random_call()` |
-| Private-call rate per host | `profiles.private_call_rate` | — | `usePrivateCall` |
-| Face verification requirement | `app_settings` + `can_user_go_live()` RPC | — | `GoLive` |
-| Party mode capacities | Fixed by mode (video=4, audio=10, game=4) — from `seatConfig` in `CreateParty.tsx` | — | `CreateParty` |
-| Party backgrounds | `party_room_backgrounds` | full row | Create Party form |
-| Categories | `categories` (party), `live_categories` (live) | full rows | pickers |
+- `RoomTopBar` — host chip + level + follow + viewer count + close
+- `RoomBottomBar` — 3D glass orbs, per-surface slot config
 
-Admin edits → **`admin-table-update` window event** or Supabase Realtime → all clients (Web + Flutter) invalidate cache instantly. Confirmed in `useFeatureLevelCheck.ts` lines 64–75.
+Refactor targets (web + Flutter উভয়ে): `LiveStream.tsx`, `UnifiedPartyRoom.tsx`, `ActiveCallScreen.tsx` এবং তাদের Flutter mirrors।
 
----
+## M2 — Party mode branching (Audio / Video / Game)
 
-## 2. GO LIVE — exact behavior per role
+Web `UnifiedPartyRoom.tsx` তিন mode একসাথে handle করে; Flutter `party_room_page.dart`-এ এখন শুধু generic seat grid। Add:
 
-**Server truth:** RPC `can_user_go_live(user_id)` — enforces the same rules server-side. Client mirrors it in `isApprovedLiveHost()` (line 60, `GoLive.tsx`).
+- Audio mode: 1+8 mic-only seats, waveform ring
+- Video mode: 1+3 video tiles (LiveKit subscribe) + 4 audio seats
+- Game mode: seat strip + WebView game viewport (A10 flow already built, needs mode-switch wiring)
 
-### 2.1 Gate matrix
+Server-authoritative `party_rooms.mode` read।
 
-| Profile state | What user sees | Path |
+## M3 — Live Stream missing pieces
+
+Flutter live viewer parity gaps:
+
+- **Games orb** on bottom bar (web has `LiveGameSelector` + `GlobalGameOverlay`)
+- **Report/Block** sheet (web `ReportUserDialog`)
+- **Multi-guest co-host** slots (web `MultiGuestSlots` — up to 4 guests, LiveKit subscribe/publish per slot)
+- **Beauty filters / stickers** orb (web `BeautyFilterPanel`, `ARStickerPicker`)
+- **Broadcast controls** (host-only): End, Mic mute, Camera flip, Beauty, Filters
+
+## M4 — Party Room missing pieces
+
+- **Room settings sheet** (host: rename, background, cover, welcome msg) — web `PartyRoomSettings`
+- **Kick / Mute-all / Ban** moderation actions — web `HostControls`
+- **Seat request/invite flow** — web uses `seat_requests` + `seat_invitations` tables
+- **Music sheet play/queue** (already stubbed, needs playback bridge to native `AudioTrackPlayer`)
+- **Party banners / room announcements** — web `party_room_banners`
+
+## M5 — Private Call HUD missing pieces
+
+- **In-call chat overlay** (both sides see messages) — web `CallChat` + `call_chat_messages`
+- **End-call summary sheet** (duration, diamonds spent, rate/min) — web `CallSummary`
+- **Gift sending inside call** (unified GiftPanel) — currently Flutter HUD has icon but no wiring
+- **Random/Match call** rating banner post-call — web `RatingBanner` + `rating_reward_claims`
+- **Speaker toggle + Bluetooth route picker** — native audio route bridge
+
+## M6 — Camera system hardening
+
+Web is already correct; Android bridges need verification, not new logic:
+
+- 1080p publish lock (720×1280 → 1080×1920), 3-layer simulcast — verify `LiveKitPlugin.kt` matches `livekitPublishLock.ts`
+- `SCALE_ASPECT_FILL` viewer render (no letterbox)
+- Zero-black-frame prejoin→broadcast handoff (already patched — regression check)
+- Camera flip without republish flicker (`switchCamera()`)
+- Adaptive stream + Dynacast + auto-pause hidden tracks (viewer side)
+- Face verification gate before Go Live (web `GoLive.tsx` guard — already in Flutter, verify)
+
+## M7 — Realtime + billing parity
+
+Every web realtime channel must have a Flutter subscriber:
+
+| Web hook | Table | Flutter bridge |
 |---|---|---|
-| `is_host=true` **AND** `host_status='approved'` **AND** face verified | Full setup screen, "Go Live" enabled | happy path |
-| `is_host=true` **AND** `host_status!='approved'` | "Host application pending" card | wait for admin approval |
-| `is_host=false` **AND** face verified | Level check → if `user_level >= feature_level_requirements.go_live.min_level_user` → full setup; else level card | admin-controlled |
-| `is_host=false` **AND** face NOT verified | Full-screen face-verification gate → CTA `/face-verification` | admin flow |
-| `gender='female'` (auto-host per Chamet convention) | Treated as host for level bypass; still needs face verify | same |
+| `useLiveChat` | `stream_chat` | ✅ `live_chat_bridge` |
+| `useStreamViewers` | `stream_viewers` | ✅ (A4) |
+| `useGiftTransactions` | `gift_transactions` | ✅ (A5/A9) |
+| `usePKBattle` | `pk_battles` | ✅ (A6) |
+| `usePartyMessages` | `party_room_messages` | ✅ (A8) |
+| `useSeatRequests` | `seat_requests` | ⚠️ missing |
+| `useCallChat` | `call_chat_messages` | ⚠️ missing |
+| `useIncomingCall` | `private_calls` | ✅ |
+| `useMatchQueue` | `random_call_queue` | ⚠️ partial |
+| `useRoomBanners` | `party_room_banners` | ⚠️ missing |
+| `useEntryEvents` | `stream_viewers` + `party_participants` | ✅ (A11) |
 
-Realtime subscribes to `profiles`, `face_verification_submissions`, `host_applications` — gate auto-dismisses the moment admin approves. (`GoLive.tsx` line 762.)
+Billing (`process_billing_tick` RPC) is server-side so already parity — but verify Flutter surfaces call `startBillingSession` / `endBillingSession` correctly for private + random call.
 
-### 2.2 Setup screen (verified host, ready to publish)
-- Native full-screen camera preview via `LiveKitPlugin.startLocalPreview` (Kotlin) — transparent WebView on top
-- 1080p locked, 3-layer simulcast (`livekitPublishLock.ts`)
-- `SCALE_ASPECT_FILL` — no letterbox, no over-zoom
-- Overlays: avatar+level chip, verified check (green if verified), flip cam, beauty, background, sticker, music, PK toggle, category chip, title input (3–40 chars), cover photo (auto = face-verification image), red "Go Live"
-- ScreenLock kept awake (`useScreenLock(true)`)
-- Audio focus: Spotify/YouTube auto-paused (`useNativeAudioFocus`)
+## M8 — Unified Gift Panel + animations
 
-### 2.3 Publish flow
-1. Insert `live_streams` row (status=`preparing`) → `stream_id`
-2. Edge fn `livekit-token-issue` → publisher token, room `live_<stream_id>`
-3. `LiveKitPlugin.connect(url, token, mode='publish')`
-4. Update `live_streams.status='live'` + `stream_viewers` insert (host self)
-5. Handoff (no navigation): if inside `<LiveSessionProvider>` swap phase → in-room; otherwise navigate `/live-stream?stream_id=...&role=host`. WebView never unmounts — camera track stays alive.
+Web has one `GiftPanel` used everywhere (Live / Party / Call / Chat / Reels). Flutter currently has separate sheets — consolidate into one `UnifiedGiftPanel`:
 
----
+- Same tabs (All / Popular / Lucky / Combo / Exclusive / Backpack)
+- Same combo window (`gift_combo_window` table)
+- Same recipient picker (seat occupants for party, peer for call, host for live)
+- Native VAP/SVGA renderer for full-screen (already A5)
+- Flying gift path (small gifts) — verify Flutter has FlyingGiftAnimation equivalent
 
-## 3. CREATE PARTY — exact behavior per role
+## M9 — Entry / vehicle / name-bar animations
 
-### 3.1 Gate matrix
-`isEligiblePartyHost` (line 57, `CreateParty.tsx`) → `is_host=true` OR `host_status='approved'` OR `gender='female'`.
+Already A11 done. Remaining polish:
 
-Then `checkFeatureAccess('create_party', currentLevel, isHost)`:
-- `currentLevel = max(realtime_level, user_level, host_level, max_user_level)`
-- If `result.canAccess=false` → **`LevelRequiredCard` overlay** with:
-  - Big current level badge
-  - Progress bar toward required level (`result.requiredLevel` from admin)
-  - "How to level up" list (recharge, gifting, daily tasks)
-  - CTA "Recharge to level up" → `/wallet`
+- Noble subscription priority ladder verified
+- Vehicle Entrances (`vehicle_entrances` table) rendered via native VAP
+- Level-up in-room celebration (web shows confetti on level threshold)
 
-Verified hosts almost always have `min_level_host=0` in admin → they pass instantly.
+## M10 — Games everywhere
 
-### 3.2 Mode picker (line 175)
-Three cards, `seatConfig`:
-- **Video Party** → 4 seats, 2×2 grid, cameras on
-- **Audio Party** → 10 seats, 2×5 grid, no camera opened (`useProCamera` disabled)
-- **Game Party** → 4 seats + game picker (games from `game_configs`)
+Web mounts games in three places: Live, Party, Chat. Flutter has Party ✅. Add:
 
-### 3.3 Configuration form
-- Cover image (default from `party_room_backgrounds`, upload optional)
-- Title (max 30)
-- Category (from `categories`)
-- Optional entry fee (`roomEntryFee`) — **password locking fully removed** per current implementation ("Party rooms are always public — Chamet/Bigo/Poppo standard")
-- Announcement / welcome message
-- Country auto-detected
+- Live Stream games (WebView reuse via A10 pattern)
+- Chat games button + overlay
 
-### 3.4 Create flow
-1. Native LiveKit prejoin camera acquired via `useProCamera` ref-counted arbiter — **same LocalVideoTrack** reused into PartyRoom (no Camera2 re-open)
-2. Insert `party_rooms` row with mode + capacity
-3. Edge fn `party-room-token` → publisher token
-4. Auto-take seat 0
-5. Phase swap to `InRoomPhase` (no route nav) so prejoin preview persists
+Same `game_settings` admin table = single source of truth।
 
----
+## M11 — Missing pages/screens (non-room)
 
-## 4. MATCH CALL — exact behavior per role
+Web pages that don't exist yet in Flutter shell:
 
-File: `src/pages/MatchCall.tsx`. Phases: `prep → searching → matched → error`.
+- Wallet / Recharge / Diamond exchange
+- Profile view + edit (avatar, frame, bio, level tiers)
+- Followers / Following / Blocked list
+- Notifications inbox + preferences
+- Help center + support ticket
+- Agency portal (host view — join agency, earnings, withdrawal)
+- Noble / VIP subscription screens
+- Shop (avatar frames, chat bubbles, entry effects)
+- Leaderboards (daily/weekly/monthly)
+- Events / Banners / Popup campaigns
+- Daily login rewards + tasks
+- Face verification wizard (already partial)
+- Settings (language, privacy, blocked, sessions, delete account)
 
-### 4.1 Gate
-- Balance ≥ `random_call_settings.diamond_price_per_minute` × 1 minute
-- (Level gate optional — read from `feature_level_requirements.match_call` if row exists)
-- Face verify required only for **hosts receiving** calls, not for callers
+## M12 — QA sweep + owner-account verification
 
-### 4.2 Prep screen
-- Self-camera preview, mirrored
-- Filters: language[], country, host_gender — all read from `random_call_settings`
-- Balance pill: coins + rate/min
-- Hosts-online counter: `get_online_global_hosts` RPC + Realtime on `profiles`/`host_match_availability`/`host_match_stats`/`live_streams` (line 66)
-- Instant mode: `?instant=1` skips prep, auto-fires
+Using saved owner account, walk through:
 
-### 4.3 Searching
-- `AnimatedGlobeBackdrop`, elapsed timer, cancel
-- Server-authoritative min-billable + free-trial in `settle_random_call()` — client only displays
-- Skip counter enforced via `random_call_skip_counters`
-
-### 4.4 Matched → routes to `ActiveCallScreen` with `mode='random'`. Post-call → `PostCallRatingSheet` → writes `random_call_ratings`.
+1. Go Live → 1080p → viewer joins → chat/gift/PK/games → end
+2. Audio Party → seat → mic → chat → gift → leave
+3. Video Party → publish tile → switch to Game mode → WebView loads
+4. Private call → background accept → in-call chat both sides → end summary correct diamonds
+5. Random/Match call → queue → connect → skip → rate
+6. Recharge → gift → wallet balance updates realtime
+7. Every top bar + bottom bar visually identical across all 5 room surfaces
+8. Screenshot diff Web vs Android for each surface
 
 ---
 
-## 5. Verified Host vs Regular User — behavior summary
+## Execution order (recommended)
 
-| Action | Regular verified user | Verified host (`host_status=approved`) |
+| Step | Blocking? | ETA |
 |---|---|---|
-| Go Live | Needs `min_level_user` from admin | Level bypass (`min_level_host` usually 0) |
-| Create Party | Needs `min_level_user` | Level bypass |
-| Match Call — caller | Any level, needs balance | Same |
-| Match Call — receiver | Not eligible | Auto-enrolled in `host_match_availability` |
-| Private Call — caller | Needs balance | Same |
-| Private Call — receiver | Not eligible | Rings on native `IncomingCallActivity` even from background (FCM high-priority, `ring_timeout_seconds` from admin) |
-| Face verify | Optional for join-only actions | **Mandatory** — server `can_user_go_live` blocks otherwise |
+| M1 shared chrome | yes — foundation | first |
+| M2 party mode branch | yes | next |
+| M3 live gaps | | |
+| M4 party gaps | | |
+| M5 call HUD gaps | | |
+| M6 camera hardening verify | | |
+| M7 realtime bridges (seat_requests, call_chat, banners) | | |
+| M8 unified gift panel | | |
+| M9 entry polish | | |
+| M10 games everywhere | | |
+| M11 non-room pages (largest bucket) | can run parallel with M3–M5 | |
+| M12 QA sweep | last | |
 
 ---
 
-## 6. Consumption surfaces — recap (already audited earlier)
+## Rules honored
 
-- **Live Stream** — host bar (flip/beauty/sticker/music/PK/co-host/gift-earned/settings/end) vs viewer bar (chat/gift/like/share/follow/report/leave). Shared overlay stack: entry banners, flying names, VAP/SVGA/Lottie via `GlobalGiftOverlay` FIFO, chat stream, top-gifters, animated viewer count.
-- **Party Room** — mode-aware grid (2×5 audio / 2×2 video / 2×5+game). Seat sheet with role-specific actions (kick/mute/invite/lock/leave/request/gift).
-- **Private Call** — full-bleed remote + PIP self; bar (mute/cam/flip/speaker/gift/chat/end); bi-directional call chat (`call_chat_messages`); per-minute billing via `process_billing_tick()` reading admin rates.
-- **Match Call** — same as Private Call + Next button + 40s min-billable indicator + free-trial pill.
+- English-only UI strings in code
+- Admin panel = single source of truth (no hardcoded rates)
+- No fake loading / skeletons
+- No VPS work (pure Lovable code + Flutter/Kotlin)
+- Research-first before each step (Chamet/Bigo/Olamet patterns, LiveKit translation)
+- Web + Android both maintained (test on web, ship on Android APK rebuild)
+- Owner account self-test before "done"
+- Design SACRED for existing screens — only functionality/parity work
+- Never touch: `FlyingGiftAnimation`, `FullScreenGiftAnimation`, `EntryBarAnimation`, `UnifiedEntryAnimation`, `VAPPlayer` internals
 
-All 4 surfaces share the **one Gift Panel** (G6/G7/G8 done) and the **single full-screen gift overlay**.
+## Reply
 
----
-
-## 7. Kotlin (Native Android) — parity checklist
-
-| Component | Purpose | File |
-|---|---|---|
-| `LiveKitPlugin.kt` | Publisher/subscriber, `startLocalPreview`, `attachLocal`, `SCALE_ASPECT_FILL`, 1080p lock, simulcast | ✅ exists |
-| `NativeGiftAnimationPlugin.kt` | VAP/SVGA/Lottie/MP4/image, priority queue, 3 slots, lifecycle | ✅ exists |
-| `NativeEntryAnimationPlugin.kt` | Entry banners, flying names | ✅ exists |
-| `GiftAudioMixer.kt` | SoundPool + MediaPlayer ducking | ✅ exists |
-| `IncomingCallActivity` | Fullscreen incoming call over lock screen | ✅ exists |
-| FCM high-priority handler | Ring under Doze | ✅ exists |
-| MethodChannel `flutter_livekit_bridge` | Expose all above to Flutter | ⚠️ **Phase C2 pending** |
-
----
-
-## 8. Flutter (`merilive_app/`) — parity checklist
-
-| Screen | Web mirror | Status |
-|---|---|---|
-| Home / Discover / Reels / Party tab | done in earlier sectors | ✅ |
-| Create bottom action | 3 cards → routes | ⏳ C1 |
-| Native camera preview bridge | MethodChannel → `LiveKitPlugin` | ⏳ C2 |
-| Go Live screen (gates + setup + publish) | `GoLive.tsx` | ⏳ C3–C4 |
-| Create Party screen | `CreateParty.tsx` | ⏳ C5 |
-| Party Room handoff (seat 0) | `PartyRoom.tsx` | ⏳ C6 |
-| Match Call prep + searching + hosts-count | `MatchCall.tsx` | ⏳ C7 |
-| Live/Party/Call/Match viewer+host UIs | `LiveStream.tsx`, `PartyRoom.tsx`, `ActiveCallScreen.tsx` | ⏳ C8 |
-| Unified gift panel + `GlobalGiftOverlay` | done | ✅ G6–G8 |
-| Cross-surface QA (owner account) | — | ⏳ C9 |
-
----
-
-## 9. Non-negotiable execution rules
-
-1. **Web = source of truth.** Any Flutter/Kotlin drift = bug.
-2. **Admin panel = single source of truth for numbers.** No hardcoded levels, rates, timers, capacities. Read tables listed in §1.
-3. **English-only UI strings** in all layers.
-4. **Design SACRED.** This plan changes only Flutter/Kotlin missing pieces + occasional Web parity fixes discovered during audit — no cosmetic redesign.
-5. **Research-first per phase.** Before each C-phase I run a Chamet/Bigo/Olamet parity check (Agora → LiveKit translation) and update this doc.
-6. **Owner test account** (`smdollarex923@gmail.com`) verification required before I claim a phase done.
-7. **APK rebuild honesty.** Any Kotlin change = I state "APK rebuild needed" explicitly.
-
----
-
-## 10. Suggested execution order (I stop at each ✋ for your approval)
-
-1. **C1** — Flutter Create action + routes (safe, no plugin)
-2. **C2** — Kotlin MethodChannel bridge (biggest unlock; APK rebuild)
-3. **C3** — Flutter Go Live gates (face + host + admin level)
-4. **C4** — Flutter Go Live publish + handoff to Live Stream
-5. **C5+C6** — Flutter Create Party + Party Room seat-0 handoff
-6. **C7** — Flutter Match Call prep + searching
-7. **C8** — Flutter consumption surfaces (viewer+host) for all 4 rooms
-8. **C9** — Full owner-account QA + parity report
-
----
-
-## 11. Your call
-
-Reply with **the phase number to start** (e.g. "start C1") or ask me to adjust any gate/rule above before we begin. Nothing gets coded until you approve.
+- **M1** → start with shared chrome (foundation, unblocks M2–M5)
+- **M1-M6** → all in-room work
+- **M1-M12** → full sprint end-to-end (long-running, many APK rebuilds)
+- **Custom** → pick specific milestones
