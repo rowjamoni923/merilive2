@@ -661,6 +661,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             // B7 — Cinematic full-width join banner for premium joins
             // when the native VAP path isn't available.
             const CinematicJoinBannerOverlay(),
+            // B6 — Bigo compact join banner (non-premium joins,
+            // one-at-a-time, 500 ms welcome coalescer).
+            const BigoJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
 
