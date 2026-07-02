@@ -168,4 +168,3 @@ class LiveFaceDetection {
   }
 }
 
-typedef VoidCallback = void Function();
