@@ -490,41 +490,73 @@ export default function PreMatchPrep({
       {/* Bottom CTA — same surface, state-only action change */}
       <div className="relative z-10 px-6 mb-4">
         {isSearching ? (
-          <motion.div whileTap={{ scale: 0.97 }}>
-            <Button
-              onClick={() => onCancel?.()}
-              variant="outline"
-              className="w-full h-14 rounded-full text-base font-bold border-white/25 bg-white/10 backdrop-blur-md text-white hover:bg-white/20"
-            >
-              Cancel
-            </Button>
-          </motion.div>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onCancel?.()}
+            className="w-full h-14 rounded-full text-base font-bold text-white/95 backdrop-blur-xl relative overflow-hidden flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+              border: '1px solid rgba(255,255,255,0.22)',
+              boxShadow: '0 10px 26px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18)',
+            }}
+          >
+            <span aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }} />
+            Cancel
+          </motion.button>
         ) : isError ? (
-          <motion.div whileTap={{ scale: 0.97 }}>
-            <Button
+          <>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={() => onRetry?.()}
-              className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
+              className="w-full h-14 rounded-full text-base font-bold text-white relative overflow-hidden flex items-center justify-center"
+              style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 40%, #6366f1 100%)',
+                boxShadow: '0 14px 34px -10px rgba(168,85,247,0.7), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.25)',
+                border: '1px solid rgba(240,171,252,0.4)',
+              }}
             >
-              <Phone className="w-5 h-5 mr-2" /> Try again
-            </Button>
+              <span aria-hidden className="pointer-events-none absolute inset-x-8 top-0 h-px"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)' }} />
+              <Phone className="w-5 h-5 mr-2 relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
+              <span className="relative">Try again</span>
+            </motion.button>
             {errorMsg && (
               <div className="mt-2 text-center text-[11px] text-rose-200/90 px-4">{errorMsg}</div>
             )}
-          </motion.div>
+          </>
         ) : isMatched ? (
-          <Button disabled className="w-full h-14 rounded-full text-base font-bold bg-emerald-500/40 border border-white/15">
+          <div
+            className="w-full h-14 rounded-full text-base font-bold text-white/95 flex items-center justify-center relative overflow-hidden"
+            style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, rgba(110,231,183,0.9) 0%, rgba(16,185,129,0.85) 45%, rgba(5,150,105,0.9) 100%)',
+              boxShadow: '0 12px 28px -10px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+              border: '1px solid rgba(167,243,208,0.45)',
+            }}
+          >
+            <span aria-hidden className="pointer-events-none absolute inset-x-8 top-0 h-px"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' }} />
             Connected
-          </Button>
+          </div>
         ) : (
-          <motion.div whileTap={{ scale: 0.97 }}>
-            <Button
-              onClick={handleStart}
-              className="w-full h-14 rounded-full text-base font-bold bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 hover:opacity-95 shadow-[0_14px_40px_-10px_rgba(168,85,247,0.7)] border border-white/20"
-            >
-              <Phone className="w-5 h-5 mr-2" /> Start
-            </Button>
-          </motion.div>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleStart}
+            className="w-full h-14 rounded-full text-base font-bold text-white relative overflow-hidden flex items-center justify-center"
+            style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 40%, #6366f1 100%)',
+              boxShadow: '0 14px 34px -10px rgba(168,85,247,0.7), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.25)',
+              border: '1px solid rgba(240,171,252,0.4)',
+            }}
+            aria-label="Tap to Match"
+          >
+            <span aria-hidden className="pointer-events-none absolute inset-x-8 top-0 h-px"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)' }} />
+            <Phone className="w-5 h-5 mr-2 relative" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
+            <span className="relative">Start Matching</span>
+          </motion.button>
         )}
+
         {phase === "prep" && (
           <>
             <div className="mt-2 flex flex-col items-center gap-0.5 text-[12px] text-white/85">
