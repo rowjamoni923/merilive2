@@ -70,14 +70,30 @@ class IncomingCallListener {
       final pending =
           await _nativeBridge.invokeMapMethod<String, dynamic>('pending');
       if (pending != null && pending['call_id'] is String) {
-        // Small delay so the router settles.
+        final callId = pending['call_id'] as String;
+        final action = (pending['action'] ?? 'incoming').toString();
         Timer(const Duration(milliseconds: 250), () {
-          showVerifiedIncomingCall(pending['call_id'] as String);
+          switch (action) {
+            case 'accept':
+              _endedCallIds.add(callId);
+              _router?.pushNamed('/call/incoming/$callId?auto=1');
+              break;
+            case 'decline':
+              _endedCallIds.add(callId);
+              _serverDecline(callId);
+              break;
+            case 'cancelled':
+              _endedCallIds.add(callId);
+              break;
+            default:
+              showVerifiedIncomingCall(callId);
+          }
         });
       }
     } catch (_) {
       // Native side may not be registered on non-Android; ignore.
     }
+
 
     // FCM
     try {
