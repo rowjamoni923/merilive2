@@ -109,6 +109,7 @@ class _ChatBubbleState extends State<_ChatBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final msg = widget.msg;
     final isSystem = msg.type == 'system';
     final isGift = msg.type == 'gift';
 
@@ -135,6 +136,14 @@ class _ChatBubbleState extends State<_ChatBubble> {
 
     final nameColor =
         isGift ? const Color(0xFFFCD34D) : const Color(0xFF93C5FD);
+
+    // H5 P0 #4 — attach tap recognizer to the name span when we know the
+    // sender's userId and a parent handler is wired.
+    final tappable = widget.onUserTap != null && msg.userId != null;
+    if (tappable) {
+      _nameTap ??= TapGestureRecognizer()
+        ..onTap = () => widget.onUserTap!(msg.userId!, msg.displayName);
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -182,6 +191,7 @@ class _ChatBubbleState extends State<_ChatBubble> {
                   color: nameColor,
                   fontWeight: FontWeight.w700,
                 ),
+                recognizer: tappable ? _nameTap : null,
               ),
               TextSpan(text: msg.message),
             ],
@@ -191,3 +201,4 @@ class _ChatBubbleState extends State<_ChatBubble> {
     );
   }
 }
+
