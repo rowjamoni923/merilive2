@@ -135,6 +135,7 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   bool _allowed = false;
   bool _starting = false;
   bool _endingExisting = false;
+  bool _preservePreviewOnDispose = false; // set true right before /live handoff
   String? _displayName;
 
   // Denial state
@@ -154,7 +155,10 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _titleCtrl.dispose();
-    if (_previewing) {
+    // Only stop the preview if we're NOT handing off to /live. On successful
+    // publish LiveHostBridge already promoted this same Room to the live
+    // session — tearing it down here would kill the Camera2 sensor mid-stream.
+    if (_previewing && !_preservePreviewOnDispose) {
       LiveKitBridge.instance.stopLocalPreview();
     }
     super.dispose();
