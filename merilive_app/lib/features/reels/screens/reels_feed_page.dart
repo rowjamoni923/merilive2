@@ -1,15 +1,20 @@
-// R2 + R3 — Vertical feed with real video player and preload pool.
+// R8 — Reels vertical feed with real player, preload pool, and analytics.
 //
 // R2 laid down the layout skeleton (chip strip + PageView + refresh + states).
-// R3 adds:
-//   • Shared ReelVideoPool (5-controller LRU) with index-1..index+2 preload.
-//   • Global mute toggle propagated to every pooled controller.
-//   • Lifecycle awareness: pauses when tab hidden, app backgrounded, or the
-//     current route is covered by another PageRoute.
-//   • Handoff on category switch — old category's controllers are paused
-//     (kept warm in LRU so hopping back is instant).
+// R3 added a shared ReelVideoPool (5-controller LRU), preloading, and
+// lifecycle-aware pause/resume.
+// R6 added the comments sheet + auto-pause while open.
+// R7 wired the real gift + share sheets.
+// R8 adds:
+//   • Analytics: idempotent `reel_views` writes on becoming active +
+//     watch-time / completion telemetry batched via ReelsAnalyticsService.
+//   • Polish: haptic on page snap, double-tap-to-like with heart burst,
+//     buffering indicator while the active handle warms up.
+//   • Fix: routed the comments-sheet handler through the child widget so it
+//     no longer references a missing top-level symbol.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +25,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../bloc/reels_categories_cubit.dart';
 import '../bloc/reels_feed_cubit.dart';
 import '../data/reel_video_pool.dart';
+import '../data/reels_analytics_service.dart';
 import '../data/reels_models.dart';
 import '../data/reels_repository.dart';
 import '../widgets/reel_bottom_info.dart';
@@ -42,9 +48,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   late final ReelsRepository _repo;
   late final ReelsCategoriesCubit _categoriesCubit;
   late final ReelVideoPool _pool;
+  late final ReelsAnalyticsService _analytics;
 
-  // One feed cubit per category slug — TikTok/Bigo keep each tab's scroll
-  // position + prefetched pages when the user hops chips.
   final Map<String, ReelsFeedCubit> _feedCubits = {};
   final Map<String, PageController> _pageControllers = {};
 
@@ -59,6 +64,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     _repo = ReelsRepository(Supabase.instance.client);
     _categoriesCubit = ReelsCategoriesCubit(_repo)..load();
     _pool = ReelVideoPool();
+    _analytics = ReelsAnalyticsService(_repo);
   }
 
   @override
@@ -71,6 +77,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
       c.dispose();
     }
     _categoriesCubit.close();
+    unawaited(_analytics.dispose());
     unawaited(_pool.disposeAll());
     super.dispose();
   }
@@ -80,6 +87,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     _appResumed = state == AppLifecycleState.resumed;
     if (!_appResumed) {
       unawaited(_pool.pauseAll());
+      unawaited(_analytics.flush());
     } else {
       _syncPlayback();
     }
@@ -91,6 +99,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     _tabVisible = visible;
     if (!visible) {
       unawaited(_pool.pauseAll());
+      unawaited(_analytics.flush());
     } else {
       _syncPlayback();
     }
@@ -99,8 +108,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   bool get _canPlay => _tabVisible && _appResumed;
 
   void _syncPlayback() {
-    // Called after visibility/lifecycle change — the current visible slug's
-    // active reel resumes if we can play.
     if (!mounted) return;
     final slug = _categoriesCubit.state.selectedSlug;
     final cubit = _feedCubits[slug];
@@ -118,7 +125,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     await _pool.setMuted(_muted);
   }
 
-  // R6 — open comments sheet; pause playback while open, resume on close.
+  // R6 — pauses playback while open, resumes on close.
   Future<void> _openCommentsSheet(Reel reel) async {
     unawaited(_pool.pauseAll());
     try {
@@ -165,31 +172,28 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
             value: SystemUiOverlayStyle.light,
             child: Stack(
               children: [
-                // ── Feed layer ────────────────────────────────────────────
                 Positioned.fill(
                   child:
                       BlocBuilder<ReelsCategoriesCubit, ReelsCategoriesState>(
                     builder: (context, catState) {
                       final slug = catState.selectedSlug;
                       final cubit = _cubitFor(slug, catState.categories);
-                      // Pause any other-category playback the moment slug
-                      // changes — we keep controllers warm in the LRU.
                       unawaited(_pool.pauseAll());
                       return BlocProvider.value(
                         value: cubit,
                         child: _FeedPageView(
                           pageController: _pageControllerFor(slug),
                           pool: _pool,
+                          analytics: _analytics,
                           canPlay: _canPlay,
                           muted: _muted,
                           onToggleMute: _toggleMute,
+                          onComment: _openCommentsSheet,
                         ),
                       );
                     },
                   ),
                 ),
-
-                // ── Top chip overlay (safe area padded) ───────────────────
                 Positioned(
                   top: 0,
                   left: 0,
@@ -220,22 +224,24 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   }
 }
 
-/// Feed body: watches feed state, drives the pool (preload/play/evict), and
-/// renders a ReelPlayer per page.
 class _FeedPageView extends StatefulWidget {
   const _FeedPageView({
     required this.pageController,
     required this.pool,
+    required this.analytics,
     required this.canPlay,
     required this.muted,
     required this.onToggleMute,
+    required this.onComment,
   });
 
   final PageController pageController;
   final ReelVideoPool pool;
+  final ReelsAnalyticsService analytics;
   final bool canPlay;
   final bool muted;
   final VoidCallback onToggleMute;
+  final ValueChanged<Reel> onComment;
 
   @override
   State<_FeedPageView> createState() => _FeedPageViewState();
@@ -255,7 +261,6 @@ class _FeedPageViewState extends State<_FeedPageView> {
   @override
   void didUpdateWidget(covariant _FeedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Lifecycle/mute changes may need to re-sync playback.
     if (oldWidget.canPlay != widget.canPlay) {
       _syncActive(context.read<ReelsFeedCubit>().state);
     }
@@ -266,23 +271,20 @@ class _FeedPageViewState extends State<_FeedPageView> {
     final idx = state.currentIndex.clamp(0, state.reels.length - 1);
     final active = state.reels[idx];
 
-    // Keep-set: index-1 .. index+2 → matches pool max (5).
     final keep = <String>{};
     for (int i = idx - 1; i <= idx + 2; i++) {
       if (i >= 0 && i < state.reels.length) {
         keep.add(state.reels[i].id);
       }
     }
-    // Retain warm controllers only for the neighborhood.
     await widget.pool.retainOnly(keep);
 
-    // Acquire active + neighbors (fire-and-forget for non-active).
     unawaited(widget.pool.acquire(active.id, active.videoUrl).then((_) async {
       if (!mounted) return;
       if (widget.canPlay &&
           context.read<ReelsFeedCubit>().state.currentIndex == idx) {
         await widget.pool.play(active.id);
-        setState(() {}); // rebuild player once handle is ready
+        setState(() {});
       }
     }));
     for (int i = idx - 1; i <= idx + 2; i++) {
@@ -295,10 +297,24 @@ class _FeedPageViewState extends State<_FeedPageView> {
       }
     }
 
-    // Pause any previously active reel that isn't active anymore.
+    // R8 — close the previous watch window and open a new one; also stamp
+    // an idempotent first-per-day view on `reel_views`.
     if (_lastActiveReelId != null && _lastActiveReelId != active.id) {
+      final prevHandle = widget.pool.peek(_lastActiveReelId!);
+      final v = prevHandle?.controller.value;
+      widget.analytics.endWatch(
+        _lastActiveReelId!,
+        positionMs: v?.position.inMilliseconds ?? 0,
+        durationMs: v?.duration.inMilliseconds ?? 0,
+      );
       unawaited(widget.pool.pause(_lastActiveReelId!));
     }
+    widget.analytics.beginWatch(active.id);
+    unawaited(widget.analytics.recordViewOnce(
+      reelId: active.id,
+      userId: Supabase.instance.client.auth.currentUser?.id,
+    ));
+
     _lastActiveReelId = active.id;
   }
 
@@ -330,53 +346,24 @@ class _FeedPageViewState extends State<_FeedPageView> {
             controller: widget.pageController,
             scrollDirection: Axis.vertical,
             physics: const _SnappyPageScrollPhysics(),
-            onPageChanged: context.read<ReelsFeedCubit>().onIndexChanged,
+            onPageChanged: (i) {
+              // R8 — light haptic on page snap.
+              HapticFeedback.selectionClick();
+              context.read<ReelsFeedCubit>().onIndexChanged(i);
+            },
             itemCount: state.reels.length,
             itemBuilder: (context, i) {
               final reel = state.reels[i];
               final handle = widget.pool.peek(reel.id);
               final isActive = i == state.currentIndex;
-              return Stack(
-                key: ValueKey('reel-stack-${reel.id}'),
-                fit: StackFit.expand,
-                children: [
-                  ReelPlayer(
-                    key: ValueKey('reel-${reel.id}'),
-                    reel: reel,
-                    handle: handle,
-                    isActive: isActive && widget.canPlay,
-                    isMuted: widget.muted,
-                    onToggleMute: widget.onToggleMute,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: ReelRightRail(
-                      reel: reel,
-                      onLike: (r) =>
-                          context.read<ReelsFeedCubit>().toggleLike(r.id),
-                      onFollow: (r) => context
-                          .read<ReelsFeedCubit>()
-                          .toggleFollow(r.userId),
-                      onAvatarTap: (r) => _openProfile(context, r.userId),
-                      onComment: (r) => _openCommentsSheet(r),
-                      onGift: (r) => _openGiftPlaceholder(context, r),
-                      onShare: (r) => _openSharePlaceholder(context, r),
-                      onMore: (r) => _openMoreMenu(context, r),
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: ReelBottomInfo(
-                      reel: reel,
-                      isActive: isActive && widget.canPlay,
-                      onHandleTap: (r) => _openProfile(context, r.userId),
-                      onSoundTap: (r) => _openSoundPlaceholder(context, r),
-                    ),
-                  ),
-                ],
+              return _ReelSlide(
+                key: ValueKey('reel-slide-${reel.id}'),
+                reel: reel,
+                handle: handle,
+                isActive: isActive && widget.canPlay,
+                muted: widget.muted,
+                onToggleMute: widget.onToggleMute,
+                onComment: widget.onComment,
               );
             },
           ),
@@ -386,14 +373,216 @@ class _FeedPageViewState extends State<_FeedPageView> {
   }
 }
 
-// ── R4 action handlers ──────────────────────────────────────────────────────
-//
-// Comment / Gift / Share / Profile sheets land in R6 & R7; these are the
-// safe intermediary hooks so the right rail is fully wired now and R6/R7
-// only need to swap the body of each helper.
+/// One vertical slide: player + right rail + bottom info + double-tap-like
+/// heart burst overlay.
+class _ReelSlide extends StatefulWidget {
+  const _ReelSlide({
+    super.key,
+    required this.reel,
+    required this.handle,
+    required this.isActive,
+    required this.muted,
+    required this.onToggleMute,
+    required this.onComment,
+  });
+
+  final Reel reel;
+  final ReelVideoHandle? handle;
+  final bool isActive;
+  final bool muted;
+  final VoidCallback onToggleMute;
+  final ValueChanged<Reel> onComment;
+
+  @override
+  State<_ReelSlide> createState() => _ReelSlideState();
+}
+
+class _ReelSlideState extends State<_ReelSlide> {
+  final List<_HeartBurst> _bursts = [];
+  int _burstSeq = 0;
+
+  void _spawnBurst(Offset localPos) {
+    final b = _HeartBurst(
+      id: ++_burstSeq,
+      position: localPos,
+      angle: (math.Random().nextDouble() - 0.5) * 0.6,
+    );
+    setState(() => _bursts.add(b));
+    Future.delayed(const Duration(milliseconds: 750), () {
+      if (!mounted) return;
+      setState(() => _bursts.removeWhere((x) => x.id == b.id));
+    });
+  }
+
+  void _handleDoubleTap(TapDownDetails d) {
+    HapticFeedback.mediumImpact();
+    _spawnBurst(d.localPosition);
+    final cubit = context.read<ReelsFeedCubit>();
+    // Only fire the network call when transitioning to liked; if it's
+    // already liked we still spawn the burst (Instagram / TikTok parity).
+    if (!widget.reel.isLiked) {
+      unawaited(cubit.toggleLike(widget.reel.id));
+    }
+  }
+
+  bool get _isBuffering {
+    final h = widget.handle;
+    if (h == null) return widget.isActive;
+    if (!h.initialized) return widget.isActive;
+    final v = h.controller.value;
+    return widget.isActive && v.isBuffering && !v.isPlaying;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onDoubleTapDown: _handleDoubleTap,
+          onDoubleTap: () {}, // required so onDoubleTapDown fires reliably
+          child: ReelPlayer(
+            key: ValueKey('reel-${widget.reel.id}'),
+            reel: widget.reel,
+            handle: widget.handle,
+            isActive: widget.isActive,
+            isMuted: widget.muted,
+            onToggleMute: widget.onToggleMute,
+          ),
+        ),
+        if (_isBuffering)
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ..._bursts.map(
+          (b) => Positioned(
+            left: b.position.dx - 55,
+            top: b.position.dy - 55,
+            child: IgnorePointer(child: _HeartBurstWidget(burst: b)),
+          ),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: ReelRightRail(
+            reel: widget.reel,
+            onLike: (r) => context.read<ReelsFeedCubit>().toggleLike(r.id),
+            onFollow: (r) =>
+                context.read<ReelsFeedCubit>().toggleFollow(r.userId),
+            onAvatarTap: (r) => _openProfile(context, r.userId),
+            onComment: widget.onComment,
+            onGift: (r) => _openGiftPlaceholder(context, r),
+            onShare: (r) => _openSharePlaceholder(context, r),
+            onMore: (r) => _openMoreMenu(context, r),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: ReelBottomInfo(
+            reel: widget.reel,
+            isActive: widget.isActive,
+            onHandleTap: (r) => _openProfile(context, r.userId),
+            onSoundTap: (r) => _openSoundPlaceholder(context, r),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeartBurst {
+  _HeartBurst({required this.id, required this.position, required this.angle});
+  final int id;
+  final Offset position;
+  final double angle;
+}
+
+class _HeartBurstWidget extends StatefulWidget {
+  const _HeartBurstWidget({required this.burst});
+  final _HeartBurst burst;
+  @override
+  State<_HeartBurstWidget> createState() => _HeartBurstWidgetState();
+}
+
+class _HeartBurstWidgetState extends State<_HeartBurstWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+  late final Animation<double> _scale;
+  late final Animation<double> _opacity;
+  late final Animation<double> _rise;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 720),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.4, end: 1.15), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.9), weight: 50),
+    ]).animate(_c);
+    _opacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 40),
+    ]).animate(_c);
+    _rise = Tween(begin: 0.0, end: -22.0).animate(
+      CurvedAnimation(parent: _c, curve: Curves.easeOut),
+    );
+    _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) => Transform.translate(
+        offset: Offset(0, _rise.value),
+        child: Transform.rotate(
+          angle: widget.burst.angle,
+          child: Transform.scale(
+            scale: _scale.value,
+            child: Opacity(
+              opacity: _opacity.value,
+              child: const Icon(
+                Icons.favorite,
+                color: Color(0xFFFF4D6D),
+                size: 110,
+                shadows: [Shadow(color: Colors.black45, blurRadius: 18)],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Handlers ────────────────────────────────────────────────────────────────
 
 void _openProfile(BuildContext context, String userId) {
-  // TODO(R7): push profile route once profile page lands.
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text('Profile: $userId'),
@@ -403,11 +592,7 @@ void _openProfile(BuildContext context, String userId) {
   );
 }
 
-// R6: comments sheet handled by _ReelsFeedPageState._openCommentsSheet.
-
 void _openGiftPlaceholder(BuildContext context, Reel reel) {
-  // R7 — real gift sheet backed by the atomic `gift-service` edge function
-  // (same server contract as web GiftingService, `reelId` scoped).
   final uid = Supabase.instance.client.auth.currentUser?.id;
   if (uid == null) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -433,9 +618,6 @@ void _openGiftPlaceholder(BuildContext context, Reel reel) {
 }
 
 void _openSharePlaceholder(BuildContext context, Reel reel) {
-  // R7 — Chamet-class share tray: Copy / WhatsApp / System share / Report,
-  // each routed through recordShare() so `reel_shares` + right-rail counter
-  // stay in sync (Realtime reconciles).
   final cubit = context.read<ReelsFeedCubit>();
   showReelShareSheet(
     context: context,
@@ -446,7 +628,6 @@ void _openSharePlaceholder(BuildContext context, Reel reel) {
 }
 
 void _openSoundPlaceholder(BuildContext context, Reel reel) {
-  // TODO(future): open sound detail / "reels using this sound" list.
   final label = reel.isOriginalSound
       ? 'Original sound'
       : (reel.soundTitle ?? reel.musicTitle ?? 'Sound');
@@ -458,8 +639,6 @@ void _openSoundPlaceholder(BuildContext context, Reel reel) {
     ),
   );
 }
-
-
 
 void _openMoreMenu(BuildContext context, Reel reel) {
   final cubit = context.read<ReelsFeedCubit>();
@@ -587,10 +766,6 @@ void _openReportSheet(
   );
 }
 
-
-
-
-
 class _SnappyPageScrollPhysics extends PageScrollPhysics {
   const _SnappyPageScrollPhysics({super.parent});
 
@@ -657,7 +832,7 @@ class _ErrorRetry extends StatelessWidget {
           const Icon(Icons.error_outline, color: Colors.white70, size: 40),
           const SizedBox(height: 10),
           const Text(
-            'Couldn’t load reels.',
+            'Couldn\u2019t load reels.',
             style: TextStyle(color: Colors.white70, fontSize: 13),
           ),
           const SizedBox(height: 12),
