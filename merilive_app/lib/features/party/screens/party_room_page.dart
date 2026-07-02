@@ -254,6 +254,10 @@ class _PartyRoomView extends StatelessWidget {
               const EntryNameBarOverlay(),
               // M9 — Self level-up celebration overlay.
               const LevelUpCelebrationOverlay(),
+              // G19 — Gift combo counter overlay.
+              const Positioned(top: 60, right: 0, child: PartyGiftComboTracker()),
+              // G24 — Caption overlay (accessibility, off by default).
+              PartyCaptionOverlay(roomId: room.id),
             ],
 
           ),
