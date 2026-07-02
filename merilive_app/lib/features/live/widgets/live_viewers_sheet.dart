@@ -325,8 +325,10 @@ class _ViewerTile extends StatelessWidget {
             ),
         ],
       ),
+    ),
     );
   }
+
 
   List<Color> _levelColors(int lvl) {
     if (lvl >= 50) {
