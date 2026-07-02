@@ -827,6 +827,7 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   _CategoryItem? _category;
   _PrivacyResult _privacy = const _PrivacyResult(mode: 'public');
   BeautySettings _beauty = BeautySettings();
+  StickerItem? _sticker;
 
   // Denial state
   String? _denyCode;
