@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/live_chat_bridge.dart';
+import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
 import '../widgets/live_action_bar.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_gift_feed.dart';
+import '../widgets/live_viewers_sheet.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
@@ -58,6 +60,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // the source of truth, this is UI-only until the native toggle lands).
   bool _isMicMuted = false;
   bool _isCamOff = false;
+
+  // A4 — follow-from-header state.
+  bool _isFollowingHost = false;
+  bool _followBusy = false;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
