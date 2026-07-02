@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/native/livekit_bridge.dart';
+
 /// Honest scaffold surfaces for the "+" FAB destinations.
 ///
 /// Each screen ships a real Scaffold with the target's branding + a clear
@@ -104,17 +106,78 @@ class _ComingSoon extends StatelessWidget {
 }
 
 @RoutePage()
-class GoLivePlaceholderPage extends StatelessWidget {
+class GoLivePlaceholderPage extends StatefulWidget {
   const GoLivePlaceholderPage({super.key});
   @override
-  Widget build(BuildContext context) => const _ComingSoon(
-        title: 'Go Live',
-        subtitle:
-            'Face verification + camera preview + broadcaster controls will be built out with the Live Streaming sector.',
-        icon: Icons.radio_rounded,
-        gradient: [Color(0xFFEF4444), Color(0xFFF43F5E)],
-        sector: 'Sector 6 (Live Streaming)',
-      );
+  State<GoLivePlaceholderPage> createState() => _GoLivePlaceholderPageState();
+}
+
+class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage> {
+  String _bridgeStatus = 'idle';
+
+  @override
+  void initState() {
+    super.initState();
+    _probeBridge();
+  }
+
+  Future<void> _probeBridge() async {
+    // Fire-and-observe: confirms MethodChannel wiring end-to-end.
+    // Safe no-op on web/iOS or before the Android host is scaffolded.
+    final init = await LiveKitBridge.instance.initialize();
+    final preview =
+        await LiveKitBridge.instance.startLocalPreview(front: true);
+    if (!mounted) return;
+    setState(() {
+      _bridgeStatus =
+          'init=${init['success'] ?? init['reason']}  preview=${preview['success'] ?? preview['reason']}';
+    });
+  }
+
+  @override
+  void dispose() {
+    LiveKitBridge.instance.stopLocalPreview();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const _ComingSoon(
+          title: 'Go Live',
+          subtitle:
+              'Face verification + camera preview + broadcaster controls will be built out with the Live Streaming sector.',
+          icon: Icons.radio_rounded,
+          gradient: [Color(0xFFEF4444), Color(0xFFF43F5E)],
+          sector: 'Sector 6 (Live Streaming)',
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 24,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.55),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.15)),
+            ),
+            child: Text(
+              'LiveKit bridge: $_bridgeStatus',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 @RoutePage()
