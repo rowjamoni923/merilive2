@@ -68,8 +68,11 @@ class PartyDiscoveryRepository {
       final hostId = row['host_id']?.toString();
       final host = hostId != null ? hostMap[hostId] : null;
       final base = PartyRoom.fromRow(row, host: host);
-      // Server column may lag; participants table is source of truth.
-      final live = counts[base.id] ?? base.currentParticipants;
+      // Web parity: Math.max(participants_count, active_seats, 1).
+      final activeSeats = (row['active_seats'] as num?)?.toInt() ?? 0;
+      final count = counts[base.id] ?? 0;
+      final live = [count, activeSeats, 1]
+          .reduce((a, b) => a > b ? a : b);
       return base.copyWith(currentParticipants: live);
     }).toList(growable: false);
   }
