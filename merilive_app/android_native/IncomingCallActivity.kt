@@ -175,13 +175,55 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun sendActionToWebView(action: String) {
-        val broadcastIntent = Intent("com.merilive.app.CALL_ACTION").apply {
+        // Persist to SharedPreferences FIRST so a cold-starting Flutter engine
+        // can pick this up via IncomingCallBridgePlugin.pending even if the
+        // broadcast fires before its receiver is registered.
+        try {
+            val prefs = getSharedPreferences(
+                MeriFirebaseMessagingService.PENDING_PREFS, Context.MODE_PRIVATE
+            )
+            prefs.edit()
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_ACTION, action)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALL_ID, callId)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_ID, callerId)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_NAME, callerName)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALLER_AVATAR, callerAvatar)
+                .putString(MeriFirebaseMessagingService.PENDING_KEY_CALL_TYPE, callType)
+                .putLong(MeriFirebaseMessagingService.PENDING_KEY_TS, System.currentTimeMillis())
+                .apply()
+        } catch (_: Exception) {}
+        val broadcastIntent = Intent(MeriFirebaseMessagingService.BROADCAST_ACTION).apply {
+            setPackage(packageName)
             putExtra("action", action)
             putExtra("call_id", callId)
             putExtra("caller_id", callerId)
+            putExtra("caller_name", callerName)
+            putExtra("caller_avatar", callerAvatar)
+            putExtra("call_type", callType)
         }
         sendBroadcast(broadcastIntent)
     }
+
+    private var dismissReceiver: BroadcastReceiver? = null
+    private fun registerDismissReceiver() {
+        dismissReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val incomingId = intent?.getStringExtra("call_id")
+                if (incomingId == null || incomingId == callId) {
+                    stopRinging()
+                    finish()
+                }
+            }
+        }
+        val filter = IntentFilter("com.merilive.app.INCOMING_CALL_DISMISS")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(dismissReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(dismissReceiver, filter)
+        }
+    }
+
 
     private fun openMainActivityWithCall() {
         val intent = Intent(this, MainActivity::class.java).apply {
