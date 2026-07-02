@@ -600,36 +600,6 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         : await b.raise(streamId: widget.streamId);
     if (!mounted) return;
     if (ok) _snack(raised ? 'Hand lowered' : '✋ Hand raised');
-
-  Future<String?> _promptLivePassword() async {
-    final ctrl = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1F2937),
-        title: const Text('Password required',
-            style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: ctrl,
-          obscureText: true,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Enter stream password',
-            hintStyle: TextStyle(color: Colors.white38),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, null),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-              child: const Text('Enter')),
-        ],
-      ),
-    );
   }
 
   Future<void> _shareStream() async {
