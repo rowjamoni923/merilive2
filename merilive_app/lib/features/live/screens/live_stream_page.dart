@@ -4,6 +4,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../entry_effects/data/room_entry_dispatcher.dart';
+import '../../entry_effects/data/room_join_events_bridge.dart';
+import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
 import '../../gifting/data/gift_animation_config.dart';
 import '../../gifting/data/native_gift_bridge.dart';
 import '../../gifting/widgets/full_screen_gift_overlay.dart';
@@ -144,6 +147,14 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         if (mounted) setState(() => _pkBattle = snap);
       });
 
+      // A11 — Level-up entry animations: bind join events to native
+      // VAP/Lottie renderer with Flutter EntryNameBarOverlay fallback.
+      await RoomEntryDispatcher.instance.attach(
+        surface: RoomJoinSurface.live,
+        roomId: widget.streamId,
+        selfUserId: _client.auth.currentUser?.id,
+      );
+
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
       if (!_isHost) {
@@ -257,6 +268,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
+    RoomEntryDispatcher.instance.detach();
     // Best-effort viewer cleanup on route pop without pressing Leave
     // (e.g. Android system back). Host teardown is handled by the End
     // button and the GoLive handoff — never here.
@@ -472,6 +484,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               right: 80,
               child: LiveGiftFeed(stream: LiveChatBridge.instance.gifts$),
             ),
+            // A11 — Flying entry name-bar overlay (Flutter fallback when
+            // NativeEntryAnimationPlugin is unavailable).
+            const EntryNameBarOverlay(),
             // A2 — chat overlay + composer, docked above the bottom bar.
             Positioned(
               left: 12,

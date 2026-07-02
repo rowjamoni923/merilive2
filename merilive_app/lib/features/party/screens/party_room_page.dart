@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../entry_effects/data/room_entry_dispatcher.dart';
+import '../../entry_effects/data/room_join_events_bridge.dart';
+import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
 import '../../gifting/data/gift_animation_config.dart';
 import '../../gifting/data/native_gift_bridge.dart';
 import '../../gifting/widgets/full_screen_gift_overlay.dart';
@@ -50,6 +53,12 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
     // Flutter FullScreenGiftQueue via GlobalGiftOverlay in main.dart.
     PartyGiftBridge.instance.attach(widget.roomId);
     _giftSub = PartyGiftBridge.instance.gifts$.listen(_onGiftEvent);
+    // A11 — Level-up entry animations for party joiners.
+    RoomEntryDispatcher.instance.attach(
+      surface: RoomJoinSurface.party,
+      roomId: widget.roomId,
+      selfUserId: Supabase.instance.client.auth.currentUser?.id,
+    );
   }
 
   @override
@@ -57,6 +66,7 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
     _giftSub?.cancel();
     PartyGiftBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
+    RoomEntryDispatcher.instance.detach();
     super.dispose();
   }
 
@@ -171,6 +181,8 @@ class _PartyRoomView extends StatelessWidget {
                   ],
                 ),
               ),
+              // A11 — Flying entry name-bar overlay on room joins.
+              const EntryNameBarOverlay(),
             ],
           ),
         );
