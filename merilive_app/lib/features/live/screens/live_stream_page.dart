@@ -232,6 +232,25 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   ?.toString() ??
               'viewer',
         );
+        // H5 P0 #3 — post-battle result modal (Chamet/Bigo parity).
+        // Fire once per battleId when server transitions status → 'ended'.
+        if (snap != null &&
+            snap.status == 'ended' &&
+            !_shownResultForBattleId.contains(snap.battleId)) {
+          _shownResultForBattleId.add(snap.battleId);
+          // Also clear the random-search toast if this ended battle was
+          // the one we were waiting on.
+          if (_randomPkSessionId != null) {
+            _randomPkTimeout?.cancel();
+            if (mounted) {
+              setState(() {
+                _randomPkSessionId = null;
+                _randomPkStartedAt = null;
+              });
+            }
+          }
+          _showPkResultModal(snap);
+        }
       });
 
       // Phase I12/I16 — mirror room join events into the NEW overlay
