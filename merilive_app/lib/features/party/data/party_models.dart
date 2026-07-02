@@ -84,8 +84,6 @@ class PartyRoom extends Equatable {
     required this.minLevel,
     required this.maxParticipants,
     required this.currentParticipants,
-    required this.isPrivate,
-    required this.hasPassword,
     required this.roomCode,
     required this.mood,
     required this.description,
@@ -102,11 +100,6 @@ class PartyRoom extends Equatable {
   final int minLevel;
   final int maxParticipants;
   final int currentParticipants;
-  /// Kept for back-compat; true only when the room requires a password.
-  final bool isPrivate;
-  /// H4 — `party_rooms.password_hash IS NOT NULL`. Renders a padlock badge
-  /// and forces the join flow to prompt for a password.
-  final bool hasPassword;
   final String? roomCode;
   final String? mood;
   final String? description;
@@ -123,8 +116,6 @@ class PartyRoom extends Equatable {
         minLevel: minLevel,
         maxParticipants: maxParticipants,
         currentParticipants: currentParticipants ?? this.currentParticipants,
-        isPrivate: isPrivate,
-        hasPassword: hasPassword,
         roomCode: roomCode,
         mood: mood,
         description: description,
@@ -132,9 +123,10 @@ class PartyRoom extends Equatable {
         host: host ?? this.host,
       );
 
+  // Party rooms are always public — professional live-streaming apps
+  // (Chamet / Bigo / Poppo / Olamet) never gate party rooms behind a
+  // password. The DB `password_hash` column is legacy and unused.
   factory PartyRoom.fromRow(Map<String, dynamic> row, {PartyHost? host}) {
-    final pwd = row['password_hash'];
-    final hasPwd = pwd != null && pwd.toString().isNotEmpty;
     return PartyRoom(
       id: row['id']?.toString() ?? '',
       name: (row['name'] as String?) ?? 'Party Room',
@@ -145,10 +137,6 @@ class PartyRoom extends Equatable {
       minLevel: (row['min_level'] as num?)?.toInt() ?? 0,
       maxParticipants: (row['max_participants'] as num?)?.toInt() ?? 0,
       currentParticipants: (row['current_participants'] as num?)?.toInt() ?? 0,
-      // Web-truth: party has no "private-hidden" tri-state — password_hash
-      // is the sole privacy signal. Keep isPrivate as an alias.
-      isPrivate: hasPwd,
-      hasPassword: hasPwd,
       roomCode: row['room_code'] as String?,
       mood: row['mood'] as String?,
       description: row['description'] as String?,
@@ -158,8 +146,7 @@ class PartyRoom extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, currentParticipants, roomType, hasPassword, host];
+  List<Object?> get props => [id, currentParticipants, roomType, host];
 }
 
 /// Party discovery country strip — mirrors web `partyCountries` in `Discover.tsx`.
