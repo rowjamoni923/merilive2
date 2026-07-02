@@ -4,10 +4,12 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/party_livekit_service.dart';
 import '../data/party_models.dart';
 import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
+
 
 class PartyRoomState extends Equatable {
   const PartyRoomState({
@@ -79,15 +81,19 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     required PartyRoomRepository repository,
     required PartyRoomRealtime realtime,
     required SupabaseClient supabase,
+    PartyLiveKitService? livekit,
   })  : _repo = repository,
         _rt = realtime,
         _supabase = supabase,
+        _lk = livekit ?? PartyLiveKitService(supabase),
         super(const PartyRoomState());
 
   final String roomId;
   final PartyRoomRepository _repo;
   final PartyRoomRealtime _rt;
   final SupabaseClient _supabase;
+  final PartyLiveKitService _lk;
+
 
   String? get _uid => _supabase.auth.currentUser?.id;
   bool get isHost =>
@@ -122,6 +128,8 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       if (uid != null) {
         await _repo.joinAsViewer(roomId, uid);
         emit(state.copyWith(isJoined: true));
+        // PD5b — connect to LiveKit as subscribe-only viewer for room audio.
+        unawaited(_connectViewer());
       }
 
       _rt.subscribe(
@@ -135,6 +143,18 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
+
+  Future<void> _connectViewer() async {
+    try {
+      await _lk.connectAsViewer(
+        roomId: roomId,
+        participantName: _uid ?? 'viewer',
+      );
+    } catch (_) {
+      // Non-fatal: chat/seats still work; user just won't hear audio.
+    }
+  }
+
 
   Future<void> _refreshRoom() async {
     try {
@@ -200,6 +220,18 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     );
     if (!seat.isEmpty || seat.isLocked) return;
     await _repo.takeSeat(roomId: roomId, userId: uid, seatNumber: seatNumber);
+    // PD5b — upgrade LiveKit connection to publish-capable (mic starts muted).
+    try {
+      await _lk.upgradeToSpeaker(roomId: roomId, participantName: uid);
+    } catch (e) {
+      // Rollback seat if we can't publish (e.g. permission denied).
+      try {
+        await _repo.leaveSeat(roomId: roomId, userId: uid);
+      } catch (_) {}
+      await _refreshSeats();
+      emit(state.copyWith(error: e.toString()));
+      return;
+    }
     await _refreshSeats();
   }
 
@@ -207,6 +239,10 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     final uid = _uid;
     if (uid == null) return;
     await _repo.leaveSeat(roomId: roomId, userId: uid);
+    // PD5b — drop mic publish, keep listening as viewer.
+    try {
+      await _lk.downgradeToViewer(roomId: roomId, participantName: uid);
+    } catch (_) {}
     await _refreshSeats();
   }
 
@@ -215,6 +251,10 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     if (uid == null || state.selfSeat == null) return;
     final next = !state.isSelfMuted;
     emit(state.copyWith(isSelfMuted: next));
+    // PD5b — flip the native mic track. Cheap, no reconnect.
+    try {
+      await _lk.setMicEnabled(!next);
+    } catch (_) {}
     await _repo.toggleSelfMute(roomId: roomId, userId: uid, muted: next);
   }
 
@@ -250,9 +290,11 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
   @override
   Future<void> close() async {
     await _rt.unsubscribe();
+    await _lk.disconnect();
     await leaveRoom();
     return super.close();
   }
+
 }
 
 extension _Let<T> on T {
