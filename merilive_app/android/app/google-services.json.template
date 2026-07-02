@@ -1,0 +1,29 @@
+// TEMPLATE — do NOT ship. Replace with the real file downloaded from
+// Firebase Console → Project settings → Your apps → Android app
+// (package: com.merilive.app) → google-services.json.
+//
+// Required for: FCM push (incoming private-call ringer), Play Integrity.
+// Without this file `com.google.gms.google-services` gradle plugin will
+// fail the build with:
+//   File google-services.json is missing.
+//   The Google Services Plugin cannot function without it.
+//
+// After downloading, save as: merilive_app/android/app/google-services.json
+// (this .template file stays checked in so devs know it's expected.)
+{
+  "project_info": {
+    "project_number": "REPLACE_ME",
+    "project_id": "REPLACE_ME",
+    "storage_bucket": "REPLACE_ME.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_ME",
+        "android_client_info": { "package_name": "com.merilive.app" }
+      },
+      "api_key": [{ "current_key": "REPLACE_ME" }]
+    }
+  ],
+  "configuration_version": "1"
+}
