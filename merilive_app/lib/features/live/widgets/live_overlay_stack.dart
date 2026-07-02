@@ -213,7 +213,11 @@ class LiveOverlayStack extends StatelessWidget {
                   left: 12,
                   right: 12,
                   bottom: mq.padding.bottom + 78,
-                  child: const LiveCaptionsOverlay(),
+                  child: LiveCaptionsOverlay(
+                    stream: controller.captionEvents.stream,
+                    enabled: controller.captionsEnabled,
+                    onToggle: onCaptionsToggle,
+                  ),
                 ),
 
               // ── Composer at bottom ──────────────────────────────────────
@@ -229,8 +233,12 @@ class LiveOverlayStack extends StatelessWidget {
               if (controller.audioUnlockNeeded)
                 Positioned.fill(
                   child: LiveAudioUnlockOverlay(
-                    onUnlock: onAudioUnlock ??
-                        () => controller.setAudioUnlockNeeded(false),
+                    onUnlock: () async {
+                      if (onAudioUnlock != null) {
+                        onAudioUnlock!();
+                      }
+                      controller.setAudioUnlockNeeded(false);
+                    },
                   ),
                 ),
             ],
