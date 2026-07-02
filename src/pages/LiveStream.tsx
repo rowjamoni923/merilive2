@@ -4547,7 +4547,7 @@ const LiveStream = () => {
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
-                <SwitchCamera className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.2} />
+                <RefreshCcw className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" strokeWidth={2.2} />
               </motion.button>
 
               <motion.button
