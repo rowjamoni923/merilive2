@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/native/livekit_bridge.dart';
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
+import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
 import '../../entry_effects/widgets/cinematic_join_banner_overlay.dart';
 import '../../entry_effects/widgets/entry_name_bar_overlay.dart';
 
@@ -660,6 +661,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
             // B7 — Cinematic full-width join banner for premium joins
             // when the native VAP path isn't available.
             const CinematicJoinBannerOverlay(),
+            // B6 — Bigo compact join banner (non-premium joins,
+            // one-at-a-time, 500 ms welcome coalescer).
+            const BigoJoinBannerOverlay(),
             // M9 — Self level-up confetti + Lv chip celebration.
             const LevelUpCelebrationOverlay(),
 
