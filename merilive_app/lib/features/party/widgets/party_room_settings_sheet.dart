@@ -42,9 +42,9 @@ class _PartyRoomSettingsSheetState extends State<PartyRoomSettingsSheet> {
     super.initState();
     _name = TextEditingController(text: widget.room.name);
     _welcome = TextEditingController(text: widget.room.welcomeMessage ?? '');
-    _announce = TextEditingController(text: widget.room.announcement ?? '');
+    _announce = TextEditingController(text: '');
     _bg = TextEditingController(text: widget.room.backgroundUrl ?? '');
-    _locked = widget.room.isLocked;
+    _locked = widget.room.isPrivate;
   }
 
   @override
