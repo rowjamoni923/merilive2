@@ -102,7 +102,7 @@ class _HomeTabPageState extends State<HomeTabPage>
                     onSearchTap: () =>
                         context.router.push(const SearchRoute()),
                     onTrophyTap: () =>
-                        _toast('Leaderboard — lands in a later sector'),
+                        context.router.push(const LeaderboardRoute()),
                     countries: countryState.countries,
                     selectedCountry: countryState.selectedCode,
                     onCountry: (c) {

@@ -14,6 +14,7 @@ import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
 import '../../features/home/screens/action_placeholders.dart';
+import '../../features/leaderboard/leaderboard_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/splash/splash_page.dart';
 
@@ -66,5 +67,8 @@ class AppRouter extends _$AppRouter {
 
         // H7 — user search (App-ID + tag filters).
         AutoRoute(page: SearchRoute.page, path: '/search'),
+
+        // H8 — leaderboard (Charm / Game / Wealth / PK × D/W/M).
+        AutoRoute(page: LeaderboardRoute.page, path: '/leaderboard'),
       ];
 }
