@@ -55,15 +55,20 @@ Audit revealed the 5 "dormant" handlers are actually wired in `LiveKitFlutterPlu
 
 ---
 
-### H3 — E-22 Raise-hand queue
+### H3 — E-22 Raise-hand queue ✅ ALREADY COMPLETE (verified 2026-07-02)
 
-No web reference exists — build fresh, Chamet/Bigo pattern:
+Full audit found this shipped in an earlier phase — nothing to build. Actual state:
 
-- New table `live_raise_hand_queue` (stream_id, user_id, requested_at, status, position) — with GRANT + RLS + realtime publication.
-- Edge fn `live-raise-hand`: request / withdraw / approve / dismiss actions, host-only mutations.
-- Dart `LiveRaiseHandBridge` (singleton) + `LiveRaiseHandButton` on viewer side (single pulse when queued) + `LiveRaiseHandQueueSheet` on host side (approve → auto-invite via existing multi-guest flow).
+- ✅ **Table** `live_raise_hand_queue` (10 cols) with `UNIQUE(stream_id, viewer_id)` + FIFO index `(stream_id, status, raised_at)`
+- ✅ **RLS**: viewer-manages-own-row + host-reads/updates-own-stream (via `live_streams.host_id = auth.uid()`)
+- ✅ **Realtime publication** enabled on `supabase_realtime`
+- ✅ **`LiveRaiseHandBridge`** (264 L): raise/lower/isRaised (viewer), approve/reject (host), seed-from-REST + Realtime `postgres_changes` FIFO sort, **auto-promotes approved viewer via `livekit-update-permission` edge fn** (PROMOTE_TO_SPEAKER: camera+mic+screen sources)
+- ✅ **UI**: `LiveRaiseHandButton` (90 L) + `LiveRaiseHandQueueSheet` (176 L), wired in `live_stream_page.dart` `_toggleRaiseHand` and `live_action_bar.dart` (`raise_hand` viewer entry + `raise_queue` host entry)
+- ✅ Uses existing `livekit-update-permission` edge fn instead of a new `live-raise-hand` fn — simpler, less surface area, matches web-truth `src/lib/livekitRaiseHand.ts` promote flow
 
-Deliverable: viewer taps raise-hand → host sees queue → approves → viewer joins as multi-guest.
+**No APK rebuild needed** (pure Dart + DB + existing edge fn).
+
+
 
 ---
 
