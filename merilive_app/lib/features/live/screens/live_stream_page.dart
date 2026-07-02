@@ -61,6 +61,8 @@ import '../data/live_raise_hand_bridge.dart';
 import '../data/live_stream_swipe_controller.dart';
 import '../widgets/live_virtual_bg_sheet.dart';
 import '../widgets/pk_battle_overlay.dart';
+import '../widgets/pk_battle_result.dart';
+import '../widgets/pk_random_match_notification.dart';
 import '../widgets/reactions_picker_sheet.dart';
 import '../data/live_reactions_bus.dart';
 import '../../party/widgets/party_game_selection_sheet.dart';
@@ -127,7 +129,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // R6a — challenger-side random-match search state (lifted from panel so
   // the search survives closing the sheet). Mirrors LiveStream.tsx.
   String? _randomPkSessionId;
+  DateTime? _randomPkStartedAt;
   Timer? _randomPkTimeout;
+  // Track battles for which the result modal already fired (avoid re-showing).
+  final Set<String> _shownResultForBattleId = <String>{};
 
   // Phase E — content safety + call-focus (host-only, mounted after
   // stream resolves so we know who the host is).
