@@ -290,18 +290,11 @@ class _RoundIcon extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-        child: const Padding(
-          padding: EdgeInsets.all(10),
-          child: Icon(Icons.close, color: Colors.white, size: 20),
-        ).copyWithIcon(icon),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
       ),
     );
   }
-}
-
-extension _CopyIcon on Padding {
-  Widget copyWithIcon(IconData icon) => Padding(
-        padding: padding,
-        child: Icon(icon, color: Colors.white, size: 20),
-      );
 }
