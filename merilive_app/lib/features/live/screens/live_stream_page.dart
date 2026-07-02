@@ -1182,6 +1182,22 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               ),
             ),
 
+            // H5 P0 #3 — Random-match search toast (challenger-side).
+            if (_randomPkSessionId != null && _randomPkStartedAt != null)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 96,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: PKRandomMatchNotification(
+                    startedAt: _randomPkStartedAt!,
+                    onCancel: _cancelRandomPkSearch,
+                  ),
+                ),
+              ),
+
+
+
             // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
             if (_pkBattle != null)
               PkBattleOverlay(
