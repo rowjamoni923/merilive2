@@ -908,6 +908,66 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     });
   }
 
+  // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
+  //
+  // Web-truth: `src/hooks/useLiveStreamSwipe.ts` (80 px min, 300 ms fast
+  // window, 150 px slow-swipe fallback, `navigate(..., { replace: true })`).
+  // Hosts are excluded — they cannot swipe away from their own broadcast.
+  // While a sheet or gift/entry animation is capturing gestures the
+  // GestureDetector's `HitTestBehavior.translucent` still lets the child
+  // widgets win via their own recognizers (Sheets/InkResponses).
+  bool _swipeNavigating = false;
+  double _swipeStartDy = 0;
+  int _swipeStartMs = 0;
+
+  Widget _wrapWithSwipe(Widget child) {
+    if (_isHost) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: (d) {
+        _swipeStartDy = d.globalPosition.dy;
+        _swipeStartMs = DateTime.now().millisecondsSinceEpoch;
+      },
+      onVerticalDragEnd: (d) {
+        final endDy = d.globalPosition?.dy ??
+            (_swipeStartDy - (d.primaryVelocity ?? 0) * 0.05);
+        final dy = _swipeStartDy - endDy; // + = swipe UP
+        final dt = DateTime.now().millisecondsSinceEpoch - _swipeStartMs;
+        const minDist = 80.0;
+        const maxFastMs = 300;
+        if (dy.abs() < minDist) return;
+        if (dt > maxFastMs && dy.abs() < 150) return;
+        if (dy > 0) {
+          _swipeToNeighbour(next: true);
+        } else {
+          _swipeToNeighbour(next: false);
+        }
+      },
+      child: child,
+    );
+  }
+
+  Future<void> _swipeToNeighbour({required bool next}) async {
+    if (_swipeNavigating) return;
+    final ctrl = LiveStreamSwipeController.instance;
+    final targetId =
+        next ? ctrl.next(widget.streamId) : ctrl.prev(widget.streamId);
+    if (targetId == null) {
+      _snack(next ? 'You\'re at the last live stream' : 'You\'re at the top');
+      return;
+    }
+    _swipeNavigating = true;
+    try {
+      // Replace so the browser/back-stack behaves like a feed swipe, not a
+      // deep push. `replaceNamed` is available on both AutoRoute stacks and
+      // maps to `context.router.replace(...)` internally.
+      await context.router.replaceNamed('/live/$targetId');
+    } catch (_) {
+      _swipeNavigating = false;
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
