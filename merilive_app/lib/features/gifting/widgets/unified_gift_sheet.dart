@@ -279,7 +279,8 @@ class _UnifiedGiftSheetState extends State<_UnifiedGiftSheet> {
           receiverName: recipient.label,
           quantity: _quantity,
           imageUrl: (g['image_url'] ?? g['icon_url'])?.toString(),
-          videoUrl: (g['animation_url'] ?? g['vap_url'] ?? g['mp4_url'])?.toString(),
+          animationUrl: (g['animation_url'] ?? g['vap_url'] ?? g['mp4_url'])?.toString(),
+          animationType: (g['animation_type'])?.toString(),
         ));
       }
 
