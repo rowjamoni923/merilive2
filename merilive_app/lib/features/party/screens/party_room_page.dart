@@ -591,6 +591,14 @@ class _BottomBarState extends State<_BottomBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (cubit.isHost &&
+              widget.state.room?.roomType != PartyRoomType.audio) ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: const PartyHostVideoControls(),
+            ),
+            const SizedBox(height: 6),
+          ],
           PartyChatComposer(onSend: cubit.sendMessage),
           const SizedBox(height: 6),
           Row(
