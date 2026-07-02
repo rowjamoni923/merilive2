@@ -22,6 +22,8 @@ class PartyRoomState extends Equatable {
     this.isJoined = false,
     this.selfSeat,
     this.isSelfMuted = true,
+    this.pendingRequests = const [],
+    this.selfRequestSeat,
   });
 
   final bool isLoading;
@@ -33,6 +35,8 @@ class PartyRoomState extends Equatable {
   final bool isJoined;
   final int? selfSeat;
   final bool isSelfMuted;
+  final List<PartySeatRequest> pendingRequests;
+  final int? selfRequestSeat; // seat number user is waiting on
 
   int get liveCount =>
       seats.where((s) => !s.isEmpty).length; // seat-occupant count
@@ -48,6 +52,9 @@ class PartyRoomState extends Equatable {
     int? selfSeat,
     bool clearSelfSeat = false,
     bool? isSelfMuted,
+    List<PartySeatRequest>? pendingRequests,
+    int? selfRequestSeat,
+    bool clearSelfRequest = false,
   }) =>
       PartyRoomState(
         isLoading: isLoading ?? this.isLoading,
@@ -59,6 +66,10 @@ class PartyRoomState extends Equatable {
         isJoined: isJoined ?? this.isJoined,
         selfSeat: clearSelfSeat ? null : (selfSeat ?? this.selfSeat),
         isSelfMuted: isSelfMuted ?? this.isSelfMuted,
+        pendingRequests: pendingRequests ?? this.pendingRequests,
+        selfRequestSeat: clearSelfRequest
+            ? null
+            : (selfRequestSeat ?? this.selfRequestSeat),
       );
 
   @override
@@ -72,7 +83,10 @@ class PartyRoomState extends Equatable {
         isJoined,
         selfSeat,
         isSelfMuted,
+        pendingRequests,
+        selfRequestSeat,
       ];
+
 }
 
 class PartyRoomCubit extends Cubit<PartyRoomState> {
