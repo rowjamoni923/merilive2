@@ -649,3 +649,77 @@ class _ErrorState extends StatelessWidget {
     );
   }
 }
+
+/// A4 — Compact Follow / Following pill for the top header.
+class _FollowPill extends StatelessWidget {
+  const _FollowPill({
+    required this.isFollowing,
+    required this.busy,
+    required this.onTap,
+  });
+
+  final bool isFollowing;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = isFollowing
+        ? const [Color(0x33FFFFFF), Color(0x22FFFFFF)]
+        : const [Color(0xFFEC4899), Color(0xFFA855F7)];
+    return InkResponse(
+      onTap: busy ? null : onTap,
+      radius: 26,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradient),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: isFollowing
+              ? const []
+              : const [
+                  BoxShadow(
+                    color: Color(0x66EC4899),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (busy)
+              const SizedBox(
+                width: 10,
+                height: 10,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.6,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            else
+              Icon(
+                isFollowing
+                    ? Icons.check_rounded
+                    : Icons.add_rounded,
+                size: 12,
+                color: Colors.white,
+              ),
+            const SizedBox(width: 3),
+            Text(
+              isFollowing ? 'Following' : 'Follow',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
