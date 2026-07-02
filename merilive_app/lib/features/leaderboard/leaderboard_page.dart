@@ -110,6 +110,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     _PeriodTabs(
                       active: state.period,
                       onChange: _cubit.selectPeriod,
+                    )
+                  else if (state.pkCompetitions.length > 1)
+                    _PkCompetitionStrip(
+                      comps: state.pkCompetitions,
+                      activeId: state.activePk?.id,
+                      onSelect: _cubit.selectPkCompetition,
                     ),
                   Expanded(
                     child: RefreshIndicator(
