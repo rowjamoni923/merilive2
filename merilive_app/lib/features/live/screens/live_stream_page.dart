@@ -137,6 +137,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   final LiveOverlayController _overlay = LiveOverlayController();
   // Phase I14 — session-scope running totals per gifter (host-side leaderboard).
   final Map<String, _GifterTotal> _gifterTotals = {};
+  // Phase I15 — 1s ticker that polls native getStats() for connection
+  // quality and re-emits PK remaining-seconds between realtime snapshots.
+  Timer? _overlayTicker;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -250,6 +253,9 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
           ));
         }
       });
+
+      // Phase I15 — start the overlay ticker (connection quality + PK clock).
+      _startOverlayTicker();
 
       // A11 — Level-up entry animations: bind join events to native
       // VAP/Lottie renderer with Flutter EntryNameBarOverlay fallback.
@@ -397,6 +403,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _pkSub?.cancel();
     _joinSub?.cancel();
     _randomPkTimeout?.cancel();
+    _overlayTicker?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     LiveReactionsBus.instance.detach();
@@ -464,6 +471,51 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       remainingSeconds: remaining,
       punishmentPhase: snap.status == 'punishment' || snap.inPunishment,
     );
+  }
+
+  /// Phase I15 — periodic HUD refresh:
+  ///   • Every 2s, ask the native LiveKit plugin for a WebRTC stats
+  ///     snapshot and translate `quality` into `LiveConnectionQuality`.
+  ///   • Every 1s, recompute the PK HUD from the last snapshot so the
+  ///     countdown ticks smoothly between realtime score updates.
+  /// Safe on web/iOS/older APKs — `getStats()` no-ops with
+  /// `success:false` and we leave the quality at `unknown`.
+  void _startOverlayTicker() {
+    _overlayTicker?.cancel();
+    var statsTick = 0;
+    _overlayTicker = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (!mounted) return;
+      // PK clock refresh — cheap, purely local.
+      if (_pkBattle != null) {
+        _overlay.setPKState(_pkActiveStateFrom(_pkBattle));
+      }
+      // Connection quality — every 2s to keep the RPC quiet.
+      statsTick = (statsTick + 1) % 2;
+      if (statsTick != 0) return;
+      try {
+        final res = await LiveKitBridge.instance.getStats();
+        if (res['success'] == false) return;
+        _overlay.setConnectionQuality(
+          _mapConnectionQuality(res['quality']?.toString()),
+        );
+      } catch (_) {
+        /* leave quality untouched */
+      }
+    });
+  }
+
+  LiveConnectionQuality _mapConnectionQuality(String? q) {
+    switch (q) {
+      case 'excellent':
+        return LiveConnectionQuality.excellent;
+      case 'good':
+        return LiveConnectionQuality.good;
+      case 'poor':
+      case 'lost':
+        return LiveConnectionQuality.poor;
+      default:
+        return LiveConnectionQuality.unknown;
+    }
   }
 
   /// Phase I14 — accumulate per-sender coin totals for this session and
