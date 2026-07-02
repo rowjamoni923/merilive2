@@ -62,16 +62,15 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
         AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/match-call'),
 
-        // M13 — Incoming private-call ringer + active call surface.
+        // M13 — Incoming private-call ringer (fullscreen). Accept path uses
+        // an imperative Navigator.push to ActiveCallPage with the connected
+        // PrivateCallBridge (URL-friendly route not needed for post-accept).
         AutoRoute(
           page: IncomingCallRoute.page,
           path: '/call/incoming/:callId',
           fullscreenDialog: true,
         ),
-        AutoRoute(
-          page: ActiveCallRoute.page,
-          path: '/call/active/:callId',
-        ),
+
 
 
         // Home HostCard tap destinations (H4)
