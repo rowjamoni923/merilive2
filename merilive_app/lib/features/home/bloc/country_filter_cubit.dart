@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/country_repository.dart';
 
@@ -7,9 +8,10 @@ import '../data/country_repository.dart';
 ///
 /// Web parity notes:
 ///   • Seed list paints immediately (no waiting on network).
-///   • RPC result is merged in on top; if it fails we keep the seed silently
-///     — the strip stays usable, matches web `useQuery` degrading gracefully.
-///   • Selected code persists across refreshes; defaults to `all`.
+///   • RPC result is merged in on top; if it fails we keep the seed silently.
+///   • Selected code is persisted to `shared_preferences` so the strip
+///     restores the user's last filter across app restarts — parity with
+///     `localStorage.home_country_filter` on the web.
 class CountryFilterState extends Equatable {
   const CountryFilterState({
     required this.countries,
@@ -55,10 +57,19 @@ class CountryFilterCubit extends Cubit<CountryFilterState> {
           _repo.merge(const <HomeCountry>[]),
         ));
 
+  static const _prefsKey = 'home_country_filter_v1';
   final CountryRepository _repo;
 
-  /// Refresh dynamic countries from the RPC. Safe to call on tab enter or
-  /// after pull-to-refresh; keeps the currently selected code when possible.
+  Future<void> hydrate() async {
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final saved = sp.getString(_prefsKey);
+      if (saved != null && saved.isNotEmpty && saved != state.selectedCode) {
+        emit(state.copyWith(selectedCode: saved));
+      }
+    } catch (_) {}
+  }
+
   Future<void> refresh() async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
@@ -79,5 +90,9 @@ class CountryFilterCubit extends Cubit<CountryFilterState> {
   void select(String code) {
     if (code == state.selectedCode) return;
     emit(state.copyWith(selectedCode: code));
+    // Fire-and-forget persistence.
+    SharedPreferences.getInstance()
+        .then((sp) => sp.setString(_prefsKey, code))
+        .catchError((_) {});
   }
 }

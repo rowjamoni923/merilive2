@@ -32,6 +32,7 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   late final LeaderboardCubit _cubit;
   Timer? _countdownTimer;
+  Timer? _autoRefreshTimer;
   Duration _remaining = Duration.zero;
   String? _currentUserId;
 
@@ -45,8 +46,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       if (!mounted) return;
       setState(() => _remaining = _computeRemaining());
     });
+    // Silent auto-refresh every 60s so podium + earnings stay live without
+    // requiring a pull-to-refresh (parity with web react-query staleTime).
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (!mounted) return;
+      _cubit.load();
+    });
     _remaining = _computeRemaining();
   }
+
 
   Duration _computeRemaining() {
     final s = _cubit.state;
@@ -74,6 +82,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _autoRefreshTimer?.cancel();
     _cubit.close();
     super.dispose();
   }
@@ -101,6 +110,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     _PeriodTabs(
                       active: state.period,
                       onChange: _cubit.selectPeriod,
+                    )
+                  else if (state.pkCompetitions.length > 1)
+                    _PkCompetitionStrip(
+                      comps: state.pkCompetitions,
+                      activeId: state.activePk?.id,
+                      onSelect: _cubit.selectPkCompetition,
                     ),
                   Expanded(
                     child: RefreshIndicator(
@@ -800,3 +815,91 @@ class _SelfRankFooter extends StatelessWidget {
     );
   }
 }
+
+// ── PK competition selector strip ───────────────────────────────────────────
+class _PkCompetitionStrip extends StatelessWidget {
+  const _PkCompetitionStrip({
+    required this.comps,
+    required this.activeId,
+    required this.onSelect,
+  });
+  final List<PkCompetitionRow> comps;
+  final String? activeId;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
+      height: 44,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        itemCount: comps.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final c = comps[i];
+          final isActive = c.id == activeId;
+          final upcoming = c.status == 'upcoming';
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onSelect(c.id);
+            },
+            child: Container(
+              alignment: Alignment.center,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: isActive
+                    ? const LinearGradient(colors: [
+                        Color(0xFF7C3AED),
+                        Color(0xFFA855F7),
+                      ])
+                    : null,
+                color: isActive ? null : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: upcoming && !isActive
+                      ? const Color(0xFFA855F7).withOpacity(0.5)
+                      : const Color(0x14000000),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (upcoming) ...[
+                    Icon(Icons.schedule_rounded,
+                        size: 12,
+                        color: isActive
+                            ? Colors.white
+                            : const Color(0xFF7C3AED)),
+                    const SizedBox(width: 4),
+                  ],
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 160),
+                    child: Text(
+                      c.title.isEmpty ? 'PK Event' : c.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isActive
+                            ? Colors.white
+                            : const Color(0xFF334155),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
