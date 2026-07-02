@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getAppSetting } from "@/utils/appSettingsCache";
 
 /**
  * Singleton FIFO queue for full-screen gift animations.
