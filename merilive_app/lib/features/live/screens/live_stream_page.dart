@@ -951,6 +951,51 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     });
   }
 
+  void _cancelRandomPkSearch() {
+    final sid = _randomPkSessionId;
+    final me = _client.auth.currentUser;
+    _randomPkTimeout?.cancel();
+    if (sid != null && me != null) {
+      PkStartBridge.instance.cancelRandomMatch(
+        challengerUserId: me.id,
+        challengerName:
+            me.userMetadata?['name']?.toString() ?? 'host',
+        inviteSessionId: sid,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _randomPkSessionId = null;
+        _randomPkStartedAt = null;
+      });
+    }
+  }
+
+  // H5 P0 #3 — Show the post-battle result modal with 70/30 coin split
+  // (server-authoritative winner already resolved via `end_pk_battle` RPC;
+  // we display the split derived from the losing team's score, matching
+  // web `PKBattleResult.tsx`).
+  Future<void> _showPkResultModal(PkBattleSnapshot snap) async {
+    if (!mounted) return;
+    final challengerWon = snap.winnerUserId == snap.challengerId;
+    final loserScore = challengerWon ? snap.opponentScore : snap.challengerScore;
+    final winnerCoins = (loserScore * 0.7).round();
+    final loserCoins = (loserScore * 0.3).round();
+    final data = PKBattleResultData(
+      hostName: snap.challengerName,
+      hostAvatarUrl: snap.challengerAvatar,
+      hostScore: snap.challengerScore,
+      opponentName: snap.opponentName,
+      opponentAvatarUrl: snap.opponentAvatar,
+      opponentScore: snap.opponentScore,
+      winnerCoins: winnerCoins,
+      loserCoins: loserCoins,
+    );
+    await PKBattleResult.show(context, data);
+  }
+
+
+
   // ── H5 P0 #1 — TikTok-style vertical swipe between live streams ────
   //
   // Web-truth: `src/hooks/useLiveStreamSwipe.ts` (80 px min, 300 ms fast
