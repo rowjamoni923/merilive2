@@ -60,6 +60,10 @@ dependencies:
   svgaplayer_flutter: ^2.2.1
   lottie: ^3.1.2
 
+  # A10 — Party games rendered via WebView (same admin-managed games as web).
+  # No new/custom games; strictly `game_settings` list.
+  webview_flutter: ^4.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
