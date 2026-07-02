@@ -303,6 +303,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
               _viewerCount = (row['viewer_count'] as int?) ?? _viewerCount;
               _stream = {...?_stream, ...row};
             });
+            _overlay.setViewerCount(_viewerCount);
             if (status == 'ended' && !_isHost) {
               _autoLeaveOnEnded();
             }
