@@ -102,8 +102,12 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
             val plugin = LiveKitFlutterPlugin().apply { attach(activity) }
             MethodChannel(engine.dartExecutor.binaryMessenger, CHANNEL)
                 .setMethodCallHandler(plugin)
+            // H2 — Android AudioFocus event bridge (used by AudioFocusAutoMute).
+            EventChannel(engine.dartExecutor.binaryMessenger, "app.merilive/audio_focus")
+                .setStreamHandler(AudioFocusEventEmitter.streamHandler(activity))
         }
     }
+
 
     // ─── Ownership ────────────────────────────────────────────
     private var activity: Activity? = null
