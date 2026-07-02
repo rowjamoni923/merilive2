@@ -397,11 +397,18 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                   showFollow: false,
                   onClose: _hangUp,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 4, right: 12),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: CallQualityHud(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, right: 12, left: 12),
+                  child: Row(
+                    children: [
+                      if (_remainingMinutes != null)
+                        _BillingChip(
+                          remainingMinutes: _remainingMinutes!,
+                          ratePerMin: _viewerRatePerMin ?? 0,
+                        ),
+                      const Spacer(),
+                      const CallQualityHud(),
+                    ],
                   ),
                 ),
                 const Spacer(),
