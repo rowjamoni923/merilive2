@@ -11,11 +11,14 @@ happens.
 | Staged file | Destination in Android host |
 | --- | --- |
 | `LiveKitFlutterPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/LiveKitFlutterPlugin.kt` |
+| `NativeGiftAnimationPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/NativeGiftAnimationPlugin.kt` |
+| `NativeEntryAnimationPlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/plugins/NativeEntryAnimationPlugin.kt` |
 | `IncomingCallBridgePlugin.kt` | `android/app/src/main/kotlin/com/merilive/app/flutter/IncomingCallBridgePlugin.kt` |
 | `MeriFirebaseMessagingService.kt` | `android/app/src/main/kotlin/com/merilive/app/service/MeriFirebaseMessagingService.kt` |
 | `IncomingCallService.kt` | `android/app/src/main/kotlin/com/merilive/app/service/IncomingCallService.kt` |
 | `IncomingCallActivity.kt` | `android/app/src/main/kotlin/com/merilive/app/ui/call/IncomingCallActivity.kt` |
 | `res/layout/activity_incoming_call.xml` | `android/app/src/main/res/layout/activity_incoming_call.xml` |
+
 
 ## Integration checklist (post `flutter create`)
 
@@ -32,9 +35,14 @@ happens.
      implementation platform("com.google.firebase:firebase-bom:33.5.0")
      implementation "com.google.firebase:firebase-messaging-ktx"
      implementation "androidx.core:core-ktx:1.13.1"
+     // NativeGiftAnimationPlugin / NativeEntryAnimationPlugin
+     implementation "com.tencent.qgame:vap:1.0.15"
+     implementation "com.github.yyued:SVGAPlayer-Android:2.5.14"
+     implementation "com.airbnb.android:lottie:6.4.0"
    }
    packagingOptions { pickFirst '**/libc++_shared.so' }
    ```
+
 3. Root `android/build.gradle` — add the Google Services classpath:
    ```gradle
    buildscript {
@@ -51,16 +59,19 @@ happens.
      repositories { maven { url 'https://jitpack.io' } }
    }
    ```
-6. Register both plugins in `MainActivity.kt`:
+6. Register all plugins in `MainActivity.kt`:
    ```kotlin
    class MainActivity : FlutterActivity() {
      override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
        super.configureFlutterEngine(flutterEngine)
        LiveKitFlutterPlugin.register(flutterEngine, this)
+       NativeGiftAnimationPlugin().register(flutterEngine, this)
+       NativeEntryAnimationPlugin().register(flutterEngine, this)
        flutterEngine.plugins.add(IncomingCallBridgePlugin())
      }
    }
    ```
+
 7. `android/app/src/main/AndroidManifest.xml` — inside `<application>`:
    ```xml
    <service
