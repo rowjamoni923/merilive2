@@ -185,6 +185,8 @@ class _RoomHeader extends StatelessWidget {
           ),
           _liveCountPill(live),
           const SizedBox(width: 6),
+          _RequestsBadge(),
+          const SizedBox(width: 6),
           _iconBtn(Icons.close_rounded, () async {
             await context.read<PartyRoomCubit>().leaveRoom();
             if (context.mounted) context.router.maybePop();
@@ -193,6 +195,7 @@ class _RoomHeader extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _hostAvatar() {
     final url = host?.avatarUrl;
