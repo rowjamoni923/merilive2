@@ -12,11 +12,13 @@ import '../data/live_chat_bridge.dart';
 import '../data/live_follow_bridge.dart';
 import '../data/live_host_bridge.dart';
 import '../data/live_viewer_bridge.dart';
+import '../data/pk_battle_bridge.dart';
 import '../widgets/live_action_bar.dart';
 import '../widgets/live_chat_composer.dart';
 import '../widgets/live_chat_overlay.dart';
 import '../widgets/live_gift_feed.dart';
 import '../widgets/live_viewers_sheet.dart';
+import '../widgets/pk_battle_overlay.dart';
 
 /// A1 — LiveStreamPage shell (Full-Parity Sprint).
 ///
@@ -69,6 +71,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   // A4 — follow-from-header state.
   bool _isFollowingHost = false;
   bool _followBusy = false;
+
+  // A6 — PK Battle overlay state.
+  PkBattleSnapshot? _pkBattle;
+  StreamSubscription<PkBattleSnapshot?>? _pkSub;
 
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
@@ -132,6 +138,11 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       final welcome = (host?['name']?.toString() ?? 'the host');
       LiveChatBridge.instance
           .pushSystemNotice('Welcome to $welcome\'s live room — be respectful ✨');
+
+      // A6 — subscribe to server-authoritative PK battle state for this stream.
+      _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
+        if (mounted) setState(() => _pkBattle = snap);
+      });
 
       // Viewer join — host is already publishing via LiveHostBridge from
       // the GoLive handoff, so we only need to connect the viewer bridge.
@@ -242,6 +253,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _channel?.unsubscribe();
     _chatSub?.cancel();
     _giftSub?.cancel();
+    _pkSub?.cancel();
+    PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
     // Best-effort viewer cleanup on route pop without pressing Leave
@@ -474,6 +487,16 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ],
               ),
             ),
+            // A6 — PK Battle scoreboard + punishment overlay (server-authoritative).
+            if (_pkBattle != null)
+              PkBattleOverlay(
+                snapshot: _pkBattle!,
+                currentUserId: _client.auth.currentUser?.id,
+                currentStreamId: widget.streamId,
+                onEnded: () {
+                  if (mounted) setState(() => _pkBattle = null);
+                },
+              ),
             // A3 — full action bar with host quick-actions.
             Positioned(
               left: 0,
