@@ -180,6 +180,20 @@ class LiveChatBridge {
     final uid = _client.auth.currentUser?.id;
     if (content.isEmpty || streamId == null || uid == null) return;
 
+    // P0 #2 — Contact-sharing moderation (web-truth: `detectAndProcessViolation`).
+    // Non-host senders pass through unmasked. Verified-host senders get
+    // server-side beans deduction + ban escalation via `process_contact_violation`
+    // RPC. On any violation we BLOCK the send so peers never see the contact.
+    final outcome = await ContactModeration.instance.check(
+      senderId: uid,
+      message: content,
+      source: ViolationSource.live_stream,
+      sourceId: streamId,
+    );
+    if (outcome.blocked) {
+      throw const ContactViolationException();
+    }
+
     // Optimistic append
     final temp = LiveChatMessage(
       id: 'temp_${DateTime.now().microsecondsSinceEpoch}',
@@ -205,6 +219,7 @@ class LiveChatBridge {
       rethrow;
     }
   }
+
 
   Future<void> _loadHistory(String streamId) async {
     try {
