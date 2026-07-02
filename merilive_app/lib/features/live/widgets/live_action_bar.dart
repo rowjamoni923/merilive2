@@ -335,11 +335,13 @@ class LiveMoreSheet extends StatelessWidget {
   static const _viewer = <_MoreItem>[
     _MoreItem('like', 'Like', Icons.favorite_rounded, [Color(0xFFF43F5E), Color(0xFFEC4899)]),
     _MoreItem('share', 'Share', Icons.ios_share_rounded, [Color(0xFF22D3EE), Color(0xFF3B82F6)]),
+    _MoreItem('games', 'Games', Icons.videogame_asset_rounded, [Color(0xFF8B5CF6), Color(0xFF6366F1)]),
+    _MoreItem('multiguest', 'Guests', Icons.groups_2_rounded, [Color(0xFFA855F7), Color(0xFF6366F1)]),
     _MoreItem('tasks', 'Tasks', Icons.checklist_rounded, [Color(0xFFF59E0B), Color(0xFFF97316)]),
     _MoreItem('topup', 'Top Up', Icons.diamond_rounded, [Color(0xFF10B981), Color(0xFF14B8A6)]),
     _MoreItem('music', 'Music', Icons.music_note_rounded, [Color(0xFFD946EF), Color(0xFFEC4899)]),
     _MoreItem('react', 'React', Icons.emoji_emotions_rounded, [Color(0xFFFACC15), Color(0xFFF97316)]),
-    _MoreItem('raisehand', 'Raise Hand', Icons.back_hand_rounded, [Color(0xFFFB923C), Color(0xFFEF4444)]),
+    _MoreItem('report', 'Report', Icons.flag_rounded, [Color(0xFFEF4444), Color(0xFFF97316)]),
   ];
 
   static const _hostExtras = <_MoreItem>[
@@ -347,7 +349,6 @@ class LiveMoreSheet extends StatelessWidget {
     _MoreItem('sticker', 'Stickers', Icons.emoji_emotions_outlined, [Color(0xFFFACC15), Color(0xFFF59E0B)]),
     _MoreItem('vbg', 'Virtual BG', Icons.image_rounded, [Color(0xFF14B8A6), Color(0xFF10B981)]),
     _MoreItem('noise', 'Noise Cancel', Icons.graphic_eq_rounded, [Color(0xFF6366F1), Color(0xFF3B82F6)]),
-    _MoreItem('raisedhands', 'Raised Hands', Icons.pan_tool_rounded, [Color(0xFFFB923C), Color(0xFFEF4444)]),
   ];
 
   @override
