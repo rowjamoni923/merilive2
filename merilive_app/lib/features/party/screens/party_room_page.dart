@@ -53,6 +53,12 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
     // Flutter FullScreenGiftQueue via GlobalGiftOverlay in main.dart.
     PartyGiftBridge.instance.attach(widget.roomId);
     _giftSub = PartyGiftBridge.instance.gifts$.listen(_onGiftEvent);
+    // A11 — Level-up entry animations for party joiners.
+    RoomEntryDispatcher.instance.attach(
+      surface: RoomJoinSurface.party,
+      roomId: widget.roomId,
+      selfUserId: Supabase.instance.client.auth.currentUser?.id,
+    );
   }
 
   @override
@@ -60,6 +66,7 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
     _giftSub?.cancel();
     PartyGiftBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
+    RoomEntryDispatcher.instance.detach();
     super.dispose();
   }
 
