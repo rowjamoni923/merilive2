@@ -191,7 +191,24 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
                 "setStickerOverlay" -> setStickerOverlay(call, result)
                 "snapshotLocalPreview" -> snapshotLocalPreview(result)
                 "getStats" -> getStats(result)
+                // ── H2 — content safety + Phase G effects ───────────
+                "snapshotVoiceChunk" -> snapshotVoiceChunk(call, result)
+                "setBackgroundMusic" -> setBackgroundMusic(call, result)
+                "setBackgroundMusicPlaying" -> {
+                    val playing = call.argument<Boolean>("playing") ?: false
+                    setBackgroundMusicPlaying(playing); ok(result)
+                }
+                "setBackgroundMusicVolume" -> {
+                    val v = (call.argument<Number>("volume") ?: 0.6).toFloat()
+                    setBackgroundMusicVolume(v); ok(result)
+                }
+                "setVirtualBackground" -> setVirtualBackground(call, result)
+                "setNoiseCancellation" -> {
+                    val on = call.argument<Boolean>("enabled") ?: false
+                    setNoiseCancellation(on, result)
+                }
                 else -> result.notImplemented()
+
             }
         } catch (t: Throwable) {
             Log.e(TAG, "onMethodCall ${call.method} failed", t)
