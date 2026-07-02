@@ -429,11 +429,21 @@ class _TopHeader extends StatelessWidget {
     required this.host,
     required this.viewerCount,
     required this.onClose,
+    required this.onOpenViewers,
+    required this.showFollow,
+    required this.isFollowing,
+    required this.followBusy,
+    required this.onFollow,
   });
 
   final Map<String, dynamic>? host;
   final int viewerCount;
   final VoidCallback onClose;
+  final VoidCallback onOpenViewers;
+  final bool showFollow;
+  final bool isFollowing;
+  final bool followBusy;
+  final VoidCallback onFollow;
 
   @override
   Widget build(BuildContext context) {
