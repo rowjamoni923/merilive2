@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/private_call_bridge.dart';
+import '../../../shared/widgets/room_top_bar.dart';
+import '../../../shared/widgets/room_bottom_bar.dart';
 
 /// C8 + C9 — Flutter Active Call surface (Chamet/Olamet-style 1-on-1).
 ///
