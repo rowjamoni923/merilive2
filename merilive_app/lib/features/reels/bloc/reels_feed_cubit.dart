@@ -165,4 +165,84 @@ class ReelsFeedCubit extends Cubit<ReelsFeedState> {
     ];
     emit(state.copyWith(reels: list));
   }
+
+  // ── Server-backed actions with optimistic rollback (R4). ────────────────
+  Future<void> toggleLike(String reelId) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final current = state.reels.firstWhere(
+      (r) => r.id == reelId,
+      orElse: () => throw StateError('reel gone'),
+    );
+    final next = !current.isLiked;
+    applyLikeToggle(reelId, next);
+    try {
+      if (next) {
+        await _repo.like(reelId, uid);
+      } else {
+        await _repo.unlike(reelId, uid);
+      }
+    } catch (_) {
+      applyLikeToggle(reelId, !next);
+    }
+  }
+
+  Future<void> toggleFollow(String targetUserId) async {
+    final uid = currentUserId;
+    if (uid == null || uid == targetUserId) return;
+    final target = state.reels.firstWhere(
+      (r) => r.userId == targetUserId,
+      orElse: () => throw StateError('user gone'),
+    );
+    final next = !target.isFollowing;
+    applyFollowToggle(targetUserId, next);
+    try {
+      if (next) {
+        await _repo.follow(targetUserId, uid);
+      } else {
+        await _repo.unfollow(targetUserId, uid);
+      }
+    } catch (_) {
+      applyFollowToggle(targetUserId, !next);
+    }
+  }
+
+  Future<void> recordShare({
+    required String reelId,
+    required String platform,
+    required String shareType,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final list = [
+      for (final r in state.reels)
+        r.id == reelId ? r.copyWith(shareCount: r.shareCount + 1) : r,
+    ];
+    emit(state.copyWith(reels: list));
+    try {
+      await _repo.recordShare(
+        reelId: reelId,
+        userId: uid,
+        platform: platform,
+        shareType: shareType,
+      );
+    } catch (_) {
+      // Realtime will reconcile; leave optimistic value.
+    }
+  }
+
+  Future<void> reportReel({
+    required String reelId,
+    required String reason,
+    String? description,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await _repo.report(
+      reelId: reelId,
+      userId: uid,
+      reason: reason,
+      description: description,
+    );
+  }
 }
