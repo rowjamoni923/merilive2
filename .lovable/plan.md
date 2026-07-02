@@ -31,19 +31,27 @@ Deliverable: `flutter build apk --debug` succeeds, all Phase A methods live.
 
 ---
 
-### H2 — Missing native handlers (Kotlin implementations)
+### H2 — Missing native handlers (Kotlin implementations) ✅ AUDITED + PARTIAL COMPLETE (2026-07-02)
 
-5 handlers currently return `unimplemented`, sheets show amber "dormant" hint:
+Audit revealed the 5 "dormant" handlers are actually wired in `LiveKitFlutterPlugin.kt` — real status:
 
-| Method | Native implementation |
+| Method | Actual status |
 |---|---|
-| `snapshotVoiceChunk` | Capture 20s PCM from LiveKit local audio track → base64 WAV |
-| `setBackgroundMusic` / `Playing` / `Volume` | ExoPlayer + LiveKit MixerAudioSource, ducked -12dB against mic |
-| `setVirtualBackground` | GPUPixel MLKit SelfieSegmentation + Coil image load |
-| `setNoiseCancellation` | LiveKit `AudioProcessingOptions(noiseSuppression=true, echoCancellation=true)` re-publish |
-| `audio_focus` EventChannel | `AudioManager.OnAudioFocusChangeListener` → EventSink |
+| `snapshotVoiceChunk` | ✅ Implemented via `MediaRecorder` AAC 16kHz → base64 (voice moderation ready) |
+| `setBackgroundMusic` / `Playing` / `Volume` | ✅ Host-monitor via `MediaPlayer` (Chamet-parity when no music-publish grant). Mixing into published track deferred (needs custom AudioSource swap) |
+| `setVirtualBackground` | ⚠️ URL persists but pixel swap dormant (`applied:false, reason:segmentation_pending`) — needs GPUPixel `.so` + MLKit SelfieSegmentation pipeline |
+| `setNoiseCancellation` | ✅ `android.media.audiofx.NoiseSuppressor` on session 0 (best-effort, reports `available:false` on unsupported OMX) |
+| `audio_focus` EventChannel | ✅ `AudioFocusEventEmitter` with `AudioFocusRequest` API 26+ + legacy fallback |
+| `getStats` (Phase I18 blocker) | ✅ **NEW** — now returns `quality: excellent\|good\|poor\|unknown` from LiveKit server-computed `LocalParticipant.connectionQuality` (SFU-smoothed from RTCStats). ConnectionQualityIndicator will now animate live. |
 
-Deliverable: every Phase E/G sheet works for real on device.
+**Remaining real gaps (deferred, need heavy native work):**
+1. GPUPixel `libgpupixel.so` + MLKit SelfieSegmentation for real virtual background swap
+2. LiveKit `MixerAudioSource` for publishing BGM to remote listeners (currently host-monitor only)
+3. GPUPixel beauty filter chain (`BeautyProcessor.pushToNative` no-ops when `.so` missing)
+
+**APK rebuild REQUIRED** for `getStats` quality field to reach ConnectionQualityIndicator.
+
+
 
 ---
 
