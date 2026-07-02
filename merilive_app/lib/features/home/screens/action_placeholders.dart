@@ -710,7 +710,7 @@ class _PrivacyPicker {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cover picker — camera / gallery / current-frame snapshot → uploads to
-// Supabase Storage bucket `live-covers` and returns a public URL.
+// Supabase Storage bucket `host-covers` and returns a public URL.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _CoverPicker {
@@ -765,13 +765,13 @@ class _CoverPicker {
       final client = Supabase.instance.client;
       final uid = client.auth.currentUser?.id ?? 'anon';
       final path = '$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await client.storage.from('live-covers').uploadBinary(
+      await client.storage.from('host-covers').uploadBinary(
             path,
             bytes,
             fileOptions: const FileOptions(
                 contentType: 'image/jpeg', upsert: true, cacheControl: '3600'),
           );
-      return client.storage.from('live-covers').getPublicUrl(path);
+      return client.storage.from('host-covers').getPublicUrl(path);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
