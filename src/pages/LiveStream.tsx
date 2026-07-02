@@ -4529,8 +4529,23 @@ const LiveStream = () => {
             <BrandedGameIcon className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
           </motion.button>
 
-          {/* Mic, PK Battle, and Like buttons moved into More Options sheet
-              (per UX refresh) — chat input now gets the freed horizontal space. */}
+          {/* Quick Like — one-tap heart orb (industry standard on Bigo/Chamet) */}
+          <motion.button
+            whileTap={{ scale: 0.82 }}
+            whileHover={{ scale: 1.06 }}
+            onClick={handleLike}
+            aria-label="Send heart"
+            className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+            style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #f43f5e 45%, #9f1239 100%)',
+              boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
+            }}
+          >
+            <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10 fill-white/90" strokeWidth={2.2} />
+          </motion.button>
+
+
 
 
           {/* Gift Button — Premium pink orb with shine sweep */}
