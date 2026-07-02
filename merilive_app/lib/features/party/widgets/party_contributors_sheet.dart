@@ -41,32 +41,41 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
           .toIso8601String();
       final rows = await Supabase.instance.client
           .from('gift_transactions')
-          .select(
-              'sender_id, total_coins, sender_name, sender_avatar')
+          .select('sender_id, total_coins, coin_amount')
           .eq('party_room_id', widget.roomId)
           .gte('created_at', since)
           .limit(500);
 
-      final agg = <String, _Row>{};
+      final agg = <String, int>{};
       var total = 0;
       for (final r in (rows as List).cast<Map>()) {
         final uid = r['sender_id']?.toString();
         if (uid == null) continue;
-        final coins = (r['total_coins'] as num?)?.toInt() ?? 0;
+        final coins = (r['total_coins'] as num?)?.toInt() ??
+            (r['coin_amount'] as num?)?.toInt() ??
+            0;
         total += coins;
-        final existing = agg[uid];
-        if (existing == null) {
-          agg[uid] = _Row(
-            userId: uid,
-            name: (r['sender_name'] as String?) ?? 'User',
-            avatar: (r['sender_avatar'] as String?),
-            coins: coins,
-          );
-        } else {
-          existing.coins += coins;
+        agg[uid] = (agg[uid] ?? 0) + coins;
+      }
+      final ids = agg.keys.toList();
+      final profileMap = <String, Map<String, dynamic>>{};
+      if (ids.isNotEmpty) {
+        final profs = await Supabase.instance.client
+            .from('profiles_public')
+            .select('id, display_name, avatar_url')
+            .inFilter('id', ids);
+        for (final p in (profs as List).cast<Map>()) {
+          profileMap[p['id'].toString()] = p.cast<String, dynamic>();
         }
       }
-      final list = agg.values.toList()
+      final list = agg.entries
+          .map((e) => _Row(
+                userId: e.key,
+                name: (profileMap[e.key]?['display_name'] as String?) ?? 'User',
+                avatar: profileMap[e.key]?['avatar_url'] as String?,
+                coins: e.value,
+              ))
+          .toList()
         ..sort((a, b) => b.coins.compareTo(a.coins));
       if (mounted) setState(() {
         _rows = list.take(50).toList();
