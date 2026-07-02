@@ -206,6 +206,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       // A6 — subscribe to server-authoritative PK battle state for this stream.
       _pkSub = PkBattleBridge.instance.watch(widget.streamId).listen((snap) {
         if (mounted) setState(() => _pkBattle = snap);
+        // Phase I12 — surface PK HUD via unified overlay controller.
+        _overlay.setPKState(_pkActiveStateFrom(snap));
         // Phase F-24 — cross-room opponent audio bridge. During an active
         // PK, subscribe (audio auto-plays); on end/idle, tear down.
         final isLive = snap != null &&
@@ -216,6 +218,34 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   ?.toString() ??
               'viewer',
         );
+      });
+
+      // Phase I12 — mirror room join events into the overlay controller:
+      //   • all joins → stacking join notifications (tier-colored)
+      //   • Lv40+     → Bigo cinematic banner
+      //   • Lv10-39   → premium mid-tier chat strip
+      _joinSub = RoomJoinEventsBridge.instance.events$.listen((ev) {
+        _overlay.joinNotifications.add(
+          userId: ev.userId,
+          userName: ev.userName,
+          userLevel: ev.userLevel,
+          userAvatar: ev.userAvatar,
+        );
+        if (ev.userLevel >= 40) {
+          _overlay.bigoBanner.add(
+            userId: ev.userId,
+            userName: ev.userName,
+            userLevel: ev.userLevel,
+            userAvatar: ev.userAvatar,
+          );
+        } else if (ev.userLevel >= 10) {
+          _overlay.premiumJoinChat.push(PremiumJoinChatEntry(
+            id: '${ev.userId}_${DateTime.now().microsecondsSinceEpoch}',
+            userName: ev.userName,
+            level: ev.userLevel,
+            avatarUrl: ev.userAvatar,
+          ));
+        }
       });
 
       // A11 — Level-up entry animations: bind join events to native
