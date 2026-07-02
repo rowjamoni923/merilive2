@@ -18,6 +18,10 @@ class Env {
   static const String deepLinkScheme = 'merilive';
   static const String deepLinkHost = 'auth';
 
+  /// Public web-app origin. Used by A10 party-game WebView to render the
+  /// EXACT same admin-managed games as the web (no separate Flutter games).
+  static const String webAppOrigin = 'https://merilive.top';
+
   /// OAuth 2.0 Web Client ID from Google Cloud Console.
   /// Required by `google_sign_in` on Android to mint an ID token that
   /// Supabase's `signInWithIdToken(provider: google)` will accept.
