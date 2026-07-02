@@ -294,6 +294,74 @@ class PartyRoomCubit extends Cubit<PartyRoomState> {
     await _repo.hostKick(participantId: participantId);
   }
 
+  // ─── PD6 — Seat request flow ──────────────────────────────────────
+  Future<void> _refreshRequests() async {
+    try {
+      final rows = await _repo.loadPendingRequests(roomId);
+      final uid = _uid;
+      final selfReq = uid == null
+          ? null
+          : rows.where((r) => r.userId == uid).cast<PartySeatRequest?>().firstWhere(
+                (_) => true,
+                orElse: () => null,
+              );
+      emit(state.copyWith(
+        pendingRequests: rows,
+        selfRequestSeat: selfReq?.seatNumber,
+        clearSelfRequest: selfReq == null,
+      ));
+    } catch (_) {}
+  }
+
+  Future<void> requestSeat(int seatNumber) async {
+    final uid = _uid;
+    if (uid == null || isHost) return;
+    if (state.selfSeat != null) return;
+    await _repo.requestSeat(
+      roomId: roomId,
+      userId: uid,
+      seatNumber: seatNumber,
+    );
+    emit(state.copyWith(selfRequestSeat: seatNumber));
+    await _refreshRequests();
+  }
+
+  Future<void> cancelSeatRequest() async {
+    final uid = _uid;
+    if (uid == null) return;
+    await _repo.cancelSeatRequest(roomId: roomId, userId: uid);
+    emit(state.copyWith(clearSelfRequest: true));
+    await _refreshRequests();
+  }
+
+  Future<void> approveSeatRequest(PartySeatRequest req) async {
+    if (!isHost) return;
+    // Guard: seat still empty?
+    final seat = state.seats.firstWhere(
+      (s) => s.seatNumber == req.seatNumber,
+      orElse: () => PartySeat.empty(req.seatNumber),
+    );
+    if (!seat.isEmpty) {
+      await _repo.denySeatRequest(requestId: req.id);
+      await _refreshRequests();
+      return;
+    }
+    await _repo.approveSeatRequest(
+      requestId: req.id,
+      roomId: roomId,
+      requesterUserId: req.userId,
+      seatNumber: req.seatNumber,
+    );
+    await _refreshRequests();
+    await _refreshSeats();
+  }
+
+  Future<void> denySeatRequest(PartySeatRequest req) async {
+    if (!isHost) return;
+    await _repo.denySeatRequest(requestId: req.id);
+    await _refreshRequests();
+  }
+
   Future<void> leaveRoom() async {
     final uid = _uid;
     if (uid != null) {
