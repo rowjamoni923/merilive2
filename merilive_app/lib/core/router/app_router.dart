@@ -12,7 +12,10 @@ import '../../features/auth/screens/phone_input_page.dart';
 import '../../features/auth/screens/phone_otp_page.dart';
 import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
+import '../../features/call/screens/active_call_page.dart';
+import '../../features/call/screens/incoming_call_page.dart';
 import '../../features/home/home_shell_page.dart';
+
 import '../../features/home/screens/action_placeholders.dart';
 import '../../features/live/screens/live_stream_page.dart';
 import '../../features/match/screens/match_call_page.dart';
