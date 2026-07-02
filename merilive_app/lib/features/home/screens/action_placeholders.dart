@@ -724,7 +724,11 @@ class _CreatePartyPlaceholderPageState
       }
 
       if (!mounted) return;
-      // Preview stays alive — PartyRoom promotes the same Camera2 track (C6).
+      // C6 — keep native prejoin camera alive across the handoff for
+      // video/game rooms so PartyRoom promotes the same Camera2 track.
+      if (_mode != _PartyMode.audio) {
+        _preserveOnDispose = true;
+      }
       context.router.pushNamed('/party/$roomId');
     } on PostgrestException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));
