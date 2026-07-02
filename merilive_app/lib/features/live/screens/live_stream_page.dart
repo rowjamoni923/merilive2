@@ -758,6 +758,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   final next = !_isMicMuted;
                   setState(() => _isMicMuted = next);
                   LiveKitBridge.instance.setMicEnabled(!next);
+                  _voiceMonitor?.micEnabled = !next;
+                  _audioFocusMute?.noteManualMicChange();
                   _snack(next ? 'Mic muted' : 'Mic on');
                 },
                 onToggleCam: () {
