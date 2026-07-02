@@ -234,14 +234,33 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         final name =
             _client.auth.currentUser?.userMetadata?['name']?.toString() ??
                 'viewer';
+
+        // H4 — password-locked streams: prompt viewer before join RPC.
+        String? password;
+        if (privacy == 'password') {
+          password = await _promptLivePassword();
+          if (!mounted) return;
+          if (password == null || password.isEmpty) {
+            setState(() {
+              _loading = false;
+              _error = 'Password required to enter this live stream.';
+            });
+            return;
+          }
+        }
+
         try {
           await LiveViewerBridge.instance.joinAsViewer(
             streamId: widget.streamId,
             participantName: name,
+            password: password,
           );
         } catch (e) {
           if (mounted) {
-            setState(() => _error = 'Unable to join stream: $e');
+            final needsPwd = e.toString().contains('live_password_required');
+            setState(() => _error = needsPwd
+                ? 'Incorrect password. Please rejoin and try again.'
+                : 'Unable to join stream: $e');
           }
         }
       }
