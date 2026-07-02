@@ -13,6 +13,8 @@ import '../services/live_face_detection.dart';
 import '../services/live_voice_monitor.dart';
 import '../data/pk_opponent_room_bridge.dart';
 import '../widgets/pk_punishment_overlay.dart';
+import '../widgets/live_overlay_stack.dart';
+import '../widgets/connection_quality_indicator.dart' show LiveConnectionQuality;
 import '../../entry_effects/data/room_entry_dispatcher.dart';
 import '../../entry_effects/data/room_join_events_bridge.dart';
 import '../../entry_effects/widgets/bigo_join_banner_overlay.dart';
