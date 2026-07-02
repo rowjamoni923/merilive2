@@ -105,14 +105,15 @@ A11 foundation + M9 polish complete:
 
 
 
-## M10 — Games everywhere
+## M10 — Games everywhere ✅ (partial — chat surface pending)
 
-Web mounts games in three places: Live, Party, Chat. Flutter has Party ✅. Add:
+Same `game_settings` admin table = single source of truth across every surface. No hardcoded game lists anywhere.
 
-- Live Stream games (WebView reuse via A10 pattern)
-- Chat games button + overlay
+- **Party** ✅ — `PartyGameSelectionSheet` picker → `PartyGameOverlay` WebView with Supabase session hydrated to localStorage (`game_party_layout` handles seat‑grid composition).
+- **Live** ✅ — Shipped in M3: `LiveStreamPage` action bar `games` slot → `PartyGameSelectionSheet.show()` (same picker, same table) → `LiveGameOverlay` full-screen WebView loading `<origin>/live-stream/<id>?game=<id>&embed=1` with hydrated session; reload + close controls in header.
+- **Chat** ⏸ — Deferred: Flutter shell does not yet contain a 1:1 DM chat screen (part of M11 "Missing pages" bucket). Once `ChatConversationPage` lands in M11, add the same `PartyGameSelectionSheet.show()` invocation from its composer bar and reuse a `ChatGameOverlay` twin of `LiveGameOverlay` pointing at `<origin>/chat/<peerId>?game=<id>&embed=1`. Recorded here so the M11 chat build knows the exact pattern to follow.
 
-Same `game_settings` admin table = single source of truth।
+
 
 ## M11 — Missing pages/screens (non-room)
 
