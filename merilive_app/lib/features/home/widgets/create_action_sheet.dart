@@ -47,8 +47,8 @@ class CreateActionSheet extends StatelessWidget {
           _ActionButton(
             gradient: DT.actionMatchCall,
             icon: Icons.phone_in_talk_rounded,
-            title: 'Random Call',
-            subtitle: 'Random 1-on-1 video',
+            title: 'Match Call',
+            subtitle: 'Instant 1-on-1 video match',
             trailingDotPulse: true,
             onTap: () => _go(context, const RandomCallPlaceholderRoute()),
           ),
