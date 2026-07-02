@@ -56,6 +56,10 @@ dependencies:
   livekit_client: ^2.2.6
   permission_handler: ^11.3.1
 
+  # G8 — Full-screen gift animations (SVGA / Lottie / VAP-MP4 parity with web + native)
+  svgaplayer_flutter: ^2.2.1
+  lottie: ^3.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
