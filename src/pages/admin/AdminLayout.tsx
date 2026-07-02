@@ -483,6 +483,7 @@ const navGroups: NavGroup[] = [
         path: "/admin/entry-effects",
         hubKey: "visual-hub",
         description: "SVGA/Lottie animations played in live rooms when a high-level or VIP user enters.",
+      },
       {
         label: "Gift Animation Config",
         icon: Sparkles,
