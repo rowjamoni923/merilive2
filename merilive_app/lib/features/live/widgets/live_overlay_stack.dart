@@ -27,11 +27,15 @@ import 'live_widgets.dart';
 class LiveOverlayController extends ChangeNotifier {
   final LiveJoinNotificationsController joinNotifications =
       LiveJoinNotificationsController();
+  final LiveBigoJoinBannerController bigoBanner =
+      LiveBigoJoinBannerController();
   final PremiumFlyingGiftBannerController premiumFlyingGifts =
       PremiumFlyingGiftBannerController();
   final GiftComboController giftCombos = GiftComboController();
   final PremiumJoinChatController premiumJoinChat =
       PremiumJoinChatController();
+  final StreamController<CaptionEvent> captionEvents =
+      StreamController<CaptionEvent>.broadcast();
 
   bool captionsEnabled = false;
   bool audioUnlockNeeded = false;
