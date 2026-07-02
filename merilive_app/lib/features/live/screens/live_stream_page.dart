@@ -288,6 +288,15 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         } catch (_) {}
       }
 
+      // H5 P0 #1 — viewer-only vertical-swipe attach (idempotent, shared
+      // singleton). Skipped for the host since they cannot leave their own
+      // broadcast by swiping.
+      if (!_isHost) {
+        // Fire-and-forget — never block the join path on the neighbours fetch.
+        // ignore: discarded_futures
+        LiveStreamSwipeController.instance.attach();
+      }
+
       // Phase E — host-only content-safety + call-focus.
       if (_isHost) {
         final uid = _client.auth.currentUser?.id ?? '';
