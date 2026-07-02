@@ -9,6 +9,8 @@ import '../data/party_room_models.dart';
 import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../widgets/chamet_seat_grid.dart';
+import '../widgets/party_chat_composer.dart';
+import '../widgets/party_chat_overlay.dart';
 import '../widgets/party_gift_sheet.dart';
 import '../widgets/party_music_sheet.dart';
 
@@ -80,7 +82,14 @@ class _PartyRoomView extends StatelessWidget {
                           Supabase.instance.client.auth.currentUser?.id,
                     ),
                     const SizedBox(height: 4),
-                    Expanded(child: _ChatList(messages: state.messages)),
+                    Expanded(
+                      child: PartyChatOverlay(
+                        messages: state.messages,
+                        hostId: state.host?.id,
+                        currentUserId:
+                            Supabase.instance.client.auth.currentUser?.id,
+                      ),
+                    ),
                     _BottomBar(state: state),
                   ],
                 ),
