@@ -480,7 +480,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 busy: _leaving,
                 isMicMuted: _isMicMuted,
                 isCamOff: _isCamOff,
-                onGift: () => _snack('Gift panel coming soon'),
+                onGift: _openGiftPanel,
                 onShare: () => _onMoreSelected('share'),
                 onLike: () => _onMoreSelected('like'),
                 onMore: _openMoreSheet,
