@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../gifting/data/gift_catalog_repository.dart';
 import '../../gifting/widgets/unified_gift_sheet.dart';
 import '../bloc/party_room_cubit.dart';
+import '../data/party_models.dart';
 
 /// PD7 — Party gift entry point.
 ///
