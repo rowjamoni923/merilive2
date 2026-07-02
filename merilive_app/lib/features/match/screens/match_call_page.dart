@@ -126,6 +126,9 @@ class _MatchCallPageState extends State<MatchCallPage>
     if (_broadcastChannel != null) {
       _supabase.removeChannel(_broadcastChannel!);
     }
+    if (_queueChannel != null) {
+      _supabase.removeChannel(_queueChannel!);
+    }
     _globe.dispose();
     if (_previewStarted) {
       LiveKitBridge.instance.stopLocalPreview();
