@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
 
 import '../data/reels_models.dart';
+import '../data/reels_realtime.dart';
 import '../data/reels_repository.dart';
 
 @immutable
