@@ -24,6 +24,7 @@ import '../../features/leaderboard/leaderboard_page.dart';
 import '../../features/party/screens/party_room_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/splash/splash_page.dart';
+import '../../features/verification/screens/face_verification_page.dart';
 
 
 part 'app_router.gr.dart';
