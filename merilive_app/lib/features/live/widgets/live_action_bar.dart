@@ -337,6 +337,7 @@ class LiveMoreSheet extends StatelessWidget {
     _MoreItem('share', 'Share', Icons.ios_share_rounded, [Color(0xFF22D3EE), Color(0xFF3B82F6)]),
     _MoreItem('games', 'Games', Icons.videogame_asset_rounded, [Color(0xFF8B5CF6), Color(0xFF6366F1)]),
     _MoreItem('multiguest', 'Guests', Icons.groups_2_rounded, [Color(0xFFA855F7), Color(0xFF6366F1)]),
+    _MoreItem('raise_hand', 'Raise Hand', Icons.pan_tool_rounded, [Color(0xFFF59E0B), Color(0xFFEAB308)]),
     _MoreItem('tasks', 'Tasks', Icons.checklist_rounded, [Color(0xFFF59E0B), Color(0xFFF97316)]),
     _MoreItem('topup', 'Top Up', Icons.diamond_rounded, [Color(0xFF10B981), Color(0xFF14B8A6)]),
     _MoreItem('music', 'Music', Icons.music_note_rounded, [Color(0xFFD946EF), Color(0xFFEC4899)]),
@@ -345,6 +346,7 @@ class LiveMoreSheet extends StatelessWidget {
   ];
 
   static const _hostExtras = <_MoreItem>[
+    _MoreItem('raise_queue', 'Hand Queue', Icons.pan_tool_alt_rounded, [Color(0xFFF59E0B), Color(0xFFEAB308)]),
     _MoreItem('pk', 'PK Battle', Icons.sports_kabaddi_rounded, [Color(0xFFF59E0B), Color(0xFFEA580C)]),
     _MoreItem('sticker', 'Stickers', Icons.emoji_emotions_outlined, [Color(0xFFFACC15), Color(0xFFF59E0B)]),
     _MoreItem('vbg', 'Virtual BG', Icons.image_rounded, [Color(0xFF14B8A6), Color(0xFF10B981)]),
