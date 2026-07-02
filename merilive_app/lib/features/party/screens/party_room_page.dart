@@ -464,6 +464,17 @@ class _BottomBarState extends State<_BottomBar> {
           const SizedBox(height: 6),
           Row(
             children: [
+              if (cubit.isHost)
+                _circleBtn(
+                  icon: Icons.volume_off_rounded,
+                  color: const Color(0xFFEF4444),
+                  onTap: () async {
+                    await cubit.hostMuteAll();
+                    if (context.mounted) {
+                      _snack(context, 'All guests muted');
+                    }
+                  },
+                ),
               const Spacer(),
               if (onSeat)
                 _circleBtn(
