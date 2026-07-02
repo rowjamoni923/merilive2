@@ -580,15 +580,22 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 onMore: _openMoreSheet,
                 onEndOrLeave: _handleLeaveOrEnd,
                 onToggleMic: () {
-                  setState(() => _isMicMuted = !_isMicMuted);
-                  _snack(_isMicMuted ? 'Mic muted' : 'Mic on');
+                  final next = !_isMicMuted;
+                  setState(() => _isMicMuted = next);
+                  LiveKitBridge.instance.setMicEnabled(!next);
+                  _snack(next ? 'Mic muted' : 'Mic on');
                 },
                 onToggleCam: () {
-                  setState(() => _isCamOff = !_isCamOff);
-                  _snack(_isCamOff ? 'Camera off' : 'Camera on');
+                  final next = !_isCamOff;
+                  setState(() => _isCamOff = next);
+                  LiveKitBridge.instance.setVideoVisible(!next);
+                  _snack(next ? 'Camera off' : 'Camera on');
                 },
-                onFlipCam: () => _snack('Flip camera'),
-                onBeauty: () => _snack('Beauty panel coming soon'),
+                onFlipCam: () {
+                  LiveKitBridge.instance.switchCamera();
+                  _snack('Camera flipped');
+                },
+                onBeauty: () => LiveBeautyPanel.show(context),
               ),
             ),
           ],
