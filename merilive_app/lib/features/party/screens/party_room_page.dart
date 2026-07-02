@@ -225,84 +225,29 @@ class _RoomHeader extends StatelessWidget {
   final PartyRoom room;
   final PartyHost? host;
   final int live;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: Row(
-        children: [
-          _hostAvatar(),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (room.isPrivate)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 4),
-                        child: Icon(Icons.lock_rounded,
-                            size: 14, color: Colors.amber),
-                      ),
-                    Flexible(
-                      child: Text(
-                        room.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      host?.displayName ?? 'Host',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    if (room.roomCode != null && room.roomCode!.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'ID ${room.roomCode}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          _liveCountPill(live),
-          const SizedBox(width: 6),
-          _RequestsBadge(),
-          const SizedBox(width: 6),
-          _iconBtn(Icons.close_rounded, () async {
-            await context.read<PartyRoomCubit>().leaveRoom();
-            if (context.mounted) context.router.maybePop();
-          }),
-        ],
-      ),
+    final subtitle = [
+      if (room.isPrivate) '🔒',
+      room.name,
+      if (room.roomCode != null && room.roomCode!.isNotEmpty) 'ID ${room.roomCode}',
+    ].join(' • ');
+    return RoomTopBar(
+      hostAvatarUrl: host?.avatarUrl,
+      hostName: host?.displayName ?? 'Host',
+      subtitle: subtitle,
+      showFollow: false,
+      viewerCount: live,
+      onOpenViewers: () {},
+      trailing: const _RequestsBadge(),
+      onClose: () async {
+        await context.read<PartyRoomCubit>().leaveRoom();
+        if (context.mounted) context.router.maybePop();
+      },
     );
   }
+}
 
 
   Widget _hostAvatar() {
