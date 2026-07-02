@@ -218,3 +218,58 @@ Execute in this order after next APK rebuild, using saved owner account:
 - **M1-M6** → all in-room work
 - **M1-M12** → full sprint end-to-end (long-running, many APK rebuilds)
 - **Custom** → pick specific milestones
+
+---
+
+## M13 — Incoming private-call plumbing (shipped 2026-07-02)
+
+**Goal**: full Chamet/Bigo-class incoming call surface — foreground FCM,
+Supabase Realtime fallback, killed-app full-screen ringer, accept/decline
+handoff to the active call surface, ring timeout, dedupe, token registration.
+
+### Files created
+
+- `merilive_app/lib/core/notifications/firebase_bootstrap.dart` — Firebase init + `@pragma('vm:entry-point')` background isolate handler.
+- `merilive_app/lib/core/notifications/incoming_call_listener.dart` — singleton service. FCM foreground/opened-app + Supabase Realtime `private_calls` (host_id=uid) + MethodChannel `app.merilive/incoming_call`. `showVerifiedIncomingCall(callId)` mirrors web `showVerifiedIncomingCall` contract 1:1 (status/age/dedupe/caller profile). Ring timeout reads `settings.ring_timeout_seconds` (default 30s). Upserts FCM token into `device_tokens` on attach + rotation.
+- `merilive_app/lib/features/call/screens/incoming_call_page.dart` — full-screen ringer (blurred avatar bg + vignette + pulsing avatar ring + name/level/coins chip + 72dp Accept/Decline). Vibration + wake-lock. Back-button blocked. Auto-accept path for native handoff.
+- `merilive_app/android_native/IncomingCallBridgePlugin.kt` — Kotlin FlutterPlugin. Listens for `com.merilive.app.CALL_ACTION` broadcast (fired by IncomingCallActivity), forwards to Dart via MethodChannel. Caches pending cold-start events until Dart calls `pending`. Handles `dismiss` from Dart.
+- `merilive_app/android_native/MeriFirebaseMessagingService.kt` — full FCM router (copied from `native-kotlin/`). Handles `incoming_call` (foreground service + full-screen intent), message/gift/follower/stream/host/agency/withdrawal/admin/party/wallet notifications.
+- `merilive_app/android_native/IncomingCallService.kt` — foreground service (channel `merilive_call_channel`, priority MAX, category CALL, full-screen intent, Accept/Decline actions).
+- `merilive_app/android_native/IncomingCallActivity.kt` — full-screen activity (show-when-locked, turn-screen-on, wake-lock, ringtone + vibration, blocks back). Sends `CALL_ACTION` broadcast on user tap.
+- `merilive_app/android_native/res/layout/activity_incoming_call.xml` — minimal system layout stub.
+
+### Files edited
+
+- `merilive_app/pubspec.yaml` — added `firebase_core: ^3.6.0`, `firebase_messaging: ^15.1.3`, `flutter_local_notifications: ^17.2.3`, `vibration: ^2.0.0`, `wakelock_plus: ^1.2.8`.
+- `merilive_app/lib/features/call/data/private_call_bridge.dart` — added `acceptIncoming(callId, participantName)`: receiver-side LiveKit token mint + connect (publishVideo/publishAudio) + attachLocal.
+- `merilive_app/lib/core/router/app_router.dart` — added `/call/incoming/:callId` route (fullscreenDialog).
+- `merilive_app/lib/main.dart` — `FirebaseBootstrap.init()` before runApp; BlocListener on AuthBloc attaches/detaches `IncomingCallListener` on auth transitions.
+- `merilive_app/android_native/README.md` — full APK integration checklist (google-services plugin, AndroidManifest service/activity/permission entries, plugin registration in MainActivity).
+
+### Post-shipment owner steps (all APK-side)
+
+1. Drop `google-services.json` (Firebase console, package `com.merilive.app`) into `android/app/`.
+2. `cd merilive_app && flutter pub get`
+3. `flutter pub run build_runner build --delete-conflicting-outputs` (regenerates `app_router.gr.dart` with `IncomingCallRoute`).
+4. Copy `android_native/*` files to their destinations per README table.
+5. `flutter build apk --release`.
+
+### Contract parity vs web `usePrivateCall`
+
+| Behavior | Web | Flutter (M13) |
+| --- | --- | --- |
+| FCM foreground handler | `firebaseMessaging.setupForegroundMessageHandler` | `FirebaseMessaging.onMessage.listen` |
+| Supabase Realtime fallback | `private-call-${userId}` channel, filter `host_id=eq.${userId}` | identical (`onPostgresChanges` with same filter) |
+| Verified show | `showVerifiedIncomingCall(callId)` — status/age/dedupe/profile fetch | identical port |
+| Ring timeout | `settings.ring_timeout_seconds`, default 30s | identical port |
+| Dedupe | `endedCallIdsRef` set + `currentCallIdRef` guard | `_endedCallIds` set + `_activeCallId` guard |
+| Accept RPC | `accept_private_call` | identical |
+| Receiver LiveKit connect | `getLiveKitToken(roomType=call, roomName=call_${callId})` | identical (via `livekit-token` edge fn) |
+| Cold-start (killed app) | Kotlin `IncomingCallActivity` → broadcast → Web via `CALL_ACTION` receiver | identical route → `IncomingCallBridgePlugin` MethodChannel → Dart |
+| Token registration | `device_tokens.upsert({user_id, token, platform, is_active, device_info})` | identical |
+
+### Known gaps (deferred)
+
+- `google-services.json` — owner must provide (can't be shipped from Lovable).
+- iOS APNS bridge — Android only in this pass (parity with existing web build).
+- E2E owner test blocked on APK rebuild.

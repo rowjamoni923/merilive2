@@ -148,17 +148,19 @@ class _IncomingCallPageState extends State<IncomingCallPage>
       }
 
       if (!mounted) return;
-      // Replace ringer with active call surface.
-      await context.router.replace(
-        ActiveCallRoute(
-          callId: widget.callId,
-          remoteUserId: widget.callerId ?? '',
-          remoteUserName: widget.callerName,
-          remoteUserAvatar: widget.callerAvatar,
-          coinsPerMinute: widget.coinsPerMinute,
-          isHost: true,
+      // Replace ringer with active call surface (imperative — bridge is not
+      // URL-serializable, so we push ActiveCallPage directly).
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ActiveCallPage(
+            bridge: bridge,
+            hostName: widget.callerName,
+            hostId: widget.callerId ?? '',
+            hostAvatarUrl: widget.callerAvatar,
+          ),
         ),
       );
+
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Accept failed: $e')));
       if (mounted) context.router.maybePop();
