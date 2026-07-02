@@ -127,6 +127,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
   LiveVoiceMonitor? _voiceMonitor;
   AudioFocusAutoMute? _audioFocusMute;
 
+  // Phase I11 — unified overlay controller (viewer count, HUD, gift combos,
+  // premium banners, captions, audio unlock, top gifters, PK HUD).
+  final LiveOverlayController _overlay = LiveOverlayController();
+
   bool get _isHost {
     final uid = _client.auth.currentUser?.id;
     return uid != null && uid == _stream?['host_id'];
