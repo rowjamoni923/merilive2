@@ -24,6 +24,7 @@ import '../../features/leaderboard/leaderboard_page.dart';
 import '../../features/party/screens/party_room_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/splash/splash_page.dart';
+import '../../features/verification/screens/face_verification_page.dart';
 
 
 part 'app_router.gr.dart';
@@ -62,6 +63,7 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: GoLivePlaceholderRoute.page, path: '/go-live'),
         AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
         AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/match-call'),
+        AutoRoute(page: FaceVerificationRoute.page, path: '/face-verification'),
 
         // M13 — Incoming private-call ringer (fullscreen). Accept path uses
         // an imperative Navigator.push to ActiveCallPage with the connected

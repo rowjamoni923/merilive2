@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/native/livekit_bridge.dart';
 import '../../live/data/live_host_bridge.dart';
+import '../../live/widgets/live_sticker_sheet.dart';
 
 // ============================================================================
 // M14 — Create section: full web-parity Go Live prep + Create Party prep.
@@ -826,6 +827,7 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
   _CategoryItem? _category;
   _PrivacyResult _privacy = const _PrivacyResult(mode: 'public');
   BeautySettings _beauty = BeautySettings();
+  StickerItem? _sticker;
 
   // Denial state
   String? _denyCode;
@@ -1235,11 +1237,13 @@ class _GoLivePlaceholderPageState extends State<GoLivePlaceholderPage>
               ),
               _RailButton(
                 icon: Icons.emoji_emotions_rounded,
-                label: 'Sticker',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Sticker overlay pending APK rebuild')));
-                },
+                label: _sticker?.name ?? 'Sticker',
+                active: _sticker != null,
+                onTap: () => LiveStickerSheet.show(
+                  context,
+                  activeStickerId: _sticker?.id,
+                  onChanged: (s) => setState(() => _sticker = s),
+                ),
               ),
               _RailButton(
                 icon: _coverUrl != null
