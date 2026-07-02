@@ -929,7 +929,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       _snack(res.error ?? 'No eligible live hosts available right now');
       return;
     }
-    setState(() => _randomPkSessionId = res.sessionId);
+    setState(() {
+      _randomPkSessionId = res.sessionId;
+      _randomPkStartedAt = DateTime.now();
+    });
     _snack('Random PK request sent to ${res.delivered} host${(res.delivered ?? 0) > 1 ? 's' : ''}');
     _randomPkTimeout?.cancel();
     _randomPkTimeout = Timer(const Duration(seconds: 25), () {
@@ -940,7 +943,10 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
         challengerName: name,
         inviteSessionId: sid,
       );
-      setState(() => _randomPkSessionId = null);
+      setState(() {
+        _randomPkSessionId = null;
+        _randomPkStartedAt = null;
+      });
       _snack('No host accepted — try again');
     });
   }
