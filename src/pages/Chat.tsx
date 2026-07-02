@@ -730,7 +730,7 @@ const Chat = () => {
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [showGamePanel, setShowGamePanel] = useState(false);
   
-  // ✅ Gifts loaded from real database via GiftPanel/ChatGiftPanel components
+  // ✅ Gifts loaded from real database via canonical GiftPanel
   // No hardcoded gift data - 100% real DB
   
   // Start Voice Recording
