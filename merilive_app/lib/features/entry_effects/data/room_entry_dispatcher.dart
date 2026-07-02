@@ -3,13 +3,14 @@ import 'dart:async';
 import 'entry_effects_repository.dart';
 import 'native_entry_bridge.dart';
 import 'room_join_events_bridge.dart';
+import '../widgets/bigo_join_banner_overlay.dart';
 import '../widgets/cinematic_join_banner_overlay.dart';
 import '../widgets/entry_name_bar_overlay.dart';
 
 
 /// A11 — Orchestrator that wires join events → per-user equipped effect
 /// lookup → native VAP/Lottie/image renderer (Pkg438) with Flutter
-/// `EntryNameBarQueue` fallback.
+/// `EntryNameBarQueue` / `BigoJoinQueue` / `CinematicJoinQueue` fallbacks.
 ///
 /// Priority ladder (mirrors `useRoomEntryEffects` + `useUnifiedEntryDispatcher`
 /// on web):
@@ -24,6 +25,16 @@ class RoomEntryDispatcher {
   static final RoomEntryDispatcher instance = RoomEntryDispatcher._();
 
   StreamSubscription<RoomJoinEvent>? _sub;
+
+  // B7 — Noble ranks that ALWAYS trigger the cinematic overlay in
+  // addition to any equipped native VAP animation. Matches web
+  // `NOBLE_CINEMATIC_RANKS` (Chamet/Bigo Duke/King/Marquis tier).
+  static const _cinematicNobleRanks = <String>{
+    'duke',
+    'king',
+    'marquis',
+    'emperor',
+  };
 
   Future<void> attach({
     required RoomJoinSurface surface,
@@ -50,6 +61,7 @@ class RoomEntryDispatcher {
     await RoomJoinEventsBridge.instance.detach();
     EntryNameBarQueue.instance.clear();
     CinematicJoinQueue.instance.clear();
+    BigoJoinQueue.instance.clear();
   }
 
 
@@ -78,19 +90,40 @@ class RoomEntryDispatcher {
       );
     }
 
-    // B7 — Cinematic Flutter fallback for premium joins when native VAP
-    // isn't equipped/available. Fires for noble users, or Lv ≥ 20 joins
-    // without a native premium animation route.
+    // B7 — Cinematic overlay branch.
+    // Duke / King / Marquis / Emperor nobles ALWAYS get the cinematic
+    // banner (even alongside the native VAP entrance) so their arrival
+    // reads unambiguously to every viewer. All other premium joins
+    // (equipped entrance/vehicle, Lv ≥ 20) fall back to it only when
+    // the native VAP path didn't accept the payload.
+    final nobleCode = effects.nobleRankCode?.toLowerCase();
+    final isCinematicNoble =
+        nobleCode != null && _cinematicNobleRanks.contains(nobleCode);
     final isPremiumJoin = effects.nobleRankCode != null ||
         effects.hasEntrance ||
         effects.hasVehicle ||
         event.userLevel >= 20;
-    if (isPremiumJoin && !premiumNativeAccepted) {
+
+    final shouldFireCinematic = isCinematicNoble ||
+        (isPremiumJoin && !premiumNativeAccepted);
+    if (shouldFireCinematic) {
       CinematicJoinQueue.instance.enqueue(CinematicJoinPayload(
         userName: event.displayName,
         userLevel: event.userLevel,
         avatarUrl: event.avatarUrl,
         nobleLabel: effects.nobleRankCode,
+      ));
+    }
+
+    // B6 — Bigo compact join banner for non-premium joins that don't
+    // qualify for the cinematic overlay. Coalesces dup join events for
+    // the same user within a 500 ms window (handled inside BigoJoinQueue).
+    if (!isPremiumJoin) {
+      BigoJoinQueue.instance.enqueue(BigoJoinPayload(
+        userId: event.userId,
+        userName: event.displayName,
+        userLevel: event.userLevel,
+        avatarUrl: event.avatarUrl,
       ));
     }
 
@@ -125,3 +158,4 @@ class RoomEntryDispatcher {
     return 'image';
   }
 }
+
