@@ -762,6 +762,21 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                   if (mounted) setState(() => _pkBattle = null);
                 },
               ),
+
+            // F-23 — Server-anchored PK Punishment overlay for the loser tile.
+            if (_pkBattle != null && _pkBattle!.punishmentEndTs != null)
+              Positioned.fill(
+                child: PkPunishmentOverlay(
+                  battleId: _pkBattle!.battleId,
+                  currentUserId: _client.auth.currentUser?.id ?? '',
+                  winnerUserId: _pkBattle!.winnerUserId,
+                  finalStatus: _pkBattle!.finalStatus,
+                  punishmentEndTs: _pkBattle!.punishmentEndTs,
+                  onComplete: () {
+                    if (mounted) setState(() => _pkBattle = null);
+                  },
+                ),
+              ),
             // A3 — full action bar with host quick-actions.
             Positioned(
               left: 0,
