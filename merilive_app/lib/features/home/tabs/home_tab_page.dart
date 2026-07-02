@@ -169,7 +169,7 @@ class _HomeTabPageState extends State<HomeTabPage>
   void _handleHostTap(HomeHost host) {
     HapticFeedback.selectionClick();
     if (host.isLive && (host.liveStreamId?.isNotEmpty ?? false)) {
-      context.router.push(LiveStreamPlaceholderRoute(streamId: host.liveStreamId!));
+      context.router.push(LiveStreamRoute(streamId: host.liveStreamId!));
     } else {
       context.router.push(ProfileDetailPlaceholderRoute(userId: host.id));
     }

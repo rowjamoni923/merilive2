@@ -14,6 +14,7 @@ import '../../features/auth/screens/phone_password_page.dart';
 import '../../features/auth/screens/reset_password_page.dart';
 import '../../features/home/home_shell_page.dart';
 import '../../features/home/screens/action_placeholders.dart';
+import '../../features/live/screens/live_stream_page.dart';
 import '../../features/match/screens/match_call_page.dart';
 import '../../features/leaderboard/leaderboard_page.dart';
 import '../../features/party/screens/party_room_page.dart';
@@ -60,7 +61,7 @@ class AppRouter extends _$AppRouter {
 
         // Home HostCard tap destinations (H4)
         AutoRoute(
-          page: LiveStreamPlaceholderRoute.page,
+          page: LiveStreamRoute.page,
           path: '/live/:streamId',
         ),
         AutoRoute(
