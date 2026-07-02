@@ -136,12 +136,12 @@ class RandomCallPlaceholderPage extends StatelessWidget {
   const RandomCallPlaceholderPage({super.key});
   @override
   Widget build(BuildContext context) => const _ComingSoon(
-        title: 'Random Call',
+        title: 'Match Call',
         subtitle:
-            'Instant 1-on-1 video matching with gender/country filters and per-minute diamond billing will be built out with the Private Call sector.',
+            'Instant 1-on-1 video matching with gender/country filters and per-minute diamond billing will be built out with the Match Call sector.',
         icon: Icons.phone_in_talk_rounded,
         gradient: [Color(0xFF06B6D4), Color(0xFF3B82F6)],
-        sector: 'Sector 7 (Private Call)',
+        sector: 'Sector 7 (Match Call)',
       );
 }
 

@@ -55,7 +55,7 @@ class AppRouter extends _$AppRouter {
         // "+" FAB honest placeholders (full features land in later sectors)
         AutoRoute(page: GoLivePlaceholderRoute.page, path: '/go-live'),
         AutoRoute(page: CreatePartyPlaceholderRoute.page, path: '/create-party'),
-        AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/random-call'),
+        AutoRoute(page: RandomCallPlaceholderRoute.page, path: '/match-call'),
 
         // Home HostCard tap destinations (H4)
         AutoRoute(
