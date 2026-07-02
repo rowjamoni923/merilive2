@@ -282,6 +282,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     _chatSub?.cancel();
     _giftSub?.cancel();
     _pkSub?.cancel();
+    _randomPkTimeout?.cancel();
     PkBattleBridge.instance.dispose();
     LiveChatBridge.instance.detach();
     NativeGiftBridge.instance.stopAll();
