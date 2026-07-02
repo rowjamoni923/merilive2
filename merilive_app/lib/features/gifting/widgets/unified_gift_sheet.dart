@@ -263,6 +263,26 @@ class _UnifiedGiftSheetState extends State<_UnifiedGiftSheet> {
         surface: widget.surface,
         contextId: widget.contextId,
       );
+
+      // G7 — full-screen animation parity with web.
+      // Native Android VAP/SVGA plugin (Pkg438) also fires from realtime;
+      // this Dart overlay guarantees Flutter surfaces never render nothing.
+      if (GiftAnimationConfig.instance.shouldPlayFullScreen(coinCost)) {
+        final recipient = widget.recipients.firstWhere(
+          (r) => r.id == _recipientId,
+          orElse: () => GiftRecipient(id: _recipientId, label: 'Receiver'),
+        );
+        FullScreenGiftQueue.instance.enqueue(FullScreenGiftPayload(
+          id: '${DateTime.now().microsecondsSinceEpoch}-${g['id']}',
+          giftName: (g['name'] ?? 'Gift').toString(),
+          senderName: Supabase.instance.client.auth.currentUser?.userMetadata?['username']?.toString() ?? 'You',
+          receiverName: recipient.label,
+          quantity: _quantity,
+          imageUrl: (g['image_url'] ?? g['icon_url'])?.toString(),
+          videoUrl: (g['animation_url'] ?? g['vap_url'] ?? g['mp4_url'])?.toString(),
+        ));
+      }
+
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
