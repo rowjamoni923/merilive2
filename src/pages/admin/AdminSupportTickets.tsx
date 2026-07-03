@@ -32,6 +32,8 @@ import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 interface SupportTicket {
   id: string;
   ticket_number: string;
