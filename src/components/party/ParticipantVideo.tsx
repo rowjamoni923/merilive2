@@ -30,9 +30,11 @@ export function ParticipantVideo({
   roomType,
 }: ParticipantVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const backdropRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const el = videoRef.current;
+    const bel = backdropRef.current;
     if (!el) return;
 
     if (stream) {
@@ -44,6 +46,11 @@ export function ParticipantVideo({
 
         hardenVideoElementForNative(el, { muted: isSelf });
         el.srcObject = stream;
+        if (bel) {
+          bel.srcObject = stream;
+          bel.muted = true;
+          bel.play().catch(() => {});
+        }
 
         const reveal = () => {
           if (el && el.readyState >= 2 && el.videoWidth > 0 && el.videoHeight > 0) {
@@ -101,6 +108,7 @@ export function ParticipantVideo({
       // Clear stale frame when stream goes away
       try { el.pause(); } catch {}
       el.srcObject = null;
+      if (bel) bel.srcObject = null;
       el.style.opacity = '0';
     }
 
@@ -156,6 +164,20 @@ export function ParticipantVideo({
 
         {/* Video or Avatar */}
         {showVideo ? (
+          {/* Chamet-style blurred backdrop to fill black bars */}
+          <video
+            ref={backdropRef}
+            aria-hidden="true"
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+            style={{
+              filter: 'blur(20px) brightness(0.6)',
+              opacity: 0.5,
+              transform: isSelf ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
+            }}
+          />
           <video 
             ref={videoRef}
             data-livekit-media="true"
