@@ -577,12 +577,6 @@ export function useLiveKitCall(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            // Natural 3:4 capture avoids center-crop zoom; renderer fills portrait call UI.
-            resolution: {
-              width: LIVEKIT_PUBLISH_LOCK.captureWidth,
-              height: LIVEKIT_PUBLISH_LOCK.captureHeight,
-              frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
-            },
             facingMode: 'user',
           },
           // Pkg163: pro-grade voice (AEC+NS+AGC + 48kHz mono) for 1:1 calls.

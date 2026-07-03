@@ -732,7 +732,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           nextRetryDelayInMs: () => null,
         },
         videoCaptureDefaults: {
-          resolution: captureRes,
           facingMode: 'user',
         },
         // Pkg163: Chamet/Bigo-parity professional voice — full LiveKit (Android native) voice processing
