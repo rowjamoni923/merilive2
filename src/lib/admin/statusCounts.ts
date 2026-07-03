@@ -386,10 +386,13 @@ export async function fetchFilteredStatusCounts(
         .select("id", { count: "exact", head: true })
         .ilike(opts.searchColumn, `%${q}%`);
 
-    const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-      base().not("status", "in", "(approved,rejected)"),
+    // Exclude retry-state rows from the admin Pending bucket — those are
+    // waiting on the USER to resubmit, not on admin review.
+    const [pendingRes, approvedRes, rejectedRes, retryRes] = await Promise.all([
+      base().not("status", "in", "(approved,rejected,needs_retry,retry_required,upload_failed,upload_incomplete)"),
       base().eq("status", "approved"),
       base().eq("status", "rejected"),
+      base().not("status", "in", "(approved,rejected,pending,submitted,under_review,applied,in_review,reviewing)"),
     ]);
 
     return {
@@ -397,8 +400,10 @@ export async function fetchFilteredStatusCounts(
       under_review: 0,
       approved: approvedRes.count || 0,
       rejected: rejectedRes.count || 0,
+      user_retry: retryRes.count || 0,
     };
   }
+
 
   // No RPC fallback configured → run the same 3 filtered counts with empty q
   // (which becomes an `ilike '%%'` matching everything).
