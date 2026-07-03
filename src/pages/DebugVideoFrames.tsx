@@ -146,7 +146,7 @@ function FrameTile({
           tile.wrapperClass,
         )}
       >
-        {/* Blurred backdrop fills the letterbox */}
+        {/* Blurred backdrop fills the whole parent surface, not only the 9:16 foreground. */}
         {showBackdrop && (
           <video
             ref={bgRef}
@@ -156,9 +156,9 @@ function FrameTile({
             aria-hidden
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
             style={{
-              filter: "blur(22px) brightness(0.55)",
-              transform: tile.mirror ? "scaleX(-1) scale(1.15)" : "scale(1.15)",
-              opacity: 0.75,
+              filter: "blur(24px) brightness(0.72)",
+              transform: tile.mirror ? "scaleX(-1) scale(1.16)" : "scale(1.16)",
+              opacity: 0.84,
             }}
           />
         )}

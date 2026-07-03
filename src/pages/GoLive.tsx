@@ -102,6 +102,7 @@ const GoLive = () => {
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [useLiveKit, setUseLiveKit] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const previewBackdropRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
   const cameraSwitchInFlightRef = useRef<Promise<void> | null>(null);
@@ -306,6 +307,7 @@ const GoLive = () => {
 
   const attachWebPreviewStream = useCallback((mediaStream: MediaStream) => {
     const videoEl = videoRef.current;
+    const backdropEl = previewBackdropRef.current;
     if (!videoEl) return;
 
     // Pkg-audit Bug B: single play path. Previously two `play()` calls (one
@@ -320,6 +322,11 @@ const GoLive = () => {
     hardenVideoElementForNative(videoEl, { muted: true });
     if (!sameStream) {
       videoEl.srcObject = mediaStream;
+    }
+    if (backdropEl && backdropEl.srcObject !== mediaStream) {
+      backdropEl.srcObject = mediaStream;
+      backdropEl.muted = true;
+      backdropEl.play().catch(() => {});
     }
 
     const ready = () => {
@@ -549,6 +556,10 @@ const GoLive = () => {
       try { videoRef.current.srcObject = null; } catch { /* ignore */ }
       try { videoRef.current.removeAttribute('src'); videoRef.current.load(); } catch { /* ignore */ }
     }
+    if (previewBackdropRef.current) {
+      try { previewBackdropRef.current.pause(); } catch { /* ignore */ }
+      try { previewBackdropRef.current.srcObject = null; } catch { /* ignore */ }
+    }
     // 2. Fire native camera tear-down IMMEDIATELY (no await) so the native
     //    TextureView behind the WebView disappears on the same frame as the
     //    tap. Previously this sat behind a 1.5s "in-flight start" wait, so
@@ -696,6 +707,10 @@ const GoLive = () => {
       if (videoRef.current) {
         try { videoRef.current.pause(); } catch { /* ignore */ }
         try { videoRef.current.srcObject = null; } catch { /* ignore */ }
+      }
+      if (previewBackdropRef.current) {
+        try { previewBackdropRef.current.pause(); } catch { /* ignore */ }
+        try { previewBackdropRef.current.srcObject = null; } catch { /* ignore */ }
       }
     };
   }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
@@ -1421,7 +1436,22 @@ const GoLive = () => {
             className="w-full h-full"
           />
         ) : (
-          <div className="relative h-full max-h-full max-w-full aspect-[9/16] mx-auto camera-locked">
+          <>
+            <video
+              ref={previewBackdropRef}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+              style={{
+                transform: facingMode === 'user' ? 'scaleX(-1) scale(1.16)' : 'scale(1.16)',
+                filter: beautyCSS ? `${beautyCSS} blur(24px) brightness(0.72)` : 'blur(24px) brightness(0.72)',
+                opacity: previewHasFrame ? 0.84 : 0,
+                transition: 'opacity 180ms ease',
+              }}
+            />
+            <div className="relative h-full max-h-full max-w-full aspect-[9/16] mx-auto camera-locked">
             {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
                 On native Android, hidden visually when native renderer is confirmed
                 active (nativePreviewActive). If the native renderer ever fails to
@@ -1469,6 +1499,7 @@ const GoLive = () => {
               }}
             />
           </div>
+          </>
         )}
 
 

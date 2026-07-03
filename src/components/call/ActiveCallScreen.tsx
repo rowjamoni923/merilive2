@@ -163,6 +163,9 @@ export function ActiveCallScreen({
   const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
+  const previewBackdropRefPrimary = useRef<HTMLVideoElement | null>(null);
+  const previewBackdropRefPip = useRef<HTMLVideoElement | null>(null);
+  const previewBackdropRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   // Pkg-shirt Phase-B: reuse the global persistentCameraSession that
   // CallProvider warmed during ringing/dialing. This makes accept feel
@@ -227,17 +230,30 @@ export function ActiveCallScreen({
   // Pkg502 — ref-callback attachment so srcObject is wired both when the
   // stream arrives and when a video element mounts later (calling→connected
   // transition mounts a new tile after the stream is already set).
-  const attachPreview = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing') => {
-    const refMap = { primary: previewVideoRefPrimary, pip: previewVideoRefPip, ringing: previewVideoRefRinging };
+  const attachPreview = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing' | 'primaryBg' | 'pipBg' | 'ringingBg') => {
+    const refMap = {
+      primary: previewVideoRefPrimary,
+      pip: previewVideoRefPip,
+      ringing: previewVideoRefRinging,
+      primaryBg: previewBackdropRefPrimary,
+      pipBg: previewBackdropRefPip,
+      ringingBg: previewBackdropRefRinging,
+    };
     refMap[slot].current = el;
     if (el && previewStream && el.srcObject !== previewStream) {
       el.srcObject = previewStream;
+      el.muted = true;
+      el.play().catch(() => {});
     }
   }, [previewStream]);
   useEffect(() => {
     if (!previewStream) return;
-    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging].forEach((r) => {
-      if (r.current && r.current.srcObject !== previewStream) r.current.srcObject = previewStream;
+    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging, previewBackdropRefPrimary, previewBackdropRefPip, previewBackdropRefRinging].forEach((r) => {
+      if (r.current && r.current.srcObject !== previewStream) {
+        r.current.srcObject = previewStream;
+        r.current.muted = true;
+        r.current.play().catch(() => {});
+      }
     });
   }, [previewStream]);
   
@@ -1259,6 +1275,15 @@ export function ActiveCallScreen({
             ) : isPreviewWeb && previewStream ? (
               <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <video
+                  ref={(el) => attachPreview(el, 'ringingBg')}
+                  aria-hidden="true"
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                  style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(24px) brightness(0.72)', opacity: 0.84 }}
+                />
+                <video
                   ref={(el) => attachPreview(el, 'ringing')}
                   autoPlay
                   playsInline
@@ -1418,6 +1443,15 @@ export function ActiveCallScreen({
         {isPreviewWeb && previewStream && (
           <>
             <video
+              ref={(el) => attachPreview(el, 'primaryBg')}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-[3]"
+              style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(24px) brightness(0.72)', opacity: 0.84 }}
+            />
+            <video
               ref={(el) => attachPreview(el, 'primary')}
               autoPlay
               playsInline
@@ -1437,6 +1471,15 @@ export function ActiveCallScreen({
                   '0 12px 30px -8px rgba(0,0,0,0.65), 0 4px 12px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
               }}
             >
+              <video
+                ref={(el) => attachPreview(el, 'pipBg')}
+                aria-hidden="true"
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(18px) brightness(0.72)', opacity: 0.84 }}
+              />
               <video
                 ref={(el) => attachPreview(el, 'pip')}
                 autoPlay
