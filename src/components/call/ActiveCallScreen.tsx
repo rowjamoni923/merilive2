@@ -1252,7 +1252,6 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={localVideoTrack}
                   mirror={true}
-                  fit="cover"
                   className="w-full h-full"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
@@ -1380,7 +1379,6 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={primaryVideoTrack}
                   mirror={primaryMirror}
-                  fit="cover"
                   className="w-full h-full"
                 />
 
@@ -1473,7 +1471,6 @@ export function ActiveCallScreen({
                 <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
-                  fit="cover"
                   className="w-full h-full"
                 />
               ) : (
