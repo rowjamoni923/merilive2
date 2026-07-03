@@ -41,7 +41,15 @@ export interface GiftServiceResponse {
   diamondBonus?: number;
   isLucky?: boolean;
   error?: string;
+  /** Structured failure code — callers can branch on this instead of parsing `error`. */
+  code?: 'AUTH_EXPIRED' | string;
 }
+
+const AUTH_EXPIRED: GiftServiceResponse = {
+  success: false,
+  code: 'AUTH_EXPIRED',
+  error: 'Your session expired. Please sign in again to send gifts.',
+};
 
 function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
   if (!result?.success) {
