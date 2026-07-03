@@ -74,3 +74,27 @@ Phase 3-4 = codemod-style sweeps across src/**/*.tsx.
 ## Approach Question
 
 ৪ Phase একসাথে করব, নাকি Phase 1 (keyboard — সবথেকে বড় সমস্যা) দিয়ে শুরু করে user verify করার পর ধাপে ধাপে? Approve করলে জানাও কোনটা।
+
+---
+
+# Admin Payout Analytics DB Fix — 2026-07-03
+
+## Issue
+- Admin Dashboard / Payouts Analytics showed `column p.full_name does not exist`.
+- Current `public.profiles` schema uses `display_name` + `username`; legacy payout/group RPCs still referenced `p.full_name`.
+
+## Professional payout analytics standard
+- Admin finance dashboards should aggregate real cash-out separately from internal virtual-currency movement.
+- Payout reports should include category totals, transaction count, recipient count, daily rollups, and helper/host-level breakdowns.
+- Query layer must be schema-version safe: use canonical profile fields and avoid old alias columns that no longer exist.
+
+## Fix completed
+- Replaced legacy `p.full_name` lookup in `compute_helper_diamond_payouts` with `COALESCE(display_name, username, helper_id)`.
+- Replaced legacy `p.full_name` lookup/search in `search_group_members` with `display_name` + `username`, while preserving the returned `full_name` output for frontend compatibility.
+- Verified active DB functions no longer contain payout-breaking `p.full_name` references.
+
+## Verification
+- Database migration executed successfully.
+- Active function audit now returns no `compute_helper_diamond_payouts` / `search_group_members` `p.full_name` references.
+- Existing unrelated linter warnings pre-date this migration and were not introduced by this fix.
+
