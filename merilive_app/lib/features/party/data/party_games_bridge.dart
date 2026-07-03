@@ -1,4 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// G22 — Active-game notifier shared across the party room UI so overlays
+/// (audio-mode game strip, host end-game pill) can react without an
+/// additional cubit hop.
+final ValueNotifier<PartyGame?> activePartyGameNotifier =
+    ValueNotifier<PartyGame?>(null);
 
 /// Represents one admin-managed game row. Mirrors the web `game_settings`
 /// query used by `src/components/party/GameSelectionModal.tsx` and
