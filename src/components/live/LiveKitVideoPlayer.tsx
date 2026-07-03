@@ -421,11 +421,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       className={cn('w-full h-full overflow-hidden relative camera-locked flex items-center justify-center', className)}
       style={{ position: 'relative', zIndex: 0 }}
     >
-      <div
-        className="relative h-full max-h-full max-w-full aspect-[9/16] overflow-hidden"
-        style={{ width: 'auto' }}
-      >
-      {/* Chamet/Bigo-style: Blurred backdrop to fill black bars when using fit="contain" */}
+      {/* Fill the whole parent surface first; the foreground keeps contain/no-crop. */}
       {fit === 'contain' && (
         <video
           ref={backdropRef}
@@ -435,14 +431,18 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           muted
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           style={{
-            transform: mirror ? 'scaleX(-1) scale(1.1) translateZ(0)' : 'scale(1.1) translateZ(0)',
+            transform: mirror ? 'scaleX(-1) scale(1.16) translateZ(0)' : 'scale(1.16) translateZ(0)',
             willChange: 'transform',
-            filter: 'blur(20px) brightness(0.7)',
-            opacity: 0.6,
+            filter: 'blur(24px) brightness(0.72)',
+            opacity: 0.82,
+            zIndex: 0,
           }}
         />
       )}
-
+      <div
+        className="relative h-full max-h-full max-w-full aspect-[9/16] overflow-hidden"
+        style={{ width: 'auto' }}
+      >
       <video 
         ref={videoRef}
         data-livekit-media="true"

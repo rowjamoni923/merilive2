@@ -241,6 +241,7 @@ const LiveStream = () => {
     return null;
   });
   const hostTransitionVideoRef = useRef<HTMLVideoElement>(null);
+  const hostTransitionBackdropRef = useRef<HTMLVideoElement>(null);
   const [hostLiveKitVideoReady, setHostLiveKitVideoReady] = useState(false);
   const [hostInfo, setHostInfo] = useState<{
     name: string;
@@ -2427,8 +2428,14 @@ const LiveStream = () => {
     if (!isHost || !hostTransitionPreviewStream || !hostTransitionVideoRef.current) return;
 
     const previewEl = hostTransitionVideoRef.current;
+    const backdropEl = hostTransitionBackdropRef.current;
     hardenVideoElementForNative(previewEl, { muted: true });
     previewEl.srcObject = hostTransitionPreviewStream;
+    if (backdropEl && backdropEl.srcObject !== hostTransitionPreviewStream) {
+      backdropEl.srcObject = hostTransitionPreviewStream;
+      backdropEl.muted = true;
+      backdropEl.play().catch(() => {});
+    }
 
     const playPreview = () => {
       previewEl.play().catch(() => {});
@@ -2441,6 +2448,9 @@ const LiveStream = () => {
       previewEl.onloadedmetadata = null;
       if (previewEl.srcObject === hostTransitionPreviewStream) {
         previewEl.srcObject = null;
+      }
+      if (backdropEl?.srcObject === hostTransitionPreviewStream) {
+        backdropEl.srcObject = null;
       }
     };
   }, [isHost, hostTransitionPreviewStream]);
@@ -4019,33 +4029,49 @@ const LiveStream = () => {
             style={{ filter: combinedFilterCSS || undefined }}
           >
             {hostTransitionPreviewStream && (
-              <video
-                ref={hostTransitionVideoRef}
-                autoPlay
-                playsInline
-                muted
-                controls={false}
-                disablePictureInPicture
-                disableRemotePlayback
-                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                poster=""
-                // @ts-ignore
-                x5-video-player-type="h5"
-                x5-video-player-fullscreen="false"
-                x5-video-orientation="portrait"
-                x5-playsinline="true"
-                webkit-playsinline="true"
-                x-webkit-airplay="deny"
-                className="relative h-full max-h-full max-w-full aspect-[9/16] object-contain pointer-events-none camera-locked bg-transparent"
-                style={{
-                  transform: 'scaleX(-1)',
-                  objectFit: 'contain',
-                  objectPosition: 'center center',
-                  filter: combinedFilterCSS || undefined,
-                  WebkitAppearance: 'none',
-                  width: 'auto',
-                  zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
-                }}/>
+              <>
+                <video
+                  ref={hostTransitionBackdropRef}
+                  aria-hidden="true"
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                  style={{
+                    transform: 'scaleX(-1) scale(1.16)',
+                    filter: combinedFilterCSS ? `${combinedFilterCSS} blur(24px) brightness(0.72)` : 'blur(24px) brightness(0.72)',
+                    opacity: localVideoTrack && hostLiveKitVideoReady ? 0 : 0.84,
+                    zIndex: 1,
+                  }}
+                />
+                <video
+                  ref={hostTransitionVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  controls={false}
+                  disablePictureInPicture
+                  disableRemotePlayback
+                  controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                  poster=""
+                  // @ts-ignore
+                  x5-video-player-type="h5"
+                  x5-video-player-fullscreen="false"
+                  x5-video-orientation="portrait"
+                  x5-playsinline="true"
+                  webkit-playsinline="true"
+                  x-webkit-airplay="deny"
+                  className="relative h-full max-h-full max-w-full aspect-[9/16] object-contain pointer-events-none camera-locked bg-transparent"
+                  style={{
+                    transform: 'scaleX(-1)',
+                    objectFit: 'contain',
+                    objectPosition: 'center center',
+                    filter: combinedFilterCSS || undefined,
+                    WebkitAppearance: 'none',
+                    width: 'auto',
+                    zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
+                  }}/>
+              </>
             )}
             {localVideoTrack && (
               <LiveKitVideoPlayer
