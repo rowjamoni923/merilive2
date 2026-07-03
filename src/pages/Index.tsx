@@ -600,21 +600,22 @@ const Index = () => {
           {/* Full-photo card: no bottom panel, border band, or screen overlay. */}
 
           {/* Flat Status Badge — Chamet/Bigo industry standard.
-              LIVE (red) / BUSY (amber) / ONLINE (green). No 3D, no bevel. */}
+              LIVE (red) / BUSY (amber) / ONLINE (green) / OFFLINE (slate).
+              Every face-verified host shows a status — no card is ever unlabeled. */}
           {(() => {
-            const status: "live" | "busy" | "online" | null = user.isLive
+            const status: "live" | "busy" | "online" | "offline" = user.isLive
               ? "live"
               : isActuallyBusy
                 ? "busy"
                 : user.is_online
                   ? "online"
-                  : null;
-            if (!status) return null;
+                  : "offline";
 
             const cfg = {
-              live:   { label: "LIVE",   bg: "#ef4444", dot: "#ffffff", pulse: true  },
-              busy:   { label: "BUSY",   bg: "#f59e0b", dot: "#ffffff", pulse: false },
-              online: { label: "ONLINE", bg: "#22c55e", dot: "#ffffff", pulse: true  },
+              live:    { label: "LIVE",    bg: "#ef4444", dot: "#ffffff", pulse: true  },
+              busy:    { label: "BUSY",    bg: "#f59e0b", dot: "#ffffff", pulse: false },
+              online:  { label: "ONLINE",  bg: "#22c55e", dot: "#ffffff", pulse: true  },
+              offline: { label: "OFFLINE", bg: "#64748b", dot: "#e2e8f0", pulse: false },
             }[status];
 
             return (
@@ -634,6 +635,7 @@ const Index = () => {
               </div>
             );
           })()}
+
 
           {/* Live viewer count — flat pill */}
           {user.isLive && (user.viewerCount ?? 0) > 0 && (
