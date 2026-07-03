@@ -41,7 +41,15 @@ export interface GiftServiceResponse {
   diamondBonus?: number;
   isLucky?: boolean;
   error?: string;
+  /** Structured failure code — callers can branch on this instead of parsing `error`. */
+  code?: 'AUTH_EXPIRED' | string;
 }
+
+const AUTH_EXPIRED: GiftServiceResponse = {
+  success: false,
+  code: 'AUTH_EXPIRED',
+  error: 'Your session expired. Please sign in again to send gifts.',
+};
 
 function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
   if (!result?.success) {
@@ -184,7 +192,7 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   let accessToken = await getAccessToken(false);
   if (!accessToken) accessToken = await getAccessToken(true);
-  if (!accessToken) throw new Error("No active session. Please sign in again.");
+  if (!accessToken) return AUTH_EXPIRED;
 
   let response: Response;
   try {
@@ -225,9 +233,10 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Hard auth failure — DB poll won't help since the server never
-      // accepted the request.
-      throw new Error("Your session expired. Please sign in again to send gifts.");
+      // Hard auth failure — session is gone server-side. Return a structured
+      // response so callers surface a toast; throwing here would escape to
+      // React error boundaries and blank the screen.
+      return AUTH_EXPIRED;
     }
     if (response.status === 502 || response.status === 503 || response.status === 504) {
       console.warn('[GiftServiceClient] Edge temporarily unavailable; falling back to RPC:', response.status);
