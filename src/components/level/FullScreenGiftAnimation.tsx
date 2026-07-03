@@ -512,39 +512,28 @@ const FullScreenGiftAnimation = ({
             transition={{ type: "spring", damping: 12, stiffness: 100 }}
             className="relative z-10 flex flex-col items-center gap-4 p-6"
           >
-            {/* Main animation container - FULL VIEWPORT for mobile with aggressive scale */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ 
-                width: '100%', 
-                height: '100%',
-                position: 'fixed',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%) scale(1.6)',
-                transformOrigin: 'center center',
-              }}
-            >
-              {/* Glow effect behind animation */}
+            {/* Main animation container — centered, contained.
+                Chamet/Bigo-parity: the gift artwork sits in a bounded box so
+                its background NEVER washes the entire viewport with color.
+                Previously scaled 1.6× fixed-position → any opaque artwork
+                (e.g. Champagne / Celebration) tinted the whole chat behind
+                it. Now the animation is size-capped and floats in place. */}
+            <div className="relative flex items-center justify-center w-[min(78vw,420px)] h-[min(58vh,420px)] pointer-events-none">
+              {/* Soft glow behind animation (does not wash chat behind overlay) */}
               <motion.div
                 className={cn(
-                  "absolute inset-0 rounded-full blur-3xl",
-                  isMythic ? "bg-amber-400/40" : isLegendary ? "bg-pink-500/30" : "bg-purple-500/25"
+                  "absolute inset-8 rounded-full blur-3xl pointer-events-none",
+                  isMythic ? "bg-amber-400/25" : isLegendary ? "bg-pink-500/20" : "bg-purple-500/15"
                 )}
-                style={{
-                  width: '80%',
-                  height: '80%',
-                  left: '10%',
-                  top: '10%'
-                }}
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.4, 0.7, 0.4]
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.35, 0.6, 0.35]
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
               {renderAnimation()}
-            </motion.div>
+            </div>
+
 
             {/* Gift name and count */}
             <motion.div
