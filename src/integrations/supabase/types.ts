@@ -3169,42 +3169,45 @@ export type Database = {
         Row: {
           call_id: string | null
           call_type: string | null
-          caller_id: string
+          caller_id: string | null
           coin_cost: number | null
+          created_at: string
           duration: number | null
           ended_at: string | null
           event_data: Json | null
           event_type: string | null
           id: string
-          receiver_id: string
+          receiver_id: string | null
           started_at: string | null
           status: string | null
         }
         Insert: {
           call_id?: string | null
           call_type?: string | null
-          caller_id: string
+          caller_id?: string | null
           coin_cost?: number | null
+          created_at?: string
           duration?: number | null
           ended_at?: string | null
           event_data?: Json | null
           event_type?: string | null
           id?: string
-          receiver_id: string
+          receiver_id?: string | null
           started_at?: string | null
           status?: string | null
         }
         Update: {
           call_id?: string | null
           call_type?: string | null
-          caller_id?: string
+          caller_id?: string | null
           coin_cost?: number | null
+          created_at?: string
           duration?: number | null
           ended_at?: string | null
           event_data?: Json | null
           event_type?: string | null
           id?: string
-          receiver_id?: string
+          receiver_id?: string | null
           started_at?: string | null
           status?: string | null
         }
