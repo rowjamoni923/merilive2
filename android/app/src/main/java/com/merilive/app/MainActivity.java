@@ -91,6 +91,10 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.ProximityLockPlugin.class);
         registerPlugin(com.merilive.app.plugin.AudioFocusPlugin.class);
         registerPlugin(com.merilive.app.plugin.AudioRecorderPlugin.class);
+        // In-app background music mixer — coexists with Spotify/YouTube (ducks,
+        // doesn't kill) and plays through speaker so LiveKit mic bridges it to
+        // remote viewers on Live / Party / Video-Party. Chamet/Bigo-parity.
+        registerPlugin(com.merilive.app.plugin.NativeBgmMixerPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeSVGAPlugin.class);
         // Pkg426 — Native Android VAP (Tencent alpha-MP4 player). Additive:
         // registered for JS callers, but no existing animation component
