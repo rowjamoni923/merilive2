@@ -1,37 +1,59 @@
-## 4 Fixes — Live/Party Screens
+## লক্ষ্য
+Live Stream, Party Room, Private Call — তিনটাতেই:
+1. অ্যাপ minimize করলেও অন্য প্রান্তের ভয়েস clearly শোনা যাবে + নিজের mic চালু থাকবে (background audio continuity)
+2. Video/face uninterrupted থাকবে (foreground service — Android কখনো কেটে দিবে না)
+3. কোথাও lag নেই, UI ১% ও ভাঙবে না, professional Android feel
+4. Disconnect/drop হবে না
 
-### 1. Send Button (3D press + keyboard shift)
-**File:** `src/pages/LiveStream.tsx` line ~4479 send button + line 4448 bottom composer.
-- Remove `whileTap scale` / `whileHover` from send FAB → replace with pure `filter: brightness()` on active state so button never visually "drops". Keep 3D radial gradient look intact.
-- Wrap composer's outer `motion.div` container: remove `animate y:0` (unnecessary) and add `will-change:transform` + `transform: translateZ(0)` so keyboard-open reflow doesn't jitter.
-- Ensure `bottom-kb` utility (keyboard-aware) is applied consistently; verify CSS uses `env(keyboard-inset-height, 0px)` / visualViewport listener so send button parks flush above keyboard instead of getting pushed under.
-- Apply same fix in `PartyRoom.tsx` composer (parity).
+---
 
-### 2. Entry Animation — VIP preview parity in every Live + Party
-**Symptom:** VIP shop preview (`EntryNameBarPreview.tsx`) shows premium banner + name bar + vehicle correctly; in-room (`EntryNameBarAnimation.tsx` + `UnifiedEntryAnimation.tsx`) either silent or degraded.
-- Diff `EntryNameBarPreview` vs `EntryNameBarAnimation`: align rendering path (same SVGA/Lottie/VAP loader, same size, same `bottomPosition`, same gradient chrome) so what users buy = what plays in room.
-- Fix `useUnifiedEntryDispatcher.ts` gating: verify `animationUrl` is being pulled from `profile.entry_name_bar_url` + `profile.entry_banner_url` and forwarded through `onEntry`/`onNameBar` callbacks. Currently join events may be received but URL empty → animation no-op.
-- Ensure realtime `stream_viewers` INSERT + LiveKit `viewer_joined` signal BOTH funnel into dispatcher (one path only, deduped) so no join is missed.
-- Same wiring verified/fixed in `PartyRoom.tsx` line 2561/2572.
+## Research-first (competitor parity)
+Chamet, Bigo, Poppo, Olamet, HiiClub — সবাই Android `ForegroundService` + `MediaSession` + `AudioFocus` + LiveKit background track publishing ব্যবহার করে। আমাদের LiveKit self-hosted, তাই translation দরকার নেই — সরাসরি LiveKit Android SDK এর `Room.Options(adaptiveStream=true)` + custom `ForegroundService` binding।
 
-### 3. Welcome/Join Chat Banner — Chamet-style mini
-**File:** `src/components/live/BigoStyleJoinBanner.tsx` + `StackingJoinNotifications.tsx` + welcome chat row builder in `useUnifiedEntryDispatcher`.
-- Shrink to ~24px height single-line pill: 10px font, avatar 16px, gradient trimmed, padding `px-2 py-0.5`, border-radius full.
-- Reduce shadow/blur, single-line ellipsis for long names.
-- Same reduced style applied to the coalesced welcome chat message row (Phase 5 output).
+## Current gap (verified from codebase)
+- `LiveKitPlugin.kt` — কোনো `ForegroundService` bind নেই → OS 30–60s এ audio track kill করে
+- Party/Live/Call তিনটার জন্য আলাদা lifecycle handling নেই → minimize এ track publisher unpublish হয়ে যায়
+- WebView pause এ JS timer freeze → LiveKit heartbeat miss → reconnect loop → "কেটে যায়"
+- Audio route (speaker vs earpiece) minimize এ hardcoded reset হয়
 
-### 4. Viewer Counter — 100% accurate
-Three combined fixes:
-- **Stale cleanup:** shorten `stream_viewers` abandoned-session timeout from 90s → 30s in the RPC (`decrement_viewer_count_if_stale` or equivalent). Add heartbeat every 15s from active viewer client (`useViewerSession`).
-- **Realtime reattach:** wrap `stream_viewers` subscription in `useEffect` with proper cleanup + reconnect on visibilitychange (currently may leak on hot-reload / tab hide).
-- **Single source of truth:** stop mixing `activeViewerIdsRef.size`, `stream.viewer_count`, and RPC `recompute_viewer_count` — always trust the RPC's return value; local set only for optimistic UI (max of both).
-- Migration: add index on `stream_viewers (stream_id, left_at)` if missing for the 30s cleanup query.
+---
 
-### Guardrails
-- No touching gift/entry animation *native* pipeline (Android VAP/SVGA plugin) — pure JS/CSS + dispatcher wiring only.
-- English-only UI strings.
-- Admin-driven values stay from `random_call_settings` / `live_streams` tables — no hardcoded defaults.
-- No design overhaul; keep current premium look, only fix broken parts.
+## প্ল্যান (৪ phase, সব Android-native — APK rebuild লাগবে)
 
-### Verification
-- Owner account (`smdollarex923@gmail.com`) → open live from second device → verify: (a) send button doesn't drop on tap, (b) VIP entry animation plays, (c) welcome banner is mini, (d) viewer count matches actual viewers, cleans up on leave.
+### Phase 1 — Foreground Service (audio/video continuity)
+- নতুন `LiveKitForegroundService.kt` — `FOREGROUND_SERVICE_TYPE_MICROPHONE | CAMERA | MEDIA_PLAYBACK`
+- Notification channel: "Live Call Active" (persistent, non-dismissible while in call)
+- `LiveKitPlugin.connect()` → `startForegroundService()` bind; `disconnect()` → stop
+- Manifest permissions: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `FOREGROUND_SERVICE_CAMERA`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` (API 34+)
+
+### Phase 2 — AudioFocus + MediaSession
+- `AudioManager.requestAudioFocus()` with `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`
+- `MediaSessionCompat` for lock-screen controls + call state
+- Restore audio route (speaker) after focus loss (call interruption, notification)
+
+### Phase 3 — WebView lifecycle guard
+- `MainActivity.onPause` → do NOT pause WebView while LiveKit session active (checked via plugin state)
+- Keep JS heartbeat alive → no reconnect loop
+- Camera preview (native renderer already behind WebView per prior fix) unaffected
+
+### Phase 4 — LiveKit resilience
+- `RoomOptions.adaptiveStream = true`, `dynacast = true`
+- Reconnect policy: exponential backoff, max 30s, auto-resume tracks
+- Background track publishing: `LocalAudioTrack.setEnabled(true)` on pause (already published, just guard against JS unpublish call)
+
+---
+
+## Design/UI guardrails (৳acred)
+- কোনো UI file touch হবে না — pure native Android + minimal JS lifecycle hook
+- English-only strings (notification title: "Live call in progress")
+- Design ১% ও ভাঙবে না — সব change `android/app/src/main/java/...` তে
+
+## Verification
+Owner account (smdollarex923@gmail.com) দিয়ে APK rebuild এর পর:
+1. Live start → home button → 2 min wait → other side এ voice continuous শোনা যায় কিনা
+2. Private call → notification pull down → still connected
+3. Party room seat → screen off → voice active
+4. Reconnect drill: airplane mode 10s → auto-recover
+
+## গুরুত্বপূর্ণ note
+এই পুরো কাজ **Android native (Kotlin)** — APK rebuild ছাড়া effect হবে না। Lovable preview এ web-এ background audio এমনিতেই browser handle করে (page visible থাকলেই)। তুমি confirm করলে Phase 1 থেকে শুরু করবো।
