@@ -1,59 +1,76 @@
-## লক্ষ্য
-Live Stream, Party Room, Private Call — তিনটাতেই:
-1. অ্যাপ minimize করলেও অন্য প্রান্তের ভয়েস clearly শোনা যাবে + নিজের mic চালু থাকবে (background audio continuity)
-2. Video/face uninterrupted থাকবে (foreground service — Android কখনো কেটে দিবে না)
-3. কোথাও lag নেই, UI ১% ও ভাঙবে না, professional Android feel
-4. Disconnect/drop হবে না
+# Android UI Hardening — App-wide Stability Pass
 
----
+96 pages in `src/pages`। "কোন UI না ভাঙা" মানে ৯৬টা page individually ঘষা নয় — cross-cutting foundation ঠিক থাকলে সব page একসাথে ঠিক হয়। Chamet/Bigo/Poppo-এর মতো apps যে ৪টা layer-এ smooth থাকে, সেগুলোই fix করছি।
 
-## Research-first (competitor parity)
-Chamet, Bigo, Poppo, Olamet, HiiClub — সবাই Android `ForegroundService` + `MediaSession` + `AudioFocus` + LiveKit background track publishing ব্যবহার করে। আমাদের LiveKit self-hosted, তাই translation দরকার নেই — সরাসরি LiveKit Android SDK এর `Room.Options(adaptiveStream=true)` + custom `ForegroundService` binding।
+## Phase 1 — Keyboard & Input (সবথেকে বড় pain point)
 
-## Current gap (verified from codebase)
-- `LiveKitPlugin.kt` — কোনো `ForegroundService` bind নেই → OS 30–60s এ audio track kill করে
-- Party/Live/Call তিনটার জন্য আলাদা lifecycle handling নেই → minimize এ track publisher unpublish হয়ে যায়
-- WebView pause এ JS timer freeze → LiveKit heartbeat miss → reconnect loop → "কেটে যায়"
-- Audio route (speaker vs earpiece) minimize এ hardcoded reset হয়
+Chamet/WhatsApp behaviour:
+- Input উপরে উঠবে, background compress হবে না।
+- Chat/comment box keyboard-এর ঠিক উপরে থাকবে।
+- Back gesture → keyboard hide, page না ছেড়ে।
 
----
+Deliverables:
+- `@capacitor/keyboard` plugin install + `Keyboard.setResizeMode({ mode: 'native' })` + `setScrollEnabled(false)`।
+- Global `useKeyboardInsets()` hook → `--kb-height` CSS variable expose।
+- Chat / Comment / DM / Support / PartyRoom / LiveStream comment composer-এ `padding-bottom: var(--kb-height)` wire।
+- iOS-parity `enterkeyhint` + `inputmode` audit।
+- Android manifest `windowSoftInputMode="adjustResize"` verify।
 
-## প্ল্যান (৪ phase, সব Android-native — APK rebuild লাগবে)
+## Phase 2 — Safe-Area & Notch/Gesture-Bar
 
-### Phase 1 — Foreground Service (audio/video continuity)
-- নতুন `LiveKitForegroundService.kt` — `FOREGROUND_SERVICE_TYPE_MICROPHONE | CAMERA | MEDIA_PLAYBACK`
-- Notification channel: "Live Call Active" (persistent, non-dismissible while in call)
-- `LiveKitPlugin.connect()` → `startForegroundService()` bind; `disconnect()` → stop
-- Manifest permissions: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `FOREGROUND_SERVICE_CAMERA`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` (API 34+)
+- `viewport-fit=cover` in `index.html` (already?)। Verify।
+- Global CSS tokens: `--safe-top`, `--safe-bottom`, `--safe-left`, `--safe-right` → `env(safe-area-inset-*)`।
+- All fixed headers/footers/bottom-navs → `padding-top: var(--safe-top)` / `padding-bottom: var(--safe-bottom)`।
+- Sheet/Dialog/BottomSheet component audit → automatic safe-area।
 
-### Phase 2 — AudioFocus + MediaSession
-- `AudioManager.requestAudioFocus()` with `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`
-- `MediaSessionCompat` for lock-screen controls + call state
-- Restore audio route (speaker) after focus loss (call interruption, notification)
+## Phase 3 — Layout Stability
 
-### Phase 3 — WebView lifecycle guard
-- `MainActivity.onPause` → do NOT pause WebView while LiveKit session active (checked via plugin state)
-- Keep JS heartbeat alive → no reconnect loop
-- Camera preview (native renderer already behind WebView per prior fix) unaffected
+- Fixed viewport height bug: `100vh` → `100dvh` (dynamic viewport) app-wide replace।
+- Image `width`/`height` attribute audit → prevent CLS।
+- Long list → `react-window`/`react-virtual` audit (Chat threads, Follower lists, Gift history)।
+- Overflow-x hidden root guard → horizontal scroll leak কখনো হবে না।
+- Touch target minimum 44×44px audit (Tailwind size tokens)।
 
-### Phase 4 — LiveKit resilience
-- `RoomOptions.adaptiveStream = true`, `dynacast = true`
-- Reconnect policy: exponential backoff, max 30s, auto-resume tracks
-- Background track publishing: `LocalAudioTrack.setEnabled(true)` on pause (already published, just guard against JS unpublish call)
+## Phase 4 — Perf & Smoothness
 
----
+- React Query `staleTime` audit → duplicate refetch কমাবে।
+- Route-level `React.lazy` + `Suspense` for heavy pages (Reels, LiveStream, PartyRoom already lazy)।
+- Image lazy loading + `decoding="async"` audit।
+- Framer Motion → `will-change` + `transform` GPU path verify।
+- WebView hardware acceleration flag (Capacitor default ON, verify)।
+- Font loading: `font-display: swap` + preload primary font।
 
-## Design/UI guardrails (৳acred)
-- কোনো UI file touch হবে না — pure native Android + minimal JS lifecycle hook
-- English-only strings (notification title: "Live call in progress")
-- Design ১% ও ভাঙবে না — সব change `android/app/src/main/java/...` তে
+## Verification Protocol
 
-## Verification
-Owner account (smdollarex923@gmail.com) দিয়ে APK rebuild এর পর:
-1. Live start → home button → 2 min wait → other side এ voice continuous শোনা যায় কিনা
-2. Private call → notification pull down → still connected
-3. Party room seat → screen off → voice active
-4. Reconnect drill: airplane mode 10s → auto-recover
+- Owner-account test on preview (smdollarex923@gmail.com) - top 15 flows: Home, Live, GoLive, Party, PrivateCall, Chat, DM, Support, Wallet, Recharge, Profile, Reels, Discover, Search, Settings।
+- Playwright headless viewport 393×852 (Pixel-8) screenshot pass — visual diff → broken layout detect।
+- APK rebuild + physical device smoke test (user side)।
 
-## গুরুত্বপূর্ণ note
-এই পুরো কাজ **Android native (Kotlin)** — APK rebuild ছাড়া effect হবে না। Lovable preview এ web-এ background audio এমনিতেই browser handle করে (page visible থাকলেই)। তুমি confirm করলে Phase 1 থেকে শুরু করবো।
+## Technical Details
+
+```
+Phase 1 files touched:
+  - capacitor.config.ts (Keyboard plugin config)
+  - src/hooks/useKeyboardInsets.ts (NEW)
+  - src/index.css (--kb-height token)
+  - android/app/src/main/AndroidManifest.xml (adjustResize)
+  - ~15 composer components (padding-bottom wire)
+
+Phase 2 files touched:
+  - src/index.css (safe-area tokens)
+  - src/components/layout/* (header/footer wire)
+  - src/components/ui/sheet.tsx, dialog.tsx (safe-area)
+
+Phase 3-4 = codemod-style sweeps across src/**/*.tsx.
+```
+
+## Scope Boundaries
+
+- Design SACRED — colors, fonts, layout composition অক্ষত। শুধু stability primitive যোগ।
+- Camera/LiveKit/VAP/SVGA/native gift animation code touch হবে না।
+- Web + Android দুই platform-এ কাজ করবে (iOS bonus)।
+- Admin panel already separate performance-locked → skip।
+
+## Approach Question
+
+৪ Phase একসাথে করব, নাকি Phase 1 (keyboard — সবথেকে বড় সমস্যা) দিয়ে শুরু করে user verify করার পর ধাপে ধাপে? Approve করলে জানাও কোনটা।
