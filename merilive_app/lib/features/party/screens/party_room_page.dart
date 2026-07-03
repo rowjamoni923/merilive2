@@ -22,6 +22,8 @@ import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../data/party_seat_invitation_bridge.dart';
 import '../widgets/professional_audio_room.dart';
+import '../widgets/professional_game_overlay.dart';
+import '../data/party_games_bridge.dart' show activePartyGameNotifier, PartyGame;
 
 
 import '../widgets/empty_seat_host_actions_sheet.dart';
