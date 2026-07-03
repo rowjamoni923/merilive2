@@ -2691,12 +2691,16 @@ const PartyRoom = () => {
             toast("AR Stickers are available in the Android app only");
           }
         }}
-        onClose={async () => {
+        onClose={() => {
+          // Instant-close: navigate on the same frame as the tap; run all
+          // teardown (LiveKit leave, DB update, participant cleanup) in the
+          // background. Previously the awaited `leaveRoom()` made the X
+          // feel unresponsive when RPC/SFU was slow.
           explicitLeaveRef.current = true;
-          await leaveRoom();
-          cleanupNativeLiveKit();
-          clearNativeMediaSurface();
-          exitToLobby('/');
+          try { cleanupNativeLiveKit(); } catch { /* ignore */ }
+          try { clearNativeMediaSurface(); } catch { /* ignore */ }
+          try { exitToLobby('/'); } catch { navigate('/', { replace: true }); }
+          void leaveRoom().catch(() => undefined);
         }}
         getPeerStream={getPeerStream}
         seatRequests={seatRequests.map(sr => ({

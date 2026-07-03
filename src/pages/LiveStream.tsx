@@ -2886,26 +2886,35 @@ const LiveStream = () => {
 
   // Handle viewer leaving the stream
   const handleLeaveStream = async () => {
-    // Server-side leave flow keeps stream_viewers + live_streams.viewer_count in sync.
-    if (!isHost && currentUserId && id) {
-      const { data, error } = await supabase.rpc('leave_live_stream_viewer', { p_stream_id: id });
-      if (error) {
-        console.error('[LiveStream] Viewer leave RPC failed:', error);
-      } else if (typeof data === 'number') {
-        activeViewerIdsRef.current.delete(currentUserId);
-        setViewerCount(data);
+    // Instant-close policy: navigate on the SAME frame as the tap. All
+    // server-side + LiveKit cleanup runs fire-and-forget in the background
+    // so the button never feels stuck behind a slow RPC or SFU signal.
+    const runCleanup = () => {
+      // Server-side leave flow keeps stream_viewers + live_streams.viewer_count in sync.
+      if (!isHost && currentUserId && id) {
+        void supabase.rpc('leave_live_stream_viewer', { p_stream_id: id })
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('[LiveStream] Viewer leave RPC failed:', error);
+            } else if (typeof data === 'number') {
+              activeViewerIdsRef.current.delete(currentUserId);
+            }
+          });
       }
-    }
+      try { void leaveChannel(); } catch { /* ignore */ }
+    };
 
-    await leaveChannel();
     if (liveSession && isHost) {
       // Host swipe-down end: stay inside the session container, show ended UI.
-      liveSession.goToEnded();
+      try { liveSession.goToEnded(); } catch { /* ignore */ }
+      runCleanup();
     } else {
-      // Viewer leave (or legacy mode): go home as before.
+      // Viewer leave (or legacy mode): go home immediately.
       navigate('/', { replace: true });
+      runCleanup();
     }
   };
+
 
   // Keep the top-edge swipe-down gesture wired to the current handleLeaveStream.
   useEffect(() => {
