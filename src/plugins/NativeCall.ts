@@ -221,6 +221,17 @@ export interface NativeCallPlugin {
     eventName: 'native-call-chat-send',
     cb: (e: { callId: string; clientId: string; text: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
+
+  /**
+   * Background continuity (2026-07-03) — start a camera+mic foreground
+   * service so LiveKit publish stays alive when the WebView is minimized.
+   * Called by LiveStream host + PartyRoom host/speaker on publish start.
+   */
+  startBroadcastForegroundService(opts: {
+    kind: 'live' | 'party';
+    title?: string;
+  }): Promise<{ ok: boolean; kind?: string; reason?: string }>;
+  stopBroadcastForegroundService(): Promise<{ ok: boolean }>;
 }
 
 
