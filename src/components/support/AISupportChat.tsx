@@ -540,21 +540,29 @@ const AISupportChat = ({
     setIsUploading(true);
 
     try {
-      // Upload voice file
-      const voiceFile = new File([audioBlob], "voice.webm", { type: "audio/webm" });
+      // Upload voice file — use negotiated mime/ext so file is playable.
+      const mime = recordedMimeRef.current || audioBlob.type || "audio/webm";
+      const ext = recordedExtRef.current || "webm";
+      const voiceFile = new File([audioBlob], `voice.${ext}`, { type: mime });
       const uploaded = await uploadFile(voiceFile, "voice");
       if (!uploaded) throw new Error("Upload failed");
 
-      // Transcribe using speech-to-text
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onloadend = () => {
-          const base64 = (reader.result as string).split(",")[1];
-          resolve(base64);
-        };
-        reader.readAsDataURL(audioBlob);
-      });
-      const base64Audio = await base64Promise;
+      // Transcribe (best-effort). Skip if audio is large (>2MB) to avoid
+      // base64 payload timeouts — voice still delivers with URL only.
+      let transcript = "";
+      if (audioBlob.size <= 2 * 1024 * 1024) {
+        try {
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve, reject) => {
+            reader.onloadend = () => {
+              const res = reader.result as string;
+              const idx = res.indexOf(",");
+              resolve(idx >= 0 ? res.slice(idx + 1) : res);
+            };
+            reader.onerror = () => reject(new Error("read failed"));
+            reader.readAsDataURL(audioBlob);
+          });
+          const base64Audio = await base64Promise;
 
       let transcript = "";
       try {
