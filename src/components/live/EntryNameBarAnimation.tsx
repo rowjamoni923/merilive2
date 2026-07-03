@@ -238,6 +238,24 @@ const EntryNameBarAnimationInner = memo(({
                 </div>
               )}
 
+              {/* VAP (MP4/WebM) background — VIP preview parity. Uses the
+                  dedicated EntryVAPPlayer for smooth alpha-mask playback. */}
+              {hasVap && cleanAnimUrl && (
+                <div className="absolute inset-0 z-[1] pointer-events-none">
+                  <EntryAnimationFrame
+                    src={cleanAnimUrl}
+                    size="fill"
+                    type="vap"
+                    loop={false}
+                    muted={false}
+                    volume={0}
+                    onComplete={handleSvgaComplete}
+                    onError={handleSvgaError}
+                    center={false}
+                  />
+                </div>
+              )}
+
               {/* GIF/Image background — identity is baked into the art;
                   no HTML overlay per user's engraved-only rule. */}
               {hasGifOrImage && cleanAnimUrl && gifLoaded && (
