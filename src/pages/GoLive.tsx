@@ -1421,7 +1421,7 @@ const GoLive = () => {
             className="w-full h-full"
           />
         ) : (
-          <div className="relative w-full h-full camera-locked">
+          <div className="relative h-full max-h-full max-w-full aspect-[9/16] mx-auto camera-locked">
             {/* Web <video> element — ALWAYS in DOM so getUserMedia stream can attach.
                 On native Android, hidden visually when native renderer is confirmed
                 active (nativePreviewActive). If the native renderer ever fails to

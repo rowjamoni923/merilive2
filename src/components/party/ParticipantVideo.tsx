@@ -172,12 +172,12 @@ export function ParticipantVideo({
             x5-video-player-type="h5"
             x5-video-player-fullscreen="false"
             webkit-playsinline="true"
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover z-[1]",
+              className={cn(
+                "absolute top-0 bottom-0 left-1/2 h-full max-h-full max-w-full aspect-[9/16] object-contain z-[1]",
               isSelf && "transform scale-x-[-1]"
             )}
 
-            style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
+            style={{ touchAction: 'none', pointerEvents: 'none', objectFit: 'contain', objectPosition: 'center center', width: 'auto', transform: isSelf ? 'translateX(-50%) scaleX(-1)' : 'translateX(-50%)', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
         ) : (
           <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {roomType === 'audio' ? (

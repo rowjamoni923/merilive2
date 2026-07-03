@@ -1,14 +1,10 @@
 /**
  * ============================================================================
- * PERMANENT CAMERA LOCK POLICY (DO NOT MODIFY)
+ * CAMERA FRAMING POLICY
  * ============================================================================
- * This module enforces TRUE hardware zoom-out for all camera streams.
- * Target behavior:
- * - Use the camera's reported minimum zoom ratio (widest field of view)
- * - Never digitally zoom above 1x
- * - Re-apply after first frames because Android WebView exposes PTZ late
- *
- * Policy ID: camera_lock_v1_20260304
+ * Web must not force zoom, resolution, aspect ratio, or post-capture PTZ.
+ * Camera streams stay exactly as the browser/device provides them; UI surfaces
+ * place that natural feed inside a vertical frame with object-fit: contain.
  * ============================================================================
  */
 
@@ -47,49 +43,10 @@ export async function enforcePermanentTrackLock(
   track: MediaStreamTrack | null | undefined,
   source = 'unknown'
 ): Promise<void> {
-  if (!track || track.kind !== 'video' || track.readyState === 'ended') return;
-
-  const anyTrack = track as MediaStreamTrack & {
-    getCapabilities?: () => { zoom?: ZoomCapability };
-    applyConstraints: (constraints: MediaTrackConstraints) => Promise<void>;
-  };
-
-  const apply = async () => {
-    const capabilities = anyTrack.getCapabilities?.() as { zoom?: ZoomCapability } | undefined;
-    if (!capabilities?.zoom) return;
-    const lockedZoom = resolveLockedZoom(capabilities?.zoom);
-    try {
-      await anyTrack.applyConstraints({
-        zoom: lockedZoom,
-        advanced: [{ zoom: lockedZoom } as unknown as MediaTrackConstraintSet],
-      } as unknown as MediaTrackConstraints);
-    } catch {
-      try {
-        await anyTrack.applyConstraints({
-          advanced: [{ zoom: lockedZoom } as unknown as MediaTrackConstraintSet],
-        });
-      } catch {
-        try {
-          await anyTrack.applyConstraints({ zoom: lockedZoom } as unknown as MediaTrackConstraints);
-        } catch (error) {
-          console.warn('[CameraLock] zoom lock apply failed:', source, error);
-        }
-      }
-    }
-  };
-
-  await apply();
-
-  // Re-apply after first frames: Chrome/Android WebView may expose camera
-  // zoom capabilities only after streaming starts, and OEM drivers can reset
-  // zoom once the preview surface becomes active.
-  [120, 500, 1200, 2200].forEach((delay) => {
-    setTimeout(() => {
-      if (track.readyState === 'live') {
-        void apply();
-      }
-    }, delay);
-  });
+  void track;
+  void source;
+  // Web camera policy: do not apply zoom/size constraints after capture.
+  // Keep the browser-provided camera framing exactly as-is.
 }
 
 export async function enforcePermanentCameraLock(

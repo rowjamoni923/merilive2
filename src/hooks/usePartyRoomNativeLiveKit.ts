@@ -516,12 +516,6 @@ export function usePartyRoomNativeLiveKit(
             nextRetryDelayInMs: () => null,
           },
           videoCaptureDefaults: {
-            // Natural 3:4 capture avoids center-crop zoom; renderer fills portrait UI.
-            resolution: {
-              width: LIVEKIT_PUBLISH_LOCK.captureWidth,
-              height: LIVEKIT_PUBLISH_LOCK.captureHeight,
-              frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
-            },
             facingMode: 'user',
           },
           // Phase III.f: profile-aware audio. 'music' = 96kbps stereo opus

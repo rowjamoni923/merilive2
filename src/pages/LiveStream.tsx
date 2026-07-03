@@ -4015,7 +4015,7 @@ const LiveStream = () => {
           </div>
         ) : isHost && (localVideoTrack || hostTransitionPreviewStream) ? (
           <div 
-            className="w-full h-full relative flex items-center justify-center"
+            className="w-full h-full relative flex items-center justify-center overflow-hidden"
             style={{ filter: combinedFilterCSS || undefined }}
           >
             {hostTransitionPreviewStream && (
@@ -4036,13 +4036,14 @@ const LiveStream = () => {
                 x5-playsinline="true"
                 webkit-playsinline="true"
                 x-webkit-airplay="deny"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none camera-locked bg-transparent"
+                className="relative h-full max-h-full max-w-full aspect-[9/16] object-contain pointer-events-none camera-locked bg-transparent"
                 style={{
                   transform: 'scaleX(-1)',
                   objectFit: 'contain',
                   objectPosition: 'center center',
                   filter: combinedFilterCSS || undefined,
                   WebkitAppearance: 'none',
+                  width: 'auto',
                   zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
                 }}/>
             )}

@@ -6,7 +6,7 @@ import {
   requestMicrophonePermission as requestNativeMicrophonePermission,
 } from '@/utils/nativePermissions';
 import { enforcePermanentCameraLock } from '@/utils/cameraLock';
-import { buildPortraitVideoConstraint, buildPortraitVideoFallbacks, isPortraitCameraTrack, stopMediaStream } from '@/utils/portraitCameraConstraints';
+import { buildPortraitVideoConstraint, buildPortraitVideoFallbacks, stopMediaStream } from '@/utils/portraitCameraConstraints';
 import { maybeUpgradeToWidestCamera } from '@/utils/widestCamera';
 
 interface CameraPermissionResult {
@@ -183,11 +183,6 @@ export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode
       const videoTracks = stream.getVideoTracks();
       const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
       if (!hasLiveVideo) {
-        stopMediaStream(stream);
-        continue;
-      }
-      if (!videoTracks.some(isPortraitCameraTrack)) {
-        console.warn('[Camera] Rejected non-portrait camera mode:', JSON.stringify(videoTracks[0]?.getSettings?.() || {}));
         stopMediaStream(stream);
         continue;
       }

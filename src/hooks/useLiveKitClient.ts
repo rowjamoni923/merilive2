@@ -706,13 +706,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             }
           })()
         : null;
-      const captureRes = layerCfg
-        ? { width: layerCfg.resolution.width, height: layerCfg.resolution.height, frameRate: layerCfg.resolution.frameRate }
-        : {
-            width: LIVEKIT_PUBLISH_LOCK.captureWidth,
-            height: LIVEKIT_PUBLISH_LOCK.captureHeight,
-            frameRate: LIVEKIT_PUBLISH_LOCK.captureFps,
-          };
       const videoEnc = layerCfg
         ? { maxBitrate: layerCfg.videoEncoding.maxBitrate, maxFramerate: layerCfg.videoEncoding.maxFramerate }
         : { maxBitrate: LIVEKIT_PUBLISH_LOCK.maxBitrate, maxFramerate: LIVEKIT_PUBLISH_LOCK.maxFps };
@@ -732,7 +725,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           nextRetryDelayInMs: () => null,
         },
         videoCaptureDefaults: {
-          resolution: captureRes,
           facingMode: 'user',
         },
         // Pkg163: Chamet/Bigo-parity professional voice — full LiveKit (Android native) voice processing

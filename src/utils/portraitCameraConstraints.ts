@@ -14,35 +14,17 @@ const withSource = (options: PortraitConstraintOptions) => {
 };
 
 export const buildPortraitVideoConstraint = (options: PortraitConstraintOptions = {}): MediaTrackConstraints => {
-  // Pro live-streaming rule (Bigo / Chamet / TikTok Live pattern):
-  // Ask for the sensor's NATIVE portrait aspect (3:4 = 1440x1920). Nearly every
-  // Android front-camera sensor is 4:3 physically; asking for 9:16 forces
-  // Chromium/WebView to center-crop ~25% of the horizontal FOV, which is
-  // exactly what makes the face look "zoomed in". Capturing at native 3:4 and
-  // then letting `object-fit: cover` fit it to the 9:16 UI keeps the widest
-  // physical field of view — the face sits back where it should.
-  //   - resizeMode:none  → refuse UA crop-and-scale
-  //   - zoom:0 hint      → widest zoom on APIs that support ImageCapture zoom
-  //   - Native minZoom   → applied by LiveKitPlugin.kt (Android) on attachLocal
-  const width = options.width ?? 1440;
-  const height = options.height ?? 1920;
+  // Web zoom-out rule: do NOT request any width/height/aspect ratio/zoom.
+  // The browser should keep the camera's natural sensor framing; the UI layer
+  // is responsible for placing that unmodified feed inside a vertical frame.
   return {
     ...withSource(options),
-    width: { ideal: width },
-    height: { ideal: height },
-    aspectRatio: { ideal: width / height },
-    frameRate: { ideal: options.frameRate ?? 30, min: 24 },
-    resizeMode: 'none',
-    zoom: { ideal: 0 },
-    advanced: [{ zoom: 0 } as unknown as MediaTrackConstraintSet],
+    ...(options.frameRate ? { frameRate: { ideal: options.frameRate } } : {}),
   } as unknown as MediaTrackConstraints;
 };
 
 export const buildPortraitVideoFallbacks = (options: PortraitConstraintOptions = {}): MediaTrackConstraints[] => [
-  // Native sensor aspect (3:4 portrait) — widest FOV, no WebRTC center-crop.
-  buildPortraitVideoConstraint({ ...options, width: 1440, height: 1920, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 1080, height: 1440, frameRate: 30 }),
-  buildPortraitVideoConstraint({ ...options, width: 720, height: 960, frameRate: 30 }),
+  buildPortraitVideoConstraint(options),
 ];
 
 export const isPortraitCameraTrack = (track: MediaStreamTrack | null | undefined): boolean => {
