@@ -233,9 +233,10 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Hard auth failure — DB poll won't help since the server never
-      // accepted the request.
-      throw new Error("Your session expired. Please sign in again to send gifts.");
+      // Hard auth failure — session is gone server-side. Return a structured
+      // response so callers surface a toast; throwing here would escape to
+      // React error boundaries and blank the screen.
+      return AUTH_EXPIRED;
     }
     if (response.status === 502 || response.status === 503 || response.status === 504) {
       console.warn('[GiftServiceClient] Edge temporarily unavailable; falling back to RPC:', response.status);
