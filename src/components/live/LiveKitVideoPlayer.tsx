@@ -64,13 +64,12 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  // Unified Camera Policy (2026-07-01):
-  // Default is CONTAIN — show the camera sensor's full field of view, exactly
-  // like the phone's own camera app, with no crop-in / no fake zoom. The
-  // player itself paints a blurred, scaled copy of the same track behind the
-  // main video so the surface stays full-bleed (no black bars, no design
-  // break) even on 3:4 sensors inside 9:16 containers.
-  fit = 'contain',
+  // Unified Camera Policy (2026-07-03, matches original GitHub reference):
+  // Default is COVER — same as Chamet/Bigo/reference project. Single <video>,
+  // no blurred backdrop, no scale transforms. This is the render path the
+  // user's reference repo uses everywhere (GoLive, LiveStream, Call all pass
+  // fit="cover"). Any wrapper doing extra scale was the source of zoom-in.
+  fit = 'cover',
   muted = true,
   onVideoStalled,
   onVideoReady,
