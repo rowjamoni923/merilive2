@@ -118,8 +118,8 @@ const EntryNameBarAnimationInner = memo(({
       if (proceeded || !mountedRef.current) return;
       proceeded = true;
       setPhase('animating');
-      // SVGA exits via its own onComplete; static / GIF need a manual exit timer.
-      if (!hasSvga) {
+      // SVGA + VAP exit via their own onComplete; static / GIF need a manual exit timer.
+      if (!hasSvga && !hasVap) {
         const totalDuration = hasGifOrImage ? 3000 : 2500;
         exitTimer = setTimeout(() => triggerExit(), totalDuration);
       }
