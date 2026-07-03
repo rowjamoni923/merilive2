@@ -418,9 +418,13 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   return (
     <div
-      className={cn('h-full overflow-hidden relative camera-locked flex items-center justify-center', className)}
-      style={{ position: 'relative', zIndex: 0, aspectRatio: '9 / 16', width: 'auto', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}
+      className={cn('w-full h-full overflow-hidden relative camera-locked flex items-center justify-center', className)}
+      style={{ position: 'relative', zIndex: 0 }}
     >
+      <div
+        className="relative h-full max-h-full max-w-full aspect-[9/16] overflow-hidden"
+        style={{ width: 'auto' }}
+      >
       {/* Reference-parity: single <video> only. No blurred backdrop layer.
           If a caller passes fit="contain" they accept letterboxing. */}
 
@@ -466,6 +470,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           zIndex: 2,
         }}
       />
+      </div>
     </div>
   );
 });
