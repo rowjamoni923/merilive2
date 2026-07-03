@@ -764,25 +764,29 @@ const AdminFaceVerification = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      {/* Stats Cards — split auto vs manual so admin sees exact accountability */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Pending', count: pendingCount, icon: Clock, accent: '#F59E0B' },
-          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4' },
-          { label: 'Approved', count: approvedCount, icon: CheckCircle2, accent: '#10B981' },
-          { label: 'Rejected', count: rejectedCount, icon: XCircle, accent: '#EF4444' },
-          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316' },
-          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, accent: '#8B5CF6' },
-        ].map(({ label, count, icon: Icon, accent }) => (
+          { label: 'Manual Pending', count: pendingCount, icon: Clock, accent: '#F59E0B', hint: 'Admin action needed' },
+          { label: 'User Retry', count: userRetryCount, icon: RefreshCw, accent: '#EAB308', hint: 'Waiting on user resubmit' },
+          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4', hint: 'AI passed' },
+          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316', hint: 'AI blocked' },
+          { label: 'Manual Approved', count: manualApprovedCount, icon: CheckCircle2, accent: '#10B981', hint: 'Admin approved' },
+          { label: 'Manual Rejected', count: manualRejectedCount, icon: XCircle, accent: '#EF4444', hint: 'Admin rejected' },
+          { label: 'Approved (total)', count: approvedCount, icon: CircleCheckBig, accent: '#059669', hint: 'Auto + Manual' },
+          { label: 'Rejected (total)', count: rejectedCount, icon: XCircle, accent: '#DC2626', hint: 'Auto + Manual' },
+        ].map(({ label, count, icon: Icon, accent, hint }) => (
           <div key={label} className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
               <Icon className="w-4 h-4" style={{ color: accent }} />
             </div>
             <p className="text-2xl font-bold text-[#0F172A]">{count}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{hint}</p>
           </div>
         ))}
       </div>
+
 
       {/* Status legend — light professional card */}
       <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
