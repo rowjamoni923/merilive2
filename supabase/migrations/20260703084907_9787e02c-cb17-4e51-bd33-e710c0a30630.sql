@@ -1,0 +1,1 @@
+UPDATE public.otp_orchestrator_settings SET mode = 'sequential' WHERE mode = 'race';
