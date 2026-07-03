@@ -148,6 +148,10 @@ const EntryNameBarAnimationInner = memo(({
           if (exitTimer) clearTimeout(exitTimer);
         };
       }
+    } else if (hasVap && cleanAnimUrl) {
+      // VAP branch — parity with EntryNameBarPreview: start immediately, the
+      // EntryVAPPlayer handles playback and fires onComplete when finished.
+      proceedToAnimating();
     } else if (hasGifOrImage) {
       // GIF/image branch waits on gifLoaded flag below.
       if (gifLoaded) proceedToAnimating();
