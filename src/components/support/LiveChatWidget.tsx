@@ -268,10 +268,12 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
           <a
             key={i}
             href={part}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={async (e) => {
               e.preventDefault();
-              const { openInApp } = await import("@/utils/inAppNavigation");
-              await openInApp(part);
+              const { openInExternalBrowser } = await import("@/utils/inAppNavigation");
+              await openInExternalBrowser(part);
             }}
             className="text-blue-400 underline font-medium break-all"
           >
