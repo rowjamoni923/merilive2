@@ -21034,6 +21034,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Json
       }
+      admin_reset_user_face_verification: {
+        Args: { _reason?: string; _user_id: string }
+        Returns: Json
+      }
       admin_resolve_permanent_ban_targets: {
         Args: { _lookback_days?: number; _target_user_id: string }
         Returns: {
