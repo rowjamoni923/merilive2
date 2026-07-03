@@ -192,7 +192,7 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
 
   let accessToken = await getAccessToken(false);
   if (!accessToken) accessToken = await getAccessToken(true);
-  if (!accessToken) throw new Error("No active session. Please sign in again.");
+  if (!accessToken) return AUTH_EXPIRED;
 
   let response: Response;
   try {
