@@ -640,8 +640,8 @@ const CreateParty = () => {
         )}
         {!isNativeAndroid && (
           <video
-            key={stream?.id || 'no-stream'}
-            ref={videoRef}
+            ref={attachVideoRef}
+
             autoPlay
             playsInline
             muted
