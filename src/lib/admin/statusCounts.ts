@@ -302,6 +302,7 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
     under_review: Number(s.under_review || 0),
     approved: Number(s.approved || 0),
     rejected: Number(s.rejected || 0),
+    user_retry: Number(s.user_retry || 0),
     auto_approved: Number(s.auto_approved || 0),
     auto_rejected: Number(s.auto_rejected || 0),
     auto_host: Number(s.auto_host || 0),
@@ -314,6 +315,7 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
     total: Number(s.total || 0),
   };
 }
+
 
 /** Invalidate all cached status-count entries (e.g. after a mutation). */
 export function invalidateStatusCountsCache(table?: string): void {
