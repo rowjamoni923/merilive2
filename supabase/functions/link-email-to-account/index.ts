@@ -63,16 +63,27 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // 2) Make sure no other account already owns this email
-    const { data: existing } = await admin
+    // 2) Make sure no other account already owns this email (check both profiles + auth.users)
+    const { data: existingProfile } = await admin
       .from("profiles")
       .select("id")
       .ilike("email", email)
       .neq("id", userId)
       .maybeSingle();
-    if (existing) {
-      return json({ success: false, error: "This email is already linked to another account" }, 409);
+    if (existingProfile) {
+      return json({ success: false, error: "This email is already linked to another account" });
     }
+
+    // Also check auth.users directly — profile row might be missing but auth row exists
+    try {
+      const { data: authList } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+      const conflict = authList?.users?.find(
+        (u: any) => (u.email || "").toLowerCase() === email && u.id !== userId,
+      );
+      if (conflict) {
+        return json({ success: false, error: "This email is already linked to another account" });
+      }
+    } catch (_) { /* non-fatal */ }
 
     // 3) Verify the OTP (same table/contract as verify-email-otp)
     const { data: otpRecord, error: otpErr } = await admin
@@ -90,18 +101,18 @@ Deno.serve(async (req) => {
       return json({ success: false, error: "Verification failed" }, 500);
     }
     if (!otpRecord) {
-      return json({ success: false, error: "OTP expired or not found. Please request a new one." }, 400);
+      return json({ success: false, error: "OTP expired or not found. Please request a new one." });
     }
     if (otpRecord.attempts >= 5) {
       await admin.from("email_otps").update({ is_used: true }).eq("id", otpRecord.id);
-      return json({ success: false, error: "Too many failed attempts. Please request a new OTP." }, 429);
+      return json({ success: false, error: "Too many failed attempts. Please request a new OTP." });
     }
     if (String(otpRecord.otp_code) !== otp) {
       await admin
         .from("email_otps")
         .update({ attempts: (otpRecord.attempts ?? 0) + 1 })
         .eq("id", otpRecord.id);
-      return json({ success: false, error: "Incorrect code. Please try again." }, 400);
+      return json({ success: false, error: "Incorrect code. Please try again." });
     }
 
     // 4) Mark OTP used
@@ -119,11 +130,12 @@ Deno.serve(async (req) => {
     if (updErr) {
       console.error("[link-email-to-account] admin.updateUserById error:", updErr);
       const msg = (updErr.message || "").toLowerCase();
-      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
-        return json({ success: false, error: "This email is already in use" }, 409);
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists") || msg.includes("duplicate")) {
+        return json({ success: false, error: "This email is already linked to another account" });
       }
-      return json({ success: false, error: updErr.message || "Failed to link email" }, 500);
+      return json({ success: false, error: updErr.message || "Failed to link email" });
     }
+
 
     // 6) Mirror email on profiles row (best-effort)
     await admin.from("profiles").update({ email }).eq("id", userId);
