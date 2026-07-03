@@ -537,6 +537,17 @@ const Index = () => {
 
     const cardImageUrl = getHostCardImageUrl(user);
 
+    // Professional presence resolution — one source of truth for the whole card.
+    const presence: "live" | "busy" | "online" | "offline" = user.isLive
+      ? "live"
+      : isActuallyBusy
+        ? "busy"
+        : user.is_online
+          ? "online"
+          : "offline";
+
+    const isOffline = presence === "offline";
+
     return (
       <div
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
@@ -560,7 +571,13 @@ const Index = () => {
                 : "object-cover"
             )}
             style={{
-              filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined,
+              // Offline hosts get a subtle desaturation + dim so viewers instantly
+              // read availability at a glance (Chamet/Bigo standard cue).
+              filter: user.isLive && user.liveThumbnailUrl
+                ? 'brightness(1.04) contrast(1.10) saturate(1.18)'
+                : isOffline
+                  ? 'grayscale(0.55) brightness(0.82) contrast(0.98)'
+                  : undefined,
               opacity: 0,
             }}
             loading="eager"
@@ -592,66 +609,79 @@ const Index = () => {
                 img.src = fallback;
                 img.style.opacity = "1";
               }
-
             }}
           />
 
+          {/* Readable bottom scrim — smooth photo→text handoff, no colored panel. */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%]"
+            style={{
+              background:
+                'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.42) 45%, rgba(0,0,0,0) 100%)',
+            }}
+          />
 
-          {/* Full-photo card: no bottom panel, border band, or screen overlay. */}
-
-          {/* Flat Status Badge — Chamet/Bigo industry standard.
-              LIVE (red) / BUSY (amber) / ONLINE (green) / OFFLINE (slate).
-              Every face-verified host shows a status — no card is ever unlabeled. */}
+          {/* Status Pill — Chamet/Bigo standard: frosted glass, colored dot, uppercase label.
+              LIVE (red pulse) / BUSY (amber) / ONLINE (green pulse) / OFFLINE (slate).
+              Every face-verified host shows exactly one status — never unlabeled. */}
           {(() => {
-            const status: "live" | "busy" | "online" | "offline" = user.isLive
-              ? "live"
-              : isActuallyBusy
-                ? "busy"
-                : user.is_online
-                  ? "online"
-                  : "offline";
-
             const cfg = {
-              live:    { label: "LIVE",    bg: "#ef4444", dot: "#ffffff", pulse: true  },
-              busy:    { label: "BUSY",    bg: "#f59e0b", dot: "#ffffff", pulse: false },
-              online:  { label: "ONLINE",  bg: "#22c55e", dot: "#ffffff", pulse: true  },
-              offline: { label: "OFFLINE", bg: "#64748b", dot: "#e2e8f0", pulse: false },
-            }[status];
+              live:    { label: "LIVE",    dot: "#ef4444", pulse: true  },
+              busy:    { label: "BUSY",    dot: "#f59e0b", pulse: false },
+              online:  { label: "ONLINE",  dot: "#22c55e", pulse: true  },
+              offline: { label: "OFFLINE", dot: "#94a3b8", pulse: false },
+            }[presence];
 
             return (
-              <div className="absolute top-2 left-2 z-10">
+              <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
                 <div
-                  className="flex items-center gap-1 px-2 py-[3px] rounded-full"
-                  style={{ background: cfg.bg }}
+                  className="flex items-center gap-1.5 rounded-full pl-1.5 pr-2 py-[3px] backdrop-blur-md"
+                  style={{
+                    background: 'rgba(15, 23, 42, 0.55)',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.10)',
+                  }}
                 >
-                  <span
-                    className={cn("w-[5px] h-[5px] rounded-full", cfg.pulse && "animate-pulse")}
-                    style={{ background: cfg.dot }}
-                  />
-                  <span className="text-[10px] font-semibold tracking-wide text-white leading-none">
+                  <span className="relative flex items-center justify-center w-[7px] h-[7px]">
+                    {cfg.pulse && (
+                      <span
+                        className="absolute inset-0 rounded-full animate-ping"
+                        style={{ background: cfg.dot, opacity: 0.55 }}
+                      />
+                    )}
+                    <span
+                      className="relative w-[7px] h-[7px] rounded-full"
+                      style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}` }}
+                    />
+                  </span>
+                  <span className="text-[10px] font-semibold tracking-[0.06em] text-white leading-none">
                     {cfg.label}
                   </span>
                 </div>
+
+                {/* Live viewer count docked next to the LIVE pill — no more top-right overlap. */}
+                {presence === "live" && (user.viewerCount ?? 0) > 0 && (
+                  <div
+                    className="flex items-center gap-1 rounded-full px-2 py-[3px] backdrop-blur-md"
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.55)',
+                      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.10)',
+                    }}
+                  >
+                    <Eye className="w-3 h-3 text-white" />
+                    <span className="text-[10px] text-white font-semibold leading-none">
+                      {user.viewerCount}
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })()}
 
-
-          {/* Live viewer count — flat pill */}
-          {user.isLive && (user.viewerCount ?? 0) > 0 && (
-            <div className="absolute top-2 right-2">
-              <div className="flex items-center gap-1 bg-black/55 rounded-full px-2 py-[3px]">
-                <Eye className="w-3 h-3 text-white" />
-                <span className="text-[10px] text-white font-semibold leading-none">{user.viewerCount}</span>
-              </div>
-            </div>
-          )}
-
-          {/* VIP/Verified Badge */}
+          {/* Verified Badge — always top-right, never overlaps status pill anymore. */}
           {(user.is_verified || user.is_face_verified) && (
-            <div className="absolute top-2.5 right-2">
+            <div className="absolute top-2 right-2 z-10">
               <div
-                className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center border border-primary-foreground/40"
+                className="w-[22px] h-[22px] bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center border border-primary-foreground/40"
                 style={{ boxShadow: '0 4px 10px -2px hsl(var(--info) / 0.45), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15)' }}
               >
                 <svg className="w-3 h-3 text-on-dark drop-shadow" fill="currentColor" viewBox="0 0 20 20">
@@ -661,17 +691,11 @@ const Index = () => {
             </div>
           )}
 
-
-            {/* Bottom Info — floats directly on the photo; no colored panel/border. */}
+          {/* Bottom Info — floats on the scrim; no colored panel/border. */}
           <div
             className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5"
-            style={{
-              background: 'transparent',
-              boxShadow: 'none',
-              borderTop: '0',
-            }}
+            style={{ background: 'transparent', boxShadow: 'none', borderTop: '0' }}
           >
-
             <div className="flex items-center gap-2">
               <div className="relative flex-shrink-0">
                 <div className="ring-1 ring-primary-foreground/30 rounded-full">
@@ -687,12 +711,12 @@ const Index = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <p className="text-on-dark font-bold text-[13px] truncate" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.75)' }}>
                   {user.display_name || user.username || "User"}
                 </p>
-                
+
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <LevelBadge level={displayLevel} size="xs" />
                   <CountryFlag
@@ -704,9 +728,9 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Call Button - Only for ONLINE female hosts */}
-            {(user.gender === 'female' || user.gender === 'Female') && user.is_online && !isActuallyBusy && (
-              <div 
+            {/* Call CTA — ONLINE female host only. BUSY shows muted "In Call" chip. OFFLINE shows nothing. */}
+            {(user.gender === 'female' || user.gender === 'Female') && presence === 'online' && (
+              <div
                 className="absolute bottom-2.5 right-2 z-10"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -718,6 +742,21 @@ const Index = () => {
                 />
               </div>
             )}
+            {(user.gender === 'female' || user.gender === 'Female') && presence === 'busy' && (
+              <div
+                className="absolute bottom-2.5 right-2 z-10 flex items-center gap-1 rounded-full px-2 py-[4px] backdrop-blur-md pointer-events-none"
+                style={{
+                  background: 'rgba(245, 158, 11, 0.92)',
+                  boxShadow: '0 4px 10px -2px rgba(245,158,11,0.45), inset 0 0 0 1px rgba(255,255,255,0.20)',
+                }}
+              >
+                <span className="w-[5px] h-[5px] rounded-full bg-white" />
+                <span className="text-[10px] font-semibold tracking-wide text-white leading-none">
+                  IN CALL
+                </span>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
