@@ -456,6 +456,14 @@ const GlobalKeyboardScrollBridge = lazy(lazyRetry(() => import("./hooks/useGloba
   return { default: Bridge };
 })));
 
+// Chamet/WhatsApp-parity: dismiss keyboard on every route change so the old
+// composer never bleeds into the new page's paint. Mounts INSIDE BrowserRouter
+// because it relies on useLocation().
+const HideKeyboardOnNavigateBridge = lazy(lazyRetry(() => import("./hooks/useHideKeyboardOnNavigate").then(m => {
+  const Bridge = () => { m.useHideKeyboardOnNavigate(); return null; };
+  return { default: Bridge };
+})));
+
 // Pkg209 — drains queued inline-reply / mark-as-read actions captured
 // from the DM notification shade and runs them through Supabase under
 // the user's own JWT (RLS-safe).
@@ -1305,6 +1313,7 @@ const App = () => {
               {session && !isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
               <Suspense fallback={null}><RouteGroupAttributeBridge /></Suspense>
+              <Suspense fallback={null}><HideKeyboardOnNavigateBridge /></Suspense>
 
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
