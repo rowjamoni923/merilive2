@@ -568,7 +568,18 @@ const GoLive = () => {
       streamRef.current = null;
     }
     // 3. Navigate immediately — no awaits between tap and route change.
-    navigate(-1);
+    //    Fall back to '/' when there's no back-stack entry (fresh tab / deep
+    //    link / cold start), otherwise the tap looks broken because
+    //    navigate(-1) silently no-ops.
+    try {
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/', { replace: true });
+      }
+    } catch {
+      navigate('/', { replace: true });
+    }
     // 4. Safety: if a start was still in-flight, re-issue stop after it settles.
     void (async () => {
       if (nativePreviewStartInFlightRef.current) {
