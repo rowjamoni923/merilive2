@@ -563,18 +563,20 @@ const AISupportChat = ({
             reader.readAsDataURL(audioBlob);
           });
           const base64Audio = await base64Promise;
-
-      let transcript = "";
-      try {
-        const { data: sttData } = await supabase.functions.invoke("speech-to-text", {
-          body: { audio: base64Audio, language: "auto" },
-        });
-        transcript = sttData?.text || "";
-      } catch (e) {
-        console.error("STT error:", e);
+          try {
+            const { data: sttData } = await supabase.functions.invoke("speech-to-text", {
+              body: { audio: base64Audio, language: "auto" },
+            });
+            transcript = sttData?.text || "";
+          } catch (e) {
+            console.error("STT error:", e);
+          }
+        } catch (e) {
+          console.error("STT prep error:", e);
+        }
       }
 
-      // Auto-translate voice transcript to Bengali for admin
+      // Auto-translate voice transcript to Bengali for admin (best-effort).
       let translatedTranscript = "";
       if (transcript) {
         try {
@@ -586,6 +588,7 @@ const AISupportChat = ({
           console.error("Translation error:", e);
         }
       }
+
 
       const userMessage: Message = {
         id: `user-${Date.now()}`,
