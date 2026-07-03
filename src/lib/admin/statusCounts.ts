@@ -141,6 +141,7 @@ export function isAutoFaceReview(status: string | null | undefined, adminNotes: 
   }
   if (bucket === "approved") {
     return notes.includes("[auto]")
+      || notes.includes("[auto v")
       || notes.includes("auto-approved")
       || notes.includes("auto approved")
       || notes.includes("service_auto_finalize_face_verification")
