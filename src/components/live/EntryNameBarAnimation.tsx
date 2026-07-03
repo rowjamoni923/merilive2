@@ -74,8 +74,9 @@ const EntryNameBarAnimationInner = memo(({
   const cleanAnimUrl = animationUrl && animationUrl.trim().length > 0 ? animationUrl : undefined;
   const animType = getNameBarAnimationType(cleanAnimUrl);
   const hasSvga = animType === 'svga';
+  const hasVap = animType === 'vap';
   const hasGifOrImage = animType === 'gif' || animType === 'image';
-  const hasAnimation = hasSvga || hasGifOrImage;
+  const hasAnimation = hasSvga || hasVap || hasGifOrImage;
 
   const triggerExit = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
