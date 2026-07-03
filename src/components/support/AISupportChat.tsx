@@ -1030,11 +1030,13 @@ const AISupportChat = ({
                               a: ({ href, children }) => (
                                 <a
                                   href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                   onClick={async (e) => {
                                     e.preventDefault();
                                     if (href) {
-                                      const { openInApp } = await import("@/utils/inAppNavigation");
-                                      await openInApp(href);
+                                      const { openInExternalBrowser } = await import("@/utils/inAppNavigation");
+                                      await openInExternalBrowser(href);
                                     }
                                   }}
                                   className="text-primary underline font-semibold cursor-pointer"
