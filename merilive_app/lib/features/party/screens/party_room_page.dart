@@ -22,6 +22,8 @@ import '../data/party_room_realtime.dart';
 import '../data/party_room_repository.dart';
 import '../data/party_seat_invitation_bridge.dart';
 import '../widgets/professional_audio_room.dart';
+import '../widgets/professional_game_overlay.dart';
+import '../data/party_games_bridge.dart' show activePartyGameNotifier, PartyGame;
 
 
 import '../widgets/empty_seat_host_actions_sheet.dart';
@@ -262,6 +264,19 @@ class _PartyRoomView extends StatelessWidget {
               const Positioned(top: 60, right: 0, child: PartyGiftComboTracker()),
               // G24 — Caption overlay (accessibility, off by default).
               PartyCaptionOverlay(roomId: room.id),
+              // G22 — Audio-mode game overlay strip (top).
+              if (room.roomType == PartyRoomType.audio)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ValueListenableBuilder<PartyGame?>(
+                    valueListenable: activePartyGameNotifier,
+                    builder: (_, game, __) => ProfessionalGameOverlay(
+                      game: game,
+                      isHost: context.read<PartyRoomCubit>().isHost,
+                      onEnd: () => activePartyGameNotifier.value = null,
+                    ),
+                  ),
+                ),
             ],
 
           ),
@@ -700,12 +715,14 @@ class _BottomBarState extends State<_BottomBar> {
     if (roomId == null) return;
     final picked = await PartyGameSelectionSheet.show(context);
     if (picked == null || !context.mounted) return;
+    activePartyGameNotifier.value = picked;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) => PartyGameOverlay(roomId: roomId, game: picked),
       ),
     );
+    activePartyGameNotifier.value = null;
   }
 
   Widget _circleBtn({
