@@ -64,13 +64,12 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  // Unified Camera Policy (2026-07-01):
-  // Default is CONTAIN — show the camera sensor's full field of view, exactly
-  // like the phone's own camera app, with no crop-in / no fake zoom. The
-  // player itself paints a blurred, scaled copy of the same track behind the
-  // main video so the surface stays full-bleed (no black bars, no design
-  // break) even on 3:4 sensors inside 9:16 containers.
-  fit = 'contain',
+  // Unified Camera Policy (2026-07-03, matches original GitHub reference):
+  // Default is COVER — same as Chamet/Bigo/reference project. Single <video>,
+  // no blurred backdrop, no scale transforms. This is the render path the
+  // user's reference repo uses everywhere (GoLive, LiveStream, Call all pass
+  // fit="cover"). Any wrapper doing extra scale was the source of zoom-in.
+  fit = 'cover',
   muted = true,
   onVideoStalled,
   onVideoReady,
@@ -425,39 +424,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       className={cn('w-full h-full overflow-hidden relative camera-locked', className)}
       style={{ position: 'relative', zIndex: 0 }}
     >
-      {/* Blurred backdrop layer — same MediaStream painted with cover+blur so
-          the container fills edge to edge even when the main video uses
-          contain. This is how Bigo / Chamet / TikTok Live avoid both crops
-          (zoomed face) AND black bars simultaneously. Only rendered when the
-          main fit is contain; for cover callers the backdrop is redundant. */}
-      {fit === 'contain' && (
-        <video
-          ref={backdropRef}
-          aria-hidden
-          autoPlay
-          playsInline
-          muted
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          poster=""
-          {...nativeInlineVideoProps}
-          className="absolute inset-0 w-full h-full pointer-events-none select-none"
-          style={{
-            objectFit: 'cover',
-            objectPosition: 'center center',
-            transform: mirror
-              ? 'scaleX(-1) scale(1.15) translateZ(0)'
-              : 'scale(1.15) translateZ(0)',
-            width: '100%',
-            height: '100%',
-            filter: 'blur(28px) brightness(0.7) saturate(1.05)',
-            WebkitFilter: 'blur(28px) brightness(0.7) saturate(1.05)',
-            backgroundColor: '#000',
-            zIndex: 0,
-          } as CSSProperties}
-        />
-      )}
+      {/* Reference-parity: single <video> only. No blurred backdrop layer.
+          If a caller passes fit="contain" they accept letterboxing. */}
+
       <video 
         ref={videoRef}
         data-livekit-media="true"
