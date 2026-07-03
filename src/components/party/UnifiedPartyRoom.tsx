@@ -494,7 +494,7 @@ const VideoGridSeat = ({
         <LiveKitVideoPlayer 
           videoTrack={videoTrack}
           mirror={isMyself}
-          fit="contain"
+          fit="cover"
           className="w-full h-full"
         />
       ) : (
