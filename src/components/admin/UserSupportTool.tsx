@@ -17,6 +17,8 @@ import {
   AlertTriangle, RefreshCw
 } from "lucide-react";
 import { CopyableUid } from "@/components/admin/CopyableUid";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 
 interface UserResult {
   id: string;
