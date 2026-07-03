@@ -123,7 +123,7 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
     private var currentCameraPos: CameraPosition = CameraPosition.FRONT
     private var mirror: Boolean = true
     private var scalingType: RendererCommon.ScalingType =
-        RendererCommon.ScalingType.SCALE_ASPECT_FILL
+        RendererCommon.ScalingType.SCALE_ASPECT_FIT
 
     private var previewHolder: FrameLayout? = null
     private var previewRenderer: TextureViewRenderer? = null
@@ -159,7 +159,7 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
                     ok(result)
                 }
                 "setScalingType" -> {
-                    val mode = call.argument<String>("mode") ?: "fill"
+                    val mode = call.argument<String>("mode") ?: "fit"
                     scalingType = when (mode) {
                         "fit" -> RendererCommon.ScalingType.SCALE_ASPECT_FIT
                         "balanced" -> RendererCommon.ScalingType.SCALE_ASPECT_BALANCED

@@ -90,7 +90,7 @@ class LiveKitBridge {
   Future<Map<String, dynamic>> setMirror(bool mirror) =>
       _invoke('setMirror', {'mirror': mirror});
 
-  /// 'fit' (letterbox) or 'fill' (crop). Default enforced native-side = fill.
+  /// 'fit' (letterbox/full frame) or 'fill' (crop). Default native-side = fit.
   Future<Map<String, dynamic>> setScalingType(String mode) =>
       _invoke('setScalingType', {'mode': mode});
 

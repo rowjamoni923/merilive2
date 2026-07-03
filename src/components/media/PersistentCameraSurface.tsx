@@ -93,11 +93,13 @@ export default function PersistentCameraSurface() {
       aria-hidden
       tabIndex={-1}
       data-persistent-camera-surface=""
-      className="pointer-events-none fixed inset-0 h-full w-full object-cover bg-transparent"
+      className="pointer-events-none fixed inset-0 h-full w-full object-contain bg-transparent"
       style={{
         zIndex: 0,
         // Selfie-mirror to match GoLive / CreateParty / ActiveCall preview.
         transform: 'scaleX(-1)',
+        objectFit: 'contain',
+        objectPosition: 'center center',
         backgroundColor: 'transparent',
       }}
     />

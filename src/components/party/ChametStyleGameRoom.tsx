@@ -152,7 +152,6 @@ const StableGameStreamVideo = ({
     <LiveKitVideoPlayer
       videoTrack={videoTrack}
       mirror={mirror}
-      fit="cover"
       className="w-full h-full"
     />
   );

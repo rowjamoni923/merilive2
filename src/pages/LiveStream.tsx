@@ -4036,9 +4036,11 @@ const LiveStream = () => {
                 x5-playsinline="true"
                 webkit-playsinline="true"
                 x-webkit-airplay="deny"
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked bg-transparent"
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none camera-locked bg-transparent"
                 style={{
                   transform: 'scaleX(-1)',
+                  objectFit: 'contain',
+                  objectPosition: 'center center',
                   filter: combinedFilterCSS || undefined,
                   WebkitAppearance: 'none',
                   zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
