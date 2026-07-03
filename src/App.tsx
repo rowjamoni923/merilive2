@@ -1496,8 +1496,8 @@ const App = () => {
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/dev/face-pose-tests" element={<ProtectedRoute session={session}><FacePoseRegression /></ProtectedRoute>} />
                 <Route path="/dev/avatar-ring-check" element={<ProtectedRoute session={session}><AvatarFrameRingCheck /></ProtectedRoute>} />
-                <Route path="/dev/video-frames" element={<ProtectedRoute session={session}><DebugVideoFrames /></ProtectedRoute>} />
-                <Route path="/debug/video-frames" element={<ProtectedRoute session={session}><DebugVideoFrames /></ProtectedRoute>} />
+                <Route path="/dev/video-frames" element={publicPage(<DebugVideoFrames />)} />
+                <Route path="/debug/video-frames" element={publicPage(<DebugVideoFrames />)} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
