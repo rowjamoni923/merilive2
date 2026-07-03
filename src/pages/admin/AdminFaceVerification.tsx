@@ -1546,12 +1546,24 @@ const AdminFaceVerification = () => {
                       </div>
                     </div>
 
-                    {/* Remove Verification */}
+                    {/* Remove Verification (legacy quick-clear on this account only) */}
                     <Button variant="outline" className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10" onClick={() => handleRemoveVerification(selectedSubmission.user_id)} disabled={processing}>
                       {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
                       Remove Verification
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center">Removing will allow the user to re-verify</p>
+                    <p className="text-xs text-muted-foreground text-center">Removing will allow the user to re-verify on the SAME account</p>
+
+                    {/* Full Reset — for "wrong-account" support cases: wipes
+                        submissions + face-index so the same face can be
+                        verified on a DIFFERENT account. */}
+                    <ResetFaceVerificationButton
+                      userId={selectedSubmission.user_id}
+                      userLabel={selectedSubmission.profile?.display_name || selectedSubmission.full_name || null}
+                      onDone={() => { setShowDetailModal(false); fetchSubmissions(); }}
+                      className="w-full border-red-500/60 text-red-600 hover:bg-red-50"
+                    />
+                    <p className="text-xs text-muted-foreground text-center">Full reset removes the face from the duplicate-index so a NEW account can verify with the same face</p>
+
                   </div>
                 )}
               </div>
