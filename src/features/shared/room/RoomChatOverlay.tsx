@@ -358,42 +358,52 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         </div>
       )}
 
-      {/* Level Badge */}
-      <div className={cn(
-        "rounded-md font-black shrink-0 shadow-md",
-        getLevelBadgeBg(level),
-        getLevelTextColor(level),
-        isGiftMessage ? "px-1.5 py-0.5 text-[8px] md:text-[10px]" : "px-2 py-0.5 text-[10px] md:text-xs"
-      )}>
-        <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{formatLevel(level)}</span>
-      </div>
+      {/* Level Badge — hidden for Chamet-mini join rows */}
+      {!isJoinMessage && (
+        <div className={cn(
+          "rounded-md font-black shrink-0 shadow-md",
+          getLevelBadgeBg(level),
+          getLevelTextColor(level),
+          isGiftMessage ? "px-1.5 py-0.5 text-[8px] md:text-[10px]" : "px-2 py-0.5 text-[10px] md:text-xs"
+        )}>
+          <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{formatLevel(level)}</span>
+        </div>
+      )}
 
       {/* Country Flag */}
-      {message.countryFlag && !isGiftMessage && (
+      {message.countryFlag && !isGiftMessage && !isJoinMessage && (
         <span className="text-sm md:text-base shrink-0 drop-shadow-md">{message.countryFlag}</span>
       )}
 
       {/* Username + Colon */}
       <span className={cn(
-        "font-bold shrink-0 tracking-tight",
-        isHost ? 'text-rose-100' : isGiftMessage ? 'text-pink-100' : isJoinMessage ? 'text-emerald-100' : 'text-cyan-100',
-        "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]",
+        "font-semibold shrink-0 tracking-tight",
+        isHost ? 'text-rose-100' : isGiftMessage ? 'text-pink-100' : isJoinMessage ? 'text-white/90' : 'text-cyan-100',
+        !isJoinMessage && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]",
         isHost && "text-shadow-glow-rose",
         isGameWinMessage && "text-shadow-glow-amber",
-        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
+        isJoinMessage
+          ? "text-[10px] font-medium truncate max-w-[120px]"
+          : isGiftMessage
+            ? "text-[10.5px] md:text-xs font-bold"
+            : "text-[12.5px] md:text-[14px] font-bold"
       )}>
-        {isGameWinMessage && gameWinData ? gameWinData.userName : `${message.user}:`}
+        {isGameWinMessage && gameWinData ? gameWinData.userName : `${message.user}${isJoinMessage ? '' : ':'}`}
       </span>
 
-      {/* Trader Badge */}
-      {message.isTrader && <TraderBadge level={message.traderLevel || 1} size="xs" />}
+      {/* Trader Badge — hidden for Chamet-mini join rows */}
+      {message.isTrader && !isJoinMessage && <TraderBadge level={message.traderLevel || 1} size="xs" />}
 
       {/* Message Text */}
       <span className={cn(
-        "break-words font-medium leading-snug",
-        "drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]",
-        isGameWinMessage ? 'text-yellow-50 font-bold' : isGiftMessage ? 'text-pink-50' : 'text-white/95',
-        isGiftMessage ? "text-[10.5px] md:text-xs" : "text-[12.5px] md:text-[14px]"
+        "break-words leading-snug",
+        !isJoinMessage && "font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]",
+        isGameWinMessage ? 'text-yellow-50 font-bold' : isGiftMessage ? 'text-pink-50' : isJoinMessage ? 'text-white/60' : 'text-white/95',
+        isJoinMessage
+          ? "text-[10px]"
+          : isGiftMessage
+            ? "text-[10.5px] md:text-xs"
+            : "text-[12.5px] md:text-[14px]"
       )}>
         {parseMentions(cleanMessage)}
       </span>
