@@ -16,13 +16,14 @@
  *      must mirror the same `ilike` filter the list uses.
  */
 
-export type StatusBucket = "pending" | "approved" | "rejected";
+export type StatusBucket = "pending" | "approved" | "rejected" | "user_retry";
 
 export type StatusCounts = {
   pending: number;
   under_review: number;
   approved: number;
   rejected: number;
+  user_retry?: number;
   auto_approved?: number;
   auto_rejected?: number;
   auto_host?: number;
@@ -40,7 +41,9 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
   under_review: 0,
   approved: 0,
   rejected: 0,
+  user_retry: 0,
 };
+
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
