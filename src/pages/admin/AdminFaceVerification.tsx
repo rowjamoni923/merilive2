@@ -707,14 +707,17 @@ const AdminFaceVerification = () => {
   const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
   const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isUserRetryRow = (s: Submission) => {
+    const st = String(s.status || '').trim().toLowerCase();
+    return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
+  };
   const filteredSubmissions = visiblePool.filter((sub) => {
-    if (activeTab === 'auto_approved') {
-      return isApproved(sub) && isAutoReviewed(sub);
-    }
-    if (activeTab === 'auto_rejected') {
-      return isRejected(sub) && isAutoReviewed(sub);
-    }
-    if (activeTab === 'pending') return isPendingBucket(sub);
+    if (activeTab === 'auto_approved') return isApproved(sub) && isAutoReviewed(sub);
+    if (activeTab === 'auto_rejected') return isRejected(sub) && isAutoReviewed(sub);
+    if (activeTab === 'manual_approved') return isApproved(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'manual_rejected') return isRejected(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'user_retry') return isUserRetryRow(sub);
+    if (activeTab === 'pending') return isPendingBucket(sub) && !isUserRetryRow(sub);
     if (activeTab === 'approved') return isApproved(sub);
     if (activeTab === 'rejected') return isRejected(sub);
     if (activeTab === 'all') return true;
@@ -725,11 +728,15 @@ const AdminFaceVerification = () => {
   const visibleCounts = mismatchOnly
     ? countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
     : serverStats;
-  const pendingCount = visibleCounts.pending;
-  const approvedCount = visibleCounts.approved;
-  const autoApprovedCount = visibleCounts.auto_approved;
-  const rejectedCount = visibleCounts.rejected;
-  const autoRejectedCount = visibleCounts.auto_rejected;
+  const pendingCount = Number(visibleCounts.manual_pending ?? visibleCounts.pending ?? 0);
+  const userRetryCount = Number(visibleCounts.user_retry ?? 0);
+  const approvedCount = Number(visibleCounts.approved ?? 0);
+  const autoApprovedCount = Number(visibleCounts.auto_approved ?? 0);
+  const manualApprovedCount = Number(visibleCounts.manual_approved ?? 0);
+  const rejectedCount = Number(visibleCounts.rejected ?? 0);
+  const autoRejectedCount = Number(visibleCounts.auto_rejected ?? 0);
+  const manualRejectedCount = Number(visibleCounts.manual_rejected ?? 0);
+
 
   if (loading) {
     return (
