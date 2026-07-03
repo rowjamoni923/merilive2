@@ -155,6 +155,9 @@ public class MainActivity extends BridgeActivity {
         // Pkg442 — Phase-2 PiP + headset routing
         registerPlugin(com.merilive.app.plugin.PictureInPicturePlugin.class);
         registerPlugin(com.merilive.app.plugin.HeadsetRoutingPlugin.class);
+        // Video sub-namespace — security shields for billing + streaming.
+        registerPlugin(com.merilive.app.plugin.video.NativeBillingSecurityPlugin.class);
+        registerPlugin(com.merilive.app.plugin.video.NativeSecurityShieldPlugin.class);
 
 
 
