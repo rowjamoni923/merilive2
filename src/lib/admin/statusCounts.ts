@@ -166,6 +166,7 @@ export function countFaceReviewBuckets<T>(
 ): Required<StatusCounts> {
   const out: Required<StatusCounts> = {
     ...EMPTY_STATUS_COUNTS,
+    user_retry: 0,
     auto_approved: 0,
     auto_rejected: 0,
     auto_host: 0,
@@ -181,7 +182,8 @@ export function countFaceReviewBuckets<T>(
   for (const row of rows) {
     const status = getStatus(row);
     const retryRequired = isFaceRetryRequiredRow(row, status, getAdminNotes(row));
-    const bucket = retryRequired ? "pending" : bucketOfStatus(status);
+    // Retry rows are user-side work — never count them as admin's manual pending.
+    const bucket: StatusBucket = retryRequired ? "user_retry" : bucketOfStatus(status);
     const explicitAuto = typeof row === "object" && row !== null
       ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
         || String((row as { review_source?: string | null }).review_source || "").toLowerCase() === "auto"
@@ -195,25 +197,30 @@ export function countFaceReviewBuckets<T>(
           ? "host"
           : "user"
       : "user";
-    out[bucket]++;
-    if (bucket === "pending") out.manual_pending++;
-    else if (bucket === "approved" && auto) {
-      out.auto_approved++;
-      out.auto_face_verification++;
-      if (role === "host") out.auto_host++;
-      else out.auto_user++;
+    if (bucket === "user_retry") {
+      out.user_retry++;
+    } else {
+      out[bucket]++;
+      if (bucket === "pending") out.manual_pending++;
+      else if (bucket === "approved" && auto) {
+        out.auto_approved++;
+        out.auto_face_verification++;
+        if (role === "host") out.auto_host++;
+        else out.auto_user++;
+      }
+      else if (bucket === "approved") out.manual_approved++;
+      else if (bucket === "rejected" && auto) {
+        out.auto_rejected++;
+        out.auto_face_verification++;
+      }
+      else if (bucket === "rejected") out.manual_rejected++;
     }
-    else if (bucket === "approved") out.manual_approved++;
-    else if (bucket === "rejected" && auto) {
-      out.auto_rejected++;
-      out.auto_face_verification++;
-    }
-    else if (bucket === "rejected") out.manual_rejected++;
   }
 
   out.manual_total = out.manual_pending + out.manual_approved + out.manual_rejected;
   return out;
 }
+
 
 /** Count status buckets for an in-memory list of rows. */
 export function countStatusBuckets<T>(
