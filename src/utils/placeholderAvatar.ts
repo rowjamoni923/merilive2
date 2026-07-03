@@ -63,12 +63,22 @@ import { normalizeProfileMediaUrl } from "./profileMediaUrl";
 export function getDisplayAvatar(
   profileId: string,
   avatarUrl?: string | null,
-  opts: DisplayAvatarOpts = {},
+  _opts: DisplayAvatarOpts = {},
 ): string {
   // Normalize first — fixes legacy private-bucket face-verification URLs so
   // admin panel and viewer surfaces render real uploaded photos correctly.
   const normalized = normalizeProfileMediaUrl(avatarUrl);
   if (normalized && normalized.trim().length > 0) return normalized;
-  if (opts.isOwner) return "";
-  return getPlaceholderAvatar(profileId || "anonymous", opts.gender);
+  // No generated / third-party placeholder photos. Every user has their own
+  // uploaded avatar + face-verification photos; when a URL is genuinely missing
+  // we return empty so the AvatarFallback (initials) renders instead of a
+  // fake stock portrait from randomuser.me.
+  return "";
 }
+
+// Kept as a no-op so any lingering imports don't crash. Never returns a
+// third-party portrait anymore.
+export function getPlaceholderAvatarSafe(_profileId: string, _gender?: PlaceholderGender): string {
+  return "";
+}
+
