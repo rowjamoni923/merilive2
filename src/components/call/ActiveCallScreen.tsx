@@ -1257,14 +1257,14 @@ export function ActiveCallScreen({
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
             ) : isPreviewWeb && previewStream ? (
-              <div className="absolute inset-0">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <video
                   ref={(el) => attachPreview(el, 'ringing')}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-contain bg-transparent"
-                  style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
+                  className="h-full max-h-full max-w-full aspect-[9/16] object-contain bg-transparent"
+                  style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
@@ -1422,8 +1422,8 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-contain bg-transparent z-[4]"
-              style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
+              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 h-full max-h-full max-w-full aspect-[9/16] object-contain bg-transparent z-[4]"
+              style={{ transform: 'translateX(-50%) scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
               PREVIEW MODE — your camera mirrored to both tiles
@@ -1442,8 +1442,8 @@ export function ActiveCallScreen({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-contain bg-black"
-                style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
+                className="h-full max-h-full max-w-full aspect-[9/16] object-contain bg-black mx-auto"
+                style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
                 You
