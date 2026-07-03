@@ -1,14 +1,10 @@
 /**
  * ============================================================================
- * PERMANENT CAMERA LOCK POLICY (DO NOT MODIFY)
+ * CAMERA FRAMING POLICY
  * ============================================================================
- * This module enforces TRUE hardware zoom-out for all camera streams.
- * Target behavior:
- * - Use the camera's reported minimum zoom ratio (widest field of view)
- * - Never digitally zoom above 1x
- * - Re-apply after first frames because Android WebView exposes PTZ late
- *
- * Policy ID: camera_lock_v1_20260304
+ * Web must not force zoom, resolution, aspect ratio, or post-capture PTZ.
+ * Camera streams stay exactly as the browser/device provides them; UI surfaces
+ * place that natural feed inside a vertical frame with object-fit: contain.
  * ============================================================================
  */
 
