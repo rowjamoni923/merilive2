@@ -38,36 +38,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Owner policy (2026-06-29): all face-verification thresholds are admin-tunable
-// via app_settings (single source of truth). These module-level defaults are
-// only used as a SAFE-FAIL when app_settings cannot be reached; the real values
-// are loaded once per request inside serve() and overwrite these `let`s.
-let SAME_PERSON_MIN_SIMILARITY = 55;
-let DUPLICATE_FACE_MIN_SIMILARITY = 85;
-let PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
+// Owner policy (2026-07-03): face-verification thresholds are NO LONGER
+// admin-tunable. Values are hardcoded here to industry-pro defaults
+// (Chamet/Bigo-class). `app_settings` overrides are intentionally ignored so
+// the admin panel cannot accidentally loosen fraud safety. Change these
+// constants in code + redeploy if the policy ever needs to shift.
+const SAME_PERSON_MIN_SIMILARITY = 55;
+const DUPLICATE_FACE_MIN_SIMILARITY = 85;
+const PROVIDER_DUPLICATE_SEARCH_THRESHOLD = 80;
 
-async function loadFaceThresholdsFromAdmin(supabaseAdmin: any): Promise<void> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("app_settings")
-      .select("setting_key,setting_value")
-      .in("setting_key", [
-        "face_verification_same_person_min_similarity",
-        "face_verification_super_strong_min",
-        "face_verification_strong_identity_min",
-      ]);
-    const map = new Map<string, string>();
-    (data as any[] | null)?.forEach((r) => map.set(r.setting_key, String(r.setting_value ?? "").trim()));
-    const same = Number(map.get("face_verification_same_person_min_similarity"));
-    const dup  = Number(map.get("face_verification_super_strong_min"));
-    const prov = Number(map.get("face_verification_strong_identity_min"));
-    if (Number.isFinite(same) && same >= 0 && same <= 100) SAME_PERSON_MIN_SIMILARITY = same;
-    if (Number.isFinite(dup)  && dup  >= 0 && dup  <= 100) DUPLICATE_FACE_MIN_SIMILARITY = dup;
-    if (Number.isFinite(prov) && prov >= 0 && prov <= 100) PROVIDER_DUPLICATE_SEARCH_THRESHOLD = prov;
-  } catch (e) {
-    console.warn("[face-verification-analyze] threshold load failed, using safe defaults:", e instanceof Error ? e.message : e);
-  }
+// Kept as a no-op so callers/tests don't break. Intentionally does nothing —
+// admin panel is not the source of truth for these values anymore.
+async function loadFaceThresholdsFromAdmin(_supabaseAdmin: any): Promise<void> {
+  return;
 }
+
 const LEGACY_DUPLICATE_SCAN_LIMIT = 1000;
 const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
 const APPROVED_PROFILE_FACE_STATUSES = new Set(["approved", "verified", "auto_approved", "auto-approved", "passed"]);
