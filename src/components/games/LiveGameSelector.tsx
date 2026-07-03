@@ -41,9 +41,10 @@ const Game3DCard = ({
   onClick: () => void;
   index: number;
 }) => {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const showFallback = !game.logo_url || imgError;
+  // User directive: never render the DB `logo_url` for games — those are
+  // generic third-party placeholder icons. Show only our own branded
+  // gradient card + emoji so the panel stays on-brand.
+  const showFallback = true;
 
   return (
     <motion.button
@@ -76,23 +77,7 @@ const Game3DCard = ({
         {/* Top glossy sheen */}
         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none z-10" />
 
-        {!showFallback && (
-          <div className="absolute inset-0 flex items-center justify-center p-1.5">
-            <img
-              loading="eager"
-              decoding="async"
-              src={getOptimizedImageUrl(getProxiedUrl(game.logo_url!), { width: 180, quality: 78 })}
-              alt={game.game_name}
-              onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
-              className={cn(
-                "w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] transition-opacity duration-200",
-                imgLoaded ? "opacity-100" : "opacity-0"
-              )}
-              draggable={false}
-            />
-          </div>
-        )}
+        {/* DB `logo_url` intentionally not rendered — see showFallback above. */}
       </div>
     </motion.button>
   );
