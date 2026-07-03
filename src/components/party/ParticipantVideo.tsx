@@ -164,42 +164,44 @@ export function ParticipantVideo({
 
         {/* Video or Avatar */}
         {showVideo ? (
-          {/* Chamet-style blurred backdrop to fill black bars */}
-          <video
-            ref={backdropRef}
-            aria-hidden="true"
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
-            style={{
-              filter: 'blur(20px) brightness(0.6)',
-              opacity: 0.5,
-              transform: isSelf ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
-            }}
-          />
-          <video 
-            ref={videoRef}
-            data-livekit-media="true"
-            data-no-auto-pause="true"
-            autoPlay
-            playsInline
-            muted={isSelf}
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-            poster=""
-            // @ts-ignore
-            x5-video-player-type="h5"
-            x5-video-player-fullscreen="false"
-            webkit-playsinline="true"
+          <>
+            {/* Chamet-style blurred backdrop to fill black bars */}
+            <video
+              ref={backdropRef}
+              aria-hidden="true"
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+              style={{
+                filter: 'blur(20px) brightness(0.6)',
+                opacity: 0.5,
+                transform: isSelf ? 'scaleX(-1) scale(1.1)' : 'scale(1.1)',
+              }}
+            />
+            <video
+              ref={videoRef}
+              data-livekit-media="true"
+              data-no-auto-pause="true"
+              autoPlay
+              playsInline
+              muted={isSelf}
+              controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+              poster=""
+              // @ts-ignore
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="false"
+              webkit-playsinline="true"
               className={cn(
                 "absolute top-0 bottom-0 left-1/2 h-full max-h-full max-w-full aspect-[9/16] object-contain z-[1]",
-              isSelf && "transform scale-x-[-1]"
-            )}
-
-            style={{ touchAction: 'none', pointerEvents: 'none', objectFit: 'contain', objectPosition: 'center center', width: 'auto', transform: isSelf ? 'translateX(-50%) scaleX(-1)' : 'translateX(-50%)', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
+                isSelf && "transform scale-x-[-1]"
+              )}
+              style={{ touchAction: 'none', pointerEvents: 'none', objectFit: 'contain', objectPosition: 'center center', width: 'auto', transform: isSelf ? 'translateX(-50%) scaleX(-1)' : 'translateX(-50%)', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
             {roomType === 'audio' ? (
