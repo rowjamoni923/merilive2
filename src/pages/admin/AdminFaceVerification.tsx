@@ -864,11 +864,15 @@ const AdminFaceVerification = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="w-full overflow-x-auto -mx-2 px-2">
-        <TabsList className="inline-flex w-max md:grid md:grid-cols-6 md:w-full md:max-w-2xl overflow-visible">
+        <TabsList className="inline-flex w-max md:grid md:grid-cols-7 md:w-full md:max-w-3xl overflow-visible">
 
-          <TabsTrigger value="pending" className="relative overflow-visible" data-testid="tab-pending">
+          <TabsTrigger value="pending" className="relative overflow-visible text-xs" data-testid="tab-pending">
             Pending
             <span data-testid="tab-count-pending" className={pendingCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F59E0B", color: "#fff" }}>{pendingCount}</span>
+          </TabsTrigger>
+          <TabsTrigger value="user_retry" className="relative overflow-visible text-xs" data-testid="tab-user_retry">
+            User Retry
+            <span data-testid="tab-count-user_retry" className={userRetryCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#EAB308", color: "#fff" }}>{userRetryCount}</span>
           </TabsTrigger>
           <TabsTrigger value="auto_approved" className="relative overflow-visible text-xs" data-testid="tab-auto_approved">
             Auto Approved
@@ -878,19 +882,20 @@ const AdminFaceVerification = () => {
             Auto Rejected
             <span data-testid="tab-count-auto_rejected" className={autoRejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F97316", color: "#fff" }}>{autoRejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="approved" className="relative overflow-visible" data-testid="tab-approved">
+          <TabsTrigger value="approved" className="relative overflow-visible text-xs" data-testid="tab-approved">
             Approved
             <span data-testid="tab-count-approved" className={approvedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#10B981", color: "#fff" }}>{approvedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="rejected" className="relative overflow-visible" data-testid="tab-rejected">
+          <TabsTrigger value="rejected" className="relative overflow-visible text-xs" data-testid="tab-rejected">
             Rejected
             <span data-testid="tab-count-rejected" className={rejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#EF4444", color: "#fff" }}>{rejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="all" className="relative overflow-visible" data-testid="tab-all">
+          <TabsTrigger value="all" className="relative overflow-visible text-xs" data-testid="tab-all">
             All
             <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#8B5CF6", color: "#fff" }}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
+
 
         </div>
 
