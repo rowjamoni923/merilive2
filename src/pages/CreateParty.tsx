@@ -1160,7 +1160,7 @@ const CreateParty = () => {
             try {
               const claimedStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
-                  video: buildPortraitVideoConstraint({ facingMode: newFacingMode, width: 720, height: 960, frameRate: 30 }),
+                  video: buildPortraitVideoConstraint({ facingMode: newFacingMode }),
                   audio: true
                 }),
                 'create-party:switch-camera-new-stream',

@@ -29,7 +29,7 @@ export interface HDResolution {
  * `ideal` = what we want, `min` = floor below which we'd rather fail.
  */
 export function buildHDCameraConstraints(target: HDResolution): MediaTrackConstraints {
-  return buildPortraitVideoConstraint({ width: target.width, height: target.height, frameRate: target.frameRate, facingMode: 'user' });
+  return buildPortraitVideoConstraint({ frameRate: target.frameRate, facingMode: 'user' });
 }
 
 /**
