@@ -249,6 +249,27 @@ a[href]:active,
   .max-h-screen { max-height: 100dvh; }
 }
 
+/* Phase 4 — Perf & Smoothness: opt-in utilities for long-scroll feeds.
+   Skip paint/layout for off-screen items — the same trick Bigo/Chamet use
+   on gift history, follower lists, chat archives, notification lists.
+   Apply `cv-auto` to each repeating row wrapper; pair with an approximate
+   `contain-intrinsic-size` so the scrollbar stays stable.
+   DO NOT use on inbox/live/party rooms (Realtime + Framer collide with
+   content-visibility — already asserted at line ~292). */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 96px;
+}
+.cv-auto-lg {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 160px;
+}
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
 /* Pkg434 Pass 2 — Keyboard-aware utilities.
    --kb-h is set live by useKeyboardInsets (native + visualViewport).
    Use on chat input bars, bottom sheets, FABs to lift above the keyboard.
