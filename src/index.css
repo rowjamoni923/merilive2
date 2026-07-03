@@ -219,7 +219,24 @@ a[href]:active,
 .pr-safe { padding-right: var(--safe-right); }
 .mt-safe { margin-top: var(--safe-top); }
 .mb-safe { margin-bottom: var(--safe-bottom); }
-.min-h-safe-screen { min-height: calc(100vh - var(--safe-top) - var(--safe-bottom)); }
+.min-h-safe-screen {
+  /* dvh = dynamic viewport height (accounts for URL-bar collapse + keyboard on
+     mobile WebViews). Fallback to vh on very old browsers. */
+  min-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+  min-height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
+}
+
+/* Chamet/Bigo-parity dynamic-viewport utilities — drop-in for `min-h-screen`
+   and `h-screen` on any full-height page/composer. Prevents the classic
+   "URL bar hides, page jumps 60px, keyboard reveals then layout jumps again"
+   flicker on Android WebView. */
+.h-dvh      { height: 100vh; height: 100dvh; }
+.min-h-dvh  { min-height: 100vh; min-height: 100dvh; }
+.max-h-dvh  { max-height: 100vh; max-height: 100dvh; }
+.h-svh      { height: 100vh; height: 100svh; }
+.min-h-svh  { min-height: 100vh; min-height: 100svh; }
+.h-lvh      { height: 100vh; height: 100lvh; }
+.min-h-lvh  { min-height: 100vh; min-height: 100lvh; }
 
 /* Pkg434 Pass 2 — Keyboard-aware utilities.
    --kb-h is set live by useKeyboardInsets (native + visualViewport).
