@@ -415,13 +415,14 @@ class _ModeLayout extends StatelessWidget {
         );
       case PartyRoomType.audio:
       case PartyRoomType.other:
-        return ChametSeatGrid(
+        return ProfessionalAudioRoom(
           seats: seats,
           currentUserId: currentUserId,
           onSeatTap: tap,
         );
     }
   }
+
 
 
   Future<void> _handleSeatTap(
