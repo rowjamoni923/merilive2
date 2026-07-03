@@ -677,9 +677,10 @@ const LiveStream = () => {
         } catch { /* ignore — non-Capacitor runtime */ }
       }).catch(() => { /* ignore */ });
     } catch { /* ignore */ }
-    // Pkg423: 30s viewer heartbeat. Server cron sweeps viewers with last_seen_at
-    // older than 90s and recomputes live_streams.viewer_count, so abandoned tabs
-    // (network drop, app kill, OS suspend) no longer inflate the counter.
+    // Pkg423 + Pkg427: 15s viewer heartbeat. Server cron sweeps viewers with
+    // last_seen_at older than 45s and recomputes live_streams.viewer_count, so
+    // abandoned tabs (network drop, app kill, OS suspend) no longer inflate the
+    // counter. RPC returns authoritative count → we trust it as source of truth.
     let hbTimer: ReturnType<typeof setInterval> | null = null;
     const sendHeartbeat = () => {
       try {
@@ -687,13 +688,14 @@ const LiveStream = () => {
           .rpc('viewer_heartbeat', { p_stream_id: id })
           .then(({ data }) => {
             if (typeof data === 'number' && mountedRef.current) {
+              // Trust the RPC — it is the authoritative live viewer count.
               setViewerCount(data);
             }
           });
       } catch { /* ignore */ }
     };
-    // First ping after 30s; join RPC already establishes presence at t=0.
-    hbTimer = setInterval(sendHeartbeat, 30000);
+    // First ping after 15s; join RPC already establishes presence at t=0.
+    hbTimer = setInterval(sendHeartbeat, 15000);
     return () => {
       window.removeEventListener('pagehide', sendViewerLeave);
       window.removeEventListener('beforeunload', sendViewerLeave);
