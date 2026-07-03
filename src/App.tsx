@@ -143,6 +143,7 @@ const MyRecordings = lazy(lazyRetry(() => import("./pages/MyRecordings")));
 const FaceVerification = lazy(lazyRetry(() => import("./pages/FaceVerification")));
 const FacePoseRegression = lazy(lazyRetry(() => import("./pages/FacePoseRegression")));
 const AvatarFrameRingCheck = lazy(lazyRetry(() => import("./pages/AvatarFrameRingCheck")));
+const DebugVideoFrames = lazy(lazyRetry(() => import("./pages/DebugVideoFrames")));
 const AgencyWithdrawal = lazy(lazyRetry(() => import("./pages/AgencyWithdrawal")));
 const AgencyTransferHistory = lazy(lazyRetry(() => import("./pages/AgencyTransferHistory")));
 const AgencyCommissionHistory = lazy(lazyRetry(() => import("./pages/AgencyCommissionHistory")));
@@ -1495,6 +1496,8 @@ const App = () => {
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/dev/face-pose-tests" element={<ProtectedRoute session={session}><FacePoseRegression /></ProtectedRoute>} />
                 <Route path="/dev/avatar-ring-check" element={<ProtectedRoute session={session}><AvatarFrameRingCheck /></ProtectedRoute>} />
+                <Route path="/dev/video-frames" element={<ProtectedRoute session={session}><DebugVideoFrames /></ProtectedRoute>} />
+                <Route path="/debug/video-frames" element={<ProtectedRoute session={session}><DebugVideoFrames /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={publicPage(<PayrollHelperGuide />)} />
