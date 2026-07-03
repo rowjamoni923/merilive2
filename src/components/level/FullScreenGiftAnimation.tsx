@@ -437,17 +437,11 @@ const FullScreenGiftAnimation = ({
             bottom: 0,
           }}
         >
-          {/* Background overlay with gradient */}
-          <motion.div 
-            className={cn(
-              "absolute inset-0 bg-gradient-to-br",
-              getBackgroundGradient()
-            )}
-            style={{ width: '100vw', height: '100vh' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
+          {/* Chamet/Bigo-parity: NO colored tint overlay. The animation plays
+              transparently over the room/chat — only the SVGA/VAP/Lottie
+              artwork and particles are visible. Previously a per-tier
+              amber/pink/purple gradient washed the entire screen in color,
+              which is not how professional live-streaming apps render gifts. */}
 
           {/* Animated particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
