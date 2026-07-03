@@ -22022,6 +22022,8 @@ export type Database = {
         Args: { _decision: string; _notes?: string; _request_id: string }
         Returns: Json
       }
+      country_flag_from_code: { Args: { _code: string }; Returns: string }
+      country_name_from_code: { Args: { _code: string }; Returns: string }
       create_agency_for_user: {
         Args: {
           _agency_code: string
@@ -23164,6 +23166,10 @@ export type Database = {
         Returns: undefined
       }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
+      infer_country_from_city_region: {
+        Args: { _city: string; _region: string }
+        Returns: string
+      }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
       is_active_owner_session: { Args: never; Returns: boolean }
