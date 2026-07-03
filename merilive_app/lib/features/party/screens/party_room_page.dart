@@ -264,6 +264,19 @@ class _PartyRoomView extends StatelessWidget {
               const Positioned(top: 60, right: 0, child: PartyGiftComboTracker()),
               // G24 — Caption overlay (accessibility, off by default).
               PartyCaptionOverlay(roomId: room.id),
+              // G22 — Audio-mode game overlay strip (top).
+              if (room.roomType == PartyRoomType.audio)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ValueListenableBuilder<PartyGame?>(
+                    valueListenable: activePartyGameNotifier,
+                    builder: (_, game, __) => ProfessionalGameOverlay(
+                      game: game,
+                      isHost: context.read<PartyRoomCubit>().isHost,
+                      onEnd: () => activePartyGameNotifier.value = null,
+                    ),
+                  ),
+                ),
             ],
 
           ),
