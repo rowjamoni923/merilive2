@@ -272,16 +272,31 @@ class _Background extends StatelessWidget {
   final String? url;
   @override
   Widget build(BuildContext context) {
+    // G26 — support `gradient://<linear-gradient(...)>` sentinel produced
+    // by PartyBackgroundPickerSheet for admin-configured gradient rows.
+    final raw = url ?? '';
+    LinearGradient? adminGradient;
+    String? imageUrl;
+    if (raw.startsWith('gradient://')) {
+      adminGradient = parsePartyGradientCss(raw.substring('gradient://'.length));
+    } else if (raw.isNotEmpty) {
+      imageUrl = raw;
+    }
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF4C1D95), Color(0xFF1E1B4B), Color(0xFF0F172A)],
-        ),
-        image: (url != null && url!.isNotEmpty)
+        gradient: adminGradient ??
+            const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF4C1D95),
+                Color(0xFF1E1B4B),
+                Color(0xFF0F172A),
+              ],
+            ),
+        image: (imageUrl != null)
             ? DecorationImage(
-                image: NetworkImage(url!),
+                image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.black.withValues(alpha: 0.55),
@@ -293,6 +308,7 @@ class _Background extends StatelessWidget {
     );
   }
 }
+
 
 class _RoomHeader extends StatelessWidget {
   const _RoomHeader({required this.room, required this.host, required this.live});
