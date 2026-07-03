@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 import { CopyableUid } from "@/components/admin/CopyableUid";
 import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 
 /**
  * Premium Approve/Reject action bar.
