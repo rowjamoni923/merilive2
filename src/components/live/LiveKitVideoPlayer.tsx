@@ -425,8 +425,23 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         className="relative h-full max-h-full max-w-full aspect-[9/16] overflow-hidden"
         style={{ width: 'auto' }}
       >
-      {/* Reference-parity: single <video> only. No blurred backdrop layer.
-          If a caller passes fit="contain" they accept letterboxing. */}
+      {/* Chamet/Bigo-style: Blurred backdrop to fill black bars when using fit="contain" */}
+      {fit === 'contain' && (
+        <video
+          ref={backdropRef}
+          aria-hidden="true"
+          autoPlay
+          playsInline
+          muted
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style={{
+            transform: mirror ? 'scaleX(-1) scale(1.1) translateZ(0)' : 'scale(1.1) translateZ(0)',
+            willChange: 'transform',
+            filter: 'blur(20px) brightness(0.7)',
+            opacity: 0.6,
+          }}
+        />
+      )}
 
       <video 
         ref={videoRef}
