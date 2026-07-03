@@ -155,3 +155,75 @@ export async function openExternalApp(url: string): Promise<void> {
     window.open(url, '_blank');
   }
 }
+
+/**
+ * Open URL in the user's real system browser (Chrome / default browser) — NOT
+ * the in-app WebView or Capacitor Browser overlay. Used for support-ticket
+ * links: agents send help-article / docs / troubleshooting URLs and users
+ * must be able to open them cleanly in Chrome, share them, keep tabs, etc.
+ *
+ * - Internal app URLs still SPA-navigate inside the app.
+ * - External URLs on Android use @capacitor/app openUrl → Intent.ACTION_VIEW
+ *   which fires Android's browser chooser (Chrome / Firefox / etc.).
+ * - Web falls back to window.open(url, '_blank', 'noopener,noreferrer').
+ */
+export async function openInExternalBrowser(url: string): Promise<void> {
+  if (!url) return;
+
+  // Internal routes stay inside the app.
+  if (isInternalUrl(url)) {
+    if (url.startsWith('/')) {
+      navigateInAppPath(url);
+    } else {
+      try {
+        const parsed = new URL(url);
+        navigateInAppPath(parsed.pathname + parsed.search + parsed.hash);
+      } catch {
+        navigateInAppPath(url);
+      }
+    }
+    return;
+  }
+
+  // Play Store → Play Store app
+  if (isPlayStoreUrl(url)) {
+    if (Capacitor.isNativePlatform()) openPlayStoreNative();
+    else window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  if (Capacitor.isNativePlatform()) {
+    // Prefer @capacitor/app openUrl → Android Intent.ACTION_VIEW.
+    try {
+      const { App } = await import('@capacitor/app');
+      // @ts-ignore — openUrl exists on Android at runtime
+      if (typeof (App as any).openUrl === 'function') {
+        await (App as any).openUrl({ url });
+        return;
+      }
+    } catch { /* fall through */ }
+    // Fallback 1: window.open with _system (some Android WebViews honor it).
+    try {
+      const w = window.open(url, '_system');
+      if (w) return;
+    } catch { /* ignore */ }
+    // Fallback 2: Capacitor Browser (in-app overlay) — last resort so the
+    // user at least reaches the link if native intent failed.
+    try {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url, presentationStyle: 'popover' });
+      return;
+    } catch { /* ignore */ }
+    // Absolute last resort
+    window.location.href = url;
+    return;
+  }
+
+  // Web browser → new tab
+  try {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch {
+    window.location.href = url;
+  }
+}
+
