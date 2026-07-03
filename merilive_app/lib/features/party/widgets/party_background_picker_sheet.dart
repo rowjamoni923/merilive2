@@ -122,19 +122,32 @@ class _PartyBackgroundPickerSheetState
                           itemCount: _items.length,
                           itemBuilder: (_, i) {
                             final b = _items[i];
+                            // Return raw image url if present; otherwise return
+                            // a `gradient://<css>` sentinel that the room
+                            // background widget parses (G26 support).
+                            final pickValue = b.imageUrl.isNotEmpty
+                                ? b.imageUrl
+                                : 'gradient://${b.gradientCss}';
+                            final thumbUrl =
+                                b.thumb.isNotEmpty ? b.thumb : b.imageUrl;
                             return InkWell(
                               onTap: () =>
-                                  Navigator.of(context).pop(b.imageUrl),
+                                  Navigator.of(context).pop(pickValue),
                               borderRadius: BorderRadius.circular(10),
                               child: Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   color: Colors.white10,
-                                  image: DecorationImage(
-                                    image: NetworkImage(
-                                        b.thumb.isNotEmpty ? b.thumb : b.imageUrl),
-                                    fit: BoxFit.cover,
-                                  ),
+                                  gradient: (thumbUrl.isEmpty &&
+                                          b.gradientCss.isNotEmpty)
+                                      ? _parseGradient(b.gradientCss)
+                                      : null,
+                                  image: thumbUrl.isNotEmpty
+                                      ? DecorationImage(
+                                          image: NetworkImage(thumbUrl),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
                                 ),
                                 child: Align(
                                   alignment: Alignment.bottomLeft,
@@ -167,12 +180,56 @@ class _PartyBackgroundPickerSheetState
   }
 }
 
+/// Very small `linear-gradient(...)` CSS parser — supports the subset
+/// admins actually store (`linear-gradient(angle, #hex, #hex[, #hex...])`).
+LinearGradient? parsePartyGradientCss(String css) => _parseGradient(css);
+
+LinearGradient? _parseGradient(String css) {
+  try {
+    final trimmed = css.trim();
+    final open = trimmed.indexOf('(');
+    final close = trimmed.lastIndexOf(')');
+    if (open < 0 || close <= open) return null;
+    final inner = trimmed.substring(open + 1, close);
+    final parts = inner.split(',').map((s) => s.trim()).toList();
+    if (parts.isEmpty) return null;
+    double angleDeg = 180;
+    int colorStart = 0;
+    if (parts.first.endsWith('deg')) {
+      angleDeg = double.tryParse(
+              parts.first.replaceAll('deg', '').trim()) ??
+          180;
+      colorStart = 1;
+    }
+    final colorStrs = parts.sublist(colorStart);
+    final colors = <Color>[];
+    for (final c in colorStrs) {
+      final hex = RegExp(r'#([0-9a-fA-F]{6,8})').firstMatch(c)?.group(1);
+      if (hex == null) continue;
+      final v =
+          int.parse(hex.length == 6 ? 'FF$hex' : hex, radix: 16);
+      colors.add(Color(v));
+    }
+    if (colors.length < 2) return null;
+    final rad = angleDeg * 3.14159 / 180.0;
+    final dx = 0.5 * (1 - (rad).abs() % 2);
+    return LinearGradient(
+      begin: Alignment(-dx, -1),
+      end: Alignment(dx, 1),
+      colors: colors,
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
 class _Bg {
   _Bg({
     required this.id,
     required this.name,
     required this.imageUrl,
     required this.thumb,
+    required this.gradientCss,
     required this.isFree,
     required this.price,
   });
@@ -180,6 +237,8 @@ class _Bg {
   final String name;
   final String imageUrl;
   final String thumb;
+  final String gradientCss;
   final bool isFree;
   final int price;
 }
+
