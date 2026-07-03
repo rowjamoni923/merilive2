@@ -260,3 +260,27 @@ export async function hasNativeInCallActivity(): Promise<boolean> {
   return _hasInCallCache;
 }
 
+/**
+ * Background continuity helper — safe on web/iOS/older APKs (returns false).
+ * Starts CallForegroundService with mode=live so Android's OS keeps our
+ * LiveKit publish alive when the user hits Home. Idempotent.
+ */
+export async function startBroadcastFgs(
+  kind: 'live' | 'party',
+  title?: string,
+): Promise<boolean> {
+  if (!isNativeCallAvailable()) return false;
+  try {
+    const r = await NativeCall.startBroadcastForegroundService({ kind, title });
+    return !!r?.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function stopBroadcastFgs(): Promise<void> {
+  if (!isNativeCallAvailable()) return;
+  try { await NativeCall.stopBroadcastForegroundService(); } catch { /* ignore */ }
+}
+
+
