@@ -290,9 +290,15 @@ const AISupportChat = ({
   // Upload file to support-attachments bucket
   const uploadFile = async (file: File, type: "image" | "voice"): Promise<{ path: string; previewUrl: string } | null> => {
     if (!userId) return null;
-    const ext = type === "voice" ? "webm" : file.name.split('.').pop() || "jpg";
+    const fallbackVoiceExt = recordedExtRef.current || "webm";
+    const ext = type === "voice"
+      ? fallbackVoiceExt
+      : (file.name.split('.').pop() || "jpg");
     const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).upload(path, file);
+    const contentType = file.type || (type === "voice" ? (recordedMimeRef.current || "audio/webm") : undefined);
+    const { error } = await supabase.storage
+      .from(SUPPORT_ATTACHMENT_BUCKET)
+      .upload(path, file, contentType ? { contentType, upsert: false } : { upsert: false });
     if (error) {
       console.error("Upload error:", error);
       return null;
@@ -300,6 +306,7 @@ const AISupportChat = ({
     const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
     return { path, previewUrl: signed?.signedUrl || path };
   };
+
 
   const insertUserSupportMessage = async (params: {
     ticketId: string;
