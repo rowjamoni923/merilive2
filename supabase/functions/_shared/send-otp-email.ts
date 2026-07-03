@@ -236,7 +236,13 @@ async function loadAdminConfig(supabase: any): Promise<{
   providers: Record<string, ProviderConfigRow>;
   settings: OrchestratorSettings;
 }> {
-  const defaults: OrchestratorSettings = { mode: "race", per_provider_timeout_ms: 4000 };
+  // SEQUENTIAL by default — try providers in priority order and stop at the
+  // first success. RACE mode fires every provider in parallel; the "loser"
+  // AbortController fires AFTER the winner responds, but by then Resend/Brevo/
+  // Gmail have already accepted the send and the user gets 2-3 OTP emails in
+  // their inbox. Only ever deliver ONE code — whichever provider succeeds
+  // first is the one that runs. Admin can still opt into race mode explicitly.
+  const defaults: OrchestratorSettings = { mode: "sequential", per_provider_timeout_ms: 4000 };
   try {
     const [cfgRes, setRes] = await Promise.all([
       supabase.from("otp_provider_config").select("*"),
