@@ -373,38 +373,152 @@ const AISupportChat = ({
     }
   };
 
-  // Voice recording
-  const startRecording = async () => {
+  // Voice recording — cross-browser (Chrome/Android WebView/Safari-iOS) mimeType
+  // negotiation + explicit error surfacing (Chamet/WhatsApp-parity).
+  const recordedMimeRef = useRef<string>("audio/webm");
+  const recordedExtRef = useRef<string>("webm");
+
+  const pickSupportedMime = (): { mime: string; ext: string } => {
+    const candidates: Array<{ mime: string; ext: string }> = [
+      { mime: "audio/webm;codecs=opus", ext: "webm" },
+      { mime: "audio/webm",              ext: "webm" },
+      { mime: "audio/mp4;codecs=mp4a.40.2", ext: "m4a" },
+      { mime: "audio/mp4",               ext: "m4a" },
+      { mime: "audio/ogg;codecs=opus",   ext: "ogg" },
+      { mime: "audio/aac",               ext: "aac" },
+    ];
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      for (const c of candidates) {
+        if (typeof MediaRecorder !== "undefined" &&
+            typeof MediaRecorder.isTypeSupported === "function" &&
+            MediaRecorder.isTypeSupported(c.mime)) {
+          return c;
+        }
+      }
+    } catch { /* ignore */ }
+    return { mime: "", ext: "webm" }; // let browser pick default
+  };
+
+  const startRecording = async () => {
+    // Preflight: MediaRecorder support + secure context.
+    if (typeof window === "undefined" ||
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        typeof MediaRecorder === "undefined") {
+      toast({
+        title: "Voice not supported",
+        description: "Your browser doesn't support voice recording. Please update or use a different browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (typeof window.isSecureContext !== "undefined" && !window.isSecureContext) {
+      toast({
+        title: "Insecure connection",
+        description: "Voice recording requires HTTPS. Open the app from https://…",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let stream: MediaStream | null = null;
+    try {
+      // getUserMedia MUST run inside the click handler — no awaits before it.
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      const { mime, ext } = pickSupportedMime();
+      recordedMimeRef.current = mime || "audio/webm";
+      recordedExtRef.current = ext;
+
+      const mediaRecorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onerror = (ev: any) => {
+        console.error("MediaRecorder error:", ev?.error || ev);
+        try { stream?.getTracks().forEach(t => t.stop()); } catch { /* ignore */ }
+        setIsRecording(false);
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
+        toast({
+          title: "Recording error",
+          description: ev?.error?.message || "Recording stopped unexpectedly.",
+          variant: "destructive",
+        });
       };
 
       mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        try { stream?.getTracks().forEach(t => t.stop()); } catch { /* ignore */ }
+        const blobType = recordedMimeRef.current || "audio/webm";
+        const audioBlob = new Blob(audioChunksRef.current, { type: blobType });
+        audioChunksRef.current = [];
+        if (audioBlob.size < 500) {
+          toast({
+            title: "Too short",
+            description: "Please hold and record for at least a second.",
+            variant: "destructive",
+          });
+          return;
+        }
         await handleVoiceMessage(audioBlob);
       };
 
-      mediaRecorder.start();
+      // Timeslice so chunks flush progressively (survives quick stop).
+      mediaRecorder.start(250);
       setIsRecording(true);
       setRecordingTime(0);
       recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime(prev => {
+          const next = prev + 1;
+          // Hard cap at 120s so uploads/transcription stay reliable.
+          if (next >= 120) {
+            try { mediaRecorder.stop(); } catch { /* ignore */ }
+          }
+          return next;
+        });
       }, 1000);
-    } catch (error) {
-      toast({ title: "Microphone Error", description: "Please allow microphone access", variant: "destructive" });
+    } catch (error: any) {
+      try { stream?.getTracks().forEach(t => t.stop()); } catch { /* ignore */ }
+      const name = error?.name || "";
+      let title = "Microphone Error";
+      let description = "Could not start voice recording.";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        title = "Microphone blocked";
+        description = "Enable microphone access in your browser/app settings and try again.";
+      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+        title = "No microphone found";
+        description = "Connect a microphone and try again.";
+      } else if (name === "NotReadableError" || name === "AbortError") {
+        title = "Mic in use";
+        description = "Another app is using the microphone. Close it and try again.";
+      } else if (name === "NotSupportedError") {
+        title = "Format not supported";
+        description = "This browser can't record audio in a supported format.";
+      } else if (error?.message) {
+        description = error.message;
+      }
+      console.error("startRecording failed:", error);
+      toast({ title, description, variant: "destructive" });
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
       setIsRecording(false);
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
@@ -412,6 +526,7 @@ const AISupportChat = ({
       }
     }
   };
+
 
   const handleVoiceMessage = async (audioBlob: Blob) => {
     if (!userId) return;
