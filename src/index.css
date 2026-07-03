@@ -238,6 +238,17 @@ a[href]:active,
 .h-lvh      { height: 100vh; height: 100lvh; }
 .min-h-lvh  { min-height: 100vh; min-height: 100lvh; }
 
+/* Phase 3 — Layout Stability: global drop-in override that upgrades every
+   existing Tailwind `min-h-screen`, `h-screen`, `max-h-screen` in the app
+   (96 pages, 400+ components) to dynamic viewport height on browsers that
+   support it. Prevents the "URL bar collapse jump" and keyboard-open
+   layout thrash without touching any component file. Fallback = 100vh. */
+@supports (height: 100dvh) {
+  .min-h-screen { min-height: 100dvh; }
+  .h-screen     { height: 100dvh; }
+  .max-h-screen { max-height: 100dvh; }
+}
+
 /* Pkg434 Pass 2 — Keyboard-aware utilities.
    --kb-h is set live by useKeyboardInsets (native + visualViewport).
    Use on chat input bars, bottom sheets, FABs to lift above the keyboard.
