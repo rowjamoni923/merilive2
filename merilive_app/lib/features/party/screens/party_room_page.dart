@@ -42,6 +42,8 @@ import '../widgets/party_caption_overlay.dart';
 import '../widgets/seat_invite_picker_sheet.dart';
 import '../widgets/seat_invite_response_sheet.dart';
 import '../widgets/video_party_layout.dart';
+import '../widgets/party_background_picker_sheet.dart' show parsePartyGradientCss;
+
 import '../../../shared/widgets/room_top_bar.dart';
 
 
