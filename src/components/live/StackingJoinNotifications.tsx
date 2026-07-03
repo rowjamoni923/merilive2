@@ -143,8 +143,8 @@ JoinNotificationItem.displayName = "JoinNotificationItem";
    Hook — manage stacking notifications
    Bigo/Chamet parity: max 5 visible, snappy 3.2s auto-dismiss
    ───────────────────────────────────────────────────────────── */
-const MAX_VISIBLE = 5;
-const DISMISS_MS = 3200;
+const MAX_VISIBLE = 4;
+const DISMISS_MS = 2600;
 
 export function useStackingJoinNotifications() {
   const [notifications, setNotifications] = useState<JoinNotification[]>([]);
