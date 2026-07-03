@@ -419,7 +419,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   return (
     <div
       className={cn('h-full overflow-hidden relative camera-locked flex items-center justify-center', className)}
-      style={{ position: 'relative', zIndex: 0, aspectRatio: '9 / 16', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}
+      style={{ position: 'relative', zIndex: 0, aspectRatio: '9 / 16', width: 'auto', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}
     >
       {/* Reference-parity: single <video> only. No blurred backdrop layer.
           If a caller passes fit="contain" they accept letterboxing. */}
