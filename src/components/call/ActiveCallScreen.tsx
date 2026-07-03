@@ -163,9 +163,6 @@ export function ActiveCallScreen({
   const previewVideoRefPrimary = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefPip = useRef<HTMLVideoElement | null>(null);
   const previewVideoRefRinging = useRef<HTMLVideoElement | null>(null);
-  const previewBackdropRefPrimary = useRef<HTMLVideoElement | null>(null);
-  const previewBackdropRefPip = useRef<HTMLVideoElement | null>(null);
-  const previewBackdropRefRinging = useRef<HTMLVideoElement | null>(null);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   // Pkg-shirt Phase-B: reuse the global persistentCameraSession that
   // CallProvider warmed during ringing/dialing. This makes accept feel
@@ -230,14 +227,11 @@ export function ActiveCallScreen({
   // Pkg502 — ref-callback attachment so srcObject is wired both when the
   // stream arrives and when a video element mounts later (calling→connected
   // transition mounts a new tile after the stream is already set).
-  const attachPreview = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing' | 'primaryBg' | 'pipBg' | 'ringingBg') => {
+  const attachPreview = useCallback((el: HTMLVideoElement | null, slot: 'primary' | 'pip' | 'ringing') => {
     const refMap = {
       primary: previewVideoRefPrimary,
       pip: previewVideoRefPip,
       ringing: previewVideoRefRinging,
-      primaryBg: previewBackdropRefPrimary,
-      pipBg: previewBackdropRefPip,
-      ringingBg: previewBackdropRefRinging,
     };
     refMap[slot].current = el;
     if (el && previewStream && el.srcObject !== previewStream) {
@@ -248,7 +242,7 @@ export function ActiveCallScreen({
   }, [previewStream]);
   useEffect(() => {
     if (!previewStream) return;
-    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging, previewBackdropRefPrimary, previewBackdropRefPip, previewBackdropRefRinging].forEach((r) => {
+    [previewVideoRefPrimary, previewVideoRefPip, previewVideoRefRinging].forEach((r) => {
       if (r.current && r.current.srcObject !== previewStream) {
         r.current.srcObject = previewStream;
         r.current.muted = true;
@@ -1275,21 +1269,12 @@ export function ActiveCallScreen({
             ) : isPreviewWeb && previewStream ? (
               <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <video
-                  ref={(el) => attachPreview(el, 'ringingBg')}
-                  aria-hidden="true"
-                  autoPlay
-                  playsInline
-                  muted
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-                  style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(24px) brightness(0.72)', opacity: 0.84 }}
-                />
-                <video
                   ref={(el) => attachPreview(el, 'ringing')}
                   autoPlay
                   playsInline
                   muted
-                  className="h-full max-h-full max-w-full aspect-[9/16] object-contain bg-transparent"
-                  style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
+                  className="absolute inset-0 h-full w-full object-cover bg-transparent"
+                  style={{ transform: 'scaleX(-1)', objectFit: 'cover', objectPosition: 'center center' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
@@ -1443,21 +1428,12 @@ export function ActiveCallScreen({
         {isPreviewWeb && previewStream && (
           <>
             <video
-              ref={(el) => attachPreview(el, 'primaryBg')}
-              aria-hidden="true"
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-[3]"
-              style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(24px) brightness(0.72)', opacity: 0.84 }}
-            />
-            <video
               ref={(el) => attachPreview(el, 'primary')}
               autoPlay
               playsInline
               muted
-              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 h-full max-h-full max-w-full aspect-[9/16] object-contain bg-transparent z-[4]"
-              style={{ transform: 'translateX(-50%) scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
+              className="absolute inset-0 h-full w-full object-cover bg-transparent z-[4]"
+              style={{ transform: 'scaleX(-1)', objectFit: 'cover', objectPosition: 'center center' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
               PREVIEW MODE — your camera mirrored to both tiles
@@ -1472,21 +1448,12 @@ export function ActiveCallScreen({
               }}
             >
               <video
-                ref={(el) => attachPreview(el, 'pipBg')}
-                aria-hidden="true"
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-                style={{ transform: 'scaleX(-1) scale(1.16)', filter: 'blur(18px) brightness(0.72)', opacity: 0.84 }}
-              />
-              <video
                 ref={(el) => attachPreview(el, 'pip')}
                 autoPlay
                 playsInline
                 muted
-                className="h-full max-h-full max-w-full aspect-[9/16] object-contain bg-black mx-auto"
-                style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center', width: 'auto' }}
+                className="absolute inset-0 h-full w-full object-cover bg-black"
+                style={{ transform: 'scaleX(-1)', objectFit: 'cover', objectPosition: 'center center' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
                 You
