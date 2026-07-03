@@ -23589,6 +23589,7 @@ export type Database = {
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       profile_follow_stats: { Args: { uid: string }; Returns: Json }
+      profile_public_media_url: { Args: { _src: string }; Returns: string }
       publish_approved_profile_media: {
         Args: { _submission_id: string }
         Returns: undefined
