@@ -1831,7 +1831,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: hostAvailability === 'online' ? "Online" : "Offline",
       iconBg: hostAvailability === 'online' ? "bg-red-100" : "bg-green-100",
       iconColor: hostAvailability === 'online' ? "text-red-500" : "text-green-500",
-      show: isOwnProfile && profile?.is_host === true && (profile as any)?.host_status === 'approved',
+      // Show Go Offline / Go Online for EVERY host — verified OR unverified.
+      // isHostPersona = approved host OR any female account (host persona).
+      // Also include males who have submitted host application (canApplyForHost=false but is_host true handled by isHostPersona).
+      show: isOwnProfile && (isHostPersona || profile?.is_host === true || (profile as any)?.host_status === 'pending_face' || (profile as any)?.host_status === 'pending' || (profile as any)?.host_status === 'under_review'),
       onClick: handleToggleAvailability,
     },
     // Messages always at top for all users
