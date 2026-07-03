@@ -762,10 +762,31 @@ const PartyRoom = () => {
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
 
-  // Pkg-bgcontinuity — non-host party participants (audience + listeners) keep
-  // audio + LiveKit subscriber running when minimized/screen-off. Host & active
-  // speakers publish camera/mic so CallForegroundService already covers them.
-  useViewerSession({ active: !!room && !isHost, kind: 'party', title: 'In party room' });
+  // Pkg-bgcontinuity — non-host / non-speaker participants keep audio +
+  // LiveKit subscriber running when minimized via MediaPlaybackForegroundService.
+  // Publishers (host + anyone on a seat) get the camera+mic FGS below instead.
+  const isSpeaker = isHost || (myPosition !== null && myPosition !== undefined);
+  useViewerSession({ active: !!room && !isSpeaker, kind: 'party', title: 'In party room' });
+
+  // Background continuity (2026-07-03) — publishers (host + seated speakers)
+  // need CallForegroundService (camera+mic FGS type) so Android keeps our
+  // LiveKit publish alive when the app is backgrounded. Verified 2026-07-03
+  // that LiveKitPlugin.connect() does NOT start any FGS on its own.
+  useEffect(() => {
+    if (!room || !isSpeaker) return;
+    let stopped = false;
+    void import('@/plugins/NativeCall').then(({ startBroadcastFgs, stopBroadcastFgs }) => {
+      if (stopped) return;
+      void startBroadcastFgs('party', room?.name || 'Party room');
+      (window as any).__stopPartyFgs = stopBroadcastFgs;
+    });
+    return () => {
+      stopped = true;
+      try { void (window as any).__stopPartyFgs?.(); } catch { /* ignore */ }
+      try { delete (window as any).__stopPartyFgs; } catch { /* ignore */ }
+    };
+  }, [!!room, isSpeaker, room?.name]);
+
   const isAdmin = myRole === 'admin' || isHost;
   const canManageUsers = isHost || isAdmin;
 

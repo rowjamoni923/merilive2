@@ -215,10 +215,28 @@ const LiveStream = () => {
   const streamTitle = sessionState?.title || "";
 
   // Pkg-bgcontinuity — viewers (not the host) keep audio + LiveKit subscriber
-  // connection alive when the app is minimized or the screen turns off. Host
-  // path is already covered by CallForegroundService (camera + mic FGS) via
-  // LiveKitPlugin.connect().
+  // connection alive when the app is minimized or the screen turns off.
   useViewerSession({ active: !isHost, kind: 'live', title: 'Watching live' });
+
+  // Background continuity (2026-07-03) — hosts need a CAMERA+MIC foreground
+  // service so Android keeps our LiveKit publish alive when the app is
+  // minimized. LiveKitPlugin.connect() does NOT start an FGS on its own
+  // (verified 2026-07-03), so JS explicitly starts/stops it here.
+  useEffect(() => {
+    if (!isHost) return;
+    let stopped = false;
+    void import('@/plugins/NativeCall').then(({ startBroadcastFgs, stopBroadcastFgs }) => {
+      if (stopped) return;
+      void startBroadcastFgs('live', streamTitle || 'Live broadcast');
+      (window as any).__stopLiveFgs = stopBroadcastFgs;
+    });
+    return () => {
+      stopped = true;
+      try { void (window as any).__stopLiveFgs?.(); } catch { /* ignore */ }
+      try { delete (window as any).__stopLiveFgs; } catch { /* ignore */ }
+    };
+  }, [isHost, streamTitle]);
+
 
   // Pkg247 — boost to 90/120Hz while live for smooth video + chat scroll
   useHighRefreshRate(isHostVerified || !isHost);

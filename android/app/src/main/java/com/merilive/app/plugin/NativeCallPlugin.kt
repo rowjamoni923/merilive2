@@ -688,6 +688,60 @@ class NativeCallPlugin : Plugin() {
         ret.put("reason", "native_chat_ui_unavailable")
         call.resolve(ret)
     }
+
+    /**
+     * Background continuity (2026-07-03) — start CallForegroundService for a
+     * LIVE host / PARTY host / PARTY speaker so Android keeps the LiveKit
+     * publish alive when the WebView is backgrounded (home button, other
+     * app). Uses `mode="live"` which triggers the CAMERA+MICROPHONE FGS
+     * type on API 29+, matching what a private call already does.
+     *
+     * JS side calls this the moment the user starts publishing (goLive /
+     * takeSeat) and again to `stopBroadcastForegroundService` when leaving.
+     * Idempotent on the service side.
+     */
+    @PluginMethod
+    fun startBroadcastForegroundService(call: PluginCall) {
+        val kind = call.getString("kind") ?: "live" // "live" | "party"
+        val title = call.getString("title") ?: ""
+        try {
+            val i = android.content.Intent(context,
+                com.merilive.app.service.CallForegroundService::class.java).apply {
+                action = com.merilive.app.service.CallForegroundService.ACTION_START
+                putExtra("mode", "live")
+                putExtra("call_id", "broadcast_$kind")
+                putExtra("caller_id", "")
+                putExtra("caller_name", if (title.isNotEmpty()) title
+                    else if (kind == "party") "Party room" else "Live broadcast")
+                putExtra("caller_avatar", "")
+                putExtra("call_type", if (kind == "party") "party" else "live")
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(i)
+            } else {
+                context.startService(i)
+            }
+            val ret = JSObject()
+            ret.put("ok", true)
+            ret.put("kind", kind)
+            call.resolve(ret)
+        } catch (t: Throwable) {
+            android.util.Log.w("NativeCallPlugin",
+                "startBroadcastForegroundService failed: ${t.message}")
+            val ret = JSObject()
+            ret.put("ok", false)
+            ret.put("reason", t.message ?: "unknown")
+            call.resolve(ret)
+        }
+    }
+
+    @PluginMethod
+    fun stopBroadcastForegroundService(call: PluginCall) {
+        try { stopCallForegroundService(context) } catch (_: Throwable) {}
+        val ret = JSObject()
+        ret.put("ok", true)
+        call.resolve(ret)
+    }
 }
 
 
