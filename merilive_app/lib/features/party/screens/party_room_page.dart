@@ -700,12 +700,14 @@ class _BottomBarState extends State<_BottomBar> {
     if (roomId == null) return;
     final picked = await PartyGameSelectionSheet.show(context);
     if (picked == null || !context.mounted) return;
+    activePartyGameNotifier.value = picked;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) => PartyGameOverlay(roomId: roomId, game: picked),
       ),
     );
+    activePartyGameNotifier.value = null;
   }
 
   Widget _circleBtn({
