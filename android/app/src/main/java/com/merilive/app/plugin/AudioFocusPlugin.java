@@ -43,20 +43,28 @@ public class AudioFocusPlugin extends Plugin {
     public void requestFocus(PluginCall call) {
         if (am == null) { call.reject("AudioManager unavailable"); return; }
         // usage: "call" (voice/video call) | "media" (live stream playback)
+        //        | "coexist" (host live/party — MAY_DUCK so Spotify/YouTube
+        //          keep playing at reduced volume instead of being paused)
         String usage = call.getString("usage", "call");
-        int audioUsage = "media".equals(usage)
+        boolean coexist = "coexist".equals(usage) || Boolean.TRUE.equals(call.getBoolean("mayDuck", false));
+        int audioUsage = ("media".equals(usage) || coexist)
             ? AudioAttributes.USAGE_MEDIA
             : AudioAttributes.USAGE_VOICE_COMMUNICATION;
-        int contentType = "media".equals(usage)
+        int contentType = ("media".equals(usage) || coexist)
             ? AudioAttributes.CONTENT_TYPE_MUSIC
             : AudioAttributes.CONTENT_TYPE_SPEECH;
 
         AudioManager.OnAudioFocusChangeListener listener = this::emitFocusChange;
 
-        int focusGain = "media".equals(usage)
-            ? AudioManager.AUDIOFOCUS_GAIN
-            : AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
-        int legacyStream = "media".equals(usage)
+        int focusGain;
+        if (coexist) {
+            focusGain = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
+        } else if ("media".equals(usage)) {
+            focusGain = AudioManager.AUDIOFOCUS_GAIN;
+        } else {
+            focusGain = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
+        }
+        int legacyStream = ("media".equals(usage) || coexist)
             ? AudioManager.STREAM_MUSIC
             : AudioManager.STREAM_VOICE_CALL;
 
