@@ -14,10 +14,11 @@ import { svgaCacheHas } from "@/utils/svgaCache";
 import { prewarmPopularAssets, prewarmSVGA } from "@/utils/svgaPrewarm";
 
 
-const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
+const getNameBarAnimationType = (url?: string): 'svga' | 'vap' | 'gif' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
+  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.mov')) return 'vap';
   if (cleanUrl.endsWith('.gif')) return 'gif';
   if (cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg')) return 'image';
   return null;
@@ -73,8 +74,9 @@ const EntryNameBarAnimationInner = memo(({
   const cleanAnimUrl = animationUrl && animationUrl.trim().length > 0 ? animationUrl : undefined;
   const animType = getNameBarAnimationType(cleanAnimUrl);
   const hasSvga = animType === 'svga';
+  const hasVap = animType === 'vap';
   const hasGifOrImage = animType === 'gif' || animType === 'image';
-  const hasAnimation = hasSvga || hasGifOrImage;
+  const hasAnimation = hasSvga || hasVap || hasGifOrImage;
 
   const triggerExit = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
@@ -116,8 +118,8 @@ const EntryNameBarAnimationInner = memo(({
       if (proceeded || !mountedRef.current) return;
       proceeded = true;
       setPhase('animating');
-      // SVGA exits via its own onComplete; static / GIF need a manual exit timer.
-      if (!hasSvga) {
+      // SVGA + VAP exit via their own onComplete; static / GIF need a manual exit timer.
+      if (!hasSvga && !hasVap) {
         const totalDuration = hasGifOrImage ? 3000 : 2500;
         exitTimer = setTimeout(() => triggerExit(), totalDuration);
       }
@@ -146,6 +148,10 @@ const EntryNameBarAnimationInner = memo(({
           if (exitTimer) clearTimeout(exitTimer);
         };
       }
+    } else if (hasVap && cleanAnimUrl) {
+      // VAP branch — parity with EntryNameBarPreview: start immediately, the
+      // EntryVAPPlayer handles playback and fires onComplete when finished.
+      proceedToAnimating();
     } else if (hasGifOrImage) {
       // GIF/image branch waits on gifLoaded flag below.
       if (gifLoaded) proceedToAnimating();
@@ -228,6 +234,24 @@ const EntryNameBarAnimationInner = memo(({
                     dynamicAvatarUrl={avatarUrl ?? null}
                     dynamicUserName={userName}
                     dynamicUserLevel={level}
+                  />
+                </div>
+              )}
+
+              {/* VAP (MP4/WebM) background — VIP preview parity. Uses the
+                  dedicated EntryVAPPlayer for smooth alpha-mask playback. */}
+              {hasVap && cleanAnimUrl && (
+                <div className="absolute inset-0 z-[1] pointer-events-none">
+                  <EntryAnimationFrame
+                    src={cleanAnimUrl}
+                    size="fill"
+                    type="vap"
+                    loop={false}
+                    muted={false}
+                    volume={0}
+                    onComplete={handleSvgaComplete}
+                    onError={handleSvgaError}
+                    center={false}
                   />
                 </div>
               )}

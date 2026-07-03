@@ -93,80 +93,45 @@ const JoinNotificationItem = memo(({ notification, index }: JoinNotificationItem
   return (
     <motion.div
       layout="position"
-      initial={{ opacity: 0, x: -180, scale: 0.82 }}
+      initial={{ opacity: 0, x: -120, scale: 0.9 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 60, scale: 0.92, filter: "blur(4px)" }}
+      exit={{ opacity: 0, x: 40, scale: 0.95, filter: "blur(2px)" }}
       transition={{
         type: "spring",
-        damping: 24,
-        stiffness: 380,
-        mass: 0.7,
-        delay: Math.min(index * 0.04, 0.16),
+        damping: 26,
+        stiffness: 420,
+        mass: 0.55,
+        delay: Math.min(index * 0.03, 0.1),
       }}
-      className="flex items-center gap-1.5 py-1 pl-1 pr-2.5 rounded-full w-fit relative overflow-hidden will-change-transform"
+      className="flex items-center gap-1 py-[2px] pl-[2px] pr-2 rounded-full w-fit relative overflow-hidden will-change-transform"
       style={{
-        background: tier.bg,
+        background: "rgba(0,0,0,0.42)",
         border: `1px solid ${tier.border}`,
-        boxShadow: tier.shadow,
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
+        boxShadow: `0 2px 8px rgba(0,0,0,0.35)`,
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
         transform: "translateZ(0)",
         backfaceVisibility: "hidden",
       }}
     >
-      {/* Aurora shine sweep — premium tier only (level ≥ 30) */}
-      {tier.premium && (
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.32) 50%, transparent 65%)",
-            mixBlendMode: "overlay",
-          }}
-          animate={{ x: ["-110%", "120%"] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: "linear", repeatDelay: 0.6 }}
-        />
-      )}
-
-      {/* Avatar — tier-glow ring */}
+      {/* Avatar — tiny Chamet-style */}
       <div
-        className="relative flex-shrink-0 w-6 h-6 rounded-full overflow-hidden border-[1.5px]"
-        style={{
-          borderColor: "rgba(255,255,255,0.7)",
-          boxShadow: `0 0 8px ${tier.glow}`,
-        }}
+        className="relative flex-shrink-0 w-[14px] h-[14px] rounded-full overflow-hidden"
+        style={{ boxShadow: `0 0 4px ${tier.glow}` }}
       >
-        <img loading="lazy" decoding="async"
+        <img
+          loading="lazy"
+          decoding="async"
           src={notification.userAvatar || getDisplayAvatar(notification.userName)}
           alt=""
           className="w-full h-full object-cover"
-         
- />
+        />
       </div>
 
-      {/* Level badge — pill */}
-      <div
-        className={cn(
-          "px-1.5 py-0.5 rounded-full text-[8px] font-black leading-none flex items-center gap-0.5 relative z-10",
-          tier.textBadge
-        )}
-        style={{
-          background: "rgba(0,0,0,0.22)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
-        }}
-      >
-        <span className="text-[9px] leading-none">{tier.icon}</span>
-        <span className="drop-shadow-sm">Lv.{notification.userLevel}</span>
-      </div>
-
-      {/* Username */}
-      <span className="text-white font-bold text-[11px] truncate max-w-[80px] drop-shadow-md relative z-10">
+      {/* Username + joined — single ultra-compact line */}
+      <span className="text-white/95 text-[9.5px] leading-none font-semibold truncate max-w-[110px] drop-shadow-sm">
         {notification.userName}
-      </span>
-
-      {/* Joined text */}
-      <span className="text-white/95 text-[10px] whitespace-nowrap italic font-medium relative z-10">
-        joined
+        <span className="text-white/60 font-normal ml-1">joined</span>
       </span>
     </motion.div>
   );
@@ -178,8 +143,8 @@ JoinNotificationItem.displayName = "JoinNotificationItem";
    Hook — manage stacking notifications
    Bigo/Chamet parity: max 5 visible, snappy 3.2s auto-dismiss
    ───────────────────────────────────────────────────────────── */
-const MAX_VISIBLE = 5;
-const DISMISS_MS = 3200;
+const MAX_VISIBLE = 4;
+const DISMISS_MS = 2600;
 
 export function useStackingJoinNotifications() {
   const [notifications, setNotifications] = useState<JoinNotification[]>([]);

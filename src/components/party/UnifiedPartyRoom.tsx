@@ -1900,10 +1900,12 @@ export function UnifiedPartyRoom({
               type="submit"
               disabled={!chatInput.trim()}
               aria-label="Send message"
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-40 transition-all"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-40 transition-[filter] duration-100 active:brightness-90 focus:outline-none"
               style={{
                 background: chatInput.trim() ? 'linear-gradient(135deg, #ec4899, #f43f5e)' : 'rgba(255,255,255,0.08)',
                 boxShadow: chatInput.trim() ? '0 2px 10px rgba(236,72,153,0.45)' : 'none',
+                transform: 'translate3d(0,-50%,0)',
+                willChange: 'filter',
               }}
             >
               <Send className="w-4 h-4 text-white" />

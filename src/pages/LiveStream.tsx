@@ -677,9 +677,10 @@ const LiveStream = () => {
         } catch { /* ignore — non-Capacitor runtime */ }
       }).catch(() => { /* ignore */ });
     } catch { /* ignore */ }
-    // Pkg423: 30s viewer heartbeat. Server cron sweeps viewers with last_seen_at
-    // older than 90s and recomputes live_streams.viewer_count, so abandoned tabs
-    // (network drop, app kill, OS suspend) no longer inflate the counter.
+    // Pkg423 + Pkg427: 15s viewer heartbeat. Server cron sweeps viewers with
+    // last_seen_at older than 45s and recomputes live_streams.viewer_count, so
+    // abandoned tabs (network drop, app kill, OS suspend) no longer inflate the
+    // counter. RPC returns authoritative count → we trust it as source of truth.
     let hbTimer: ReturnType<typeof setInterval> | null = null;
     const sendHeartbeat = () => {
       try {
@@ -687,13 +688,14 @@ const LiveStream = () => {
           .rpc('viewer_heartbeat', { p_stream_id: id })
           .then(({ data }) => {
             if (typeof data === 'number' && mountedRef.current) {
+              // Trust the RPC — it is the authoritative live viewer count.
               setViewerCount(data);
             }
           });
       } catch { /* ignore */ }
     };
-    // First ping after 30s; join RPC already establishes presence at t=0.
-    hbTimer = setInterval(sendHeartbeat, 30000);
+    // First ping after 15s; join RPC already establishes presence at t=0.
+    hbTimer = setInterval(sendHeartbeat, 15000);
     return () => {
       window.removeEventListener('pagehide', sendViewerLeave);
       window.removeEventListener('beforeunload', sendViewerLeave);
@@ -4476,21 +4478,21 @@ const LiveStream = () => {
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <motion.button
+            <button
               type="button"
-              whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.06 }}
               aria-label="Send message"
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden transition-[filter] duration-100 active:brightness-90 focus:outline-none"
               style={{
                 background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 40%, #6d28d9 100%)',
                 boxShadow: '0 4px 12px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 4px rgba(0,0,0,0.25)',
+                transform: 'translate3d(0,-50%,0)',
+                willChange: 'filter',
               }}
               onClick={handleSendMessage}
             >
               <span className="absolute inset-x-1 top-0.5 h-1.5 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.6), transparent)' }} />
               <Send className="w-4 h-4 text-white relative z-10" strokeWidth={2.3} />
-            </motion.button>
+            </button>
           </div>
 
           {/* Action Buttons — Premium 3D orbs */}
