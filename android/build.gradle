@@ -1,0 +1,28 @@
+buildscript {
+    ext.kotlin_version = '1.9.24'
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // AGP 8.5.1+ automatically runs `zipalign -P 16` so .so segments are
+        // 16 KB page-aligned inside the APK — required for Android 15 / Pixel 8+.
+        classpath 'com.android.tools.build:gradle:8.5.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Pkg425 — JitPack hosts SVGAPlayer-Android (Tencent / YY professional SVGA player)
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

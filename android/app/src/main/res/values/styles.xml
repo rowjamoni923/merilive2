@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <!-- Pkg227 edge-to-edge: transparent bars, JS handles safe-area-inset -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
+    <style name="AppTheme.IncomingCall" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowShowWhenLocked">true</item>
+        <item name="android:windowTurnScreenOn">true</item>
+    </style>
+
+    <!-- Pkg500 Phase A — PrivateCallActivity full-screen video theme. Pure black
+         background so any blank frame between Activity create and first LiveKit
+         video frame is invisible (no white flash). Show-when-locked is set
+         programmatically (API 27+) so we keep manifest-level fallback flags for
+         older devices. -->
+    <style name="AppTheme.PrivateCall" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowShowWhenLocked">true</item>
+        <item name="android:windowTurnScreenOn">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+
+    <style name="AppTheme.Splash" parent="Theme.SplashScreen">
+        <!-- Window background during splash -->
+        <item name="windowSplashScreenBackground">@color/colorBackground</item>
+        <!-- Center icon (288dp canvas, white logo) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <!-- Optional circular background behind the icon -->
+        <item name="windowSplashScreenIconBackgroundColor">@color/colorSurface</item>
+        <!-- Max time splash stays visible after app ready (ms); capped at 1000 by system -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <!-- Switch to main theme once splash dismisses -->
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+
+    <!-- Pkg500 Phase A — in-call action button (mic / flip / beauty / gift). -->
+    <style name="PrivateCallActionButton">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">@drawable/bg_private_call_action_btn</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:padding">14dp</item>
+        <item name="android:tint">@android:color/white</item>
+    </style>
+
+    <style name="PrivateCallEndButton" parent="PrivateCallActionButton">
+        <item name="android:background">@drawable/bg_private_call_end_btn</item>
+    </style>
+
+    <!-- Pkg500 Phase E — End-screen rating star (large, tappable). -->
+    <style name="PrivateCallEndStar">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:alpha">0.32</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <!-- Pkg500 Phase E — End-screen activity theme. -->
+    <style name="AppTheme.PrivateCallEnd" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">#0A0A0E</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">#0A0A0E</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pkg500 Phase A — PrivateCallActivity layout (scaffold).
+
+    Layer order (back → front):
+      1. Black background (theme @android:color/black)
+      2. privateCallRemoteVideo  — full-screen container; Phase B mounts the
+         LiveKit remote VideoTextureView here.
+      3. privateCallLocalPreview — 96x128dp PiP at top-right; Phase B mounts
+         the local VideoTextureView here. Draggable behaviour is Phase C.
+      4. privateCallLowBalanceSlot — Phase D inflates the warning banner here.
+      5. Top overlay (peer avatar + name + state + duration + balance)
+      6. Bottom action bar (mic / flip / beauty / gift / end)
+
+    All ids prefixed `privateCall*` so a global search shows the surface.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:fitsSystemWindows="false">
+
+    <!-- Remote video surface (full-screen). Phase B mounts LiveKit
+         VideoTextureView as the only child. -->
+    <FrameLayout
+        android:id="@+id/privateCallRemoteVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black" />
+
+    <!-- Local preview PiP (top-right). Phase B mounts the local
+         VideoTextureView. 96x128 keeps a 3:4 portrait crop without crowding
+         the peer name. -->
+    <FrameLayout
+        android:id="@+id/privateCallLocalPreview"
+        android:layout_width="96dp"
+        android:layout_height="128dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="72dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_private_call_pip"
+        android:elevation="6dp" />
+
+    <!-- Top overlay (peer info + duration + balance). Scrim gradient keeps
+         text readable over any background. -->
+    <LinearLayout
+        android:id="@+id/privateCallTopOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_private_call_top_scrim"
+        android:paddingStart="16dp"
+        android:paddingEnd="120dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/privateCallPeerAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:scaleType="centerCrop"
+                android:contentDescription="Peer avatar" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/privateCallPeerName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calling…"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/privateCallState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Preparing…"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/privateCallDuration"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="00:00"
+                android:textColor="@android:color/white"
+                android:fontFamily="monospace"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/privateCallSignalBars"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <View android:id="@+id/privateCallSignalBar1" android:layout_width="4dp" android:layout_height="6dp" android:layout_marginEnd="2dp" android:background="#55FFFFFF" />
+                <View android:id="@+id/privateCallSignalBar2" android:layout_width="4dp" android:layout_height="9dp" android:layout_marginEnd="2dp" android:background="#55FFFFFF" />
+                <View android:id="@+id/privateCallSignalBar3" android:layout_width="4dp" android:layout_height="12dp" android:layout_marginEnd="2dp" android:background="#55FFFFFF" />
+                <View android:id="@+id/privateCallSignalBar4" android:layout_width="4dp" android:layout_height="15dp" android:background="#55FFFFFF" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/privateCallBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#FFD54F"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="invisible" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Pkg500 Phase D — Low-balance banner. Hidden by default. Shown at
+         60s / 30s / 10s thresholds reported by the JS billing sync hook.
+         Includes a Recharge CTA that broadcasts a request back to JS. -->
+    <LinearLayout
+        android:id="@+id/privateCallLowBalanceSlot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="120dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_private_call_low_balance"
+        android:elevation="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
+            android:src="@android:drawable/stat_sys_warning"
+            android:contentDescription="Low balance warning" />
+
+        <TextView
+            android:id="@+id/privateCallLowBalanceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Low balance" />
+
+        <Button
+            android:id="@+id/privateCallBtnRecharge"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:minWidth="0dp"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:background="@drawable/bg_private_call_recharge_btn"
+            android:text="Recharge" />
+    </LinearLayout>
+
+    <!-- Pkg500 Phase H — Camera resilience overlays.
+         freezeOverlay holds the last good local frame while in AUDIO_ONLY.
+         resilienceBanner shows status + optional Retry chip.
+         remotePoorOverlay is a small spinner anchored to the remote tile. -->
+    <ImageView
+        android:id="@+id/privateCallFreezeOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="Last camera frame"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/privateCallRemotePoorOverlay"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="#FFFFFFFF"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/privateCallResilienceBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="168dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_private_call_resilience_banner"
+        android:elevation="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/ic_private_call_camera_off"
+            android:contentDescription="Camera unavailable" />
+
+        <TextView
+            android:id="@+id/privateCallResilienceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Camera reconnecting…" />
+
+        <Button
+            android:id="@+id/privateCallResilienceRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:minWidth="0dp"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:background="@drawable/bg_private_call_recharge_btn"
+            android:text="Retry"
+            android:visibility="gone" />
+    </LinearLayout>
+
+
+    <!-- Bottom action bar. Six circular buttons inside a translucent scrim. -->
+    <LinearLayout
+        android:id="@+id/privateCallBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_private_call_bottom_scrim"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="24dp"
+        android:paddingBottom="36dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <ImageButton
+            android:id="@+id/privateCallBtnMic"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:contentDescription="Mute microphone" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnSpeaker"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/stat_sys_speakerphone"
+            android:contentDescription="Toggle speaker" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnFlip"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Flip camera" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnBeauty"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/ic_menu_view"
+            android:visibility="gone"
+            android:contentDescription="Beauty filter" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnGift"
+            style="@style/PrivateCallActionButton"
+            android:src="@android:drawable/ic_menu_send"
+            android:contentDescription="Send gift" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/privateCallBtnEnd"
+            style="@style/PrivateCallEndButton"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="End call" />
+    </LinearLayout>
+</FrameLayout>
