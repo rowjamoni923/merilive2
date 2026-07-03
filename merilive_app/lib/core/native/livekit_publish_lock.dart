@@ -15,7 +15,7 @@ class LiveKitPublishLock {
   const LiveKitPublishLock._();
 
   /// Natural 3:4 sensor frame (portrait). Higher sensor mode → sharper
-  /// downscaled encode, no digital zoom (renderers keep portrait cover/fill).
+  /// downscaled encode, no digital zoom (renderers keep full-frame fit).
   static const int captureWidth = 1440;
   static const int captureHeight = 1920;
   static const int captureFps = 30;
@@ -28,7 +28,7 @@ class LiveKitPublishLock {
   /// 540p low @ 900 kbps.
   static const bool simulcast = true;
 
-  /// VIEWER-side scale mode — must always be fill (SCALE_ASPECT_FILL) so
-  /// portrait streams never letterbox on portrait viewers.
-  static const String viewerScaleMode = 'fill';
+  /// Viewer/preview scale mode — fit keeps the full camera frame visible and
+  /// prevents face zoom-in caused by portrait center-crop.
+  static const String viewerScaleMode = 'fit';
 }

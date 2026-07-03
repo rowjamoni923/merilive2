@@ -159,7 +159,7 @@ class LiveKitFlutterPlugin : MethodChannel.MethodCallHandler {
                     ok(result)
                 }
                 "setScalingType" -> {
-                    val mode = call.argument<String>("mode") ?: "fill"
+                    val mode = call.argument<String>("mode") ?: "fit"
                     scalingType = when (mode) {
                         "fit" -> RendererCommon.ScalingType.SCALE_ASPECT_FIT
                         "balanced" -> RendererCommon.ScalingType.SCALE_ASPECT_BALANCED

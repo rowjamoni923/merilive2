@@ -277,7 +277,7 @@ class LiveKitNativePlugin : Plugin() {
      */
     @PluginMethod
     fun setScalingType(call: PluginCall) {
-        val type = call.getString("type", "FILL") ?: "FILL"
+        val type = call.getString("type", "FIT") ?: "FIT"
         activity.runOnUiThread {
             videoRenderer?.let { renderer ->
                 val scalingType = when (type.uppercase()) {
