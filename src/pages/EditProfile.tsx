@@ -50,6 +50,8 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useOptimisticAction } from "@/hooks/useOptimisticAction";
 import { ensureFreshSupabaseSession, isAuthSessionFailure, sessionExpiredUploadMessage } from "@/utils/sessionRecovery";
+import { extractEdgeFnError } from "@/utils/edgeFnError";
+
 
 interface ProfileData {
   id: string;
