@@ -1313,6 +1313,7 @@ const App = () => {
               {session && !isAdminRoute && !isStandalonePublicRoute && <PrivacyConsentDialog />}
               <Suspense fallback={null}><RouteStatusBarBridge /></Suspense>
               <Suspense fallback={null}><RouteGroupAttributeBridge /></Suspense>
+              <Suspense fallback={null}><HideKeyboardOnNavigateBridge /></Suspense>
 
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
