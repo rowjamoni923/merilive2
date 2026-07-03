@@ -64,12 +64,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  // Unified Camera Policy (2026-07-03, matches original GitHub reference):
-  // Default is COVER — same as Chamet/Bigo/reference project. Single <video>,
-  // no blurred backdrop, no scale transforms. This is the render path the
-  // user's reference repo uses everywhere (GoLive, LiveStream, Call all pass
-  // fit="cover"). Any wrapper doing extra scale was the source of zoom-in.
-  fit = 'cover',
+  // Camera zoom-out policy: default to CONTAIN so the full captured camera
+  // frame is visible instead of center-cropping/zooming the face in portrait UI.
+  fit = 'contain',
   muted = true,
   onVideoStalled,
   onVideoReady,

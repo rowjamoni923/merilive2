@@ -1263,8 +1263,8 @@ export function ActiveCallScreen({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover bg-transparent"
-                  style={{ transform: 'scaleX(-1)' }}
+                  className="w-full h-full object-contain bg-transparent"
+                  style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
@@ -1422,8 +1422,8 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover bg-transparent z-[4]"
-              style={{ transform: 'scaleX(-1)' }}
+              className="absolute inset-0 w-full h-full object-contain bg-transparent z-[4]"
+              style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
               PREVIEW MODE — your camera mirrored to both tiles
@@ -1442,8 +1442,8 @@ export function ActiveCallScreen({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover bg-black"
-                style={{ transform: 'scaleX(-1)' }}
+                className="w-full h-full object-contain bg-black"
+                style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
               />
               <div className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md bg-black/60">
                 You
