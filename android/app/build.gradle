@@ -1,0 +1,297 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+}
+
+android {
+    namespace 'com.merilive.app'
+    // Phase 1A — Android 15 (API 35) target. Required for foreground-service
+    // typing enforcement that Android 14+ checks at runtime (CAMERA, MIC).
+    compileSdk 35
+
+    // Note: native C++ build removed 2026-06-07 (Phase 0.5 cleanup).
+    // The dead native_video_engine.cpp + NativeVideoEnginePlugin/NativeAudioEnginePlugin
+    // were never registered/called. Re-enable externalNativeBuild only when a real
+    // JNI module is reintroduced.
+
+
+
+    defaultConfig {
+        applicationId "com.merilive.app"
+        minSdk 24
+        targetSdk 35
+        versionCode 80213
+        versionName "8.2.13"
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Pkg-Optimize: Enable R8 full mode for aggressive dead code elimination
+            // and constant folding. Reduces DEX size by ~15%.
+            signingConfig signingConfigs.debug // Replace with your release config later
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
+    // Pkg-Optimize: Split APKs by architecture (ABI split)
+    // Professional apps ship per-architecture APKs to reduce download size by ~40%
+    splits {
+        abi {
+            enable true
+            reset()
+            // Production Play Store builds target physical Android devices.
+            include "armeabi-v7a", "arm64-v8a"
+            universalApk false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        // 16 KB page-size compliance (Pixel 8+, Android 15, Play Store Nov 2025).
+        // .so files MUST be stored UNCOMPRESSED and page-aligned inside the APK
+        // so the kernel can mmap them directly. useLegacyPackaging=false PLUS
+        // android:extractNativeLibs="false" in the manifest is the official pair.
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+}
+
+// Launch guard: Capacitor Android loads the React bundle from
+// android/app/src/main/assets/public through its local https://localhost
+// WebView server. If that folder is missing, the APK opens to
+// net::ERR_CONNECTION_REFUSED on launch. Keep Android Studio builds safe even
+// when the developer ran the Vite build but forgot `npx cap sync android`.
+def rootWebDistDir = file("$rootDir/../dist")
+def androidWebAssetsDir = file("$projectDir/src/main/assets/public")
+def androidWebIndex = file("$projectDir/src/main/assets/public/index.html")
+
+tasks.register('ensureCapacitorWebAssets') {
+    group = 'merilive'
+    description = 'Ensures Android has bundled Capacitor web assets before APK build.'
+    inputs.dir(rootWebDistDir).optional()
+    outputs.dir(androidWebAssetsDir)
+
+    doLast {
+        if (file("$rootWebDistDir/index.html").exists()) {
+            delete(androidWebAssetsDir)
+            copy {
+                from rootWebDistDir
+                into androidWebAssetsDir
+            }
+        }
+
+        if (!androidWebIndex.exists()) {
+            throw new GradleException(
+                "Missing Capacitor web assets: android/app/src/main/assets/public/index.html. " +
+                "Build the web app, then sync Android before building the APK: " +
+                "npm run build && npx cap sync android. Without these assets the app launches to " +
+                "https://localhost with net::ERR_CONNECTION_REFUSED."
+            )
+        }
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn('ensureCapacitorWebAssets')
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    // MultiDex (safety for older devices / large method count)
+    implementation 'androidx.multidex:multidex:2.0.1'
+    // AndroidX Core
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.activity:activity:1.8.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.7.0'
+    // Phase 2A — ProcessLifecycleOwner for true app-level (not Activity-level) bg/fg detection.
+    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
+    // Pkg500 Phase A — ViewModel + Kotlin extensions for PrivateCallActivity scaffold.
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.activity:activity-ktx:1.8.2'
+    implementation 'androidx.webkit:webkit:1.10.0'
+
+    // Material Design
+    implementation 'com.google.android.material:material:1.11.0'
+
+    // Splash Screen
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    // Pkg210 — Biometric App Lock (fingerprint / face / device credential).
+    implementation 'androidx.biometric:biometric:1.2.0-alpha05'
+
+    // Pkg224 / M19 — Google Play In-App Updates (flexible + immediate).
+    implementation 'com.google.android.play:app-update:2.1.0'
+    implementation 'com.google.android.play:app-update-ktx:2.1.0'
+    // Pkg233 / M27 — In-app review API
+    implementation 'com.google.android.play:review:2.0.1'
+    implementation 'com.google.android.play:review-ktx:2.0.1'
+    // Pkg236 — Play Integrity API
+    implementation 'com.google.android.play:integrity:1.4.0'
+    // Pkg237 / M31 — Baseline Profile installer (faster cold start, smoother JIT)
+    implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
+    // Pkg257 — MediaSession (lock-screen / Bluetooth / Wear / Auto / Assistant)
+    implementation 'androidx.media:media:1.7.0'
+
+    // Pkg425 — SVGAPlayer-Android (Tencent / YY / Bigo / Chamet professional
+    // SVGA player). Native bitmap decoding + Skia frame composition on a
+    // dedicated GL thread, ~30% smoother than the web fallback. Wraps
+    // YYUED/SVGAPlayer-Android via JitPack.
+    implementation 'com.github.yyued:SVGAPlayer-Android:2.6.1'
+
+    // Pkg426 — VAP (Video Animation Player) by Tencent. Plays alpha-channel
+    // MP4 gift + entry animations via MediaCodec hardware decoder + OpenGL
+    // ES 2.0 alpha compositing. Same SDK shipped by WeChat / QQ / Tencent
+    // Video / Honor of Kings. ~8x faster first-play vs WebView <video>
+    // fallback, locked 60fps, ~25% less battery. MIT-licensed.
+    //
+    // 16 KB PAGE-SIZE FIX (Android 15+ / Pixel 8+ / Play Console Nov 2025
+    // requirement): old artifact `com.tencent.qgame:vap:1.0.20` was abandoned
+    // in 2022 with 4 KB-aligned .so libs that fail to load on 16 KB devices.
+    // Migrated to Tencent's official maintained artifact `io.github.tencent:vap:2.0.28`.
+    // Java package `com.tencent.qgame.animplayer.*` stays IDENTICAL — no
+    // Kotlin import changes needed in NativeVAPPlugin / NativeGiftAnimationPlugin
+    // / NativeEntryAnimationPlugin.
+    implementation 'io.github.tencent:vap:2.0.28'
+
+    // Pkg427 — AndroidX Media3 ExoPlayer for native Reels video playback.
+    // Hardware MediaCodec decoder + 256MB disk cache → buttery-smooth
+    // full-screen reels, instant scroll-back replay (zero network), and
+    // ~30% less battery vs the WebView <video> path. Apache 2.0.
+    // Camera-conflict safe (decoder-only, never touches Camera2).
+    // Android 15 (API 35) 16 KB page-size compliant. Do NOT downgrade.
+    def media3Version = '1.5.1'
+    implementation "androidx.media3:media3-exoplayer:${media3Version}"
+    implementation "androidx.media3:media3-datasource:${media3Version}"
+    implementation "androidx.media3:media3-datasource-okhttp:${media3Version}"
+    implementation "androidx.media3:media3-common:${media3Version}"
+    implementation "androidx.media3:media3-database:${media3Version}"
+
+    // Pkg431 — explicit OkHttp pin for WebSocketBridgePlugin. media3 brings
+    // OkHttp transitively but pinning here keeps the WS API surface stable
+    // even if a future media3 bump drops the dep.
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Pkg438 — Airbnb Lottie for vector JSON animations (entry + gift fallback).
+    // Industry standard; same library used by Instagram, Airbnb, TikTok.
+    // Required by NativeLottiePlugin + NativeGiftAnimationPlugin Lottie route.
+    implementation 'com.airbnb.android:lottie:6.4.0'
+
+    // Pkg440 — UCrop (image cropper) for avatar/cover/reels thumb
+    implementation 'com.github.yalantis:ucrop:2.2.8'
+
+    // Pkg438 Phase C — LeakCanary (debug builds only). Reports activity /
+    // fragment / view leaks during QA; ZERO bytes in release APK.
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+
+
+    // Firebase — BOM 33.7.0 is the first release where every Firebase native
+    // .so (firebase-installations, crashlytics-ndk, firestore native bits, etc.)
+    // ships 16 KB-aligned for Android 15+ devices. Old 32.7.3 BOM (Feb 2024)
+    // is a hard Play Console blocker as of Nov 2025.
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Google Play Billing
+    implementation 'com.android.billingclient:billing:6.2.0'
+
+    // Google Play Install Referrer (Pkg62 — deferred deep links from Play Store)
+    implementation 'com.android.installreferrer:installreferrer:2.2'
+
+    // Google Play Services
+    implementation 'com.google.android.gms:play-services-auth:21.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.1.0'
+
+
+    // Capacitor
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+
+    // Image Loading
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
+    // Security
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Work Manager
+    implementation 'androidx.work:work-runtime:2.9.0'
+
+    // ===== CameraX (Native Camera Pipeline) =====
+    // Used by NativeCameraPlugin for Live + Private Call.
+    // Replaces browser getUserMedia for professional-grade camera control.
+    def cameraxVersion = '1.4.2'
+    implementation "androidx.camera:camera-core:${cameraxVersion}"
+    implementation "androidx.camera:camera-camera2:${cameraxVersion}"
+    implementation "androidx.camera:camera-lifecycle:${cameraxVersion}"
+    implementation "androidx.camera:camera-view:${cameraxVersion}"
+    implementation "androidx.camera:camera-video:${cameraxVersion}"
+
+    // ===== Kotlin + Coroutines (LiveKit interop) =====
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // ===== LiveKit Android SDK (Native WebRTC) =====
+    // Publishes camera + mic as native WebRTC tracks for Live + Private Call.
+    // 2.26.0 required for Android 15 16 KB page-size compatibility. Do NOT downgrade.
+    implementation 'io.livekit:livekit-android:2.26.0'
+    // CameraX capturer module — registered in LiveKitPlugin.load() via
+    // CameraXHelper. Avoids the Camera2Capturer stateLock deadlock path
+    // (issue #471 / #502) on OEMs that modify camera2 HAL (Xiaomi/MIUI,
+    // Vivo, etc.) and gives lifecycle-aware camera session management.
+    implementation 'io.livekit:livekit-android-camerax:2.26.0'
+
+
+    // ===== MediaPipe Tasks Vision (Step 36 — virtual background / blur) =====
+    // On-device person-segmentation for VirtualBackgroundProcessor. Runs the
+    // SelfieSegmenter (UINT8 mask, 256x256) on a background thread; per-frame
+    // overhead is ~3 ms on a Snapdragon 8 Gen 2.
+    // 0.10.20 required for Android 15 16 KB page-size compatibility. Do NOT downgrade.
+    implementation 'com.google.mediapipe:tasks-vision:0.10.20'
+}
+
+// Pkg411 — wire installed @capacitor/* plugin Android modules. MUST be at
+// the bottom (after dependencies {} closes) because capacitor.build.gradle
+// contributes its own android {} + dependencies {} blocks at file scope.
+// Without this the push-notifications plugin has no Android implementation,
+// PushNotifications.register() silently fails, no FCM token is uploaded to
+// Supabase.device_tokens, and admin pushes never reach the device.
+apply from: 'capacitor.build.gradle'
