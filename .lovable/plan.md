@@ -206,3 +206,18 @@ Remaining honest notes:
 
 Party Room is now at 100% functional parity with the web `ChametStyle*` implementation, with every P0/P1/P2 gap either shipped or explicitly satisfied by an equivalent surface.
 
+---
+
+## Camera full-screen fill correction — DONE (2026-07-03)
+
+User rejected the previous blurred-backdrop / contain approach. Professional mobile-live rendering uses a single real camera layer that fills the viewport; black bars only happen in fit/contain mode.
+
+Research notes:
+- Agora `RENDER_MODE_HIDDEN` prioritizes filling the view and crops excess video; `RENDER_MODE_FIT` preserves full content and fills mismatched areas with black. Source: Agora Video SDK RenderModeType docs (`RenderModeHidden` vs `RenderModeFit`).
+- CSS `object-fit: cover` is the browser equivalent for replaced elements such as `<video>`: preserve aspect ratio, fill the content box, clip overflow. Source: MDN `object-fit` docs.
+
+Implementation:
+- Removed all newly-added duplicated blurred camera video layers from GoLive, LiveStream transition preview, LiveKitVideoPlayer, ActiveCall preview fallback, Party participant video, PreJoin device preview, and the debug frame page.
+- Changed the actual camera `<video>` surfaces from `object-contain` / centered 9:16 wrapper to full-surface `object-cover`.
+- `/debug/video-frames` now validates the final production policy: one camera layer, edge-to-edge fill, no black bars, no blur backdrop.
+

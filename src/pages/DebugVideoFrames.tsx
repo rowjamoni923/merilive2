@@ -9,10 +9,8 @@
  *   - Party seat tile (video party)
  *   - Game party small seat
  *
- * Each tile uses the same "portrait frame" pattern shipped in production:
- * `aspect-[9/16]` wrapper, `object-contain` video, and a blurred backdrop
- * fill so the letterbox is not visible. If any tile shows raw black bars
- * or a cropped/zoomed face, framing is off in that surface.
+ * Each tile uses the same production pattern: one real camera video filling
+ * the whole surface with `object-cover`. No blurred duplicate, no letterbox.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -37,7 +35,6 @@ const TILES: Tile[] = [
 export default function DebugVideoFrames() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showBackdrop, setShowBackdrop] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
 
   useEffect(() => {
@@ -78,10 +75,6 @@ export default function DebugVideoFrames() {
 
       <div className="flex flex-wrap items-center gap-3 text-xs">
         <label className="flex items-center gap-1.5">
-          <input type="checkbox" checked={showBackdrop} onChange={(e) => setShowBackdrop(e.target.checked)} />
-          Blurred backdrop (fill black bars)
-        </label>
-        <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} />
           Frame guides
         </label>
@@ -104,38 +97,33 @@ export default function DebugVideoFrames() {
             key={tile.key}
             tile={tile}
             stream={stream}
-            showBackdrop={showBackdrop}
             showGuides={showGuides}
           />
         ))}
       </div>
 
       <div className="text-[11px] text-white/50 leading-relaxed max-w-xl">
-        Pass criteria: face is <b>not zoomed/cropped</b> and no <b>raw black bars</b> are visible
-        (backdrop fills them). Sensor ratio should render identically in every tile.
+        Pass criteria: the actual camera fills every tile edge-to-edge, with no black bars and no blur layer.
       </div>
     </div>
   );
 }
 
 function FrameTile({
-  tile, stream, showBackdrop, showGuides,
+  tile, stream, showGuides,
 }: {
   tile: Tile;
   stream: MediaStream | null;
-  showBackdrop: boolean;
   showGuides: boolean;
 }) {
   const mainRef = useRef<HTMLVideoElement>(null);
-  const bgRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    [mainRef.current, bgRef.current].forEach((el) => {
-      if (el && stream && el.srcObject !== stream) {
-        el.srcObject = stream;
-        el.play().catch(() => {});
-      }
-    });
+    const el = mainRef.current;
+    if (el && stream && el.srcObject !== stream) {
+      el.srcObject = stream;
+      el.play().catch(() => {});
+    }
   }, [stream]);
 
   return (
@@ -146,35 +134,17 @@ function FrameTile({
           tile.wrapperClass,
         )}
       >
-        {/* Blurred backdrop fills the whole parent surface, not only the 9:16 foreground. */}
-        {showBackdrop && (
-          <video
-            ref={bgRef}
-            autoPlay
-            playsInline
-            muted
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-            style={{
-              filter: "blur(24px) brightness(0.72)",
-              transform: tile.mirror ? "scaleX(-1) scale(1.16)" : "scale(1.16)",
-              opacity: 0.84,
-            }}
-          />
-        )}
-
-        {/* Main video — natural camera frame, contained inside 9:16 wrapper */}
+        {/* Main video — real camera fills the full surface. */}
         <video
           ref={mainRef}
           autoPlay
           playsInline
           muted
-          className="relative h-full max-h-full max-w-full aspect-[9/16] object-contain pointer-events-none z-[1]"
+          className="absolute inset-0 h-full w-full object-cover pointer-events-none z-[1]"
           style={{
-            objectFit: "contain",
+            objectFit: "cover",
             objectPosition: "center center",
             transform: tile.mirror ? "scaleX(-1)" : undefined,
-            width: "auto",
           }}
         />
 

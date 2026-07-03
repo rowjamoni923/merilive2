@@ -63,7 +63,6 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   const [ccStatus, setCcStatus] = useState<CheckRunStatus>('idle');
   const [ccChecks, setCcChecks] = useState<CheckInfo[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const backdropRef = useRef<HTMLVideoElement | null>(null);
   const previewStreamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -124,11 +123,6 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
           videoRef.current.srcObject = stream;
           videoRef.current.muted = true;
           await videoRef.current.play().catch(() => {});
-        }
-        if (backdropRef.current) {
-          backdropRef.current.srcObject = stream;
-          backdropRef.current.muted = true;
-          await backdropRef.current.play().catch(() => {});
         }
         attachMicMeter(stream);
       } catch (err: any) {
@@ -230,15 +224,6 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
         <div className="space-y-4">
           {/* Preview */}
           <div className="relative mx-auto aspect-[9/16] max-h-[68vh] w-full max-w-[320px] overflow-hidden rounded-xl bg-black">
-            <video
-              ref={backdropRef}
-              aria-hidden="true"
-              playsInline
-              autoPlay
-              muted
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none [transform:scaleX(-1)_scale(1.16)]"
-              style={{ filter: 'blur(22px) brightness(0.72)', opacity: 0.84 }}
-            />
             <video 
               ref={videoRef}
               playsInline
@@ -254,8 +239,8 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               x5-video-player-fullscreen="false"
               x5-playsinline="true"
               webkit-playsinline="true"
-              className="h-full w-full object-contain bg-transparent [transform:scaleX(-1)]"
-              style={{ pointerEvents: 'none', WebkitAppearance: 'none', objectFit: 'contain', objectPosition: 'center center' } as React.CSSProperties}/>
+              className="h-full w-full object-cover bg-transparent [transform:scaleX(-1)]"
+              style={{ pointerEvents: 'none', WebkitAppearance: 'none', objectFit: 'cover', objectPosition: 'center center' } as React.CSSProperties}/>
 
           </div>
 
