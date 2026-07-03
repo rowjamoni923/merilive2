@@ -16,13 +16,14 @@
  *      must mirror the same `ilike` filter the list uses.
  */
 
-export type StatusBucket = "pending" | "approved" | "rejected";
+export type StatusBucket = "pending" | "approved" | "rejected" | "user_retry";
 
 export type StatusCounts = {
   pending: number;
   under_review: number;
   approved: number;
   rejected: number;
+  user_retry?: number;
   auto_approved?: number;
   auto_rejected?: number;
   auto_host?: number;
@@ -40,7 +41,9 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
   under_review: 0,
   approved: 0,
   rejected: 0,
+  user_retry: 0,
 };
+
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
@@ -163,6 +166,7 @@ export function countFaceReviewBuckets<T>(
 ): Required<StatusCounts> {
   const out: Required<StatusCounts> = {
     ...EMPTY_STATUS_COUNTS,
+    user_retry: 0,
     auto_approved: 0,
     auto_rejected: 0,
     auto_host: 0,
@@ -178,7 +182,8 @@ export function countFaceReviewBuckets<T>(
   for (const row of rows) {
     const status = getStatus(row);
     const retryRequired = isFaceRetryRequiredRow(row, status, getAdminNotes(row));
-    const bucket = retryRequired ? "pending" : bucketOfStatus(status);
+    // Retry rows are user-side work — never count them as admin's manual pending.
+    const bucket: StatusBucket = retryRequired ? "user_retry" : bucketOfStatus(status);
     const explicitAuto = typeof row === "object" && row !== null
       ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
         || String((row as { review_source?: string | null }).review_source || "").toLowerCase() === "auto"
@@ -192,25 +197,30 @@ export function countFaceReviewBuckets<T>(
           ? "host"
           : "user"
       : "user";
-    out[bucket]++;
-    if (bucket === "pending") out.manual_pending++;
-    else if (bucket === "approved" && auto) {
-      out.auto_approved++;
-      out.auto_face_verification++;
-      if (role === "host") out.auto_host++;
-      else out.auto_user++;
+    if (bucket === "user_retry") {
+      out.user_retry++;
+    } else {
+      out[bucket]++;
+      if (bucket === "pending") out.manual_pending++;
+      else if (bucket === "approved" && auto) {
+        out.auto_approved++;
+        out.auto_face_verification++;
+        if (role === "host") out.auto_host++;
+        else out.auto_user++;
+      }
+      else if (bucket === "approved") out.manual_approved++;
+      else if (bucket === "rejected" && auto) {
+        out.auto_rejected++;
+        out.auto_face_verification++;
+      }
+      else if (bucket === "rejected") out.manual_rejected++;
     }
-    else if (bucket === "approved") out.manual_approved++;
-    else if (bucket === "rejected" && auto) {
-      out.auto_rejected++;
-      out.auto_face_verification++;
-    }
-    else if (bucket === "rejected") out.manual_rejected++;
   }
 
   out.manual_total = out.manual_pending + out.manual_approved + out.manual_rejected;
   return out;
 }
+
 
 /** Count status buckets for an in-memory list of rows. */
 export function countStatusBuckets<T>(
@@ -292,6 +302,7 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
     under_review: Number(s.under_review || 0),
     approved: Number(s.approved || 0),
     rejected: Number(s.rejected || 0),
+    user_retry: Number(s.user_retry || 0),
     auto_approved: Number(s.auto_approved || 0),
     auto_rejected: Number(s.auto_rejected || 0),
     auto_host: Number(s.auto_host || 0),
@@ -304,6 +315,7 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
     total: Number(s.total || 0),
   };
 }
+
 
 /** Invalidate all cached status-count entries (e.g. after a mutation). */
 export function invalidateStatusCountsCache(table?: string): void {
@@ -374,10 +386,13 @@ export async function fetchFilteredStatusCounts(
         .select("id", { count: "exact", head: true })
         .ilike(opts.searchColumn, `%${q}%`);
 
-    const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-      base().not("status", "in", "(approved,rejected)"),
+    // Exclude retry-state rows from the admin Pending bucket — those are
+    // waiting on the USER to resubmit, not on admin review.
+    const [pendingRes, approvedRes, rejectedRes, retryRes] = await Promise.all([
+      base().not("status", "in", "(approved,rejected,needs_retry,retry_required,upload_failed,upload_incomplete)"),
       base().eq("status", "approved"),
       base().eq("status", "rejected"),
+      base().not("status", "in", "(approved,rejected,pending,submitted,under_review,applied,in_review,reviewing)"),
     ]);
 
     return {
@@ -385,8 +400,10 @@ export async function fetchFilteredStatusCounts(
       under_review: 0,
       approved: approvedRes.count || 0,
       rejected: rejectedRes.count || 0,
+      user_retry: retryRes.count || 0,
     };
   }
+
 
   // No RPC fallback configured → run the same 3 filtered counts with empty q
   // (which becomes an `ilike '%%'` matching everything).
