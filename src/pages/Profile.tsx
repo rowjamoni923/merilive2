@@ -1957,13 +1957,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     },
     { 
       icon: Building2, 
-      label: isInActiveAgency ? "Agency Details" : "Join Agency", 
-      path: isInActiveAgency ? "/agency-details" : "/join-agency",
-      rightText: isInActiveAgency ? "My Agency" : "Apply",
+      label: isAgencyOwner ? "Agency Dashboard" : (isInActiveAgency ? "Agency Details" : "Join Agency"), 
+      path: isAgencyOwner ? "/agency-dashboard" : (isInActiveAgency ? "/agency-details" : "/join-agency"),
+      rightText: isAgencyOwner ? "My Agency" : (isInActiveAgency ? "My Agency" : "Apply"),
       highlight: true,
-      iconBg: isInActiveAgency ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-pink-500 to-rose-500",
- iconColor:"text-display",
-      show: isOwnProfile && isFemale // Female host persona — visible from sign-up
+      iconBg: isAgencyOwner
+        ? "bg-gradient-to-r from-purple-500 to-indigo-500"
+        : (isInActiveAgency ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-pink-500 to-rose-500"),
+      iconColor:"text-display",
+      show: isOwnProfile && isFemale // Female host persona — visible from sign-up; upgrades to Dashboard when she owns an agency
     },
     { 
       icon: Building2, 
@@ -1972,9 +1974,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: isAgencyOwner ? "My Agency" : "Agent Rank",
       highlight: true,
       iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-50 border border-purple-100",
- iconColor: isAgencyOwner ?"text-display" :"text-purple-600",
+      iconColor: isAgencyOwner ?"text-display" :"text-purple-600",
       show: isOwnProfile && showAgencyCenter && !isFemale
     },
+
     { 
       icon: Mail, 
       label: "My Invitation", 
