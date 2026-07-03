@@ -41,9 +41,10 @@ const Game3DCard = ({
   onClick: () => void;
   index: number;
 }) => {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const showFallback = !game.logo_url || imgError;
+  // User directive: never render the DB `logo_url` for games — those are
+  // generic third-party placeholder icons. Show only our own branded
+  // gradient card + emoji so the panel stays on-brand.
+  const showFallback = true;
 
   return (
     <motion.button
