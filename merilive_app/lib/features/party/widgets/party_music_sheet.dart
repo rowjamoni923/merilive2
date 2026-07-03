@@ -214,15 +214,35 @@ class _PartyMusicSheetState extends State<_PartyMusicSheet> {
     final me = Supabase.instance.client.auth.currentUser?.id;
     if (me == null) return;
     final id = t['id'].toString();
+    final audioUrl = (t['audio_url'] as String?) ?? '';
     setState(() => _playingId = wasPlaying ? null : id);
     try {
+      // G8 — Publish through the native LiveKit audio mixer so viewers
+      // actually hear the track (ducked against the host mic).
+      // Native handler returns `{unimplemented: true}` on older APKs; we
+      // still announce via chat so the room sees the track name.
       if (wasPlaying) {
+        try {
+          await LiveKitBridge.instance.setBackgroundMusic(
+            url: null,
+            play: false,
+          );
+        } catch (_) {}
         await cubit.repository.announceMusic(
           roomId: cubit.roomId,
           hostId: me,
           trackTitle: 'Music stopped',
         );
       } else {
+        if (audioUrl.isNotEmpty) {
+          try {
+            await LiveKitBridge.instance.setBackgroundMusic(
+              url: audioUrl,
+              play: true,
+              volume: 0.6,
+            );
+          } catch (_) {}
+        }
         await cubit.repository.announceMusic(
           roomId: cubit.roomId,
           hostId: me,
@@ -237,4 +257,6 @@ class _PartyMusicSheetState extends State<_PartyMusicSheet> {
       );
     }
   }
+}
+
 }
