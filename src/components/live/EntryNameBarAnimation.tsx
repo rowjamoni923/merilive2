@@ -14,10 +14,11 @@ import { svgaCacheHas } from "@/utils/svgaCache";
 import { prewarmPopularAssets, prewarmSVGA } from "@/utils/svgaPrewarm";
 
 
-const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
+const getNameBarAnimationType = (url?: string): 'svga' | 'vap' | 'gif' | 'image' | null => {
   if (!url) return null;
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (cleanUrl.endsWith('.svga')) return 'svga';
+  if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.mov')) return 'vap';
   if (cleanUrl.endsWith('.gif')) return 'gif';
   if (cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg')) return 'image';
   return null;
