@@ -1298,10 +1298,14 @@ class LiveKitPlugin : Plugin() {
         )
 
     private fun configureAspectFitRenderer(renderer: TextureViewRenderer, mirror: Boolean? = null) {
-        // Native phone preview must be full-height portrait, not a horizontal
-        // letterboxed strip. Because capture is now locked to 9:16, FILL does
-        // not introduce the old 3:4 side-crop zoom; it simply fills the slot.
-        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL) } catch (_: Throwable) {}
+        // Web `<video>` defaults to `object-fit: contain` — the whole frame is
+        // visible, letterboxed as needed. On Android, using SCALE_ASPECT_FILL
+        // caused a visible "zoom-in" because the camera sensor delivers 16:9
+        // (or 4:3) frames while phone screens are ~20:9 — FILL cropped the
+        // sides. Match web behaviour with SCALE_ASPECT_FIT so the full frame
+        // is visible with no crop / no zoom.
+        try { renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT) } catch (_: Throwable) {}
+
         mirror?.let { try { renderer.setMirror(it) } catch (_: Throwable) {} }
         try {
             val lp = renderer.layoutParams
