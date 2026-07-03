@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/native/livekit_bridge.dart';
 import '../bloc/party_room_cubit.dart';
+
 
 /// PD7 — Host-only music panel.
 ///
