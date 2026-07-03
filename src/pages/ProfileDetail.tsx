@@ -808,15 +808,13 @@ const ProfileDetail = () => {
       const posterUrl = posterImages[currentSlideIndex]?.image_url;
       return normalizeProfileMediaUrl(posterUrl) || posterUrl;
     }
-    // Cover priority: cover_url → avatar_url → AI placeholder (gender-aware,
-    // owner sees blank/default so they're nudged to upload).
+    // Cover priority: cover_url → avatar_url only. NO generated / stock
+    // placeholder photos — every user has their own uploaded + face-verified
+    // photos. Missing → return empty so the gradient background shows.
     const real = profile?.cover_url || profile?.avatar_url;
     if (real) return normalizeProfileMediaUrl(real) || real;
-    if (isOwnProfile) return "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=800";
-    const gender: 'female' | 'male' = ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
-      ? 'female'
-      : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female');
-    return getDisplayAvatar(profile?.id || '', null, { gender });
+    return "";
+
   }, [posterImages, currentSlideIndex, profile, isOwnProfile]);
 
 
