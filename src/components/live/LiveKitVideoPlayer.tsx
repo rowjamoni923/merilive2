@@ -424,39 +424,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       className={cn('w-full h-full overflow-hidden relative camera-locked', className)}
       style={{ position: 'relative', zIndex: 0 }}
     >
-      {/* Blurred backdrop layer — same MediaStream painted with cover+blur so
-          the container fills edge to edge even when the main video uses
-          contain. This is how Bigo / Chamet / TikTok Live avoid both crops
-          (zoomed face) AND black bars simultaneously. Only rendered when the
-          main fit is contain; for cover callers the backdrop is redundant. */}
-      {fit === 'contain' && (
-        <video
-          ref={backdropRef}
-          aria-hidden
-          autoPlay
-          playsInline
-          muted
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          poster=""
-          {...nativeInlineVideoProps}
-          className="absolute inset-0 w-full h-full pointer-events-none select-none"
-          style={{
-            objectFit: 'cover',
-            objectPosition: 'center center',
-            transform: mirror
-              ? 'scaleX(-1) scale(1.15) translateZ(0)'
-              : 'scale(1.15) translateZ(0)',
-            width: '100%',
-            height: '100%',
-            filter: 'blur(28px) brightness(0.7) saturate(1.05)',
-            WebkitFilter: 'blur(28px) brightness(0.7) saturate(1.05)',
-            backgroundColor: '#000',
-            zIndex: 0,
-          } as CSSProperties}
-        />
-      )}
+      {/* Reference-parity: single <video> only. No blurred backdrop layer.
+          If a caller passes fit="contain" they accept letterboxing. */}
+
       <video 
         ref={videoRef}
         data-livekit-media="true"
