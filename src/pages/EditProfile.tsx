@@ -519,7 +519,11 @@ const EditProfile = () => {
       const { data, error } = await supabase.functions.invoke("link-email-to-account", {
         body: { email, password: linkPassword, otp: linkOtp },
       });
-      if (error) throw error;
+      // Even on non-2xx, try to read a real error message from the response body
+      if (error) {
+        const bodyMsg = await extractEdgeFnError(error, "");
+        throw new Error(bodyMsg || data?.error || error.message || "Email linking failed");
+      }
       if (!data?.success) throw new Error(data?.error || "Failed to link email");
 
       setUserEmail(email);
@@ -536,6 +540,7 @@ const EditProfile = () => {
       setEmailLinking(false);
     }
   };
+
 
   const copyId = () => {
     if (profile?.app_uid) {
