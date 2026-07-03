@@ -64,9 +64,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  // Camera zoom-out policy: default to CONTAIN so the full captured camera
-  // frame is visible instead of center-cropping/zooming the face in portrait UI.
-  fit = 'contain',
+  // Professional live-app policy: the actual camera fills the surface.
+  // No blurred duplicate/backdrop and no letterbox bars.
+  fit = 'cover',
   muted = true,
   onVideoStalled,
   onVideoReady,
@@ -74,7 +74,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const backdropRef = useRef<HTMLVideoElement>(null);
   const readyNotifiedRef = useRef(false);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
@@ -191,24 +190,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       } catch {
         // ignore
       }
-    }
-
-    // Mirror the SAME MediaStream into the blurred backdrop element so we
-    // fill the container without cropping the main video. Sharing srcObject
-    // between two <video> elements is well supported and does NOT open the
-    // camera twice.
-    const backdropEl = backdropRef.current;
-    if (backdropEl && mediaTrack && mediaTrack.readyState !== 'ended') {
-      try {
-        const cur = backdropEl.srcObject as MediaStream | null;
-        const curTrack = cur?.getVideoTracks?.()[0];
-        if (!curTrack || curTrack.id !== mediaTrack.id) {
-          backdropEl.srcObject = new MediaStream([mediaTrack]);
-        }
-        backdropEl.muted = true;
-        backdropEl.defaultMuted = true;
-        backdropEl.play?.().catch(() => {});
-      } catch { /* ignore */ }
     }
 
     // === EVENT HANDLING ===
@@ -421,28 +402,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       className={cn('w-full h-full overflow-hidden relative camera-locked flex items-center justify-center', className)}
       style={{ position: 'relative', zIndex: 0 }}
     >
-      {/* Fill the whole parent surface first; the foreground keeps contain/no-crop. */}
-      {fit === 'contain' && (
-        <video
-          ref={backdropRef}
-          aria-hidden="true"
-          autoPlay
-          playsInline
-          muted
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-          style={{
-            transform: mirror ? 'scaleX(-1) scale(1.16) translateZ(0)' : 'scale(1.16) translateZ(0)',
-            willChange: 'transform',
-            filter: 'blur(24px) brightness(0.72)',
-            opacity: 0.82,
-            zIndex: 0,
-          }}
-        />
-      )}
-      <div
-        className="relative h-full max-h-full max-w-full aspect-[9/16] overflow-hidden"
-        style={{ width: 'auto' }}
-      >
       <video 
         ref={videoRef}
         data-livekit-media="true"
@@ -457,7 +416,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         poster=""
         {...(pipId ? { 'data-pip-id': pipId } : {})}
         {...nativeInlineVideoProps}
-        className="w-full h-full pointer-events-none select-none relative"
+        className="absolute inset-0 w-full h-full pointer-events-none select-none"
         style={{
           objectFit: fit,
           objectPosition: 'center center',
@@ -485,7 +444,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           zIndex: 2,
         }}
       />
-      </div>
     </div>
   );
 });
