@@ -464,16 +464,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
         </motion.div>
       )}
       
-      {/* Join sparkle */}
-      {isJoinMessage && (
-        <motion.span 
-          className="text-sm shrink-0"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 0.5, repeat: 2 }}
-        >
-          ✨
-        </motion.span>
-      )}
+      {/* Join sparkle removed for Chamet-style mini row */}
     </motion.div>
   );
 
