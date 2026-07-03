@@ -34,17 +34,18 @@ Deno.serve(async (req) => {
     const otp = String(body.otp || "");
 
     if (!email || !password || !otp) {
-      return json({ success: false, error: "Email, password and OTP are required" }, 400);
+      return json({ success: false, error: "Email, password and OTP are required" });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return json({ success: false, error: "Invalid email format" }, 400);
+      return json({ success: false, error: "Invalid email format" });
     }
     if (password.length < 8) {
-      return json({ success: false, error: "Password must be at least 8 characters" }, 400);
+      return json({ success: false, error: "Password must be at least 8 characters" });
     }
     if (!/^\d{6}$/.test(otp)) {
-      return json({ success: false, error: "Invalid OTP format" }, 400);
+      return json({ success: false, error: "Invalid OTP format" });
     }
+
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
