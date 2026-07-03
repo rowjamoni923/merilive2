@@ -162,7 +162,7 @@ const StableStreamVideo = ({
       key={`${mediaTrack?.id || 'stream'}-${remountKey}`}
       videoTrack={videoTrack}
       mirror={mirror}
-      fit="cover"
+      fit="contain"
       onVideoStalled={() => setRemountKey((value) => value + 1)}
       className="w-full h-full"
     />
