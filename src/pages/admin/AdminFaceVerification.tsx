@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
 import { CopyableUid } from "@/components/admin/CopyableUid";
 import { getFaceSubmissionMediaReadiness } from "@/utils/faceVerificationMedia";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 
 /**
  * Premium Approve/Reject action bar.
@@ -707,14 +709,17 @@ const AdminFaceVerification = () => {
   const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
   const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isUserRetryRow = (s: Submission) => {
+    const st = String(s.status || '').trim().toLowerCase();
+    return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
+  };
   const filteredSubmissions = visiblePool.filter((sub) => {
-    if (activeTab === 'auto_approved') {
-      return isApproved(sub) && isAutoReviewed(sub);
-    }
-    if (activeTab === 'auto_rejected') {
-      return isRejected(sub) && isAutoReviewed(sub);
-    }
-    if (activeTab === 'pending') return isPendingBucket(sub);
+    if (activeTab === 'auto_approved') return isApproved(sub) && isAutoReviewed(sub);
+    if (activeTab === 'auto_rejected') return isRejected(sub) && isAutoReviewed(sub);
+    if (activeTab === 'manual_approved') return isApproved(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'manual_rejected') return isRejected(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'user_retry') return isUserRetryRow(sub);
+    if (activeTab === 'pending') return isPendingBucket(sub) && !isUserRetryRow(sub);
     if (activeTab === 'approved') return isApproved(sub);
     if (activeTab === 'rejected') return isRejected(sub);
     if (activeTab === 'all') return true;
@@ -725,11 +730,15 @@ const AdminFaceVerification = () => {
   const visibleCounts = mismatchOnly
     ? countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
     : serverStats;
-  const pendingCount = visibleCounts.pending;
-  const approvedCount = visibleCounts.approved;
-  const autoApprovedCount = visibleCounts.auto_approved;
-  const rejectedCount = visibleCounts.rejected;
-  const autoRejectedCount = visibleCounts.auto_rejected;
+  const pendingCount = Number(visibleCounts.manual_pending ?? visibleCounts.pending ?? 0);
+  const userRetryCount = Number(visibleCounts.user_retry ?? 0);
+  const approvedCount = Number(visibleCounts.approved ?? 0);
+  const autoApprovedCount = Number(visibleCounts.auto_approved ?? 0);
+  const manualApprovedCount = Number(visibleCounts.manual_approved ?? 0);
+  const rejectedCount = Number(visibleCounts.rejected ?? 0);
+  const autoRejectedCount = Number(visibleCounts.auto_rejected ?? 0);
+  const manualRejectedCount = Number(visibleCounts.manual_rejected ?? 0);
+
 
   if (loading) {
     return (
@@ -757,25 +766,29 @@ const AdminFaceVerification = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      {/* Stats Cards — split auto vs manual so admin sees exact accountability */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Pending', count: pendingCount, icon: Clock, accent: '#F59E0B' },
-          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4' },
-          { label: 'Approved', count: approvedCount, icon: CheckCircle2, accent: '#10B981' },
-          { label: 'Rejected', count: rejectedCount, icon: XCircle, accent: '#EF4444' },
-          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316' },
-          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, accent: '#8B5CF6' },
-        ].map(({ label, count, icon: Icon, accent }) => (
+          { label: 'Manual Pending', count: pendingCount, icon: Clock, accent: '#F59E0B', hint: 'Admin action needed' },
+          { label: 'User Retry', count: userRetryCount, icon: RefreshCw, accent: '#EAB308', hint: 'Waiting on user resubmit' },
+          { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, accent: '#06B6D4', hint: 'AI passed' },
+          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, accent: '#F97316', hint: 'AI blocked' },
+          { label: 'Manual Approved', count: manualApprovedCount, icon: CheckCircle2, accent: '#10B981', hint: 'Admin approved' },
+          { label: 'Manual Rejected', count: manualRejectedCount, icon: XCircle, accent: '#EF4444', hint: 'Admin rejected' },
+          { label: 'Approved (total)', count: approvedCount, icon: CircleCheckBig, accent: '#059669', hint: 'Auto + Manual' },
+          { label: 'Rejected (total)', count: rejectedCount, icon: XCircle, accent: '#DC2626', hint: 'Auto + Manual' },
+        ].map(({ label, count, icon: Icon, accent, hint }) => (
           <div key={label} className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
               <Icon className="w-4 h-4" style={{ color: accent }} />
             </div>
             <p className="text-2xl font-bold text-[#0F172A]">{count}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{hint}</p>
           </div>
         ))}
       </div>
+
 
       {/* Status legend — light professional card */}
       <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
@@ -853,11 +866,15 @@ const AdminFaceVerification = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="w-full overflow-x-auto -mx-2 px-2">
-        <TabsList className="inline-flex w-max md:grid md:grid-cols-6 md:w-full md:max-w-2xl overflow-visible">
+        <TabsList className="inline-flex w-max md:grid md:grid-cols-7 md:w-full md:max-w-3xl overflow-visible">
 
-          <TabsTrigger value="pending" className="relative overflow-visible" data-testid="tab-pending">
+          <TabsTrigger value="pending" className="relative overflow-visible text-xs" data-testid="tab-pending">
             Pending
             <span data-testid="tab-count-pending" className={pendingCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F59E0B", color: "#fff" }}>{pendingCount}</span>
+          </TabsTrigger>
+          <TabsTrigger value="user_retry" className="relative overflow-visible text-xs" data-testid="tab-user_retry">
+            User Retry
+            <span data-testid="tab-count-user_retry" className={userRetryCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#EAB308", color: "#fff" }}>{userRetryCount}</span>
           </TabsTrigger>
           <TabsTrigger value="auto_approved" className="relative overflow-visible text-xs" data-testid="tab-auto_approved">
             Auto Approved
@@ -867,19 +884,20 @@ const AdminFaceVerification = () => {
             Auto Rejected
             <span data-testid="tab-count-auto_rejected" className={autoRejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#F97316", color: "#fff" }}>{autoRejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="approved" className="relative overflow-visible" data-testid="tab-approved">
+          <TabsTrigger value="approved" className="relative overflow-visible text-xs" data-testid="tab-approved">
             Approved
             <span data-testid="tab-count-approved" className={approvedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#10B981", color: "#fff" }}>{approvedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="rejected" className="relative overflow-visible" data-testid="tab-rejected">
+          <TabsTrigger value="rejected" className="relative overflow-visible text-xs" data-testid="tab-rejected">
             Rejected
             <span data-testid="tab-count-rejected" className={rejectedCount > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#EF4444", color: "#fff" }}>{rejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="all" className="relative overflow-visible" data-testid="tab-all">
+          <TabsTrigger value="all" className="relative overflow-visible text-xs" data-testid="tab-all">
             All
             <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "admin-tab-badge absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-slate-900 shadow" : "sr-only"} style={{ backgroundColor: "#8B5CF6", color: "#fff" }}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
+
 
         </div>
 
@@ -1530,12 +1548,24 @@ const AdminFaceVerification = () => {
                       </div>
                     </div>
 
-                    {/* Remove Verification */}
+                    {/* Remove Verification (legacy quick-clear on this account only) */}
                     <Button variant="outline" className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10" onClick={() => handleRemoveVerification(selectedSubmission.user_id)} disabled={processing}>
                       {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
                       Remove Verification
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center">Removing will allow the user to re-verify</p>
+                    <p className="text-xs text-muted-foreground text-center">Removing will allow the user to re-verify on the SAME account</p>
+
+                    {/* Full Reset — for "wrong-account" support cases: wipes
+                        submissions + face-index so the same face can be
+                        verified on a DIFFERENT account. */}
+                    <ResetFaceVerificationButton
+                      userId={selectedSubmission.user_id}
+                      userLabel={selectedSubmission.profile?.display_name || selectedSubmission.full_name || null}
+                      onDone={() => { setShowDetailModal(false); fetchSubmissions(); }}
+                      className="w-full border-red-500/60 text-red-600 hover:bg-red-50"
+                    />
+                    <p className="text-xs text-muted-foreground text-center">Full reset removes the face from the duplicate-index so a NEW account can verify with the same face</p>
+
                   </div>
                 )}
               </div>

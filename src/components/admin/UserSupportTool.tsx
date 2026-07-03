@@ -17,6 +17,8 @@ import {
   AlertTriangle, RefreshCw
 } from "lucide-react";
 import { CopyableUid } from "@/components/admin/CopyableUid";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 
 interface UserResult {
   id: string;
@@ -647,7 +649,17 @@ export default function UserSupportTool() {
                       <KeyRound className="h-3.5 w-3.5 mr-1.5" />
                       Reset Password
                     </Button>
+
+                    {/* Wipe Face Verification (wrong-account fix) */}
+                    <ResetFaceVerificationButton
+                      userId={selectedUser.id}
+                      userLabel={selectedUser.display_name}
+                      onDone={refreshUser}
+                      className="justify-start text-xs h-9 border-red-500/30 text-red-400 hover:bg-red-500/10 w-full"
+                      buttonLabel="Wipe Face (wrong acc.)"
+                    />
                   </div>
+
                 </CardContent>
               </Card>
             </div>

@@ -32,6 +32,8 @@ import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
+import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
+
 interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -1431,6 +1433,19 @@ const AdminSupportTickets = () => {
                   >
                     ♻️ Remove & Allow Re-Verify
                   </Button>
+
+                  {/* Full wipe — also removes face-index so the SAME face
+                      can now be verified on a DIFFERENT account (wrong-
+                      account support case). */}
+                  <ResetFaceVerificationButton
+                    userId={selectedTicket.user_id}
+                    userLabel={selectedTicket.user_email || selectedTicket.subject}
+                    onDone={() => { /* ticket list unchanged */ }}
+                    size="sm"
+                    className="h-7 text-[10px] px-2 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                    buttonLabel="Wipe (wrong acc.)"
+                  />
+
 
                   <Select value={selectedTicket.status} onValueChange={updateTicketStatus} disabled={statusUpdating}>
                     <SelectTrigger className="w-24 h-7 text-[10px]">
