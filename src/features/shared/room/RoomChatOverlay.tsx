@@ -306,8 +306,13 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
       className={cn(
         "flex flex-wrap items-center gap-1.5 w-fit",
-        // Only apply default pill styling when there's NO designer bubble
-        !hasDesignerBubble && [
+        // Chamet-style mini for join messages — ultra compact, no gradient
+        isJoinMessage && !hasDesignerBubble && [
+          "rounded-full max-w-[80%] py-[2px] px-2 gap-1",
+          "bg-black/40 backdrop-blur-md border border-white/10",
+        ],
+        // Default pill styling for non-join, non-designer bubble messages
+        !hasDesignerBubble && !isJoinMessage && [
           "rounded-full max-w-[94%] md:max-w-[72%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
