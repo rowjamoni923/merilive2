@@ -417,14 +417,15 @@ const Index = () => {
       }, 150);
     };
 
-    // Profile heartbeats fire frequently (every ~2s per active user). Use a longer
-    // debounce so the presence flag (is_online / host_availability) still reorders
-    // the feed instantly without thrashing the RPC.
+    // Profile heartbeats fire frequently (every ~2s per active user). Keep the
+    // debounce short so presence flips (is_online / host_availability) reorder
+    // the feed instantly — matches Chamet/Bigo/Poppo perception threshold and
+    // eliminates the "user still shows online after they left" symptom.
     const queueProfileInvalidate = () => {
       if (profileInvalidateTimer) clearTimeout(profileInvalidateTimer);
       profileInvalidateTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
-      }, 600);
+      }, 150);
     };
 
     // Realtime push: LIVE via live_streams, Busy via private_calls + random_call_sessions,
