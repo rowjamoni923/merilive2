@@ -52,6 +52,12 @@ const RATING_ENABLED_SETTING_KEY = "rating_popup_enabled";
 // again on this device for this user (whether they dismissed it, let it
 // auto-close, clicked the banner to rate, or submitted proof).
 const ratingBannerDismissedKey = (userId: string) => `rating_banner_dismissed_v1_${userId}`;
+// Per-user "already claimed" cache — set the first time we detect a row in
+// rating_reward_claims. Prevents the banner from ever coming back after a
+// user has submitted their rating proof, even if a later network hiccup /
+// RLS race makes the DB check return empty. This is the primary block used
+// by isRatingBannerEligible so the check is instant + offline-safe.
+const ratingClaimedCacheKey = (userId: string) => `rating_reward_claimed_v1_${userId}`;
 
 export function FullScreenPromoBanners() {
   const [currentBanner, setCurrentBanner] = useState<PromoBanner | null>(null);
