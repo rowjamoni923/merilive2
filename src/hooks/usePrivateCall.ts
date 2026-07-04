@@ -89,6 +89,20 @@ export function usePrivateCall(userId: string | null) {
   const pendingCallCheckInFlightRef = useRef(false);
   const softEndCallRef = useRef<(() => void) | null>(null);
 
+  const consumeRandomAutoAccept = useCallback((callerId: string | null | undefined) => {
+    if (!callerId || typeof window === 'undefined') return false;
+    try {
+      const key = `random_call:auto_accept:${callerId}`;
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as { expiresAt?: number };
+      window.localStorage.removeItem(key);
+      return Number(parsed?.expiresAt ?? 0) > Date.now();
+    } catch (_) {
+      return false;
+    }
+  }, []);
+
   const showVerifiedIncomingCall = useCallback(async (callId: string) => {
     if (!userId || !callId || endedCallIdsRef.current.has(callId)) return false;
     if (incomingCallIdRef.current === callId) return true;
@@ -1261,6 +1275,10 @@ export function usePrivateCall(userId: string | null) {
       const status = String(row.status || '');
 
       if (row.host_id === userId && (status === 'pending' || status === 'ringing')) {
+        if (consumeRandomAutoAccept(row.caller_id)) {
+          void acceptCall(callId);
+          return;
+        }
         void showVerifiedIncomingCall(callId);
         return;
       }
@@ -1334,7 +1352,7 @@ export function usePrivateCall(userId: string | null) {
     return () => {
       supabase.removeChannel(privateCallChannel);
     };
-  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState, acceptCall, consumeRandomAutoAccept]);
 
   // Incoming call listener: FCM is the wake/delivery path, while the scoped
   // private_calls realtime listener above is the DB truth path for missed FCM,
