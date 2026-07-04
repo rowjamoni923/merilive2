@@ -495,6 +495,11 @@ const Tasks = () => {
         return;
       }
 
+      // Instantly cache "already claimed" so the home rating banner never
+      // pops up again for this user on this device — no wait for the next
+      // DB roundtrip. Matches FullScreenPromoBanners.ratingClaimedCacheKey.
+      try { localStorage.setItem(`rating_reward_claimed_v1_${user.id}`, "true"); } catch { /* ignore */ }
+
       setRatingSubmitted(true);
       setRatingAlreadyClaimed(true);
       toast.success('Screenshot submitted! Reward will be credited after admin approval.');
