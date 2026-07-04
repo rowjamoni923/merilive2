@@ -81,12 +81,15 @@ export function FullScreenPromoBanners() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // Instant permanent block: if we previously detected a claim row for this
+    // user, never re-show the banner. This is the single most important check
+    // — it eliminates the "banner keeps coming back after I already rated"
+    // complaint even if the DB roundtrip below fails or is slow.
+    try {
+      if (localStorage.getItem(ratingClaimedCacheKey(user.id)) === "true") return false;
+    } catch { /* ignore */ }
+
     // One-time cleanup of the legacy per-device dismiss flag.
-    // The previous build dismissed the banner permanently on Skip / X /
-    // auto-close — that broke the rule "show to every new user until they
-    // actually rate". The only source of truth now is `rating_reward_claims`:
-    // if a row exists for this user (pending / approved / rejected) → never
-    // show again. Otherwise → keep showing (once per session, 40s-2min in).
     try { localStorage.removeItem(ratingBannerDismissedKey(user.id)); } catch { /* ignore */ }
 
     const { data: settingData } = await supabase
@@ -98,13 +101,23 @@ export function FullScreenPromoBanners() {
     const isEnabled = settingData?.setting_value === true || settingData?.setting_value === "true";
     if (!isEnabled) return false;
 
-    const { data: existingClaims } = await supabase
+    const { data: existingClaims, error: claimErr } = await supabase
       .from("rating_reward_claims")
       .select("id")
       .eq("user_id", user.id)
       .limit(1);
 
-    if ((existingClaims?.length ?? 0) > 0) return false;
+    // If a row exists (pending / approved / rejected), the user has already
+    // completed their rating submission → cache permanently and never show
+    // the banner again on this device for this user.
+    if ((existingClaims?.length ?? 0) > 0) {
+      try { localStorage.setItem(ratingClaimedCacheKey(user.id), "true"); } catch { /* ignore */ }
+      return false;
+    }
+    // On a hard error we refuse to show the banner — better to skip once than
+    // to nag a user who has already rated but whose row we can't currently
+    // read. The next opportunity will re-check.
+    if (claimErr) return false;
     return true;
   }, []);
 
