@@ -184,6 +184,11 @@ export function RatingProofStatusRow() {
         return;
       }
 
+      // Instantly cache "already claimed" so the home rating banner never
+      // pops up again for this user on this device (matches
+      // FullScreenPromoBanners.ratingClaimedCacheKey).
+      try { localStorage.setItem(`rating_reward_claimed_v1_${userId}`, "true"); } catch { /* ignore */ }
+
       toast.success("Screenshot resubmitted! Awaiting admin review.", { id: tId });
       await refresh(userId);
     } catch (err) {
