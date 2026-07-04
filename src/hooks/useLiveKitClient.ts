@@ -16,7 +16,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
-import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, detachLiveKitRemoteAudioByPrefix, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
@@ -1687,10 +1687,28 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         els.forEach(el => {
           const key = el.dataset.livekitAudioKey;
           if (key) detachLiveKitRemoteAudio(key);
+          // Belt-and-suspenders: force-stop the element even if key lookup missed.
+          try { el.pause(); } catch { /* ignore */ }
+          try { (el as any).srcObject = null; } catch { /* ignore */ }
+          try { el.remove(); } catch { /* ignore */ }
         });
       });
       remoteAudioElementsRef.current.clear();
       remoteAudioTrackKeysRef.current.clear();
+      // Nuclear sweep: kill any orphaned <audio> attached to the "live" scope
+      // that escaped the per-participant tracking (e.g. subscribe raced with
+      // unmount before the ref was populated). Without this the audio element
+      // stays in <body>, keeps its MediaStream, and plays in the background
+      // after the user leaves the room.
+      try { detachLiveKitRemoteAudioByPrefix('live:'); } catch { /* ignore */ }
+      try {
+        document.querySelectorAll('audio[data-livekit-remote-audio="live"]').forEach((node) => {
+          const el = node as HTMLAudioElement;
+          try { el.pause(); } catch { /* ignore */ }
+          try { (el as any).srcObject = null; } catch { /* ignore */ }
+          try { el.remove(); } catch { /* ignore */ }
+        });
+      } catch { /* ignore */ }
 
       // 🛰️ Native publish path teardown.
       // Fix 6 — race native disconnect with a 3s timeout. The plugin's
