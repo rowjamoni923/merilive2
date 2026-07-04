@@ -50,6 +50,8 @@ export default function MatchCall() {
   useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
   const timerRef = useRef<number | null>(null);
   const heartbeatRef = useRef<number | null>(null);
+  const queueChannelRef = useRef<any>(null);
+  const broadcastTimeoutRef = useRef<number | null>(null);
 
   // Active-host counter — use the same server-authoritative verified-online
   // pool that random-call fanout uses, so the number never drifts from who can
@@ -104,6 +106,9 @@ export default function MatchCall() {
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
       if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
+      if (broadcastTimeoutRef.current) window.clearTimeout(broadcastTimeoutRef.current);
+      if (queueChannelRef.current) { try { supabase.removeChannel(queueChannelRef.current); } catch (_) {} }
+      if (broadcastChannelRef.current) { try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {} }
     };
   }, []);
 
@@ -188,6 +193,14 @@ export default function MatchCall() {
       try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {}
       broadcastChannelRef.current = null;
     }
+    if (queueChannelRef.current) {
+      try { supabase.removeChannel(queueChannelRef.current); } catch (_) {}
+      queueChannelRef.current = null;
+    }
+    if (broadcastTimeoutRef.current) {
+      window.clearTimeout(broadcastTimeoutRef.current);
+      broadcastTimeoutRef.current = null;
+    }
     broadcastIdRef.current = null;
     if (timerRef.current) window.clearInterval(timerRef.current);
     if (instantMode) { navigate(-1); return; }
@@ -204,6 +217,14 @@ export default function MatchCall() {
     if (broadcastChannelRef.current) {
       try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {}
       broadcastChannelRef.current = null;
+    }
+    if (queueChannelRef.current) {
+      try { supabase.removeChannel(queueChannelRef.current); } catch (_) {}
+      queueChannelRef.current = null;
+    }
+    if (broadcastTimeoutRef.current) {
+      window.clearTimeout(broadcastTimeoutRef.current);
+      broadcastTimeoutRef.current = null;
     }
     broadcastIdRef.current = null;
     if (timerRef.current) {
@@ -272,6 +293,9 @@ export default function MatchCall() {
     const broadcast = !!opts?.broadcast;
     lastFiltersRef.current = filters;
     setErrorMsg("");
+    if (queueChannelRef.current) { try { supabase.removeChannel(queueChannelRef.current); } catch (_) {} queueChannelRef.current = null; }
+    if (broadcastChannelRef.current) { try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {} broadcastChannelRef.current = null; }
+    if (broadcastTimeoutRef.current) { window.clearTimeout(broadcastTimeoutRef.current); broadcastTimeoutRef.current = null; }
 
     const maxRateForHold = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
     const preauthMinutes = Number(settings?.preauth_minutes_hold ?? 0);
@@ -390,12 +414,13 @@ export default function MatchCall() {
         broadcastChannelRef.current = ch;
 
         // Auto-timeout if no host picks up within ring window
-        window.setTimeout(async () => {
+        broadcastTimeoutRef.current = window.setTimeout(async () => {
           if (broadcastIdRef.current !== bid) return;
           if (timerRef.current) window.clearInterval(timerRef.current);
           try { supabase.removeChannel(ch); } catch (_) {}
           broadcastChannelRef.current = null;
           broadcastIdRef.current = null;
+          broadcastTimeoutRef.current = null;
           try { await supabase.functions.invoke("random-call-cancel", { body: { broadcast_id: bid } }); } catch (_) {}
           setErrorMsg("No host picked up. Please try again.");
           setPhase("error");
@@ -413,10 +438,12 @@ export default function MatchCall() {
                   .from("random_call_sessions" as any)
                   .select("livekit_room, host_id").eq("id", sid).maybeSingle();
                 supabase.removeChannel(channel);
+                queueChannelRef.current = null;
                 if (sess) await handoff(sid, (sess as any).host_id);
               }
             },
           ).subscribe();
+        queueChannelRef.current = channel;
       } else {
         throw new Error((data as any)?.error ?? "Unknown response");
       }

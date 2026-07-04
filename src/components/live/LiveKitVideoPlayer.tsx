@@ -64,9 +64,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   videoTrack,
   className,
   mirror = false,
-  // Professional live-app policy: the actual camera fills the surface.
-  // No blurred duplicate/backdrop and no letterbox bars.
-  fit = 'cover',
+  // No-zoom camera policy: match web's natural framing everywhere. `cover`
+  // crops tall Android/call/live/party surfaces and looks like camera zoom.
+  fit = 'contain',
   muted = true,
   onVideoStalled,
   onVideoReady,

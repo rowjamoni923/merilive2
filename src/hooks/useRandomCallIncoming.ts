@@ -141,6 +141,12 @@ export function useRandomCallIncoming() {
       const r = data as any;
       setIncoming(null);
       if (r?.ok) {
+        try {
+          window.localStorage.setItem(
+            `random_call:auto_accept:${current.callerId}`,
+            JSON.stringify({ broadcastId: current.broadcastId, expiresAt: Date.now() + 45000 }),
+          );
+        } catch (_) { /* ignore */ }
         // Server has now broadcast `random_broadcast_matched` to the caller.
         // The caller's MatchCall page completes the handoff which calls
         // `startCall(hostId)` → standard private-call pipeline (call-deliver
