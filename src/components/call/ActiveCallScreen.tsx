@@ -1273,8 +1273,8 @@ export function ActiveCallScreen({
                   autoPlay
                   playsInline
                   muted
-                  className="absolute inset-0 h-full w-full object-cover bg-transparent"
-                  style={{ transform: 'scaleX(-1)', objectFit: 'cover', objectPosition: 'center center' }}
+                  className="absolute inset-0 h-full w-full object-contain bg-transparent"
+                  style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
               </div>
@@ -1432,8 +1432,8 @@ export function ActiveCallScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 h-full w-full object-cover bg-transparent z-[4]"
-              style={{ transform: 'scaleX(-1)', objectFit: 'cover', objectPosition: 'center center' }}
+              className="absolute inset-0 h-full w-full object-contain bg-transparent z-[4]"
+              style={{ transform: 'scaleX(-1)', objectFit: 'contain', objectPosition: 'center center' }}
             />
             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[6] px-3 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/90 text-black border border-amber-200/60 shadow-lg">
               PREVIEW MODE — your camera mirrored to both tiles
