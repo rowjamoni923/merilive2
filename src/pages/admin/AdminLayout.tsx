@@ -2040,6 +2040,77 @@ export default function AdminLayout() {
       console.log('[Admin] Browser notification failed:', e);
     }
   }, []);
+
+  // 📬 Gmail Support inbox background poll — global (works on ANY admin page)
+  // Ensures admins get notified the moment a new email arrives at the support
+  // inbox, without having to open the Gmail Support page.
+  const gmailUnreadRef = useRef<number>(-1);
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+
+    const fetchGmailUnread = async () => {
+      try {
+        const adminToken = getAdminSessionToken();
+        if (!adminToken) return;
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-support`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'x-admin-token': adminToken,
+            },
+            body: JSON.stringify({ action: 'unread_count' }),
+          }
+        );
+        if (!res.ok || cancelled) return;
+        const data = await res.json().catch(() => ({}));
+        const unread = Number(data?.count ?? data?.unread ?? 0) || 0;
+        const prev = gmailUnreadRef.current;
+
+        // Reflect in sidebar badge
+        setNotificationCountsByPath((cur) => {
+          if ((cur['/admin/gmail-support'] || 0) === unread) return cur;
+          return { ...cur, '/admin/gmail-support': unread };
+        });
+
+        // Fire toast + sound when new email(s) arrive (skip first tick)
+        if (prev >= 0 && unread > prev) {
+          const delta = unread - prev;
+          try { playNotificationSoundRef.current(); } catch { /* noop */ }
+          toast.info(`📧 ${delta} new support email${delta > 1 ? 's' : ''}`, {
+            description: 'Open Gmail Support to reply.',
+            duration: Infinity,
+            action: {
+              label: 'Open',
+              onClick: () => { window.location.href = '/admin/gmail-support'; },
+            },
+          });
+          try {
+            showBrowserNotification(
+              `${delta} new support email${delta > 1 ? 's' : ''}`,
+              'Open Gmail Support to reply.'
+            );
+          } catch { /* noop */ }
+        }
+        gmailUnreadRef.current = unread;
+      } catch {
+        // silent — network flap should not spam admin
+      }
+    };
+
+    fetchGmailUnread();
+    const timer = setInterval(fetchGmailUnread, 45000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [isAdmin, showBrowserNotification]);
+
+
   // ONE global subscription handles ALL admin tables.
   // Alert toasts/sounds are driven by window events (zero extra channels).
   useEffect(() => {
