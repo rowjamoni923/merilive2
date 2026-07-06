@@ -5206,6 +5206,51 @@ export type Database = {
         }
         Relationships: []
       }
+      face_verification_analysis_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_error: string | null
+          last_http_status: number | null
+          last_request_id: number | null
+          locked_at: string | null
+          next_run_at: string
+          status: string
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_http_status?: number | null
+          last_request_id?: number | null
+          locked_at?: string | null
+          next_run_at?: string
+          status?: string
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_http_status?: number | null
+          last_request_id?: number | null
+          locked_at?: string | null
+          next_run_at?: string
+          status?: string
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       face_verification_submissions: {
         Row: {
           admin_notes: string | null
@@ -23201,6 +23246,15 @@ export type Database = {
       }
       is_dm_blocked: {
         Args: { _conversation_id: string; _sender: string }
+        Returns: boolean
+      }
+      is_face_verification_auto_reviewed: {
+        Args: {
+          _admin_notes: string
+          _ai_analysis: Json
+          _status: string
+          _verification_method: string
+        }
         Returns: boolean
       }
       is_group_member: {
