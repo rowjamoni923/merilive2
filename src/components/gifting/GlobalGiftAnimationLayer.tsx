@@ -1,13 +1,9 @@
-import { lazy, Suspense } from "react";
+import FullScreenGiftAnimation from "@/components/level/FullScreenGiftAnimation";
 import {
   useCurrentFullScreenGift,
   completeCurrentFullScreenGift,
 } from "@/hooks/useGlobalFullScreenGift";
 import { isNativeGiftPipelineActive } from "@/utils/nativeAnimRuntime";
-
-const FullScreenGiftAnimation = lazy(
-  () => import("@/components/level/FullScreenGiftAnimation"),
-);
 
 /**
  * Mount ONCE at App root. Drains the global full-screen gift queue.
@@ -22,19 +18,17 @@ export function GlobalGiftAnimationLayer() {
   if (isNativeGiftPipelineActive()) return null;
 
   return (
-    <Suspense fallback={null}>
-      <FullScreenGiftAnimation
-        gift={job.gift}
-        senderName={job.senderName}
-        senderAvatar={job.senderAvatar}
-        senderLevel={job.senderLevel}
-        receiverName={job.receiverName}
-        receiverAvatar={job.receiverAvatar}
-        receiverLevel={job.receiverLevel}
-        quantity={job.quantity}
-        onComplete={() => completeCurrentFullScreenGift(job.id)}
-      />
-    </Suspense>
+    <FullScreenGiftAnimation
+      gift={job.gift}
+      senderName={job.senderName}
+      senderAvatar={job.senderAvatar}
+      senderLevel={job.senderLevel}
+      receiverName={job.receiverName}
+      receiverAvatar={job.receiverAvatar}
+      receiverLevel={job.receiverLevel}
+      quantity={job.quantity}
+      onComplete={() => completeCurrentFullScreenGift(job.id)}
+    />
   );
 }
 

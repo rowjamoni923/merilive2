@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import { normalizePublicMediaUrl } from '@/lib/cdnImage';

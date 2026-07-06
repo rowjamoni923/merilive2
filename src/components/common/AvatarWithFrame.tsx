@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, memo, useCallback, useRef, forwardRef, useMemo } from 'react';
+import React, { useState, useEffect, Suspense, memo, useCallback, useRef, forwardRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,9 +23,7 @@ import {
   persistAvatarUrl,
   persistFrame,
 } from '@/utils/persistentAvatarCache';
-
-// Lazy load frame player
-const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
+import UniversalFramePlayer from './UniversalFramePlayer';
 
 // Preload SVGA function
 import { preloadSVGA } from './SVGAPlayer';

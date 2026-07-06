@@ -46,7 +46,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MotionConfig } from "framer-motion";
 import { isLowEndDevice } from "@/utils/lowEndDevice";
-const GlobalGiftAnimationLayer = lazy(() => import("@/components/gifting/GlobalGiftAnimationLayer"));
+import GlobalGiftAnimationLayer from "@/components/gifting/GlobalGiftAnimationLayer";
 
 // =============================================
 // HEAVY PROVIDERS - Loaded normally but rendered in Suspense boundaries

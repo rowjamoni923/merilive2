@@ -12,12 +12,11 @@ import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
 import { pickDisplayLevel } from "@/utils/displayLevel";
-
-const UniversalFramePlayer = lazy(() => import("@/components/common/UniversalFramePlayer"));
+import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 
 interface PodiumFrame {
   rank_position: number;
