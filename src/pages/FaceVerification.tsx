@@ -2597,13 +2597,11 @@ const FaceVerification = () => {
       // NOW it is safe to lock the screen — URLs are in the DB and admin sees media.
       lockUnderReviewAndReturn('Your verification is being checked now…', submissionId, false);
 
-      // Run AI so approve/reject/retry is instant.
-      if (videoUrl && (angleUrls.front_url || selfieUrl)) {
-        const result = await invokeFaceVerificationAnalyze(submissionId);
-        if (result === 'manual' || result === 'error') scheduleProfileRedirect();
-      } else {
-        scheduleProfileRedirect();
-      }
+      // Run AI by submission id only. The DB row is already complete at this
+      // point; relying on local URL variables can skip the analyzer after a
+      // healed/orphan recovery even though the submission is ready server-side.
+      const result = await invokeFaceVerificationAnalyze(submissionId);
+      if (result === 'manual' || result === 'error') scheduleProfileRedirect();
 
       return;
       
@@ -2936,12 +2934,11 @@ const FaceVerification = () => {
       // NOW it is safe to lock the screen — media URLs are in the DB.
       lockUnderReviewAndReturn('Your host application is being checked now…', submissionId, false);
 
-      if (faceVideoUrl && (angleUrls.front_url || selfieUrl)) {
-        const result = await invokeFaceVerificationAnalyze(submissionId);
-        if (result === 'manual' || result === 'error') scheduleProfileRedirect();
-      } else {
-        scheduleProfileRedirect();
-      }
+      // Run AI by submission id only. The DB row is already complete at this
+      // point; relying on local URL variables can skip the analyzer after a
+      // healed/orphan recovery even though the submission is ready server-side.
+      const result = await invokeFaceVerificationAnalyze(submissionId);
+      if (result === 'manual' || result === 'error') scheduleProfileRedirect();
 
       return;
 
