@@ -23764,6 +23764,7 @@ export type Database = {
         Args: { p_device_id: string; p_session_id: string; p_user_id: string }
         Returns: Json
       }
+      record_active_host_live_bonus_minutes: { Args: never; Returns: Json }
       record_gift_combo: {
         Args: {
           p_context_key: string
@@ -23785,6 +23786,10 @@ export type Database = {
           reason: string
           suspect: boolean
         }[]
+      }
+      record_host_live_bonus_elapsed: {
+        Args: { _host_id: string; _source?: string }
+        Returns: Json
       }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
