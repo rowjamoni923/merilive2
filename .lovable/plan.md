@@ -98,3 +98,23 @@ Phase 3-4 = codemod-style sweeps across src/**/*.tsx.
 - Active function audit now returns no `compute_helper_diamond_payouts` / `search_group_members` `p.full_name` references.
 - Existing unrelated linter warnings pre-date this migration and were not introduced by this fix.
 
+---
+
+# Live Host Hourly Bonus Accuracy Fix — 2026-07-07
+
+## Professional pattern research
+- Poppo/Chamet/Bigo-style host programs publish daily/hourly earning requirements and caps; pro implementations treat streamed time as a server-side earning ledger, not a UI timer. References reviewed: Poppo host salary/benefit pages and Chamet vs Poppo host earning comparison pages.
+- Correct rule: fragmented live sessions inside the same 24-hour bonus day accumulate toward the configured paid-hour cap; streaming beyond the cap must not create extra payable hours.
+- Android/WebView timers can pause in background, so the database must count from active stream heartbeats every minute; client minute ticks remain only as backup.
+
+## Current gap found
+- `new_host_live_bonus_progress` is empty, so no host has been paid through this bonus path yet.
+- Current RPC depends on `record_host_live_minute` being called by the client card every 60s; if Android/WebView throttles JS, minutes are lost.
+- Current logic counts active setting rows instead of enforcing `max_hours_per_day`, so a future 6/7/10-row config could overpay unless capped.
+
+## Fix being applied
+- Add server-authoritative minute accounting from `live_streams` rows with fresh host heartbeat.
+- Accumulate 5/10/50-minute fragmented sessions into the same program-day buckets until the configured daily cap is full.
+- Enforce `max_hours_per_day` across state, minute counting, and claiming so hosts can stream 6–10 hours but only the first configured paid hours receive bonus.
+- Schedule a database cron tick every minute; keep client heartbeat as a backup, deduped by actual elapsed time.
+
