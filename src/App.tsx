@@ -1616,6 +1616,7 @@ const App = () => {
                   <Route path="orphan-payments" element={<AdminRouteGuard routeSegment="recharge-history"><AdminOrphanPayments /></AdminRouteGuard>} />
                   <Route path="users/:userId/wallet" element={<AdminRouteGuard routeSegment="recharge-history"><AdminUserWallet /></AdminRouteGuard>} />
                   <Route path="suspicious-activity" element={<AdminRouteGuard routeSegment="recharge-history"><AdminSuspiciousActivity /></AdminRouteGuard>} />
+                  <Route path="payout-forensics" element={<AdminRouteGuard routeSegment="recharge-history"><AdminPayoutForensics /></AdminRouteGuard>} />
                   <Route path="crypto-recovery" element={<AdminRouteGuard routeSegment="recharge-history"><AdminCryptoRecovery /></AdminRouteGuard>} />
                   <Route path="google-play-health" element={<AdminRouteGuard routeSegment="recharge-history"><AdminGooglePlayHealth /></AdminRouteGuard>} />
                   <Route path="recharge-campaigns" element={<AdminRouteGuard routeSegment="recharge-campaigns"><AdminRechargeCampaigns /></AdminRouteGuard>} />
