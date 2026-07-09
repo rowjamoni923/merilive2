@@ -742,6 +742,7 @@ const AdminRechargeHistory = () => {
             <SelectItem value="admin_manual">🔧 Admin Manual</SelectItem>
             <SelectItem value="trader">🏪 Trader</SelectItem>
             <SelectItem value="diamond_transfer">💎 Diamond Transfer</SelectItem>
+            <SelectItem value="swift_pay">🪙 Swift Pay (Crypto)</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
