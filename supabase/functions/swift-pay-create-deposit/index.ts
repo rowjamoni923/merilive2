@@ -177,6 +177,7 @@ Deno.serve(async (req) => {
     let targetHelperId: string | null = null;
     let campaignId: string | null = null;
     let externalUserId = `merilive_${user.id}`;
+    let firstRechargeMeta: { applied: boolean; bonus_coins: number; base_coins: number; package_bonus_available: number } | null = null;
 
     if (target === "helper_wallet") {
       if (!body.helper_id || !body.custom_coins) {
