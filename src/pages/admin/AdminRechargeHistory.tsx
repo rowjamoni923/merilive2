@@ -45,7 +45,7 @@ interface RechargeRecord {
   helper_id: string | null;
   payment_details: any;
   user_payment_proof: string | null;
-  source: 'helper' | 'google_play' | 'google_play_attempt' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer';
+  source: 'helper' | 'google_play' | 'google_play_attempt' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer' | 'swift_pay';
   source_label: string;
   transaction_id: string | null;
   google_order_id: string | null;
@@ -179,8 +179,28 @@ const AdminRechargeHistory = () => {
         diamondQ = diamondQ.eq('status', statusFilter);
       }
 
-      const [helperRes, rechargeRes, googleAttemptRes, gatewayRes, traderRes, diamondRes] = await Promise.all([
-        helperQ, rechargeQ, googleAttemptQ, gatewayQ, traderQ, diamondQ
+      // 7. Fetch swift_pay_topups (Crypto)
+      let swiftQ = supabase
+        .from('swift_pay_topups')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (start && end) {
+        swiftQ = swiftQ.gte('created_at', start).lte('created_at', end);
+      }
+      if (statusFilter !== 'all') {
+        // swift_pay statuses: pending, paid, credited, expired, failed
+        const swiftStatuses = statusFilter === 'completed'
+          ? ['credited', 'paid']
+          : statusFilter === 'failed'
+            ? ['failed', 'expired']
+            : [statusFilter];
+        swiftQ = swiftQ.in('status', swiftStatuses);
+      }
+
+      const [helperRes, rechargeRes, googleAttemptRes, gatewayRes, traderRes, diamondRes, swiftRes] = await Promise.all([
+        helperQ, rechargeQ, googleAttemptQ, gatewayQ, traderQ, diamondQ, swiftQ
       ]);
 
       // Transform helper_orders
@@ -360,8 +380,58 @@ const AdminRechargeHistory = () => {
         };
       });
 
+      // Transform swift_pay_topups (Crypto)
+      const swiftRecords: RechargeRecord[] = (swiftRes.data || []).map((r: any) => {
+        const rawStatus = String(r.status || '');
+        const uiStatus = rawStatus === 'credited' || rawStatus === 'paid'
+          ? 'completed'
+          : rawStatus === 'expired' || rawStatus === 'failed'
+            ? 'failed'
+            : rawStatus;
+        return {
+          id: r.id,
+          user_id: r.user_id,
+          coin_amount: r.coins_amount || 0,
+          amount_usd: Number(r.price_usd || 0),
+          amount_local: Number(r.pay_amount || 0),
+          currency_code: r.pay_currency || 'USD',
+          payment_method: `Swift Pay (${r.pay_currency || 'crypto'}/${r.pay_network || ''})`,
+          status: uiStatus,
+          created_at: r.created_at,
+          processed_at: r.credited_at || r.paid_at || null,
+          helper_id: null,
+          payment_details: {
+            raw_status: rawStatus,
+            pay_currency: r.pay_currency,
+            pay_network: r.pay_network,
+            pay_address: r.pay_address,
+            pay_amount: r.pay_amount,
+            expires_at: r.expires_at,
+            paid_at: r.paid_at,
+            credited_at: r.credited_at,
+            poll_attempts: r.poll_attempts,
+            error_message: r.error_message,
+            target_type: r.target_type,
+            target_helper_id: r.target_helper_id,
+          },
+          user_payment_proof: null,
+          source: 'swift_pay' as const,
+          source_label: '🪙 Swift Pay',
+          transaction_id: r.payment_id || null,
+          google_order_id: null,
+        };
+      });
+
       // Merge & sort
-      let allRecords = [...helperRecords, ...rechargeRecords, ...googleAttemptRecords, ...gatewayRecords, ...traderRecords, ...diamondRecords];
+      let allRecords = [
+        ...helperRecords,
+        ...rechargeRecords,
+        ...googleAttemptRecords,
+        ...gatewayRecords,
+        ...traderRecords,
+        ...diamondRecords,
+        ...swiftRecords,
+      ];
 
       // Apply source filter
       if (sourceFilter !== 'all') {
@@ -496,7 +566,7 @@ const AdminRechargeHistory = () => {
     fetchRecords();
   }, [fetchRecords]);
 
-  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers'], fetchRecords);
+  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -672,6 +742,7 @@ const AdminRechargeHistory = () => {
             <SelectItem value="admin_manual">🔧 Admin Manual</SelectItem>
             <SelectItem value="trader">🏪 Trader</SelectItem>
             <SelectItem value="diamond_transfer">💎 Diamond Transfer</SelectItem>
+            <SelectItem value="swift_pay">🪙 Swift Pay (Crypto)</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>

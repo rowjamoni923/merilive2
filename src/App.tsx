@@ -272,6 +272,7 @@ const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTra
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
 const AdminWalletLedger = lazy(lazyRetry(() => import("./pages/admin/AdminWalletLedger")));
 const AdminRewardsAudit = lazy(lazyRetry(() => import("./pages/admin/AdminRewardsAudit")));
+const AdminOrphanPayments = lazy(lazyRetry(() => import("./pages/admin/AdminOrphanPayments")));
 const AdminCryptoRecovery = lazy(lazyRetry(() => import("./pages/admin/AdminCryptoRecovery")));
 const AdminGooglePlayHealth = lazy(lazyRetry(() => import("./pages/admin/AdminGooglePlayHealth")));
 const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
@@ -1609,6 +1610,7 @@ const App = () => {
                   <Route path="recharge-history" element={<AdminRouteGuard routeSegment="recharge-history"><AdminRechargeHistory /></AdminRouteGuard>} />
                   <Route path="wallet-ledger" element={<AdminRouteGuard routeSegment="recharge-history"><AdminWalletLedger /></AdminRouteGuard>} />
                   <Route path="rewards-audit" element={<AdminRouteGuard routeSegment="recharge-history"><AdminRewardsAudit /></AdminRouteGuard>} />
+                  <Route path="orphan-payments" element={<AdminRouteGuard routeSegment="recharge-history"><AdminOrphanPayments /></AdminRouteGuard>} />
                   <Route path="crypto-recovery" element={<AdminRouteGuard routeSegment="recharge-history"><AdminCryptoRecovery /></AdminRouteGuard>} />
                   <Route path="google-play-health" element={<AdminRouteGuard routeSegment="recharge-history"><AdminGooglePlayHealth /></AdminRouteGuard>} />
                   <Route path="recharge-campaigns" element={<AdminRouteGuard routeSegment="recharge-campaigns"><AdminRechargeCampaigns /></AdminRouteGuard>} />
