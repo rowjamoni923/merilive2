@@ -16271,6 +16271,7 @@ export type Database = {
           helper_application_intent: Json | null
           id: string
           idempotency_key: string
+          last_poll_snapshot: Json | null
           last_polled_at: string | null
           package_id: string | null
           paid_at: string | null
@@ -16299,6 +16300,7 @@ export type Database = {
           helper_application_intent?: Json | null
           id?: string
           idempotency_key: string
+          last_poll_snapshot?: Json | null
           last_polled_at?: string | null
           package_id?: string | null
           paid_at?: string | null
@@ -16327,6 +16329,7 @@ export type Database = {
           helper_application_intent?: Json | null
           id?: string
           idempotency_key?: string
+          last_poll_snapshot?: Json | null
           last_polled_at?: string | null
           package_id?: string | null
           paid_at?: string | null
@@ -19080,6 +19083,32 @@ export type Database = {
           pipeline: string | null
           reward_claimed_rows: number | null
           total_rows: number | null
+        }
+        Relationships: []
+      }
+      admin_swift_pay_recovery_candidates: {
+        Row: {
+          coins_amount: number | null
+          created_at: string | null
+          display_name: string | null
+          error_message: string | null
+          expires_at: string | null
+          external_user_id: string | null
+          hours_since_created: number | null
+          id: string | null
+          last_poll_snapshot: Json | null
+          last_polled_at: string | null
+          pay_address: string | null
+          pay_amount: number | null
+          pay_currency: string | null
+          pay_network: string | null
+          payment_id: string | null
+          phone_number: string | null
+          price_usd: number | null
+          priority_bucket: string | null
+          status: string | null
+          user_id: string | null
+          username: string | null
         }
         Relationships: []
       }
