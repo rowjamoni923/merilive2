@@ -289,7 +289,7 @@ serve(async (req) => {
     console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${creditedCoins}, New balance: ${newBalance}`);
 
     await markAttempt({
-      status: Boolean(processData.alreadyProcessed) ? 'already_processed' : 'completed',
+      status: processData.alreadyProcessed ? 'already_processed' : 'completed',
       google_order_id: purchaseData.orderId || orderId || null,
       amount_usd: productInfo.priceUsd ?? null,
       coins_amount: creditedCoins,
