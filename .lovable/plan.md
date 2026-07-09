@@ -63,6 +63,8 @@ Deliverables:
 ## Purchase analysis status
 - Google Play verified purchase path already writes `recharge_transactions` with `purchase_source='google_play'`, order/product/token fields, amount, coins, and completed status.
 - User `0733697258` exists, but no `recharge_transactions` row matches this ID/order/reference; screenshot alone is an SMS/payment confirmation and is not proof of a Google Play credited transaction.
+- Added `google_play_purchase_attempts` audit table and deployed `verify-google-purchase` logging: every future Play verification attempt is stored as received/validating/pending/failed/completed with product, order, user, amount, coins, token hash/suffix, and error reason.
+- Admin Recharge History now includes a Play Attempts source for failed/pending Google verification attempts, while completed purchases remain in the normal Google Play rows.
 
 ## Technical Details
 
