@@ -100,18 +100,28 @@ const AdminOrphanPayments = () => {
         details: c,
       }));
 
-      const swiftRows: Row[] = ((swiftRes.data as any[]) || []).map((r) => ({
-        kind: "swift_pay_stuck",
-        id: r.id,
-        created_at: r.created_at,
-        status: r.status,
-        user_ref: r.user_id?.slice(0, 8) || "—",
-        user_id: r.user_id,
-        amount: `${r.pay_amount || 0} ${r.pay_currency || ""} ($${r.price_usd || 0})`,
-        method: `Swift Pay ${r.pay_network || ""}`,
-        reference: r.payment_id || r.idempotency_key || "—",
-        details: r,
-      }));
+      const swiftRows: Row[] = ((swiftRes.data as any[]) || []).map((r) => {
+        const snap = r.last_poll_snapshot || null;
+        const shortfall = snap?.shortfall_usd;
+        const gatewayHint = snap
+          ? (shortfall > 0
+              ? ` · gateway received $${Number(snap.total_deposited || 0).toFixed(2)} / $${Number(snap.needed_total_usd || 0).toFixed(2)} (short $${Number(shortfall).toFixed(2)})`
+              : ` · gateway confirmed — pending credit`)
+          : " · never confirmed on-chain";
+        return {
+          kind: "swift_pay_stuck",
+          id: r.id,
+          created_at: r.created_at,
+          status: r.status,
+          user_ref: r.user_id?.slice(0, 8) || "—",
+          user_id: r.user_id,
+          amount: `${r.pay_amount || 0} ${r.pay_currency || ""} ($${r.price_usd || 0})`,
+          method: `Swift Pay ${r.pay_network || ""}${gatewayHint}`,
+          reference: r.payment_id || r.idempotency_key || "—",
+          details: r,
+        };
+      });
+
 
       const googleRows: Row[] = ((googleRes.data as any[]) || []).map((r) => ({
         kind: "google_play_stuck",
