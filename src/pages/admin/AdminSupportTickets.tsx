@@ -70,6 +70,13 @@ interface SupportMessage {
   voice_transcript?: string;
 }
 
+interface RecoveryPackage {
+  product_id: string | null;
+  coins_amount: number;
+  bonus_coins: number | null;
+  price_usd: number | string | null;
+}
+
 const REPLY_LANGUAGES = [
   { code: "user_lang", label: "User's Language" },
   { code: "en", label: "English" },
@@ -179,6 +186,7 @@ const AdminSupportTickets = () => {
   const [recoveryOrderId, setRecoveryOrderId] = useState("");
   const [recoveryReason, setRecoveryReason] = useState("Google Play purchase not delivered");
   const [sendingRecovery, setSendingRecovery] = useState(false);
+  const [recoveryPackages, setRecoveryPackages] = useState<RecoveryPackage[]>([]);
   const [stats, setStats] = useState({
     total: 0,
     open: 0,
@@ -263,6 +271,21 @@ const AdminSupportTickets = () => {
       setUserContact(null);
     }
   }, [selectedTicket]);
+
+  useEffect(() => {
+    supabase
+      .from('coin_packages')
+      .select('product_id, coins_amount, bonus_coins, price_usd')
+      .eq('is_active', true)
+      .order('price_usd', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          recordAdminError({ kind: "query", label: "AdminSupportTickets.loadRecoveryPackages", message: formatAdminError(error) });
+          return;
+        }
+        setRecoveryPackages((data || []) as RecoveryPackage[]);
+      });
+  }, []);
 
   // Live message sync for the open ticket dialog: realtime/app-sync only.
   // No polling/focus fallback — support delivery must be event-driven.
@@ -1576,12 +1599,18 @@ const AdminSupportTickets = () => {
                           <SelectValue placeholder="Select package" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="7000">💎 7,000 ($1.99)</SelectItem>
-                          <SelectItem value="13200">💎 13,200 ($3.99)</SelectItem>
-                          <SelectItem value="56000">💎 56,000 ($14.99)</SelectItem>
-                          <SelectItem value="169000">💎 169,000 ($23.99)</SelectItem>
-                          <SelectItem value="470000">💎 470,000 ($59.99)</SelectItem>
-                          <SelectItem value="650000">💎 650,000 ($129.99)</SelectItem>
+                          {recoveryPackages.length === 0 ? (
+                            <SelectItem value="not_configured" disabled>Not configured by admin</SelectItem>
+                          ) : recoveryPackages.map((pkg) => {
+                            const baseCoins = Number(pkg.coins_amount || 0);
+                            const packageBonus = Number(pkg.bonus_coins || 0);
+                            const totalCoins = baseCoins + packageBonus;
+                            return (
+                              <SelectItem key={`${pkg.product_id || baseCoins}-${totalCoins}`} value={String(totalCoins)}>
+                                💎 {totalCoins.toLocaleString()} (${Number(pkg.price_usd || 0).toFixed(2)}){packageBonus > 0 ? ` · includes +${packageBonus.toLocaleString()}` : ''}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1611,19 +1640,28 @@ const AdminSupportTickets = () => {
                         if (!recoveryCoins || !selectedTicket?.user_id) return;
                         setSendingRecovery(true);
                         try {
+                          const selectedRecoveryPackage = recoveryPackages.find((pkg) => {
+                            const totalCoins = Number(pkg.coins_amount || 0) + Number(pkg.bonus_coins || 0);
+                            return totalCoins === parseInt(recoveryCoins);
+                          });
                           const { data, error } = await supabase.functions.invoke('admin-verify-purchase', {
                             body: {
                               userId: selectedTicket.user_id,
                               coinAmount: parseInt(recoveryCoins),
                               reason: recoveryReason,
                               googleOrderId: recoveryOrderId || undefined,
+                              productId: selectedRecoveryPackage?.product_id || undefined,
                             }
                           });
                           if (error) throw error;
                           if (data?.success) {
+                            const bonusParts = [
+                              Number(data.firstRechargeBonusCoins || 0) > 0 ? `first recharge +${Number(data.firstRechargeBonusCoins).toLocaleString()}` : null,
+                              Number(data.vipBonusDiamonds || 0) > 0 ? `VIP +${Number(data.vipBonusDiamonds).toLocaleString()}` : null,
+                            ].filter(Boolean).join(', ');
                             toast({
                               title: "✅ Purchase Recovered!",
-                              description: `${parseInt(recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}`,
+                              description: `${Number(data.coinAmount || recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
                             });
                             setShowPurchaseRecovery(false);
                             setRecoveryCoins("");
@@ -1645,7 +1683,7 @@ const AdminSupportTickets = () => {
                           setSendingRecovery(false);
                         }
                       }}
-                      disabled={sendingRecovery || !recoveryCoins}
+                      disabled={sendingRecovery || !recoveryCoins || recoveryCoins === "not_configured"}
                     >
                       {sendingRecovery ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
                       {sendingRecovery ? "Crediting..." : "Credit Diamonds"}
