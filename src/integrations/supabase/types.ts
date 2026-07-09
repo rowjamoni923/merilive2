@@ -17775,6 +17775,78 @@ export type Database = {
           },
         ]
       }
+      user_payment_claims: {
+        Row: {
+          channel: string
+          claimed_amount: number | null
+          claimed_currency: string | null
+          claimed_paid_at: string | null
+          claimed_payment_method: string | null
+          claimed_reference: string | null
+          created_at: string
+          created_by: string
+          id: string
+          matched_at: string | null
+          matched_by: string | null
+          matched_source_id: string | null
+          matched_source_table: string | null
+          notes: string | null
+          proof_url: string | null
+          reported_app_uid: string | null
+          reported_email: string | null
+          reported_phone: string | null
+          reported_user_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          claimed_amount?: number | null
+          claimed_currency?: string | null
+          claimed_paid_at?: string | null
+          claimed_payment_method?: string | null
+          claimed_reference?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_source_id?: string | null
+          matched_source_table?: string | null
+          notes?: string | null
+          proof_url?: string | null
+          reported_app_uid?: string | null
+          reported_email?: string | null
+          reported_phone?: string | null
+          reported_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          claimed_amount?: number | null
+          claimed_currency?: string | null
+          claimed_paid_at?: string | null
+          claimed_payment_method?: string | null
+          claimed_reference?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_source_id?: string | null
+          matched_source_table?: string | null
+          notes?: string | null
+          proof_url?: string | null
+          reported_app_uid?: string | null
+          reported_email?: string | null
+          reported_phone?: string | null
+          reported_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_purchased_backgrounds: {
         Row: {
           background_id: string
