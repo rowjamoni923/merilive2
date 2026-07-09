@@ -427,7 +427,7 @@ Deno.serve(async (req) => {
         payment_id: depositBody?.payment_id ? String(depositBody.payment_id) : null,
         idempotency_key: idempotencyKey,
         expires_at: depositBody?.expires_at ?? null,
-        raw_payload: depositBody,
+        raw_payload: { ...depositBody, __first_recharge: firstRechargeMeta },
         status: "pending",
         target_type: target,
         target_helper_id: targetHelperId,
