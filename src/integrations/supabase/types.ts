@@ -19112,6 +19112,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_wallet_rapid_earners: {
+        Row: {
+          currency: string | null
+          event_count: number | null
+          hour_bucket: string | null
+          source_type: string | null
+          total_delta: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      admin_wallet_reconciliation: {
+        Row: {
+          currency: string | null
+          drift: number | null
+          last_movement: string | null
+          ledger_entries: number | null
+          ledger_sum: number | null
+          profile_balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      admin_wallet_suspicious_clusters: {
+        Row: {
+          cluster_key: string | null
+          cluster_type: string | null
+          event_count: number | null
+          first_seen: string | null
+          last_seen: string | null
+          total_credited: number | null
+          user_count: number | null
+          user_ids: string[] | null
+        }
+        Relationships: []
+      }
       agencies_public: {
         Row: {
           agency_code: string | null
