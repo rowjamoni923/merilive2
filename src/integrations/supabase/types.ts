@@ -23527,6 +23527,10 @@ export type Database = {
         Returns: undefined
       }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
+      increment_swift_pay_poll_attempts: {
+        Args: { p_ids: string[] }
+        Returns: number
+      }
       infer_country_from_city_region: {
         Args: { _city: string; _region: string }
         Returns: string
