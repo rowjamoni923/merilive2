@@ -270,6 +270,7 @@ const AdminTransferScheduler = lazy(lazyRetry(() => import("./pages/admin/AdminT
 const AdminAgencyCommissionLog = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyCommissionLog")));
 const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTransferHistory")));
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
+const AdminWalletLedger = lazy(lazyRetry(() => import("./pages/admin/AdminWalletLedger")));
 const AdminCryptoRecovery = lazy(lazyRetry(() => import("./pages/admin/AdminCryptoRecovery")));
 const AdminGooglePlayHealth = lazy(lazyRetry(() => import("./pages/admin/AdminGooglePlayHealth")));
 const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
@@ -1605,6 +1606,7 @@ const App = () => {
                   <Route path="agency-commission-log" element={<AdminRouteGuard routeSegment="agency-commission-log"><AdminAgencyCommissionLog /></AdminRouteGuard>} />
                   <Route path="transfer-history" element={<AdminRouteGuard routeSegment="transfer-history"><AdminTransferHistory /></AdminRouteGuard>} />
                   <Route path="recharge-history" element={<AdminRouteGuard routeSegment="recharge-history"><AdminRechargeHistory /></AdminRouteGuard>} />
+                  <Route path="wallet-ledger" element={<AdminRouteGuard routeSegment="recharge-history"><AdminWalletLedger /></AdminRouteGuard>} />
                   <Route path="crypto-recovery" element={<AdminRouteGuard routeSegment="recharge-history"><AdminCryptoRecovery /></AdminRouteGuard>} />
                   <Route path="google-play-health" element={<AdminRouteGuard routeSegment="recharge-history"><AdminGooglePlayHealth /></AdminRouteGuard>} />
                   <Route path="recharge-campaigns" element={<AdminRouteGuard routeSegment="recharge-campaigns"><AdminRechargeCampaigns /></AdminRouteGuard>} />
