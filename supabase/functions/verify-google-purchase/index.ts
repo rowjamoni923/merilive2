@@ -185,7 +185,7 @@ serve(async (req) => {
 
     await markAttempt({
       status: 'validating_with_google',
-      amount_usd: productInfo.price_usd ?? null,
+      amount_usd: productInfo.priceUsd ?? null,
       coins_amount: productInfo.coins ?? null,
       currency_code: 'USD',
     });
@@ -291,7 +291,7 @@ serve(async (req) => {
     await markAttempt({
       status: Boolean(processData.alreadyProcessed) ? 'already_processed' : 'completed',
       google_order_id: purchaseData.orderId || orderId || null,
-      amount_usd: productInfo.price_usd ?? null,
+      amount_usd: productInfo.priceUsd ?? null,
       coins_amount: creditedCoins,
       recharge_transaction_id: processData.transactionId || null,
       completed_at: new Date().toISOString(),
