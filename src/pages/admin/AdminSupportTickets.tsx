@@ -280,7 +280,7 @@ const AdminSupportTickets = () => {
       .order('price_usd', { ascending: true })
       .then(({ data, error }) => {
         if (error) {
-          recordAdminError({ kind: "query", label: "AdminSupportTickets.loadRecoveryPackages", message: formatAdminError(error) });
+          recordAdminError({ kind: "rest", label: "AdminSupportTickets.loadRecoveryPackages", message: formatAdminError(error) });
           return;
         }
         setRecoveryPackages((data || []) as RecoveryPackage[]);
