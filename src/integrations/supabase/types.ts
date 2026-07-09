@@ -19066,6 +19066,54 @@ export type Database = {
       }
     }
     Views: {
+      admin_payout_fraud_signals: {
+        Row: {
+          account_age_days_at_request: number | null
+          account_created_at: string | null
+          amount_native: number | null
+          created_at: string | null
+          entity_id: string | null
+          entity_name: string | null
+          id: string | null
+          payment_method: string | null
+          signal: string | null
+          source: string | null
+          status: string | null
+          usd_amount: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
+      admin_payout_processor_stats: {
+        Row: {
+          first_processed: string | null
+          last_processed: string | null
+          payout_count: number | null
+          processed_by: string | null
+          source: string | null
+          total_usd: number | null
+        }
+        Relationships: []
+      }
+      admin_payout_unified: {
+        Row: {
+          amount_native: number | null
+          created_at: string | null
+          entity_id: string | null
+          entity_name: string | null
+          id: string | null
+          payment_method: string | null
+          payment_method_type: string | null
+          processed_at: string | null
+          processed_by: string | null
+          source: string | null
+          status: string | null
+          usd_amount: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       admin_recharge_pipeline_health: {
         Row: {
           attempts_24h: number | null
