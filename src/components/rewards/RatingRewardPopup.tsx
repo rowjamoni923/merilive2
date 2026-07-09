@@ -34,8 +34,8 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   const [rewardAmounts, setRewardAmounts] = useState<{ host_beans: number; user_diamonds: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Pkg63 — pending/approved blocks new submissions; rejected → allow retry.
-  const isLocked = latestStatus === 'pending' || latestStatus === 'approved';
+  // Any submitted claim blocks this popup forever; terminal decisions stay in history only.
+  const isLocked = latestStatus === 'pending' || latestStatus === 'approved' || latestStatus === 'rejected';
 
   const refreshLatestClaim = useCallback(async (uid: string) => {
     const { data } = await supabase

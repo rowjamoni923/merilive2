@@ -46,6 +46,24 @@ Deliverables:
 - Playwright headless viewport 393×852 (Pixel-8) screenshot pass — visual diff → broken layout detect।
 - APK rebuild + physical device smoke test (user side)।
 
+---
+
+# Rating Reward Decision Hardening — 2026-07-09
+
+## Professional pattern research
+- Chamet/Bigo/Poppo-style reward moderation must treat approve/reject as terminal, idempotent decisions: one pending row enters review, one admin action finalizes it, pending queue instantly removes it.
+- User app should not keep resurfacing the active reward prompt after any submission is decided; final records belong in history/audit, not active claim UI.
+
+## Fix applied
+- `approve_rating_reward` now locks the claim row, credits reward once, and returns a safe already-processed result for duplicate clicks.
+- Added `reject_rating_reward` RPC so reject uses the same server-authoritative, locked, audited path as approve.
+- Admin Rating Rewards active queue now loads only `status='pending'`; approved/rejected items live only in Transaction History.
+- User active Rating Reward row now loads only pending claims; approved/rejected decisions disappear instantly from the app surface.
+
+## Purchase analysis status
+- Google Play verified purchase path already writes `recharge_transactions` with `purchase_source='google_play'`, order/product/token fields, amount, coins, and completed status.
+- User `0733697258` exists, but no `recharge_transactions` row matches this ID/order/reference; screenshot alone is an SMS/payment confirmation and is not proof of a Google Play credited transaction.
+
 ## Technical Details
 
 ```
