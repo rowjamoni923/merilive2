@@ -18940,6 +18940,16 @@ export type Database = {
       }
     }
     Views: {
+      admin_rewards_health: {
+        Row: {
+          completed_rows: number | null
+          last_activity: string | null
+          pipeline: string | null
+          reward_claimed_rows: number | null
+          total_rows: number | null
+        }
+        Relationships: []
+      }
       agencies_public: {
         Row: {
           agency_code: string | null
