@@ -179,8 +179,28 @@ const AdminRechargeHistory = () => {
         diamondQ = diamondQ.eq('status', statusFilter);
       }
 
-      const [helperRes, rechargeRes, googleAttemptRes, gatewayRes, traderRes, diamondRes] = await Promise.all([
-        helperQ, rechargeQ, googleAttemptQ, gatewayQ, traderQ, diamondQ
+      // 7. Fetch swift_pay_topups (Crypto)
+      let swiftQ = supabase
+        .from('swift_pay_topups')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (start && end) {
+        swiftQ = swiftQ.gte('created_at', start).lte('created_at', end);
+      }
+      if (statusFilter !== 'all') {
+        // swift_pay statuses: pending, paid, credited, expired, failed
+        const swiftStatuses = statusFilter === 'completed'
+          ? ['credited', 'paid']
+          : statusFilter === 'failed'
+            ? ['failed', 'expired']
+            : [statusFilter];
+        swiftQ = swiftQ.in('status', swiftStatuses);
+      }
+
+      const [helperRes, rechargeRes, googleAttemptRes, gatewayRes, traderRes, diamondRes, swiftRes] = await Promise.all([
+        helperQ, rechargeQ, googleAttemptQ, gatewayQ, traderQ, diamondQ, swiftQ
       ]);
 
       // Transform helper_orders
