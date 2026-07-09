@@ -250,6 +250,7 @@ const AdminRechargeHistory = () => {
         .map((r: any) => String(r.transaction_id)));
 
       const googleAttemptRecords: RechargeRecord[] = ((googleAttemptRes.data || []) as any[])
+        .filter((r: any) => !['completed', 'already_processed'].includes(String(r.status || '')))
         .filter((r: any) => !rechargeTokenHashes.has(String(r.purchase_token_hash || '')))
         .map((r: any) => ({
           id: r.id,
