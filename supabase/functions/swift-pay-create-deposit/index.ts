@@ -250,10 +250,9 @@ Deno.serve(async (req) => {
         }
         packageId = pkg.id;
 
-        // Stash first-recharge intent into the deposit body so it lands in
-        // raw_payload and the poll worker can insert first_recharge_claims
-        // atomically with the credit.
-        (depositBody as any).__first_recharge = {
+        // Stash first-recharge intent so the poll worker can insert
+        // first_recharge_claims atomically with the credit.
+        firstRechargeMeta = {
           applied: firstRechargeApplied,
           bonus_coins: appliedBonus,
           base_coins: baseCoins,
