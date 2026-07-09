@@ -566,7 +566,7 @@ const AdminRechargeHistory = () => {
     fetchRecords();
   }, [fetchRecords]);
 
-  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers'], fetchRecords);
+  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
