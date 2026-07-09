@@ -6530,6 +6530,57 @@ export type Database = {
           },
         ]
       }
+      google_play_rtdn_events: {
+        Row: {
+          created_at: string
+          event_type_code: number | null
+          id: string
+          message_id: string | null
+          notification_type: string | null
+          order_id: string | null
+          package_name: string | null
+          process_error: string | null
+          processed: boolean
+          processed_at: string | null
+          product_id: string | null
+          publish_time: string | null
+          purchase_token: string | null
+          raw_payload: Json
+        }
+        Insert: {
+          created_at?: string
+          event_type_code?: number | null
+          id?: string
+          message_id?: string | null
+          notification_type?: string | null
+          order_id?: string | null
+          package_name?: string | null
+          process_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          product_id?: string | null
+          publish_time?: string | null
+          purchase_token?: string | null
+          raw_payload: Json
+        }
+        Update: {
+          created_at?: string
+          event_type_code?: number | null
+          id?: string
+          message_id?: string | null
+          notification_type?: string | null
+          order_id?: string | null
+          package_name?: string | null
+          process_error?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          product_id?: string | null
+          publish_time?: string | null
+          purchase_token?: string | null
+          raw_payload?: Json
+        }
+        Relationships: []
+      }
       group_join_requests: {
         Row: {
           decided_at: string | null
@@ -19012,6 +19063,16 @@ export type Database = {
       }
     }
     Views: {
+      admin_recharge_pipeline_health: {
+        Row: {
+          attempts_24h: number | null
+          completed_24h: number | null
+          gateway: string | null
+          last_event_at: string | null
+          stuck_pending: number | null
+        }
+        Relationships: []
+      }
       admin_rewards_health: {
         Row: {
           completed_rows: number | null
