@@ -91,9 +91,10 @@ Deno.serve(async (req) => {
   if (!pending || pending.length === 0) return json({ checked: 0, credited: 0 });
 
 
-  const balanceCache = new Map<string, { balance: number; total_deposited: number }>();
+  const balanceCache = new Map<string, { balance: number; total_deposited: number; status_code: number }>();
   const priorPaidUsdCache = new Map<string, number>();
   const touchPollIds: string[] = [];
+  const snapshotUpdates: Array<{ id: string; snapshot: any }> = [];
   let credited = 0;
   const results: any[] = [];
 
@@ -110,12 +111,17 @@ Deno.serve(async (req) => {
         try { balBody = balText ? JSON.parse(balText) : null; } catch { balBody = null; }
         if (!balRes.ok || !balBody) {
           touchPollIds.push(row.id);
+          snapshotUpdates.push({
+            id: row.id,
+            snapshot: { checked_at: nowIso, status_code: balRes.status, error: (balText || "no_body").slice(0, 300) },
+          });
           results.push({ id: row.id, skipped: "balance_unavailable", status: balRes.status });
           continue;
         }
         bal = {
           balance: Number(balBody.balance ?? 0),
           total_deposited: Number(balBody.total_deposited ?? 0),
+          status_code: balRes.status,
         };
         balanceCache.set(row.external_user_id, bal);
       }
@@ -135,12 +141,26 @@ Deno.serve(async (req) => {
         priorPaidUsdCache.set(row.external_user_id, usedUsd);
       }
 
-      const isPaid = bal.total_deposited >= usedUsd + expectedUsd - 0.01;
+      const neededTotal = usedUsd + expectedUsd;
+      const isPaid = bal.total_deposited >= neededTotal - 0.01;
+      const snapshot = {
+        checked_at: nowIso,
+        status_code: bal.status_code,
+        balance: bal.balance,
+        total_deposited: bal.total_deposited,
+        expected_usd: expectedUsd,
+        prior_used_usd: usedUsd,
+        needed_total_usd: neededTotal,
+        shortfall_usd: Math.max(0, neededTotal - bal.total_deposited),
+      };
       if (!isPaid) {
         touchPollIds.push(row.id);
-        results.push({ id: row.id, waiting: true, balance: bal.total_deposited, needed: usedUsd + expectedUsd });
+        snapshotUpdates.push({ id: row.id, snapshot });
+        results.push({ id: row.id, waiting: true, balance: bal.total_deposited, needed: neededTotal });
         continue;
       }
+      snapshotUpdates.push({ id: row.id, snapshot: { ...snapshot, matched: true } });
+
 
       // Mark paid first (idempotency anchor) — accept transition from any
       // non-credited status (pending / paid / expired-but-actually-paid).
