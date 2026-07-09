@@ -38,11 +38,13 @@ const SOURCE_TYPES = [
 const CURRENCIES = ["all", "beans", "diamonds", "coins"] as const;
 
 export default function AdminWalletLedger() {
+  const [searchParams] = useSearchParams();
+  const initialSource = searchParams.get("source") || "all";
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [userFilter, setUserFilter] = useState("");
   const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>("all");
-  const [source, setSource] = useState<string>("all");
+  const [source, setSource] = useState<string>(initialSource);
   const [days, setDays] = useState<string>("7");
   const [realtime, setRealtime] = useState(true);
 
