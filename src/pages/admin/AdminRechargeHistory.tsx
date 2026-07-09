@@ -45,7 +45,7 @@ interface RechargeRecord {
   helper_id: string | null;
   payment_details: any;
   user_payment_proof: string | null;
-  source: 'helper' | 'google_play' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer';
+  source: 'helper' | 'google_play' | 'google_play_attempt' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer';
   source_label: string;
   transaction_id: string | null;
   google_order_id: string | null;
@@ -118,7 +118,26 @@ const AdminRechargeHistory = () => {
         rechargeQ = rechargeQ.eq('status', statusFilter);
       }
 
-      // 3. Fetch payment_transactions (Gateway)
+      // 3. Fetch Google Play purchase attempts (including failed/pending verification)
+      let googleAttemptQ = supabase
+        .from('google_play_purchase_attempts' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (start && end) {
+        googleAttemptQ = googleAttemptQ.gte('created_at', start).lte('created_at', end);
+      }
+      if (statusFilter !== 'all') {
+        const attemptStatuses = statusFilter === 'completed'
+          ? ['completed', 'already_processed']
+          : statusFilter === 'failed'
+            ? ['failed', 'google_not_purchased']
+            : [statusFilter];
+        googleAttemptQ = googleAttemptQ.in('status', attemptStatuses);
+      }
+
+      // 4. Fetch payment_transactions (Gateway)
       let gatewayQ = supabase
         .from('payment_transactions')
         .select('*')
@@ -132,7 +151,7 @@ const AdminRechargeHistory = () => {
         gatewayQ = gatewayQ.eq('status', statusFilter);
       }
 
-      // 4. Fetch helper_transactions (Trader top-ups)
+      // 5. Fetch helper_transactions (Trader top-ups)
       let traderQ = supabase
         .from('helper_transactions')
         .select('*')
@@ -146,7 +165,7 @@ const AdminRechargeHistory = () => {
         traderQ = traderQ.eq('status', statusFilter);
       }
 
-      // 5. Fetch coin_transfers (Diamond transfers)
+      // 6. Fetch coin_transfers (Diamond transfers)
       let diamondQ = supabase
         .from('coin_transfers')
         .select('*')
@@ -160,8 +179,8 @@ const AdminRechargeHistory = () => {
         diamondQ = diamondQ.eq('status', statusFilter);
       }
 
-      const [helperRes, rechargeRes, gatewayRes, traderRes, diamondRes] = await Promise.all([
-        helperQ, rechargeQ, gatewayQ, traderQ, diamondQ
+      const [helperRes, rechargeRes, googleAttemptRes, gatewayRes, traderRes, diamondRes] = await Promise.all([
+        helperQ, rechargeQ, googleAttemptQ, gatewayQ, traderQ, diamondQ
       ]);
 
       // Transform helper_orders
@@ -225,6 +244,40 @@ const AdminRechargeHistory = () => {
           google_order_id: r.google_order_id || null,
         };
       });
+
+      const rechargeTokenHashes = new Set((rechargeRes.data || [])
+        .filter((r: any) => r.purchase_source === 'google_play' && r.transaction_id)
+        .map((r: any) => String(r.transaction_id)));
+
+      const googleAttemptRecords: RechargeRecord[] = ((googleAttemptRes.data || []) as any[])
+        .filter((r: any) => !rechargeTokenHashes.has(String(r.purchase_token_hash || '')))
+        .map((r: any) => ({
+          id: r.id,
+          user_id: r.user_id,
+          coin_amount: r.coins_amount || 0,
+          amount_usd: r.amount_usd || 0,
+          amount_local: 0,
+          currency_code: r.currency_code || 'USD',
+          payment_method: 'Google Play Verification',
+          status: r.status === 'already_processed' ? 'completed' : r.status,
+          created_at: r.created_at,
+          processed_at: r.completed_at || null,
+          helper_id: null,
+          payment_details: {
+            product_id: r.product_id,
+            google_order_id: r.google_order_id,
+            requested_order_id: r.requested_order_id,
+            purchase_token_suffix: r.purchase_token_suffix,
+            error_code: r.error_code,
+            error_message: r.error_message,
+            google_purchase_state: r.google_purchase_state,
+          },
+          user_payment_proof: null,
+          source: 'google_play_attempt' as const,
+          source_label: '📱 Google Play Attempt',
+          transaction_id: r.purchase_token_suffix ? `token…${r.purchase_token_suffix}` : r.purchase_token_hash,
+          google_order_id: r.google_order_id || r.requested_order_id || null,
+        }));
 
       // Transform payment_transactions
       const gatewayRecords: RechargeRecord[] = (gatewayRes.data || []).map((r: any) => ({
@@ -307,7 +360,7 @@ const AdminRechargeHistory = () => {
       });
 
       // Merge & sort
-      let allRecords = [...helperRecords, ...rechargeRecords, ...gatewayRecords, ...traderRecords, ...diamondRecords];
+      let allRecords = [...helperRecords, ...rechargeRecords, ...googleAttemptRecords, ...gatewayRecords, ...traderRecords, ...diamondRecords];
 
       // Apply source filter
       if (sourceFilter !== 'all') {
@@ -464,6 +517,8 @@ const AdminRechargeHistory = () => {
     switch (record.source) {
       case 'google_play':
         return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">📱 Google Play</Badge>;
+      case 'google_play_attempt':
+        return <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[10px]">📱 Play Attempt</Badge>;
       case 'helper':
         return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px]">🧑‍💼 Local Agent</Badge>;
       case 'gateway':
@@ -491,7 +546,7 @@ const AdminRechargeHistory = () => {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Recharge History</h1>
-            <p className="text-sm text-muted-foreground">All recharges: Google Play, Local Agent, Gateway, Admin Manual, Trader & Diamond Transfer</p>
+            <p className="text-sm text-muted-foreground">All recharges: Google Play, failed Play attempts, Local Agent, Gateway, Admin Manual, Trader & Diamond Transfer</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -610,6 +665,7 @@ const AdminRechargeHistory = () => {
           <SelectContent>
             <SelectItem value="all">All Sources</SelectItem>
             <SelectItem value="google_play">📱 Google Play</SelectItem>
+            <SelectItem value="google_play_attempt">📱 Play Attempts</SelectItem>
             <SelectItem value="helper">🧑‍💼 Local Agent</SelectItem>
             <SelectItem value="gateway">💳 Gateway</SelectItem>
             <SelectItem value="admin_manual">🔧 Admin Manual</SelectItem>
