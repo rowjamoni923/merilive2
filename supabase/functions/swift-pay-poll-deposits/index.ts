@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
   const recoveryCutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at")
+    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at, raw_payload")
     .in("status", ["pending", "paid", "expired"])
     .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
