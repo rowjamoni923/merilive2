@@ -45,7 +45,7 @@ interface RechargeRecord {
   helper_id: string | null;
   payment_details: any;
   user_payment_proof: string | null;
-  source: 'helper' | 'google_play' | 'google_play_attempt' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer';
+  source: 'helper' | 'google_play' | 'google_play_attempt' | 'gateway' | 'admin_manual' | 'trader' | 'diamond_transfer' | 'swift_pay';
   source_label: string;
   transaction_id: string | null;
   google_order_id: string | null;
