@@ -270,6 +270,7 @@ const AdminTransferScheduler = lazy(lazyRetry(() => import("./pages/admin/AdminT
 const AdminAgencyCommissionLog = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyCommissionLog")));
 const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTransferHistory")));
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
+const AdminWalletLedger = lazy(lazyRetry(() => import("./pages/admin/AdminWalletLedger")));
 const AdminCryptoRecovery = lazy(lazyRetry(() => import("./pages/admin/AdminCryptoRecovery")));
 const AdminGooglePlayHealth = lazy(lazyRetry(() => import("./pages/admin/AdminGooglePlayHealth")));
 const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
