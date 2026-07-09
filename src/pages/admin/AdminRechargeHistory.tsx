@@ -380,8 +380,58 @@ const AdminRechargeHistory = () => {
         };
       });
 
+      // Transform swift_pay_topups (Crypto)
+      const swiftRecords: RechargeRecord[] = (swiftRes.data || []).map((r: any) => {
+        const rawStatus = String(r.status || '');
+        const uiStatus = rawStatus === 'credited' || rawStatus === 'paid'
+          ? 'completed'
+          : rawStatus === 'expired' || rawStatus === 'failed'
+            ? 'failed'
+            : rawStatus;
+        return {
+          id: r.id,
+          user_id: r.user_id,
+          coin_amount: r.coins_amount || 0,
+          amount_usd: Number(r.price_usd || 0),
+          amount_local: Number(r.pay_amount || 0),
+          currency_code: r.pay_currency || 'USD',
+          payment_method: `Swift Pay (${r.pay_currency || 'crypto'}/${r.pay_network || ''})`,
+          status: uiStatus,
+          created_at: r.created_at,
+          processed_at: r.credited_at || r.paid_at || null,
+          helper_id: null,
+          payment_details: {
+            raw_status: rawStatus,
+            pay_currency: r.pay_currency,
+            pay_network: r.pay_network,
+            pay_address: r.pay_address,
+            pay_amount: r.pay_amount,
+            expires_at: r.expires_at,
+            paid_at: r.paid_at,
+            credited_at: r.credited_at,
+            poll_attempts: r.poll_attempts,
+            error_message: r.error_message,
+            target_type: r.target_type,
+            target_helper_id: r.target_helper_id,
+          },
+          user_payment_proof: null,
+          source: 'swift_pay' as const,
+          source_label: '🪙 Swift Pay',
+          transaction_id: r.payment_id || null,
+          google_order_id: null,
+        };
+      });
+
       // Merge & sort
-      let allRecords = [...helperRecords, ...rechargeRecords, ...googleAttemptRecords, ...gatewayRecords, ...traderRecords, ...diamondRecords];
+      let allRecords = [
+        ...helperRecords,
+        ...rechargeRecords,
+        ...googleAttemptRecords,
+        ...gatewayRecords,
+        ...traderRecords,
+        ...diamondRecords,
+        ...swiftRecords,
+      ];
 
       // Apply source filter
       if (sourceFilter !== 'all') {
