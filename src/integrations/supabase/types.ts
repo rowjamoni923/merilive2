@@ -23870,6 +23870,10 @@ export type Database = {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
         Returns: Json
       }
+      reject_rating_reward: {
+        Args: { p_admin_id: string; p_claim_id: string; p_reason?: string }
+        Returns: Json
+      }
       reject_seat_request: { Args: { p_request_id: string }; Returns: Json }
       release_agency_withdrawal_claim: {
         Args: { _helper_id: string; _withdrawal_id: string }
