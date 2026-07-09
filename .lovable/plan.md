@@ -1,6 +1,15 @@
 
 # Admin Panel Forensic Audit — Complete Visibility Plan
 
+## 2026-07-09 Hotfix — Google Play / Support Purchase Recovery
+
+- Verified current DB had `coin_packages` configured: 6 active Play Store packages (`diamonds_7000_v2` → `diamonds_650000_v2`) with package bonuses already set.
+- Verified first-recharge config is active: `bonus_multiplier = 2.0`.
+- Fixed server recovery gap: `admin-verify-purchase` now uses `admin_recover_purchase_credit`, not raw `add_coins`.
+- Recovery now records `recharge_transactions`, updates `profiles.total_recharged`, applies package bonus + first recharge + VIP/Noble bonus, writes wallet ledger context, and blocks duplicate Google Order IDs.
+- Google Play server verification path `process_google_play_purchase` now returns `transactionId` correctly and applies bonuses against the real recharge row id.
+- Support ticket recovery package dropdown now reads live `coin_packages` instead of hardcoded stale prices/packages.
+
 ভাই, তুমি চারটা area-তেই deep forensic চেয়েছ। এটা একবারে করলে risky (400+ page, 300+ table)। তাই **6-phase delivery** — প্রতি phase-এ তুমি approve করলে পরের phase-এ যাব। প্রত্যেক phase-এর শেষে admin panel-এ visible হবে + realtime + CSV export।
 
 ## 🎯 লক্ষ্য

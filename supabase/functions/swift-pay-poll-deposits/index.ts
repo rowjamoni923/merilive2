@@ -236,39 +236,6 @@ Deno.serve(async (req) => {
       }).eq("id", row.id);
       priorPaidUsdCache.set(row.external_user_id, usedUsd + expectedUsd);
 
-      // First-recharge bookkeeping: if this topup carried a first-recharge
-      // bonus at create time, record the claim now (idempotent — the check
-      // in swift-pay-create-deposit already prevents duplicate applies).
-      try {
-        const frMeta = (row as any).raw_payload?.__first_recharge;
-        if (targetType === "user_diamond" && frMeta?.applied === true && Number(frMeta.bonus_coins) > 0) {
-          const { data: bonusRow } = await admin
-            .from("first_recharge_bonus")
-            .select("id")
-            .eq("is_active", true)
-            .limit(1)
-            .maybeSingle();
-          if (bonusRow?.id) {
-            const { data: priorClaim } = await admin
-              .from("first_recharge_claims")
-              .select("id")
-              .eq("user_id", row.user_id)
-              .limit(1)
-              .maybeSingle();
-            if (!priorClaim) {
-              await admin.from("first_recharge_claims").insert({
-                user_id: row.user_id,
-                bonus_id: bonusRow.id,
-                original_amount: Number(frMeta.base_coins ?? 0),
-                bonus_amount: Number(frMeta.bonus_coins ?? 0),
-              });
-            }
-          }
-        }
-      } catch (frErr) {
-        console.error("[swift-pay-poll-deposits] first_recharge_claims insert error", row.id, frErr);
-      }
-
       // Pkg433: if the user opened a helper-upgrade flow and stashed intent on the
       // topup row, auto-grant the Trader Wallet right now — even if the user closed
       // the app right after paying. RPC is idempotent on payment_transaction_id.

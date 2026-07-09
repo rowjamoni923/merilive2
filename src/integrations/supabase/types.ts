@@ -21441,6 +21441,17 @@ export type Database = {
         Args: { _action: string; _transaction_id: string }
         Returns: Json
       }
+      admin_recover_purchase_credit: {
+        Args: {
+          p_admin_id?: string
+          p_coin_amount: number
+          p_google_order_id?: string
+          p_product_id?: string
+          p_reason?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_reject_csa_action: {
         Args: { _action_id: string; _reason: string }
         Returns: undefined

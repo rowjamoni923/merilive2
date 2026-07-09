@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     let targetHelperId: string | null = null;
     let campaignId: string | null = null;
     let externalUserId = `merilive_${user.id}`;
-    let firstRechargeMeta: { applied: boolean; bonus_coins: number; base_coins: number; package_bonus_available: number } | null = null;
+    let firstRechargeMeta: { eligible_at_create: boolean; base_coins: number; package_bonus_coins: number } | null = null;
 
     if (target === "helper_wallet") {
       if (!body.helper_id || !body.custom_coins) {
@@ -225,38 +225,29 @@ Deno.serve(async (req) => {
         const baseCoins = Number(pkg.coins_amount ?? 0);
         const packageBonus = Number(pkg.bonus_coins ?? 0);
 
-        // First-recharge dedup: only include package bonus_coins if user
-        // has NO prior first_recharge_claims row. Prevents leaking the
-        // welcome bonus on every subsequent Swift Pay recharge.
-        let firstRechargeApplied = false;
-        let appliedBonus = 0;
-        if (packageBonus > 0) {
-          const { data: priorClaim } = await admin
-            .from("first_recharge_claims")
-            .select("id")
-            .eq("user_id", user.id)
-            .limit(1)
-            .maybeSingle();
-          if (!priorClaim) {
-            firstRechargeApplied = true;
-            appliedBonus = packageBonus;
-          }
-        }
-
-        totalCoins = baseCoins + appliedBonus;
+        // Package bonus belongs to every deposit package. First-recharge is a
+        // separate one-time bonus applied at credit time by safe_credit_diamonds
+        // through _apply_recharge_bonuses_internal.
+        totalCoins = baseCoins + packageBonus;
         priceUsd = Number(pkg.price_usd);
         if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
           return json({ error: "invalid_package_price" }, 500);
         }
         packageId = pkg.id;
 
-        // Stash first-recharge intent so the poll worker can insert
-        // first_recharge_claims atomically with the credit.
+        const { data: priorClaim } = await admin
+          .from("first_recharge_claims")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1)
+          .maybeSingle();
+
+        // Stash eligibility only for admin visibility; actual one-time claim
+        // and credit are handled atomically at poll/credit time.
         firstRechargeMeta = {
-          applied: firstRechargeApplied,
-          bonus_coins: appliedBonus,
+          eligible_at_create: !priorClaim,
           base_coins: baseCoins,
-          package_bonus_available: packageBonus,
+          package_bonus_coins: packageBonus,
         };
       } else if (body.custom_coins && body.custom_price_usd) {
         const requestedCoins = Math.floor(Number(body.custom_coins));
