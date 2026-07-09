@@ -46,7 +46,7 @@ interface RatingClaim {
 export default function AdminRatingRewards() {
   const [claims, setClaims] = useState<RatingClaim[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected' | 'all' | 'history'>('pending');
+  const [filter, setFilter] = useState<'pending' | 'history'>('pending');
   const [search, setSearch] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -112,14 +112,11 @@ export default function AdminRatingRewards() {
   const fetchClaims = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const query = supabase
         .from('rating_reward_claims')
         .select('*')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
-
-      if (filter !== 'all' && filter !== 'history') {
-        query = query.eq('status', filter);
-      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -158,7 +155,7 @@ export default function AdminRatingRewards() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, []);
 
   const fetchTransactionHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -275,6 +272,8 @@ export default function AdminRatingRewards() {
         return;
       }
 
+      setClaims(prev => prev.filter(c => c.id !== claim.id || c.status !== 'pending'));
+
       const amt = Number(result?.reward_amount ?? 0).toLocaleString();
       const rewardLabel = result.reward_type === 'beans' ? `🫘 ${amt} Beans` : `💎 ${amt} Diamonds`;
       // In-app notification, push (FCM) and decision email are dispatched server-side
@@ -298,17 +297,21 @@ export default function AdminRatingRewards() {
 
       setClaims(prev => prev.filter(c => c.id !== claimId));
 
-      const { error } = await supabase
-        .from('rating_reward_claims')
-        .update({
-          status: 'rejected',
-          reviewed_by: session.admin_id,
-          reviewed_at: new Date().toISOString(),
-          rejection_reason: 'Screenshot does not show a valid 5-star rating',
-        })
-        .eq('id', claimId);
+      const { data, error } = await supabase.rpc('reject_rating_reward', {
+        p_claim_id: claimId,
+        p_admin_id: session.admin_id,
+        p_reason: 'Screenshot does not show a valid 5-star rating',
+      });
 
       if (error) throw error;
+      const result = data as any;
+      if (!result?.success) {
+        toast.error(result?.error || 'Failed to reject');
+        fetchClaims();
+        return;
+      }
+
+      setClaims(prev => prev.filter(c => c.id !== claimId || c.status !== 'pending'));
 
       // In-app notification, push (FCM) and decision email are dispatched server-side
       // by tg_rating_reward_alert on rating_reward_claims status change.
@@ -399,19 +402,10 @@ export default function AdminRatingRewards() {
 
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+        <Tabs value={filter} onValueChange={(v) => setFilter(v === 'history' ? 'history' : 'pending')}>
           <TabsList className="bg-slate-100 border border-slate-200">
             <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300 gap-1">
               <Clock className="w-3.5 h-3.5" /> Pending
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-300 gap-1">
-              <CheckCircle className="w-3.5 h-3.5" /> Approved
-            </TabsTrigger>
-            <TabsTrigger value="rejected" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-300 gap-1">
-              <XCircle className="w-3.5 h-3.5" /> Rejected
-            </TabsTrigger>
-            <TabsTrigger value="all" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-300">
-              All
             </TabsTrigger>
             <TabsTrigger value="history" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 gap-1">
               <History className="w-3.5 h-3.5" /> Transaction History
@@ -572,7 +566,7 @@ export default function AdminRatingRewards() {
           ) : filteredClaims.length === 0 ? (
             <div className="text-center py-20">
               <Star className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400">No {filter !== 'all' ? filter : ''} claims found</p>
+              <p className="text-slate-400">No pending claims found</p>
             </div>
           ) : (
             <div className="grid gap-3">

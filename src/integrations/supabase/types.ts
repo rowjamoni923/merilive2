@@ -6446,6 +6446,90 @@ export type Database = {
         }
         Relationships: []
       }
+      google_play_purchase_attempts: {
+        Row: {
+          amount_usd: number | null
+          client_context: Json | null
+          coins_amount: number | null
+          completed_at: string | null
+          created_at: string
+          currency_code: string | null
+          error_code: string | null
+          error_message: string | null
+          google_order_id: string | null
+          google_purchase_state: number | null
+          id: string
+          product_id: string
+          purchase_token_hash: string
+          purchase_token_suffix: string | null
+          raw_google_response: Json | null
+          recharge_transaction_id: string | null
+          requested_order_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd?: number | null
+          client_context?: Json | null
+          coins_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          currency_code?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          google_order_id?: string | null
+          google_purchase_state?: number | null
+          id?: string
+          product_id: string
+          purchase_token_hash: string
+          purchase_token_suffix?: string | null
+          raw_google_response?: Json | null
+          recharge_transaction_id?: string | null
+          requested_order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number | null
+          client_context?: Json | null
+          coins_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          currency_code?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          google_order_id?: string | null
+          google_purchase_state?: number | null
+          id?: string
+          product_id?: string
+          purchase_token_hash?: string
+          purchase_token_suffix?: string | null
+          raw_google_response?: Json | null
+          recharge_transaction_id?: string | null
+          requested_order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_play_purchase_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_play_purchase_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_join_requests: {
         Row: {
           decided_at: string | null
@@ -23868,6 +23952,10 @@ export type Database = {
       register_random_skip: { Args: { p_user_id: string }; Returns: Json }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
+        Returns: Json
+      }
+      reject_rating_reward: {
+        Args: { p_admin_id: string; p_claim_id: string; p_reason?: string }
         Returns: Json
       }
       reject_seat_request: { Args: { p_request_id: string }; Returns: Json }

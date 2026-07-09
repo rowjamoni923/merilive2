@@ -2,13 +2,11 @@
  * RatingProofStatusRow — Pkg64
  *
  * User-facing status row for the rating-reward proof claim.
- * - Only renders when the signed-in user has at least one rating_reward_claim row.
- * - Reflects status (pending / approved / rejected) in real time via postgres_changes.
+ * - Only renders while the signed-in user has a pending rating_reward_claim row.
+ * - Approved/rejected claims instantly disappear from this active row.
  * - Tap behaviour:
  *     pending  → toast ("under review")
- *     approved → toast with reward credited message
- *     rejected → re-opens the proof dialog via the existing
- *                `open-rating-proof-popup` window event so the user can retry.
+ *     approved/rejected → not rendered here; full records stay in history.
  *
  * Mounted on Profile.tsx (own profile only). Self-contained — no parent props.
  */
@@ -73,6 +71,7 @@ export function RatingProofStatusRow() {
       .from("rating_reward_claims")
       .select("status, rejection_reason, created_at, reviewed_at")
       .eq("user_id", uid)
+      .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -168,7 +167,7 @@ export function RatingProofStatusRow() {
 
       const { error: claimError } = await supabase
         .from("rating_reward_claims")
-        .insert({
+      .insert({
           user_id: userId,
           screenshot_url: urlData.publicUrl,
           platform,
@@ -206,14 +205,6 @@ export function RatingProofStatusRow() {
 
 
   const handleTap = () => {
-    if (isRejected) {
-      triggerFilePicker();
-      return;
-    }
-    if (claim.status === "approved") {
-      toast.success("Your rating reward has been credited. Thank you!");
-      return;
-    }
     toast.message("Rating proof is under review", {
       description: "Admin will verify your screenshot shortly.",
     });
