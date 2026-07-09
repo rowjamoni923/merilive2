@@ -18770,6 +18770,66 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_ledger_audit: {
+        Row: {
+          admin_id: string | null
+          balance_after: number | null
+          balance_before: number | null
+          created_at: string
+          currency: string
+          delta: number
+          device_id: string | null
+          id: number
+          ip_address: string | null
+          metadata: Json | null
+          payment_method: string | null
+          payment_reference: string | null
+          source_id: string | null
+          source_table: string | null
+          source_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          currency: string
+          delta: number
+          device_id?: string | null
+          id?: number
+          ip_address?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_type?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          currency?: string
+          delta?: number
+          device_id?: string | null
+          id?: number
+          ip_address?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       watchlist: {
         Row: {
           added_at: string
