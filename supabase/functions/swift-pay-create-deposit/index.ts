@@ -177,6 +177,7 @@ Deno.serve(async (req) => {
     let targetHelperId: string | null = null;
     let campaignId: string | null = null;
     let externalUserId = `merilive_${user.id}`;
+    let firstRechargeMeta: { applied: boolean; bonus_coins: number; base_coins: number; package_bonus_available: number } | null = null;
 
     if (target === "helper_wallet") {
       if (!body.helper_id || !body.custom_coins) {
@@ -221,12 +222,42 @@ Deno.serve(async (req) => {
         if (pkgErr || !pkg || !pkg.is_active) {
           return json({ error: "package_not_found" }, 404);
         }
-        totalCoins = (pkg.coins_amount ?? 0) + (pkg.bonus_coins ?? 0);
+        const baseCoins = Number(pkg.coins_amount ?? 0);
+        const packageBonus = Number(pkg.bonus_coins ?? 0);
+
+        // First-recharge dedup: only include package bonus_coins if user
+        // has NO prior first_recharge_claims row. Prevents leaking the
+        // welcome bonus on every subsequent Swift Pay recharge.
+        let firstRechargeApplied = false;
+        let appliedBonus = 0;
+        if (packageBonus > 0) {
+          const { data: priorClaim } = await admin
+            .from("first_recharge_claims")
+            .select("id")
+            .eq("user_id", user.id)
+            .limit(1)
+            .maybeSingle();
+          if (!priorClaim) {
+            firstRechargeApplied = true;
+            appliedBonus = packageBonus;
+          }
+        }
+
+        totalCoins = baseCoins + appliedBonus;
         priceUsd = Number(pkg.price_usd);
         if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
           return json({ error: "invalid_package_price" }, 500);
         }
         packageId = pkg.id;
+
+        // Stash first-recharge intent so the poll worker can insert
+        // first_recharge_claims atomically with the credit.
+        firstRechargeMeta = {
+          applied: firstRechargeApplied,
+          bonus_coins: appliedBonus,
+          base_coins: baseCoins,
+          package_bonus_available: packageBonus,
+        };
       } else if (body.custom_coins && body.custom_price_usd) {
         const requestedCoins = Math.floor(Number(body.custom_coins));
         const requestedUsd = Number(body.custom_price_usd);
@@ -396,7 +427,7 @@ Deno.serve(async (req) => {
         payment_id: depositBody?.payment_id ? String(depositBody.payment_id) : null,
         idempotency_key: idempotencyKey,
         expires_at: depositBody?.expires_at ?? null,
-        raw_payload: depositBody,
+        raw_payload: { ...depositBody, __first_recharge: firstRechargeMeta },
         status: "pending",
         target_type: target,
         target_helper_id: targetHelperId,
