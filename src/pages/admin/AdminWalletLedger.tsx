@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,11 +38,13 @@ const SOURCE_TYPES = [
 const CURRENCIES = ["all", "beans", "diamonds", "coins"] as const;
 
 export default function AdminWalletLedger() {
+  const [searchParams] = useSearchParams();
+  const initialSource = searchParams.get("source") || "all";
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [userFilter, setUserFilter] = useState("");
   const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>("all");
-  const [source, setSource] = useState<string>("all");
+  const [source, setSource] = useState<string>(initialSource);
   const [days, setDays] = useState<string>("7");
   const [realtime, setRealtime] = useState(true);
 
