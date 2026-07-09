@@ -272,6 +272,7 @@ const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTra
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
 const AdminWalletLedger = lazy(lazyRetry(() => import("./pages/admin/AdminWalletLedger")));
 const AdminRewardsAudit = lazy(lazyRetry(() => import("./pages/admin/AdminRewardsAudit")));
+const AdminOrphanPayments = lazy(lazyRetry(() => import("./pages/admin/AdminOrphanPayments")));
 const AdminCryptoRecovery = lazy(lazyRetry(() => import("./pages/admin/AdminCryptoRecovery")));
 const AdminGooglePlayHealth = lazy(lazyRetry(() => import("./pages/admin/AdminGooglePlayHealth")));
 const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
