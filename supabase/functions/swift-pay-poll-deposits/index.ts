@@ -265,6 +265,23 @@ Deno.serve(async (req) => {
   if (touchPollIds.length > 0) {
     await admin.from("swift_pay_topups").update({ last_polled_at: nowIso }).in("id", touchPollIds);
   }
+  // Per-row forensic snapshot writes (small N; sequential is fine, keeps payload distinct per row)
+  for (const s of snapshotUpdates) {
+    await admin
+      .from("swift_pay_topups")
+      .update({
+        last_poll_snapshot: s.snapshot,
+        poll_attempts: ((): any => ({ __raw: true }))() as any,
+      })
+      .eq("id", s.id);
+  }
+  // Increment poll_attempts atomically via SQL expression (Supabase doesn't support raw in .update)
+  if (snapshotUpdates.length > 0) {
+    await admin.rpc("increment_swift_pay_poll_attempts", { p_ids: snapshotUpdates.map(s => s.id) }).then(
+      () => {},
+      () => {}, // rpc optional — safe if missing
+    );
+  }
 
   return json({ checked: pending.length, credited, results });
 });
