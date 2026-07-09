@@ -112,7 +112,7 @@ export default function AdminRatingRewards() {
   const fetchClaims = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const query = supabase
         .from('rating_reward_claims')
         .select('*')
         .eq('status', 'pending')
@@ -402,7 +402,7 @@ export default function AdminRatingRewards() {
 
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+        <Tabs value={filter} onValueChange={(v) => setFilter(v === 'history' ? 'history' : 'pending')}>
           <TabsList className="bg-slate-100 border border-slate-200">
             <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300 gap-1">
               <Clock className="w-3.5 h-3.5" /> Pending
