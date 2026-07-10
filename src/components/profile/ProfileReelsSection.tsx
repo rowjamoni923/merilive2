@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Film, Trash2, MoreVertical, Lock, Globe, Eye, EyeOff } from "lucide-react";
+import { Play, Sparkles, Trash2, MoreVertical, Lock, Globe, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
