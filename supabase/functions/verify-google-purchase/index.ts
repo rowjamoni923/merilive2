@@ -1,12 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const PACKAGE_NAME = 'com.merilive.app';
+
+const jsonResponse = (body: Record<string, unknown>, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
+
+const isUuid = (value: unknown): value is string =>
+  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
@@ -83,19 +86,33 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   return tokenData.access_token;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Authenticate user
+    // Authenticate user. Normal app calls must use the user's JWT. Trusted
+    // service-role calls (RTDN recovery) may pass userId explicitly after the
+    // purchase token has already been correlated to a prior attempt row.
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
     }
+
+    const body = await req.json().catch(() => null) as {
+      productId?: unknown;
+      purchaseToken?: unknown;
+      orderId?: unknown;
+      userId?: unknown;
+    } | null;
+
+    if (!body || typeof body.productId !== 'string' || typeof body.purchaseToken !== 'string') {
+      return jsonResponse({ success: false, error: 'Missing productId or purchaseToken' }, 400);
+    }
+
+    const { productId, purchaseToken } = body;
+    const orderId = typeof body.orderId === 'string' ? body.orderId : undefined;
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -103,21 +120,22 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      console.error('[verify-google-purchase] Auth failed:', userError?.message);
-      return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    const userId = user.id;
+    const callerToken = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const isServiceRoleCaller = callerToken === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    let userId: string | null = null;
 
-    // Parse request
-    const { productId, purchaseToken, orderId } = await req.json();
-    if (!productId || !purchaseToken) {
-      return new Response(JSON.stringify({ success: false, error: 'Missing productId or purchaseToken' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (isServiceRoleCaller) {
+      if (!isUuid(body.userId)) {
+        return jsonResponse({ success: false, error: 'Trusted recovery requires a valid userId' }, 400);
+      }
+      userId = body.userId;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('[verify-google-purchase] Auth failed:', userError?.message);
+        return jsonResponse({ success: false, error: 'Invalid token' }, 401);
+      }
+      userId = user.id;
     }
 
     const adminSupabase = createClient(
@@ -178,9 +196,7 @@ serve(async (req) => {
         error_message: productInfoError?.message || 'Invalid product ID',
         completed_at: new Date().toISOString(),
       });
-      return new Response(JSON.stringify({ success: false, error: 'Invalid product ID' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: false, error: 'Invalid product ID' }, 400);
     }
 
     await markAttempt({
@@ -202,9 +218,7 @@ serve(async (req) => {
         error_message: 'Google service account is not configured',
         completed_at: new Date().toISOString(),
       });
-      return new Response(JSON.stringify({ success: false, error: 'Server configuration error' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: false, error: 'Server configuration error' }, 500);
     }
 
     const serviceAccount = JSON.parse(serviceAccountJson);
@@ -226,13 +240,11 @@ serve(async (req) => {
         raw_google_response: { http_status: googleResponse.status, body: errText.slice(0, 2000) },
         completed_at: new Date().toISOString(),
       });
-      return new Response(JSON.stringify({ 
+      return jsonResponse({ 
         success: false, 
         error: 'Google verification failed',
         details: `Status: ${googleResponse.status}` 
-      }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      }, 400);
     }
 
     const purchaseData = await googleResponse.json();
@@ -254,12 +266,10 @@ serve(async (req) => {
         error_message: `Invalid purchase state: ${purchaseData.purchaseState}`,
         completed_at: new Date().toISOString(),
       });
-      return new Response(JSON.stringify({ 
+      return jsonResponse({ 
         success: false, 
         error: `Invalid purchase state: ${purchaseData.purchaseState}` 
-      }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      }, 400);
     }
 
     // ✅ Purchase verified by Google. Credit and record atomically in DB.
@@ -279,9 +289,7 @@ serve(async (req) => {
         error_message: processError?.message || processData?.error || 'Failed to credit purchase',
         completed_at: new Date().toISOString(),
       });
-      return new Response(JSON.stringify({ success: false, error: processData?.error || 'Failed to credit purchase' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: false, error: processData?.error || 'Failed to credit purchase' }, 500);
     }
 
     const creditedCoins = Number(processData.coins || productInfo.coins || 0);
@@ -314,23 +322,19 @@ serve(async (req) => {
       console.warn(`[verify-google-purchase] ⚠️ Consume failed (non-critical):`, ackErr);
     }
 
-    return new Response(JSON.stringify({ 
+    return jsonResponse({ 
       success: true, 
       coins: creditedCoins,
       newBalance,
       orderId: purchaseData.orderId,
       alreadyProcessed: Boolean(processData.alreadyProcessed),
-    }), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('[verify-google-purchase] Unexpected error:', error);
-    return new Response(JSON.stringify({ 
+    return jsonResponse({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
-    }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    }, 500);
   }
 });
