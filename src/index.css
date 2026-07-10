@@ -6653,6 +6653,7 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell textarea,
 .admin-pro-shell select {
   background-color: #FFFFFF !important;
+  background-image: none !important;
   color: #0F172A !important;
   border-color: #CBD5E1 !important;
 }
@@ -8581,7 +8582,22 @@ body[data-admin-active="true"] :is(
   [role="alertdialog"][data-state="open"]
 ) {
   border: 1px solid #E2E8F0 !important;
+  background-image: none !important;
   box-shadow: 0 24px 60px -20px rgba(15,23,42,0.28), 0 8px 24px -12px rgba(15,23,42,0.18) !important;
+}
+
+body[data-admin-active="true"] .admin-content :is(
+  [class*="bg-slate-7"], [class*="bg-slate-8"], [class*="bg-slate-9"],
+  [class*="bg-gray-7"], [class*="bg-gray-8"], [class*="bg-gray-9"],
+  [class*="bg-zinc-7"], [class*="bg-zinc-8"], [class*="bg-zinc-9"],
+  [class*="bg-neutral-7"], [class*="bg-neutral-8"], [class*="bg-neutral-9"],
+  [class*="bg-stone-7"], [class*="bg-stone-8"], [class*="bg-stone-9"],
+  [class*="bg-black"]
+):not([class*="bg-black/"]):not([class*="bg-gradient"]):not(button):not([role="button"]) {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
 }
 
 body[data-admin-active="true"] :is(
@@ -8623,6 +8639,7 @@ body[data-admin-active="true"] :is(
   [role="alertdialog"][data-state="open"]
 ) :is(.bg-background,[class*="bg-background/"],.bg-card,[class*="bg-card/"],.bg-white,[class*="bg-white/"]) {
   background-color: #FFFFFF !important;
+  background-image: none !important;
   color: #0F172A !important;
 }
 
@@ -8635,6 +8652,7 @@ body[data-admin-active="true"] :is(
   [role="alertdialog"][data-state="open"]
 ) :is(.bg-muted,[class*="bg-muted/"],.bg-accent,[class*="bg-accent/"],.bg-secondary,[class*="bg-secondary/"]) {
   background-color: #F8FAFC !important;
+  background-image: none !important;
   color: #0F172A !important;
   border-color: #E2E8F0 !important;
 }
