@@ -8,6 +8,14 @@
 - Implementation direction locked: one global admin contrast layer in `index.css` plus shared admin style constants, so 400+ admin pages inherit readable text/background/border behavior without page-by-page patching.
 - Cloud White remains sacred: page/sidebar/cards stay white/light, but text becomes slate/blue/semantic dark, inputs/tables/modals get visible borders, and strong colored chips/buttons keep white text only on real strong colored backgrounds.
 
+## 2026-07-10 Hotfix — Google Play Paid-But-Not-Credited Recovery
+
+- Root cause confirmed for app UID `0733697258`: Play Console showed Jul 8 payment, but `recharge_transactions`, `payment_transactions`, and `google_play_purchase_attempts` had no matching rows; profile had `total_recharged = 0`, so the user never received app credit.
+- Additional DB root cause found during recovery: three legacy recharge triggers still referenced removed fields (`coins_added` / `coins_credited`), blocking valid `recharge_transactions` inserts. Fixed them to use current fields: `coins_received`, `coins_amount`, then `amount` fallback.
+- Professional standard reference: Google Play Billing security/integration docs require server-side purchase verification, entitlement grant after verified purchase, idempotent token/order handling, and consumable purchase consume only after successful credit. RTDN should reconcile missed client calls.
+- Implemented recovery: credited the missing Jul 8 Google Play purchase through a completed `recharge_transactions` row with Google Play reference, `coin_transactions` ledger row, recharge bonus pipeline, and admin log.
+- Future hardening: `verify-google-purchase` now supports trusted service-role recovery calls from RTDN, `google-play-rtdn` forwards service-role auth and records processing errors/refunds, and Android Billing now sends `obfuscatedAccountId = userId` so orphan RTDN tokens can be matched to the buyer after APK rebuild.
+
 ## 2026-07-09 Hotfix — Google Play / Support Purchase Recovery
 
 - Verified current DB had `coin_packages` configured: 6 active Play Store packages (`diamonds_7000_v2` → `diamonds_650000_v2`) with package bonuses already set.
