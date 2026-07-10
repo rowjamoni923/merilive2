@@ -60,6 +60,22 @@ interface RechargeRecord {
   receiver_uid?: string;
 }
 
+interface RtdnEventRow {
+  id: string;
+  message_id: string | null;
+  publish_time: string | null;
+  notification_type: string;
+  event_type_code: number | null;
+  product_id: string | null;
+  order_id: string | null;
+  purchase_token: string | null;
+  processed: boolean;
+  processed_at: string | null;
+  process_error: string | null;
+  created_at: string;
+  raw_payload: any;
+}
+
 const AdminRechargeHistory = () => {
   const navigate = useNavigate();
   const imageViewer = useImageViewer();
@@ -73,6 +89,9 @@ const AdminRechargeHistory = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RechargeRecord | null>(null);
   const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
+  const [rtdnEvents, setRtdnEvents] = useState<RtdnEventRow[]>([]);
+  const [rtdnStats, setRtdnStats] = useState({ total: 0, processed: 0, failed: 0, purchase: 0, renewed: 0, cancelled: 0, refunded: 0 });
+  const [selectedRtdn, setSelectedRtdn] = useState<RtdnEventRow | null>(null);
 
   const PAGE_SIZE = 30;
 
@@ -568,6 +587,45 @@ const AdminRechargeHistory = () => {
 
   useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
 
+  const fetchRtdnEvents = useCallback(async () => {
+    try {
+      const { start, end } = getDateRange();
+      let q = supabase
+        .from('google_play_rtdn_events' as any)
+        .select('id, message_id, publish_time, notification_type, event_type_code, product_id, order_id, purchase_token, processed, processed_at, process_error, created_at, raw_payload')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (start && end) q = q.gte('created_at', start).lte('created_at', end);
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data || []) as unknown as RtdnEventRow[];
+      setRtdnEvents(rows);
+      const codeIs = (row: RtdnEventRow, codes: number[]) =>
+        row.event_type_code != null && codes.includes(row.event_type_code);
+      setRtdnStats({
+        total: rows.length,
+        processed: rows.filter(r => r.processed).length,
+        failed: rows.filter(r => !!r.process_error).length,
+        // subscription purchase (4) + one-time purchase (1)
+        purchase: rows.filter(r =>
+          (r.notification_type === 'subscription' && codeIs(r, [4])) ||
+          (r.notification_type === 'one_time_product' && codeIs(r, [1]))
+        ).length,
+        renewed: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [2, 1, 7])).length,
+        cancelled: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [3, 12, 13])).length,
+        refunded: rows.filter(r => r.notification_type === 'voided').length,
+      });
+    } catch (e) {
+      recordAdminError({ kind: 'rpc', label: 'AdminRechargeHistory.RtdnFetchError', message: formatAdminError(e) });
+    }
+  }, [getDateRange]);
+
+  useEffect(() => {
+    fetchRtdnEvents();
+  }, [fetchRtdnEvents]);
+
+  useAdminRealtime(['google_play_rtdn_events'], fetchRtdnEvents);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -606,6 +664,39 @@ const AdminRechargeHistory = () => {
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const rtdnLabel = (row: RtdnEventRow): { label: string; tone: string } => {
+    const t = row.notification_type;
+    const c = row.event_type_code ?? -1;
+    if (t === 'test') return { label: '🧪 Test Ping', tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' };
+    if (t === 'voided') return { label: '↩️ Refund / Voided', tone: 'bg-red-500/20 text-red-400 border-red-500/30' };
+    if (t === 'subscription') {
+      const map: Record<number, { label: string; tone: string }> = {
+        1: { label: '🔄 Sub Recovered', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        2: { label: '🔄 Sub Renewed', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        3: { label: '🚫 Sub Cancelled', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+        4: { label: '🛒 Sub Purchased', tone: 'bg-green-500/20 text-green-400 border-green-500/30' },
+        5: { label: '⏸ Sub On Hold', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        6: { label: '⌛ Grace Period', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        7: { label: '▶️ Sub Restarted', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        8: { label: '💲 Price Change OK', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        9: { label: '⏭ Sub Deferred', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        10: { label: '⏸ Sub Paused', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        11: { label: '📅 Pause Rescheduled', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        12: { label: '❌ Sub Revoked', tone: 'bg-red-500/20 text-red-400 border-red-500/30' },
+        13: { label: '⏹ Sub Expired', tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' },
+        20: { label: '⏳ Pending Purchase', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+      };
+      return map[c] ?? { label: `Sub #${c}`, tone: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
+    }
+    if (t === 'one_time_product') {
+      if (c === 1) return { label: '🛒 One-time Purchased', tone: 'bg-green-500/20 text-green-400 border-green-500/30' };
+      if (c === 2) return { label: '🚫 One-time Cancelled', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' };
+      return { label: `One-time #${c}`, tone: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
+    }
+    return { label: t, tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' };
+  };
+
 
   return (
     <div className="admin-pro-shell space-y-6">
@@ -758,6 +849,93 @@ const AdminRechargeHistory = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Google Play RTDN Events (Play Store real-time notifications) */}
+      <Card className="bg-card border-border overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                📡 Google Play RTDN Events
+                <Badge variant="outline" className="text-[10px]">Live from Play Store</Badge>
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Purchases, renewals, cancellations & refunds pushed by Google in real time
+                {selectedDate ? ` — ${format(selectedDate, 'MMM dd, yyyy')}` : ' — last 200 events'}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap text-[10px]">
+              <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/30">Total {rtdnStats.total}</Badge>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Processed {rtdnStats.processed}</Badge>
+              {rtdnStats.failed > 0 && (
+                <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Errors {rtdnStats.failed}</Badge>
+              )}
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">🛒 {rtdnStats.purchase}</Badge>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">🔄 {rtdnStats.renewed}</Badge>
+              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">🚫 {rtdnStats.cancelled}</Badge>
+              <Badge className="bg-red-500/20 text-red-400 border-red-500/30">↩️ {rtdnStats.refunded}</Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-card">
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-3 font-medium text-muted-foreground">Event</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Product</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Order ID</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Token</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Received</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rtdnEvents.length === 0 ? (
+                <tr><td colSpan={7} className="text-center p-6 text-muted-foreground text-xs">
+                  No Play Store notifications yet. Google will start pushing events as soon as a user makes / cancels / renews a purchase.
+                </td></tr>
+              ) : rtdnEvents.map(ev => {
+                const { label, tone } = rtdnLabel(ev);
+                const token = ev.purchase_token ? `…${ev.purchase_token.slice(-10)}` : '—';
+                return (
+                  <tr key={ev.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <td className="p-3"><Badge className={`${tone} text-[10px]`}>{label}</Badge></td>
+                    <td className="p-3"><span className="text-xs text-foreground">{ev.product_id || '—'}</span></td>
+                    <td className="p-3"><span className="text-[10px] text-muted-foreground font-mono">{ev.order_id || '—'}</span></td>
+                    <td className="p-3"><span className="text-[10px] text-muted-foreground font-mono">{token}</span></td>
+                    <td className="p-3">
+                      {ev.process_error ? (
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]" title={ev.process_error}>
+                          <XCircle className="w-3 h-3 mr-1" /> Error
+                        </Badge>
+                      ) : ev.processed ? (
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Processed
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                          <Clock className="w-3 h-3 mr-1" /> Pending
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <span className="text-[11px] text-muted-foreground">
+                        {format(new Date(ev.publish_time || ev.created_at), 'MMM dd, HH:mm:ss')}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedRtdn(ev)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Table */}
       <Card className="bg-card border-border overflow-hidden">
@@ -957,6 +1135,61 @@ const AdminRechargeHistory = () => {
                     onClick={() => imageViewer.openImage(selectedRecord.user_payment_proof!)} fallbackSrc="/placeholder.svg" />
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* RTDN Event Detail Dialog */}
+      <Dialog open={!!selectedRtdn} onOpenChange={() => setSelectedRtdn(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Google Play RTDN Event</DialogTitle>
+          </DialogHeader>
+          {selectedRtdn && (
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Event</span>
+                <Badge className={`${rtdnLabel(selectedRtdn).tone} text-[11px]`}>{rtdnLabel(selectedRtdn).label}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Type / Code</span>
+                <span className="font-mono text-xs">{selectedRtdn.notification_type} / {selectedRtdn.event_type_code ?? '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Product</span>
+                <span className="font-mono text-xs">{selectedRtdn.product_id || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Order ID</span>
+                <span className="font-mono text-xs break-all text-right">{selectedRtdn.order_id || '—'}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Purchase Token</span>
+                <p className="font-mono text-[11px] break-all mt-1 p-2 bg-muted/30 rounded">{selectedRtdn.purchase_token || '—'}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Message ID</span>
+                <span className="font-mono text-[11px]">{selectedRtdn.message_id || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Published</span>
+                <span className="text-xs">{selectedRtdn.publish_time ? format(new Date(selectedRtdn.publish_time), 'MMM dd, yyyy HH:mm:ss') : '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Processed</span>
+                <span className="text-xs">{selectedRtdn.processed_at ? format(new Date(selectedRtdn.processed_at), 'MMM dd, yyyy HH:mm:ss') : '—'}</span>
+              </div>
+              {selectedRtdn.process_error && (
+                <div>
+                  <span className="text-muted-foreground text-xs">Error</span>
+                  <p className="text-xs mt-1 p-2 bg-red-500/10 text-red-400 rounded">{selectedRtdn.process_error}</p>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground text-xs">Raw Payload</span>
+                <pre className="text-[10px] mt-1 p-2 bg-muted/30 rounded overflow-x-auto max-h-64">{JSON.stringify(selectedRtdn.raw_payload, null, 2)}</pre>
+              </div>
             </div>
           )}
         </DialogContent>
