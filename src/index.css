@@ -2555,6 +2555,32 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   min-height: 100%;
 }
 
+body[data-admin-active="true"],
+body[data-admin-active="true"] #root,
+.admin-shell,
+.admin-content {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 217 91% 60%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
+  color-scheme: light;
+}
+
 /* Admin panel scroll safety: keep the admin shell fixed to the viewport and
    let the page-content pane own vertical scrolling on every admin section. */
 body[data-admin-active="true"] {
@@ -2902,6 +2928,59 @@ body[data-admin-active="true"] #root {
 .admin-content .text-accent-foreground { color: #0F172A !important; }
 .admin-content .text-muted-foreground { color: #64748B !important; }
 
+/* Admin root + portaled modal readable text safety. This catches legacy pages
+   whose dark-theme classes are now sitting on the Cloud White canvas. */
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [role="dialog"],
+  [role="alertdialog"],
+  [data-radix-popper-content-wrapper]
+) :is(
+  .text-white,
+  [class*="text-white/"],
+  .text-slate-50,
+  .text-slate-100,
+  .text-slate-200,
+  .text-gray-50,
+  .text-gray-100,
+  .text-gray-200,
+  .text-zinc-50,
+  .text-zinc-100,
+  .text-zinc-200,
+  .text-neutral-50,
+  .text-neutral-100,
+  .text-neutral-200,
+  .text-stone-50,
+  .text-stone-100,
+  .text-stone-200
+):not(.admin-keep-light):not([data-admin-keep-light="true"]):not([class*="bg-gradient"]):not([class*="from-"]):not([class*="bg-blue-5"]):not([class*="bg-blue-6"]):not([class*="bg-indigo-5"]):not([class*="bg-indigo-6"]):not([class*="bg-purple-5"]):not([class*="bg-purple-6"]):not([class*="bg-violet-5"]):not([class*="bg-violet-6"]):not([class*="bg-rose-5"]):not([class*="bg-rose-6"]):not([class*="bg-red-5"]):not([class*="bg-red-6"]):not([class*="bg-green-5"]):not([class*="bg-green-6"]):not([class*="bg-emerald-5"]):not([class*="bg-emerald-6"]):not([class*="bg-amber-5"]):not([class*="bg-amber-6"]):not([class*="bg-orange-5"]):not([class*="bg-orange-6"]):not([class*="bg-slate-7"]):not([class*="bg-slate-8"]):not([class*="bg-slate-9"]):not([class*="bg-gray-7"]):not([class*="bg-gray-8"]):not([class*="bg-gray-9"]):not([style*="background"]) {
+  color: #0F172A !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [role="dialog"],
+  [role="alertdialog"],
+  [data-radix-popper-content-wrapper]
+) :is(
+  .text-slate-300,
+  .text-slate-400,
+  .text-gray-300,
+  .text-gray-400,
+  .text-zinc-300,
+  .text-zinc-400,
+  .text-neutral-300,
+  .text-neutral-400,
+  .text-muted-foreground,
+  [class*="text-muted-foreground/"]
+) {
+  color: #64748B !important;
+}
+
+body[data-admin-active="true"] :is(.admin-content, [role="dialog"], [role="alertdialog"]) :is(p, span, div, label, td, th, li):not(.admin-keep-light):not([data-admin-keep-light="true"]) {
+  text-shadow: none;
+}
+
 /* ============================================
    INPUT, TEXTAREA, SELECT — Cloud White
    ============================================ */
@@ -3070,6 +3149,20 @@ body[data-admin-active="true"] [role="alertdialog"],
   box-shadow: 0 24px 48px -16px rgba(15,23,42,0.18) !important;
 }
 
+body[data-admin-active="true"] [role="dialog"] :is(.bg-background, [class*="bg-background/"]),
+body[data-admin-active="true"] [role="alertdialog"] :is(.bg-background, [class*="bg-background/"]),
+body[data-admin-active="true"] [role="dialog"] :is(.bg-card, [class*="bg-card/"]),
+body[data-admin-active="true"] [role="alertdialog"] :is(.bg-card, [class*="bg-card/"]) {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+body[data-admin-active="true"] [role="dialog"] :is(.bg-muted, [class*="bg-muted/"]),
+body[data-admin-active="true"] [role="alertdialog"] :is(.bg-muted, [class*="bg-muted/"]) {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
 body[data-admin-active="true"] [role="dialog"] h1,
 body[data-admin-active="true"] [role="dialog"] h2,
 body[data-admin-active="true"] [role="dialog"] h3,
@@ -3231,6 +3324,37 @@ body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-5"] {
   color: #0F172A !important;
   background: #F8FAFC;
   font-weight: 600;
+}
+
+/* Preserve white text only on strong colored chips/buttons/backgrounds. */
+body[data-admin-active="true"] :is(.admin-content, [role="dialog"], [role="alertdialog"]) :is(
+  [class*="bg-blue-5"], [class*="bg-blue-6"], [class*="bg-indigo-5"], [class*="bg-indigo-6"],
+  [class*="bg-purple-5"], [class*="bg-purple-6"], [class*="bg-violet-5"], [class*="bg-violet-6"],
+  [class*="bg-red-5"], [class*="bg-red-6"], [class*="bg-rose-5"], [class*="bg-rose-6"],
+  [class*="bg-green-5"], [class*="bg-green-6"], [class*="bg-emerald-5"], [class*="bg-emerald-6"],
+  [class*="bg-amber-5"], [class*="bg-amber-6"], [class*="bg-orange-5"], [class*="bg-orange-6"],
+  [class*="bg-gradient-to"], [class*="from-blue-5"], [class*="from-blue-6"], [class*="from-indigo-5"], [class*="from-indigo-6"],
+  [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-violet-5"], [class*="from-violet-6"],
+  [class*="from-red-5"], [class*="from-red-6"], [class*="from-rose-5"], [class*="from-rose-6"],
+  [class*="from-green-5"], [class*="from-green-6"], [class*="from-emerald-5"], [class*="from-emerald-6"],
+  [class*="from-amber-5"], [class*="from-amber-6"], [class*="from-orange-5"], [class*="from-orange-6"]
+):not([class*="/5"]):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]):not([class*="/25"]):not([class*="/30"]) {
+  color: #FFFFFF !important;
+}
+
+body[data-admin-active="true"] :is(.admin-content, [role="dialog"], [role="alertdialog"]) :is(
+  [class*="bg-blue-5"], [class*="bg-blue-6"], [class*="bg-indigo-5"], [class*="bg-indigo-6"],
+  [class*="bg-purple-5"], [class*="bg-purple-6"], [class*="bg-violet-5"], [class*="bg-violet-6"],
+  [class*="bg-red-5"], [class*="bg-red-6"], [class*="bg-rose-5"], [class*="bg-rose-6"],
+  [class*="bg-green-5"], [class*="bg-green-6"], [class*="bg-emerald-5"], [class*="bg-emerald-6"],
+  [class*="bg-amber-5"], [class*="bg-amber-6"], [class*="bg-orange-5"], [class*="bg-orange-6"],
+  [class*="bg-gradient-to"], [class*="from-blue-5"], [class*="from-blue-6"], [class*="from-indigo-5"], [class*="from-indigo-6"],
+  [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-violet-5"], [class*="from-violet-6"],
+  [class*="from-red-5"], [class*="from-red-6"], [class*="from-rose-5"], [class*="from-rose-6"],
+  [class*="from-green-5"], [class*="from-green-6"], [class*="from-emerald-5"], [class*="from-emerald-6"],
+  [class*="from-amber-5"], [class*="from-amber-6"], [class*="from-orange-5"], [class*="from-orange-6"]
+):not([class*="/5"]):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]):not([class*="/25"]):not([class*="/30"]) *:not(input):not(textarea):not(select) {
+  color: inherit !important;
 }
 
 /* ============================================
@@ -6529,6 +6653,7 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell textarea,
 .admin-pro-shell select {
   background-color: #FFFFFF !important;
+  background-image: none !important;
   color: #0F172A !important;
   border-color: #CBD5E1 !important;
 }
@@ -8406,4 +8531,169 @@ aside [class*="text-"] > span:not(.shrink-0) {
 .admin-pro-shell section + section,
 .admin-pro-shell [data-slot="card"] + [data-slot="card"] {
   margin-top: 1rem;
+}
+
+/* ================================================================
+   ADMIN CLOUD WHITE FINAL CONTRAST GUARD
+   Last in file by design: overrides legacy dark/admin-pro rules and
+   portaled Radix dialogs so Cloud White never becomes white-on-white.
+   ================================================================ */
+body[data-admin-active="true"] {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  color-scheme: light !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  .admin-shell,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) {
+  --background: 0 0% 100% !important;
+  --foreground: 222 47% 11% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222 47% 11% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 222 47% 11% !important;
+  --muted: 210 40% 96% !important;
+  --muted-foreground: 215 16% 47% !important;
+  --border: 214 32% 91% !important;
+  --input: 214 32% 91% !important;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body[data-admin-active="true"] :is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) {
+  border: 1px solid #E2E8F0 !important;
+  background-image: none !important;
+  box-shadow: 0 24px 60px -20px rgba(15,23,42,0.28), 0 8px 24px -12px rgba(15,23,42,0.18) !important;
+}
+
+body[data-admin-active="true"] .admin-content :is(
+  [class*="bg-slate-7"], [class*="bg-slate-8"], [class*="bg-slate-9"],
+  [class*="bg-gray-7"], [class*="bg-gray-8"], [class*="bg-gray-9"],
+  [class*="bg-zinc-7"], [class*="bg-zinc-8"], [class*="bg-zinc-9"],
+  [class*="bg-neutral-7"], [class*="bg-neutral-8"], [class*="bg-neutral-9"],
+  [class*="bg-stone-7"], [class*="bg-stone-8"], [class*="bg-stone-9"],
+  [class*="bg-black"]
+):not([class*="bg-black/"]):not([class*="bg-gradient"]):not(button):not([role="button"]) {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(h1,h2,h3,h4,h5,h6,.text-foreground,.text-card-foreground,.text-popover-foreground,.text-secondary-foreground,.text-accent-foreground,.text-white,[class*="text-white/"],.text-slate-50,.text-slate-100,.text-slate-200,.text-gray-50,.text-gray-100,.text-gray-200,.text-zinc-50,.text-zinc-100,.text-zinc-200,.text-neutral-50,.text-neutral-100,.text-neutral-200) {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(.text-muted-foreground,[class*="text-muted-foreground/"],.text-slate-300,.text-slate-400,.text-gray-300,.text-gray-400,.text-zinc-300,.text-zinc-400,.text-neutral-300,.text-neutral-400) {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(.bg-background,[class*="bg-background/"],.bg-card,[class*="bg-card/"],.bg-white,[class*="bg-white/"]) {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #0F172A !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(.bg-muted,[class*="bg-muted/"],.bg-accent,[class*="bg-accent/"],.bg-secondary,[class*="bg-secondary/"]) {
+  background-color: #F8FAFC !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(input,textarea,select,[role="combobox"]) {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+body[data-admin-active="true"] :is(input,textarea)::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}
+
+body[data-admin-active="true"] :is(
+  .admin-content,
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [role="dialog"][data-state="open"],
+  [role="alertdialog"][data-state="open"]
+) :is(
+  [class*="bg-blue-5"], [class*="bg-blue-6"], [class*="bg-indigo-5"], [class*="bg-indigo-6"],
+  [class*="bg-purple-5"], [class*="bg-purple-6"], [class*="bg-violet-5"], [class*="bg-violet-6"],
+  [class*="bg-red-5"], [class*="bg-red-6"], [class*="bg-rose-5"], [class*="bg-rose-6"],
+  [class*="bg-green-5"], [class*="bg-green-6"], [class*="bg-emerald-5"], [class*="bg-emerald-6"],
+  [class*="bg-amber-5"], [class*="bg-amber-6"], [class*="bg-orange-5"], [class*="bg-orange-6"],
+  [class*="from-blue-5"], [class*="from-blue-6"], [class*="from-indigo-5"], [class*="from-indigo-6"],
+  [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-violet-5"], [class*="from-violet-6"],
+  [class*="from-red-5"], [class*="from-red-6"], [class*="from-rose-5"], [class*="from-rose-6"],
+  [class*="from-green-5"], [class*="from-green-6"], [class*="from-emerald-5"], [class*="from-emerald-6"],
+  [class*="from-amber-5"], [class*="from-amber-6"], [class*="from-orange-5"], [class*="from-orange-6"]
+):not([class*="/5"]):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]):not([class*="/25"]):not([class*="/30"]) {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
 }

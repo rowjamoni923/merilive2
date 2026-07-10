@@ -1,6 +1,13 @@
 
 # Admin Panel Forensic Audit — Complete Visibility Plan
 
+## 2026-07-10 Hotfix — Admin Cloud White Contrast Recovery
+
+- Problem confirmed from admin Gmail/support screenshot: multiple admin surfaces had white/light text on white/light backgrounds after the Cloud White admin conversion, making dialogs, lists, chips, cards, and nested legacy pages unreadable.
+- Research-first notes: professional admin consoles use light canvas + white raised surfaces + dark primary text, not white text on white cards. WCAG 2.1 requires at least **4.5:1** contrast for normal text and **3:1** for UI boundaries/icons. References: W3C WCAG Contrast Minimum, GitHub Primer color usage, Material 3 surface/elevation roles.
+- Implementation direction locked: one global admin contrast layer in `index.css` plus shared admin style constants, so 400+ admin pages inherit readable text/background/border behavior without page-by-page patching.
+- Cloud White remains sacred: page/sidebar/cards stay white/light, but text becomes slate/blue/semantic dark, inputs/tables/modals get visible borders, and strong colored chips/buttons keep white text only on real strong colored backgrounds.
+
 ## 2026-07-09 Hotfix — Google Play / Support Purchase Recovery
 
 - Verified current DB had `coin_packages` configured: 6 active Play Store packages (`diamonds_7000_v2` → `diamonds_650000_v2`) with package bonuses already set.
