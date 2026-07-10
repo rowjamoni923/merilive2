@@ -111,8 +111,11 @@ Deno.serve(async (req) => {
     });
   }
 
+  let process_error: string | null = null;
+
   // Best-effort: on a fresh PURCHASE (notificationType 4 for one-time), invoke verify to credit if
-  // the client never called us. process_google_play_purchase is idempotent on the purchase token.
+  // the client-side verify call failed after an attempt row was created. process_google_play_purchase
+  // is idempotent on token/order, and verify-google-purchase now accepts service-role recovery calls.
   if (one?.notificationType === 4 && purchase_token && product_id) {
     try {
       const { data: attempt } = await admin
@@ -121,7 +124,8 @@ Deno.serve(async (req) => {
         .eq('purchase_token_suffix', String(purchase_token).slice(-8))
         .maybeSingle();
       if (attempt?.user_id) {
-        await admin.functions.invoke('verify-google-purchase', {
+        const { data: verifyData, error: verifyError } = await admin.functions.invoke('verify-google-purchase', {
+          headers: { Authorization: `Bearer ${SERVICE_ROLE}` },
           body: {
             userId: attempt.user_id,
             productId: product_id,
@@ -129,21 +133,42 @@ Deno.serve(async (req) => {
             orderId: order_id,
           },
         });
+        if (verifyError || !verifyData?.success) {
+          process_error = verifyError?.message || verifyData?.error || 'verify_google_purchase_failed';
+        }
+      } else {
+        process_error = 'No matching purchase attempt/user for RTDN token; admin review required';
       }
-      // If we don't have an attempt row, the client never called verify at all.
-      // We can't credit without knowing the user — surface via the events table
-      // for admin review (Orphan Payments dashboard picks it up).
     } catch (e) {
+      process_error = e instanceof Error ? e.message : 'verify_invoke_failed';
       console.warn('[rtdn] verify invoke failed', e);
     }
   }
 
+  // Voided/refunded purchases should become visible in Today's Recharge instead of staying hidden
+  // only inside Play Console. Do not auto-deduct user balance here; fraud/support review decides that.
+  if (voided && (order_id || purchase_token)) {
+    const { error: voidErr } = await admin
+      .from('recharge_transactions')
+      .update({
+        status: 'refunded',
+        reversed_at: new Date().toISOString(),
+        reversal_reason: `Google Play voided purchase${voided.refundType != null ? ` · refundType ${voided.refundType}` : ''}`,
+        notes: 'Google Play RTDN voided purchase notification received. Review before any balance deduction.',
+      })
+      .or([
+        order_id ? `google_order_id.eq.${order_id}` : null,
+        purchase_token ? `transaction_id.eq.${purchase_token}` : null,
+      ].filter(Boolean).join(','));
+    if (voidErr) process_error = voidErr.message;
+  }
+
   await admin
     .from('google_play_rtdn_events')
-    .update({ processed: true, processed_at: new Date().toISOString() })
+    .update({ processed: true, processed_at: new Date().toISOString(), process_error })
     .eq('id', inserted?.id);
 
-  return new Response(JSON.stringify({ ok: true, id: inserted?.id, type: notification_type }), {
+  return new Response(JSON.stringify({ ok: true, id: inserted?.id, type: notification_type, process_error }), {
     status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 });
