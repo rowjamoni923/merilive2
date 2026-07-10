@@ -10,7 +10,7 @@ import {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
+  Eye, EyeOff, Mic, MicOff, SwitchCamera, Sparkles,
   Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
