@@ -1,6 +1,13 @@
 
 # Admin Panel Forensic Audit — Complete Visibility Plan
 
+## 2026-07-10 Hotfix — Go Live Preview Camera Continuity
+
+- User requirement clarified: only the Go Live design/chrome should change; the camera itself must remain exactly the same continuous preview and must not visibly close/reopen when tapping Go Live.
+- Research-first notes: LiveKit's publish flow keeps camera/mic as local participant media tracks after permission (LiveKit docs: publish user's camera/mic with `setCameraEnabled` / `setMicrophoneEnabled`, device permissions handled by native/mobile runtime). Agora's Android broadcaster flow similarly joins with `publishCameraTrack=true` / `publishMicrophoneTrack=true` in `ChannelMediaOptions`; professional apps preserve capture and swap UI chrome, not restart the camera.
+- Code root cause found: native Android live host path was calling `connectAndPublish({ attachLocal: false })`, which told Kotlin to enter bounded-surface mode and detach the already-visible fullscreen prejoin renderer before LiveStream mounted a new `<NativeVideoView />`. Camera track promotion could still be intact, but visually the renderer was replaced, causing the "new/reopened camera" effect.
+- Implementation direction locked: host live transition now keeps `attachLocal=true` so the existing native preview renderer remains attached while the same Camera2 `LocalVideoTrack` is promoted into the LiveKit room. LiveStream host path no longer mounts a second bounded native surface/placeholder; React live UI overlays sit above the already-running camera surface.
+
 ## 2026-07-10 Hotfix — Admin Cloud White Contrast Recovery
 
 - Problem confirmed from admin Gmail/support screenshot: multiple admin surfaces had white/light text on white/light backgrounds after the Cloud White admin conversion, making dialogs, lists, chips, cards, and nested legacy pages unreadable.

@@ -606,11 +606,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               audio: config.role === 'host',
               lens: 'front',
               resolution: '1080p',
-              // Android live host is rendered by the full-screen bounded
-              // <NativeVideoView /> in LiveStream, not by the legacy fullscreen
-              // native renderer. This keeps chat/gifts/header/entry bars above
-              // video and prevents native TextureView from taking over the UI.
-              attachLocal: false,
+              // Android live host must keep the already-visible GoLive preview
+              // renderer attached and promote that SAME Camera2 track into the
+              // room. Detaching here creates the visible "camera reopened"
+              // flash the user reported. Viewers still use bounded remote slots.
+              attachLocal: config.role === 'host',
               // Phase I — Bigo/Chamet-style LIVE foreground notification
               // ("🔴 LIVE · {viewers} watching" + "End Live" action) instead
               // of the call-style "Call in progress" UI used for 1:1 calls.
