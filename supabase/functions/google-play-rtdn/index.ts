@@ -123,21 +123,17 @@ Deno.serve(async (req) => {
         .select('user_id')
         .eq('purchase_token_suffix', String(purchase_token).slice(-8))
         .maybeSingle();
-      if (attempt?.user_id) {
-        const { data: verifyData, error: verifyError } = await admin.functions.invoke('verify-google-purchase', {
-          headers: { Authorization: `Bearer ${SERVICE_ROLE}` },
-          body: {
-            userId: attempt.user_id,
-            productId: product_id,
-            purchaseToken: purchase_token,
-            orderId: order_id,
-          },
-        });
-        if (verifyError || !verifyData?.success) {
-          process_error = verifyError?.message || verifyData?.error || 'verify_google_purchase_failed';
-        }
-      } else {
-        process_error = 'No matching purchase attempt/user for RTDN token; admin review required';
+      const { data: verifyData, error: verifyError } = await admin.functions.invoke('verify-google-purchase', {
+        headers: { Authorization: `Bearer ${SERVICE_ROLE}` },
+        body: {
+          userId: attempt?.user_id || undefined,
+          productId: product_id,
+          purchaseToken: purchase_token,
+          orderId: order_id,
+        },
+      });
+      if (verifyError || !verifyData?.success) {
+        process_error = verifyError?.message || verifyData?.error || 'verify_google_purchase_failed';
       }
     } catch (e) {
       process_error = e instanceof Error ? e.message : 'verify_invoke_failed';
