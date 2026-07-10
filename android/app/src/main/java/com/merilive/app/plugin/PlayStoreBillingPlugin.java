@@ -19,6 +19,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private BillingClient billingClient;
     private volatile PluginCall pendingCall;
     private volatile String pendingProductId;
+    private volatile String pendingUserId;
     private volatile boolean isConnecting = false;
     private final List<PluginCall> pendingInitializeCalls = java.util.Collections.synchronizedList(new ArrayList<>());
     private final List<ReadyAction> readyQueue = java.util.Collections.synchronizedList(new ArrayList<>());
@@ -217,6 +218,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     private void startPurchase(PluginCall call) {
         String productId = call.getString("productId");
+        String userId = call.getString("userId");
         if (productId == null) {
             call.reject("productId is required");
             return;
@@ -229,6 +231,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
         pendingCall = call;
         pendingProductId = productId;
+        pendingUserId = userId;
 
         // STEP 1: Pre-check existing purchases. If the user already owns this
         // product (PURCHASED but unconsumed), resolve immediately with that
@@ -256,6 +259,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                                     );
                                     pendingCall = null;
                                     pendingProductId = null;
+                                    pendingUserId = null;
                                 }
                                 return;
                             }
@@ -288,9 +292,12 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                     .setProductDetails(details)
                     .build());
 
-                BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(productDetailsParamsList)
-                    .build();
+                BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder()
+                    .setProductDetailsParamsList(productDetailsParamsList);
+                if (pendingUserId != null && !pendingUserId.trim().isEmpty()) {
+                    flowBuilder.setObfuscatedAccountId(pendingUserId.trim());
+                }
+                BillingFlowParams flowParams = flowBuilder.build();
 
                 BillingResult launchResult = billingClient.launchBillingFlow(getActivity(), flowParams);
                 if (launchResult.getResponseCode() != BillingClient.BillingResponseCode.OK) {
@@ -303,6 +310,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         pendingCall.reject("Purchase could not start: " + launchResult.getDebugMessage(), "BILLING_FLOW_FAILED");
                         pendingCall = null;
                         pendingProductId = null;
+                        pendingUserId = null;
                     }
                 }
             } else {
@@ -310,6 +318,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                     pendingCall.reject("Product not found: " + productId, "PRODUCT_NOT_FOUND");
                     pendingCall = null;
                     pendingProductId = null;
+                    pendingUserId = null;
                 }
             }
         });
@@ -334,6 +343,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                     pendingCall.reject("You already own this item, but no deliverable purchase was found. Please reopen Recharge and try again.", "ITEM_ALREADY_OWNED");
                     pendingCall = null;
                     pendingProductId = null;
+                    pendingUserId = null;
                 }
             }
         );
@@ -349,6 +359,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         pendingCall.resolve(ret);
         pendingCall = null;
         pendingProductId = null;
+        pendingUserId = null;
         broadcastedTokens.add(purchase.getPurchaseToken());
     }
 
@@ -425,6 +436,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         );
                         pendingCall = null;
                         pendingProductId = null;
+                        pendingUserId = null;
                     }
                 }
             }
@@ -437,18 +449,21 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 pendingCall.reject("Item already owned", "ITEM_ALREADY_OWNED");
                 pendingCall = null;
                 pendingProductId = null;
+                pendingUserId = null;
             }
         } else if (code == BillingClient.BillingResponseCode.USER_CANCELED) {
             if (pendingCall != null) {
                 pendingCall.reject("Purchase cancelled by user", "USER_CANCELED");
                 pendingCall = null;
                 pendingProductId = null;
+                pendingUserId = null;
             }
         } else {
             if (pendingCall != null) {
                 pendingCall.reject("Purchase failed: " + billingResult.getDebugMessage(), "PURCHASE_FAILED");
                 pendingCall = null;
                 pendingProductId = null;
+                pendingUserId = null;
             }
         }
     }

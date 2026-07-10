@@ -125,10 +125,10 @@ Deno.serve(async (req) => {
     let userId: string | null = null;
 
     if (isServiceRoleCaller) {
-      if (!isUuid(body.userId)) {
+      if (body.userId != null && !isUuid(body.userId)) {
         return jsonResponse({ success: false, error: 'Trusted recovery requires a valid userId' }, 400);
       }
-      userId = body.userId;
+      userId = isUuid(body.userId) ? body.userId : null;
     } else {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
     );
 
     const purchaseTokenHash = await sha256Hex(String(purchaseToken));
-    const attemptPayload = {
+    const attemptPayload: Record<string, unknown> = {
       user_id: userId,
       product_id: productId,
       requested_order_id: orderId || null,
@@ -160,15 +160,17 @@ Deno.serve(async (req) => {
     };
 
     let attemptId: string | null = null;
-    const { data: attemptRow, error: attemptInsertError } = await adminSupabase
-      .from('google_play_purchase_attempts')
-      .upsert(attemptPayload, { onConflict: 'purchase_token_hash' })
-      .select('id')
-      .maybeSingle();
-    if (attemptInsertError) {
-      console.warn('[verify-google-purchase] Attempt log insert failed:', attemptInsertError.message);
+    if (userId) {
+      const { data: attemptRow, error: attemptInsertError } = await adminSupabase
+        .from('google_play_purchase_attempts')
+        .upsert(attemptPayload, { onConflict: 'purchase_token_hash' })
+        .select('id')
+        .maybeSingle();
+      if (attemptInsertError) {
+        console.warn('[verify-google-purchase] Attempt log insert failed:', attemptInsertError.message);
+      }
+      attemptId = attemptRow?.id || null;
     }
-    attemptId = attemptRow?.id || null;
 
     const markAttempt = async (fields: Record<string, unknown>) => {
       try {
@@ -249,6 +251,16 @@ Deno.serve(async (req) => {
 
     const purchaseData = await googleResponse.json();
     console.log(`[verify-google-purchase] Google response:`, JSON.stringify(purchaseData));
+
+    if (!userId && isServiceRoleCaller) {
+      const googleUserId = purchaseData.obfuscatedExternalAccountId || purchaseData.obfuscatedExternalProfileId;
+      if (isUuid(googleUserId)) {
+        userId = googleUserId;
+        attemptPayload.user_id = userId;
+      } else {
+        return jsonResponse({ success: false, error: 'Could not identify purchase owner from Google token' }, 400);
+      }
+    }
 
     await markAttempt({
       status: purchaseData.purchaseState === 0 ? 'google_verified' : 'google_not_purchased',
