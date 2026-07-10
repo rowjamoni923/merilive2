@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
-import { navigateInAppPath, openInApp } from '@/utils/inAppNavigation';
+import { navigateInAppPath, openInExternalBrowser } from '@/utils/inAppNavigation';
 import { getNotificationPath } from '@/utils/notificationDeepLink';
 
 interface UsePushNotificationsReturn {
@@ -93,9 +93,10 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
     const path = getNotificationPath(data);
 
-    // Absolute http(s) URLs use the in-app browser, internal paths use the router.
+    // Absolute http(s) URLs from admin (link_url/action_url) → OS external browser (Chrome).
+    // Internal app paths → SPA router.
     if (/^https?:\/\//i.test(path)) {
-      void openInApp(path);
+      void openInExternalBrowser(path);
     } else {
       navigateInAppPath(path);
     }

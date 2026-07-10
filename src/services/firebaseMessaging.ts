@@ -7,7 +7,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { isNativeApp } from '@/utils/nativeUtils';
-import { navigateInAppPath, openInApp } from '@/utils/inAppNavigation';
+import { navigateInAppPath, openInExternalBrowser } from '@/utils/inAppNavigation';
 import { getNotificationPath } from '@/utils/notificationDeepLink';
 import type { FirebaseApp } from 'firebase/app';
 import type { Messaging } from 'firebase/messaging';
@@ -339,7 +339,7 @@ function handleNotificationTap(data?: NotificationData) {
   const path = getNotificationPath(data as NotificationData | undefined);
 
   if (/^https?:\/\//i.test(path)) {
-    void openInApp(path);
+    void openInExternalBrowser(path);
     return;
   }
 
