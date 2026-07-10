@@ -23814,6 +23814,11 @@ export type Database = {
         Returns: Json
       }
       mute_all_speakers: { Args: { p_room_id: string }; Returns: Json }
+      normalize_profile_media_url: { Args: { _raw: string }; Returns: string }
+      normalize_profile_media_url_array: {
+        Args: { _raw: string[] }
+        Returns: string[]
+      }
       normalize_public_profile_media_url: {
         Args: { _url: string }
         Returns: string
