@@ -10,7 +10,7 @@ import {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Camera, CameraOff, Mic, MicOff, SwitchCamera, Sparkles,
+  Eye, EyeOff, Mic, MicOff, SwitchCamera, Sparkles,
   Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -469,7 +469,7 @@ export default function PreMatchPrep({
       {/* Camera control strip */}
       <div className="relative z-10 flex items-center justify-center gap-2 mb-4">
         <CtrlBtn active={camOn} onClick={() => setCamOn((v) => !v)} label="Camera">
-          {camOn ? <Camera className="w-4 h-4" /> : <CameraOff className="w-4 h-4" />}
+          {camOn ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
         </CtrlBtn>
         <CtrlBtn active={micOn} onClick={() => setMicOn((v) => !v)} label="Microphone">
           {micOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}

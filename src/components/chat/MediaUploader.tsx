@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Upload, FileImage, Film, Music, FileText } from "lucide-react";
+import { X, Upload, FileImage, Play, Music, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -226,7 +226,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGa
             className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Film className="w-6 h-6 text-white" />
+              <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
             </div>
             <div className="text-left">
               <p className="font-medium">Video</p>
