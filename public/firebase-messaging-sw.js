@@ -150,7 +150,14 @@ self.addEventListener('notificationclick', function(event) {
   }
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+    (async function () {
+      // Absolute http(s) URL pointing to a different origin (admin-set external link)
+      // → open in a brand new browser tab, never hijack the current app tab.
+      var isExternal = /^https?:\/\//i.test(url) && url.indexOf(self.location.origin) !== 0;
+      if (isExternal) {
+        return clients.openWindow(url);
+      }
+      var clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
       for (var i = 0; i < clientList.length; i++) {
         var client = clientList[i];
         if (client.url.indexOf(self.location.origin) !== -1 && 'focus' in client) {
@@ -159,7 +166,7 @@ self.addEventListener('notificationclick', function(event) {
         }
       }
       return clients.openWindow(url);
-    })
+    })()
   );
 });
 
