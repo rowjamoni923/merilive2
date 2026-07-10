@@ -1140,6 +1140,61 @@ const AdminRechargeHistory = () => {
         </DialogContent>
       </Dialog>
 
+      {/* RTDN Event Detail Dialog */}
+      <Dialog open={!!selectedRtdn} onOpenChange={() => setSelectedRtdn(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Google Play RTDN Event</DialogTitle>
+          </DialogHeader>
+          {selectedRtdn && (
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Event</span>
+                <Badge className={`${rtdnLabel(selectedRtdn).tone} text-[11px]`}>{rtdnLabel(selectedRtdn).label}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Type / Code</span>
+                <span className="font-mono text-xs">{selectedRtdn.notification_type} / {selectedRtdn.event_type_code ?? '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Product</span>
+                <span className="font-mono text-xs">{selectedRtdn.product_id || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Order ID</span>
+                <span className="font-mono text-xs break-all text-right">{selectedRtdn.order_id || '—'}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Purchase Token</span>
+                <p className="font-mono text-[11px] break-all mt-1 p-2 bg-muted/30 rounded">{selectedRtdn.purchase_token || '—'}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Message ID</span>
+                <span className="font-mono text-[11px]">{selectedRtdn.message_id || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Published</span>
+                <span className="text-xs">{selectedRtdn.publish_time ? format(new Date(selectedRtdn.publish_time), 'MMM dd, yyyy HH:mm:ss') : '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Processed</span>
+                <span className="text-xs">{selectedRtdn.processed_at ? format(new Date(selectedRtdn.processed_at), 'MMM dd, yyyy HH:mm:ss') : '—'}</span>
+              </div>
+              {selectedRtdn.process_error && (
+                <div>
+                  <span className="text-muted-foreground text-xs">Error</span>
+                  <p className="text-xs mt-1 p-2 bg-red-500/10 text-red-400 rounded">{selectedRtdn.process_error}</p>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground text-xs">Raw Payload</span>
+                <pre className="text-[10px] mt-1 p-2 bg-muted/30 rounded overflow-x-auto max-h-64">{JSON.stringify(selectedRtdn.raw_payload, null, 2)}</pre>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Fullscreen Image Viewer */}
       <ImageViewer src={imageViewer.viewerImage} open={imageViewer.isOpen} onClose={imageViewer.closeImage} alt="Payment Proof" />
     </div>
