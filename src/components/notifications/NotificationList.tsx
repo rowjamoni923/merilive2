@@ -325,7 +325,13 @@ export const NotificationList = ({ onClose, compact = false }: NotificationListP
     const link = getNotificationLink(notification);
     if (link) {
       if (onClose) onClose();
-      navigate(link);
+      // Admin-set absolute http(s) links → open in the user's real system browser (Chrome),
+      // not the WebView. Internal routes stay in the SPA router.
+      if (/^https?:\/\//i.test(link)) {
+        void openInExternalBrowser(link);
+      } else {
+        navigate(link);
+      }
     }
   };
 
