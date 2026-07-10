@@ -850,6 +850,93 @@ const AdminRechargeHistory = () => {
         </Select>
       </div>
 
+      {/* Google Play RTDN Events (Play Store real-time notifications) */}
+      <Card className="bg-card border-border overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                📡 Google Play RTDN Events
+                <Badge variant="outline" className="text-[10px]">Live from Play Store</Badge>
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Purchases, renewals, cancellations & refunds pushed by Google in real time
+                {selectedDate ? ` — ${format(selectedDate, 'MMM dd, yyyy')}` : ' — last 200 events'}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap text-[10px]">
+              <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/30">Total {rtdnStats.total}</Badge>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Processed {rtdnStats.processed}</Badge>
+              {rtdnStats.failed > 0 && (
+                <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Errors {rtdnStats.failed}</Badge>
+              )}
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">🛒 {rtdnStats.purchase}</Badge>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">🔄 {rtdnStats.renewed}</Badge>
+              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">🚫 {rtdnStats.cancelled}</Badge>
+              <Badge className="bg-red-500/20 text-red-400 border-red-500/30">↩️ {rtdnStats.refunded}</Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-card">
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-3 font-medium text-muted-foreground">Event</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Product</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Order ID</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Token</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Received</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rtdnEvents.length === 0 ? (
+                <tr><td colSpan={7} className="text-center p-6 text-muted-foreground text-xs">
+                  No Play Store notifications yet. Google will start pushing events as soon as a user makes / cancels / renews a purchase.
+                </td></tr>
+              ) : rtdnEvents.map(ev => {
+                const { label, tone } = rtdnLabel(ev);
+                const token = ev.purchase_token ? `…${ev.purchase_token.slice(-10)}` : '—';
+                return (
+                  <tr key={ev.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <td className="p-3"><Badge className={`${tone} text-[10px]`}>{label}</Badge></td>
+                    <td className="p-3"><span className="text-xs text-foreground">{ev.product_id || '—'}</span></td>
+                    <td className="p-3"><span className="text-[10px] text-muted-foreground font-mono">{ev.order_id || '—'}</span></td>
+                    <td className="p-3"><span className="text-[10px] text-muted-foreground font-mono">{token}</span></td>
+                    <td className="p-3">
+                      {ev.process_error ? (
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]" title={ev.process_error}>
+                          <XCircle className="w-3 h-3 mr-1" /> Error
+                        </Badge>
+                      ) : ev.processed ? (
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Processed
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                          <Clock className="w-3 h-3 mr-1" /> Pending
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <span className="text-[11px] text-muted-foreground">
+                        {format(new Date(ev.publish_time || ev.created_at), 'MMM dd, HH:mm:ss')}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedRtdn(ev)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
       {/* Table */}
       <Card className="bg-card border-border overflow-hidden">
         <div className="overflow-x-auto">
