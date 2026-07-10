@@ -3631,7 +3631,11 @@ const LiveStream = () => {
   // Phase 1B: host's camera-off propagates as TrackMuted → viewer should swap
   // the (frozen) <video> for the avatar placeholder, not stare at the last frame.
   const isRemoteHostCameraOff = !!(remoteVideoTrack && (firstRemoteUser as any)?.videoMuted);
-  const showNativeHostSurface = isHost && isNativeMediaActive && !localVideoTrack;
+  // Android host handoff uses the full-screen native preview renderer that was
+  // already visible on GoLive. Do not mount a second bounded <NativeVideoView />
+  // or its placeholder here; that detaches/replaces the visual camera surface
+  // and looks like the camera reopened even when the Camera2 track survived.
+  const showNativeHostSurface = false;
   const showNativeViewerSurface = !isHost && isNativeMediaActive && !remoteVideoTrack && !!nativeHostParticipant?.sid;
   const [nativeHostSurfaceAttached, setNativeHostSurfaceAttached] = useState(false);
   const [nativeViewerSurfaceAttached, setNativeViewerSurfaceAttached] = useState(false);
