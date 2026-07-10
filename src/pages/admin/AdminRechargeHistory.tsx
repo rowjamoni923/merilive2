@@ -665,6 +665,39 @@ const AdminRechargeHistory = () => {
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
+  const rtdnLabel = (row: RtdnEventRow): { label: string; tone: string } => {
+    const t = row.notification_type;
+    const c = row.event_type_code ?? -1;
+    if (t === 'test') return { label: '🧪 Test Ping', tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' };
+    if (t === 'voided') return { label: '↩️ Refund / Voided', tone: 'bg-red-500/20 text-red-400 border-red-500/30' };
+    if (t === 'subscription') {
+      const map: Record<number, { label: string; tone: string }> = {
+        1: { label: '🔄 Sub Recovered', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        2: { label: '🔄 Sub Renewed', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        3: { label: '🚫 Sub Cancelled', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+        4: { label: '🛒 Sub Purchased', tone: 'bg-green-500/20 text-green-400 border-green-500/30' },
+        5: { label: '⏸ Sub On Hold', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        6: { label: '⌛ Grace Period', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        7: { label: '▶️ Sub Restarted', tone: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+        8: { label: '💲 Price Change OK', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        9: { label: '⏭ Sub Deferred', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        10: { label: '⏸ Sub Paused', tone: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        11: { label: '📅 Pause Rescheduled', tone: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        12: { label: '❌ Sub Revoked', tone: 'bg-red-500/20 text-red-400 border-red-500/30' },
+        13: { label: '⏹ Sub Expired', tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' },
+        20: { label: '⏳ Pending Purchase', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+      };
+      return map[c] ?? { label: `Sub #${c}`, tone: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
+    }
+    if (t === 'one_time_product') {
+      if (c === 1) return { label: '🛒 One-time Purchased', tone: 'bg-green-500/20 text-green-400 border-green-500/30' };
+      if (c === 2) return { label: '🚫 One-time Cancelled', tone: 'bg-amber-500/20 text-amber-400 border-amber-500/30' };
+      return { label: `One-time #${c}`, tone: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
+    }
+    return { label: t, tone: 'bg-slate-500/20 text-slate-300 border-slate-500/30' };
+  };
+
+
   return (
     <div className="admin-pro-shell space-y-6">
       {/* Header */}
