@@ -587,6 +587,45 @@ const AdminRechargeHistory = () => {
 
   useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
 
+  const fetchRtdnEvents = useCallback(async () => {
+    try {
+      const { start, end } = getDateRange();
+      let q = supabase
+        .from('google_play_rtdn_events' as any)
+        .select('id, message_id, publish_time, notification_type, event_type_code, product_id, order_id, purchase_token, processed, processed_at, process_error, created_at, raw_payload')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (start && end) q = q.gte('created_at', start).lte('created_at', end);
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data || []) as unknown as RtdnEventRow[];
+      setRtdnEvents(rows);
+      const codeIs = (row: RtdnEventRow, codes: number[]) =>
+        row.event_type_code != null && codes.includes(row.event_type_code);
+      setRtdnStats({
+        total: rows.length,
+        processed: rows.filter(r => r.processed).length,
+        failed: rows.filter(r => !!r.process_error).length,
+        // subscription purchase (4) + one-time purchase (1)
+        purchase: rows.filter(r =>
+          (r.notification_type === 'subscription' && codeIs(r, [4])) ||
+          (r.notification_type === 'one_time_product' && codeIs(r, [1]))
+        ).length,
+        renewed: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [2, 1, 7])).length,
+        cancelled: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [3, 12, 13])).length,
+        refunded: rows.filter(r => r.notification_type === 'voided').length,
+      });
+    } catch (e) {
+      recordAdminError({ kind: 'rpc', label: 'AdminRechargeHistory.RtdnFetchError', message: formatAdminError(e) });
+    }
+  }, [getDateRange]);
+
+  useEffect(() => {
+    fetchRtdnEvents();
+  }, [fetchRtdnEvents]);
+
+  useAdminRealtime(['google_play_rtdn_events'], fetchRtdnEvents);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
