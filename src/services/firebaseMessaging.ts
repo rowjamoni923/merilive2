@@ -339,7 +339,7 @@ function handleNotificationTap(data?: NotificationData) {
   const path = getNotificationPath(data as NotificationData | undefined);
 
   if (/^https?:\/\//i.test(path)) {
-    void openInApp(path);
+    void openInExternalBrowser(path);
     return;
   }
 
