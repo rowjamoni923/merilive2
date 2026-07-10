@@ -93,9 +93,10 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
     const path = getNotificationPath(data);
 
-    // Absolute http(s) URLs use the in-app browser, internal paths use the router.
+    // Absolute http(s) URLs from admin (link_url/action_url) → OS external browser (Chrome).
+    // Internal app paths → SPA router.
     if (/^https?:\/\//i.test(path)) {
-      void openInApp(path);
+      void openInExternalBrowser(path);
     } else {
       navigateInAppPath(path);
     }
