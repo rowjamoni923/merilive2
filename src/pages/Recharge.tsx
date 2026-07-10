@@ -234,6 +234,7 @@ const Recharge = () => {
   // Play Store Billing State
   const [isPlayStoreAvailable, setIsPlayStoreAvailable] = useState(false);
   const [playStoreProcessing, setPlayStoreProcessing] = useState(false);
+  const [restoreProcessing, setRestoreProcessing] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'local' | 'helper' | 'mericash'>('playstore');
   // Generic gateway-flow processing flag (kept name for diff stability)
   const [stripeProcessing, setStripeProcessing] = useState(false);
@@ -1744,6 +1745,36 @@ const Recharge = () => {
     }
   };
 
+  const handleRestoreGooglePlayPurchases = async () => {
+    if (!userId) {
+      toast({ title: "Login Required", description: "Please log in before restoring purchases.", variant: "destructive" });
+      return;
+    }
+    if (!isAndroidNative) {
+      toast({ title: "Android App Required", description: "Google Play purchase restore is available only in the Android app." });
+      return;
+    }
+    setRestoreProcessing(true);
+    try {
+      const ready = isPlayStoreAvailable || await playStoreBilling.initialize();
+      if (!ready) {
+        toast({ title: "Play Store Unavailable", description: "Google Play Billing is not ready on this device.", variant: "destructive" });
+        return;
+      }
+      const recovered = await playStoreBilling.retryPendingPurchases(userId);
+      await fetchUserData();
+      if (recovered > 0) {
+        toast({ title: "Purchase Restored", description: `${recovered} Google Play purchase(s) delivered to your account.` });
+      } else {
+        toast({ title: "No Pending Purchases", description: "No undelivered Google Play purchases were found for this account." });
+      }
+    } catch (error: any) {
+      toast({ title: "Restore Failed", description: error?.message || "Could not restore Google Play purchases.", variant: "destructive" });
+    } finally {
+      setRestoreProcessing(false);
+    }
+  };
+
   // Stripe payment removed.
 
   const handleStartPayment = () => {
@@ -3201,11 +3232,29 @@ const Recharge = () => {
                   ? "bg-emerald-50 border-emerald-200" 
                   : "bg-blue-50 border-blue-200"
               )}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2">
                   {isPlayStoreAvailable ? (
                     <>
-                      <Check className="w-4 h-4 text-emerald-600" />
-                      <p className="text-[11px] text-emerald-700 font-semibold">✓ Instant ✓ Secure ✓ Worldwide ✓ No TxID needed</p>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-600" />
+                        <p className="text-[11px] text-emerald-700 font-semibold">✓ Instant ✓ Secure ✓ Worldwide ✓ No TxID needed</p>
+                      </div>
+                      {isAndroidNative && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-[11px] border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                          disabled={restoreProcessing || playStoreProcessing}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRestoreGooglePlayPurchases();
+                          }}
+                        >
+                          {restoreProcessing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Restore"}
+                        </Button>
+                      )}
                     </>
                   ) : (
                     <>
