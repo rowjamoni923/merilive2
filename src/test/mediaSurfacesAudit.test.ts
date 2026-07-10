@@ -189,6 +189,18 @@ describe("native LiveKit bridge — Kotlin plugin events", () => {
     expect(nativePreviewBranch).not.toMatch(/stopNativePreview\(/);
   });
 
+  it("preview handoff — Android live host keeps fullscreen preview renderer attached", () => {
+    const client = read("src/hooks/useLiveKitClient.ts");
+    const nativeJoin = client.slice(
+      client.indexOf("nativeLiveKitController.connectAndPublish"),
+      client.indexOf("broadcastMode: 'live'"),
+    );
+    expect(nativeJoin).toMatch(/attachLocal:\s*config\.role === 'host'/);
+
+    const live = read("src/pages/LiveStream.tsx");
+    expect(live).toMatch(/const showNativeHostSurface = false/);
+  });
+
   it("preview handoff — CreateParty preserves native video/game preview for PartyRoom", () => {
     const src = read("src/pages/CreateParty.tsx");
     const handoff = src.slice(src.indexOf("// Seamless handoff:"), src.indexOf("navigate(`/party/"));
