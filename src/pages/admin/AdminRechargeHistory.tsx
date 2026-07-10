@@ -60,6 +60,22 @@ interface RechargeRecord {
   receiver_uid?: string;
 }
 
+interface RtdnEventRow {
+  id: string;
+  message_id: string | null;
+  publish_time: string | null;
+  notification_type: string;
+  event_type_code: number | null;
+  product_id: string | null;
+  order_id: string | null;
+  purchase_token: string | null;
+  processed: boolean;
+  processed_at: string | null;
+  process_error: string | null;
+  created_at: string;
+  raw_payload: any;
+}
+
 const AdminRechargeHistory = () => {
   const navigate = useNavigate();
   const imageViewer = useImageViewer();
@@ -73,6 +89,9 @@ const AdminRechargeHistory = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RechargeRecord | null>(null);
   const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
+  const [rtdnEvents, setRtdnEvents] = useState<RtdnEventRow[]>([]);
+  const [rtdnStats, setRtdnStats] = useState({ total: 0, processed: 0, failed: 0, purchase: 0, renewed: 0, cancelled: 0, refunded: 0 });
+  const [selectedRtdn, setSelectedRtdn] = useState<RtdnEventRow | null>(null);
 
   const PAGE_SIZE = 30;
 
