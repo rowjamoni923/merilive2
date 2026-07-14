@@ -708,10 +708,40 @@ const AdminFaceVerification = () => {
     .filter((s) => (mismatchOnly ? !isKnownStatus(s.status) : true));
   const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
-  const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isAutoReviewed = (s: Submission) => {
+    // Match server-side `face_verification_is_auto_reviewed` RPC exactly so the
+    // Auto Approved / Auto Rejected tab LIST agrees with the top-card COUNT.
+    // Previously only status+notes were checked, so 8 rows whose auto verdict
+    // was recorded via `verification_method='auto_rekognition'` (no `[auto]`
+    // note marker) silently disappeared from the Auto Approved tab.
+    if (Boolean(s.is_auto_reviewed)) return true;
+    if (String(s.review_source || '').toLowerCase() === 'auto') return true;
+    const method = String((s as { verification_method?: string | null }).verification_method || '').trim().toLowerCase();
+    if (method.startsWith('auto') || ['aws', 'rekognition', 'aws_rekognition', 'auto_face', 'auto_face_verification', 'auto_rekognition'].includes(method)) return true;
+    return isAutoFaceReview(s.status, s.admin_notes);
+  };
   const isUserRetryRow = (s: Submission) => {
     const st = String(s.status || '').trim().toLowerCase();
     return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
+  };
+
+  // Extract structured retry reason written by `face-verification-analyze` into
+  // `ai_analysis.retry_required` so admin sees WHY a row is stuck without
+  // opening the detail dialog or ai_analysis JSON.
+  const getRetryReason = (s: Submission): { reason: string; steps: string[]; failed: Array<{ label: string; message: string; score?: number | null }> } | null => {
+    if (!isUserRetryRow(s)) return null;
+    const rr = (s.ai_analysis as Record<string, unknown> | null | undefined)?.retry_required as Record<string, unknown> | undefined;
+    const noteReason = (s.admin_notes || '').match(/\[needs_retry\]\s*([^\n]+)/i)?.[1]?.trim();
+    const reason = String(rr?.reason || '').trim() || noteReason || 'ai_uncertain';
+    const steps = Array.isArray(rr?.steps) ? (rr!.steps as unknown[]).map(String) : [];
+    const failed = Array.isArray(rr?.failed_evidence)
+      ? (rr!.failed_evidence as Array<Record<string, unknown>>).map((f) => ({
+          label: String(f.human_name || f.label || f.step || 'Step'),
+          message: String(f.message || ''),
+          score: (f.score as number | null | undefined) ?? null,
+        }))
+      : [];
+    return { reason, steps, failed };
   };
   const filteredSubmissions = visiblePool.filter((sub) => {
     if (activeTab === 'auto_approved') return isApproved(sub) && isAutoReviewed(sub);
@@ -945,7 +975,7 @@ const AdminFaceVerification = () => {
                           })()}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          <CopyableUid value={submission.profile?.app_uid} /> • {formatDate(submission.created_at)}
+                          <CopyableUid value={submission.profile?.app_uid} /> • <span className="font-mono text-[10px] text-slate-500" title={`User ID: ${submission.user_id}\nSubmission ID: ${submission.id}`}>uid:{submission.user_id.slice(0, 8)} · sub:{submission.id.slice(0, 8)}</span> • {formatDate(submission.created_at)}
                         </p>
                       </div>
 
@@ -958,6 +988,54 @@ const AdminFaceVerification = () => {
                         <Eye className="w-4 h-4" />
                       </Button>
                     </div>
+
+                    {/* Retry reason banner — visible for every needs_retry row so admin instantly sees WHY it's stuck. */}
+                    {(() => {
+                      const rr = getRetryReason(submission);
+                      if (!rr) return null;
+                      const humanReason = ({
+                        invalid_face_count: 'No clear face detected on front frame (or multiple faces).',
+                        no_face_front: 'No face detected on the live front scan.',
+                        underage: 'AI age estimate below threshold — borderline.',
+                        face_occluded: 'Possible face occlusion (mask/hand/hair).',
+                        gender_unknown: 'Gender confidence below auto-approve threshold.',
+                        invalid_final_gender: 'Gender confidence below auto-approve threshold.',
+                        low_similarity: 'Front-vs-side similarity too low.',
+                        below_thresholds: 'AI confidence below auto-approve threshold.',
+                        host_photos_mismatch: 'One or more host gallery photos do not match the live face.',
+                        liveness_provider_missing: 'Liveness provider unavailable (API key not configured).',
+                        liveness_provider_unreachable: 'Liveness provider did not respond.',
+                        duplicate_search_unverified: 'Duplicate-face search did not complete.',
+                        duplicate_candidate_manual_review: 'Face matched another non-approved candidate — needs manual check.',
+                        face_index_failed: 'Face indexing failed — auto-approve blocked for safety.',
+                        photo_video_live_evidence_missing: 'Required photo/video/live evidence missing or unreadable.',
+                        photo_video_live_identity_review: 'Photo, video and live scan not confidently same person.',
+                        identity_mismatch_needs_retry: 'Live face does not confidently match profile photo/video.',
+                        evidence_quality_needs_retry: 'Evidence quality too low — retake in good light.',
+                        host_gallery_needs_retry: 'Host gallery incomplete or unreadable.',
+                        ai_uncertain: 'AI could not safely auto-approve.',
+                      } as Record<string, string>)[rr.reason] || rr.reason;
+                      return (
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <RefreshCw className="w-3.5 h-3.5 text-amber-700" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">Retry Reason</span>
+                            <code className="text-[10px] font-mono bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5 text-amber-900">{rr.reason}</code>
+                          </div>
+                          <p className="text-xs text-amber-900 leading-relaxed">{humanReason}</p>
+                          {rr.failed.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {rr.failed.map((f, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 text-[10px] font-medium bg-white border border-amber-300 rounded px-1.5 py-0.5 text-amber-900" title={f.message}>
+                                  <AlertTriangle className="w-3 h-3" />
+                                  {f.label}{typeof f.score === 'number' ? ` · ${f.score.toFixed(1)}%` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       <div className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 shadow-sm">
