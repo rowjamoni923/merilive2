@@ -491,8 +491,22 @@ export function usePrivateCall(userId: string | null) {
   const startCall = useCallback(async (hostId: string, streamId?: string) => {
 
     // 🔒 Native-only enforcement: Calls can ONLY be initiated from the Android app.
-    // Web browsers (including PWA / mobile web) are blocked from placing private calls.
-    if (!isNativeAndroidApp()) {
+    // Preview host (localhost / *.lovableproject.com / id-preview--*.lovable.app)
+    // is allowed through so owner can debug the click → RPC → call-deliver path
+    // in Lovable preview. Production web (merilive.top / merilive2.lovable.app)
+    // stays blocked. The RPC also enforces native via x-client-platform header,
+    // so preview requests will still be rejected with `native_app_required`
+    // unless the admin explicitly enables `allow_web_calls` — no security loss.
+    const isPreviewHostname = (() => {
+      try {
+        if (typeof window === 'undefined') return false;
+        const h = window.location.hostname;
+        return h === 'localhost' || h === '127.0.0.1'
+          || h.endsWith('.lovableproject.com')
+          || /^id-preview--[a-z0-9-]+\.lovable\.app$/i.test(h);
+      } catch { return false; }
+    })();
+    if (!isNativeAndroidApp() && !isPreviewHostname) {
       toast({
         title: "Android App Required",
         description: "Private calls are available only in the MeriLive Android app. Please install/open the app to call.",
@@ -510,12 +524,15 @@ export function usePrivateCall(userId: string | null) {
       return null;
     }
 
-    // GUARD: Prevent double invocation
+    // GUARD: Prevent double invocation — but auto-release after 10s so a stuck
+    // ref (from a previous crashed attempt) never permanently blocks the button.
     if (startingCallRef.current) {
       console.log('[Call] Already starting a call, ignoring duplicate');
       return null;
     }
     startingCallRef.current = true;
+    // Safety: auto-clear after 10s no matter what
+    setTimeout(() => { startingCallRef.current = false; }, 10000);
 
     try {
       if (isNativeAndroidApp()) void whenNativeLiveKitKillSwitchReady().catch(() => {});
