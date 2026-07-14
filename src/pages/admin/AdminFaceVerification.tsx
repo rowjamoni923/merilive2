@@ -708,10 +708,40 @@ const AdminFaceVerification = () => {
     .filter((s) => (mismatchOnly ? !isKnownStatus(s.status) : true));
   const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
-  const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isAutoReviewed = (s: Submission) => {
+    // Match server-side `face_verification_is_auto_reviewed` RPC exactly so the
+    // Auto Approved / Auto Rejected tab LIST agrees with the top-card COUNT.
+    // Previously only status+notes were checked, so 8 rows whose auto verdict
+    // was recorded via `verification_method='auto_rekognition'` (no `[auto]`
+    // note marker) silently disappeared from the Auto Approved tab.
+    if (Boolean(s.is_auto_reviewed)) return true;
+    if (String(s.review_source || '').toLowerCase() === 'auto') return true;
+    const method = String((s as { verification_method?: string | null }).verification_method || '').trim().toLowerCase();
+    if (method.startsWith('auto') || ['aws', 'rekognition', 'aws_rekognition', 'auto_face', 'auto_face_verification', 'auto_rekognition'].includes(method)) return true;
+    return isAutoFaceReview(s.status, s.admin_notes);
+  };
   const isUserRetryRow = (s: Submission) => {
     const st = String(s.status || '').trim().toLowerCase();
     return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
+  };
+
+  // Extract structured retry reason written by `face-verification-analyze` into
+  // `ai_analysis.retry_required` so admin sees WHY a row is stuck without
+  // opening the detail dialog or ai_analysis JSON.
+  const getRetryReason = (s: Submission): { reason: string; steps: string[]; failed: Array<{ label: string; message: string; score?: number | null }> } | null => {
+    if (!isUserRetryRow(s)) return null;
+    const rr = (s.ai_analysis as Record<string, unknown> | null | undefined)?.retry_required as Record<string, unknown> | undefined;
+    const noteReason = (s.admin_notes || '').match(/\[needs_retry\]\s*([^\n]+)/i)?.[1]?.trim();
+    const reason = String(rr?.reason || '').trim() || noteReason || 'ai_uncertain';
+    const steps = Array.isArray(rr?.steps) ? (rr!.steps as unknown[]).map(String) : [];
+    const failed = Array.isArray(rr?.failed_evidence)
+      ? (rr!.failed_evidence as Array<Record<string, unknown>>).map((f) => ({
+          label: String(f.human_name || f.label || f.step || 'Step'),
+          message: String(f.message || ''),
+          score: (f.score as number | null | undefined) ?? null,
+        }))
+      : [];
+    return { reason, steps, failed };
   };
   const filteredSubmissions = visiblePool.filter((sub) => {
     if (activeTab === 'auto_approved') return isApproved(sub) && isAutoReviewed(sub);
