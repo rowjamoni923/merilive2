@@ -183,7 +183,8 @@ interface Submission {
   ai_analysis?: Record<string, unknown> | null;
   rejection_reason: string | null;
   admin_notes: string | null;
-  status_bucket?: 'pending' | 'approved' | 'rejected';
+  status_bucket?: 'pending' | 'approved' | 'rejected' | 'user_retry' | string;
+  is_retry_required?: boolean;
   is_auto_reviewed?: boolean | null;
   review_source?: 'auto' | 'manual' | string | null;
   created_at: string;
