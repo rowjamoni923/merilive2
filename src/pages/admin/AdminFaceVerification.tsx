@@ -318,17 +318,26 @@ const AdminFaceVerification = () => {
       const payload = (listResult.data as any) || {};
       const rows = (payload.rows || []) as any[];
 
-      const enriched: Submission[] = rows.map((s) => ({
-        ...s,
-        status: normalizeFaceVerificationStatus(s.status ?? s.status_bucket),
-        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
-        review_source: inferFaceReviewSource(s),
-        // RPC returns profile as a jsonb object; normalize null → undefined
-        profile: s.profile && s.profile.id ? s.profile : undefined,
-        agency_info: s.agency_name
-          ? { agency_name: s.agency_name, agency_code: s.agency_code }
-          : null,
-      }));
+      const enriched: Submission[] = rows.map((s) => {
+        // Preserve the server's authoritative bucket in an explicit, un-narrowed
+        // field so `isUserRetryRow` never depends on TypeScript-declared shape
+        // of `status_bucket` (Submission type historically excluded 'user_retry').
+        const rawBucket = String((s as { status_bucket?: string | null })?.status_bucket || '').trim().toLowerCase();
+        return {
+          ...s,
+          status: normalizeFaceVerificationStatus(s.status ?? s.status_bucket),
+          status_bucket: rawBucket || undefined,
+          is_retry_required: rawBucket === 'user_retry' || String(s.status || '').trim().toLowerCase() === 'needs_retry',
+          is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
+          review_source: inferFaceReviewSource(s),
+          // RPC returns profile as a jsonb object; normalize null → undefined
+          profile: s.profile && s.profile.id ? s.profile : undefined,
+          agency_info: s.agency_name
+            ? { agency_name: s.agency_name, agency_code: s.agency_code }
+            : null,
+        } as Submission;
+      });
+
 
       if (requestId !== fetchRequestIdRef.current) return;
       setSubmissions(withOptimisticTerminalRows(enriched, q));
