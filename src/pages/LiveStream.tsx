@@ -5205,8 +5205,48 @@ const LiveStream = () => {
               Please wait, the host will be back soon!
             </p>
 
-            {/* Host Photos Gallery */}
-            {hostPhotos.length > 0 && (
+            {/* LC-2 — rotating host poster media (image/video), one after another */}
+            {hostPosters.length > 0 ? (
+              <div className="w-52 h-72 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg relative">
+                <AnimatePresence mode="wait">
+                  {(() => {
+                    const poster = hostPosters[hostBusySlideIndex % hostPosters.length];
+                    if (!poster) return null;
+                    return (
+                      <motion.div
+                        key={`${hostBusySlideIndex}:${poster.url}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0"
+                      >
+                        {poster.isVideo ? (
+                          <video
+                            src={poster.url}
+                            className="w-full h-full object-cover"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            preload="auto"
+                          />
+                        ) : (
+                          <img
+                            loading="lazy"
+                            decoding="async"
+                            src={poster.url}
+                            alt={`${hostInfo?.name || 'Host'} poster`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </motion.div>
+                    );
+                  })()}
+                </AnimatePresence>
+              </div>
+            ) : hostPhotos.length > 0 ? (
+              /* LC-1 fallback — static gallery strip */
               <div className="flex gap-3 px-6">
                 {hostPhotos.slice(0, 3).map((photo, idx) => (
                   <motion.div
@@ -5216,14 +5256,14 @@ const LiveStream = () => {
                     transition={{ delay: idx * 0.15 }}
                     className="w-24 h-32 rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
                   >
-                    <img loading="lazy" decoding="async" 
+                    <img loading="lazy" decoding="async"
                       src={photo}
                       alt={`${hostInfo?.name} photo ${idx + 1}`}
                       className="w-full h-full object-cover" />
                   </motion.div>
                 ))}
               </div>
-            )}
+            ) : null}
 
             <motion.div
               animate={{ opacity: [0.4, 1, 0.4] }}
