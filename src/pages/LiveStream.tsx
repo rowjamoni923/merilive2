@@ -2134,6 +2134,43 @@ const LiveStream = () => {
       }
     };
 
+    // LC-2 — host poster media + admin slideshow interval (ProfileDetail parity).
+    const fetchHostPosters = async () => {
+      try {
+        const [postersRes, intervalRes] = await Promise.all([
+          supabase
+            .from('poster_images')
+            .select('image_url, media_type, display_order')
+            .eq('user_id', hostInfo!.id)
+            .order('display_order', { ascending: true }),
+          supabase
+            .from('app_settings')
+            .select('setting_value')
+            .eq('setting_key', 'profile_slideshow_interval')
+            .maybeSingle(),
+        ]);
+
+        const rows = (postersRes as any)?.data;
+        if (Array.isArray(rows) && rows.length > 0) {
+          const isVid = (url: string, mt?: string | null) =>
+            (mt || '').toLowerCase() === 'video' ||
+            /\.(mp4|webm|mov|m4v|ogg)(?:$|[?#])/i.test(url || '');
+          setHostPosters(
+            rows
+              .map((r: any) => {
+                const url = normalizeProfileMediaUrl(r.image_url) || r.image_url || '';
+                return { url, isVideo: isVid(url, r.media_type) };
+              })
+              .filter((p: { url: string }) => !!p.url),
+          );
+        }
+        const iv = parseInt((intervalRes as any)?.data?.setting_value ?? '', 10);
+        if (iv > 0) setHostSlideshowInterval(iv);
+      } catch {
+        // silent fallback — LC-1 static strip still shows.
+      }
+    };
+
     const refreshHostBusyStatus = async () => {
       const { data: activeCall } = await supabase
         .from('private_calls')
