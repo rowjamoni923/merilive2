@@ -526,6 +526,11 @@ const LiveStream = () => {
   // Host busy on call state - for viewer overlay
   const [hostBusyOnCall, setHostBusyOnCall] = useState(false);
   const [hostPhotos, setHostPhotos] = useState<string[]>([]);
+  // LC-2 — rotating host poster media (image/video) shown while host is on a
+  // private call (Chamet/Wejoy pattern). Mirrors ProfileDetail poster slideshow.
+  const [hostPosters, setHostPosters] = useState<{ url: string; isVideo: boolean }[]>([]);
+  const [hostSlideshowInterval, setHostSlideshowInterval] = useState(5);
+  const [hostBusySlideIndex, setHostBusySlideIndex] = useState(0);
 
   // Host-side: show "Back to Live / Back to Home" modal after a private
   // call (accepted or placed while broadcasting) ends. The LiveStream
@@ -2129,6 +2134,43 @@ const LiveStream = () => {
       }
     };
 
+    // LC-2 — host poster media + admin slideshow interval (ProfileDetail parity).
+    const fetchHostPosters = async () => {
+      try {
+        const [postersRes, intervalRes] = await Promise.all([
+          supabase
+            .from('poster_images')
+            .select('image_url, media_type, display_order')
+            .eq('user_id', hostInfo!.id)
+            .order('display_order', { ascending: true }),
+          supabase
+            .from('app_settings')
+            .select('setting_value')
+            .eq('setting_key', 'profile_slideshow_interval')
+            .maybeSingle(),
+        ]);
+
+        const rows = (postersRes as any)?.data;
+        if (Array.isArray(rows) && rows.length > 0) {
+          const isVid = (url: string, mt?: string | null) =>
+            (mt || '').toLowerCase() === 'video' ||
+            /\.(mp4|webm|mov|m4v|ogg)(?:$|[?#])/i.test(url || '');
+          setHostPosters(
+            rows
+              .map((r: any) => {
+                const url = normalizeProfileMediaUrl(r.image_url) || r.image_url || '';
+                return { url, isVideo: isVid(url, r.media_type) };
+              })
+              .filter((p: { url: string }) => !!p.url),
+          );
+        }
+        const iv = parseInt((intervalRes as any)?.data?.setting_value ?? '', 10);
+        if (iv > 0) setHostSlideshowInterval(iv);
+      } catch {
+        // silent fallback — LC-1 static strip still shows.
+      }
+    };
+
     const refreshHostBusyStatus = async () => {
       const { data: activeCall } = await supabase
         .from('private_calls')
@@ -2143,6 +2185,7 @@ const LiveStream = () => {
     };
 
     fetchHostPhotos();
+    fetchHostPosters();
     refreshHostBusyStatus();
 
     // Pkg305: Restore Supabase Realtime on private_calls for instant host-busy
