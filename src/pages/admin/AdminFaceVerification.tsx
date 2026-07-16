@@ -731,17 +731,18 @@ const AdminFaceVerification = () => {
     return isAutoFaceReview(s.status, s.admin_notes);
   };
   const isUserRetryRow = (s: Submission) => {
-    // Server (`admin_list_face_verification_paginated`) sets `status_bucket`
-    // to 'user_retry' whenever `face_verification_is_retry_required(...)` fires
-    // — that check inspects ai_analysis / notes / media presence, not just
-    // status. Trust the server bucket first so the tab list matches the badge
-    // count (which comes from the same server-side rule). Fall back to the
-    // legacy status-string sniff for older cached rows / optimistic updates.
-    const bucket = String((s as { status_bucket?: string | null }).status_bucket || '').trim().toLowerCase();
+    // 1) Trust the enrichment-time flag captured directly from the server RPC
+    //    bucket — this survives every downstream normalization.
+    if (s.is_retry_required === true) return true;
+    // 2) Server (`admin_list_face_verification_paginated`) sets `status_bucket`
+    //    to 'user_retry' whenever `face_verification_is_retry_required(...)` fires.
+    const bucket = String(s.status_bucket || '').trim().toLowerCase();
     if (bucket === 'user_retry') return true;
+    // 3) Legacy status-string sniff for older cached rows / optimistic updates.
     const st = String(s.status || '').trim().toLowerCase();
     return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
   };
+
 
   // Extract structured retry reason written by `face-verification-analyze` into
   // `ai_analysis.retry_required` so admin sees WHY a row is stuck without
