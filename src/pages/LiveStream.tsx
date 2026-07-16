@@ -2206,6 +2206,21 @@ const LiveStream = () => {
     };
   }, [id, isHost, hostInfo?.id]);
 
+  // LC-2 — rotate host poster media one-after-another while the host is busy.
+  useEffect(() => {
+    if (!hostBusyOnCall || hostPosters.length <= 1) return;
+    const timer = setInterval(() => {
+      setHostBusySlideIndex((prev) => (prev + 1) % hostPosters.length);
+    }, Math.max(1, hostSlideshowInterval) * 1000);
+    return () => clearInterval(timer);
+  }, [hostBusyOnCall, hostPosters.length, hostSlideshowInterval]);
+
+  useEffect(() => {
+    if (hostBusySlideIndex >= hostPosters.length) setHostBusySlideIndex(0);
+  }, [hostBusySlideIndex, hostPosters.length]);
+
+
+
 
   // Pkg82a: REMOVED Supabase `stream_viewers_entrance_${id}` postgres_changes
   // subscription. Entry animations are now triggered by the unified
