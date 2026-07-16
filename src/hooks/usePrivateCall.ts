@@ -620,6 +620,9 @@ export function usePrivateCall(userId: string | null) {
         p_caller_id: userId,
         p_receiver_id: hostId,
         p_call_type: 'video',
+        // LC-CTX — link the call to the live stream it was started from so
+        // `private_calls.stream_id` is populated (RPC validates it best-effort).
+        ...(streamId ? { p_context_stream_id: streamId } : {}),
       });
 
 
