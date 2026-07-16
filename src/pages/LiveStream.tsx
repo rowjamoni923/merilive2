@@ -2185,6 +2185,7 @@ const LiveStream = () => {
     };
 
     fetchHostPhotos();
+    fetchHostPosters();
     refreshHostBusyStatus();
 
     // Pkg305: Restore Supabase Realtime on private_calls for instant host-busy
