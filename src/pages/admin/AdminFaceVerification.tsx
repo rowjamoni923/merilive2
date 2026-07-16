@@ -183,7 +183,8 @@ interface Submission {
   ai_analysis?: Record<string, unknown> | null;
   rejection_reason: string | null;
   admin_notes: string | null;
-  status_bucket?: 'pending' | 'approved' | 'rejected';
+  status_bucket?: 'pending' | 'approved' | 'rejected' | 'user_retry' | string;
+  is_retry_required?: boolean;
   is_auto_reviewed?: boolean | null;
   review_source?: 'auto' | 'manual' | string | null;
   created_at: string;
@@ -318,17 +319,26 @@ const AdminFaceVerification = () => {
       const payload = (listResult.data as any) || {};
       const rows = (payload.rows || []) as any[];
 
-      const enriched: Submission[] = rows.map((s) => ({
-        ...s,
-        status: normalizeFaceVerificationStatus(s.status ?? s.status_bucket),
-        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
-        review_source: inferFaceReviewSource(s),
-        // RPC returns profile as a jsonb object; normalize null → undefined
-        profile: s.profile && s.profile.id ? s.profile : undefined,
-        agency_info: s.agency_name
-          ? { agency_name: s.agency_name, agency_code: s.agency_code }
-          : null,
-      }));
+      const enriched: Submission[] = rows.map((s) => {
+        // Preserve the server's authoritative bucket in an explicit, un-narrowed
+        // field so `isUserRetryRow` never depends on TypeScript-declared shape
+        // of `status_bucket` (Submission type historically excluded 'user_retry').
+        const rawBucket = String((s as { status_bucket?: string | null })?.status_bucket || '').trim().toLowerCase();
+        return {
+          ...s,
+          status: normalizeFaceVerificationStatus(s.status ?? s.status_bucket),
+          status_bucket: rawBucket || undefined,
+          is_retry_required: rawBucket === 'user_retry' || String(s.status || '').trim().toLowerCase() === 'needs_retry',
+          is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
+          review_source: inferFaceReviewSource(s),
+          // RPC returns profile as a jsonb object; normalize null → undefined
+          profile: s.profile && s.profile.id ? s.profile : undefined,
+          agency_info: s.agency_name
+            ? { agency_name: s.agency_name, agency_code: s.agency_code }
+            : null,
+        } as Submission;
+      });
+
 
       if (requestId !== fetchRequestIdRef.current) return;
       setSubmissions(withOptimisticTerminalRows(enriched, q));
@@ -721,17 +731,18 @@ const AdminFaceVerification = () => {
     return isAutoFaceReview(s.status, s.admin_notes);
   };
   const isUserRetryRow = (s: Submission) => {
-    // Server (`admin_list_face_verification_paginated`) sets `status_bucket`
-    // to 'user_retry' whenever `face_verification_is_retry_required(...)` fires
-    // — that check inspects ai_analysis / notes / media presence, not just
-    // status. Trust the server bucket first so the tab list matches the badge
-    // count (which comes from the same server-side rule). Fall back to the
-    // legacy status-string sniff for older cached rows / optimistic updates.
-    const bucket = String((s as { status_bucket?: string | null }).status_bucket || '').trim().toLowerCase();
+    // 1) Trust the enrichment-time flag captured directly from the server RPC
+    //    bucket — this survives every downstream normalization.
+    if (s.is_retry_required === true) return true;
+    // 2) Server (`admin_list_face_verification_paginated`) sets `status_bucket`
+    //    to 'user_retry' whenever `face_verification_is_retry_required(...)` fires.
+    const bucket = String(s.status_bucket || '').trim().toLowerCase();
     if (bucket === 'user_retry') return true;
+    // 3) Legacy status-string sniff for older cached rows / optimistic updates.
     const st = String(s.status || '').trim().toLowerCase();
     return ['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete'].includes(st);
   };
+
 
   // Extract structured retry reason written by `face-verification-analyze` into
   // `ai_analysis.retry_required` so admin sees WHY a row is stuck without
