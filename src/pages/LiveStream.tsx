@@ -526,6 +526,11 @@ const LiveStream = () => {
   // Host busy on call state - for viewer overlay
   const [hostBusyOnCall, setHostBusyOnCall] = useState(false);
   const [hostPhotos, setHostPhotos] = useState<string[]>([]);
+  // LC-2 — rotating host poster media (image/video) shown while host is on a
+  // private call (Chamet/Wejoy pattern). Mirrors ProfileDetail poster slideshow.
+  const [hostPosters, setHostPosters] = useState<{ url: string; isVideo: boolean }[]>([]);
+  const [hostSlideshowInterval, setHostSlideshowInterval] = useState(5);
+  const [hostBusySlideIndex, setHostBusySlideIndex] = useState(0);
 
   // Host-side: show "Back to Live / Back to Home" modal after a private
   // call (accepted or placed while broadcasting) ends. The LiveStream
