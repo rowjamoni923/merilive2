@@ -51,7 +51,7 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
-  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
+  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed", "profile_verified",
   "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
   "needs_retry", "retry_required", "upload_failed", "upload_incomplete", "user_retry",
@@ -119,7 +119,7 @@ export function isKnownStatus(status: string | null | undefined): boolean {
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
   if (RETRY_STATUSES.includes(normalized)) return "user_retry";
-  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed"].includes(normalized)) return "approved";
+  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed", "profile_verified"].includes(normalized)) return "approved";
   if (["rejected", "auto_rejected", "auto-rejected", "failed", "denied"].includes(normalized)) return "rejected";
   return "pending";
 }

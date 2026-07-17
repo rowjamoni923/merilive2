@@ -100,7 +100,7 @@ const AdminUserHub = () => {
       {/* Stats Grid - 2 rows of 4 */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         <AdminLuxuryStatCard icon={Users} label="Total Users" value={stats.totalUsers.toLocaleString()} tone="gold" />
-        <AdminLuxuryStatCard icon={UserCheck} label="Verified" value={stats.verifiedUsers.toLocaleString()} tone="accent" />
+        <AdminLuxuryStatCard icon={UserCheck} label="Face Verified" value={stats.verifiedUsers.toLocaleString()} tone="accent" />
         <AdminLuxuryStatCard icon={Activity} label="Active Today" value={stats.activeToday.toLocaleString()} tone="royal" />
         <AdminLuxuryStatCard icon={Ban} label="Banned" value={stats.bannedUsers.toLocaleString()} tone="danger" />
         <AdminLuxuryStatCard icon={Crown} label="Hosts" value={stats.hosts.toLocaleString()} tone="gold" />
