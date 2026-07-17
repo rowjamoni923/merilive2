@@ -24,6 +24,8 @@ export type StatusCounts = {
   approved: number;
   rejected: number;
   user_retry?: number;
+  profile_face_verified?: number;
+  profile_verified?: number;
   auto_approved?: number;
   auto_rejected?: number;
   auto_host?: number;
@@ -42,18 +44,20 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
   approved: 0,
   rejected: 0,
   user_retry: 0,
+  profile_face_verified: 0,
+  profile_verified: 0,
 };
 
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
-  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
+  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed", "profile_verified",
   "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
-  "needs_retry", "retry_required", "upload_failed", "upload_incomplete",
+  "needs_retry", "retry_required", "upload_failed", "upload_incomplete", "user_retry",
 ]);
 
-const RETRY_STATUSES = ["needs_retry", "retry_required", "upload_failed", "upload_incomplete"];
+const RETRY_STATUSES = ["needs_retry", "retry_required", "upload_failed", "upload_incomplete", "user_retry"];
 const RETRY_NOTE_MARKERS = ["orphan_media_missing", "orphan submission", "upload incomplete", "upload-incomplete", "upload was incomplete"];
 
 const truthyAnalysisValue = (value: unknown): boolean =>
@@ -71,8 +75,13 @@ export function isFaceRetryRequiredRow(
 ): boolean {
   const r = (typeof row === "object" && row !== null ? row : {}) as Record<string, unknown>;
   const normalized = String(status ?? r.status ?? "").trim().toLowerCase();
+  const serverBucket = String(r.status_bucket ?? "").trim().toLowerCase();
   const notes = String(adminNotes ?? r.admin_notes ?? "").toLowerCase();
   const analysis = (typeof r.ai_analysis === "object" && r.ai_analysis !== null ? r.ai_analysis : {}) as Record<string, unknown>;
+
+  // Admin RPCs are the source of truth for retry bucketing. Trust the server
+  // bucket first so a badge count can never disagree with the list filter.
+  if (serverBucket === "user_retry") return true;
 
   // Final admin/AI decisions must never be pulled back into Pending by old
   // retry/orphan/upload metadata. This mirrors the DB function used by the
@@ -109,7 +118,8 @@ export function isKnownStatus(status: string | null | undefined): boolean {
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
-  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed"].includes(normalized)) return "approved";
+  if (RETRY_STATUSES.includes(normalized)) return "user_retry";
+  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed", "profile_verified"].includes(normalized)) return "approved";
   if (["rejected", "auto_rejected", "auto-rejected", "failed", "denied"].includes(normalized)) return "rejected";
   return "pending";
 }
@@ -167,6 +177,8 @@ export function countFaceReviewBuckets<T>(
   const out: Required<StatusCounts> = {
     ...EMPTY_STATUS_COUNTS,
     user_retry: 0,
+    profile_face_verified: 0,
+    profile_verified: 0,
     auto_approved: 0,
     auto_rejected: 0,
     auto_host: 0,
@@ -303,6 +315,8 @@ function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): St
     approved: Number(s.approved || 0),
     rejected: Number(s.rejected || 0),
     user_retry: Number(s.user_retry || 0),
+    profile_face_verified: Number(s.profile_face_verified || 0),
+    profile_verified: Number(s.profile_verified || 0),
     auto_approved: Number(s.auto_approved || 0),
     auto_rejected: Number(s.auto_rejected || 0),
     auto_host: Number(s.auto_host || 0),

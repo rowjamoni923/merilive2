@@ -1,6 +1,14 @@
 
 # Admin Panel Forensic Audit — Complete Visibility Plan
 
+
+## 2026-07-17 Hotfix — Face Verification Admin Count Parity
+
+- Problem confirmed from owner screenshots: User Hub and Face Verification tabs used different truth sources, so badges could show counts while the filtered list showed empty rows.
+- Research-first notes: Chamet/Bigo/Poppo-style moderation queues separate **queue state** (pending/retry/rejected) from **account verification state** (profile face-verified). Professional admin panels must expose both, with server-side canonical buckets and no client-only re-bucketing.
+- Root cause: the admin list/count RPCs were based on latest submission rows, while User Hub counted `profiles.is_face_verified`; legacy users can have profile verification without an approved submission row, and old retry/status metadata can make client filters disagree with server counts.
+- Implementation direction locked: DB RPCs now return one canonical admin queue including read-only synthetic audit rows for legacy profile-verified users without fabricating submission evidence; evidence guard remains intact. Frontend must trust server `status_bucket` first so tab count and list cannot diverge.
+
 ## 2026-07-10 Hotfix — Go Live Preview Camera Continuity
 
 - User requirement clarified: only the Go Live design/chrome should change; the camera itself must remain exactly the same continuous preview and must not visibly close/reopen when tapping Go Live.

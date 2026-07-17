@@ -143,8 +143,9 @@ function RoleApproveBar({
 
 const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed'].includes(normalized)) return 'approved';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'verified', 'passed', 'profile_verified'].includes(normalized)) return 'approved';
   if (['rejected', 'auto_rejected', 'auto-rejected', 'failed', 'denied'].includes(normalized)) return 'rejected';
+  if (['needs_retry', 'retry_required', 'upload_failed', 'upload_incomplete', 'user_retry'].includes(normalized)) return 'pending';
   if (normalized === 'submitted' || normalized === 'under_review' || normalized === 'pending') return normalized;
   return 'pending';
 };
@@ -187,6 +188,7 @@ interface Submission {
   is_retry_required?: boolean;
   is_auto_reviewed?: boolean | null;
   review_source?: 'auto' | 'manual' | string | null;
+  synthetic_profile_verified?: boolean | null;
   created_at: string;
   reviewed_at: string | null;
   is_duplicate_face: boolean | null;
@@ -689,7 +691,14 @@ const AdminFaceVerification = () => {
   // approved/rejected falls into pending).
   // Button/tab visibility must follow the row's real status. `status_bucket` can
   // arrive stale from older RPC versions, so only use it when raw status is absent.
-  const getSubmissionBucket = (s: Submission) => bucketOfStatus(s.status || s.status_bucket);
+  const getSubmissionBucket = (s: Submission) => {
+    const serverBucket = String(s.status_bucket || '').trim().toLowerCase();
+    if (serverBucket === 'user_retry') return 'user_retry';
+    if (serverBucket === 'approved' || serverBucket === 'rejected' || serverBucket === 'pending') {
+      return serverBucket;
+    }
+    return bucketOfStatus(s.status);
+  };
   const isApproved = (s: Submission) => getSubmissionBucket(s) === "approved";
   const isRejected = (s: Submission) => getSubmissionBucket(s) === "rejected";
   const isPendingBucket = (s: Submission) => getSubmissionBucket(s) === "pending";
@@ -978,6 +987,9 @@ const AdminFaceVerification = () => {
                           <h3 className="font-semibold text-sm truncate">{submission.full_name || submission.profile?.display_name || 'Unknown'}</h3>
                           {submission.profile?.is_face_verified && (
                             <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
+                          )}
+                          {submission.synthetic_profile_verified && (
+                            <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px]">Profile Audit</Badge>
                           )}
                           {getTypeBadge(getEffectiveVerificationType(submission))}
                           {getStatusBadge(submission.status)}
