@@ -44,6 +44,8 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
   approved: 0,
   rejected: 0,
   user_retry: 0,
+  profile_face_verified: 0,
+  profile_verified: 0,
 };
 
 
@@ -175,6 +177,8 @@ export function countFaceReviewBuckets<T>(
   const out: Required<StatusCounts> = {
     ...EMPTY_STATUS_COUNTS,
     user_retry: 0,
+    profile_face_verified: 0,
+    profile_verified: 0,
     auto_approved: 0,
     auto_rejected: 0,
     auto_host: 0,
