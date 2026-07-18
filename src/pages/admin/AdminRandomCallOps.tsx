@@ -137,9 +137,13 @@ export default function AdminRandomCallOps() {
 
   useEffect(() => {
     loadAll();
-    const t = setInterval(loadAll, 15000);
-    return () => clearInterval(t);
   }, []);
+  useAdminRealtime(
+    ["random_call_sessions", "random_call_queue", "random_call_skip_counters", "host_match_availability"],
+    () => loadAll(),
+    "admin-random-call-ops-rt"
+  );
+
 
   const unsuspendHost = async (hostId: string) => {
     const { error } = await (supabase as any)
