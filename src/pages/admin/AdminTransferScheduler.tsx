@@ -572,10 +572,8 @@ const AdminTransferScheduler = () => {
 
             <Button
               className="w-full"
-              onClick={() => {
-                const next = computeNextRun(schedule);
-                saveSchedule({ ...schedule, next_transfer_at: schedule.is_active ? next.toISOString() : schedule.next_transfer_at });
-              }}
+              onClick={() => saveSchedule(schedule)}
+
               disabled={saving}
             >
               {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
