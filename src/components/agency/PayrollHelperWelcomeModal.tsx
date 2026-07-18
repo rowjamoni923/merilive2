@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useManagedBanner } from "@/hooks/useManagedBanner";
 import payrollHeroImage from "@/assets/payroll-helper-hero.png";
 
 interface PayrollHelperWelcomeModalProps {
