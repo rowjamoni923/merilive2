@@ -1885,8 +1885,6 @@ export default function AdminLayout() {
       setUnreadCount(0);
       setNotificationCountsByPath({}); // Reset all DB notification counts
       setSectionNotifications([]); // Instantly clear derived section alerts in bell UI
-      // Sticky cleanup: wipe the section snapshot so cleared rows don't re-appear.
-      stickySectionCountsRef.current = {};
       // Dismiss all paths so bell badge = 0
       setDismissedPaths(() => {
         const all = new Set<string>();
