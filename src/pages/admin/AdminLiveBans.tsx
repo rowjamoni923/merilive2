@@ -107,27 +107,44 @@ export default function AdminLiveBans() {
 
       if (error) throw error;
 
-      const bansWithProfiles = ((data || []) as any[]).map((row) => ({
-        id: row.id,
-        user_id: row.user_id,
-        ban_reason: row.ban_reason,
-        violation_type: row.violation_type,
-        warning_count: row.warning_count,
-        ban_start: row.ban_start,
-        ban_end: row.ban_end,
-        ban_duration_hours: row.ban_duration_hours,
-        is_active: row.is_active,
-        auto_banned: row.auto_banned,
-        unbanned_by: row.unbanned_by,
-        unbanned_at: row.unbanned_at,
-        profiles: row.display_name
-          ? {
-              display_name: row.display_name || '',
-              avatar_url: row.avatar_url || '',
-              uid: row.app_uid || (row.user_id ? row.user_id.slice(0, 8) : ''),
-            }
-          : undefined,
-      }));
+      const rows = (data || []) as any[];
+      // The RPC returns SETOF live_bans (no profile join). Hydrate profile
+      // info separately so every row shows the real user name/avatar/UID
+      // instead of "Unknown".
+      const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+      const profileMap = new Map<string, { display_name: string; avatar_url: string; app_uid: string }>();
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id,display_name,avatar_url,app_uid')
+          .in('id', userIds);
+        (profs || []).forEach((p: any) => profileMap.set(p.id, {
+          display_name: p.display_name || '',
+          avatar_url: p.avatar_url || '',
+          app_uid: p.app_uid || (p.id ? p.id.slice(0, 8) : ''),
+        }));
+      }
+
+      const bansWithProfiles = rows.map((row) => {
+        const p = profileMap.get(row.user_id);
+        return {
+          id: row.id,
+          user_id: row.user_id,
+          ban_reason: row.ban_reason,
+          violation_type: row.violation_type,
+          warning_count: row.warning_count,
+          ban_start: row.ban_start,
+          ban_end: row.ban_end,
+          ban_duration_hours: row.ban_duration_hours,
+          is_active: row.is_active,
+          auto_banned: row.auto_banned,
+          unbanned_by: row.unbanned_by,
+          unbanned_at: row.unbanned_at,
+          profiles: p
+            ? { display_name: p.display_name, avatar_url: p.avatar_url, uid: p.app_uid }
+            : undefined,
+        };
+      });
 
       setBans(bansWithProfiles as unknown as LiveBan[]);
     } catch (error: any) {
