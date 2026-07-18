@@ -175,7 +175,7 @@ const CreateAgency = () => {
     
     if (helperCheck?.is_verified && helperCheck?.is_active && helperCheck?.trader_level === 5 && helperCheck?.payroll_enabled) {
       initialLevel = "A5";
-      initialCommissionRate = 12;
+      initialCommissionRate = 20;
     }
 
     // Create agency using secure RPC (bypasses trigger protection)
