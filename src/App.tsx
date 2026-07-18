@@ -637,8 +637,12 @@ const AdminNamespaceLock = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  if (adminLinkToken || hasAdminAccessFlag()) {
+  if (adminLinkToken) {
     return <Navigate to={`/admin/auth?access=${encodeURIComponent(adminLinkToken)}`} replace />;
+  }
+
+  if (hasAdminAccessFlag()) {
+    return <Navigate to="/admin/auth" replace />;
   }
 
   return null;
