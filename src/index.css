@@ -8855,6 +8855,13 @@ body[data-admin-active="true"] :is(input,textarea)::placeholder {
   opacity: 1 !important;
 }
 
+/* Vivid solid brand backgrounds keep white ink. `from-*` gradient parents are
+   excluded here because our admin rescue neutralizes those gradients to a
+   plain white surface — inheriting white text on white bg made KPI labels
+   (Approved / Rejected / Payroll Requests) invisible on AdminHelperApplications
+   and every similar pastel Card in the admin panel. Restrict this rescue to
+   truly vivid solid `bg-{color}-500/600` surfaces, and add explicit exclusions
+   so pastel `bg-{color}-50/100` tints never match via substring. */
 body[data-admin-active="true"] :is(
   .admin-content,
   [data-slot="dialog-content"],
@@ -8863,16 +8870,16 @@ body[data-admin-active="true"] :is(
   [role="dialog"][data-state="open"],
   [role="alertdialog"][data-state="open"]
 ) :is(
-  [class*="bg-blue-5"], [class*="bg-blue-6"], [class*="bg-indigo-5"], [class*="bg-indigo-6"],
-  [class*="bg-purple-5"], [class*="bg-purple-6"], [class*="bg-violet-5"], [class*="bg-violet-6"],
-  [class*="bg-red-5"], [class*="bg-red-6"], [class*="bg-rose-5"], [class*="bg-rose-6"],
-  [class*="bg-green-5"], [class*="bg-green-6"], [class*="bg-emerald-5"], [class*="bg-emerald-6"],
-  [class*="bg-amber-5"], [class*="bg-amber-6"], [class*="bg-orange-5"], [class*="bg-orange-6"],
-  [class*="from-blue-5"], [class*="from-blue-6"], [class*="from-indigo-5"], [class*="from-indigo-6"],
-  [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-violet-5"], [class*="from-violet-6"],
-  [class*="from-red-5"], [class*="from-red-6"], [class*="from-rose-5"], [class*="from-rose-6"],
-  [class*="from-green-5"], [class*="from-green-6"], [class*="from-emerald-5"], [class*="from-emerald-6"],
-  [class*="from-amber-5"], [class*="from-amber-6"], [class*="from-orange-5"], [class*="from-orange-6"]
+  [class*="bg-blue-500"], [class*="bg-blue-600"], [class*="bg-blue-700"],
+  [class*="bg-indigo-500"], [class*="bg-indigo-600"], [class*="bg-indigo-700"],
+  [class*="bg-purple-500"], [class*="bg-purple-600"], [class*="bg-purple-700"],
+  [class*="bg-violet-500"], [class*="bg-violet-600"], [class*="bg-violet-700"],
+  [class*="bg-red-500"], [class*="bg-red-600"], [class*="bg-red-700"],
+  [class*="bg-rose-500"], [class*="bg-rose-600"], [class*="bg-rose-700"],
+  [class*="bg-green-500"], [class*="bg-green-600"], [class*="bg-green-700"],
+  [class*="bg-emerald-500"], [class*="bg-emerald-600"], [class*="bg-emerald-700"],
+  [class*="bg-amber-500"], [class*="bg-amber-600"],
+  [class*="bg-orange-500"], [class*="bg-orange-600"]
 ):not([class*="/5"]):not([class*="/10"]):not([class*="/15"]):not([class*="/20"]):not([class*="/25"]):not([class*="/30"]) {
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
