@@ -159,8 +159,16 @@ const AgencyPolicy = () => {
 
   useEffect(() => {
     fetchPolicies();
+    // Realtime: any admin edit to tiers or policy sections instantly refetches.
+    const channel = supabase
+      .channel("agency-policy-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "agency_level_tiers" }, () => fetchPolicies())
+      .on("postgres_changes", { event: "*", schema: "public", table: "agency_policy_settings" }, () => fetchPolicies())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
 
   const fetchPolicies = async () => {
