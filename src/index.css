@@ -6607,22 +6607,22 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
    400/500/600/700/800/900). Preserves subtle 50/100/200 tint cards. Applies
    only when element is NOT a Badge/count-chip (which needs colored surface
    to stay readable) — we detect by absence of role="status" & rounded-full. */
-.admin-pro-shell [class*="from-pink-4"],   .admin-pro-shell [class*="from-pink-5"],   .admin-pro-shell [class*="from-pink-6"],   .admin-pro-shell [class*="from-pink-7"],
-.admin-pro-shell [class*="from-rose-4"],   .admin-pro-shell [class*="from-rose-5"],   .admin-pro-shell [class*="from-rose-6"],   .admin-pro-shell [class*="from-rose-7"],
-.admin-pro-shell [class*="from-purple-4"], .admin-pro-shell [class*="from-purple-5"], .admin-pro-shell [class*="from-purple-6"], .admin-pro-shell [class*="from-purple-7"],
-.admin-pro-shell [class*="from-violet-4"], .admin-pro-shell [class*="from-violet-5"], .admin-pro-shell [class*="from-violet-6"], .admin-pro-shell [class*="from-violet-7"],
-.admin-pro-shell [class*="from-fuchsia-4"],.admin-pro-shell [class*="from-fuchsia-5"],.admin-pro-shell [class*="from-fuchsia-6"],.admin-pro-shell [class*="from-fuchsia-7"],
-.admin-pro-shell [class*="from-red-5"],    .admin-pro-shell [class*="from-red-6"],    .admin-pro-shell [class*="from-red-7"],
-.admin-pro-shell [class*="from-orange-5"], .admin-pro-shell [class*="from-orange-6"],
-.admin-pro-shell [class*="from-amber-5"],  .admin-pro-shell [class*="from-amber-6"],
-.admin-pro-shell [class*="from-yellow-5"], .admin-pro-shell [class*="from-yellow-6"],
-.admin-pro-shell [class*="from-green-5"],  .admin-pro-shell [class*="from-green-6"],
-.admin-pro-shell [class*="from-emerald-5"],.admin-pro-shell [class*="from-emerald-6"],
-.admin-pro-shell [class*="from-teal-5"],   .admin-pro-shell [class*="from-teal-6"],
-.admin-pro-shell [class*="from-cyan-5"],   .admin-pro-shell [class*="from-cyan-6"],
-.admin-pro-shell [class*="from-sky-5"],    .admin-pro-shell [class*="from-sky-6"],
-.admin-pro-shell [class*="from-blue-5"],   .admin-pro-shell [class*="from-blue-6"],   .admin-pro-shell [class*="from-blue-7"],
-.admin-pro-shell [class*="from-indigo-4"], .admin-pro-shell [class*="from-indigo-5"], .admin-pro-shell [class*="from-indigo-6"] {
+.admin-pro-shell [class*="from-pink-400"],   .admin-pro-shell [class*="from-pink-500"],   .admin-pro-shell [class*="from-pink-600"],   .admin-pro-shell [class*="from-pink-700"],
+.admin-pro-shell [class*="from-rose-400"],   .admin-pro-shell [class*="from-rose-500"],   .admin-pro-shell [class*="from-rose-600"],   .admin-pro-shell [class*="from-rose-700"],
+.admin-pro-shell [class*="from-purple-400"], .admin-pro-shell [class*="from-purple-500"], .admin-pro-shell [class*="from-purple-600"], .admin-pro-shell [class*="from-purple-700"],
+.admin-pro-shell [class*="from-violet-400"], .admin-pro-shell [class*="from-violet-500"], .admin-pro-shell [class*="from-violet-600"], .admin-pro-shell [class*="from-violet-700"],
+.admin-pro-shell [class*="from-fuchsia-400"],.admin-pro-shell [class*="from-fuchsia-500"],.admin-pro-shell [class*="from-fuchsia-600"],.admin-pro-shell [class*="from-fuchsia-700"],
+.admin-pro-shell [class*="from-red-500"],    .admin-pro-shell [class*="from-red-600"],    .admin-pro-shell [class*="from-red-700"],
+.admin-pro-shell [class*="from-orange-500"], .admin-pro-shell [class*="from-orange-600"],
+.admin-pro-shell [class*="from-amber-500"],  .admin-pro-shell [class*="from-amber-600"],
+.admin-pro-shell [class*="from-yellow-500"], .admin-pro-shell [class*="from-yellow-600"],
+.admin-pro-shell [class*="from-green-500"],  .admin-pro-shell [class*="from-green-600"],
+.admin-pro-shell [class*="from-emerald-500"],.admin-pro-shell [class*="from-emerald-600"],
+.admin-pro-shell [class*="from-teal-500"],   .admin-pro-shell [class*="from-teal-600"],
+.admin-pro-shell [class*="from-cyan-500"],   .admin-pro-shell [class*="from-cyan-600"],
+.admin-pro-shell [class*="from-sky-500"],    .admin-pro-shell [class*="from-sky-600"],
+.admin-pro-shell [class*="from-blue-500"],   .admin-pro-shell [class*="from-blue-600"],   .admin-pro-shell [class*="from-blue-700"],
+.admin-pro-shell [class*="from-indigo-400"], .admin-pro-shell [class*="from-indigo-500"], .admin-pro-shell [class*="from-indigo-600"] {
   background-image: none !important;
   background-color: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
@@ -6630,20 +6630,20 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: #0F172A !important;
 }
 /* Heading text inside the neutralized gradient block */
-.admin-pro-shell [class*="from-pink-5"] h1, .admin-pro-shell [class*="from-rose-5"] h1,
-.admin-pro-shell [class*="from-purple-5"] h1, .admin-pro-shell [class*="from-violet-5"] h1,
-.admin-pro-shell [class*="from-red-5"] h1, .admin-pro-shell [class*="from-fuchsia-5"] h1,
-.admin-pro-shell [class*="from-blue-6"] h1, .admin-pro-shell [class*="from-indigo-6"] h1,
-.admin-pro-shell [class*="from-emerald-6"] h1, .admin-pro-shell [class*="from-teal-6"] h1 { color: #0F172A !important; }
+.admin-pro-shell [class*="from-pink-500"] h1, .admin-pro-shell [class*="from-rose-500"] h1,
+.admin-pro-shell [class*="from-purple-500"] h1, .admin-pro-shell [class*="from-violet-500"] h1,
+.admin-pro-shell [class*="from-red-500"] h1, .admin-pro-shell [class*="from-fuchsia-500"] h1,
+.admin-pro-shell [class*="from-blue-600"] h1, .admin-pro-shell [class*="from-indigo-600"] h1,
+.admin-pro-shell [class*="from-emerald-600"] h1, .admin-pro-shell [class*="from-teal-600"] h1 { color: #0F172A !important; }
 
 /* COUNT-CHIP GUARD (Pass 3): Badges with a solid vibrant bg MUST keep white
    text. Radix ui Badge has data-slot="badge"; also cover shadcn Badge class
    `inline-flex ... rounded-md`. Any element with bg-{color}-500/600/700 that
    also declares text-white keeps its readable white text (do NOT flip). */
 .admin-pro-shell [data-slot="badge"][class*="bg-"][class*="text-white"],
-.admin-pro-shell .rounded-full[class*="bg-red-5"], .admin-pro-shell .rounded-full[class*="bg-red-6"],
-.admin-pro-shell .rounded-full[class*="bg-amber-5"], .admin-pro-shell .rounded-full[class*="bg-amber-6"],
-.admin-pro-shell .rounded-full[class*="bg-emerald-5"], .admin-pro-shell .rounded-full[class*="bg-emerald-6"] {
+.admin-pro-shell .rounded-full[class*="bg-red-500"], .admin-pro-shell .rounded-full[class*="bg-red-600"],
+.admin-pro-shell .rounded-full[class*="bg-amber-500"], .admin-pro-shell .rounded-full[class*="bg-amber-600"],
+.admin-pro-shell .rounded-full[class*="bg-emerald-500"], .admin-pro-shell .rounded-full[class*="bg-emerald-600"] {
   color: #FFFFFF !important;
 }
 /* Translucent white surfaces -> opaque white card */
@@ -6725,32 +6725,69 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
    Excludes [role="tab"] triggers (Radix Tabs) since Tailwind's
    `data-[state=active]:from-*` variant emits the substring even on inactive
    tabs, which would otherwise force every tab pill to look "active". */
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-purple-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-pink-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-rose-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-fuchsia-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-violet-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-indigo-"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-6"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-7"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-5"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-6"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-5"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-6"] {
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-purple-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-purple-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-pink-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-pink-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-rose-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-rose-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-fuchsia-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-fuchsia-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-violet-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-violet-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-indigo-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-indigo-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-700"] {
   background-image: none !important;
-  background-color: #2563EB !important; /* blue-600 primary */
+  background-color: #2563EB !important;
   color: #FFFFFF !important;
   border-color: #1D4ED8 !important;
   box-shadow: 0 1px 2px rgba(37,99,235,0.25) !important;
 }
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-5"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-6"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-5"],
-.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-6"] {
-  background-color: #059669 !important; /* emerald-600 for approve/save actions */
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-600"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-500"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-600"] {
+  background-image: none !important;
+  background-color: #059669 !important;
+  color: #FFFFFF !important;
   border-color: #047857 !important;
   box-shadow: 0 1px 2px rgba(5,150,105,0.25) !important;
 }
+
+/* Pass 6: bg-white/{opacity} "glass" buttons commonly used inside colored
+   header gradients. After the gradient is neutralized to white, these buttons
+   become invisible (white on white). Force them to a readable outline pill. */
+.admin-pro-shell button[class*="bg-white/"],
+.admin-pro-shell a[class*="bg-white/"][class*="border-white/"] {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
+}
+.admin-pro-shell button[class*="bg-white/"]:hover,
+.admin-pro-shell a[class*="bg-white/"][class*="border-white/"]:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+.admin-pro-shell button[class*="bg-white/"] svg,
+.admin-pro-shell a[class*="bg-white/"] svg { color: #0F172A !important; }
+
+/* Pass 6: Active TabsTrigger — Radix sets data-state="active" on the selected
+   tab. Force a bold blue pill with pure white text so the active state is
+   unmistakable regardless of the component author's inline classes. */
+.admin-pro-shell [role="tab"][data-state="active"] {
+  background-image: none !important;
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 1px 3px rgba(37,99,235,0.35) !important;
+}
+.admin-pro-shell [role="tab"][data-state="active"] svg,
+.admin-pro-shell [role="tab"][data-state="active"] span,
+.admin-pro-shell [role="tab"][data-state="active"] * { color: #FFFFFF !important; }
+.admin-pro-shell [role="tab"][data-state="active"] [data-slot="badge"] { color: #0F172A !important; background-color: #FFFFFF !important; }
 
 /* Radix TabsTrigger inactive state — Tailwind emits `data-[state=active]:from-*`
    substrings that unintentionally match the from-* rescue rules. Force inactive
@@ -6769,6 +6806,15 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   background-color: #E2E8F0 !important;
   color: #0F172A !important;
 }
+
+/* Pass 7 (2026-07-18) moved below line ~7150 to defeat competing bg-purple-5
+   substring rule which also matches hover:bg-purple-500/10 in outline button. */
+
+
+
+
+
+
 
 /* Pass 6: descendant white-text rescue. When a neon gradient parent is
    neutralized to white, any child using `text-white` / `text-white/xx` was
@@ -7218,13 +7264,22 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   background-color: hsl(var(--admin-pro-primary-hover)) !important;
 }
 
-/* Solid icon containers (small rounded squares with gradient) */
+/* Solid icon containers (small rounded squares with gradient) — DISABLED
+   2026-07-18. This substring rule was matching ANY card that used a pastel
+   opacity gradient (e.g. `from-purple-500/20`) and forcing them into a
+   solid blue tile, hiding label text. KPI cards with `bg-gradient-to-br
+   from-purple-500/20 to-purple-600/10` were the visible regression.
+   The intended "small icon square" styling is covered by the Pass 4/5
+   rescue rules above and by explicit component classes. */
+/*
 .admin-pro-shell .bg-gradient-to-br[class*="violet"],
 .admin-pro-shell .bg-gradient-to-br[class*="purple"],
 .admin-pro-shell .bg-gradient-to-br[class*="fuchsia"] {
   background-image: linear-gradient(135deg, hsl(var(--admin-pro-primary)), hsl(var(--admin-pro-primary-hover))) !important;
   color: #FFFFFF !important;
 }
+*/
+
 
 /* Decorative blurred orbs across admin pages — kill them on the white canvas */
 .admin-pro-shell .blur-3xl,
@@ -8973,3 +9028,115 @@ body[data-admin-active="true"] :is(
 /* Anti-pattern guard: purge sub-12px text inside admin shell */
 .admin-pro-shell [class*="text-[10px]"],
 .admin-pro-shell [class*="text-[11px]"] { font-size: 0.75rem !important; line-height: 1rem !important; }
+
+/* ============================================================
+   Pass 7 (2026-07-18): Button component variant hardening
+   MUST live at end of file — a prior generic rule at ~L7127
+   `.admin-pro-shell button:not([role="tab"])[class*="bg-purple-5"]`
+   substring-matches `hover:bg-purple-500/10` on the outline/ghost
+   variants and forces white text (invisible on white canvas).
+   These rules override it by coming later + adding specificity.
+   ============================================================ */
+
+/* Outline variant (border-purple-500/50 + bg-transparent + text-purple-400)
+   → readable white pill with slate ink + slate border. */
+.admin-pro-shell button[class*="border-purple-500/50"][class*="bg-transparent"][class*="text-purple-400"],
+.admin-pro-shell a[class*="border-purple-500/50"][class*="bg-transparent"][class*="text-purple-400"] {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+  border-width: 1px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.06) !important;
+}
+.admin-pro-shell button[class*="border-purple-500/50"][class*="bg-transparent"][class*="text-purple-400"] svg,
+.admin-pro-shell a[class*="border-purple-500/50"][class*="bg-transparent"][class*="text-purple-400"] svg {
+  color: #0F172A !important;
+}
+.admin-pro-shell button[class*="border-purple-500/50"][class*="bg-transparent"][class*="text-purple-400"]:hover {
+  background-color: #F1F5F9 !important;
+  border-color: #94A3B8 !important;
+  color: #0F172A !important;
+}
+
+/* Ghost variant (text-white/70 + hover:bg-white/10)
+   → transparent with slate ink. */
+.admin-pro-shell button[class*="text-white/70"][class*="hover:bg-white/10"] {
+  color: #475569 !important;
+  background-color: transparent !important;
+}
+.admin-pro-shell button[class*="text-white/70"][class*="hover:bg-white/10"] svg { color: #475569 !important; }
+.admin-pro-shell button[class*="text-white/70"][class*="hover:bg-white/10"]:hover {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* Link variant (text-purple-400 + underline-offset-4) → primary blue link. */
+.admin-pro-shell button[class*="text-purple-400"][class*="underline-offset-4"],
+.admin-pro-shell a[class*="text-purple-400"][class*="underline-offset-4"] {
+  color: #2563EB !important;
+}
+
+/* Glass variant (bg-white/10 + text-white + backdrop-blur) → soft slate pill. */
+.admin-pro-shell button[class*="bg-white/10"][class*="text-white"][class*="backdrop-blur"] {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+.admin-pro-shell button[class*="bg-white/10"][class*="text-white"][class*="backdrop-blur"] svg {
+  color: #0F172A !important;
+}
+
+/* ============================================================
+   Pass 8 (2026-07-18): Pastel-opacity gradient RESTORE.
+   The earlier from-* rescue rules (line ~6610) use substring
+   matching `[class*="from-purple-500"]` which unintentionally
+   matches Tailwind opacity syntax `from-purple-500/20`.
+   That collapses pastel-tint KPI cards into solid neon tiles
+   and hides their labels (text-slate-400 on now-blue bg).
+   Restore any element whose gradient uses an opacity suffix
+   to a clean white card so it reads correctly.
+   ============================================================ */
+.admin-pro-shell [class*="from-pink-400/"],   .admin-pro-shell [class*="from-pink-500/"],   .admin-pro-shell [class*="from-pink-600/"],
+.admin-pro-shell [class*="from-rose-400/"],   .admin-pro-shell [class*="from-rose-500/"],   .admin-pro-shell [class*="from-rose-600/"],
+.admin-pro-shell [class*="from-purple-400/"], .admin-pro-shell [class*="from-purple-500/"], .admin-pro-shell [class*="from-purple-600/"],
+.admin-pro-shell [class*="from-violet-400/"], .admin-pro-shell [class*="from-violet-500/"], .admin-pro-shell [class*="from-violet-600/"],
+.admin-pro-shell [class*="from-fuchsia-400/"],.admin-pro-shell [class*="from-fuchsia-500/"],.admin-pro-shell [class*="from-fuchsia-600/"],
+.admin-pro-shell [class*="from-indigo-400/"], .admin-pro-shell [class*="from-indigo-500/"], .admin-pro-shell [class*="from-indigo-600/"],
+.admin-pro-shell [class*="from-blue-500/"],   .admin-pro-shell [class*="from-blue-600/"],
+.admin-pro-shell [class*="from-sky-500/"],    .admin-pro-shell [class*="from-sky-600/"],
+.admin-pro-shell [class*="from-cyan-500/"],   .admin-pro-shell [class*="from-cyan-600/"],
+.admin-pro-shell [class*="from-teal-500/"],   .admin-pro-shell [class*="from-teal-600/"],
+.admin-pro-shell [class*="from-emerald-500/"],.admin-pro-shell [class*="from-emerald-600/"],
+.admin-pro-shell [class*="from-green-500/"],  .admin-pro-shell [class*="from-green-600/"],
+.admin-pro-shell [class*="from-yellow-500/"], .admin-pro-shell [class*="from-yellow-600/"],
+.admin-pro-shell [class*="from-amber-500/"],  .admin-pro-shell [class*="from-amber-600/"],
+.admin-pro-shell [class*="from-orange-500/"], .admin-pro-shell [class*="from-orange-600/"],
+.admin-pro-shell [class*="from-red-500/"],    .admin-pro-shell [class*="from-red-600/"] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 12px -4px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04) !important;
+}
+/* Also rescue any text-slate-400 / text-*-400 label that becomes invisible
+   inside those pastel cards on white — bump to a readable secondary slate. */
+.admin-pro-shell [class*="from-purple-500/"] .text-slate-400,
+.admin-pro-shell [class*="from-purple-500/"] .text-slate-500,
+.admin-pro-shell [class*="from-cyan-500/"]   .text-slate-400,
+.admin-pro-shell [class*="from-cyan-500/"]   .text-slate-500,
+.admin-pro-shell [class*="from-green-500/"]  .text-slate-400,
+.admin-pro-shell [class*="from-green-500/"]  .text-slate-500,
+.admin-pro-shell [class*="from-amber-500/"]  .text-slate-400,
+.admin-pro-shell [class*="from-amber-500/"]  .text-slate-500,
+.admin-pro-shell [class*="from-blue-500/"]   .text-slate-400,
+.admin-pro-shell [class*="from-blue-500/"]   .text-slate-500,
+.admin-pro-shell [class*="from-pink-500/"]   .text-slate-400,
+.admin-pro-shell [class*="from-pink-500/"]   .text-slate-500,
+.admin-pro-shell [class*="from-orange-500/"] .text-slate-400,
+.admin-pro-shell [class*="from-orange-500/"] .text-slate-500,
+.admin-pro-shell [class*="from-emerald-500/"].text-slate-400,
+.admin-pro-shell [class*="from-emerald-500/"].text-slate-500,
+.admin-pro-shell [class*="from-red-500/"]    .text-slate-400,
+.admin-pro-shell [class*="from-red-500/"]    .text-slate-500 {
+  color: #475569 !important;
+}
+
