@@ -236,16 +236,16 @@ export default function AdminUsers() {
   const totalPages = Math.ceil(totalUsers / pageSize);
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 md:p-6 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
+    <div className="space-y-4 md:space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
+      {/* Cloud White Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 md:p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-100">
-            <Users className="w-6 h-6 text-purple-600" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+            <Users className="h-6 w-6 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-800">User Management</h1>
-            <p className="text-sm md:text-base text-slate-600 font-medium">Total {totalUsers} Users</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">User Management</h1>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">Total {totalUsers.toLocaleString()} users</p>
           </div>
         </div>
         <Button
@@ -261,7 +261,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-white border-slate-200 shadow-md">
+      <Card className="bg-white border-slate-200 shadow-sm">
         <CardContent className="p-3 md:p-4">
           <div className="flex flex-col gap-3">
             {/* Search Type Toggle */}
@@ -272,7 +272,7 @@ export default function AdminUsers() {
                 onClick={() => setSearchType("name")}
                 className={cn(
                   "flex-1 md:flex-none text-xs md:text-sm",
-                  searchType === "name" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-white border-slate-200 text-slate-700"
+                  searchType === "name" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                 )}
               >
                 <User className="w-3 h-3 md:w-4 md:h-4 mr-1" />
@@ -284,7 +284,7 @@ export default function AdminUsers() {
                 onClick={() => setSearchType("uid")}
                 className={cn(
                   "flex-1 md:flex-none text-xs md:text-sm",
-                  searchType === "uid" ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" : "bg-white border-slate-200 text-slate-700"
+                  searchType === "uid" ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                 )}
               >
                 🆔 UID
@@ -351,13 +351,13 @@ export default function AdminUsers() {
             <div className="overflow-x-auto touch-pan-y">
               <table className="w-full touch-pan-y select-none">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-purple-50/30">
-                    <th className="text-left p-4 text-black font-bold">User</th>
-                    <th className="text-left p-4 text-black font-bold hidden md:table-cell">Status</th>
-                    <th className="text-left p-4 text-black font-bold hidden lg:table-cell">Diamonds</th>
-                    <th className="text-left p-4 text-black font-bold hidden lg:table-cell">Level</th>
-                    <th className="text-left p-4 text-black font-bold hidden xl:table-cell">Joined</th>
-                    <th className="text-right p-4 text-black font-bold">Action</th>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="text-left p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide">User</th>
+                    <th className="text-left p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide hidden md:table-cell">Status</th>
+                    <th className="text-left p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide hidden lg:table-cell">Diamonds</th>
+                    <th className="text-left p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide hidden lg:table-cell">Level</th>
+                    <th className="text-left p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide hidden xl:table-cell">Joined</th>
+                    <th className="text-right p-4 text-slate-700 font-semibold text-xs uppercase tracking-wide">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -367,7 +367,7 @@ export default function AdminUsers() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-blue-50/50 transition-colors touch-pan-y select-none"
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors touch-pan-y select-none"
                     >
                       <td className="p-4 touch-pan-y select-none">
                         <div className="flex items-center gap-3">
@@ -378,7 +378,7 @@ export default function AdminUsers() {
                                
                                 referrerPolicy="no-referrer"
                               />
-                              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">
+                              <AvatarFallback className="bg-blue-50 text-blue-700 font-semibold">
                                 {user.display_name?.charAt(0) || "U"}
                               </AvatarFallback>
                             </Avatar>

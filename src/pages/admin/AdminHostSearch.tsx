@@ -193,27 +193,28 @@ export default function AdminHostSearch() {
 
   return (
     <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin/agencies")}
-            className="text-slate-900/80 hover:text-slate-900 hover:bg-white/20"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Host Search</h1>
-            <p className="text-slate-700">View complete host info by UID</p>
-          </div>
+      {/* Cloud White Header */}
+      <div className="flex items-center gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/admin/agencies")}
+          className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+          <Search className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Host Search</h1>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">View complete host info by UID</p>
         </div>
       </div>
 
       {/* Search Box */}
-      <Card className="bg-white border-slate-200/50 shadow-lg">
-        <CardContent className="p-6">
+      <Card className="bg-white border-slate-200 shadow-sm">
+        <CardContent className="p-4 md:p-6">
           <div className="flex gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -222,13 +223,13 @@ export default function AdminHostSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-12 h-12 bg-slate-50 border-slate-200 text-slate-900 text-lg placeholder:text-slate-500"
+                className="pl-12 h-12 bg-slate-50 border-slate-200 text-slate-900 text-base placeholder:text-slate-400"
               />
             </div>
             <Button
               onClick={handleSearch}
               disabled={loading}
-              className="h-12 px-8 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
+              className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -263,89 +263,56 @@ export default function AdminHosts() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2 md:gap-3">
-            <UserCheck className="w-5 h-5 md:w-7 md:h-7" />
-            Host Management
-          </h1>
-          <p className="text-slate-700 text-xs md:text-sm mt-1">Manage all hosts</p>
+    <div className="space-y-4 md:space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
+      {/* Cloud White Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+            <UserCheck className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Host Management</h1>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">Manage all hosts across the platform</p>
+          </div>
         </div>
-        <Button className="bg-white text-green-600 hover:bg-green-50 shadow-md w-full md:w-auto" size="sm">
+        <Button variant="outline" className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50 w-full md:w-auto" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Download Report
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Cloud White Stat Cards — uniform surface, color only in icon tile */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-md">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow">
-                <UserCheck className="w-4 h-4 md:w-5 md:h-5 text-slate-900" />
-              </div>
-              <div>
-                <p className="text-blue-600 text-[10px] md:text-xs font-medium">Total Hosts</p>
-                <p className="text-blue-900 font-bold text-lg md:text-xl">{stats.totalHosts}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-md">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500 flex items-center justify-center shadow">
-                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-slate-900" />
-              </div>
-              <div>
-                <p className="text-green-600 text-[10px] md:text-xs font-medium">Active</p>
-                <p className="text-green-900 font-bold text-lg md:text-xl">{stats.activeHosts}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-yellow-500 flex items-center justify-center shadow">
-                <Clock className="w-5 h-5 text-slate-900" />
-              </div>
-              <div>
-                <p className="text-yellow-600 text-xs font-medium">Pending</p>
-                <p className="text-yellow-900 font-bold text-xl">{stats.pendingHosts}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center shadow">
-                <Ban className="w-5 h-5 text-slate-900" />
-              </div>
-              <div>
-                <p className="text-red-600 text-xs font-medium">Blocked</p>
-                <p className="text-red-900 font-bold text-xl">{stats.blockedHosts}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-md">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center shadow">
-                <Coins className="w-5 h-5 text-slate-900" />
-              </div>
-              <div>
-                <p className="text-purple-600 text-xs font-medium">Total Earnings</p>
-                <p className="text-purple-900 font-bold text-xl">{formatCoins(stats.totalEarnings)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Total Hosts", value: stats.totalHosts, Icon: UserCheck, tint: "blue" },
+          { label: "Active", value: stats.activeHosts, Icon: CheckCircle, tint: "emerald" },
+          { label: "Pending", value: stats.pendingHosts, Icon: Clock, tint: "amber" },
+          { label: "Blocked", value: stats.blockedHosts, Icon: Ban, tint: "rose" },
+          { label: "Total Earnings", value: formatCoins(stats.totalEarnings), Icon: Coins, tint: "violet" },
+        ].map(({ label, value, Icon, tint }) => {
+          const tintMap: Record<string, string> = {
+            blue: "bg-blue-50 border-blue-100 text-blue-600",
+            emerald: "bg-emerald-50 border-emerald-100 text-emerald-600",
+            amber: "bg-amber-50 border-amber-100 text-amber-600",
+            rose: "bg-rose-50 border-rose-100 text-rose-600",
+            violet: "bg-violet-50 border-violet-100 text-violet-600",
+          };
+          return (
+            <Card key={label} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-3 md:p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${tintMap[tint]}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wide text-slate-500 truncate">{label}</p>
+                    <p className="text-slate-900 font-bold text-lg md:text-xl">{value}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Filters */}
