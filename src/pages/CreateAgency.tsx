@@ -325,7 +325,7 @@ const CreateAgency = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 mt-4">
-              {[{v:'4%',l:'Commission'},{v:'∞',l:'Hosts'},{v:'24/7',l:'Support'}].map(s => (
+              {[{v:'3–20%',l:'Commission'},{v:'∞',l:'Hosts'},{v:'24/7',l:'Support'}].map(s => (
                 <div
                   key={s.l}
                   className="rounded-2xl p-3 text-center"
