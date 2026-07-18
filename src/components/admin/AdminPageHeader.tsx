@@ -1,73 +1,55 @@
-import { ReactNode } from "react";
-import { RefreshCw, LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface AdminPageHeaderProps {
+/**
+ * AdminPageHeader — canonical page title block for admin routes.
+ * Spec: docs/cloud-white-3d-admin-spec.md §3.3
+ */
+export interface AdminPageHeaderProps {
   title: string;
-  subtitle?: string;
-  icon?: LucideIcon;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
+  description?: string;
+  icon?: ReactNode;
   actions?: ReactNode;
+  meta?: ReactNode;
   className?: string;
 }
 
-/**
- * AdminPageHeader — Pkg3 polished:
- *  - Luxurious gradient icon tile with subtle glow ring
- *  - Tight semantic title + subtitle hierarchy
- *  - Fade-in animation on mount for smooth page transitions
- *  - Wrap-friendly action area on small viewports
- */
-export default function AdminPageHeader({
+export function AdminPageHeader({
   title,
-  subtitle,
-  icon: Icon,
-  onRefresh,
-  isRefreshing = false,
+  description,
+  icon,
   actions,
+  meta,
   className,
 }: AdminPageHeaderProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 animate-fade-in",
+        "admin-card flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between md:p-6",
         className,
       )}
     >
-      <div className="flex items-center gap-3 min-w-0">
-        {Icon && (
-          <div className="relative shrink-0">
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-400/30 via-fuchsia-500/20 to-violet-500/30 blur-md opacity-70" />
-            <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-amber-500/15 via-fuchsia-500/10 to-violet-500/15 border border-amber-400/20 shadow-[0_8px_24px_-12px_hsl(var(--admin-accent)/0.55)]">
-              <Icon className="w-6 h-6 text-amber-400" />
-            </div>
+      <div className="flex items-start gap-3 min-w-0">
+        {icon && (
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            {icon}
           </div>
         )}
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{title}</h1>
-          {subtitle && (
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight admin-ink truncate">
+            {title}
+          </h1>
+          {description && (
+            <p className="mt-1 text-sm admin-ink-muted">{description}</p>
           )}
+          {meta && <div className="mt-2">{meta}</div>}
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-        {onRefresh && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="gap-2 border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-amber-400/30 transition-all"
-          >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-            <span className="hidden sm:inline">{isRefreshing ? "Refreshing..." : "Refresh"}</span>
-          </Button>
-        )}
-        {actions}
-      </div>
+      {actions && (
+        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      )}
     </div>
   );
 }
+
+export default AdminPageHeader;
