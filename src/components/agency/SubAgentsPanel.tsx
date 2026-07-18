@@ -197,8 +197,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
               <Users className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Sub-Agents</h2>
-              <p className="text-xs text-muted-foreground">{subAgencies.length} sub-agents under your agency</p>
+              <h2 className="text-lg font-bold">Sub-Agencies</h2>
+              <p className="text-xs text-muted-foreground">{subAgencies.length} sub-agencies under your agency</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
