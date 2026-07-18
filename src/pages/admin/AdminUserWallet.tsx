@@ -89,7 +89,7 @@ export default function AdminUserWallet() {
   }, [rows]);
 
   return (
-    <div className="p-6 space-y-6 bg-white min-h-screen">
+    <div className="admin-pro-shell p-6 space-y-6 bg-white min-h-screen">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
