@@ -767,6 +767,25 @@ const AgencyDashboard = () => {
     }
   };
 
+  const copySubAgencyInviteLink = () => {
+    if (!subAgencyInviteLink) return;
+    navigator.clipboard.writeText(subAgencyInviteLink);
+    toast({ title: "✅ Link Copied", description: "Sub-agency invite link copied" });
+  };
+
+  const shareSubAgencyInviteLink = async () => {
+    if (!subAgencyInviteLink) return;
+    if (navigator.share) {
+      await navigator.share({
+        title: `${agency?.name} - Create a Sub-Agency`,
+        text: `Use this link to create a sub-agency under my agency and start earning together!`,
+        url: subAgencyInviteLink
+      });
+    } else {
+      copySubAgencyInviteLink();
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "short",
