@@ -171,30 +171,31 @@ export default function AdminErrorLogs() {
       if (error) throw error;
       setErrors(data || []);
 
-      // Calculate stats
-      const allErrors = data || [];
+      // Calculate GLOBAL stats via exact count queries (not limited to fetched page)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
-      const todayErrors = allErrors.filter(e => new Date(e.created_at) >= today);
-      const unresolvedCount = allErrors.filter(e => !e.is_resolved).length;
-      
-      // Group by page
+
+      const [totalRes, unresolvedRes, todayRes, topPagesRes] = await Promise.all([
+        supabase.from('system_error_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('system_error_logs').select('id', { count: 'exact', head: true }).eq('is_resolved', false),
+        supabase.from('system_error_logs').select('id', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+        supabase.from('system_error_logs').select('page_path').limit(1000).order('created_at', { ascending: false }),
+      ]);
+
       const pageGroups: Record<string, number> = {};
-      allErrors.forEach(e => {
+      (topPagesRes.data || []).forEach((e: any) => {
         const page = e.page_path || 'Unknown';
         pageGroups[page] = (pageGroups[page] || 0) + 1;
       });
-      
       const topPages = Object.entries(pageGroups)
         .map(([page, count]) => ({ page, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
       setStats({
-        total: allErrors.length,
-        unresolved: unresolvedCount,
-        todayErrors: todayErrors.length,
+        total: totalRes.count || 0,
+        unresolved: unresolvedRes.count || 0,
+        todayErrors: todayRes.count || 0,
         topPages,
       });
 
