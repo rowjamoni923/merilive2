@@ -45,69 +45,54 @@ const AdminVIPManagement = () => {
 
   return (
     <div className="admin-pro-shell space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-6 shadow-lg">
+      {/* Header — Cloud White */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Crown className="w-8 h-8 text-slate-900" />
+          <div className="w-14 h-14 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+            <Crown className="w-7 h-7 text-amber-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">VIP & Noble System</h1>
-            <p className="text-slate-700">Manage VIP tiers, medals, and noble cards in one place</p>
+            <p className="text-sm text-slate-500">Manage VIP tiers, medals, and noble cards in one place</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-amber-500/10 to-yellow-600/5 border-amber-500/20">
-          <CardContent className="p-4 text-center">
-            <Crown className="w-8 h-8 mx-auto mb-2 text-amber-400" />
-            <p className="text-2xl font-bold text-foreground">{stats.vipTiers}</p>
-            <p className="text-xs text-muted-foreground">VIP Tiers</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-500/10 to-pink-600/5 border-purple-500/20">
-          <CardContent className="p-4 text-center">
-            <Medal className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-            <p className="text-2xl font-bold text-foreground">{stats.medals}</p>
-            <p className="text-xs text-muted-foreground">VIP Medals</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-rose-500/10 to-pink-600/5 border-rose-500/20">
-          <CardContent className="p-4 text-center">
-            <CreditCard className="w-8 h-8 mx-auto mb-2 text-rose-400" />
-            <p className="text-2xl font-bold text-foreground">{stats.nobleCards}</p>
-            <p className="text-xs text-muted-foreground">Noble Cards</p>
-          </CardContent>
-        </Card>
+        {[
+          { icon: Crown, label: 'VIP Tiers', value: stats.vipTiers, tint: 'bg-amber-50 border-amber-100 text-amber-600' },
+          { icon: Medal, label: 'VIP Medals', value: stats.medals, tint: 'bg-violet-50 border-violet-100 text-violet-600' },
+          { icon: CreditCard, label: 'Noble Cards', value: stats.nobleCards, tint: 'bg-rose-50 border-rose-100 text-rose-600' },
+        ].map(({ icon: Icon, label, value, tint }) => (
+          <Card key={label} className="border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_1px_3px_rgba(15,23,42,0.06)]">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-xl border flex items-center justify-center ${tint}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 leading-tight">{value}</p>
+                <p className="text-xs text-slate-500">{label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-white/50 p-1 h-auto">
-          <TabsTrigger 
-            value="tiers" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-black py-3"
-          >
-            <Crown className="w-4 h-4 mr-2" />
-            VIP Tiers
+        <TabsList className="grid w-full grid-cols-3 bg-slate-100 border border-slate-200 p-1 h-auto">
+          <TabsTrigger value="tiers" className="data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm text-slate-600 py-2.5">
+            <Crown className="w-4 h-4 mr-2" />VIP Tiers
           </TabsTrigger>
-          <TabsTrigger 
-            value="medals" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-3"
-          >
-            <Medal className="w-4 h-4 mr-2" />
-            VIP Medals
+          <TabsTrigger value="medals" className="data-[state=active]:bg-white data-[state=active]:text-violet-600 data-[state=active]:shadow-sm text-slate-600 py-2.5">
+            <Medal className="w-4 h-4 mr-2" />VIP Medals
           </TabsTrigger>
-          <TabsTrigger 
-            value="cards" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-3"
-          >
-            <CreditCard className="w-4 h-4 mr-2" />
-            Noble Cards
+          <TabsTrigger value="cards" className="data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm text-slate-600 py-2.5">
+            <CreditCard className="w-4 h-4 mr-2" />Noble Cards
           </TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="tiers" className="mt-0">
           <AdminVIPPrivileges />
