@@ -264,6 +264,7 @@ const AgencyDashboard = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [subAgentLink, setSubAgentLink] = useState("");
+  const [subAgencyInviteLink, setSubAgencyInviteLink] = useState("");
   const [hostJoinLink, setHostJoinLink] = useState("");
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
   const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
