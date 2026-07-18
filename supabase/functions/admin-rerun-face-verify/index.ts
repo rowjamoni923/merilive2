@@ -294,6 +294,8 @@ serve(async (req) => {
     }
 
     if (!liveFaceUrl) {
+      jobDoneSuccess = false;
+      jobDoneError = "no_live_face_image";
       const note = `[Re-run @ ${new Date().toISOString()}] ❌ Cannot re-run AWS — no face_image_url or host_photos in submission.`;
       await supabaseAdmin
         .from("face_verification_submissions")
