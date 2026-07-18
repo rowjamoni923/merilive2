@@ -156,10 +156,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             // dead x-admin-token to every admin RPC and creates app-wide P0001
             // failures. Self-heal by clearing only the invalid admin session and
             // sending the user back through the saved secret link.
+            const linkToken = getAdminLinkToken();
             clearAdminSession();
             revokeAdminAccess();
-            const linkToken = getAdminLinkToken();
             if (linkToken) {
+              setAdminLinkToken(linkToken);
               window.location.replace(`/admin/auth?access=${encodeURIComponent(linkToken)}`);
             } else {
               setIsAuthorized(false);

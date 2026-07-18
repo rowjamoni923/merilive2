@@ -28,6 +28,8 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 import { isLandingOnlyHostname, isStandalonePublicLocation, isStandalonePublicPath } from '@/utils/publicRoutes';
 import AdminAccessGuard from "./components/admin/AdminAccessGuard";
 import AdminRouteGuard, { SubAdminDashboardGuard } from "./components/admin/AdminRouteGuard";
+import { getAdminSession, getAdminSessionToken } from "@/utils/adminSession";
+import { getAdminLinkToken, hasAdminAccessFlag } from "@/utils/adminAccessStorage";
 import TabKeepAliveHost, { isTabKeepAliveEnabled } from "./components/TabKeepAliveHost";
 import { NativeLiveKitRouteSurvivor } from "./components/native/NativeLiveKitRouteSurvivor";
 import { RouteTransitionHost } from "./components/RouteTransitionHost";
@@ -620,6 +622,28 @@ const StandalonePublicShell = ({ children }: { children: ReactNode }) => {
 };
 
 const publicPage = (children: ReactNode) => <StandalonePublicShell>{children}</StandalonePublicShell>;
+
+const AdminNamespaceLock = () => {
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/admin')) return null;
+  if (typeof window === 'undefined') return null;
+
+  const adminSession = getAdminSession();
+  const hasApprovedAdminSession = !!adminSession && getAdminSessionToken().length >= 16;
+  const adminLinkToken = getAdminLinkToken();
+  const hasSecretLinkContext = hasAdminAccessFlag() && !!adminLinkToken;
+
+  if (hasApprovedAdminSession) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  if (hasSecretLinkContext) {
+    return <Navigate to={`/admin/auth?access=${encodeURIComponent(adminLinkToken)}`} replace />;
+  }
+
+  return null;
+};
 
 const CallProviderGate = ({ enabled, children }: { enabled: boolean; children: ReactNode }) => {
   return (
@@ -1309,6 +1333,7 @@ const App = () => {
             <SonnerToaster />
             <ConnectionStatus />
             <BrowserRouter>
+              <AdminNamespaceLock />
               {!isStandalonePublicRoute && <ScrollToTop />}
               {!isStandalonePublicRoute && <ScrollSafetyNet />}
               {!isStandalonePublicRoute && <RouteTransitionHost />}
