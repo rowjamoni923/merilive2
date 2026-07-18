@@ -56,43 +56,29 @@ const AdminUserHub = () => {
 
   return (
     <div className="space-y-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Premium Header */}
+      {/* Cloud White Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-6 shadow-[0_20px_60px_-20px_rgba(99,102,241,0.18)]"
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm"
       >
-        {/* Decorative elements */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.08),transparent_70%)]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-violet-500/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-fuchsia-500/5 rounded-full blur-3xl" />
-
-        <div className="relative flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 shadow-lg shadow-violet-500/30 ring-2 ring-violet-400/20">
-                <Users className="h-7 w-7 text-slate-900" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#0f0a1a] animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">User Management Hub</h1>
-              <p className="text-sm text-violet-300/50 font-medium">Real-time user monitoring & control center</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+            <Users className="h-6 w-6 text-blue-600" />
           </div>
-
-          {/* Live indicator */}
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/40" />
-              <span className="text-xs text-emerald-400 font-semibold">{stats.onlineNow} Online</span>
-            </div>
-            <div className="w-px h-4 bg-white/10" />
-            <div className="flex items-center gap-1.5">
-              <UserPlus className="w-3.5 h-3.5 text-violet-400" />
-              <span className="text-xs text-violet-400 font-semibold">+{stats.newToday} today</span>
-            </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">User Management Hub</h1>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">Real-time user monitoring &amp; control center</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-semibold text-emerald-700">{stats.onlineNow.toLocaleString()} Online</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
+            <UserPlus className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-xs font-semibold text-blue-700">+{stats.newToday.toLocaleString()} today</span>
           </div>
         </div>
       </motion.div>

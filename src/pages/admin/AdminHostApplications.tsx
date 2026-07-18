@@ -434,35 +434,31 @@ export default function AdminHostApplications() {
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzMuMzE0IDAgNi0yLjY4NiA2LTZzLTIuNjg2LTYtNi02LTYgMi42ODYtNiA2IDIuNjg2IDYgNiA2em0wIDJjLTQuNDE4IDAtOC0zLjU4Mi04LThzMy41ODItOCA4LTggOCAzLjU4MiA4IDgtMy41ODIgOC04IDh6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-        <div className="relative p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <div className="p-2 bg-white/15 rounded-lg backdrop-blur-sm">
-                  <UserCheck className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
-                Host Application Management
-              </h1>
-              <p className="text-slate-600 text-sm mt-1.5">
-                {statusCounts.pending + statusCounts.approved + statusCounts.rejected} submissions
-                {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fetchApplications()}
-              className="text-slate-900 hover:bg-white/15 rounded-lg"
-            >
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+      {/* Cloud White Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+            <UserCheck className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Host Application Management</h1>
+            <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
+              {statusCounts.pending + statusCounts.approved + statusCounts.rejected} submissions
+              {pendingHostsCount > 0 && <span className="text-amber-600 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
+            </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchApplications()}
+          className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50 gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </Button>
       </div>
+
 
       {/* Stats — Pending / Approved / Rejected / All (matches AdminFaceVerification) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
