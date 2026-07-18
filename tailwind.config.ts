@@ -192,6 +192,16 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "shimmer": "shimmer 2s infinite",
       },
+      boxShadow: {
+        "admin-sm": "var(--admin-shadow-sm, 0 1px 2px 0 rgba(16,24,40,0.05))",
+        "admin-md": "var(--admin-shadow-md, 0 1px 2px 0 rgba(16,24,40,0.06), 0 4px 8px -2px rgba(16,24,40,0.06))",
+        "admin-lg": "var(--admin-shadow-lg, 0 2px 4px -1px rgba(16,24,40,0.06), 0 8px 16px -4px rgba(16,24,40,0.08))",
+        "admin-xl": "var(--admin-shadow-xl, 0 4px 8px -2px rgba(16,24,40,0.06), 0 16px 32px -8px rgba(16,24,40,0.10))",
+      },
+      transitionTimingFunction: {
+        "out-soft": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
