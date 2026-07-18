@@ -66,6 +66,10 @@ export const extractAdminStoragePath = (value: string, defaultBucket?: string): 
 
   try {
     const url = new URL(raw);
+    const proxyMatch = url.pathname.match(/\/functions\/v1\/public-profile-avatar\/([^?#]+)/);
+    if (proxyMatch?.[1]) {
+      return { bucket: 'face-verification', path: decodeURIComponent(proxyMatch[1]) };
+    }
     const match = url.pathname.match(STORAGE_OBJECT_RE);
     if (!match) return null;
     return { bucket: decodeURIComponent(match[1]), path: decodeURIComponent(match[2]) };
