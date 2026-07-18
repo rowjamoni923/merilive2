@@ -511,7 +511,7 @@ serve(async (req) => {
     // DB insert trigger normalizes new rows to 'under_review' instantly
     // (see migration 20260625075339). 'submitted' and 'pending' are kept
     // for legacy/admin-rerun paths. All three are "ready for AI analysis".
-    if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry") {
+    if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry" && st !== "user_retry") {
       // Row already finalized (approved/rejected/expired) — treat re-invocations
       // (realtime fallback, admin reruns, double-submits) as a successful no-op
       // instead of a 400 that surfaces as a runtime error in the client.
