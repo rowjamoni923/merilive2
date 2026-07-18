@@ -24,7 +24,9 @@ const AdminEntryEffects = () => {
     vehicles: 0
   });
 
-  useAdminRealtime(['entry_banners', 'level_privileges', 'vehicle_entrances'], () => fetchStats());
+  useAdminRealtime(['entry_banners', 'entry_effects', 'entry_name_bars', 'vehicle_entrances'], () => fetchStats());
+
+  useEffect(() => { fetchStats(); }, []);
 
   const fetchStats = async () => {
     // Pkg10: single RPC replaces 4 separate count queries
