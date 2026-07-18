@@ -142,7 +142,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
       setCopiedLink(true);
       toast({
         title: "Link Copied!",
-        description: "Sub-agent referral link copied to clipboard",
+        description: "Sub-agency invite link copied to clipboard",
       });
       setTimeout(() => setCopiedLink(false), 2000);
     } else {
