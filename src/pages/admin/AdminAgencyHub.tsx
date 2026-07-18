@@ -56,49 +56,35 @@ const AdminAgencyHub = () => {
 
   return (
     <div className="admin-pro-shell space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-slate-900" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Agency Management Hub</h1>
-            <p className="text-slate-700">Agencies & Policy Management</p>
-          </div>
+      {/* Cloud White Header */}
+      <div className="flex items-center gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+          <Building2 className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Agency Management Hub</h1>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">Agencies &amp; policy management</p>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 admin-border-strong/20">
-          <CardContent className="p-4 text-center">
-            <Building2 className="w-8 h-8 mx-auto mb-2 admin-accent-primary" />
-            <p className="text-2xl font-bold text-foreground">{stats.totalAgencies}</p>
-            <p className="text-xs text-muted-foreground">Total Agencies</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
-          <CardContent className="p-4 text-center">
-            <Users className="w-8 h-8 mx-auto mb-2 text-green-400" />
-            <p className="text-2xl font-bold text-foreground">{stats.activeAgencies}</p>
-            <p className="text-xs text-muted-foreground">Active Agencies</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
-          <CardContent className="p-4 text-center">
-            <Crown className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-            <p className="text-2xl font-bold text-foreground">{stats.totalHelpers}</p>
-            <p className="text-xs text-muted-foreground">Active Helpers</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 admin-border-strong/20">
-          <CardContent className="p-4 text-center">
-            <Star className="w-8 h-8 mx-auto mb-2 admin-accent-warning" />
-            <p className="text-2xl font-bold text-foreground">{stats.level5Helpers}</p>
-            <p className="text-xs text-muted-foreground">Level 5 Helpers</p>
-          </CardContent>
-        </Card>
+      {/* Cloud White Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {[
+          { label: "Total Agencies", value: stats.totalAgencies, Icon: Building2, tint: "bg-blue-50 border-blue-100 text-blue-600" },
+          { label: "Active Agencies", value: stats.activeAgencies, Icon: Users, tint: "bg-emerald-50 border-emerald-100 text-emerald-600" },
+          { label: "Active Helpers", value: stats.totalHelpers, Icon: Crown, tint: "bg-violet-50 border-violet-100 text-violet-600" },
+          { label: "Level 5 Helpers", value: stats.level5Helpers, Icon: Star, tint: "bg-amber-50 border-amber-100 text-amber-600" },
+        ].map(({ label, value, Icon, tint }) => (
+          <Card key={label} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4 text-center">
+              <div className={`w-10 h-10 mx-auto mb-2 rounded-xl border flex items-center justify-center ${tint}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900">{value}</p>
+              <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wide text-slate-500 mt-0.5">{label}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Quick Cross-Hub Links (single source of truth) */}
