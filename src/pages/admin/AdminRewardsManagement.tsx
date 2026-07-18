@@ -54,11 +54,12 @@ const AdminRewardsManagement = () => {
 
   // Fetch all data
   const fetchAll = useCallback(async () => {
-    const [loginRes, firstRechargeRes, tiersRes, offersRes] = await Promise.all([
+    const [loginRes, firstRechargeRes, tiersRes, offersRes, weeklyRes] = await Promise.all([
       supabase.from("daily_login_rewards_config").select("*").order("day_number"),
       supabase.from("first_recharge_bonus").select("*").eq("is_active", true).maybeSingle(),
       supabase.from("consumption_return_config").select("*").order("display_order"),
       supabase.from("limited_time_offers").select("*").order("created_at", { ascending: false }),
+      supabase.from("weekly_login_rewards_config").select("*").order("created_at").limit(1).maybeSingle(),
     ]);
 
     setLoginRewards(loginRes.data || []);
@@ -69,13 +70,23 @@ const AdminRewardsManagement = () => {
     setConsumptionLoading(false);
     setLimitedOffers(offersRes.data || []);
     setOffersLoading(false);
+    if (weeklyRes.data) {
+      setWeeklyConfig(weeklyRes.data);
+      setWeeklyDraft({
+        reward_type: weeklyRes.data.reward_type || "coins",
+        reward_amount: String(weeklyRes.data.reward_amount ?? 500),
+        label: weeklyRes.data.label || "",
+        description: weeklyRes.data.description || "",
+        is_active: !!weeklyRes.data.is_active,
+      });
+    }
   }, []);
 
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
 
-  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers'], () => fetchAll());
+  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers', 'weekly_login_rewards_config'], () => fetchAll());
 
   // ===== DAILY LOGIN HANDLERS =====
   const updateLoginReward = async (id: string, field: string, value: any) => {
