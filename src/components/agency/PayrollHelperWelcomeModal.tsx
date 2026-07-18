@@ -297,7 +297,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
                 </>
               ) : (
                 <>
-                  Apply Now
+                  {managed?.cta_text || "Apply Now"}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </>
               )}
