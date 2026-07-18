@@ -1698,6 +1698,7 @@ const App = () => {
                   <Route path="room-welcome-messages" element={<AdminRouteGuard routeSegment="room-welcome-messages"><AdminRoomWelcomeMessages /></AdminRouteGuard>} />
                   <Route path="landing-page" element={<AdminRouteGuard routeSegment="landing-page"><AdminLandingPageManager /></AdminRouteGuard>} />
                   <Route path="push-broadcast" element={<AdminRouteGuard routeSegment="push-broadcast"><AdminPushBroadcast /></AdminRouteGuard>} />
+                  <Route path="notifications" element={<Navigate to="/admin/push-broadcast" replace />} />
                   <Route path="notice-broadcast" element={<AdminRouteGuard routeSegment="notice-broadcast"><AdminNoticeBroadcast /></AdminRouteGuard>} />
                   <Route path="email-broadcast" element={<AdminRouteGuard routeSegment="email-broadcast"><AdminEmailBroadcast /></AdminRouteGuard>} />
                   <Route path="otp-providers" element={<AdminRouteGuard routeSegment="otp-providers"><AdminOtpProviders /></AdminRouteGuard>} />

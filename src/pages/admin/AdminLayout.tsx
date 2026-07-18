@@ -2443,7 +2443,7 @@ export default function AdminLayout() {
                   onClick: () => {
                     if (t === 'face_verification') navigate('/admin/face-verification');
                     else if (t === 'host_application') navigate('/admin/host-applications');
-                    else navigate('/admin/notifications');
+                    else navigate('/admin/push-broadcast');
                   },
                 },
                 duration: Infinity,
