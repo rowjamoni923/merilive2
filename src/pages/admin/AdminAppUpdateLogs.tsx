@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -150,6 +151,9 @@ const AdminAppUpdateLogs = () => {
     fetchStats();
   }, []);
 
+  useAdminRealtime(['app_update_check_log'], () => { fetchLogs(); fetchStats(); }, 'admin-app-update-logs-rt', { debounceMs: 800 });
+
+
   const filtered = useMemo(() => {
     if (!search.trim()) return logs;
     const s = search.toLowerCase();
@@ -163,7 +167,7 @@ const AdminAppUpdateLogs = () => {
   }, [logs, search]);
 
   return (
-    <div className="admin-pro-shell p-4 md:p-6 space-y-6 bg-white min-h-screen">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-6 bg-white min-h-screen -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
