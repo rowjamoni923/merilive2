@@ -66,60 +66,56 @@ interface StatCardProps {
   link?: string;
 }
 
-const StatCard = memo(({ title, value, icon: Icon, trend, accentFrom, accentTo, glowColor, delay = 0, link }: StatCardProps) => (
+const StatCard = memo(({ title, value, icon: Icon, trend, glowColor, delay = 0, link }: StatCardProps) => (
   <motion.div
-    initial={{ opacity: 0, y: 24 }}
+    initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4, ease: "easeOut" }}
+    transition={{ delay, duration: 0.35, ease: "easeOut" }}
     className="group"
   >
     <Link to={link || "#"} className="block">
-      <div className={cn(
-        "relative overflow-hidden rounded-2xl md:rounded-3xl p-[1px]",
-        "bg-gradient-to-br",
-        accentFrom, accentTo,
-        "hover:shadow-2xl transition-all duration-500"
-      )}
-        style={{ boxShadow: `0 8px 32px -8px ${glowColor}` }}
+      <div
+        className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-4 md:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300"
+        style={{
+          boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.10)",
+        }}
       >
-        <div className="relative bg-white/90 backdrop-blur-2xl rounded-[15px] md:rounded-[23px] p-4 md:p-6 h-full">
-          {/* Ambient glow */}
-          <div className={cn("absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500")}
-            style={{ background: `linear-gradient(135deg, ${glowColor}, transparent)` }}
-          />
+        {/* accent bar */}
+        <div className="absolute inset-y-0 left-0 w-1" style={{ background: glowColor }} />
 
-          <div className="relative z-10 flex items-start justify-between">
-            <div className="space-y-1 md:space-y-2">
-              <p className="text-[10px] md:text-xs text-slate-600 font-semibold uppercase tracking-widest">{title}</p>
-              <p className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">
-                {typeof value === 'number' ? value.toLocaleString() : value}
-              </p>
-              {trend !== undefined && (
-                <div className={cn(
-                  "inline-flex items-center gap-1 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold",
-                  trend >= 0
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                    : "bg-red-500/15 text-red-400 border border-red-500/20"
-                )}>
-                  {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {Math.abs(trend)}%
-                </div>
-              )}
-            </div>
-
-            <div className={cn(
-              "w-11 h-11 md:w-14 md:h-14 rounded-2xl flex items-center justify-center",
-              "bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform duration-300",
-              accentFrom.replace('from-', 'from-'), accentTo.replace('to-', 'to-')
-            )}>
-              <Icon className="w-5 h-5 md:w-7 md:h-7 text-slate-900" />
-            </div>
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1.5">
+            <p className="text-[11px] md:text-xs text-slate-500 font-semibold uppercase tracking-wide">{title}</p>
+            <p className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight tabular-nums">
+              {typeof value === 'number' ? value.toLocaleString() : value}
+            </p>
+            {trend !== undefined && (
+              <div className={cn(
+                "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md font-semibold",
+                trend >= 0
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-rose-50 text-rose-700 border border-rose-200"
+              )}>
+                {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {Math.abs(trend)}%
+              </div>
+            )}
           </div>
 
-          <div className="mt-3 md:mt-4 flex items-center gap-1 text-[10px] md:text-xs text-slate-500 group-hover:text-slate-700 transition-colors font-medium">
-            <span>View details</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          <div
+            className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+            style={{
+              background: `${glowColor}14`,
+              border: `1px solid ${glowColor}33`,
+            }}
+          >
+            <Icon className="w-5 h-5 md:w-6 md:h-6" style={{ color: glowColor }} />
           </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-1 text-[11px] text-slate-500 group-hover:text-slate-900 transition-colors font-medium">
+          <span>View details</span>
+          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
     </Link>
@@ -138,39 +134,32 @@ interface AlertCardProps {
   delay: number;
 }
 
-const AlertCard = memo(({ title, value, icon: Icon, link, gradientFrom, gradientTo, textColor, delay }: AlertCardProps) => (
+const AlertCard = memo(({ title, value, icon: Icon, link, textColor, delay }: AlertCardProps) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
+    initial={{ opacity: 0, scale: 0.97 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay, duration: 0.3 }}
   >
     <Link to={link}>
-      <Card className={cn(
-        "bg-white border-2 transition-all duration-300 group cursor-pointer",
-        `border-${gradientFrom.split('-')[1]}-500/25 hover:border-${gradientFrom.split('-')[1]}-400/50`,
-        "hover:shadow-xl"
-      )}
-        style={{ boxShadow: `0 4px 20px -4px ${textColor}33` }}
+      <div
+        className="relative overflow-hidden bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 group cursor-pointer"
+        style={{ boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.10)" }}
       >
-        <CardContent className="p-5 md:p-6 flex items-center gap-4">
-          <div className={cn(
-            "w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center",
-            "bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform",
-            gradientFrom, gradientTo
-          )}>
-            <Icon className="w-7 h-7 md:w-8 md:h-8 text-slate-900" />
-          </div>
-          <div className="flex-1">
-            <p className="text-3xl md:text-4xl font-black" style={{ color: textColor }}>
-              {value.toLocaleString()}
-            </p>
-            <p className="text-sm font-semibold text-slate-600 mt-0.5">{title}</p>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-slate-50 group-hover:bg-slate-50 flex items-center justify-center transition-all">
-            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all" />
-          </div>
-        </CardContent>
-      </Card>
+        <div className="absolute inset-y-0 left-0 w-1" style={{ background: textColor }} />
+        <div
+          className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{ background: `${textColor}14`, border: `1px solid ${textColor}33` }}
+        >
+          <Icon className="w-6 h-6 md:w-7 md:h-7" style={{ color: textColor }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: textColor }}>
+            {value.toLocaleString()}
+          </p>
+          <p className="text-sm font-semibold text-slate-600 mt-0.5 truncate">{title}</p>
+        </div>
+        <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all shrink-0" />
+      </div>
     </Link>
   </motion.div>
 ));
