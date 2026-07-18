@@ -474,14 +474,17 @@ const AgencyDashboard = () => {
         }
 
         // ===== Process level tier =====
-        // Payroll-enabled agencies (Level 5 Helper) get 12% commission override
+        // Payroll-enabled agencies (Level 5 Helper) get the TOP tier's commission rate,
+        // which is fully admin-managed via `agency_level_tiers` (no hardcoded number).
         const isPayrollAgency = ownerHelperRes.data?.is_verified && ownerHelperRes.data?.is_active && ownerHelperRes.data?.trader_level === 5 && ownerHelperRes.data?.payroll_enabled;
-        const payrollCommissionRate = 12; // A5 Legend rate for payroll agencies
-        
-        if (tierRes.data) {
-          const effectiveCommission = isPayrollAgency ? Math.max(tierRes.data.commission_rate, payrollCommissionRate) : tierRes.data.commission_rate;
+        const allTiers = (tierRes.data as any[]) || [];
+        const topTierRate = allTiers.length > 0 ? Number(allTiers[0].commission_rate) : 0;
+        const currentTier = allTiers.find((t: any) => t.level_code === effectiveLevel) || null;
+
+        if (currentTier) {
+          const effectiveCommission = isPayrollAgency ? Math.max(Number(currentTier.commission_rate), topTierRate) : Number(currentTier.commission_rate);
           setActualCommissionRate(effectiveCommission);
-          setLevelTierInfo(tierRes.data);
+          setLevelTierInfo(currentTier as any);
           const updates: Record<string, any> = {};
           if (agencyData.commission_rate !== effectiveCommission) updates.commission_rate = effectiveCommission;
           if (agencyData.level !== effectiveLevel) updates.level = effectiveLevel;
@@ -490,8 +493,9 @@ const AgencyDashboard = () => {
             setAgency(prev => prev ? { ...prev, ...updates } : prev);
           }
         } else {
-          setActualCommissionRate(isPayrollAgency ? payrollCommissionRate : (agencyData.commission_rate || 0));
+          setActualCommissionRate(isPayrollAgency ? topTierRate : (agencyData.commission_rate || 0));
         }
+
 
         // ===== Process hosts =====
         const actualHostCount = hostsData.length;
