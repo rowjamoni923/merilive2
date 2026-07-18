@@ -424,9 +424,20 @@ import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToast
 
 
 
-// Route lazy-loads must not paint any alternate/fake screen.
-// Navigation warms chunks before route switch instead.
-const AdminChunkLoader = memo(() => null);
+// Admin entry must never render a blank canvas. The public app can keep real
+// route continuity, but /admin is an isolated browser workflow: if a lazy
+// admin chunk is loading/recovering, show a real cloud-white admin surface.
+const AdminChunkLoader = memo(() => (
+  <div className="admin-shell min-h-screen w-full flex items-center justify-center bg-[hsl(var(--admin-pro-canvas,0_0%_100%))] text-[hsl(var(--admin-pro-text,222_47%_11%))]">
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-[hsl(var(--admin-pro-border,214_32%_91%))] bg-[hsl(var(--admin-pro-surface,0_0%_100%))] px-8 py-7 shadow-admin-lg">
+      <div className="h-11 w-11 rounded-full border-2 border-[hsl(var(--admin-pro-border,214_32%_91%))] border-t-[hsl(var(--admin-pro-primary,217_91%_60%))] animate-spin" />
+      <div className="text-center leading-tight">
+        <p className="text-sm font-semibold">Opening admin panel</p>
+        <p className="mt-1 text-xs text-[hsl(var(--admin-pro-text-muted,215_16%_47%))]">Secure access is loading…</p>
+      </div>
+    </div>
+  </div>
+));
 AdminChunkLoader.displayName = "AdminChunkLoader";
 
 // Chamet/Bigo/TikTok-style: NO intermediate loading screen between routes.
