@@ -164,7 +164,7 @@ const CreateAgency = () => {
       return;
     }
 
-    // Check if user is a verified Level 5 Payroll Helper → auto-assign A5/12%
+    // Check if user is a verified Level 5 Payroll Helper → auto-assign A5 (Diamond, 20%)
     let initialLevel = "A1";
     let initialCommissionRate = 3;
     const { data: helperCheck } = await supabase
