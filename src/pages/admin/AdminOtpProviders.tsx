@@ -188,8 +188,11 @@ export default function AdminOtpProviders() {
   const timeout = settingsDirty?.per_provider_timeout_ms ?? settingsQ.data?.per_provider_timeout_ms ?? 4000;
   const successRate = stats.total ? Math.round((stats.sent / stats.total) * 100) : 100;
 
+  useAdminRealtime(['otp_provider_config', 'otp_orchestrator_settings', 'email_send_log'], refreshAll, 'admin-otp-providers-rt');
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="admin-pro-shell admin-content min-h-screen bg-white -mx-4 -my-4 sm:-mx-6 sm:-my-6">
+
       <AdminPageHeader
         title="OTP Email Providers"
         subtitle="Multi-provider failover: Resend → Brevo → Gmail. Race mode = parallel, first success wins."
