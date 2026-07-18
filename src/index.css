@@ -8697,3 +8697,72 @@ body[data-admin-active="true"] :is(
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
 }
+
+/* ==========================================================================
+   ADMIN PRO — Cloud White + 3D scoped token layer (Pass 1, 2026-07-18)
+   Scoped to `.admin-pro-shell` so global surfaces are untouched. See
+   docs/cloud-white-3d-admin-spec.md for source research + component anatomy.
+   ========================================================================== */
+.admin-pro-shell {
+  /* Canvas + ink */
+  --admin-canvas: 210 20% 98%;
+  --admin-ink: 222 24% 12%;
+  --admin-ink-muted: 220 10% 38%;      /* ≥4.5:1 on white */
+  --admin-ink-subtle: 220 8% 52%;
+
+  /* Layered surfaces */
+  --admin-surface-1: 0 0% 100%;         /* raised card */
+  --admin-surface-2: 210 20% 97%;       /* nested panel / table header */
+  --admin-surface-3: 210 16% 93%;       /* hover / pressed / zebra */
+
+  /* Borders */
+  --admin-border: 214 20% 90%;
+  --admin-border-strong: 214 16% 82%;
+
+  /* Brand + semantic (single blue accent) */
+  --admin-primary: 217 91% 55%;
+  --admin-primary-ink: 0 0% 100%;
+  --admin-success: 152 60% 36%;
+  --admin-warning: 38 92% 45%;
+  --admin-danger: 0 72% 48%;
+  --admin-info: 217 91% 55%;
+
+  /* Soft multi-layer elevation — never colored glow */
+  --admin-shadow-sm: 0 1px 2px 0 rgba(16,24,40,0.05);
+  --admin-shadow-md: 0 1px 2px 0 rgba(16,24,40,0.06), 0 4px 8px -2px rgba(16,24,40,0.06);
+  --admin-shadow-lg: 0 2px 4px -1px rgba(16,24,40,0.06), 0 8px 16px -4px rgba(16,24,40,0.08);
+  --admin-shadow-xl: 0 4px 8px -2px rgba(16,24,40,0.06), 0 16px 32px -8px rgba(16,24,40,0.10);
+  --admin-shadow-inset: inset 0 1px 0 0 rgba(255,255,255,0.6), inset 0 -1px 0 0 rgba(16,24,40,0.04);
+
+  background-color: hsl(var(--admin-canvas));
+  color: hsl(var(--admin-ink));
+}
+
+/* Utility classes (Cloud White + 3D primitives) */
+.admin-pro-shell .admin-card,
+.admin-card {
+  background-color: hsl(var(--admin-surface-1, 0 0% 100%));
+  border: 1px solid hsl(var(--admin-border, 214 20% 90%));
+  border-radius: 0.625rem;
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px 0 rgba(16,24,40,0.05));
+  transition: box-shadow 200ms cubic-bezier(0.4,0,0.2,1), transform 200ms cubic-bezier(0.4,0,0.2,1);
+}
+.admin-pro-shell .admin-card-hover:hover,
+.admin-card-hover:hover {
+  box-shadow: var(--admin-shadow-md, 0 1px 2px 0 rgba(16,24,40,0.06), 0 4px 8px -2px rgba(16,24,40,0.06));
+  transform: translateY(-1px);
+}
+.admin-pro-shell .admin-surface-2 { background-color: hsl(var(--admin-surface-2)); }
+.admin-pro-shell .admin-surface-3 { background-color: hsl(var(--admin-surface-3)); }
+.admin-pro-shell .admin-ink { color: hsl(var(--admin-ink)); }
+.admin-pro-shell .admin-ink-muted { color: hsl(var(--admin-ink-muted)); }
+.admin-pro-shell .admin-ink-subtle { color: hsl(var(--admin-ink-subtle)); }
+.admin-pro-shell .admin-border { border-color: hsl(var(--admin-border)); }
+
+/* Tabular numerals for every money/count cell inside the admin shell */
+.admin-pro-shell .tabular,
+.admin-pro-shell [data-tabular] { font-variant-numeric: tabular-nums; }
+
+/* Anti-pattern guard: purge sub-12px text inside admin shell */
+.admin-pro-shell [class*="text-[10px]"],
+.admin-pro-shell [class*="text-[11px]"] { font-size: 0.75rem !important; line-height: 1rem !important; }
