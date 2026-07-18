@@ -6869,6 +6869,50 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   color: #0F172A;
 }
 
+/* ============================================================
+   Pass 7 — Diamond & Finance bottom (Payment Gateways / Topup
+   Methods / Withdrawals / Balance Deduction / Transfer History /
+   Recharge History / Google Play Health / Crypto Recovery /
+   Orphan Payments). Three targeted global rescues, no per-file
+   rewrites required — every issue found via scan is category-wide.
+   ============================================================ */
+
+/* 7-A: Translucent neon badge text (bg-{c}-500/20 + text-{c}-400)
+   fails contrast on white. Force darker 700-shade ink so status
+   chips on Recharge History / Transfer History / Withdrawals /
+   Orphan Payments stay readable. Bg-500/20 tint is preserved. */
+.admin-pro-shell [class*="bg-green-5"][class*="/2"] [class*="text-green-4"],
+.admin-pro-shell [class*="text-green-4"]:not([class*="bg-"]) { color: #15803D !important; }
+.admin-pro-shell [class*="text-emerald-4"]:not([class*="bg-"]) { color: #047857 !important; }
+.admin-pro-shell [class*="text-teal-4"]:not([class*="bg-"])    { color: #0F766E !important; }
+.admin-pro-shell [class*="text-blue-4"]:not([class*="bg-"])    { color: #1D4ED8 !important; }
+.admin-pro-shell [class*="text-sky-4"]:not([class*="bg-"])     { color: #0369A1 !important; }
+.admin-pro-shell [class*="text-cyan-4"]:not([class*="bg-"])    { color: #0E7490 !important; }
+.admin-pro-shell [class*="text-indigo-4"]:not([class*="bg-"])  { color: #4338CA !important; }
+.admin-pro-shell [class*="text-purple-4"]:not([class*="bg-"])  { color: #6D28D9 !important; }
+.admin-pro-shell [class*="text-violet-4"]:not([class*="bg-"])  { color: #6D28D9 !important; }
+.admin-pro-shell [class*="text-pink-4"]:not([class*="bg-"])    { color: #BE185D !important; }
+.admin-pro-shell [class*="text-rose-4"]:not([class*="bg-"])    { color: #BE123C !important; }
+.admin-pro-shell [class*="text-red-4"]:not([class*="bg-"])     { color: #B91C1C !important; }
+.admin-pro-shell [class*="text-orange-4"]:not([class*="bg-"])  { color: #C2410C !important; }
+.admin-pro-shell [class*="text-amber-4"]:not([class*="bg-"])   { color: #B45309 !important; }
+.admin-pro-shell [class*="text-yellow-4"]:not([class*="bg-"])  { color: #A16207 !important; }
+
+/* 7-B: Micro-typography guard. `text-[10px]` bumps to 11px + 500
+   weight for legibility on dense finance tables/badges. */
+.admin-pro-shell .text-\[10px\] {
+  font-size: 11px !important;
+  line-height: 16px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 7-C: Neutralized-block leftover ring/border/text-white tokens
+   inside AdminCryptoRecovery hero + AdminOrphanPayments chips. */
+.admin-pro-shell [class*="border-white/1"],
+.admin-pro-shell [class*="border-white/2"] { border-color: #E2E8F0 !important; }
+
+
 /* Badges / pill chips that use light bg + light text combinations */
 .admin-pro-shell .badge,
 .admin-pro-shell [data-slot="badge"] { color: #0F172A; }
