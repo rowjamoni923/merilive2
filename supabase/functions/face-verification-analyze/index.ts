@@ -833,6 +833,7 @@ serve(async (req) => {
 
     const rekognition: Record<string, unknown> = {
       version: 1,
+      _debug_build: "proxy-fix-v3-20260718",
       face_count: details.length,
       left_face_count: leftDetails.length,
       right_face_count: rightDetails.length,
