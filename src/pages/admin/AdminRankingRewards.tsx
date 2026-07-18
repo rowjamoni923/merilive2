@@ -51,13 +51,21 @@ interface RankingReward {
   created_at: string;
 }
 
-const rankingTypes = [
-  { id: 'agency', label: 'Agency', icon: Building2 },
-  { id: 'host_earning', label: 'Host', icon: Users },
-  { id: 'game', label: 'Game', icon: Gamepad2 },
+// Category → list of ranking_type prefixes present in DB
+const rankingCategories: { id: string; label: string; icon: any; subtypes: string[] }[] = [
+  { id: 'agency', label: 'Agency', icon: Building2, subtypes: ['agency_performance'] },
+  {
+    id: 'host',
+    label: 'Host',
+    icon: Users,
+    subtypes: ['host_earnings', 'host_duration', 'golden_host', 'golden_host_income', 'new_host', 'top_gifters', 'pk_reward'],
+  },
+  { id: 'game', label: 'Game', icon: Gamepad2, subtypes: ['game_winners'] },
 ];
 
+// Period suffix appended to ranking_type in DB
 const periodTypes = [
+  { id: 'daily', label: 'Daily' },
   { id: 'weekly', label: 'Weekly' },
   { id: 'monthly', label: 'Monthly' },
 ];
@@ -67,8 +75,9 @@ const AdminRankingRewards = () => {
   const [rewards, setRewards] = useState<RankingReward[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [activeRankingType, setActiveRankingType] = useState('agency');
+  const [activeCategory, setActiveCategory] = useState('agency');
   const [activePeriod, setActivePeriod] = useState('weekly');
+  const [activeSubtype, setActiveSubtype] = useState('agency_performance');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingReward, setEditingReward] = useState<RankingReward | null>(null);
 
@@ -79,6 +88,13 @@ const AdminRankingRewards = () => {
     reward_badge: '',
     min_income_requirement: 0,
   });
+
+  useEffect(() => {
+    const cat = rankingCategories.find(c => c.id === activeCategory);
+    if (cat && !cat.subtypes.includes(activeSubtype)) {
+      setActiveSubtype(cat.subtypes[0]);
+    }
+  }, [activeCategory]);
 
   const fetchRewards = async () => {
     setLoading(true);
@@ -101,11 +117,13 @@ const AdminRankingRewards = () => {
     }
   };
 
+  useEffect(() => { fetchRewards(); }, []);
   useAdminRealtime(['ranking_rewards'], () => fetchRewards());
 
-  const filteredRewards = rewards.filter(
-    r => r.ranking_type === activeRankingType && r.period_type === activePeriod
-  );
+  // ranking_type in DB is `${subtype}_${period}` (e.g. agency_performance_weekly).
+  // We also keep back-compat: some rows may still store period_type separately.
+  const fullRankingType = `${activeSubtype}_${activePeriod}`;
+  const filteredRewards = rewards.filter(r => r.ranking_type === fullRankingType);
 
   const handleAddReward = async () => {
     setSaving(true);
@@ -113,7 +131,7 @@ const AdminRankingRewards = () => {
       const { error } = await supabase
         .from('ranking_rewards')
         .insert({
-          ranking_type: activeRankingType,
+          ranking_type: fullRankingType,
           period_type: activePeriod,
           rank_position: formData.rank_position,
           reward_coins: formData.reward_coins,
@@ -237,10 +255,10 @@ const AdminRankingRewards = () => {
       </div>
 
       <div className="p-4 space-y-4 max-w-2xl mx-auto">
-        {/* Ranking Type Tabs */}
-        <Tabs value={activeRankingType} onValueChange={setActiveRankingType}>
+        {/* Category Tabs */}
+        <Tabs value={activeCategory} onValueChange={setActiveCategory}>
           <TabsList className="w-full grid grid-cols-3 bg-card border border-border">
-            {rankingTypes.map((type) => (
+            {rankingCategories.map((type) => (
               <TabsTrigger
                 key={type.id}
                 value={type.id}
@@ -253,6 +271,26 @@ const AdminRankingRewards = () => {
           </TabsList>
         </Tabs>
 
+        {/* Subtype selector (only when category has multiple subtypes) */}
+        {(() => {
+          const cat = rankingCategories.find(c => c.id === activeCategory);
+          if (!cat || cat.subtypes.length <= 1) return null;
+          return (
+            <Select value={activeSubtype} onValueChange={setActiveSubtype}>
+              <SelectTrigger className="bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {cat.subtypes.map(s => (
+                  <SelectItem key={s} value={s}>
+                    {s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        })()}
+
         {/* Period Tabs */}
         <div className="flex gap-2">
           {periodTypes.map((period) => (
@@ -263,7 +301,7 @@ const AdminRankingRewards = () => {
               onClick={() => setActivePeriod(period.id)}
               className="flex-1"
             >
-              {period.id === 'weekly' ? '📅' : '📆'} {period.label}
+              {period.id === 'daily' ? '🗓️' : period.id === 'weekly' ? '📅' : '📆'} {period.label}
             </Button>
           ))}
         </div>
@@ -273,7 +311,7 @@ const AdminRankingRewards = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Gift className="w-4 h-4 text-yellow-500" />
-              {rankingTypes.find(t => t.id === activeRankingType)?.label} - {activePeriod === 'weekly' ? 'Weekly' : 'Monthly'}
+              {rankingCategories.find(t => t.id === activeCategory)?.label} · {activeSubtype.replace(/_/g, ' ')} · {activePeriod}
             </CardTitle>
             <Button
               size="sm"
