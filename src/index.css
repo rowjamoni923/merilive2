@@ -6750,6 +6750,55 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   box-shadow: 0 1px 2px rgba(5,150,105,0.25) !important;
 }
 
+/* Pass 6: descendant white-text rescue. When a neon gradient parent is
+   neutralized to white, any child using `text-white` / `text-white/xx` was
+   still rendering white-on-white (invisible amounts / labels on
+   AdminTopupSystem / AdminManualTopup / AdminCoinTraders / AdminCommissions
+   stat cards + hero bars). Force readable slate ink inside neutralized
+   gradient blocks, but keep exceptions for elements that carry their OWN
+   solid color surface (badges, sub-chips). */
+.admin-pro-shell [class*="from-pink-4"]  .text-white, .admin-pro-shell [class*="from-pink-5"]  .text-white, .admin-pro-shell [class*="from-pink-6"]  .text-white, .admin-pro-shell [class*="from-pink-7"]  .text-white,
+.admin-pro-shell [class*="from-rose-4"]  .text-white, .admin-pro-shell [class*="from-rose-5"]  .text-white, .admin-pro-shell [class*="from-rose-6"]  .text-white, .admin-pro-shell [class*="from-rose-7"]  .text-white,
+.admin-pro-shell [class*="from-purple-4"] .text-white, .admin-pro-shell [class*="from-purple-5"] .text-white, .admin-pro-shell [class*="from-purple-6"] .text-white,
+.admin-pro-shell [class*="from-violet-4"] .text-white, .admin-pro-shell [class*="from-violet-5"] .text-white, .admin-pro-shell [class*="from-violet-6"] .text-white,
+.admin-pro-shell [class*="from-fuchsia-4"] .text-white, .admin-pro-shell [class*="from-fuchsia-5"] .text-white, .admin-pro-shell [class*="from-fuchsia-6"] .text-white,
+.admin-pro-shell [class*="from-red-5"] .text-white, .admin-pro-shell [class*="from-red-6"] .text-white,
+.admin-pro-shell [class*="from-orange-5"] .text-white, .admin-pro-shell [class*="from-orange-6"] .text-white,
+.admin-pro-shell [class*="from-amber-5"] .text-white, .admin-pro-shell [class*="from-amber-6"] .text-white,
+.admin-pro-shell [class*="from-yellow-5"] .text-white, .admin-pro-shell [class*="from-yellow-6"] .text-white,
+.admin-pro-shell [class*="from-green-5"] .text-white, .admin-pro-shell [class*="from-green-6"] .text-white,
+.admin-pro-shell [class*="from-emerald-5"] .text-white, .admin-pro-shell [class*="from-emerald-6"] .text-white,
+.admin-pro-shell [class*="from-teal-5"] .text-white, .admin-pro-shell [class*="from-teal-6"] .text-white,
+.admin-pro-shell [class*="from-cyan-5"] .text-white, .admin-pro-shell [class*="from-cyan-6"] .text-white,
+.admin-pro-shell [class*="from-sky-5"] .text-white, .admin-pro-shell [class*="from-sky-6"] .text-white,
+.admin-pro-shell [class*="from-blue-5"] .text-white, .admin-pro-shell [class*="from-blue-6"] .text-white, .admin-pro-shell [class*="from-blue-7"] .text-white,
+.admin-pro-shell [class*="from-indigo-4"] .text-white, .admin-pro-shell [class*="from-indigo-5"] .text-white, .admin-pro-shell [class*="from-indigo-6"] .text-white {
+  color: #0F172A !important;
+}
+/* Same rescue for text-white/70 style muted descendants */
+.admin-pro-shell [class*="from-pink-5"]  [class*="text-white/"], .admin-pro-shell [class*="from-rose-5"]  [class*="text-white/"],
+.admin-pro-shell [class*="from-purple-5"] [class*="text-white/"], .admin-pro-shell [class*="from-violet-5"] [class*="text-white/"],
+.admin-pro-shell [class*="from-amber-5"]  [class*="text-white/"], .admin-pro-shell [class*="from-orange-5"] [class*="text-white/"],
+.admin-pro-shell [class*="from-emerald-5"][class*="text-white/"], .admin-pro-shell [class*="from-blue-6"] [class*="text-white/"],
+.admin-pro-shell [class*="from-emerald-5"] [class*="text-white/"] {
+  color: #64748B !important;
+}
+/* Pass 6: active-tab visibility. `data-[state=active]:from-*` gradient
+   triggers get neutralized to white; without a distinguishing signal the
+   active tab looks identical to inactive ones and any `data-[state=active]:text-white`
+   / `text-black` becomes unreadable. Force active-state tabs to a clean
+   Cloud White pill with blue ink + subtle shadow. */
+.admin-pro-shell [role="tab"][data-state="active"][class*="from-"],
+.admin-pro-shell button[data-state="active"][class*="from-"] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  color: #2563EB !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.08) !important;
+  border-color: #E2E8F0 !important;
+}
+
+
+
 
 /* ---------------------------------------------------------------
    Contrast safety net — remap any near-white / very light text
