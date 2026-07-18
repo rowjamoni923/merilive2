@@ -1756,6 +1756,9 @@ const Auth = () => {
             device_id: deviceId,
             is_verified: true,
             gender: selectedGender || undefined,
+            country_code: selectedCountry?.country || undefined,
+            country_name: selectedCountry?.name || undefined,
+            country_flag: selectedCountry?.flag || undefined,
           },
           { requireHost: selectedGender === 'female' }
         );
