@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Gift, Coins, Clock, Zap, Plus, Trash2, Save, Edit2, Crown, TrendingUp, Timer, ToggleLeft, ToggleRight, Upload, Image, Type } from "lucide-react";
+import { ArrowLeft, Gift, Coins, Clock, Zap, Plus, Trash2, Save, Edit2, Crown, TrendingUp, Timer, ToggleLeft, ToggleRight, Upload, Image, Type, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,13 +48,18 @@ const AdminRewardsManagement = () => {
     is_active: true,
   });
 
+  // Weekly Login State
+  const [weeklyConfig, setWeeklyConfig] = useState<any>(null);
+  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "coins", reward_amount: "500", label: "", description: "", is_active: true });
+
   // Fetch all data
   const fetchAll = useCallback(async () => {
-    const [loginRes, firstRechargeRes, tiersRes, offersRes] = await Promise.all([
+    const [loginRes, firstRechargeRes, tiersRes, offersRes, weeklyRes] = await Promise.all([
       supabase.from("daily_login_rewards_config").select("*").order("day_number"),
       supabase.from("first_recharge_bonus").select("*").eq("is_active", true).maybeSingle(),
       supabase.from("consumption_return_config").select("*").order("display_order"),
       supabase.from("limited_time_offers").select("*").order("created_at", { ascending: false }),
+      supabase.from("weekly_login_rewards_config").select("*").order("created_at").limit(1).maybeSingle(),
     ]);
 
     setLoginRewards(loginRes.data || []);
@@ -65,13 +70,23 @@ const AdminRewardsManagement = () => {
     setConsumptionLoading(false);
     setLimitedOffers(offersRes.data || []);
     setOffersLoading(false);
+    if (weeklyRes.data) {
+      setWeeklyConfig(weeklyRes.data);
+      setWeeklyDraft({
+        reward_type: weeklyRes.data.reward_type || "coins",
+        reward_amount: String(weeklyRes.data.reward_amount ?? 500),
+        label: weeklyRes.data.label || "",
+        description: weeklyRes.data.description || "",
+        is_active: !!weeklyRes.data.is_active,
+      });
+    }
   }, []);
 
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
 
-  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers'], () => fetchAll());
+  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers', 'weekly_login_rewards_config'], () => fetchAll());
 
   // ===== DAILY LOGIN HANDLERS =====
   const updateLoginReward = async (id: string, field: string, value: any) => {
@@ -87,7 +102,27 @@ const AdminRewardsManagement = () => {
     }
   };
 
-  // ===== FIRST RECHARGE HANDLERS =====
+  // ===== WEEKLY LOGIN HANDLER =====
+  const saveWeekly = async () => {
+    const amount = Math.max(0, Math.trunc(Number(weeklyDraft.reward_amount) || 0));
+    const payload = {
+      reward_type: weeklyDraft.reward_type,
+      reward_amount: amount,
+      label: weeklyDraft.label || null,
+      description: weeklyDraft.description || null,
+      is_active: weeklyDraft.is_active,
+      updated_at: new Date().toISOString(),
+    };
+    const result = weeklyConfig?.id
+      ? await supabase.from("weekly_login_rewards_config").update(payload).eq("id", weeklyConfig.id).select().single()
+      : await supabase.from("weekly_login_rewards_config").insert(payload).select().single();
+    if (result.error) toast.error("Failed to save weekly reward");
+    else {
+      setWeeklyConfig(result.data);
+      toast.success("Weekly reward saved");
+    }
+  };
+
   const saveFirstRecharge = async () => {
     if (!firstRechargeConfig) return;
 
@@ -238,9 +273,12 @@ const AdminRewardsManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="daily-login" className="flex items-center gap-1.5">
             <Gift className="w-4 h-4" /> Daily Login
+          </TabsTrigger>
+          <TabsTrigger value="weekly-login" className="flex items-center gap-1.5">
+            <CalendarDays className="w-4 h-4" /> Weekly Login
           </TabsTrigger>
           <TabsTrigger value="first-recharge" className="flex items-center gap-1.5">
             <Crown className="w-4 h-4" /> First Recharge
@@ -269,6 +307,73 @@ const AdminRewardsManagement = () => {
                   />
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ===== WEEKLY LOGIN TAB ===== */}
+        <TabsContent value="weekly-login" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-primary" />
+                Weekly Login Reward (once per ISO week)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Reward Type</Label>
+                  <select
+                    value={weeklyDraft.reward_type}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
+                    className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+                  >
+                    <option value="coins">Coins</option>
+                    <option value="diamonds">Diamonds</option>
+                    <option value="beans">Beans</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Reward Amount</Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={weeklyDraft.reward_amount}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_amount: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Label</Label>
+                  <Input
+                    value={weeklyDraft.label}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, label: e.target.value }))}
+                    placeholder="Weekly Login Bonus"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-6">
+                  <Switch
+                    checked={weeklyDraft.is_active}
+                    onCheckedChange={(v) => setWeeklyDraft((d) => ({ ...d, is_active: v }))}
+                  />
+                  <Label>Active</Label>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Description</Label>
+                <Input
+                  value={weeklyDraft.description}
+                  onChange={(e) => setWeeklyDraft((d) => ({ ...d, description: e.target.value }))}
+                  placeholder="Claim once every week"
+                />
+              </div>
+              <Button onClick={saveWeekly} className="gap-2">
+                <Save className="w-4 h-4" /> Save Weekly Reward
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Enforced server-side by <code>claim_weekly_login_reward()</code> — one claim per user per ISO week (Asia/Dhaka). Duplicate claims are impossible.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
