@@ -1625,6 +1625,7 @@ const App = () => {
                   <Route path="campaign-banner-hub" element={<AdminRouteGuard routeSegment="campaign-banner-hub"><AdminCampaignBannerHub /></AdminRouteGuard>} />
                   <Route path="popup-banners" element={<AdminRouteGuard routeSegment="popup-banners"><AdminPopupBanners /></AdminRouteGuard>} />
                   <Route path="rating-banners" element={<AdminRouteGuard routeSegment="rating-banners"><AdminRatingBanners /></AdminRouteGuard>} />
+                  <Route path="managed-banners" element={<AdminRouteGuard routeSegment="managed-banners"><AdminManagedBanners /></AdminRouteGuard>} />
                   <Route path="onboarding-slides" element={<AdminRouteGuard routeSegment="onboarding-slides"><AdminOnboardingSlides /></AdminRouteGuard>} />
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
                   {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
