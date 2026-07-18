@@ -436,8 +436,9 @@ const AgencyDashboard = () => {
           parentRes.data?.owner_id
             ? supabase.from("profiles").select("display_name, avatar_url").eq("id", parentRes.data.owner_id).maybeSingle()
             : Promise.resolve({ data: null }),
-          // Level tier
-          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveLevel).eq("is_active", true).maybeSingle(),
+          // Level tiers (fetch all so we can compute top tier dynamically for payroll agencies)
+          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("is_active", true).order("commission_rate", { ascending: false }),
+
           // Host profiles
           hostIds.length > 0
             ? supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hostIds)
