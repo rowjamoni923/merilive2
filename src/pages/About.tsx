@@ -63,7 +63,7 @@ const About = () => {
   ];
 
   const agencyBenefits = [
-    { icon: DollarSign, text: "3% to 12% tiered commission across 5 agency levels (A1 to A5)." },
+    { icon: DollarSign, text: "3% to 20% tiered commission across 5 agency levels (A1 to A5)." },
     { icon: Award, text: "Automatic weekly payout every Monday — fully calculated server-side." },
     { icon: Globe, text: "Local payouts via bKash, Nagad, JazzCash, USDT and bank transfer." },
     { icon: Users, text: "Sub-agent recruitment, host onboarding and team performance tools." },
@@ -342,7 +342,7 @@ const About = () => {
                 Build an agency. Lead a network.
               </h2>
               <p className="text-base mb-8 leading-relaxed" style={{ color: MUTED }}>
-                Recruit hosts, manage teams, and earn 3% to 12% commission across five performance tiers —
+                Recruit hosts, manage teams, and earn 3% to 20% commission across five performance tiers —
                 with weekly automated payouts and a real-time agency dashboard.
               </p>
 
@@ -390,11 +390,11 @@ const About = () => {
                 </thead>
                 <tbody style={{ color: CREAM }}>
                   {[
-                    { l: "A1", w: "$0 – $99", c: "3%" },
-                    { l: "A2", w: "$100 – $499", c: "5%" },
-                    { l: "A3", w: "$500 – $1,999", c: "8%" },
-                    { l: "A4", w: "$2,000 – $4,999", c: "10%" },
-                    { l: "A5 ⭐", w: "$5,000+", c: "12%", gold: true },
+                    { l: "A1 (Bronze)",   w: "$50 – $200",       c: "3%" },
+                    { l: "A2 (Silver)",   w: "$201 – $1,000",    c: "5%" },
+                    { l: "A3 (Gold)",     w: "$1,001 – $2,000",  c: "10%" },
+                    { l: "A4 (Platinum)", w: "$2,001 – $3,500",  c: "15%" },
+                    { l: "A5 (Diamond) ⭐", w: "$4,000+",         c: "20%", gold: true },
                   ].map((r) => (
                     <tr key={r.l} style={{ borderBottom: `1px solid ${GOLD}1a` }}>
                       <td className="py-3 px-4 font-semibold" style={{ color: r.gold ? GOLD : CREAM }}>{r.l}</td>

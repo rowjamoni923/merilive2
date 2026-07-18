@@ -164,7 +164,7 @@ const CreateAgency = () => {
       return;
     }
 
-    // Check if user is a verified Level 5 Payroll Helper → auto-assign A5/12%
+    // Check if user is a verified Level 5 Payroll Helper → auto-assign A5 (Diamond, 20%)
     let initialLevel = "A1";
     let initialCommissionRate = 3;
     const { data: helperCheck } = await supabase
@@ -175,7 +175,7 @@ const CreateAgency = () => {
     
     if (helperCheck?.is_verified && helperCheck?.is_active && helperCheck?.trader_level === 5 && helperCheck?.payroll_enabled) {
       initialLevel = "A5";
-      initialCommissionRate = 12;
+      initialCommissionRate = 20;
     }
 
     // Create agency using secure RPC (bypasses trigger protection)
@@ -325,7 +325,7 @@ const CreateAgency = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 mt-4">
-              {[{v:'4%',l:'Commission'},{v:'∞',l:'Hosts'},{v:'24/7',l:'Support'}].map(s => (
+              {[{v:'3–20%',l:'Commission'},{v:'∞',l:'Hosts'},{v:'24/7',l:'Support'}].map(s => (
                 <div
                   key={s.l}
                   className="rounded-2xl p-3 text-center"
@@ -506,7 +506,7 @@ const CreateAgency = () => {
         <ul className="space-y-2">
           <li className="flex items-start gap-2 text-sm text-amber-700">
             <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <span>Earn 4-20% commission from all host earnings (level based)</span>
+            <span>Earn 3-20% commission from all host earnings (level based)</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-amber-700">
             <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />

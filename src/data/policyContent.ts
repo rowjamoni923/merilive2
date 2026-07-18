@@ -336,11 +336,11 @@ export const policyDetails: Record<string, PolicyDetail> = {
         title: "Commission Tiers",
         icon: "📊",
         items: [
-          "A1 (Starter): 5% commission — Weekly income below $200",
-          "A2 (Bronze): 8% commission — Weekly income $200-$500",
-          "A3 (Silver): 12% commission — Weekly income $500-$1,500",
-          "A4 (Gold): 15% commission — Weekly income $1,500-$5,000",
-          "A5 (Diamond): 20% commission — Weekly income above $5,000",
+          "A1 (Bronze): 3% commission — Weekly income $50–$200",
+          "A2 (Silver): 5% commission — Weekly income $201–$1,000",
+          "A3 (Gold): 10% commission — Weekly income $1,001–$2,000",
+          "A4 (Platinum): 15% commission — Weekly income $2,001–$3,500",
+          "A5 (Diamond): 20% commission — Weekly income above $4,000",
         ],
       },
       {

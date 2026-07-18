@@ -338,7 +338,7 @@ const AgencySignup = () => {
       
       if (helperCheck?.is_verified && helperCheck?.is_active && helperCheck?.trader_level === 5 && helperCheck?.payroll_enabled) {
         signupLevel = "A5";
-        signupCommission = 12;
+        signupCommission = 20;
       }
 
       const { data: rpcResult, error: rpcError } = await supabase.rpc('create_agency_for_user', {
