@@ -263,6 +263,16 @@ function parseStorageUrl(url: string): { bucket: string; path: string } | null {
   if (rawMatch) return { bucket: rawMatch[1], path: rawMatch[2] };
   try {
     const u = new URL(url);
+    // Public proxy used by the app/admin panel for private face-verification
+    // media. Fetching this URL directly can return 403 during analysis because
+    // unpublished/retry rows are intentionally not public yet. For AI review we
+    // are already inside a service-role edge function, so resolve the proxy
+    // path back to the private storage object and download it directly.
+    const proxyMatch = u.pathname.match(/\/functions\/v1\/public-profile-avatar\/(.+)$/);
+    if (proxyMatch?.[1]) {
+      const proxyPath = decodeURIComponent(proxyMatch[1]);
+      if (!proxyPath.includes("..")) return { bucket: "face-verification", path: proxyPath };
+    }
     // /storage/v1/object/{public|sign|authenticated}/{bucket}/{path...}
     const m = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^\/]+)\/(.+)$/);
     if (!m) return null;
