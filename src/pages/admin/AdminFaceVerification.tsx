@@ -1637,7 +1637,7 @@ const AdminFaceVerification = () => {
                             actionInFlightRef.current = true;
                             setProcessing(true);
                             try {
-                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'male' });
+                              const { error } = await supabase.rpc('admin_set_host_status', { _user_id: selectedSubmission.user_id, _make_host: false });
                               if (error) throw error;
                               // Send notification to the user
                               await adminSendNotification(selectedSubmission.user_id, '👤 User Account Updated! ✨', '✅ Your account has been switched to User mode! 🔄 Please complete your Face Verification to continue enjoying all features! 💫', 'system');
