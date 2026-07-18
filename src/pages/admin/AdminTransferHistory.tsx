@@ -199,11 +199,12 @@ const AdminTransferHistory = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleString('bn-BD', {
+    return new Date(dateString).toLocaleString('en-GB', {
       timeZone: 'Asia/Dhaka',
       dateStyle: 'medium',
       timeStyle: 'short'
     });
+
   };
 
   const handleSort = (field: string) => {

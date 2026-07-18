@@ -693,8 +693,9 @@ export default function AdminWithdrawals() {
                   Pending
                 </TabsTrigger>
                 <TabsTrigger value="approved" className="data-[state=active]:bg-primary data-[state=active]:text-white text-slate-600 text-xs">
-                  Completed
+                  Approved
                 </TabsTrigger>
+
                 <TabsTrigger value="completed" className="data-[state=active]:bg-primary data-[state=active]:text-white text-slate-600 text-xs">
                   Completed
                 </TabsTrigger>
