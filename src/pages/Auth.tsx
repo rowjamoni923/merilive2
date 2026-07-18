@@ -1714,6 +1714,10 @@ const Auth = () => {
             phone_number: phoneDigits,
             device_id: deviceId,
             phone_verified: true,
+            phone_dial_code: selectedCountry?.code || null,
+            country_code: selectedCountry?.country || null,
+            country_name: selectedCountry?.name || null,
+            country_flag: selectedCountry?.flag || null,
             gender: selectedGender,
             selected_gender: selectedGender,
             account_type: selectedGender === 'female' ? 'host' : 'user',
@@ -1752,6 +1756,9 @@ const Auth = () => {
             device_id: deviceId,
             is_verified: true,
             gender: selectedGender || undefined,
+            country_code: selectedCountry?.country || undefined,
+            country_name: selectedCountry?.name || undefined,
+            country_flag: selectedCountry?.flag || undefined,
           },
           { requireHost: selectedGender === 'female' }
         );
