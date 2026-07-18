@@ -320,11 +320,15 @@ const AdminSupportTickets = () => {
 
   const fetchGlobalStats = useCallback(async () => {
     try {
+      // B10 fix (2026-07-18): stats now cover ALL support ticket categories,
+      // not just live_chat. Previously 30 user-submitted tickets in categories
+      // like account_issue / bug_report / payment_issue were invisible in
+      // admin totals.
       const [totalRes, openRes, pendingRes, resolvedRes] = await Promise.all([
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat'),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').eq('status', 'open'),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').eq('status', 'pending'),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').in('status', ['resolved', 'closed']),
+        supabase.from('support_tickets').select('id', { count: 'exact', head: true }),
+        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
       ]);
 
       if (totalRes.error || openRes.error || pendingRes.error || resolvedRes.error) {
@@ -346,15 +350,18 @@ const AdminSupportTickets = () => {
   const loadTickets = useCallback(async () => {
     setLoading(true);
     try {
+      // B10 fix (2026-07-18): removed hardcoded category='live_chat' filter so
+      // all support ticket categories (account_issue, bug_report, payment_issue,
+      // task_issue, bonus_issue, other, live_chat) are visible. The Live Chat
+      // filter is still available via the status dropdown.
       let query = supabase
         .from('support_tickets')
         .select('id, ticket_number, user_id, subject, category, priority, status, user_email, created_at, updated_at, resolved_at, closed_at, sender_sector')
-        .eq('category', 'live_chat')
         .order('created_at', { ascending: false })
         .limit(ADMIN_TICKETS_FETCH_LIMIT);
 
       if (statusFilter === 'live_chat') {
-        // Already filtered by live_chat category above
+        query = query.eq('category', 'live_chat');
       } else if (statusFilter !== "all") {
         query = query.eq('status', statusFilter);
       }
