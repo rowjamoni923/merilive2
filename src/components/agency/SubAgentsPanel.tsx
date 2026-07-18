@@ -55,8 +55,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
   const [isLoading, setIsLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Generate the sub-agent referral link using production domain
-  const referralLink = generateSubAgentLink(agencyCode);
+  // Generate a link that lets the recipient CREATE a sub-agency under this parent.
+  const referralLink = generateParentAgencyLink(agencyCode);
 
   useEffect(() => {
     if (isOpen) {
