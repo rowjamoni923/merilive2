@@ -285,14 +285,9 @@ async function fetchImageBytes(
   supabaseAdmin: ReturnType<typeof createClient>,
 ): Promise<Uint8Array> {
   const parsed = parseStorageUrl(url);
+  console.log(`[fetchImageBytes] url=${url} parsed=${JSON.stringify(parsed)}`);
   let bytes: Uint8Array;
   if (parsed) {
-    // PRIMARY PATH (zero edge-function CPU): use Supabase Storage's image
-    // transformation pipeline to downscale + re-encode JPEG server-side.
-    // This is what was causing the "CPU Time exceeded" errors that left
-    // submissions stuck on "under_review" — imagescript decode/encode in
-    // Deno blew the per-request CPU budget. Storage transforms run on
-    // Supabase's image proxy at no cost to us.
     try {
       const { data, error } = await supabaseAdmin.storage
         .from(parsed.bucket)
@@ -304,14 +299,20 @@ async function fetchImageBytes(
         if (transformed.length > 0 && transformed.length <= MAX_REK_BYTES) {
           return transformed;
         }
+      } else if (error) {
+        console.log(`[fetchImageBytes] transform err bucket=${parsed.bucket} path=${parsed.path} msg=${error.message}`);
       }
-    } catch (_transformErr) {
-      // fall through to raw download + local normalize
+    } catch (transformErr) {
+      console.log(`[fetchImageBytes] transform threw: ${transformErr instanceof Error ? transformErr.message : String(transformErr)}`);
     }
     const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
-    if (error || !data) throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
+    if (error || !data) {
+      console.log(`[fetchImageBytes] raw dl fail bucket=${parsed.bucket} path=${parsed.path} err=${error?.message || "no_data"}`);
+      throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
+    }
     bytes = new Uint8Array(await data.arrayBuffer());
   } else {
+    console.log(`[fetchImageBytes] no-parse plain fetch: ${url}`);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`fetch image ${res.status}`);
     bytes = new Uint8Array(await res.arrayBuffer());
