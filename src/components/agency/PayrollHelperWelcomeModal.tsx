@@ -36,6 +36,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   const [isOpen, setIsOpen] = useState(false);
   const [helperTiers, setHelperTiers] = useState<Array<{level_number: number; level_name: string; commission_rate: number}>>([]);
   const [isApplying, setIsApplying] = useState(false);
+  const managed = useManagedBanner("payroll_helper_welcome");
 
   useEffect(() => {
     checkAndShowModal();
