@@ -6709,6 +6709,48 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 .admin-pro-shell [class*="shadow-fuchsia"],
 .admin-pro-shell [class*="shadow-purple"] { box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06) !important; }
 
+/* Pass 5: gradient-clipped text safety net. `bg-clip-text text-transparent`
+   pairs go invisible when the gradient bg-image is neutralized. Force
+   readable slate ink for any admin-shell heading using this pattern. */
+.admin-pro-shell .bg-clip-text.text-transparent,
+.admin-pro-shell [class*="bg-clip-text"][class*="text-transparent"] {
+  -webkit-background-clip: border-box !important;
+          background-clip: border-box !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
+/* Pass 5: gradient primary Buttons (shadcn) — flatten to solid blue primary
+   so CTAs stay visible after neutralization instead of becoming white-on-white. */
+.admin-pro-shell button[class*="from-purple-"],
+.admin-pro-shell button[class*="from-pink-"],
+.admin-pro-shell button[class*="from-rose-"],
+.admin-pro-shell button[class*="from-fuchsia-"],
+.admin-pro-shell button[class*="from-violet-"],
+.admin-pro-shell button[class*="from-indigo-"],
+.admin-pro-shell button[class*="from-blue-6"],
+.admin-pro-shell button[class*="from-blue-7"],
+.admin-pro-shell button[class*="from-green-5"],
+.admin-pro-shell button[class*="from-green-6"],
+.admin-pro-shell button[class*="from-emerald-5"],
+.admin-pro-shell button[class*="from-emerald-6"] {
+  background-image: none !important;
+  background-color: #2563EB !important; /* blue-600 primary */
+  color: #FFFFFF !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 1px 2px rgba(37,99,235,0.25) !important;
+}
+.admin-pro-shell button[class*="from-green-5"],
+.admin-pro-shell button[class*="from-green-6"],
+.admin-pro-shell button[class*="from-emerald-5"],
+.admin-pro-shell button[class*="from-emerald-6"] {
+  background-color: #059669 !important; /* emerald-600 for approve/save actions */
+  border-color: #047857 !important;
+  box-shadow: 0 1px 2px rgba(5,150,105,0.25) !important;
+}
+
+
 /* ---------------------------------------------------------------
    Contrast safety net — remap any near-white / very light text
    utilities to dark slate so text stays readable on white cards.
