@@ -9,6 +9,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useDailyLoginReward } from "@/hooks/useDailyLoginReward";
+import { useWeeklyLoginReward } from "@/hooks/useWeeklyLoginReward";
 import { useToast } from "@/hooks/use-toast";
 
 interface ConsumptionTier {
