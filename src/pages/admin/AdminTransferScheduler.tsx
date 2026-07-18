@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
-import { parseSettingValue, saveAppSetting } from '@/utils/adminSettingsStorage';
+import { loadAppSetting, parseSettingValue, saveAppSetting } from '@/utils/adminSettingsStorage';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
