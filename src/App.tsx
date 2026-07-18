@@ -632,13 +632,12 @@ const AdminNamespaceLock = () => {
   const adminSession = getAdminSession();
   const hasApprovedAdminSession = !!adminSession && getAdminSessionToken().length >= 16;
   const adminLinkToken = getAdminLinkToken();
-  const hasSecretLinkContext = hasAdminAccessFlag() && !!adminLinkToken;
 
   if (hasApprovedAdminSession) {
     return <Navigate to="/admin" replace />;
   }
 
-  if (hasSecretLinkContext) {
+  if (adminLinkToken || hasAdminAccessFlag()) {
     return <Navigate to={`/admin/auth?access=${encodeURIComponent(adminLinkToken)}`} replace />;
   }
 
