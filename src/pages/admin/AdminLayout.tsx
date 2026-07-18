@@ -1941,14 +1941,12 @@ export default function AdminLayout() {
     });
   }, [pendingCounts]);
 
-  // Build section-level notifications from pending counts so bell includes every active section.
-  // Per owner directive: notifications must persist until manually cleared by the admin
-  // (click the notification, or "Mark all as read"). They MUST NOT auto-disappear just because
-  // the underlying pending count dropped to 0 (e.g. admin handled items on the page).
-  // We therefore keep a sticky snapshot keyed by path: once a section has shown N pending items,
-  // the bell row stays with that count until the admin explicitly dismisses it.
-  const stickySectionCountsRef = useRef<Record<string, { count: number; firstSeenAt: string }>>({});
-
+  // Bell notifications = LIVE pending counts only. No sticky, no fake persistence.
+  // Owner directive 2026-07-18: "যেগুলো আমরা sync করে ফেলবো সেইগুলো তার আসার কথা না"
+  // Rule: if a section's pending count = 0 right now → do NOT show it in the bell.
+  //       Once admin handles items on the page and the count drops → row disappears.
+  //       Dismissed paths are only skipped while pending count has not grown past the
+  //       last-dismissed baseline (new items still resurrect the row).
   useEffect(() => {
     const pathToLabel = navGroups
       .flatMap(group => group.items)
@@ -1957,42 +1955,27 @@ export default function AdminLayout() {
         return acc;
       }, {});
 
-    // 1) Update sticky snapshot — only ADD/BUMP, never auto-remove.
-    const sticky = stickySectionCountsRef.current;
+    const generated: AdminNotification[] = [];
     Object.entries(pendingCounts).forEach(([path, count]) => {
       if (!path.startsWith('/admin')) return;
       const numericCount = Number(count) || 0;
-      if (numericCount <= 0) return;
-      // Skip paths the admin has already dismissed UNLESS new items have arrived since dismissal.
+      if (numericCount <= 0) return; // ← real-count filter: 0 = nothing to show
       const lastDismissed = lastDismissedCountsRef.current[path] || 0;
       if (dismissedPaths.has(path) && numericCount <= lastDismissed) return;
-      const existing = sticky[path];
-      if (!existing || numericCount > existing.count) {
-        sticky[path] = {
-          count: numericCount,
-          firstSeenAt: existing?.firstSeenAt || new Date().toISOString(),
-        };
-      }
-    });
-
-    // 2) Build bell rows from sticky snapshot (NOT live pendingCounts), so previously-seen
-    //    items still show even after admin handled them on the page — only manual dismiss
-    //    (click row or "Mark all as read") removes them.
-    const generated = Object.entries(sticky)
-      .filter(([path]) => !dismissedPaths.has(path))
-      .map(([path, entry]) => ({
+      generated.push({
         id: `section-${path}`,
         title: `📌 ${pathToLabel[path] || path}`,
-        message: `${entry.count} new/pending update(s)`,
+        message: `${numericCount} new/pending update(s)`,
         type: 'section_pending',
         is_read: false,
-        created_at: entry.firstSeenAt,
+        created_at: new Date().toISOString(),
         data: {
           is_section_pending: true,
           adminPath: path,
-          count: entry.count,
+          count: numericCount,
         },
-      } as AdminNotification));
+      } as AdminNotification);
+    });
 
     setSectionNotifications(generated);
   }, [pendingCounts, dismissedPaths]);
