@@ -293,7 +293,27 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     return <>{children}</>;
   }
 
-  // Not authorized AND no fresh secret link → public BlogPage fallback.
-  return <Suspense fallback={null}><BlogPage /></Suspense>;
+  // Not authorized AND no fresh secret link.
+  // For /admin/* deep paths (dashboard, sub pages), fall back to the admin
+  // auth screen — never leave a blank white canvas while the public BlogPage
+  // chunk lazy-loads. BlogPage is only used for the bare /admin root.
+  const path = typeof window !== 'undefined' ? window.location.pathname : '';
+  if (path.startsWith('/admin/') && !isLoginRoute()) {
+    return <Navigate to="/admin/auth" replace />;
+  }
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center bg-white">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-2 border-slate-200 border-t-slate-500 animate-spin" />
+            <p className="text-xs text-slate-400">Loading…</p>
+          </div>
+        </div>
+      }
+    >
+      <BlogPage />
+    </Suspense>
+  );
 }
 
