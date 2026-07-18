@@ -933,35 +933,35 @@ export default function AdminAgencies() {
 
   return (
     <div className="admin-pro-shell space-y-4 md:space-y-6 px-2 md:px-0">
-      {/* Header */}
-      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-xl md:rounded-2xl shadow-xl">
-        <div className="flex items-start justify-between">
+      {/* Cloud White Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100">
+            <Building2 className="h-6 w-6 text-emerald-600" />
+          </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-5 h-5 md:w-7 md:h-7" />
-              Agency Management
-            </h1>
-            <p className="text-slate-700 text-sm mt-1">Total {totalAgencies} Agencies</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Agency Management</h1>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">Total {totalAgencies.toLocaleString()} agencies</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={fetchAgencies}
-              disabled={loading}
-              className="bg-white/20 hover:bg-white/30 text-white border-0"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button
-              onClick={() => setShowCreateAgencyDialog(true)}
-              className="bg-white/20 hover:bg-white/30 text-white border-0"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Create Agency
-            </Button>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchAgencies}
+            disabled={loading}
+            className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            onClick={() => setShowCreateAgencyDialog(true)}
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Create Agency
+          </Button>
         </div>
       </div>
 

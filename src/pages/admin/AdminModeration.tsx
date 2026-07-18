@@ -208,15 +208,15 @@ export default function AdminModeration() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 md:p-6 bg-gradient-to-r from-white via-red-50/50 to-orange-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-slate-50 via-red-700 to-slate-100 bg-clip-text text-transparent flex items-center gap-2">
-            <Shield className="w-5 h-5 md:w-7 md:h-7 text-red-500" />
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2 tracking-tight">
+            <Shield className="w-5 h-5 md:w-7 md:h-7 text-rose-600" />
             Moderation Management
           </h1>
-          <p className="text-slate-600 text-sm">Phone number detection and auto-ban system</p>
+          <p className="text-slate-500 text-sm">Phone number detection and auto-ban system</p>
         </div>
         <Button
           onClick={() => setShowSettingsDialog(true)}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 w-full md:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto shadow-sm"
           size="sm"
         >
           <Settings className="w-4 h-4 mr-2" />

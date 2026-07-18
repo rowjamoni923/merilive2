@@ -250,13 +250,13 @@ export default function AdminPermanentBan() {
   return (
     <div className="space-y-6 p-4 md:p-6 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 shadow-lg shadow-rose-500/30 ring-2 ring-rose-400/20">
-          <Skull className="h-6 w-6 text-slate-900" />
+      <div className="flex items-center gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 border border-rose-100">
+          <Skull className="h-6 w-6 text-rose-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Permanent Ban Center</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Permanent Ban Center</h1>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">
             Severity-based banning — Medium (days) · High (hours) · Urgent (lifetime + device/IP/face block)
           </p>
         </div>

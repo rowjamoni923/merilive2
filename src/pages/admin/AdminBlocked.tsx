@@ -164,41 +164,41 @@ export default function AdminBlocked() {
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0 admin-pro-shell -mx-4 -my-4 sm:-mx-6 sm:-my-6 px-4 sm:px-6 py-6 sm:py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
+      {/* Cloud White Header */}
+      <div className="flex items-center gap-3 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 border border-rose-100">
+          <Ban className="h-6 w-6 text-rose-600" />
+        </div>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2 md:gap-3">
-            <Ban className="w-5 h-5 md:w-7 md:h-7" />
-            Block List
-          </h1>
-          <p className="text-slate-700 text-xs md:text-sm mt-1">Blocked users and agencies</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Block List</h1>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">Blocked users and agencies</p>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Cloud White Stats */}
       <div className="grid grid-cols-2 gap-3 md:gap-4">
-        <Card className="bg-gradient-to-br from-red-900/40 to-red-800/30 border-red-500/30 shadow-md">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-red-500 flex items-center justify-center shadow-lg">
-                <Users className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-rose-600" />
               </div>
-              <div>
-                <p className="text-red-300 text-xs md:text-sm font-medium">Blocked Users</p>
-                <p className="text-red-400 font-bold text-xl md:text-2xl">{blockedUsers.length}</p>
+              <div className="min-w-0">
+                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wide text-slate-500">Blocked Users</p>
+                <p className="text-slate-900 font-bold text-xl md:text-2xl">{blockedUsers.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-orange-900/40 to-orange-800/30 border-orange-500/30 shadow-md">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg">
-                <Building2 className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-amber-600" />
               </div>
-              <div>
-                <p className="text-orange-300 text-xs md:text-sm font-medium">Blocked Agencies</p>
-                <p className="text-orange-400 font-bold text-xl md:text-2xl">{blockedAgencies.length}</p>
+              <div className="min-w-0">
+                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-wide text-slate-500">Blocked Agencies</p>
+                <p className="text-slate-900 font-bold text-xl md:text-2xl">{blockedAgencies.length}</p>
               </div>
             </div>
           </CardContent>
