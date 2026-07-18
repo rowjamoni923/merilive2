@@ -149,7 +149,12 @@ const Leaderboard = () => {
   };
 
   const getRewardForRank = (rank: number): RewardTier | undefined => {
-    return rewardTiers.find(r => rank >= r.rank_from && rank <= r.rank_to);
+    // Defensive: if any legacy overlapping tiers still exist, pick the
+    // NARROWEST matching range (rank_to - rank_from smallest) so rank 1
+    // never accidentally receives a bulk-tier reward.
+    const matches = rewardTiers.filter(r => rank >= r.rank_from && rank <= r.rank_to);
+    if (matches.length === 0) return undefined;
+    return matches.sort((a, b) => (a.rank_to - a.rank_from) - (b.rank_to - b.rank_from))[0];
   };
 
   const getRewardLabel = (reward: RewardTier): string => {
