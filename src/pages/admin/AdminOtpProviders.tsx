@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, CheckCircle2, XCircle, Zap, Activity, Save, AlertTriangle, Mail } from "lucide-react";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
