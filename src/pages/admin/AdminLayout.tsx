@@ -1467,11 +1467,25 @@ export default function AdminLayout() {
 
   // Dismissed paths: clicking a sidebar item instantly dismisses its badge
   // Key = normalized path, Value = the pending count at time of dismissal
-  const [dismissedPaths, setDismissedPaths] = useState<Set<string>>(new Set());
-  const lastDismissedCountsRef = useRef<Record<string, number>>({});
+  // Lazy initializer reads localStorage SYNCHRONOUSLY on first render to avoid
+  // the "11 → 0" flicker where sticky rows briefly show before dismissal state loads.
   const dismissStorageKey = useMemo(
     () => getDismissedPathStorageKey(currentUser?.id),
     [currentUser?.id]
+  );
+  const [dismissedPaths, setDismissedPaths] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const persisted = parseStoredDismissedPathCounts(localStorage.getItem(getDismissedPathStorageKey(null)));
+      return new Set(Object.keys(persisted));
+    } catch { return new Set(); }
+  });
+  const lastDismissedCountsRef = useRef<Record<string, number>>(
+    (() => {
+      if (typeof window === 'undefined') return {};
+      try { return parseStoredDismissedPathCounts(localStorage.getItem(getDismissedPathStorageKey(null))); }
+      catch { return {}; }
+    })()
   );
 
   // Bell panel section notifications (derived from pending counts)
