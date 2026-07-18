@@ -356,10 +356,11 @@ const AgencyDashboard = () => {
         setAgency(agencyData);
         setCurrentUserId(user.id);
 
-        // Generate sub-agent link AND host join link (dynamic import but non-blocking)
-        import('@/utils/shareLinks').then(({ generateSubAgentLink, generateAgencyJoinLink }) => {
+        // Generate sub-agent link, sub-agency invite link AND host join link (dynamic import but non-blocking)
+        import('@/utils/shareLinks').then(({ generateSubAgentLink, generateAgencyJoinLink, generateParentAgencyLink }) => {
           setSubAgentLink(generateSubAgentLink(agencyData.agency_code));
           setHostJoinLink(generateAgencyJoinLink(agencyData.agency_code));
+          setSubAgencyInviteLink(generateParentAgencyLink(agencyData.agency_code));
         });
 
         // ===== BATCH 1: All independent queries in parallel =====
