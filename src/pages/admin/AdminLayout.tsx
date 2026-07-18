@@ -902,6 +902,13 @@ const navGroups: NavGroup[] = [
         description: "Home-page promo banner carousel — upload images, schedule, link to in-app destinations.",
       },
       {
+        label: "Banners & Guidelines",
+        icon: Image,
+        path: "/admin/managed-banners",
+        hubKey: "content-hub",
+        description: "Central editor for agency, policy, helper, welcome-popup, and guideline banners across the app. Changes go live instantly.",
+      },
+      {
         label: "Content Pages",
         icon: FileText,
         path: "/admin/content",
