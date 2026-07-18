@@ -229,6 +229,7 @@ const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_disabled_v4';
 const FACE_VERIFICATION_FETCH_LIMIT = 30;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
 const EMPTY_FACE_STATS: StatusCounts = { pending: 0, under_review: 0, approved: 0, rejected: 0, total: 0, auto_approved: 0, auto_rejected: 0, auto_host: 0, auto_user: 0 };
+type AnalysisJobHealth = { problemCount: number; oldestNextRunAt: string | null; latestError: string | null };
 
 const AdminFaceVerification = () => {
   const { toast } = useToast();
@@ -240,6 +241,7 @@ const AdminFaceVerification = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [mismatchOnly, setMismatchOnly] = useState(false);
   const [serverStats, setServerStats] = useState<StatusCounts>(EMPTY_FACE_STATS);
+  const [analysisJobHealth, setAnalysisJobHealth] = useState<AnalysisJobHealth>({ problemCount: 0, oldestNextRunAt: null, latestError: null });
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -304,7 +306,7 @@ const AdminFaceVerification = () => {
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
       const q = debouncedSearchQuery.trim();
       const serverStatus = activeTab === 'all' ? null : activeTab;
-      const [listResult, stats] = await Promise.all([
+      const [listResult, stats, jobHealthResult] = await Promise.all([
         supabase.rpc(
           'admin_list_face_verification_paginated',
           { _status: serverStatus, _search: q || null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
@@ -315,6 +317,13 @@ const AdminFaceVerification = () => {
           searchQuery: q,
           globalStatsRpc: 'admin_face_verification_stats',
         }),
+        supabase
+          .from('face_verification_analysis_jobs')
+          .select('status,last_error,next_run_at,updated_at')
+          .in('status', ['queued', 'processing', 'failed'])
+          .not('last_error', 'is', null)
+          .order('updated_at', { ascending: false })
+          .limit(50),
       ]);
 
       if (listResult.error) throw listResult.error;
@@ -345,6 +354,17 @@ const AdminFaceVerification = () => {
       if (requestId !== fetchRequestIdRef.current) return;
       setSubmissions(withOptimisticTerminalRows(enriched, q));
       setServerStats(stats);
+      if (!jobHealthResult.error) {
+        const problemJobs = ((jobHealthResult.data || []) as Array<{ last_error?: string | null; next_run_at?: string | null }>).filter((job) => {
+          const err = String(job.last_error || '').trim();
+          return err && err !== 'awaiting_user_retry' && err !== 'upload_pending';
+        });
+        setAnalysisJobHealth({
+          problemCount: problemJobs.length,
+          oldestNextRunAt: problemJobs.reduce<string | null>((oldest, job) => !job.next_run_at || (oldest && oldest <= job.next_run_at) ? oldest : job.next_run_at, null),
+          latestError: problemJobs[0]?.last_error || null,
+        });
+      }
 
       // Never reuse old face-verification rows: approval state must be DB-fresh.
       if (typeof window !== 'undefined') {
