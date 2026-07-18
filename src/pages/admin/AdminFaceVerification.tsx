@@ -1611,7 +1611,7 @@ const AdminFaceVerification = () => {
                             actionInFlightRef.current = true;
                             setProcessing(true);
                             try {
-                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'female' });
+                              const { error } = await supabase.rpc('admin_set_host_status', { _user_id: selectedSubmission.user_id, _make_host: true });
                               if (error) throw error;
                               // Send notification to the user
                               await adminSendNotification(selectedSubmission.user_id, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system');
