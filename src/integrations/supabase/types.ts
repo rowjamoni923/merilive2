@@ -18980,6 +18980,69 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_login_claims: {
+        Row: {
+          claimed_at: string
+          created_at: string
+          id: string
+          reward_amount: number
+          reward_type: string
+          user_id: string
+          week_label: string
+        }
+        Insert: {
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          reward_amount: number
+          reward_type: string
+          user_id: string
+          week_label: string
+        }
+        Update: {
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          reward_amount?: number
+          reward_type?: string
+          user_id?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
+      weekly_login_rewards_config: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          label: string | null
+          reward_amount: number
+          reward_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          reward_amount?: number
+          reward_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          reward_amount?: number
+          reward_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       welcome_bonuses: {
         Row: {
           animation_config_url: string | null
@@ -22295,6 +22358,7 @@ export type Database = {
             Returns: Json
           }
       claim_vip_daily_reward: { Args: never; Returns: Json }
+      claim_weekly_login_reward: { Args: never; Returns: Json }
       cleanup_admin_broadcast_rate_counter: { Args: never; Returns: undefined }
       cleanup_application_logs: {
         Args: never

@@ -9,6 +9,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useDailyLoginReward } from "@/hooks/useDailyLoginReward";
+import { useWeeklyLoginReward } from "@/hooks/useWeeklyLoginReward";
 import { useToast } from "@/hooks/use-toast";
 
 interface ConsumptionTier {
@@ -36,6 +37,7 @@ const Rewards = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const loginReward = useDailyLoginReward();
+  const weeklyReward = useWeeklyLoginReward();
   const [activeTab, setActiveTab] = useState<'daily' | 'cashback' | 'offers'>('daily');
   const [consumptionTiers, setConsumptionTiers] = useState<ConsumptionTier[]>([]);
   const [limitedOffers, setLimitedOffers] = useState<LimitedOffer[]>([]);
@@ -240,6 +242,42 @@ const Rewards = () => {
                 <Check className="w-8 h-8 text-green-400 mx-auto mb-2" />
                 <p className="text-sm text-green-400 font-medium">Today's reward claimed!</p>
                 <p className="text-xs text-slate-400 mt-1">Come back tomorrow for Day {currentDay < 7 ? currentDay + 1 : 1}</p>
+              </div>
+            )}
+
+            {/* ===== WEEKLY REWARD (one claim per ISO week, Asia/Dhaka) ===== */}
+            {weeklyReward.config && (
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-600/15 to-blue-600/15 border border-indigo-500/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm text-indigo-500 font-semibold">
+                      {weeklyReward.config.label || "Weekly Login Bonus"}
+                    </p>
+                    <p className="text-2xl font-bold text-slate-800">
+                      +{weeklyReward.config.reward_amount}{" "}
+                      <span className="text-sm font-medium text-slate-500">
+                        {weeklyReward.config.reward_type}
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Claim once per week — resets every Monday
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <Button
+                  onClick={weeklyReward.claim}
+                  disabled={weeklyReward.claiming || weeklyReward.alreadyClaimed || weeklyReward.loading}
+                  className="w-full h-11 font-bold rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white border-0 disabled:opacity-60"
+                >
+                  {weeklyReward.alreadyClaimed
+                    ? "✓ Claimed this week"
+                    : weeklyReward.claiming
+                      ? "Claiming..."
+                      : "Claim Weekly Reward"}
+                </Button>
               </div>
             )}
           </>
