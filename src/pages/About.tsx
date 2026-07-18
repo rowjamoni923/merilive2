@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
@@ -30,13 +31,55 @@ const GOLD_SOFT = "#e8c98a"; // light gold
 const CREAM = "#f5ecd7";     // body text on dark
 const MUTED = "#a3a9c2";     // secondary text
 
+interface DynamicTier { l: string; w: string; c: string; gold?: boolean }
+
+const formatIncome = (min: number | null, max: number | null): string => {
+  const fmt = (n: number) => `$${n.toLocaleString()}`;
+  if (min == null) return "";
+  if (max == null || max >= 999999) return `${fmt(min)}+`;
+  return `${fmt(min)} – ${fmt(max)}`;
+};
+
 const About = () => {
   useEnableBrowserPageInteraction();
+  const [dynamicTiers, setDynamicTiers] = useState<DynamicTier[]>([]);
+  const [maxRate, setMaxRate] = useState<number>(20);
+
   useEffect(() => {
     document.title = "MeriLive — Live Streaming, Video Call & Entertainment App | Download Now";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', 'MeriLive is a premium live streaming, video calling and entertainment app. Watch HD live shows, join party rooms, send 3D gifts, earn as a host, or build your own agency.');
   }, []);
+
+  useEffect(() => {
+    const NAME_MAP: Record<string, string> = {
+      bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", diamond: "Diamond",
+    };
+    const fetchTiers = async () => {
+      const { data } = await supabase
+        .from("agency_level_tiers")
+        .select("level_code, level_name, commission_rate, min_weekly_income, max_weekly_income")
+        .eq("is_active", true)
+        .order("commission_rate", { ascending: true });
+      if (data && data.length) {
+        const mapped = data.map((t: any, i: number) => ({
+          l: `A${i + 1} (${NAME_MAP[String(t.level_name).toLowerCase()] || t.level_name})`,
+          w: formatIncome(t.min_weekly_income, t.max_weekly_income),
+          c: `${Number(t.commission_rate)}%`,
+          gold: i === data.length - 1,
+        }));
+        setDynamicTiers(mapped);
+        setMaxRate(Math.max(...data.map((t: any) => Number(t.commission_rate))));
+      }
+    };
+    fetchTiers();
+    const channel = supabase
+      .channel("about-agency-tiers")
+      .on("postgres_changes", { event: "*", schema: "public", table: "agency_level_tiers" }, fetchTiers)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
 
   const features = [
     { icon: Radio, title: "HD Live Streaming", desc: "Broadcast and watch crystal-clear live streams with real-time chat, gifts and PK battles.", color: "from-rose-500 to-pink-500" },
@@ -63,7 +106,7 @@ const About = () => {
   ];
 
   const agencyBenefits = [
-    { icon: DollarSign, text: "3% to 20% tiered commission across 5 agency levels (A1 to A5)." },
+    { icon: DollarSign, text: `3% to ${maxRate}% tiered commission across ${dynamicTiers.length || 5} agency levels.` },
     { icon: Award, text: "Automatic weekly payout every Monday — fully calculated server-side." },
     { icon: Globe, text: "Local payouts via bKash, Nagad, JazzCash, USDT and bank transfer." },
     { icon: Users, text: "Sub-agent recruitment, host onboarding and team performance tools." },
@@ -342,7 +385,7 @@ const About = () => {
                 Build an agency. Lead a network.
               </h2>
               <p className="text-base mb-8 leading-relaxed" style={{ color: MUTED }}>
-                Recruit hosts, manage teams, and earn 3% to 20% commission across five performance tiers —
+                Recruit hosts, manage teams, and earn 3% to {maxRate}% commission across multiple performance tiers —
                 with weekly automated payouts and a real-time agency dashboard.
               </p>
 
@@ -389,13 +432,13 @@ const About = () => {
                   </tr>
                 </thead>
                 <tbody style={{ color: CREAM }}>
-                  {[
+                  {(dynamicTiers.length ? dynamicTiers : [
                     { l: "A1 (Bronze)",   w: "$50 – $200",       c: "3%" },
                     { l: "A2 (Silver)",   w: "$201 – $1,000",    c: "5%" },
                     { l: "A3 (Gold)",     w: "$1,001 – $2,000",  c: "10%" },
                     { l: "A4 (Platinum)", w: "$2,001 – $3,500",  c: "15%" },
                     { l: "A5 (Diamond) ⭐", w: "$4,000+",         c: "20%", gold: true },
-                  ].map((r) => (
+                  ]).map((r) => (
                     <tr key={r.l} style={{ borderBottom: `1px solid ${GOLD}1a` }}>
                       <td className="py-3 px-4 font-semibold" style={{ color: r.gold ? GOLD : CREAM }}>{r.l}</td>
                       <td className="py-3 px-4" style={{ color: MUTED }}>{r.w}</td>
