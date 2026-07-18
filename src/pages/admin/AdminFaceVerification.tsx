@@ -844,6 +844,20 @@ const AdminFaceVerification = () => {
         </Button>
       </div>
 
+      {analysisJobHealth.problemCount > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 font-semibold">
+              <AlertTriangle className="h-4 w-4" />
+              Face AI queue needs attention
+            </div>
+            <span className="text-xs font-medium text-amber-800">
+              {analysisJobHealth.problemCount} job{analysisJobHealth.problemCount === 1 ? '' : 's'} affected{analysisJobHealth.latestError ? ` · ${analysisJobHealth.latestError}` : ''}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Stats Cards — split auto vs manual so admin sees exact accountability */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
