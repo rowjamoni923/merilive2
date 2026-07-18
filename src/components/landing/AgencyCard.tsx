@@ -149,7 +149,7 @@ const AgencyCard = () => {
         </motion.div>
 
         {/* Commission Tiers - Premium Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-14">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-14">
           {commissionTiers.map((tier, i) => (
             <motion.div
               key={tier.level}
