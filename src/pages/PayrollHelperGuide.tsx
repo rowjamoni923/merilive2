@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, Shield, Wallet, TrendingUp, Globe, Users, 
@@ -6,10 +7,34 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import bannerImage from "@/assets/payroll-helper-guide-banner.jpg";
 
 const PayrollHelperGuide = () => {
   const navigate = useNavigate();
+  const [topAgencyRate, setTopAgencyRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchTop = async () => {
+      const { data } = await supabase
+        .from("agency_level_tiers")
+        .select("commission_rate")
+        .eq("is_active", true)
+        .order("commission_rate", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setTopAgencyRate(Number(data.commission_rate));
+    };
+    fetchTop();
+    const channel = supabase
+      .channel("payroll-guide-tiers")
+      .on("postgres_changes", { event: "*", schema: "public", table: "agency_level_tiers" }, fetchTop)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const topRateLabel = topAgencyRate != null ? `up to ${topAgencyRate}%` : "based on your level";
+
 
   const roles = [
     {
@@ -42,8 +67,9 @@ const PayrollHelperGuide = () => {
     {
       icon: TrendingUp,
       title: "Commission on Every Transaction",
-      desc: "Earn a percentage commission on every top-up and withdrawal you process. Higher levels unlock higher commission rates (up to 12%+).",
+      desc: `Earn a percentage commission on every top-up and withdrawal you process. Higher levels unlock higher commission rates (${topRateLabel}).`,
     },
+
     {
       icon: Gem,
       title: "Diamond Rewards from Withdrawals",
