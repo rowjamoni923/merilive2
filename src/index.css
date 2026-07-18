@@ -6602,6 +6602,51 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   background-color: #FFFFFF !important;
   border-color: #E2E8F0 !important;
 }
+
+/* Pass 3: Purge NEON named-color gradients (pink/rose/purple/violet/fuchsia/
+   red/orange/amber/yellow/green/emerald/teal/cyan/sky/blue/indigo at
+   400/500/600/700/800/900). Preserves subtle 50/100/200 tint cards. Applies
+   only when element is NOT a Badge/count-chip (which needs colored surface
+   to stay readable) — we detect by absence of role="status" & rounded-full. */
+.admin-pro-shell [class*="from-pink-4"],   .admin-pro-shell [class*="from-pink-5"],   .admin-pro-shell [class*="from-pink-6"],   .admin-pro-shell [class*="from-pink-7"],
+.admin-pro-shell [class*="from-rose-4"],   .admin-pro-shell [class*="from-rose-5"],   .admin-pro-shell [class*="from-rose-6"],   .admin-pro-shell [class*="from-rose-7"],
+.admin-pro-shell [class*="from-purple-4"], .admin-pro-shell [class*="from-purple-5"], .admin-pro-shell [class*="from-purple-6"], .admin-pro-shell [class*="from-purple-7"],
+.admin-pro-shell [class*="from-violet-4"], .admin-pro-shell [class*="from-violet-5"], .admin-pro-shell [class*="from-violet-6"], .admin-pro-shell [class*="from-violet-7"],
+.admin-pro-shell [class*="from-fuchsia-4"],.admin-pro-shell [class*="from-fuchsia-5"],.admin-pro-shell [class*="from-fuchsia-6"],.admin-pro-shell [class*="from-fuchsia-7"],
+.admin-pro-shell [class*="from-red-5"],    .admin-pro-shell [class*="from-red-6"],    .admin-pro-shell [class*="from-red-7"],
+.admin-pro-shell [class*="from-orange-5"], .admin-pro-shell [class*="from-orange-6"],
+.admin-pro-shell [class*="from-amber-5"],  .admin-pro-shell [class*="from-amber-6"],
+.admin-pro-shell [class*="from-yellow-5"], .admin-pro-shell [class*="from-yellow-6"],
+.admin-pro-shell [class*="from-green-5"],  .admin-pro-shell [class*="from-green-6"],
+.admin-pro-shell [class*="from-emerald-5"],.admin-pro-shell [class*="from-emerald-6"],
+.admin-pro-shell [class*="from-teal-5"],   .admin-pro-shell [class*="from-teal-6"],
+.admin-pro-shell [class*="from-cyan-5"],   .admin-pro-shell [class*="from-cyan-6"],
+.admin-pro-shell [class*="from-sky-5"],    .admin-pro-shell [class*="from-sky-6"],
+.admin-pro-shell [class*="from-blue-5"],   .admin-pro-shell [class*="from-blue-6"],   .admin-pro-shell [class*="from-blue-7"],
+.admin-pro-shell [class*="from-indigo-4"], .admin-pro-shell [class*="from-indigo-5"], .admin-pro-shell [class*="from-indigo-6"] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06) !important;
+  color: #0F172A !important;
+}
+/* Heading text inside the neutralized gradient block */
+.admin-pro-shell [class*="from-pink-5"] h1, .admin-pro-shell [class*="from-rose-5"] h1,
+.admin-pro-shell [class*="from-purple-5"] h1, .admin-pro-shell [class*="from-violet-5"] h1,
+.admin-pro-shell [class*="from-red-5"] h1, .admin-pro-shell [class*="from-fuchsia-5"] h1,
+.admin-pro-shell [class*="from-blue-6"] h1, .admin-pro-shell [class*="from-indigo-6"] h1,
+.admin-pro-shell [class*="from-emerald-6"] h1, .admin-pro-shell [class*="from-teal-6"] h1 { color: #0F172A !important; }
+
+/* COUNT-CHIP GUARD (Pass 3): Badges with a solid vibrant bg MUST keep white
+   text. Radix ui Badge has data-slot="badge"; also cover shadcn Badge class
+   `inline-flex ... rounded-md`. Any element with bg-{color}-500/600/700 that
+   also declares text-white keeps its readable white text (do NOT flip). */
+.admin-pro-shell [data-slot="badge"][class*="bg-"][class*="text-white"],
+.admin-pro-shell .rounded-full[class*="bg-red-5"], .admin-pro-shell .rounded-full[class*="bg-red-6"],
+.admin-pro-shell .rounded-full[class*="bg-amber-5"], .admin-pro-shell .rounded-full[class*="bg-amber-6"],
+.admin-pro-shell .rounded-full[class*="bg-emerald-5"], .admin-pro-shell .rounded-full[class*="bg-emerald-6"] {
+  color: #FFFFFF !important;
+}
 /* Translucent white surfaces -> opaque white card */
 .admin-pro-shell [class*="bg-white/"] {
   background-color: #FFFFFF !important;
