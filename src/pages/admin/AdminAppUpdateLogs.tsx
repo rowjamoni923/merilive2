@@ -151,6 +151,9 @@ const AdminAppUpdateLogs = () => {
     fetchStats();
   }, []);
 
+  useAdminRealtime(['app_update_check_log'], () => { fetchLogs(); fetchStats(); }, 'admin-app-update-logs-rt', { debounceMs: 800 });
+
+
   const filtered = useMemo(() => {
     if (!search.trim()) return logs;
     const s = search.toLowerCase();
