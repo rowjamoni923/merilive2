@@ -20,23 +20,24 @@ const AdminLevelManagement = () => {
     features: 0
   });
 
-  useAdminRealtime(['user_level_tiers', 'level_privileges', 'feature_level_requirements'], () => fetchStats());
-
   const fetchStats = async () => {
-    const [tiersRes, privilegesRes, featuresRes] = await Promise.all([
-      supabase.from('user_level_tiers').select('tier_type', { count: 'exact' }),
-      supabase.from('level_privileges').select('id', { count: 'exact' }),
-      supabase.from('feature_level_requirements').select('id', { count: 'exact' })
+    const [userTiersRes, hostTiersRes, privilegesRes, featuresRes] = await Promise.all([
+      supabase.from('user_level_tiers').select('id', { count: 'exact', head: true }),
+      supabase.from('host_levels').select('id', { count: 'exact', head: true }),
+      supabase.from('level_privileges').select('id', { count: 'exact', head: true }),
+      supabase.from('feature_level_requirements').select('id', { count: 'exact', head: true })
     ]);
 
-    const tiers = tiersRes.data || [];
     setStats({
-      userTiers: tiers.filter((t: any) => t.tier_type === 'user').length,
-      hostTiers: tiers.filter((t: any) => t.tier_type === 'host').length,
+      userTiers: userTiersRes.count || 0,
+      hostTiers: hostTiersRes.count || 0,
       privileges: privilegesRes.count || 0,
       features: featuresRes.count || 0
     });
   };
+
+  useEffect(() => { fetchStats(); }, []);
+  useAdminRealtime(['user_level_tiers', 'host_levels', 'level_privileges', 'feature_level_requirements'], () => fetchStats());
 
   return (
     <div className="admin-pro-shell space-y-6">
