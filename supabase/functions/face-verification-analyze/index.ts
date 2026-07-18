@@ -1683,7 +1683,11 @@ serve(async (req) => {
     // the 3 Step-2 photos to the public profile, so host accounts must provide
     // exactly 3 readable same-person photos. Do NOT blame the live scan when the
     // live/photo/video match is already 99%+; route the user to the gallery step.
-    if (isPassivePhotoVideoLiveScan && vtForEvidence === "host" && (hostGalleryMissing || hostGalleryUnreadable)) {
+    // Only blame the host gallery when the live front face is actually readable.
+    // A bad live scan (frontError) makes gallery scores impossible to compute,
+    // so we would misroute the user to "replace gallery photos" instead of
+    // telling them to redo the live scan. Fall through to evidence_quality below.
+    if (isPassivePhotoVideoLiveScan && vtForEvidence === "host" && !frontError && details.length === 1 && (hostGalleryMissing || hostGalleryUnreadable)) {
       const retryRequired = {
         kind: "host_gallery_incomplete" as const,
         verification_type: vtForEvidence,
