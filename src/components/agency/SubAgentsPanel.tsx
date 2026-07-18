@@ -254,13 +254,13 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-1">No Sub-Agents Yet</h3>
+              <h3 className="font-semibold mb-1">No Sub-Agencies Yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Share your referral link to recruit sub-agents
+                Share your invite link so others can create a sub-agency under you
               </p>
               <Button onClick={shareReferralLink} className="bg-gradient-to-r from-brand-500 to-brand-500">
                 <Share2 className="w-4 h-4 mr-2" />
-                Share Referral Link
+                Share Invite Link
               </Button>
             </div>
           ) : (
