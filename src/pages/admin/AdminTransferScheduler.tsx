@@ -288,12 +288,31 @@ const AdminTransferScheduler = () => {
     return Array.from(grouped.entries()).sort((a, b) => b[1].total - a[1].total);
   };
 
+  // Merge-safe save: NEVER overwrite server-managed fields (last_transfer_at,
+  // last_scheduled_at, last_result). Re-fetch latest config and only persist
+  // the admin-editable knobs + a freshly-computed next_transfer_at.
   const saveSchedule = async (newSchedule: TransferSchedule) => {
     setSaving(true);
     try {
-      await saveAppSetting('transfer_schedule', JSON.parse(JSON.stringify(newSchedule)), 'Weekly transfer schedule settings');
+      const latest = await loadAppSetting<Partial<TransferSchedule>>('transfer_schedule');
+      const base: Record<string, unknown> = latest && typeof latest === 'object' ? { ...latest } : {};
 
-      setSchedule(newSchedule);
+      const editable = {
+        is_active: newSchedule.is_active,
+        schedule_day_of_week: newSchedule.schedule_day_of_week,
+        schedule_hour: newSchedule.schedule_hour,
+        schedule_minute: newSchedule.schedule_minute,
+        timezone: newSchedule.timezone,
+      };
+
+      // Always recompute next_transfer_at from the (potentially updated) knobs.
+      const merged = { ...base, ...editable } as TransferSchedule;
+      const nextRun = editable.is_active ? computeNextRun(merged).toISOString() : null;
+
+      const payload = { ...merged, next_transfer_at: nextRun };
+      await saveAppSetting('transfer_schedule', JSON.parse(JSON.stringify(payload)), 'Weekly transfer schedule settings');
+
+      setSchedule(payload);
       toast.success('Settings saved');
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingSchedule", message: formatAdminError(error)});
@@ -305,10 +324,8 @@ const AdminTransferScheduler = () => {
 
   // Compute next fire time (wall-clock) for the configured weekday+hour+minute in tz
   const computeNextRun = (s: TransferSchedule): Date => {
-    // Use Intl to get current parts in target timezone
     const tz = s.timezone || 'UTC';
     const nowUtcMs = Date.now();
-    // Walk forward up to 8 days to find next slot >= now
     for (let i = 0; i < 8 * 24 * 60; i++) {
       const cand = new Date(nowUtcMs + i * 60 * 1000);
       const parts = new Intl.DateTimeFormat('en-US', {
@@ -323,27 +340,16 @@ const AdminTransferScheduler = () => {
   };
 
   const startTimer = async () => {
-    const next = computeNextRun(schedule);
-    const newSchedule = {
-      ...schedule,
-      is_active: true,
-      next_transfer_at: next.toISOString()
-    };
-    await saveSchedule(newSchedule);
+    await saveSchedule({ ...schedule, is_active: true });
     toast.success('Schedule activated! Server will fire automatically.');
   };
 
 
   const stopTimer = async () => {
-    const newSchedule = {
-      ...schedule,
-      is_active: false,
-      next_transfer_at: null
-    };
-    
-    await saveSchedule(newSchedule);
+    await saveSchedule({ ...schedule, is_active: false });
     toast.success('Timer stopped');
   };
+
 
 
   const processTransferNow = async () => {
