@@ -102,7 +102,27 @@ const AdminRewardsManagement = () => {
     }
   };
 
-  // ===== FIRST RECHARGE HANDLERS =====
+  // ===== WEEKLY LOGIN HANDLER =====
+  const saveWeekly = async () => {
+    const amount = Math.max(0, Math.trunc(Number(weeklyDraft.reward_amount) || 0));
+    const payload = {
+      reward_type: weeklyDraft.reward_type,
+      reward_amount: amount,
+      label: weeklyDraft.label || null,
+      description: weeklyDraft.description || null,
+      is_active: weeklyDraft.is_active,
+      updated_at: new Date().toISOString(),
+    };
+    const result = weeklyConfig?.id
+      ? await supabase.from("weekly_login_rewards_config").update(payload).eq("id", weeklyConfig.id).select().single()
+      : await supabase.from("weekly_login_rewards_config").insert(payload).select().single();
+    if (result.error) toast.error("Failed to save weekly reward");
+    else {
+      setWeeklyConfig(result.data);
+      toast.success("Weekly reward saved");
+    }
+  };
+
   const saveFirstRecharge = async () => {
     if (!firstRechargeConfig) return;
 
