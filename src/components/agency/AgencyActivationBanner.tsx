@@ -99,15 +99,16 @@ export default function AgencyActivationBanner({ agencyId }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-sm font-semibold text-amber-200">Activation Required</div>
+            <div className="text-sm font-semibold text-amber-200">{warningBanner?.title ?? "Activation Required"}</div>
             <div className="flex items-center gap-1 text-[11px] text-amber-200/90">
               <Clock className="h-3 w-3" />
               {daysLeft} day{daysLeft === 1 ? "" : "s"} left
             </div>
           </div>
           <p className="mt-1 text-xs text-white/80 leading-relaxed">
-            Activate <span className="font-semibold text-white">{REQUIRED_HOSTS} hosts</span> within
-            30 days of creation, or the agency will be automatically closed.
+            {warningBanner?.body_md
+              ? warningBanner.body_md.replace("{REQUIRED_HOSTS}", String(REQUIRED_HOSTS)).replace(/\*\*(.*?)\*\*/g, "$1")
+              : `Activate ${REQUIRED_HOSTS} hosts within 30 days of creation, or the agency will be automatically closed.`}
           </p>
 
           {/* Progress */}
