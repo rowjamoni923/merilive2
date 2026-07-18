@@ -7264,13 +7264,22 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
   background-color: hsl(var(--admin-pro-primary-hover)) !important;
 }
 
-/* Solid icon containers (small rounded squares with gradient) */
+/* Solid icon containers (small rounded squares with gradient) — DISABLED
+   2026-07-18. This substring rule was matching ANY card that used a pastel
+   opacity gradient (e.g. `from-purple-500/20`) and forcing them into a
+   solid blue tile, hiding label text. KPI cards with `bg-gradient-to-br
+   from-purple-500/20 to-purple-600/10` were the visible regression.
+   The intended "small icon square" styling is covered by the Pass 4/5
+   rescue rules above and by explicit component classes. */
+/*
 .admin-pro-shell .bg-gradient-to-br[class*="violet"],
 .admin-pro-shell .bg-gradient-to-br[class*="purple"],
 .admin-pro-shell .bg-gradient-to-br[class*="fuchsia"] {
   background-image: linear-gradient(135deg, hsl(var(--admin-pro-primary)), hsl(var(--admin-pro-primary-hover))) !important;
   color: #FFFFFF !important;
 }
+*/
+
 
 /* Decorative blurred orbs across admin pages — kill them on the white canvas */
 .admin-pro-shell .blur-3xl,
