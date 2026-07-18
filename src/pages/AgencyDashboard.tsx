@@ -1598,19 +1598,25 @@ const AgencyDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border">
-                  <span className="text-muted-foreground">Total Host Earnings</span>
- <span className="font-bold text-emerald-600 ">{fmtNum(totalHostEarnings)}</span>
+                  <div>
+                    <span className="text-muted-foreground block">Total Host Earnings</span>
+                    <span className="text-[10px] text-muted-foreground/70">
+                      Live: {fmtNum(totalHostEarnings)} • Withdrawn: {fmtNum(totalWithdrawn)}
+                    </span>
+                  </div>
+                  <span className="font-bold text-emerald-600 ">{fmtNum(totalHostEarnings + totalWithdrawn)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Your Commission ({actualCommissionRate}%)</span>
- <span className="font-bold text-purple-600 ">
-                    {fmtNum(Math.floor(totalHostEarnings * actualCommissionRate / 100))}
+                  <span className="font-bold text-purple-600 ">
+                    {fmtNum(Math.floor((totalHostEarnings + totalWithdrawn) * actualCommissionRate / 100))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Sub-Agent Commission</span>
- <span className="font-bold text-blue-600 ">{fmtNum(totalSubAgentEarnings)}</span>
+                  <span className="font-bold text-blue-600 ">{fmtNum(totalSubAgentEarnings)}</span>
                 </div>
+
                 <div className="flex items-center justify-between py-3">
                   <span className="text-muted-foreground">Agency Created</span>
                   <span className="font-medium">{formatDate(agency.created_at)}</span>
