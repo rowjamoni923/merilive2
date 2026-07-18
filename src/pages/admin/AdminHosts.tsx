@@ -472,11 +472,11 @@ export default function AdminHosts() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-white/50 hover:text-white">
+                          <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-900 hover:bg-slate-100">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-50 border-white/10">
+                        <DropdownMenuContent align="end" className="bg-white border-slate-200 shadow-lg">
                           <DropdownMenuItem
                             className="text-slate-600 hover:text-slate-900"
                             onClick={() => { setSelectedHost(host); setShowDetails(true); }}
