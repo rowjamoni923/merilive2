@@ -156,8 +156,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
 
   const shareReferralLink = async () => {
     const success = await shareLink(referralLink, {
-      title: 'Become a Sub-Agent',
-      text: 'Join as a sub-agent and start earning commissions!'
+      title: 'Create a Sub-Agency',
+      text: 'Use this link to create a sub-agency under my agency and start earning together!'
     });
     
     if (success) {
