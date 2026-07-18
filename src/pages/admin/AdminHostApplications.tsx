@@ -544,7 +544,7 @@ export default function AdminHostApplications() {
                     <div className="relative shrink-0">
                       <Avatar className="w-14 h-14 md:w-16 md:h-16 ring-2 ring-white/10 group-hover:ring-pink-500/30 transition-all">
                         <UserAvatarImage gender={((app) as any)?.gender} seed={((app) as any)?.id ?? ((app) as any)?.user_id ?? ((app) as any)?.host_id} src={app.profile_photo_url || app.profile?.avatar_url || undefined} className="object-contain" />
-                        <AvatarFallback className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 text-pink-300 text-lg font-bold">
+                        <AvatarFallback className="bg-pink-100 text-pink-700 text-lg font-bold">
                           {app.full_name?.charAt(0) || "?"}
                         </AvatarFallback>
                       </Avatar>
