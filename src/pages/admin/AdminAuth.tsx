@@ -52,28 +52,27 @@ export default function AdminAuth() {
   const MAX_LOGIN_ATTEMPTS = 3;
   const freshAccessToken = searchParams.get('access')?.trim() || null;
 
-  // After 3 failed login attempts on the owner/sub-admin secret link, kick
-  // the visitor out to the public landing page. Prevents brute-force probing
-  // and matches the user's "auto-redirect to landing on repeated failure" rule.
-  const handleAuthFailure = (reason: string) => {
-    const next = failedAttempts + 1;
-    setFailedAttempts(next);
-    toast.error(reason);
-    if (next >= MAX_LOGIN_ATTEMPTS) {
-      toast.error(`Too many failed attempts. Redirecting...`);
-      revokeAdminAccess();
-      clearAdminSession();
-      setTimeout(() => {
-        window.location.replace('/landing');
-      }, 600);
-    }
-  };
-
   const getAdminAuthPath = () => {
     const accessToken = searchParams.get('access')?.trim() || getAdminLinkToken() || null;
     return accessToken
       ? `/admin/auth?access=${encodeURIComponent(accessToken)}`
       : '/admin/auth';
+  };
+
+  // Failed admin auth must stay inside the admin namespace. Never convert a
+  // secret-link admin entry into the main app/home/login route.
+  const handleAuthFailure = (reason: string) => {
+    const next = failedAttempts + 1;
+    setFailedAttempts(next);
+    toast.error(reason);
+    if (next >= MAX_LOGIN_ATTEMPTS) {
+      toast.error(`Too many failed attempts. Please reopen the latest admin secret link.`);
+      revokeAdminAccess();
+      clearAdminSession();
+      setTimeout(() => {
+        navigate('/admin/auth', { replace: true });
+      }, 600);
+    }
   };
 
   // Pre-fill email from URL
