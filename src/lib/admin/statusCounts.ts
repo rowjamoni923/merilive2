@@ -79,9 +79,10 @@ export function isFaceRetryRequiredRow(
   const notes = String(adminNotes ?? r.admin_notes ?? "").toLowerCase();
   const analysis = (typeof r.ai_analysis === "object" && r.ai_analysis !== null ? r.ai_analysis : {}) as Record<string, unknown>;
 
-  // Admin RPCs are the source of truth for retry bucketing. Trust the server
-  // bucket first so a badge count can never disagree with the list filter.
-  if (serverBucket === "user_retry") return true;
+  // Admin RPCs are the source of truth for retry bucketing. If the server sent
+  // a bucket, never re-derive retry from JS heuristics because that is exactly
+  // how tab counts drift away from the list filter.
+  if (["pending", "approved", "rejected", "user_retry"].includes(serverBucket)) return serverBucket === "user_retry";
 
   // Final admin/AI decisions must never be pulled back into Pending by old
   // retry/orphan/upload metadata. This mirrors the DB function used by the
@@ -193,9 +194,14 @@ export function countFaceReviewBuckets<T>(
 
   for (const row of rows) {
     const status = getStatus(row);
+    const serverBucket = typeof row === "object" && row !== null
+      ? String((row as { status_bucket?: string | null }).status_bucket || "").trim().toLowerCase()
+      : "";
     const retryRequired = isFaceRetryRequiredRow(row, status, getAdminNotes(row));
     // Retry rows are user-side work — never count them as admin's manual pending.
-    const bucket: StatusBucket = retryRequired ? "user_retry" : bucketOfStatus(status);
+    const bucket: StatusBucket = (["pending", "approved", "rejected", "user_retry"].includes(serverBucket)
+      ? serverBucket
+      : retryRequired ? "user_retry" : bucketOfStatus(status)) as StatusBucket;
     const explicitAuto = typeof row === "object" && row !== null
       ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
         || String((row as { review_source?: string | null }).review_source || "").toLowerCase() === "auto"
