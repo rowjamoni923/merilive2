@@ -506,7 +506,7 @@ const CreateAgency = () => {
         <ul className="space-y-2">
           <li className="flex items-start gap-2 text-sm text-amber-700">
             <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <span>Earn 4-20% commission from all host earnings (level based)</span>
+            <span>Earn 3-20% commission from all host earnings (level based)</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-amber-700">
             <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
