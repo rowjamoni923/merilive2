@@ -419,6 +419,15 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       return data.signedUrl;
     }
 
+    if (error) {
+      console.warn('[AdminMedia] Storage signing failed', {
+        bucket: storagePath.bucket,
+        path: storagePath.path,
+        message: error.message,
+        hasAdminToken: Boolean(adminToken),
+      });
+    }
+
 
     // Without an admin token the failure is "session not loaded yet" — cache
     // briefly so the next attempt after login retries immediately.
@@ -450,6 +459,15 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
 
     const signed = await signAdminStoragePath(candidate);
     if (signed) return signed;
+  }
+
+  if (candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket))) {
+    console.warn('[AdminMedia] Could not resolve private admin media', {
+      value: raw,
+      defaultBucket,
+      candidates: candidates.map((candidate) => `${candidate.bucket}/${candidate.path}`),
+      hasAdminToken: Boolean(resolveStoredAdminToken()),
+    });
   }
 
   return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : normalizeAdminStorageValue(raw, defaultBucket);

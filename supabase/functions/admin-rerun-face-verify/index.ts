@@ -322,7 +322,7 @@ serve(async (req) => {
       .eq("id", submissionId);
 
     let autoFinalize: Record<string, unknown> | null = null;
-    if (["pending", "submitted"].includes(String(submission.status || "").toLowerCase())) {
+    if (["pending", "submitted", "under_review", "needs_retry", "user_retry"].includes(String(submission.status || "").toLowerCase())) {
       const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc("service_auto_finalize_face_verification", { p_submission_id: submissionId });
       autoFinalize = rpcErr ? { success: false, error: rpcErr.message } : rpcData as Record<string, unknown>;
     }

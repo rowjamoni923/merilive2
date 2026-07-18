@@ -2,6 +2,13 @@
 # Admin Panel Forensic Audit — Complete Visibility Plan
 
 
+## 2026-07-18 Hotfix — Face Verification Reliability Pipeline
+
+- Research-first notes: AWS Rekognition caps raw API image bytes at 5MB and recommends smoothing spiky traffic with queueing, retries, exponential backoff and jitter for throughput; CompareFaces is probabilistic and AWS recommends human review for access-impacting decisions; Rekognition Collections/User vectors are the professional path for duplicate identity search instead of scanning every old profile one-by-one.
+- Problem confirmed: `needs_retry` rows were excluded by the analyzer lock, admin re-run only finalized `pending/submitted`, and legacy duplicate scanning could run up to 1000 approved profiles sequentially, causing timeout/stuck `under_review` behavior.
+- Implementation direction locked: allow retry/under-review rows to requeue safely, keep admin media signed through the service-role admin proxy with diagnostics, parallelize bounded gallery/side comparisons, cap legacy duplicate fallback, and skip that fallback when provider duplicate search already completed.
+
+
 ## 2026-07-17 Hotfix — Face Verification Admin Count Parity
 
 - Problem confirmed from owner screenshots: User Hub and Face Verification tabs used different truth sources, so badges could show counts while the filtered list showed empty rows.
