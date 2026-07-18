@@ -28,7 +28,15 @@ export interface AdminPageHeaderProps {
 function renderIcon(icon: AdminPageHeaderProps["icon"]) {
   if (!icon) return null;
   if (isValidElement(icon)) return icon;
-  if (typeof icon === "function") {
+  // Lucide icons are forwardRef objects (not plain functions) — detect by $$typeof/render
+  // as well as plain function components.
+  const isComponent =
+    typeof icon === "function" ||
+    (typeof icon === "object" &&
+      icon !== null &&
+      // @ts-expect-error runtime shape check for forwardRef / memo components
+      (typeof icon.render === "function" || typeof icon.type === "function" || "$$typeof" in icon));
+  if (isComponent) {
     return createElement(icon as ComponentType<SVGProps<SVGSVGElement>>, {
       className: "h-5 w-5",
     });
