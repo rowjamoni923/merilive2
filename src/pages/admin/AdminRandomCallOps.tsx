@@ -9,6 +9,8 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
+
 
 type ProfileLite = { id: string; username: string | null; avatar_url: string | null };
 
@@ -135,9 +137,13 @@ export default function AdminRandomCallOps() {
 
   useEffect(() => {
     loadAll();
-    const t = setInterval(loadAll, 15000);
-    return () => clearInterval(t);
   }, []);
+  useAdminRealtime(
+    ["random_call_sessions", "random_call_queue", "random_call_skip_counters", "host_match_availability"],
+    () => loadAll(),
+    "admin-random-call-ops-rt"
+  );
+
 
   const unsuspendHost = async (hostId: string) => {
     const { error } = await (supabase as any)
