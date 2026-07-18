@@ -273,9 +273,12 @@ const AdminRewardsManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="daily-login" className="flex items-center gap-1.5">
             <Gift className="w-4 h-4" /> Daily Login
+          </TabsTrigger>
+          <TabsTrigger value="weekly-login" className="flex items-center gap-1.5">
+            <CalendarDays className="w-4 h-4" /> Weekly Login
           </TabsTrigger>
           <TabsTrigger value="first-recharge" className="flex items-center gap-1.5">
             <Crown className="w-4 h-4" /> First Recharge
