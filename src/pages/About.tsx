@@ -432,13 +432,13 @@ const About = () => {
                   </tr>
                 </thead>
                 <tbody style={{ color: CREAM }}>
-                  {[
+                  {(dynamicTiers.length ? dynamicTiers : [
                     { l: "A1 (Bronze)",   w: "$50 – $200",       c: "3%" },
                     { l: "A2 (Silver)",   w: "$201 – $1,000",    c: "5%" },
                     { l: "A3 (Gold)",     w: "$1,001 – $2,000",  c: "10%" },
                     { l: "A4 (Platinum)", w: "$2,001 – $3,500",  c: "15%" },
                     { l: "A5 (Diamond) ⭐", w: "$4,000+",         c: "20%", gold: true },
-                  ].map((r) => (
+                  ]).map((r) => (
                     <tr key={r.l} style={{ borderBottom: `1px solid ${GOLD}1a` }}>
                       <td className="py-3 px-4 font-semibold" style={{ color: r.gold ? GOLD : CREAM }}>{r.l}</td>
                       <td className="py-3 px-4" style={{ color: MUTED }}>{r.w}</td>
