@@ -1,7 +1,5 @@
-import { useState, useEffect, ReactNode, lazy, Suspense } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-
-const BlogPage = lazy(() => import("@/pages/BlogPage"));
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
 import {
   grantAdminAccess,
@@ -30,8 +28,8 @@ const VALIDATE_RETRY_DELAY_MS = 0;
  * Logic:
  * 1. Fresh URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
  * 2. Has admin session AND this tab came from a secret link → allow admin panel
- * 3. Direct /admin or /admin/auth without a valid secret-link tab unlock → show public page
- * 4. Never show the "Verifying access" loader unless a fresh `?access=` token is actually in the URL
+  * 3. Direct /admin without a valid session/link → admin auth screen, never public/blog fallback
+  * 4. Never render a blank/null admin canvas while access state settles
  */
 
 interface AdminAccessGuardProps {
@@ -265,11 +263,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     };
   }, [location.pathname, location.search, hasFreshAccessToken]);
 
-  // Native-feel rule: never paint an admin verification interstitial. React
-  // transition semantics keep the previous real screen visible until auth
-  // validation settles, avoiding white/black/spinner flashes in every menu.
   if (isAuthorized === null) {
-    return null;
+    return <AdminEntryFallback label="Checking secure access" />;
   }
 
   // Authorized: render admin panel / login page
@@ -293,27 +288,25 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     return <>{children}</>;
   }
 
-  // Not authorized AND no fresh secret link.
-  // For /admin/* deep paths (dashboard, sub pages), fall back to the admin
-  // auth screen — never leave a blank white canvas while the public BlogPage
-  // chunk lazy-loads. BlogPage is only used for the bare /admin root.
-  const path = typeof window !== 'undefined' ? window.location.pathname : '';
-  if (path.startsWith('/admin/') && !isLoginRoute()) {
-    return <Navigate to="/admin/auth" replace />;
-  }
+  // Not authorized AND no fresh secret link: stay inside the admin namespace.
+  // The old public BlogPage fallback lazy-loaded a large unrelated chunk and on
+  // production could appear as a fully blank white page. /admin must always lead
+  // to the admin login/secret-link flow, never to public content or null UI.
+  if (!isLoginRoute()) return <Navigate to="/admin/auth" replace />;
+  return <>{children}</>;
+}
+
+function AdminEntryFallback({ label }: { label: string }) {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen w-full flex items-center justify-center bg-white">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 rounded-full border-2 border-slate-200 border-t-slate-500 animate-spin" />
-            <p className="text-xs text-slate-400">Loading…</p>
-          </div>
+    <div className="admin-shell min-h-screen w-full flex items-center justify-center bg-[hsl(var(--admin-pro-canvas,0_0%_100%))] text-[hsl(var(--admin-pro-text,222_47%_11%))]">
+      <div className="flex flex-col items-center gap-4 rounded-xl border border-[hsl(var(--admin-pro-border,214_32%_91%))] bg-[hsl(var(--admin-pro-surface,0_0%_100%))] px-8 py-7 shadow-admin-lg">
+        <div className="h-11 w-11 rounded-full border-2 border-[hsl(var(--admin-pro-border,214_32%_91%))] border-t-[hsl(var(--admin-pro-primary,217_91%_60%))] animate-spin" />
+        <div className="text-center leading-tight">
+          <p className="text-sm font-semibold">{label}</p>
+          <p className="mt-1 text-xs text-[hsl(var(--admin-pro-text-muted,215_16%_47%))]">Please wait…</p>
         </div>
-      }
-    >
-      <BlogPage />
-    </Suspense>
+      </div>
+    </div>
   );
 }
 
