@@ -1575,6 +1575,7 @@ const App = () => {
                   <Route path="entry-bars" element={<AdminRouteGuard routeSegment="entry-bars"><AdminEntryBars /></AdminRouteGuard>} />
                   <Route path="invitation-settings" element={<AdminRouteGuard routeSegment="invitation-settings"><AdminInvitationSettings /></AdminRouteGuard>} />
                   <Route path="helper-applications" element={<AdminRouteGuard routeSegment="helper-applications"><AdminHelperApplications /></AdminRouteGuard>} />
+                  <Route path="agent-dispatches" element={<AdminRouteGuard routeSegment="agent-dispatches"><AdminAgentDispatches /></AdminRouteGuard>} />
                   <Route path="level5-helpers" element={<AdminRouteGuard routeSegment="level5-helpers"><AdminLevel5Helpers /></AdminRouteGuard>} />
                   <Route path="payroll-orders" element={<AdminRouteGuard routeSegment="payroll-orders"><AdminPayrollOrders /></AdminRouteGuard>} />
                   <Route path="game-server" element={<AdminRouteGuard routeSegment="game-server"><AdminGameServer /></AdminRouteGuard>} />
