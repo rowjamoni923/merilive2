@@ -311,6 +311,73 @@ const AdminRewardsManagement = () => {
           </Card>
         </TabsContent>
 
+        {/* ===== WEEKLY LOGIN TAB ===== */}
+        <TabsContent value="weekly-login" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-primary" />
+                Weekly Login Reward (once per ISO week)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Reward Type</Label>
+                  <select
+                    value={weeklyDraft.reward_type}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
+                    className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+                  >
+                    <option value="coins">Coins</option>
+                    <option value="diamonds">Diamonds</option>
+                    <option value="beans">Beans</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Reward Amount</Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={weeklyDraft.reward_amount}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_amount: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Label</Label>
+                  <Input
+                    value={weeklyDraft.label}
+                    onChange={(e) => setWeeklyDraft((d) => ({ ...d, label: e.target.value }))}
+                    placeholder="Weekly Login Bonus"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-6">
+                  <Switch
+                    checked={weeklyDraft.is_active}
+                    onCheckedChange={(v) => setWeeklyDraft((d) => ({ ...d, is_active: v }))}
+                  />
+                  <Label>Active</Label>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Description</Label>
+                <Input
+                  value={weeklyDraft.description}
+                  onChange={(e) => setWeeklyDraft((d) => ({ ...d, description: e.target.value }))}
+                  placeholder="Claim once every week"
+                />
+              </div>
+              <Button onClick={saveWeekly} className="gap-2">
+                <Save className="w-4 h-4" /> Save Weekly Reward
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Enforced server-side by <code>claim_weekly_login_reward()</code> — one claim per user per ISO week (Asia/Dhaka). Duplicate claims are impossible.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* ===== FIRST RECHARGE TAB ===== */}
         <TabsContent value="first-recharge" className="space-y-4">
           <Card>
