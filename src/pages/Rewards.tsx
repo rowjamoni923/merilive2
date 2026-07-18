@@ -37,6 +37,7 @@ const Rewards = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const loginReward = useDailyLoginReward();
+  const weeklyReward = useWeeklyLoginReward();
   const [activeTab, setActiveTab] = useState<'daily' | 'cashback' | 'offers'>('daily');
   const [consumptionTiers, setConsumptionTiers] = useState<ConsumptionTier[]>([]);
   const [limitedOffers, setLimitedOffers] = useState<LimitedOffer[]>([]);
