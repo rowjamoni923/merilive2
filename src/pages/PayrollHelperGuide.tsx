@@ -67,8 +67,9 @@ const PayrollHelperGuide = () => {
     {
       icon: TrendingUp,
       title: "Commission on Every Transaction",
-      desc: "Earn a percentage commission on every top-up and withdrawal you process. Higher levels unlock higher commission rates (up to 12%+).",
+      desc: `Earn a percentage commission on every top-up and withdrawal you process. Higher levels unlock higher commission rates (${topRateLabel}).`,
     },
+
     {
       icon: Gem,
       title: "Diamond Rewards from Withdrawals",
