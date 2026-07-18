@@ -385,6 +385,9 @@ serve(async (req) => {
   let activeSubmissionId: string | null = null;
   let activeUserId: string | null = null;
   let activeAdmin: ReturnType<typeof createClient> | null = null;
+  let workerAcquired = false;
+  let jobDoneSuccess = true;
+  let jobDoneError: string | null = null;
   try {
     const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
     const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
@@ -474,14 +477,18 @@ serve(async (req) => {
         .rpc("try_lock_face_submission_for_analysis", { p_submission_id: submissionId });
       if (lockErr) {
         console.warn("[face-verification-analyze] lock RPC error (continuing):", lockErr.message);
+        workerAcquired = true;
       } else if (lockOk === false) {
         return new Response(
           JSON.stringify({ success: true, deferred: true, reason: "another_worker_processing" }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
+      } else {
+        workerAcquired = true;
       }
     } catch (e) {
       console.warn("[face-verification-analyze] lock attempt failed (continuing):", e instanceof Error ? e.message : e);
+      workerAcquired = true;
     }
 
     const { data: row, error: rowErr } = await supabaseAdmin
@@ -2140,6 +2147,8 @@ serve(async (req) => {
   } catch (e) {
     console.error("[face-verification-analyze]", e);
     const msg = e instanceof Error ? e.message : "Unknown error";
+    jobDoneSuccess = false;
+    jobDoneError = msg;
     // Self-heal: never leave the submission frozen in `under_review` /
     // `pending` because the function crashed. Mark it `needs_retry` with a
     // clear English notification so the user can re-shoot immediately.
@@ -2173,5 +2182,17 @@ serve(async (req) => {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  } finally {
+    if (workerAcquired && activeAdmin && activeSubmissionId) {
+      try {
+        await activeAdmin.rpc("mark_face_analysis_job_done", {
+          p_submission_id: activeSubmissionId,
+          p_success: jobDoneSuccess,
+          p_error: jobDoneError,
+        });
+      } catch (doneErr) {
+        console.warn("[face-verification-analyze] job completion marker failed:", doneErr instanceof Error ? doneErr.message : doneErr);
+      }
+    }
   }
 });

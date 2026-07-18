@@ -23845,6 +23845,10 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: number
       }
+      mark_face_analysis_job_done: {
+        Args: { p_error?: string; p_submission_id: string; p_success?: boolean }
+        Returns: undefined
+      }
       mark_incomplete_face_uploads_retry_required: {
         Args: never
         Returns: number
