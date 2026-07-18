@@ -6721,32 +6721,53 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 }
 
 /* Pass 5: gradient primary Buttons (shadcn) — flatten to solid blue primary
-   so CTAs stay visible after neutralization instead of becoming white-on-white. */
-.admin-pro-shell button[class*="from-purple-"],
-.admin-pro-shell button[class*="from-pink-"],
-.admin-pro-shell button[class*="from-rose-"],
-.admin-pro-shell button[class*="from-fuchsia-"],
-.admin-pro-shell button[class*="from-violet-"],
-.admin-pro-shell button[class*="from-indigo-"],
-.admin-pro-shell button[class*="from-blue-6"],
-.admin-pro-shell button[class*="from-blue-7"],
-.admin-pro-shell button[class*="from-green-5"],
-.admin-pro-shell button[class*="from-green-6"],
-.admin-pro-shell button[class*="from-emerald-5"],
-.admin-pro-shell button[class*="from-emerald-6"] {
+   so CTAs stay visible after neutralization instead of becoming white-on-white.
+   Excludes [role="tab"] triggers (Radix Tabs) since Tailwind's
+   `data-[state=active]:from-*` variant emits the substring even on inactive
+   tabs, which would otherwise force every tab pill to look "active". */
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-purple-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-pink-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-rose-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-fuchsia-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-violet-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-indigo-"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-6"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-blue-7"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-5"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-6"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-5"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-6"] {
   background-image: none !important;
   background-color: #2563EB !important; /* blue-600 primary */
   color: #FFFFFF !important;
   border-color: #1D4ED8 !important;
   box-shadow: 0 1px 2px rgba(37,99,235,0.25) !important;
 }
-.admin-pro-shell button[class*="from-green-5"],
-.admin-pro-shell button[class*="from-green-6"],
-.admin-pro-shell button[class*="from-emerald-5"],
-.admin-pro-shell button[class*="from-emerald-6"] {
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-5"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-green-6"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-5"],
+.admin-pro-shell button:not([role="tab"]):not([role="menuitem"])[class*="from-emerald-6"] {
   background-color: #059669 !important; /* emerald-600 for approve/save actions */
   border-color: #047857 !important;
   box-shadow: 0 1px 2px rgba(5,150,105,0.25) !important;
+}
+
+/* Radix TabsTrigger inactive state — Tailwind emits `data-[state=active]:from-*`
+   substrings that unintentionally match the from-* rescue rules. Force inactive
+   tabs to the neutral pill treatment so they can be distinguished from the
+   active tab (which is styled below at line ~6790). */
+.admin-pro-shell [role="tab"][data-state="inactive"][class*="from-"],
+.admin-pro-shell [role="tab"]:not([data-state="active"])[class*="from-"] {
+  background-image: none !important;
+  background-color: transparent !important;
+  color: #475569 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.admin-pro-shell [role="tab"][data-state="inactive"][class*="from-"]:hover,
+.admin-pro-shell [role="tab"]:not([data-state="active"])[class*="from-"]:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
 }
 
 /* Pass 6: descendant white-text rescue. When a neon gradient parent is
