@@ -264,6 +264,7 @@ const AgencyDashboard = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [subAgentLink, setSubAgentLink] = useState("");
+  const [subAgencyInviteLink, setSubAgencyInviteLink] = useState("");
   const [hostJoinLink, setHostJoinLink] = useState("");
   const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
   const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
@@ -355,10 +356,11 @@ const AgencyDashboard = () => {
         setAgency(agencyData);
         setCurrentUserId(user.id);
 
-        // Generate sub-agent link AND host join link (dynamic import but non-blocking)
-        import('@/utils/shareLinks').then(({ generateSubAgentLink, generateAgencyJoinLink }) => {
+        // Generate sub-agent link, sub-agency invite link AND host join link (dynamic import but non-blocking)
+        import('@/utils/shareLinks').then(({ generateSubAgentLink, generateAgencyJoinLink, generateParentAgencyLink }) => {
           setSubAgentLink(generateSubAgentLink(agencyData.agency_code));
           setHostJoinLink(generateAgencyJoinLink(agencyData.agency_code));
+          setSubAgencyInviteLink(generateParentAgencyLink(agencyData.agency_code));
         });
 
         // ===== BATCH 1: All independent queries in parallel =====
@@ -762,6 +764,25 @@ const AgencyDashboard = () => {
       });
     } else {
       copyHostJoinLink();
+    }
+  };
+
+  const copySubAgencyInviteLink = () => {
+    if (!subAgencyInviteLink) return;
+    navigator.clipboard.writeText(subAgencyInviteLink);
+    toast({ title: "✅ Link Copied", description: "Sub-agency invite link copied" });
+  };
+
+  const shareSubAgencyInviteLink = async () => {
+    if (!subAgencyInviteLink) return;
+    if (navigator.share) {
+      await navigator.share({
+        title: `${agency?.name} - Create a Sub-Agency`,
+        text: `Use this link to create a sub-agency under my agency and start earning together!`,
+        url: subAgencyInviteLink
+      });
+    } else {
+      copySubAgencyInviteLink();
     }
   };
 
@@ -1931,6 +1952,43 @@ const AgencyDashboard = () => {
                     <p className="text-sm text-muted-foreground mt-1">Share the link above</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Sub-Agency Invite Link — recipients get a form to CREATE a sub-agency under this agency */}
+            <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-50 to-purple-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <Building2 className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-indigo-800">Sub-Agency Invite Link</h3>
+                    <p className="text-xs text-indigo-600">Share to let others create a sub-agency under you</p>
+                  </div>
+                </div>
+                <div className="bg-white/70 rounded-lg px-3 py-2 text-[11px] font-mono truncate border border-indigo-200 mb-2">
+                  {subAgencyInviteLink || "Generating link..."}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={copySubAgencyInviteLink}
+                    variant="outline"
+                    className="flex-1 border-indigo-300 text-indigo-700"
+                    disabled={!subAgencyInviteLink}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button
+                    onClick={shareSubAgencyInviteLink}
+                    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white"
+                    disabled={!subAgencyInviteLink}
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

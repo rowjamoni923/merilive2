@@ -11,7 +11,7 @@ import {
   UserPlus,
   TrendingUp
 } from "lucide-react";
-import { generateSubAgentLink, shareLink, copyToClipboard } from "@/utils/shareLinks";
+import { generateParentAgencyLink, shareLink, copyToClipboard } from "@/utils/shareLinks";
 import Skeleton from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,8 +55,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
   const [isLoading, setIsLoading] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Generate the sub-agent referral link using production domain
-  const referralLink = generateSubAgentLink(agencyCode);
+  // Generate a link that lets the recipient CREATE a sub-agency under this parent.
+  const referralLink = generateParentAgencyLink(agencyCode);
 
   useEffect(() => {
     if (isOpen) {
@@ -142,7 +142,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
       setCopiedLink(true);
       toast({
         title: "Link Copied!",
-        description: "Sub-agent referral link copied to clipboard",
+        description: "Sub-agency invite link copied to clipboard",
       });
       setTimeout(() => setCopiedLink(false), 2000);
     } else {
@@ -156,8 +156,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
 
   const shareReferralLink = async () => {
     const success = await shareLink(referralLink, {
-      title: 'Become a Sub-Agent',
-      text: 'Join as a sub-agent and start earning commissions!'
+      title: 'Create a Sub-Agency',
+      text: 'Use this link to create a sub-agency under my agency and start earning together!'
     });
     
     if (success) {
@@ -197,8 +197,8 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
               <Users className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Sub-Agents</h2>
-              <p className="text-xs text-muted-foreground">{subAgencies.length} sub-agents under your agency</p>
+              <h2 className="text-lg font-bold">Sub-Agencies</h2>
+              <p className="text-xs text-muted-foreground">{subAgencies.length} sub-agencies under your agency</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -210,7 +210,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
         <div className="p-4 bg-gradient-to-r from-brand-500/10 to-brand-500/10 border-b border-border">
           <p className="text-sm font-medium mb-2 flex items-center gap-2">
             <UserPlus className="w-4 h-4" />
-            Recruit New Sub-Agents
+            Create New Sub-Agency (Invite Link)
           </p>
           <div className="flex gap-2">
             <div className="flex-1 bg-background rounded-lg px-3 py-2 text-xs font-mono truncate border border-border">
@@ -254,13 +254,13 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-1">No Sub-Agents Yet</h3>
+              <h3 className="font-semibold mb-1">No Sub-Agencies Yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Share your referral link to recruit sub-agents
+                Share your invite link so others can create a sub-agency under you
               </p>
               <Button onClick={shareReferralLink} className="bg-gradient-to-r from-brand-500 to-brand-500">
                 <Share2 className="w-4 h-4 mr-2" />
-                Share Referral Link
+                Share Invite Link
               </Button>
             </div>
           ) : (
