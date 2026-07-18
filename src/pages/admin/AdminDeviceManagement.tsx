@@ -338,7 +338,7 @@ export default function AdminDeviceManagement() {
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 <span>
-                                  Registered: {new Date(device.created_at).toLocaleDateString('en-US')}
+                                  Registered: {(() => { const raw = (device as any).requested_at || device.created_at; const d = raw ? new Date(raw) : null; return d && !isNaN(d.getTime()) ? d.toLocaleDateString('en-US') : '—'; })()}
                                 </span>
                               </div>
                               {device.last_used_at && (
