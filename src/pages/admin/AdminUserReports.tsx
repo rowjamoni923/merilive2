@@ -435,7 +435,7 @@ export default function AdminUserReports() {
               {selectedReport.description && (
                 <div>
                   <p className="text-xs text-slate-400 mb-1">Description</p>
-                  <p className="text-white/80 text-sm bg-slate-50 p-3 rounded-lg">{selectedReport.description}</p>
+                  <p className="text-slate-700 text-sm bg-slate-50 p-3 rounded-lg border border-slate-200">{selectedReport.description}</p>
                 </div>
               )}
               <Textarea

@@ -1597,19 +1597,19 @@ export default function AdminUserManagement() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-white/60 border border-slate-200/50 p-1 w-full grid grid-cols-3 md:grid-cols-8 gap-1">
-          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             All Users
           </TabsTrigger>
-          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm">
             <UserCheck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Verified Hosts
           </TabsTrigger>
-          <TabsTrigger value="verified-users" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+          <TabsTrigger value="verified-users" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm">
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Verified Users
           </TabsTrigger>
-          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
+          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm relative overflow-visible">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
             {autoApprovedFaceCount > 0 && (
@@ -1618,7 +1618,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
+          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm relative overflow-visible">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
             {autoRejectedFaceCount > 0 && (
@@ -1627,7 +1627,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative overflow-visible">
+          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm relative overflow-visible">
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Face Verify
             {pendingFaceCount > 0 && (
@@ -1636,11 +1636,11 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm">
             <AlertTriangle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Moderation
           </TabsTrigger>
-          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700 hover:text-slate-900 text-xs md:text-sm">
             <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Block List
           </TabsTrigger>
@@ -2071,12 +2071,12 @@ export default function AdminUserManagement() {
         {/* === VERIFIED USERS TAB (face-verified non-hosts) === */}
         <TabsContent value="verified-users" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Card className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 border-emerald-500/30">
+            <Card className="bg-emerald-50 border-emerald-200">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <ScanFace className="w-8 h-8 text-emerald-300" />
+                  <ScanFace className="w-8 h-8 text-emerald-600" />
                   <div>
-                    <p className="text-emerald-200/90 text-xs font-medium">Total Verified Users</p>
+                    <p className="text-emerald-800 text-xs font-medium">Total Verified Users</p>
                     <p className="text-slate-900 font-bold text-xl">{verifiedUserStats.total}</p>
                   </div>
                 </div>
@@ -2223,10 +2223,10 @@ export default function AdminUserManagement() {
 
         <TabsContent value="auto-verified" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Card className="bg-gradient-to-br from-cyan-500/15 to-cyan-700/10 border-cyan-400/30">
+            <Card className="bg-cyan-50 border-cyan-200">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-cyan-300" />
+                  <Shield className="w-6 h-6 text-cyan-600" />
                   <div>
                     <p className="text-lg font-bold text-cyan-100">{autoApprovedFaceCount}</p>
                     <p className="text-xs text-cyan-200/80">Auto Verified</p>
@@ -2234,10 +2234,10 @@ export default function AdminUserManagement() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-pink-500/15 to-pink-700/10 border-pink-400/30">
+            <Card className="bg-pink-50 border-pink-200">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Crown className="w-6 h-6 text-pink-300" />
+                  <Crown className="w-6 h-6 text-pink-600" />
                   <div>
                     <p className="text-lg font-bold text-pink-100">{autoHostFaceCount}</p>
                     <p className="text-xs text-pink-200/80">Auto Host</p>
@@ -3619,7 +3619,7 @@ export default function AdminUserManagement() {
                   <h3 className="font-bold text-lg text-slate-900">{selectedFaceSubmission.profile?.display_name}</h3>
                   <p className="text-sm text-slate-400"><CopyableUid value={selectedFaceSubmission.profile?.app_uid} /></p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge className={selectedFaceSubmission.verification_type === 'host' ? "bg-pink-500/20 text-pink-300" : "bg-blue-500/20 text-blue-300"}>
+                    <Badge className={selectedFaceSubmission.verification_type === 'host' ? "bg-pink-500/20 text-pink-600" : "bg-blue-500/20 text-blue-300"}>
                       {selectedFaceSubmission.verification_type === 'host' ? 'Host' : 'User'}
                     </Badge>
                     <Badge className={
@@ -3642,7 +3642,7 @@ export default function AdminUserManagement() {
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
-                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
+                  <Button variant="outline" className="border-pink-500/30 text-pink-600 hover:bg-pink-500/10" disabled={actionLoading} onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
                     <Crown className="w-4 h-4 mr-2" />
                     Host
                   </Button>
@@ -3803,7 +3803,7 @@ export default function AdminUserManagement() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-pink-500/10 rounded-lg border border-pink-500/30">
                   <p className="text-2xl font-bold text-pink-400">{selectedBlockedUser.followers_count || 0}</p>
-                  <p className="text-xs text-pink-300">Followers</p>
+                  <p className="text-xs text-pink-600">Followers</p>
                 </div>
                 <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
                   <p className="text-2xl font-bold text-blue-400">{selectedBlockedUser.following_count || 0}</p>
