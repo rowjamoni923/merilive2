@@ -223,6 +223,7 @@ const AdminLevelTiers = lazy(lazyRetry(() => import("./pages/admin/AdminLevelTie
 const AdminLevelPrivileges = lazy(lazyRetry(() => import("./pages/admin/AdminLevelPrivileges")));
 const AdminEntryBars = lazy(lazyRetry(() => import("./pages/admin/AdminEntryBars")));
 const AdminInvitationSettings = lazy(lazyRetry(() => import("./pages/admin/AdminInvitationSettings")));
+const AdminAgentDispatches = lazy(lazyRetry(() => import("./pages/admin/AdminAgentDispatches")));
 const AdminFrames = lazy(lazyRetry(() => import("./pages/admin/AdminFrames")));
 const AdminHelperApplications = lazy(lazyRetry(() => import("./pages/admin/AdminHelperApplications")));
 const AdminLevel5Helpers = lazy(lazyRetry(() => import("./pages/admin/AdminLevel5Helpers")));
