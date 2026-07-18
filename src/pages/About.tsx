@@ -106,7 +106,7 @@ const About = () => {
   ];
 
   const agencyBenefits = [
-    { icon: DollarSign, text: "3% to 20% tiered commission across 5 agency levels (A1 to A5)." },
+    { icon: DollarSign, text: `3% to ${maxRate}% tiered commission across ${dynamicTiers.length || 5} agency levels.` },
     { icon: Award, text: "Automatic weekly payout every Monday — fully calculated server-side." },
     { icon: Globe, text: "Local payouts via bKash, Nagad, JazzCash, USDT and bank transfer." },
     { icon: Users, text: "Sub-agent recruitment, host onboarding and team performance tools." },
