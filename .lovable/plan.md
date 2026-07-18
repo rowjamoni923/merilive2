@@ -1,43 +1,75 @@
-## Goal
-Agency Dashboard-এর **Total Earnings** card-এ agency host earnings + weekly withdraw দুটোই একসাথে দেখাবে (আলাদা কোথাও না), এবং সমস্ত commission % (app + landing + policy + payroll guide) admin panel-এর `agency_level_tiers` টেবিল থেকে instant read হবে — কোথাও কোনো hardcoded 3/5/7/10/12% থাকবে না।
+## Managed Banners System — Central Admin Control
 
-## Scope — কী কী file পরিবর্তন হবে
+সমস্ত static banners, guideline cards, welcome popups গুলোকে admin panel থেকে edit করার একটা centralized system তৈরি করব। যেকোনো time admin থেকে text / image / CTA / colors change করলে instantly app-এ reflect হবে (Realtime subscription)।
 
-### 1. Agency Dashboard — Total Earnings consolidation
-`src/pages/AgencyDashboard.tsx`
-- আজকের UI-এ host `total_earnings` আর `totalWithdrawn` আলাদা জায়গায় বসে আছে।
-- একটাই **Total Earnings** card থাকবে যেটা দেখাবে: `all-host-earnings + all-weekly-withdrawn` (agency এর সব host + sub-agency মিলিয়ে)।
-- Breakdown tooltip/sub-line: "Hosts: $X • Withdrawn: $Y"।
-- অন্য duplicate "Withdrawn total" card গুলা সরাবে।
+### 1. Database (single source of truth)
 
-### 2. Commission % — admin single source of truth
-নিচের সব জায়গায় hardcoded % সরানো হবে, সরাসরি `agency_level_tiers` থেকে fetch হবে + Realtime subscription যোগ হবে (admin edit করলেই instant reflect):
+নতুন table `managed_banners`:
+- `slug` (unique key, e.g. `agency_dashboard_guideline`, `payroll_helper_welcome`, `new_agency_popup`, `agency_policy_hero`, `agency_commission_hero`, `agency_activation_warning`, `agency_closed_notice`, `create_agency_intro`, `agency_signup_intro`)
+- `title`, `subtitle`, `body_md` (rich text/markdown)
+- `image_url` (optional hero image)
+- `cta_text`, `cta_url` (optional button)
+- `theme` (json: bg gradient, accent color, icon name)
+- `bullets` (jsonb array of {icon, title, description})
+- `is_active`, `updated_at`, `updated_by`
 
-| File | কী পরিবর্তন |
-|------|------------|
-| `src/pages/PayrollHelperGuide.tsx` | "up to 12%+" ও অন্যান্য fixed % → dynamic top-tier থেকে |
-| `src/pages/AgencyPolicy.tsx` | Example calculation "A4 (10%)", "$55×10%", "10%-4%", "10%-3%" → top tier % + real neighbor gaps থেকে dynamic |
-| `src/components/landing/AgencyCard.tsx` | ✅ ইতিমধ্যেই dynamic হয়ে গেছে (আগের turn-এ) |
-| `src/components/landing/HostProgramCard.tsx` | কোনো hardcoded rate নাই — শুধু generic copy। Skip |
-| `src/pages/LandingPage.tsx` (Merilive) | Scan করে যেকোনো hardcoded rate থাকলে dynamic করা হবে |
+Realtime enabled + admin-only write RLS + public read.
 
-### 3. Backend logic verification (কোনো code change নয়, শুধু confirm)
-`process_agency_commission_distribution` function ইতিমধ্যেই `agency_level_tiers` থেকে rate নেয় (আগের turn-এ hardcoded 12% override সরানো হয়েছে)। এটাই confirm করে report দেব যে A→Z path admin panel থেকেই compute হচ্ছে।
+### 2. Seed all existing banners
 
-## Technical Details
+Initial rows for প্রত্যেকটা জায়গা:
+1. **Agency Dashboard Guideline Helper** (`agency_dashboard_guideline`)
+2. **Payroll Helper Welcome Popup** (`payroll_helper_welcome`) — `PayrollHelperWelcomeModal`
+3. **New Agency Created Popup** (`new_agency_popup`)
+4. **Agency Activation Warning** (`agency_activation_warning`) — `AgencyActivationBanner`
+5. **Agency Closed Notice** (`agency_closed_notice`)
+6. **Agency Policy Hero** (`agency_policy_hero`) — `AgencyPolicy.tsx`
+7. **Agency Commission Hero** (`agency_commission_hero`) — `About.tsx`
+8. **Create Agency Intro** (`create_agency_intro`)
+9. **Agency Signup Intro** (`agency_signup_intro`)
+10. **Payroll Helper Guide Hero** (`payroll_helper_guide_hero`)
+11. **Policy Documents Intro** (`policy_intro`)
 
-- Data source: `agency_level_tiers (level_code, level_name, commission_rate, min_weekly_income, max_weekly_income, is_active)` — order by `commission_rate ASC`।
-- Realtime: প্রতি page-এ একটা channel subscription (`postgres_changes` on `agency_level_tiers`) — admin save করলে auto-refetch, refresh লাগবে না।
-- Payroll Guide-এ "up to X%+" এবং AgencyPolicy example-এ tier gap গুলা runtime-এ compute হবে: `topRate = max(commission_rate)`, gap = `(parentRate - childRate)`।
-- Cleanup: `supabase.removeChannel(channel)` in `useEffect` return।
-- কোনো fallback default number থাকবে না — data না এলে "Not configured by admin" guard।
+(commission % / tier data আগের মতোই `agency_level_tiers` থেকে dynamic — এই banner system শুধু copy/design control করে)
 
-## যা থাকবে না (out of scope)
-- কোনো business rule / calculation formula change — শুধু display + data source।
-- Design change — শুধু existing card-এ Total Earnings-এ withdrawn merge।
-- Backend function / migration — আগের turn-এ done।
+### 3. Admin UI — নতুন menu tab
 
-## Verification plan
-1. Owner account দিয়ে login → Agency Dashboard খুলে Total Earnings-এ hosts + withdrawn দুটোই merged আছে কিনা screenshot।
-2. Admin panel-এ কোনো tier % change করে → PayrollHelperGuide, AgencyPolicy, LandingPage, AgencyCard চারটাতেই instant reflect হচ্ছে কিনা screenshot।
-3. `rg` দিয়ে final check: কোনো "3%|5%|7%|10%|12%" hardcoded UI string বাকি নেই।
+**Route:** `/admin/managed-banners`  
+**Menu label:** "Banners & Guidelines" (Content section এ)
+
+Features:
+- Grid list of all banners with preview thumbnail + section label
+- Click → editor drawer: title / subtitle / body / image upload / CTA / theme picker / bullets editor
+- Live preview panel দেখায় ঠিক যেভাবে user side এ দেখাবে
+- Toggle `is_active` (hide/show)
+- "Reset to default" button
+- Search + filter by section
+
+### 4. Frontend hook
+
+`useManagedBanner(slug)` — একটা reusable hook যা DB থেকে fetch করে + Realtime subscribe করে। Existing components গুলো এটা use করবে fallback default সহ, যাতে DB row না থাকলেও কিছু ভাঙে না।
+
+### 5. Components refactor
+
+- `AgencyActivationBanner.tsx` → hook থেকে title/body pull
+- `PayrollHelperWelcomeModal.tsx` → hero image, title, subtitle, benefits, key advantages সব DB থেকে
+- `CreateAgency.tsx`, `AgencySignup.tsx`, `AgencyDashboard.tsx`, `AgencyPolicy.tsx`, `PayrollHelperGuide.tsx`, `About.tsx` → hero/intro banner sections DB থেকে
+
+Default fallback content = current hardcoded content, তাই কিছু break হবে না।
+
+### Technical notes
+- Realtime channel per slug
+- Admin write via `service_role` through existing `adminSupabase` client
+- Image upload uses existing `banners` storage bucket
+- No breaking DB migration — additive only
+
+---
+
+**Deliverables:**
+- 1 migration (table + RLS + seed rows)
+- 1 admin page (`AdminManagedBanners.tsx`) + menu entry
+- 1 hook (`useManagedBanner.ts`)
+- Refactor of ~7 banner-hosting components to consume the hook
+- Zero visual regression — defaults = current design
+
+Confirm করলে implement start করব।

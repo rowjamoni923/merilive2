@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, XCircle, Users, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useManagedBanner } from "@/hooks/useManagedBanner";
 
 interface Props {
   agencyId: string;
@@ -16,6 +17,15 @@ const REQUIRED_HOSTS = 10;
 
 export default function AgencyActivationBanner({ agencyId }: Props) {
   const [row, setRow] = useState<ActivationRow | null>(null);
+  const warningBanner = useManagedBanner("agency_activation_warning", {
+    title: "Activation Required",
+    body_md: `Activate **${REQUIRED_HOSTS} hosts** within 30 days of creation, or the agency will be automatically closed.`,
+  });
+  const closedBanner = useManagedBanner("agency_closed_notice", {
+    title: "Agency Closed",
+    body_md: `This agency did not activate ${REQUIRED_HOSTS} hosts within the 30-day window and has been automatically closed. Please contact support if you believe this is a mistake.`,
+  });
+
 
   useEffect(() => {
     let mounted = true;
@@ -71,10 +81,9 @@ export default function AgencyActivationBanner({ agencyId }: Props) {
             <XCircle className="h-5 w-5 text-red-400" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold text-red-300">Agency Closed</div>
+            <div className="text-sm font-semibold text-red-300">{closedBanner?.title ?? "Agency Closed"}</div>
             <p className="mt-1 text-xs text-white/80 leading-relaxed">
-              This agency did not activate {REQUIRED_HOSTS} hosts within the 30-day window and has been
-              automatically closed. Please contact support if you believe this is a mistake.
+              {(closedBanner?.body_md ?? `This agency did not activate ${REQUIRED_HOSTS} hosts within the 30-day window and has been automatically closed. Please contact support if you believe this is a mistake.`).replace("{REQUIRED_HOSTS}", String(REQUIRED_HOSTS))}
             </p>
           </div>
         </div>
@@ -90,15 +99,16 @@ export default function AgencyActivationBanner({ agencyId }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-sm font-semibold text-amber-200">Activation Required</div>
+            <div className="text-sm font-semibold text-amber-200">{warningBanner?.title ?? "Activation Required"}</div>
             <div className="flex items-center gap-1 text-[11px] text-amber-200/90">
               <Clock className="h-3 w-3" />
               {daysLeft} day{daysLeft === 1 ? "" : "s"} left
             </div>
           </div>
           <p className="mt-1 text-xs text-white/80 leading-relaxed">
-            Activate <span className="font-semibold text-white">{REQUIRED_HOSTS} hosts</span> within
-            30 days of creation, or the agency will be automatically closed.
+            {warningBanner?.body_md
+              ? warningBanner.body_md.replace("{REQUIRED_HOSTS}", String(REQUIRED_HOSTS)).replace(/\*\*(.*?)\*\*/g, "$1")
+              : `Activate ${REQUIRED_HOSTS} hosts within 30 days of creation, or the agency will be automatically closed.`}
           </p>
 
           {/* Progress */}

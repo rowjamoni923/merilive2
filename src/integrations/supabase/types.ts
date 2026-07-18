@@ -10236,6 +10236,63 @@ export type Database = {
           },
         ]
       }
+      managed_banners: {
+        Row: {
+          body_md: string | null
+          bullets: Json
+          created_at: string
+          cta_text: string | null
+          cta_url: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          label: string
+          section: string
+          slug: string
+          subtitle: string | null
+          theme: Json
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body_md?: string | null
+          bullets?: Json
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          label: string
+          section?: string
+          slug: string
+          subtitle?: string | null
+          theme?: Json
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body_md?: string | null
+          bullets?: Json
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          label?: string
+          section?: string
+          slug?: string
+          subtitle?: string | null
+          theme?: Json
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       message_push_dispatches: {
         Row: {
           created_at: string

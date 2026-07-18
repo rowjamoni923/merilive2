@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useManagedBanner } from "@/hooks/useManagedBanner";
 import payrollHeroImage from "@/assets/payroll-helper-hero.png";
 
 interface PayrollHelperWelcomeModalProps {
@@ -35,6 +36,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   const [isOpen, setIsOpen] = useState(false);
   const [helperTiers, setHelperTiers] = useState<Array<{level_number: number; level_name: string; commission_rate: number}>>([]);
   const [isApplying, setIsApplying] = useState(false);
+  const managed = useManagedBanner("payroll_helper_welcome");
 
   useEffect(() => {
     checkAndShowModal();
@@ -155,9 +157,9 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
       <DialogContent className="max-w-lg mx-auto p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Hero Image */}
         <div className="relative">
-          <img 
-            src={payrollHeroImage} 
-            alt="Payroll Helper System" 
+          <img
+            src={managed?.image_url || payrollHeroImage}
+            alt={managed?.title || "Payroll Helper System"}
             loading="eager"
             decoding="async"
             {...({ fetchpriority: "high" } as Record<string, string>)}
@@ -166,12 +168,12 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 mb-1">
               <Badge className="bg-success-500/90 text-white border-0 text-xs">
-                💰 Exclusive Opportunity
+                {managed?.theme?.badge || "💰 Exclusive Opportunity"}
               </Badge>
             </div>
-            <h2 className="text-xl font-bold text-white">Become a Payroll Helper</h2>
+            <h2 className="text-xl font-bold text-white">{managed?.title || "Become a Payroll Helper"}</h2>
             <p className="text-slate-700 text-sm">
-              Earn commission by processing transactions for our global user base!
+              {managed?.subtitle || "Earn commission by processing transactions for our global user base!"}
             </p>
           </div>
         </div>
@@ -295,7 +297,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
                 </>
               ) : (
                 <>
-                  Apply Now
+                  {managed?.cta_text || "Apply Now"}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </>
               )}

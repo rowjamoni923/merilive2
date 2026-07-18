@@ -247,6 +247,7 @@ const AdminBanners = lazy(lazyRetry(() => import("./pages/admin/AdminBanners")))
 const AdminCampaignBannerHub = lazy(lazyRetry(() => import("./pages/admin/AdminCampaignBannerHub")));
 const AdminPopupBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPopupBanners")));
 const AdminRatingBanners = lazy(lazyRetry(() => import("./pages/admin/AdminRatingBanners")));
+const AdminManagedBanners = lazy(lazyRetry(() => import("./pages/admin/AdminManagedBanners")));
 const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOnboardingSlides")));
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
 const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceManagement")));
@@ -1624,6 +1625,7 @@ const App = () => {
                   <Route path="campaign-banner-hub" element={<AdminRouteGuard routeSegment="campaign-banner-hub"><AdminCampaignBannerHub /></AdminRouteGuard>} />
                   <Route path="popup-banners" element={<AdminRouteGuard routeSegment="popup-banners"><AdminPopupBanners /></AdminRouteGuard>} />
                   <Route path="rating-banners" element={<AdminRouteGuard routeSegment="rating-banners"><AdminRatingBanners /></AdminRouteGuard>} />
+                  <Route path="managed-banners" element={<AdminRouteGuard routeSegment="managed-banners"><AdminManagedBanners /></AdminRouteGuard>} />
                   <Route path="onboarding-slides" element={<AdminRouteGuard routeSegment="onboarding-slides"><AdminOnboardingSlides /></AdminRouteGuard>} />
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
                   {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
