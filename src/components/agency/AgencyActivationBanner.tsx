@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, XCircle, Users, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useManagedBanner } from "@/hooks/useManagedBanner";
 
 interface Props {
   agencyId: string;
