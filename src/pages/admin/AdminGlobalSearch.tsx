@@ -67,7 +67,7 @@ export default function AdminGlobalSearch() {
   }, [q]);
 
   return (
-    <div className="p-6 space-y-6 bg-white min-h-screen">
+    <div className="admin-pro-shell p-6 space-y-6 bg-white min-h-screen">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Search className="w-6 h-6 text-blue-600" /> Global Admin Search
