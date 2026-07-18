@@ -9,6 +9,8 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
+
 
 type ProfileLite = { id: string; username: string | null; avatar_url: string | null };
 
