@@ -427,40 +427,60 @@ const AgencyPolicy = () => {
                 </CardContent>
               </Card>
 
-              {/* Commission Example */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50">
-                <CardHeader className="pb-2">
- <CardTitle className="text-base flex items-center gap-2 text-info-800">
-                    <Target className="w-5 h-5" />
-                    Commission Calculation Example
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
- <div className="bg-white/60 rounded-xl p-4">
- <p className="text-sm text-info-700 mb-2">
-                      Suppose your agency level is <strong>A4 (10%)</strong> and:
-                    </p>
- <ul className="text-sm text-info-600 space-y-1.5">
-                      <li>• Your direct hosts' income: $55</li>
-                      <li>• Sub-agent B (4% level) income: $11</li>
-                      <li>• Sub-agent C (3% level) income: $5</li>
-                    </ul>
- <div className="mt-3 pt-3 border-t border-info-200">
- <p className="text-sm font-medium text-info-800">
-                        Your total commission:
-                      </p>
- <ul className="text-sm text-info-600 mt-1">
-                        <li>$55 × 10% = $5.50</li>
-                        <li>$11 × (10%-4%) = $0.66</li>
-                        <li>$5 × (10%-3%) = $0.35</li>
-                      </ul>
- <p className="text-lg font-bold text-info-800 mt-2">
-                        Total: $6.51
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Commission Example — fully dynamic from admin-managed tiers */}
+              {(() => {
+                const sortedTiers = (levelTiers ?? []).slice().sort((a, b) => a.commission_rate - b.commission_rate);
+                if (sortedTiers.length < 3) return null;
+                const topTier = sortedTiers[sortedTiers.length - 1];
+                const midTier = sortedTiers[Math.max(0, sortedTiers.length - 3)];
+                const lowTier = sortedTiers[0];
+                const topRate = Number(topTier.commission_rate);
+                const midRate = Number(midTier.commission_rate);
+                const lowRate = Number(lowTier.commission_rate);
+                const hostIncome = 55;
+                const subBIncome = 11;
+                const subCIncome = 5;
+                const partA = (hostIncome * topRate) / 100;
+                const partB = (subBIncome * Math.max(0, topRate - midRate)) / 100;
+                const partC = (subCIncome * Math.max(0, topRate - lowRate)) / 100;
+                const total = partA + partB + partC;
+                return (
+                  <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2 text-info-800">
+                        <Target className="w-5 h-5" />
+                        Commission Calculation Example
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="bg-white/60 rounded-xl p-4">
+                        <p className="text-sm text-info-700 mb-2">
+                          Suppose your agency level is <strong>{topTier.level_name} ({topRate}%)</strong> and:
+                        </p>
+                        <ul className="text-sm text-info-600 space-y-1.5">
+                          <li>• Your direct hosts' income: ${hostIncome}</li>
+                          <li>• Sub-agent B ({midRate}% level) income: ${subBIncome}</li>
+                          <li>• Sub-agent C ({lowRate}% level) income: ${subCIncome}</li>
+                        </ul>
+                        <div className="mt-3 pt-3 border-t border-info-200">
+                          <p className="text-sm font-medium text-info-800">
+                            Your total commission:
+                          </p>
+                          <ul className="text-sm text-info-600 mt-1">
+                            <li>${hostIncome} × {topRate}% = ${partA.toFixed(2)}</li>
+                            <li>${subBIncome} × ({topRate}%-{midRate}%) = ${partB.toFixed(2)}</li>
+                            <li>${subCIncome} × ({topRate}%-{lowRate}%) = ${partC.toFixed(2)}</li>
+                          </ul>
+                          <p className="text-lg font-bold text-info-800 mt-2">
+                            Total: ${total.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
             </TabsContent>
 
             {/* Host Tab */}
