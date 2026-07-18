@@ -143,6 +143,19 @@ export function AdminMediaFrame({
   }, []);
 
   useEffect(() => {
+    if (!resolutionFailed || !isPrivateStorage || retryNonce >= 6) return;
+    let cancelled = false;
+    const retryDelay = retryNonce < 2 ? 250 : 500;
+    const timer = window.setTimeout(() => {
+      if (!cancelled) setRetryNonce((n) => n + 1);
+    }, retryDelay);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [resolutionFailed, isPrivateStorage, retryNonce]);
+
+  useEffect(() => {
     if (!displaySrc?.startsWith("blob:")) {
       setBlobMimeChecked(false);
       return;
