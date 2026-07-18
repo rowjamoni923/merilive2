@@ -81,10 +81,9 @@ export default function AgencyActivationBanner({ agencyId }: Props) {
             <XCircle className="h-5 w-5 text-red-400" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold text-red-300">Agency Closed</div>
+            <div className="text-sm font-semibold text-red-300">{closedBanner?.title ?? "Agency Closed"}</div>
             <p className="mt-1 text-xs text-white/80 leading-relaxed">
-              This agency did not activate {REQUIRED_HOSTS} hosts within the 30-day window and has been
-              automatically closed. Please contact support if you believe this is a mistake.
+              {(closedBanner?.body_md ?? `This agency did not activate ${REQUIRED_HOSTS} hosts within the 30-day window and has been automatically closed. Please contact support if you believe this is a mistake.`).replace("{REQUIRED_HOSTS}", String(REQUIRED_HOSTS))}
             </p>
           </div>
         </div>
