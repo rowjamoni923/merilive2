@@ -458,11 +458,7 @@ export default function AdminHostApplications() {
           Refresh
         </Button>
       </div>
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </div>
-      </div>
+
 
       {/* Stats — Pending / Approved / Rejected / All (matches AdminFaceVerification) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
