@@ -1542,6 +1542,7 @@ const App = () => {
                 <Route path="/admin/login" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
                 <Route path="/admin" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminLayout /></AdminAccessGuard></Suspense>}>
                   <Route index element={<SubAdminDashboardGuard><AdminDashboard /></SubAdminDashboardGuard>} />
+                  <Route path="dashboard" element={<Navigate to="/admin" replace />} />
                   <Route path="profit-analytics" element={<AdminRouteGuard routeSegment="dashboard"><AdminProfitAnalytics /></AdminRouteGuard>} />
                   <Route path="payouts-analytics" element={<AdminRouteGuard routeSegment="dashboard"><AdminPayoutsAnalytics /></AdminRouteGuard>} />
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
