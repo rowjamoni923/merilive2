@@ -42,9 +42,15 @@ export default function AdminDeviceApprovals() {
       const { data, error } = await adminSupabase.rpc('admin_list_pending_devices' as any, {
         _owner_admin_id: session.admin_id,
       });
-      if (error) throw error;
-      setDevices((data as any) || []);
+      if (error) {
+        console.error('[AdminDeviceApprovals] RPC error:', error);
+        throw error;
+      }
+      const rows = (data as any) || [];
+      console.info('[AdminDeviceApprovals] loaded', rows.length, 'devices');
+      setDevices(rows);
     } catch (e: any) {
+      console.error('[AdminDeviceApprovals] load failed:', e);
       toast.error(e?.message || 'Failed to load devices');
     } finally {
       setLoading(false);
