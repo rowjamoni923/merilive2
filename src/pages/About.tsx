@@ -385,7 +385,7 @@ const About = () => {
                 Build an agency. Lead a network.
               </h2>
               <p className="text-base mb-8 leading-relaxed" style={{ color: MUTED }}>
-                Recruit hosts, manage teams, and earn 3% to 20% commission across five performance tiers —
+                Recruit hosts, manage teams, and earn 3% to {maxRate}% commission across multiple performance tiers —
                 with weekly automated payouts and a real-time agency dashboard.
               </p>
 
