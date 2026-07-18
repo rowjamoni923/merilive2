@@ -167,7 +167,7 @@ const AdminAppUpdateLogs = () => {
   }, [logs, search]);
 
   return (
-    <div className="admin-pro-shell p-4 md:p-6 space-y-6 bg-white min-h-screen">
+    <div className="admin-pro-shell admin-content p-4 md:p-6 space-y-6 bg-white min-h-screen -mx-4 -my-4 sm:-mx-6 sm:-my-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
