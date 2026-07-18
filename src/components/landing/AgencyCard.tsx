@@ -16,16 +16,34 @@ interface Agency {
   total_hosts: number | null;
 }
 
-const commissionTiers = [
-  { level: "A1", rate: "3%", income: "$0 - $99", color: "from-slate-500/30 to-slate-600/20", border: "border-slate-500/20" },
-  { level: "A2", rate: "5%", income: "$100 - $499", color: "from-blue-500/20 to-blue-600/10", border: "border-blue-500/20" },
-  { level: "A3", rate: "7%", income: "$500 - $999", color: "from-purple-500/20 to-purple-600/10", border: "border-purple-500/20" },
-  { level: "A4", rate: "10%", income: "$1K - $2.9K", color: "from-amber-500/20 to-amber-600/10", border: "border-amber-500/20" },
-  { level: "A5", rate: "12%", income: "$3,000+", color: "from-pink-500/25 to-rose-600/15", border: "border-pink-500/25" },
+interface CommissionTier {
+  level: string;
+  rate: string;
+  income: string;
+  color: string;
+  border: string;
+}
+
+const TIER_STYLES: Array<{ color: string; border: string }> = [
+  { color: "from-slate-500/30 to-slate-600/20", border: "border-slate-500/20" },
+  { color: "from-blue-500/20 to-blue-600/10", border: "border-blue-500/20" },
+  { color: "from-purple-500/20 to-purple-600/10", border: "border-purple-500/20" },
+  { color: "from-amber-500/20 to-amber-600/10", border: "border-amber-500/20" },
+  { color: "from-pink-500/25 to-rose-600/15", border: "border-pink-500/25" },
+  { color: "from-emerald-500/25 to-teal-600/15", border: "border-emerald-500/25" },
+  { color: "from-red-500/25 to-orange-600/15", border: "border-red-500/25" },
 ];
+
+const formatIncome = (min: number | null, max: number | null): string => {
+  const fmt = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K` : `$${n}`);
+  if (min == null) return "";
+  if (max == null || max >= 999999) return `${fmt(min)}+`;
+  return `${fmt(min)} - ${fmt(max)}`;
+};
 
 const AgencyCard = () => {
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,7 +56,33 @@ const AgencyCard = () => {
         .order("total_hosts", { ascending: false });
       if (data) setAgencies(data);
     };
+    const fetchTiers = async () => {
+      const { data } = await supabase
+        .from("agency_level_tiers")
+        .select("level_code, level_name, commission_rate, min_weekly_income, max_weekly_income")
+        .eq("is_active", true)
+        .order("commission_rate", { ascending: true });
+      if (data) {
+        setCommissionTiers(
+          data.map((t: any, i: number) => ({
+            level: `A${i + 1}`,
+            rate: `${Number(t.commission_rate)}%`,
+            income: formatIncome(t.min_weekly_income, t.max_weekly_income),
+            ...TIER_STYLES[i % TIER_STYLES.length],
+          }))
+        );
+      }
+    };
     fetchAgencies();
+    fetchTiers();
+
+    const channel = supabase
+      .channel("agency-tiers-landing")
+      .on("postgres_changes", { event: "*", schema: "public", table: "agency_level_tiers" }, fetchTiers)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleCopy = (code: string) => {
@@ -105,7 +149,7 @@ const AgencyCard = () => {
         </motion.div>
 
         {/* Commission Tiers - Premium Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-14">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-14">
           {commissionTiers.map((tier, i) => (
             <motion.div
               key={tier.level}
