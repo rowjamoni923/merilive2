@@ -186,6 +186,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'invitation-settings': 'settings-hub',
   'popup-banners': 'settings-hub',
   'rating-banners': 'settings-hub',
+  'managed-banners': 'content-hub',
   'app-version': 'settings-hub',
   'device-management': 'settings-hub',
   'allowed-links': 'settings-hub',
