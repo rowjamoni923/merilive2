@@ -9,6 +9,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireAdminSession } from "../_shared/adminAuth.ts";
 
+type ImagescriptModule = typeof import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+let imagescriptPromise: Promise<ImagescriptModule> | null = null;
+function loadImagescript(): Promise<ImagescriptModule> {
+  if (!imagescriptPromise) imagescriptPromise = import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+  return imagescriptPromise;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -39,6 +46,36 @@ function uint8ToBase64(bytes: Uint8Array): string {
 }
 async function sha256Hash(msg: string): Promise<string> {
   return toHex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg))));
+}
+
+const MAX_REK_BYTES = 4_500_000;
+const MAX_REK_DIMENSION = 1600;
+const VIDEO_URL_RE = /(?:^|\/)(?:face-videos|videos)\/|\.(?:webm|mp4|m4v|mov|qt|mkv|3gp|3gpp|avi|ogg|ogv)(?:[?#]|$)/i;
+
+function isLikelyVideoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return VIDEO_URL_RE.test(decodeURIComponent(parsed.pathname));
+  } catch {
+    return VIDEO_URL_RE.test(url.split("?")[0] || url);
+  }
+}
+
+function firstUsableStillUrl(...urls: Array<string | null | undefined>): string | null {
+  for (const url of urls) {
+    if (typeof url === "string" && url.trim() && !isLikelyVideoUrl(url)) return url;
+  }
+  return null;
+}
+
+function evidenceUrl(analysis: unknown, key: string): string | null {
+  const root = analysis && typeof analysis === "object" ? analysis as Record<string, unknown> : {};
+  const evidence = root.evidence_urls && typeof root.evidence_urls === "object"
+    ? root.evidence_urls as Record<string, unknown>
+    : {};
+  const value = evidence[key];
+  return typeof value === "string" && value.trim() ? value : null;
 }
 
 async function rekognitionCall(
@@ -87,6 +124,11 @@ function parseStorageUrl(url: string): { bucket: string; path: string } | null {
   if (rawMatch) return { bucket: rawMatch[1], path: rawMatch[2] };
   try {
     const u = new URL(url);
+    const proxyMatch = u.pathname.match(/\/functions\/v1\/public-profile-avatar\/(.+)$/);
+    if (proxyMatch?.[1]) {
+      const proxyPath = decodeURIComponent(proxyMatch[1]);
+      if (!proxyPath.includes("..")) return { bucket: "face-verification", path: proxyPath };
+    }
     const m = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/]+)\/(.+)$/);
     if (!m) return null;
     return { bucket: decodeURIComponent(m[1]), path: decodeURIComponent(m[2]) };
@@ -95,16 +137,56 @@ function parseStorageUrl(url: string): { bucket: string; path: string } | null {
   }
 }
 
+async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  if ((isJpeg || isPng) && bytes.length <= MAX_REK_BYTES) return bytes;
+
+  try {
+    const { decode: decodeImage, Image } = await loadImagescript();
+    const img = await decodeImage(bytes);
+    if (!(img instanceof Image)) throw new Error("decoded_non_image");
+    const longest = Math.max(img.width, img.height);
+    if (longest > MAX_REK_DIMENSION) {
+      const scale = MAX_REK_DIMENSION / longest;
+      img.resize(Math.max(1, Math.round(img.width * scale)), Math.max(1, Math.round(img.height * scale)));
+    }
+    for (const q of [85, 75, 65, 55, 45]) {
+      const out = await img.encodeJPEG(q);
+      if (out.length <= MAX_REK_BYTES) return new Uint8Array(out);
+    }
+    img.resize(Math.max(1, Math.round(img.width / 2)), Math.max(1, Math.round(img.height / 2)));
+    const out = await img.encodeJPEG(40);
+    if (out.length > MAX_REK_BYTES) throw new Error("image_too_large_after_compression");
+    return new Uint8Array(out);
+  } catch (decodeErr) {
+    if (bytes.length > MAX_REK_BYTES) throw new Error(`image_too_large:${bytes.length}`);
+    throw new Error(`image_unreadable:${decodeErr instanceof Error ? decodeErr.message : "decode_failed"}`);
+  }
+}
+
 async function fetchImageBytes(url: string, supabaseAdmin: ReturnType<typeof createClient>): Promise<Uint8Array> {
   const parsed = parseStorageUrl(url);
+  let bytes: Uint8Array;
   if (parsed) {
+    try {
+      const { data } = await supabaseAdmin.storage
+        .from(parsed.bucket)
+        .download(parsed.path, { transform: { width: 1280, quality: 80, resize: "contain" } });
+      if (data) {
+        const transformed = new Uint8Array(await data.arrayBuffer());
+        if (transformed.length > 0 && transformed.length <= MAX_REK_BYTES) return transformed;
+      }
+    } catch { /* fall back to raw download */ }
     const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
     if (error || !data) throw new Error(`storage download failed: ${error?.message || "no data"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    bytes = new Uint8Array(await data.arrayBuffer());
+  } else {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`Failed to fetch image: ${r.status}`);
+    bytes = new Uint8Array(await r.arrayBuffer());
   }
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Failed to fetch image: ${r.status}`);
-  return new Uint8Array(await r.arrayBuffer());
+  return normalizeImageBytes(bytes);
 }
 
 // Owner policy (2026-06-26): same-submission photo/video/live comparisons pass
@@ -114,6 +196,12 @@ const MIN_FACE_MATCH_PERCENTAGE = 55;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  let activeAdmin: ReturnType<typeof createClient> | null = null;
+  let activeSubmissionId: string | null = null;
+  let workerAcquired = false;
+  let jobDoneSuccess = true;
+  let jobDoneError: string | null = null;
 
   try {
     const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
@@ -133,6 +221,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    activeAdmin = supabaseAdmin;
 
     const adminAuth = await requireAdminSession(req, supabaseAdmin, {
       sectionKey: "face-verification",
@@ -150,6 +239,7 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    activeSubmissionId = submissionId;
 
     const { data: submission, error: subErr } = await supabaseAdmin
       .from("face_verification_submissions")
@@ -165,16 +255,18 @@ serve(async (req) => {
 
     // Pick the best still image first. face_image_url is usually a video, while
     // front/selfie are the captured still frames used by the auto analyzer.
-    const liveFaceUrl: string | null =
-      submission.front_url || submission.selfie_url
-        ? (submission.front_url || submission.selfie_url)
-        : Array.isArray(submission.host_photos) && submission.host_photos.length > 0
-          ? submission.host_photos[0]
-          : null;
-    const leftFaceUrl: string | null = submission.left_url || null;
-    const rightFaceUrl: string | null = submission.right_url || null;
+    const hostPhotoUrls = Array.isArray(submission.host_photos) ? submission.host_photos.filter((v: unknown): v is string => typeof v === "string" && !!v.trim()) : [];
+    const liveFaceUrl: string | null = firstUsableStillUrl(
+      submission.front_url,
+      submission.selfie_url,
+      evidenceUrl(submission.ai_analysis, "live_face_scan_url"),
+      evidenceUrl(submission.ai_analysis, "face_video_frame_url"),
+      hostPhotoUrls[0],
+    );
+    const leftFaceUrl: string | null = firstUsableStillUrl(submission.left_url, evidenceUrl(submission.ai_analysis, "left_url"), evidenceUrl(submission.ai_analysis, "left_face_scan_url"));
+    const rightFaceUrl: string | null = firstUsableStillUrl(submission.right_url, evidenceUrl(submission.ai_analysis, "right_url"), evidenceUrl(submission.ai_analysis, "right_face_scan_url"));
 
-    const referenceUrl: string | null = submission.profile_photo_url || null;
+    const referenceUrl: string | null = firstUsableStillUrl(submission.profile_photo_url, evidenceUrl(submission.ai_analysis, "profile_photo_url"));
     if (!referenceUrl) {
       // Fall back to profile avatar
       const { data: prof } = await supabaseAdmin
@@ -188,6 +280,18 @@ serve(async (req) => {
       }
     }
     const finalReferenceUrl: string | null = referenceUrl || (submission as any).profile_photo_url || null;
+
+    const lockEligible = ["pending", "submitted", "under_review", "needs_retry", "user_retry"].includes(String(submission.status || "").toLowerCase());
+    if (lockEligible) {
+      const { data: lockOk, error: lockErr } = await supabaseAdmin.rpc("try_lock_face_submission_for_analysis", { p_submission_id: submissionId });
+      if (lockErr) throw lockErr;
+      if (lockOk === false) {
+        return new Response(JSON.stringify({ ok: false, error: "Analysis is already running or submission is not eligible." }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      workerAcquired = true;
+    }
 
     if (!liveFaceUrl) {
       const note = `[Re-run @ ${new Date().toISOString()}] ❌ Cannot re-run AWS — no face_image_url or host_photos in submission.`;
@@ -343,8 +447,20 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("[admin-rerun-face-verify] error:", err);
+    jobDoneSuccess = false;
+    jobDoneError = (err as Error)?.message || "Unknown error";
     return new Response(JSON.stringify({ error: (err as Error)?.message || "Unknown error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  } finally {
+    if (workerAcquired && activeAdmin && activeSubmissionId) {
+      await activeAdmin.rpc("mark_face_analysis_job_done", {
+        p_submission_id: activeSubmissionId,
+        p_success: jobDoneSuccess,
+        p_error: jobDoneError,
+      }).catch((doneErr: unknown) => {
+        console.warn("[admin-rerun-face-verify] job completion marker failed:", doneErr instanceof Error ? doneErr.message : doneErr);
+      });
+    }
   }
 });
