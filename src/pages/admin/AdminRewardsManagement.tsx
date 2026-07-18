@@ -48,6 +48,10 @@ const AdminRewardsManagement = () => {
     is_active: true,
   });
 
+  // Weekly Login State
+  const [weeklyConfig, setWeeklyConfig] = useState<any>(null);
+  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "coins", reward_amount: "500", label: "", description: "", is_active: true });
+
   // Fetch all data
   const fetchAll = useCallback(async () => {
     const [loginRes, firstRechargeRes, tiersRes, offersRes] = await Promise.all([
