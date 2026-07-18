@@ -53,7 +53,8 @@ async function loadFaceThresholdsFromAdmin(_supabaseAdmin: any): Promise<void> {
   return;
 }
 
-const LEGACY_DUPLICATE_SCAN_LIMIT = 1000;
+const LEGACY_DUPLICATE_SCAN_LIMIT = 60;
+const LEGACY_DUPLICATE_SCAN_BATCH_SIZE = 4;
 const APPROVED_FACE_STATUSES = ["approved", "auto_approved", "auto-approved", "verified", "passed"];
 const APPROVED_PROFILE_FACE_STATUSES = new Set(["approved", "verified", "auto_approved", "auto-approved", "passed"]);
 const FACE_RETRY_NOTIFICATION_TYPES = ["face_verification_retry", "face_verification_needs_retry"];
@@ -374,6 +375,7 @@ async function normalizeImageBytes(bytes: Uint8Array): Promise<Uint8Array> {
 }
 
 serve(async (req) => {
+  const requestStartedAt = Date.now();
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -509,7 +511,7 @@ serve(async (req) => {
     // DB insert trigger normalizes new rows to 'under_review' instantly
     // (see migration 20260625075339). 'submitted' and 'pending' are kept
     // for legacy/admin-rerun paths. All three are "ready for AI analysis".
-    if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry") {
+    if (st !== "submitted" && st !== "pending" && st !== "under_review" && st !== "needs_retry" && st !== "user_retry") {
       // Row already finalized (approved/rejected/expired) — treat re-invocations
       // (realtime fallback, admin reruns, double-submits) as a successful no-op
       // instead of a 400 that surfaces as a runtime error in the client.
@@ -787,8 +789,12 @@ serve(async (req) => {
     let compareFR = 0;
     if (details.length === 1 && leftDetails.length === 1 && rightDetails.length === 1 && leftBytes && rightBytes) {
       try {
-        compareFL = await compareFaces(frontBytes, leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
-        compareFR = await compareFaces(frontBytes, rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+        const [flScore, frScore] = await Promise.all([
+          compareFaces(frontBytes, leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+          compareFaces(frontBytes, rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+        ]);
+        compareFL = flScore;
+        compareFR = frScore;
       } catch (e) {
         console.error("[face-verification-analyze] CompareFaces:", e);
       }
@@ -937,15 +943,13 @@ serve(async (req) => {
     let hostPhotosMinScore: number | null = null;
     let hostPhotosMismatch = false;
     if (!frontError && hostPhotos.length > 0) {
-      for (const hp of hostPhotos) {
+      const hostPhotoResults = await Promise.all(hostPhotos.slice(0, 3).map(async (hp) => {
         try {
           const hpBytes = await fetchImageBytes(hp, supabaseAdmin);
           const hpDet = await detectFaces(hpBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
           const hpFaceCount = ((hpDet.FaceDetails as unknown[] | undefined) ?? []).length;
-          if (hpFaceCount === 0) {
-            hostPhotoScores.push({ url: hp, score: null, skip: "no_face" });
-            continue;
-          }
+          if (hpFaceCount === 0) return { url: hp, score: null, skip: "no_face" };
+          if (hpFaceCount > 1) return { url: hp, score: null, skip: "multiple_faces" };
           const score = await compareFaces(
             hpBytes,
             frontBytes,
@@ -953,16 +957,20 @@ serve(async (req) => {
             AWS_SECRET_ACCESS_KEY,
             AWS_REGION,
           );
-          hostPhotoScores.push({ url: hp, score });
-          if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
-          if (score < SAME_PERSON_MIN_SIMILARITY) hostPhotosMismatch = true;
+          return { url: hp, score };
         } catch (e) {
-          hostPhotoScores.push({
+          return {
             url: hp,
             score: null,
             skip: `fetch_or_compare_failed:${e instanceof Error ? e.message : "unknown"}`,
-          });
+          };
         }
+      }));
+      hostPhotoScores.push(...hostPhotoResults);
+      for (const result of hostPhotoResults) {
+        if (typeof result.score !== "number") continue;
+        if (hostPhotosMinScore === null || result.score < hostPhotosMinScore) hostPhotosMinScore = result.score;
+        if (result.score < SAME_PERSON_MIN_SIMILARITY) hostPhotosMismatch = true;
       }
     }
     rekognition.host_photos_count = hostPhotos.length;
@@ -1179,7 +1187,7 @@ serve(async (req) => {
     // Provider indexes only faces that passed after the provider was enabled.
     // For older already-verified accounts, run a bounded Rekognition fallback
     // against approved profile avatars so the second account is still caught.
-    if (!duplicateBlock && !frontError) {
+    if (!duplicateBlock && !frontError && !duplicateSearchCompleted) {
       try {
         const { data: approvedProfiles } = await supabaseAdmin
           .from("profiles")
@@ -1190,30 +1198,44 @@ serve(async (req) => {
           .limit(LEGACY_DUPLICATE_SCAN_LIMIT);
 
         let bestLegacyCandidate: Record<string, unknown> | null = null;
-        for (const candidate of approvedProfiles || []) {
+        const scanLegacyCandidate = async (candidate: Record<string, unknown>) => {
           const candidateUrl = ((candidate as any).face_verification_image as string | null) || (candidate.avatar_url as string | null) || null;
-          if (!candidateUrl) continue;
+          if (!candidateUrl) return null;
           try {
             const candidateBytes = await fetchImageBytes(candidateUrl, supabaseAdmin);
             const candidateDet = await detectFaces(candidateBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
             const candidateFaceCount = ((candidateDet.FaceDetails as unknown[] | undefined) ?? []).length;
-            if (candidateFaceCount !== 1) continue;
+            if (candidateFaceCount !== 1) return null;
             const similarity = await compareFaces(candidateBytes, frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
-            const previousBest = Number(bestLegacyCandidate?.similarity || 0);
-            if (similarity > previousBest) {
-              bestLegacyCandidate = {
-                previous_user_id: candidate.id,
-                previous_display_name: candidate.display_name || null,
-                previous_app_uid: candidate.app_uid || null,
-                previous_avatar: candidate.avatar_url || null,
-                previous_face_image: (candidate as any).face_verification_image || null,
-                similarity,
-                source: "rekognition_legacy_approved_profile_scan",
-                previous_approved: true,
-              };
-            }
+            return {
+              previous_user_id: candidate.id,
+              previous_display_name: candidate.display_name || null,
+              previous_app_uid: candidate.app_uid || null,
+              previous_avatar: candidate.avatar_url || null,
+              previous_face_image: (candidate as any).face_verification_image || null,
+              similarity,
+              source: "rekognition_legacy_approved_profile_scan",
+              previous_approved: true,
+            };
           } catch (_candidateErr) {
             // Skip one bad historical avatar; never block the whole analysis.
+            return null;
+          }
+        };
+        const candidates = (approvedProfiles || []) as Record<string, unknown>[];
+        for (let i = 0; i < candidates.length; i += LEGACY_DUPLICATE_SCAN_BATCH_SIZE) {
+          const elapsedMs = Date.now() - requestStartedAt;
+          if (elapsedMs > 23_000) {
+            rekognition.legacy_duplicate_scan_cut_short = true;
+            rekognition.legacy_duplicate_scan_elapsed_ms = elapsedMs;
+            break;
+          }
+          const chunk = candidates.slice(i, i + LEGACY_DUPLICATE_SCAN_BATCH_SIZE);
+          const results = await Promise.all(chunk.map(scanLegacyCandidate));
+          for (const result of results) {
+            if (!result) continue;
+            const previousBest = Number(bestLegacyCandidate?.similarity || 0);
+            if (Number(result.similarity || 0) > previousBest) bestLegacyCandidate = result;
           }
         }
         duplicateSearchCompleted = true;
