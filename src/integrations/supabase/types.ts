@@ -4733,28 +4733,28 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            foreignKeyName: "diamond_trader_transfers_counterparty_agency_id_fkey"
             columns: ["counterparty_agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            foreignKeyName: "diamond_trader_transfers_counterparty_agency_id_fkey"
             columns: ["counterparty_agency_id"]
             isOneToOne: false
             referencedRelation: "agencies_public"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            foreignKeyName: "diamond_trader_transfers_counterparty_user_id_fkey"
             columns: ["counterparty_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            foreignKeyName: "diamond_trader_transfers_counterparty_user_id_fkey"
             columns: ["counterparty_user_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
@@ -23569,7 +23569,7 @@ export type Database = {
           agency_id: string
           helper_id: string
           helper_wallet_balance: number
-          personal_coins: number
+          personal_diamonds: number
         }[]
       }
       get_user_active_noble: {
@@ -24269,8 +24269,8 @@ export type Database = {
       }
       record_gift_signal: {
         Args: {
-          _coins: number
           _device_id: string
+          _diamonds: number
           _ip_hash: string
           _receiver_id: string
           _sender_id: string
