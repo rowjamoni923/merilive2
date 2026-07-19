@@ -329,7 +329,7 @@ const AdminRewardsManagement = () => {
                     onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
                     className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                   >
-                    <option value="coins">Coins</option>
+                    <option value="coins">Diamonds (legacy coins)</option>
                     <option value="diamonds">Diamonds</option>
                     <option value="beans">Beans</option>
                   </select>
@@ -713,7 +713,7 @@ const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (fie
       </Badge>
       <div className="flex-1 grid grid-cols-3 gap-3">
         <div>
-          <Label className="text-xs">Coins</Label>
+          <Label className="text-xs">Diamonds (legacy)</Label>
           <Input
             type="number"
             inputMode="numeric"

@@ -111,7 +111,7 @@ export default function AdminUserWallet() {
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <Metric label="Beans (profile)" value={profile.beans ?? 0} />
             <Metric label="Diamonds (profile)" value={profile.diamonds ?? 0} />
-            <Metric label="Coins (profile)" value={profile.coins ?? 0} />
+            <Metric label="Diamonds (legacy coins col)" value={profile.coins ?? 0} />
             <Metric label="Ledger entries" value={rows.length} />
           </CardContent>
         </Card>

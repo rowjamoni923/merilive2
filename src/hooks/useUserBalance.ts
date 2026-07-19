@@ -80,7 +80,7 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('coins, diamonds')
+        .select('diamonds, coins') // DU-3: diamonds is canonical spend wallet; coins kept as soak fallback until DU-5 drops the column
         .eq('id', userId)
         .single();
 
@@ -90,7 +90,8 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
         return balanceCache.balance;
       }
 
-      const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
+      // DU-3: prefer diamonds; keep max() fallback until DU-2 batches 3-4 land and soak is fully green.
+      const newBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number((profile as any)?.coins ?? 0));
       if (requestSeq === balanceRequestSeq) {
         balanceCache.balance = newBalance;
         balanceCache.userId = userId;
@@ -212,7 +213,8 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       const diamonds = payload.diamonds;
       if (coins !== undefined || diamonds !== undefined) {
         balanceCache.userId = userId;
-        updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
+        // DU-3: prefer diamonds; max() fallback stays until DU-5 retires the coins column.
+        updateCachedBalance(Math.max(Number(diamonds || 0), Number(coins || 0)));
       }
 
       if (payload.beans !== undefined && typeof window !== 'undefined') {

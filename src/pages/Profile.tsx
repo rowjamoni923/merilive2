@@ -204,7 +204,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [profile?.display_name, profile?.username, currentUser?.user_metadata?.username, currentUser?.user_metadata?.full_name, currentUser?.user_metadata?.name]);
 
   const resolvedDiamondBalance = useMemo(() => {
-    const profileBalance = Math.max(Number(profile?.coins ?? 0), Number((profile as any)?.diamonds ?? 0));
+    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.coins ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
     return balanceInitialized ? cachedBalance : profileBalance;
   }, [balanceInitialized, cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 

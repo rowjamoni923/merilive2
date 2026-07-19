@@ -98,7 +98,7 @@ export default function AdminGlobalSearch() {
           {users.length === 0 ? <Empty /> : (
             <table className="w-full text-xs">
               <thead className="text-left text-slate-500">
-                <tr><th className="py-2">Username</th><th>Email</th><th>Phone</th><th>Beans</th><th>Diamonds</th><th>Coins</th><th>Joined</th><th></th></tr>
+                <tr><th className="py-2">Username</th><th>Email</th><th>Phone</th><th>Beans</th><th>Diamonds</th><th>Joined</th><th></th></tr>
               </thead>
               <tbody>
                 {users.map(u => (
@@ -107,8 +107,7 @@ export default function AdminGlobalSearch() {
                     <td className="text-slate-500">{u.email || "—"}</td>
                     <td className="text-slate-500">{u.phone_number || "—"}</td>
                     <td>{Number(u.beans ?? 0).toLocaleString()}</td>
-                    <td>{Number(u.diamonds ?? 0).toLocaleString()}</td>
-                    <td>{Number(u.coins ?? 0).toLocaleString()}</td>
+                    <td>{Math.max(Number(u.diamonds ?? 0), Number(u.coins ?? 0)).toLocaleString()}</td>
                     <td className="text-slate-500">{new Date(u.created_at).toLocaleDateString()}</td>
                     <td>
                       <Link to={`/admin/users/${u.id}/wallet`} className="text-blue-600 hover:underline inline-flex items-center gap-1">
