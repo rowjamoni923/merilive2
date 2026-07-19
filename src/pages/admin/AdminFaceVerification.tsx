@@ -1103,19 +1103,87 @@ const AdminFaceVerification = () => {
             </div>
           ) : (
             <div className="space-y-4">
+              {(() => {
+                const reviewable = filteredSubmissions.filter(canManuallyReview);
+                const selectedCount = filteredSubmissions.filter((s) => selectedIds.has(s.id)).length;
+                const allSelected = reviewable.length > 0 && reviewable.every((s) => selectedIds.has(s.id));
+                return (
+                  <div className="sticky top-0 z-30 rounded-xl border border-[#E2E8F0] bg-white/95 backdrop-blur px-3 py-2 shadow-sm flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="face-select-all"
+                        checked={allSelected}
+                        onCheckedChange={(v) => {
+                          setSelectedIds((prev) => {
+                            const n = new Set(prev);
+                            if (v) reviewable.forEach((s) => n.add(s.id));
+                            else reviewable.forEach((s) => n.delete(s.id));
+                            return n;
+                          });
+                        }}
+                        disabled={reviewable.length === 0 || !!bulkProgress}
+                      />
+                      <label htmlFor="face-select-all" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                        Select all reviewable ({reviewable.length})
+                      </label>
+                    </div>
+                    <div className="flex-1" />
+                    {bulkProgress ? (
+                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        {bulkProgress.done}/{bulkProgress.total} • ✓{bulkProgress.ok} • ✗{bulkProgress.fail}
+                      </div>
+                    ) : selectedCount > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-700">{selectedCount} selected</span>
+                        <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => runBulkDecision('approve', { asRole: 'user' })}>
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve as User
+                        </Button>
+                        <Button size="sm" className="h-8 bg-cyan-600 hover:bg-cyan-700 text-white" onClick={() => runBulkDecision('approve', { asRole: 'host' })}>
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve as Host
+                        </Button>
+                        <Button size="sm" variant="destructive" className="h-8" onClick={() => {
+                          const reason = window.prompt('Bulk reject reason (logged in admin_notes):', 'Bulk rejected by admin — failed verification')?.trim();
+                          if (!reason) return;
+                          runBulkDecision('reject', { reason });
+                        }}>
+                          <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8" onClick={runBulkRerunAi}>
+                          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Re-run AI
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 text-slate-600" onClick={clearSelection}>Clear</Button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-500">Tick rows to bulk approve, reject, or re-run AI.</span>
+                    )}
+                  </div>
+                );
+              })()}
               {filteredSubmissions.map((submission, rowIndex) => {
                 const { completed, total, percentage } = getCompletionData(submission);
                 const faceMatch = extractFaceMatchPercentage(submission.admin_notes);
                 const mediaStatus = getSubmissionMediaStatus(submission);
                 const mediaReadiness = getFaceSubmissionMediaReadiness(submission);
+                const rowSelectable = canManuallyReview(submission);
+                const rowSelected = selectedIds.has(submission.id);
 
                 return (
-                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-white border border-[#E2E8F0] hover:border-slate-300 transition-colors rounded-xl p-4 space-y-3 shadow-sm">
+                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className={cn("bg-white border transition-colors rounded-xl p-4 space-y-3 shadow-sm", rowSelected ? "border-emerald-400 ring-2 ring-emerald-100" : "border-[#E2E8F0] hover:border-slate-300")}>
                     <div className="flex items-center gap-3">
+                      {rowSelectable && (
+                        <Checkbox
+                          checked={rowSelected}
+                          onCheckedChange={() => toggleRowSelected(submission.id)}
+                          disabled={!!bulkProgress}
+                          aria-label={`Select ${submission.full_name || submission.user_id}`}
+                        />
+                      )}
                       <Avatar className="w-10 h-10 border border-border">
                         <UserAvatarImage gender={((submission.profile) as any)?.gender} seed={submission.user_id ?? submission.id} src={submission.profile?.avatar_url} />
                         <AvatarFallback>{submission.full_name?.charAt(0) || submission.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
+
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
