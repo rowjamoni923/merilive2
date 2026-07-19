@@ -201,8 +201,8 @@ class _FlyingGiftCapsuleState extends State<FlyingGiftCapsule>
   }
 
   ({List<Color> bg, Color border, Color countColor, Color glow}) _tierStyle() {
-    final coins = widget.event.perUnitCoins * widget.count;
-    if (coins >= 10000) {
+    final diamonds = widget.event.perUnitDiamonds * widget.count;
+    if (diamonds >= 10000) {
       // Premium — royal blue → soft violet with gold accents.
       return (
         bg: const [Color(0xF52C37BA), Color(0xEA5C63E0), Color(0x8CB0BEFF)],
@@ -211,7 +211,7 @@ class _FlyingGiftCapsuleState extends State<FlyingGiftCapsule>
         glow: const Color(0x473236A8),
       );
     }
-    if (coins >= 1000) {
+    if (diamonds >= 1000) {
       // Luxury — indigo → periwinkle.
       return (
         bg: const [Color(0xF22D43C2), Color(0xE66A6EDE), Color(0x7AB9C4FF)],

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 /// Flutter port of `GiftPanel.tsx` + `GiftSwipeableGrid.tsx` — bottom sheet
-/// gift picker. Tabs across categories, swipeable 8-per-page grid, coin
+/// gift picker. Tabs across categories, swipeable 8-per-page grid, Diamond
 /// balance chip, quick "Send" with optional 1/10/99 combo count.
 class GiftPanelItem {
   final String id;
   final String name;
   final String iconUrl;
-  final int coins;
+  final int diamonds;
   final String category;
   final bool premium;
   const GiftPanelItem({
     required this.id,
     required this.name,
     required this.iconUrl,
-    required this.coins,
+    required this.diamonds,
     required this.category,
     this.premium = false,
   });
@@ -22,14 +22,14 @@ class GiftPanelItem {
 
 class GiftPanel extends StatefulWidget {
   final List<GiftPanelItem> gifts;
-  final int coinBalance;
+  final int diamondBalance;
   final void Function(GiftPanelItem gift, int count) onSend;
   final VoidCallback onRecharge;
 
   const GiftPanel({
     super.key,
     required this.gifts,
-    required this.coinBalance,
+    required this.diamondBalance,
     required this.onSend,
     required this.onRecharge,
   });
@@ -37,7 +37,7 @@ class GiftPanel extends StatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required List<GiftPanelItem> gifts,
-    required int coinBalance,
+    required int diamondBalance,
     required void Function(GiftPanelItem, int) onSend,
     required VoidCallback onRecharge,
   }) {
@@ -49,7 +49,7 @@ class GiftPanel extends StatefulWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => GiftPanel(
         gifts: gifts,
-        coinBalance: coinBalance,
+        diamondBalance: diamondBalance,
         onSend: onSend,
         onRecharge: onRecharge,
       ),
@@ -196,7 +196,7 @@ class _GiftPanelState extends State<GiftPanel> {
                               const Icon(Icons.monetization_on,
                                   color: Color(0xFFFDE68A), size: 10),
                               const SizedBox(width: 2),
-                              Text('${g.coins}',
+                              Text('${g.diamonds}',
                                   style: const TextStyle(
                                       color: Color(0xFFFDE68A),
                                       fontSize: 10,
@@ -231,7 +231,7 @@ class _GiftPanelState extends State<GiftPanel> {
                           const Icon(Icons.monetization_on,
                               color: Color(0xFFFDE68A), size: 14),
                           const SizedBox(width: 4),
-                          Text('${widget.coinBalance}',
+                          Text('${widget.diamondBalance}',
                               style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,

@@ -25,7 +25,7 @@ import 'package:flutter/services.dart';
 ///   "receiverName": "Bob",
 ///   "giftName": "Dragon",
 ///   "quantity": 1,
-///   "coinValue": 5000,
+///   "diamondValue": 5000,
 ///   "surface": "live" | "party" | "call"
 /// }
 /// ```
