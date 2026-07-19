@@ -162,7 +162,7 @@ export default function AdminGiftAnimationConfig() {
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
               <b>Live preview:</b> current settings — threshold{' '}
-              <span className="font-mono font-semibold">{threshold}</span> coins,{' '}
+              <span className="font-mono font-semibold">{threshold}</span> diamonds,{' '}
               <span className="font-semibold">{enabled ? 'ENABLED' : 'DISABLED'}</span>.
               {lastUpdated && (
                 <span className="ml-2 text-blue-700/70">
