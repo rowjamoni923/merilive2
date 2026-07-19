@@ -239,9 +239,9 @@ export default function AdminRandomCallOps() {
         <Stat label="Waiting in queue" value={stats.queuedNow} color="text-cyan-600" />
         <Stat label="Suspended hosts" value={stats.suspendedHosts} color="text-rose-600" />
         <Stat label="Calls today" value={stats.callsToday} sub={`${stats.completedToday} billed · ${stats.shortToday} < 40s`} />
-        <Stat label="Coins charged (today)" value={stats.coinsToday.toLocaleString()} />
+        <Stat label="Diamonds charged (today)" value={stats.coinsToday.toLocaleString()} />
         <Stat label="Beans paid (today)" value={stats.beansToday.toLocaleString()} />
-        <Stat label="Coins charged (7d)" value={stats.coinsWeek.toLocaleString()} />
+        <Stat label="Diamonds charged (7d)" value={stats.coinsWeek.toLocaleString()} />
         <Stat label="Beans paid (7d)" value={stats.beansWeek.toLocaleString()} />
       </div>
 
