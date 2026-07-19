@@ -213,7 +213,8 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       const diamonds = payload.diamonds;
       if (coins !== undefined || diamonds !== undefined) {
         balanceCache.userId = userId;
-        updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
+        // DU-3: prefer diamonds; max() fallback stays until DU-5 retires the coins column.
+        updateCachedBalance(Math.max(Number(diamonds || 0), Number(coins || 0)));
       }
 
       if (payload.beans !== undefined && typeof window !== 'undefined') {
