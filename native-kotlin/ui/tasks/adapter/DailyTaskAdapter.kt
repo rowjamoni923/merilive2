@@ -47,7 +47,7 @@ class DailyTaskAdapter(
             // Reward text
             val rewardParts = mutableListOf<String>()
             task.reward_beans?.let { if (it > 0) rewardParts.add("+$it Beans") }
-            task.reward_coins?.let { if (it > 0) rewardParts.add("+$it 💎") }
+            task.reward_diamonds?.let { if (it > 0) rewardParts.add("+$it 💎") }
             binding.tvReward.text = rewardParts.joinToString(" ")
 
             // Icon color

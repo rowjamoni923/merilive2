@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Flutter port of `PKBattleResult.tsx` — post-battle result modal. Shows
-/// winner banner, 70/30 coin split, MVP contributor. Auto-dismiss after 6s.
+/// winner banner, 70/30 Diamond split, MVP contributor. Auto-dismiss after 6s.
 class PKBattleResultData {
   final String hostName;
   final String? hostAvatarUrl;
@@ -9,8 +9,8 @@ class PKBattleResultData {
   final String opponentName;
   final String? opponentAvatarUrl;
   final int opponentScore;
-  final int winnerCoins; // 70%
-  final int loserCoins; // 30%
+  final int winnerDiamonds; // 70%
+  final int loserDiamonds; // 30%
   final String? mvpName;
   final String? mvpAvatarUrl;
   final int? mvpContribution;
@@ -20,8 +20,8 @@ class PKBattleResultData {
     required this.opponentName,
     required this.hostScore,
     required this.opponentScore,
-    required this.winnerCoins,
-    required this.loserCoins,
+    required this.winnerDiamonds,
+    required this.loserDiamonds,
     this.hostAvatarUrl,
     this.opponentAvatarUrl,
     this.mvpName,
@@ -142,7 +142,7 @@ class _PKBattleResultState extends State<PKBattleResult> {
                         const Icon(Icons.monetization_on,
                             color: Color(0xFFFDE68A), size: 14),
                         const SizedBox(width: 4),
-                        Text('${d.winnerCoins}',
+                        Text('${d.winnerDiamonds}',
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800)),
@@ -159,7 +159,7 @@ class _PKBattleResultState extends State<PKBattleResult> {
                         const Icon(Icons.monetization_on,
                             color: Color(0xFFFDE68A), size: 14),
                         const SizedBox(width: 4),
-                        Text('${d.loserCoins}',
+                        Text('${d.loserDiamonds}',
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800)),
@@ -205,7 +205,7 @@ class _PKBattleResultState extends State<PKBattleResult> {
                             fontSize: 12)),
                     if (d.mvpContribution != null) ...[
                       const SizedBox(width: 6),
-                      Text('${d.mvpContribution} coins',
+                      Text('${d.mvpContribution} Diamonds',
                           style: const TextStyle(
                               color: Color(0xFFFEF9C3), fontSize: 11)),
                     ],

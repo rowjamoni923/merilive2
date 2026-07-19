@@ -267,7 +267,7 @@ class _UnifiedGiftSheetState extends State<_UnifiedGiftSheet> {
       // G7 — full-screen animation parity with web.
       // Native Android VAP/SVGA plugin (Pkg438) also fires from realtime;
       // this Dart overlay guarantees Flutter surfaces never render nothing.
-      if (GiftAnimationConfig.instance.shouldPlayFullScreen(coinCost)) {
+      if (GiftAnimationConfig.instance.shouldPlayFullScreen(diamondCost)) {
         final recipient = widget.recipients.firstWhere(
           (r) => r.id == _recipientId,
           orElse: () => GiftRecipient(id: _recipientId, label: 'Receiver'),

@@ -1,6 +1,6 @@
 // R7 — Reels gift sheet (Chamet/Bigo-class quick send).
 //
-// Reads the live `gifts` catalog + user coin balance, groups by category,
+// Reads the live `gifts` catalog + user Diamond balance, groups by category,
 // lets the sender pick a gift + quantity chip (1/10/49/99/199/999) and fires
 // the atomic `gift-service` edge function via ReelsGiftRepository.sendGift so
 // billing, host-percent split and realtime dispatch stay identical to the web
