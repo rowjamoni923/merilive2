@@ -32,7 +32,7 @@ const SOURCE_TYPES = [
   "all", "recharge", "gift_sent", "gift_received", "daily_login",
   "rating_reward", "invitation_reward", "new_host_bonus", "task_reward",
   "withdrawal", "admin_adjust", "game", "pk_battle", "agency_transfer",
-  "coin_tx", "self_recharge", "unknown",
+  "diamond_tx", "self_recharge", "unknown",
 ];
 
 const CURRENCIES = ["all", "beans", "diamonds", "diamonds"] as const;

@@ -907,7 +907,7 @@ const AgencyDiamondExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Send className="w-5 h-5 text-info-600" />
-                Send Coins to User Top-up
+                Send Gem to User Top-up
               </h3>
               
               <div className="space-y-4">
@@ -1045,7 +1045,7 @@ const AgencyDiamondExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Gem
                     </Button>
                   </>
                 )}
@@ -1058,7 +1058,7 @@ const AgencyDiamondExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-brand-600" />
-                Send Coins to Trader Wallet
+                Send Gem to Trader Wallet
               </h3>
               <p className="text-xs text-slate-500 -mt-2 mb-4">
                 Agency transfer goes directly to the target owner’s Trader Wallet
@@ -1184,7 +1184,7 @@ const AgencyDiamondExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins → Trader Wallet
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Gem → Trader Wallet
                     </Button>
                   </>
                 )}

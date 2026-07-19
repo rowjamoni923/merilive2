@@ -288,7 +288,7 @@ export default function AdminHosts() {
           { label: "Active", value: stats.activeHosts, Icon: CheckCircle, tint: "emerald" },
           { label: "Pending", value: stats.pendingHosts, Icon: Clock, tint: "amber" },
           { label: "Blocked", value: stats.blockedHosts, Icon: Ban, tint: "rose" },
-          { label: "Total Earnings", value: formatDiamonds(stats.totalEarnings), Icon: Coins, tint: "violet" },
+          { label: "Total Earnings", value: formatDiamonds(stats.totalEarnings), Icon: Gem, tint: "violet" },
         ].map(({ label, value, Icon, tint }) => {
           const tintMap: Record<string, string> = {
             blue: "bg-blue-50 border-blue-100 text-blue-600",

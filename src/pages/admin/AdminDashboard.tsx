@@ -634,7 +634,7 @@ export default function AdminDashboard() {
           </motion.div>
           
           <QuickAction title="Host Applications" description="Review new applications" icon={Shield} link="/admin/host-applications" accentColor="#a78bfa" delay={0.7} />
-          <QuickAction title="Pricing Hub" description="All commissions & rates" icon={Coins} link="/admin/pricing-hub" accentColor="#f97316" delay={0.75} />
+          <QuickAction title="Pricing Hub" description="All commissions & rates" icon={Gem} link="/admin/pricing-hub" accentColor="#f97316" delay={0.75} />
           <QuickAction title="Random Call" description="Match-call price & 40s rule" icon={Phone} link="/admin/random-call" accentColor="#06b6d4" delay={0.78} />
           <QuickAction title="Random Call Ops" description="Live monitor · queue · suspensions" icon={Phone} link="/admin/random-call-ops" accentColor="#0891b2" delay={0.79} />
           <QuickAction title="Payment Gateways" description="Configure payments" icon={Wallet} link="/admin/payment-gateways" accentColor="#ec4899" delay={0.8} />

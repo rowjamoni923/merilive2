@@ -1041,12 +1041,12 @@ export default function AdminCommissions() {
               </div>
 
               <Button
-                onClick={() => saveSetting("coin_trade_settings", settings?.coin_trader)}
-                disabled={saving === "coin_trade_settings"}
+                onClick={() => saveSetting("diamond_trade_settings", settings?.coin_trader)}
+                disabled={saving === "diamond_trade_settings"}
                 className="w-full bg-emerald-500 hover:bg-emerald-600"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {saving === "coin_trade_settings" ? "Saving..." : "Save Trader Settings"}
+                {saving === "diamond_trade_settings" ? "Saving..." : "Save Trader Settings"}
               </Button>
             </CardContent>
           </Card>

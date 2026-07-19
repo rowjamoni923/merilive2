@@ -432,7 +432,7 @@ const AdminNobleSubscriptions = () => {
                 <TabsContent value="economy" className="space-y-3 mt-4">
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { key: 'recharge_bonus_percent', label: 'Recharge Bonus %', icon: Coins, color: 'text-amber-400' },
+                      { key: 'recharge_bonus_percent', label: 'Recharge Bonus %', icon: Gem, color: 'text-amber-400' },
                       { key: 'cashback_percent', label: 'Cashback %', icon: Gem, color: 'text-emerald-400' },
                       { key: 'daily_free_diamonds', label: 'Daily Free 💎', icon: Calendar, color: 'text-cyan-400' },
                       { key: 'monthly_free_diamonds', label: 'Monthly Free 💎', icon: Sparkles, color: 'text-pink-400' },

@@ -576,21 +576,21 @@ const navGroups: NavGroup[] = [
       },
       {
         label: "Diamond Trader Hub",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/diamond-trader-hub",
         hubKey: "trader-hub",
         description: "Landing page for Diamond Trader system — bundles Topup, Payment Gateways, and Helpers.",
       },
       {
         label: "Diamond Traders",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/diamond-traders",
         hubKey: "trader-hub",
         description: "List of approved Diamond Traders (helpers who sell diamonds) with their balances and stats.",
       },
       {
         label: "Trader Approvals",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/diamond-traders/approvals",
         hubKey: "trader-hub",
         description: "Approve or revoke Level 1–5 helper-traders for UID top-up permission; review recent approval changes.",
@@ -611,7 +611,7 @@ const navGroups: NavGroup[] = [
       },
       {
         label: "Diamonds Management",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/diamonds",
         hubKey: "finance-hub",
         description: "Manually adjust any user's diamond balance with full audit trail (refunds, corrections, gifts).",
@@ -681,7 +681,7 @@ const navGroups: NavGroup[] = [
       },
       {
         label: "🪙 Crypto Recovery",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/crypto-recovery",
         hubKey: "finance-hub",
         description: "USDT/BTC deposits that Swift Pay confirmed but never credited — one-click recovery + audit trail.",
@@ -779,7 +779,7 @@ const navGroups: NavGroup[] = [
       },
       {
         label: "User Beans Exchange",
-        icon: Coins,
+        icon: Gem,
         path: "/admin/user-beans-exchange",
         hubKey: "finance-hub",
         description: "Configure the user Beans→Diamonds exchange rate and minimum exchange amounts.",

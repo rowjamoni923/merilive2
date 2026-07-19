@@ -38,7 +38,7 @@ const PayrollHelperGuide = () => {
 
   const roles = [
     {
-      icon: Coins,
+      icon: Gem,
       title: "Process User Top-ups",
       desc: "When users purchase diamonds through local payment methods (bKash, Nagad, JazzCash, etc.), you receive the payment and deliver the diamonds to the user's account instantly.",
       color: "from-amber-500 to-orange-500",

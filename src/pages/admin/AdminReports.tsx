@@ -237,7 +237,7 @@ export default function AdminReports() {
           colorClass="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30 text-green-300"
         />
         <StatCardNew
-          icon={Coins}
+          icon={Gem}
           label="Total Diamonds Spent"
           value={formatDiamonds(stats.totalDiamondsSpent)}
           change={8}

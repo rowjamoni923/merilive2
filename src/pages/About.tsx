@@ -92,12 +92,12 @@ const About = () => {
     { icon: Shield, title: "Face Verified Safety", desc: "Mandatory face verification for hosts and AI-driven anti-fraud protection.", color: "from-teal-500 to-cyan-500" },
     { icon: MessageCircle, title: "Real-time Chat & DM", desc: "Lightning-fast messaging, voice notes, gift drops and host follow feed.", color: "from-blue-500 to-indigo-500" },
     { icon: Crown, title: "Noble Membership", desc: "Knight to King tiers — exclusive frames, entry effects and luxury perks.", color: "from-yellow-500 to-amber-600" },
-    { icon: Coins, title: "Wallet & Recharge", desc: "Beans, diamonds and trader wallet. bKash, Nagad, JazzCash & global cards.", color: "from-green-500 to-emerald-600" },
+    { icon: Gem, title: "Wallet & Recharge", desc: "Beans, diamonds and trader wallet. bKash, Nagad, JazzCash & global cards.", color: "from-green-500 to-emerald-600" },
     { icon: Languages, title: "Global & Local", desc: "Multi-language UI with strong Bangla, Hindi, English and Arabic coverage.", color: "from-cyan-500 to-blue-600" },
   ];
 
   const hostBenefits = [
-    { icon: Coins, text: "Earn beans for every minute live, every call and every gift." },
+    { icon: Gem, text: "Earn beans for every minute live, every call and every gift." },
     { icon: TrendingUp, text: "Transparent rate: 9,000 Beans = 1 USD. Withdraw from $10." },
     { icon: Award, text: "Weekly auto-payout every Monday — no manual approvals." },
     { icon: Star, text: "Host badge & priority discovery after face verification." },

@@ -708,7 +708,7 @@ const AdminTasksSettings = () => {
                         +{task.reward_beans} Beans
                       </span>
                       <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                        +{task.reward_diamonds} Coins
+                        +{task.reward_diamonds} Gem
                       </span>
                       {(task as any).show_in_live && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">

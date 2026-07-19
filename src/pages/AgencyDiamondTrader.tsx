@@ -157,7 +157,7 @@ const AgencyDiamondTrader = () => {
       const { data: settingsData } = await supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'coin_trade_settings')
+        .eq('setting_key', 'diamond_trade_settings')
         .maybeSingle();
 
       if (settingsData?.setting_value) {
