@@ -75,7 +75,7 @@ class _MatchCallPageState extends State<MatchCallPage>
         p = await _supabase
             .from('profiles')
             .select(
-                'id, coins, diamonds, vip_tier, current_vip_tier_id, gender')
+                'id, diamonds, vip_tier, current_vip_tier_id, gender')
             .eq('id', uid)
             .maybeSingle();
       }
@@ -137,8 +137,8 @@ class _MatchCallPageState extends State<MatchCallPage>
   }
 
   double get _rate {
-    final n = _settings?['host_max_rate_coins_per_min'] ??
-        _settings?['default_host_rate_coins_per_min'];
+    final n = _settings?['host_max_rate_diamonds_per_min'] ??
+        _settings?['default_host_rate_diamonds_per_min'];
     return (n is num) ? n.toDouble() : 0;
   }
 
@@ -148,9 +148,8 @@ class _MatchCallPageState extends State<MatchCallPage>
   }
 
   double get _balance {
-    final c = (_profile?['coins'] as num?)?.toDouble() ?? 0;
     final d = (_profile?['diamonds'] as num?)?.toDouble() ?? 0;
-    return math.max(c, d);
+    return d;
   }
 
   double get _requiredBalance => _rate * _preauthMinutes;
@@ -158,7 +157,7 @@ class _MatchCallPageState extends State<MatchCallPage>
   Future<void> _startSearch() async {
     if (_settings == null) return;
     if (_requiredBalance > 0 && _balance < _requiredBalance) {
-      _snack('Not enough coins. Please recharge.');
+      _snack('Not enough Diamonds. Please recharge.');
       return;
     }
     HapticFeedback.mediumImpact();
@@ -281,7 +280,7 @@ class _MatchCallPageState extends State<MatchCallPage>
   void _handleError(String code, Map? payload) {
     _elapsedTimer?.cancel();
     const friendly = {
-      'insufficient_coins': 'Not enough coins. Please recharge.',
+      'insufficient_diamonds': 'Not enough Diamonds. Please recharge.',
       'skip_cooldown': "You're skipping too fast. Try again shortly.",
       'daily_skip_limit_reached': 'Daily skip limit reached.',
       'feature_disabled': 'Random Call is temporarily disabled by admin.',

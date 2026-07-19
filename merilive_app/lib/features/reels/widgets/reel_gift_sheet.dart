@@ -93,13 +93,13 @@ class _ReelGiftSheetState extends State<_ReelGiftSheet> {
       ? _all
       : _all.where((g) => g.category == _activeCategory).toList(growable: false);
 
-  int get _totalCost => (_selected?.coins ?? 0) * _quantity;
+  int get _totalCost => (_selected?.diamonds ?? 0) * _quantity;
 
   Future<void> _send() async {
     final gift = _selected;
     if (gift == null || _uid == null || _sending) return;
     if (_totalCost > _balance) {
-      _showToast('Not enough coins');
+      _showToast('Not enough Diamonds');
       return;
     }
     setState(() => _sending = true);
@@ -113,7 +113,7 @@ class _ReelGiftSheetState extends State<_ReelGiftSheet> {
     setState(() {
       _sending = false;
       if (res.success) {
-        _balance = res.newBalance ?? (_balance - (res.coinsSpent ?? _totalCost));
+        _balance = res.newBalance ?? (_balance - (res.diamondsSpent ?? _totalCost));
       }
     });
     if (res.success) {
@@ -308,7 +308,7 @@ class _ReelGiftSheetState extends State<_ReelGiftSheet> {
                     const Icon(Icons.diamond, size: 10, color: Color(0xFF7CC0FF)),
                     const SizedBox(width: 3),
                     Text(
-                      _formatCount(g.coins),
+                      _formatCount(g.diamonds),
                       style: const TextStyle(
                           color: Color(0xFF7CC0FF), fontSize: 11, fontWeight: FontWeight.w600),
                     ),

@@ -43,7 +43,7 @@ class IncomingCallPage extends StatefulWidget {
     @QueryParam('avatar') this.callerAvatar,
     @QueryParam('level') this.callerLevel = 1,
     @QueryParam('type') this.callType = 'video',
-    @QueryParam('cpm') this.coinsPerMinute = 0,
+    @QueryParam('cpm') this.diamondsPerMinute = 0,
     @QueryParam('auto') this.autoAccept = 0,
   });
 
@@ -53,7 +53,7 @@ class IncomingCallPage extends StatefulWidget {
   final String? callerAvatar;
   final int callerLevel;
   final String callType;
-  final int coinsPerMinute;
+  final int diamondsPerMinute;
   final int autoAccept;
 
   @override
@@ -308,7 +308,7 @@ class _IncomingCallPageState extends State<IncomingCallPage>
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            if (widget.coinsPerMinute > 0) ...[
+                            if (widget.diamondsPerMinute > 0) ...[
                               const SizedBox(width: 10),
                               Container(
                                 width: 1,
@@ -320,7 +320,7 @@ class _IncomingCallPageState extends State<IncomingCallPage>
                                   color: Color(0xFF60A5FA), size: 13),
                               const SizedBox(width: 3),
                               Text(
-                                '${widget.coinsPerMinute}/min',
+                                '${widget.diamondsPerMinute}/min',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,

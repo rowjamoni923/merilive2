@@ -41,7 +41,7 @@ class PartyRoomCard extends StatelessWidget {
       'truth_dare' => '🎯',
       'karaoke' => '🎤',
       'crash' => '🚀',
-      'coinflip' => '🪙',
+      'toss_match' => '💎',
       'mines' => '💎',
       'hilo' => '🂡',
       'slots' => '🎰',

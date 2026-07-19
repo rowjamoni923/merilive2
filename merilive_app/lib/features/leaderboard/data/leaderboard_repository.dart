@@ -50,7 +50,7 @@ class LeaderboardRepository {
     if (category == LeaderboardCategory.pkCompetition) return const [];
     final res = await _client
         .from('leaderboard_reward_config')
-        .select('rank_from,rank_to,reward_diamonds,reward_diamonds,reward_beans')
+        .select('rank_from,rank_to,reward_diamonds,reward_beans')
         .eq('category', category.dbKey)
         .eq('period_type', period.dbKey)
         .eq('is_active', true)
@@ -79,7 +79,7 @@ class LeaderboardRepository {
   Future<List<RewardTier>> fetchPkRewardTiers(String competitionId) async {
     final res = await _client
         .from('pk_competition_rewards')
-        .select('rank_from,rank_to,reward_diamonds,reward_diamonds,reward_beans')
+        .select('rank_from,rank_to,reward_diamonds,reward_beans')
         .eq('competition_id', competitionId)
         .eq('is_active', true)
         .order('rank_from');
